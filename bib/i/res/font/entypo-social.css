@@ -1,0 +1,7 @@
+@font-face {
+    font-family: 'Entypo Social';
+    src: url(./entypo-social.woff) format('woff'),
+         url(./entypo-social.ttf)  format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
