@@ -21,7 +21,7 @@
 	'<!-- base64.js - https://github.com/dankogai/js-base64 - Copyright: dankogai - Licensed under the MIT license. -->',
 		'<script src="./res/script/lib/base64.js"></script>',
 
-	'<!-- sML.js - Copyright: Satoru MATSUSHIMA - Licensed under the MIT license. -->',
+	'<!-- sML - http://sarasa.la/sML/ - Copyright: Satoru MATSUSHIMA - Licensed under the MIT license. -->',
 		'<script src="./res/script/lib/sML.js"></script>',
 
 	'<!-- BiB/i - http://sarasa.la/bib/i/ - Copyright: Satoru MATSUSHIMA - Licensed under the MIT license. -->',

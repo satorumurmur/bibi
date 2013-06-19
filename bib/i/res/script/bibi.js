@@ -7,7 +7,7 @@ I = BiB.i.Info = { // ==========================================================
 
 	Name        : "BiB/i",
 	Description : "EPUB Reader on Your Site.",
-	Copyright   : "Satoru MATSUSHIMA, All Rights Reserved.",
+	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License.",
 	Date        : "Tue June 19 08:45:00 2013 +0900",
 
@@ -1646,7 +1646,7 @@ O.createControls = function() {
 O.getLogo = function(Settings) {
 	return [
 		'<span class="bibi-logo"' + (Settings.ID ? ' id="' + Settings.ID + '"' : '') + '>',
-			(Settings.Linkify ? '<a href="' + I.WebSite + '" title="BiB/i Web Site" target="_blank">' : ''),
+			(Settings.Linkify ? '<a href="' + I.WebSite + '" title="BiB/i | Web Site" target="_blank">' : ''),
 				'<span class="bibi-type-B">B</span>',
 				'<span class="bibi-type-i">i</span>',
 				'<span class="bibi-type-B">B</span>',
