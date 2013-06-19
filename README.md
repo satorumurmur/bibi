@@ -1,4 +1,4 @@
-bibi
+BiB/i
 ====
 
-BiB/i | EPUB Reader on Your Site.
+EPUB Reader on Your Site.
