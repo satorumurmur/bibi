@@ -5,14 +5,16 @@
 
 sML = /* JavaScript Library */ (function() { var sML = {
 
-//	Name        : "sML JavaScript Library",
-//	Description : "I'm a Simple and Middling Library: for Small or Medium, or a Little bit Larger project.",
-//	Copyright   : "Satoru MATSUSHIMA",
-//	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-//	Date        : "Wed June 12 00:58:00 2013 +0900",
+	Name        : "sML JavaScript Library",
+	Description : "I'm a Simple and Middling Library.",
+	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
+	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
+	Date        : "Wed June 12 00:58:00 2013 +0900",
 
 	Version     : 0.992,
-	Build       : 20130612.0
+	Build       : 20130612.0,
+
+	WebSite     : "http://sarasa.la/sML"
 
 }
 

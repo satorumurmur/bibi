@@ -3,22 +3,20 @@
 
 
 
-I = BiB.i.Info = { // ==========================================================================================================================
+I = BiB.i.Info = {
 
 	Name        : "BiB/i",
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
-	Licence     : "Licensed Under the MIT License.",
+	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
 	Date        : "Tue June 19 08:45:00 2013 +0900",
 
 	Version     : 0.96, // alpha
 	Build       : 20130619.0,
 
-	WebSite     : "http://sarasa.la/bib/i/",
-	Twitter     : "http://twitter.com/bibilalalu",
-	Facebook    : "http://www.facebook.com/"
+	WebSite     : "http://sarasa.la/bib/i"
 
-} // ===========================================================================================================================================
+}
 
 
 
