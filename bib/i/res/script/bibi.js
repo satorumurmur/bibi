@@ -763,10 +763,10 @@ R.postprocessContents = function() {
 					A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
 					A.onclick = isNavigation ? function(e) {
 						sML.stopPropagation(e);
-						return R.focus(rItem, HrefHash);
+						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
 					} : function(e) {
 						var R = parent.R;
-						return R.focus(rItem, HrefHash);
+						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
 					};
 					Postprocessed.Linkage++;
 					return;
@@ -1296,11 +1296,10 @@ R.focus = function(Target, Hash, ScrollOption) {
 			if(S["page-progression-direction"] == "rtl") HashPoint += HashElement["offset" + S.SIZE.L];
 		}
 		Point += S["item-padding-" + tORl[0]] + HashPoint;
+	} else {
+		if(S["page-progression-direction"] == "rtl") Point += TargetPage["offset" + S.SIZE.L];
 	}
-	if(S["page-progression-direction"] == "rtl") {
-		Point += TargetPage["offset" + S.SIZE.L];
-		Point -= window["inner" + S.SIZE.L];
-	}
+	if(S["page-progression-direction"] == "rtl") Point -= window["inner" + S.SIZE.L];
 	sML.scrollTo((S["spread-layout-direction"] == "ttb" ? { y:Point } : { x:Point }), ScrollOption);
 	return false;
 }
@@ -1487,7 +1486,7 @@ O.createNotifier = function() {
 	N.Panel   = document.body.appendChild(sML.create("div", { id: "bibi-notifier-panel" }));
 	N.Mark    =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-mark", className: "animate" }));
 	N.Message =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-message", className: "animate" }));
-	N.Powered =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-powered", innerHTML: '<small>powered by</small> ' + O.getLogo({ Linkify: true }) }));
+	N.Powered =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-powered", innerHTML: O.getLogo({ Linkify: true }) }));
 	for(var i = 1; i <= 8; i++) N.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	// Drag & Drop
@@ -1669,6 +1668,7 @@ O.getLogo = function(Settings) {
 
 
 O.log = function(Lv, Message) {
+	if(Q.log == "false" || (parent && parent != window)) return;
 	if(!Message || typeof Message != "string") return;
 	status = 'BiB/i: ' + Message;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
