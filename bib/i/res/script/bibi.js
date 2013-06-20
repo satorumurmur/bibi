@@ -60,6 +60,7 @@ Q = BiB.i.Queries  = {};
 O.start = function() {
 
 	if(sML.OS.iOS || sML.OS.Android) {
+		O.SmartPhone = true;
 		var HTML = document.getElementsByTagName("html")[0];
 		sML.addClass(HTML, "device-" + sML.DN);
 		O.setOrientation = function() {
@@ -84,9 +85,6 @@ O.start = function() {
 	O.HTML = document.getElementsByTagName("html")[0];
 	O.Body = document.getElementsByTagName("body")[0];
 
-	O.createNotifier();
-	O.createControls();
-
 	R.Contents            = document.body.appendChild(sML.create("div", { id: "epub-contents"  }));
 	R.Asides              = document.body.appendChild(sML.create("div", { id: "epub-asides"    }));
 
@@ -94,10 +92,11 @@ O.start = function() {
 	R.Metafiles.Container =   R.Metafiles.appendChild(sML.create("div", { id: "epub-container" }));
 	R.Metafiles.Package   =   R.Metafiles.appendChild(sML.create("div", { id: "epub-package"   }));
 
-	R.getQueries();
+	O.createNotifier();
+	O.createControls();
 
-	R.loadPreset(Q.p);
-	R.loadEPUB(Q.b);
+	R.getQueries();
+	R.waitEPUB();
 
 }
 
@@ -126,11 +125,121 @@ R.getQueries = function() {
 
 
 
-R.loadPreset = function(Preset) {
+R.waitEPUB = function() {
+
+	var Book = Q.b ? Q.b : "";
+
+	if(typeof Book != "string" || !Book || /\//.test(Book)) {
+		// File Open or Stop
+		if(window.File) {
+			N.Panel.appendChild(sML.createElement("p", { id: "bibi-drop" }));
+			return N.note('Drop an EPUB into this window.');
+		} else {
+			return N.note('Tell me EPUB name via URL in address-bar.');
+		}
+	} else {
+		R.loadEPUB = /\.epub$/i.test(Book) ? function() {
+			// EPUB XHR
+			O.log(2, 'Loading EPUB...');
+			sML.addClass(N.Panel, "animate");
+			N.note('Loading ...');
+			O.log(3, '"' + Book + '"');
+			sML.Ajax.open("../bookshelf/" + Book, {
+				mimetype: "text/plain;charset=x-user-defined",
+				onsuccess: function(FileContent) {
+					O.log(2, 'Loaded.');
+					R.initialize({
+						Name: Book.replace(/\.epub$/, ""),
+						Format: "EPUB",
+						Zipped: true,
+						Content: FileContent
+					});
+					R.Chain.start();
+				},
+				onfailed: function() {
+					O.log(2, 'Failed.');
+					sML.removeClass(N.Panel, "animate");
+					N.note('Failed. Check and try again, or Drop an EPUB into this window.');
+				}
+			});
+		} : function() {
+			// EPUB Folder
+			sML.addClass(N.Panel, "animate");
+			N.note('Loading ...');
+			R.initialize({
+				Name: Book,
+				Format: "EPUB",
+				Zipped: false,
+				Content: ""
+			});
+			R.Chain.start();
+		}
+		if(Q.wait || (parent && parent != window && !Q.autostart)) {
+			N.Panel.appendChild(sML.createElement("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/, "")); } : function() {
+				R.loadEPUB();
+				this.onclick = "";
+				sML.CSS.set(this, { opacity: 0, cursor: "default" });
+			} }));
+			return N.note('<a href="' + location.href.replace(/&wait=[^&]+/, "") + '" target="_blank">open in new window.</a>');
+		}
+		R.loadEPUB();
+	}
+
+}
+
+
+
+R.initialize = function(Settings) {
+
+	O.HTML.removeAttribute("class");
+
+	sML.addClass(R.Contents, "processing");
+
+	B = {
+		Name: Settings.Name,
+		Zipped: Settings.Zipped,
+		container: { path: "META-INF/container.xml" },
+		package: {}
+	};
+
+	A = {
+		Zip: Settings.Content,
+		Files: {},
+		FileDigit: 3
+	};
+
+	R.Chain = new sML.Chain(
+		R.loadPreset,
+		(B.Zipped ? R.extractEPUB : function() { R.Chain.next(); }),
+		R.readContainer,
+		R.readPackageDocument,
+		(B.Zipped ? R.preprocessContents : function() { R.Chain.next(); }),
+		R.loadNavigationDocument,
+		R.loadSpineItems,
+		R.postprocessContents,
+		R.finish
+	);
+
+}
+
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Loading
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+R.loadPreset = function() {
 
 	O.log(2, 'Loading Preset...');
 
-	P.file = (typeof Preset == "string" && Preset && !/\//.test(Preset)) ? Preset + (/\.js$/i.test(Preset) ? "" : ".js") : "default.js";
+	P.file = (typeof Q.p == "string" && Q.p && !/\//.test(Q.p)) ? Q.p + (/\.js$/i.test(Q.p) ? "" : ".js") : "default.js";
 
 	O.log(3, '"' + P.file + '"');
 
@@ -164,102 +273,9 @@ R.loadPreset = function(Preset) {
 	PresetScript.id = "bibi-preset";
 
 	O.log(2, 'Loaded.');
+	R.Chain.next();
 
 }
-
-
-
-R.loadEPUB = function(Book) {
-
-	if(typeof Book != "string" || !Book || /\//.test(Book)) {
-		if(window.File) {
-			// File Open
-			N.note('Drop an EPUB Here.', "withLogo");
-		} else {}
-	} else {
-		if(/\.epub$/i.test(Book)) {
-			// EPUB XHR
-			O.log(2, 'Loading EPUB...');
-			sML.addClass(N.Panel, "animate");
-			N.note('');
-			O.log(3, '"' + Book + '"');
-			sML.Ajax.open("../bookshelf/" + Book, {
-				mimetype: "text/plain;charset=x-user-defined",
-				onsuccess: function(FileContent) {
-					O.log(2, 'Loaded.');
-					R.initialize({
-						Name: Book.replace(/\.epub$/, ""),
-						Format: "EPUB",
-						Zipped: true,
-						Content: FileContent
-					});
-					R.Chain.start();
-				},
-				onfailed: function() {
-					O.log(2, 'Failed.');
-					sML.removeClass(N.Panel, "animate");
-					N.note('Failed. Check and Try Again,<br />or Drop an EPUB Here.', "withLogo");
-				}
-			});
-		} else {
-			// EPUB Folder
-			sML.addClass(N.Panel, "animate");
-			R.initialize({
-				Name: Book,
-				Format: "EPUB",
-				Zipped: false,
-				Content: ""
-			});
-			R.Chain.start();
-		}
-	}
-
-}
-
-
-
-R.initialize = function(Settings) {
-
-	O.HTML.removeAttribute("class");
-
-	sML.addClass(R.Contents, "processing");
-
-	B = {
-		Name: Settings.Name,
-		Zipped: Settings.Zipped,
-		container: { path: "META-INF/container.xml" },
-		package: {}
-	};
-
-	A = {
-		Zip: Settings.Content,
-		Files: {},
-		FileDigit: 3
-	};
-
-	R.Chain = new sML.Chain(
-		(B.Zipped ? R.extractEPUB : function() { R.Chain.next(); }),
-		R.readContainer,
-		R.readPackageDocument,
-		(B.Zipped ? R.preprocessContents : function() { R.Chain.next(); }),
-		R.loadNavigationDocument,
-		R.loadSpineItems,
-		R.postprocessContents,
-		R.finish
-	);
-
-}
-
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Loading
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -314,7 +330,7 @@ R.readContainer = function(FileContent) {
 				onfailed: function() {
 					O.log(2, 'Failed.');
 					sML.removeClass(N.Panel, "animate");
-					N.note('Failed. Check and Try Again,<br />or Drop an EPUB Here.', "withLogo");
+					N.note('Failed. Check and try again, or drop an EPUB into this window.');
 				}
 			});
 		}
@@ -344,7 +360,7 @@ R.readPackageDocument = function(FileContent) {
 				onfailed: function() {
 					O.log(2, 'Failed.');
 					sML.removeClass(N.Panel, "animate");
-					N.note('Failed. Check and Try Again,<br />or Drop an EPUB Here.', "withLogo");
+					N.note('Failed. Check and try again, or drop an EPUB into this window.');
 				}
 			});
 		}
@@ -566,7 +582,7 @@ R.loadNavigationDocument = function(FileContent) {
 				onfailed: function() {
 					O.log(2, 'Failed.');
 					sML.removeClass(N.Panel, "animate");
-					N.note('Failed. Check and Try Again,<br />or Drop an EPUB Here.', "withLogo");
+					N.note('Failed. Check and try again, or drop an EPUB into this window.');
 				}
 			});
 		}
@@ -850,12 +866,8 @@ R.finish = function() {
 			"transition", "opacity 1s linear",
 			"opacity", 0.75
 		], function() {
-			setTimeout(function() {/*
-				if(S["spread-layout-direction"] != "rtl") {
-					window.scrollTo(0, 0);
-				} else {
-					window.scrollTo(document.body["scroll" + S.SIZE.L] - document.body["client" + S.SIZE.L], 0);
-				}*/
+			setTimeout(function() {
+				window.scrollTo(S["spread-layout-direction"] == "rtl" ? document.body["scroll" + S.SIZE.L] - document.body["client" + S.SIZE.L] : 0, 0);
 				R.Contents.addEventListener(sML.CSS.TransitionEnd, function() {
 					this.removeEventListener(sML.CSS.TransitionEnd, arguments.callee);
 					sML.each([C.Go, C.Switch], function() { sML.CSS.set(this, { opacity: 1 }); });
@@ -895,8 +907,6 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 	if(Setting && Setting.NoLog)   { NoLog   = true; delete Setting.NoLog;   }
 
 	if(!NoLog) O.log(2, 'Laying Out...');
-
-	//sML.addClass(R.Contents, "processing");
 
 	var Progress = ProgressArrayInTargetItem;
 	if(!TargetItem) {
@@ -1104,8 +1114,6 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 		}
 	}, 10);
 
-//	sML.removeClass(R.Contents, "processing");
-
 	R.LayoutCanceled--;
 	setTimeout(function() {
 		R.ResizeTriggerCanceled--;
@@ -1256,8 +1264,14 @@ R.getCurrent = function(What, wCoord) {
 
 
 R.focus = function(Target, Hash, ScrollOption) {
-	if(typeof Target.ItemIndex == "number") var TargetPage = Target.Pages[0], TargetItem = Target;
-	else                                    var TargetPage = Target,          TargetItem = Target.Item;
+	if(!ScrollOption) ScrollOption = { p:0.33, t:20 };
+	if(typeof Target == "string") {
+		if(S["spread-layout-direction"] == "rtl") Target = (Target == "head") ? "foot" : "head";
+		var Point = (Target == "head") ? 0 : document.body["scroll" + S.SIZE.L] - document.body["client" + S.SIZE.L];
+		sML.scrollTo((S["spread-layout-direction"] == "ttb" ? { y:Point } : { x:Point }), ScrollOption);
+		return false;
+	} else if(typeof Target.ItemIndex == "number") var TargetPage = Target.Pages[0], TargetItem = Target;
+	  else if(typeof Target.PageIndex == "number") var TargetPage = Target,          TargetItem = Target.Item;
 	var CurrentPage = R.getCurrent("page");
 	if(S["book-display-mode"] != "all" && TargetItem != CurrentPage.Item) R.layout({ Reflash: false, NoLog: true }, TargetItem, [TargetPage.PageIndexInItem, TargetItem.Pages.length]);
 	if(S["spread-layout-direction"] == "ttb") var TorL = ["Top", "Left"], tORl = ["top", "left"];
@@ -1287,7 +1301,7 @@ R.focus = function(Target, Hash, ScrollOption) {
 		Point += TargetPage["offset" + S.SIZE.L];
 		Point -= window["inner" + S.SIZE.L];
 	}
-	sML.scrollTo((S["spread-layout-direction"] == "ttb" ? { y:Point } : { x:Point }), ScrollOption ? ScrollOption : { p:0.75, t:20 });
+	sML.scrollTo((S["spread-layout-direction"] == "ttb" ? { y:Point } : { x:Point }), ScrollOption);
 	return false;
 }
 
@@ -1296,7 +1310,8 @@ R.focus = function(Target, Hash, ScrollOption) {
 R.page = function(bfPM) { // bfPM = "back" ? -1 : 1;
 	var CurrentPage = R.getCurrent("page");
 	var TargetPageIndex = CurrentPage.PageIndex + bfPM;
-	if(TargetPageIndex < 0 || R.Pages.length - 1 < TargetPageIndex) return false;
+	if(bfPM < 0 && TargetPageIndex <                  0) return R.focus("head");
+	if(bfPM > 0 && TargetPageIndex > R.Pages.length - 1) return R.focus("foot");
 	var rlPM = (S["spread-layout-direction"] == "rtl") ? -1 : +1;
 	var TargetPage = R.Pages[TargetPageIndex];
 	var wCoord = sML.getCoord(window);
@@ -1408,12 +1423,7 @@ O.createNotifier = function() {
 		OpeningTransition: "0.4s ease-out",
 		ClosingTransition: "0.4s ease-in",
 
-		note: function(Note, withLogo) {
-			if(withLogo) Note += [
-				'<span style="display:block; margin-top:1em; text-align:center; font-size:15px;">',
-					'- <span style="font-size:12px;">powered by</span> ' + O.getLogo({ Linkify: true }) + ' -',
-				'</span>'
-			].join("");
+		note: function(Note) {
 			N.Message.innerHTML = Note;
 		},
 
@@ -1474,9 +1484,10 @@ O.createNotifier = function() {
 
 	}
 
-	N.Panel   = document.body.appendChild(sML.create("div", { id: "bibi-navigator-panel" }));
-	N.Message =       N.Panel.appendChild(sML.create("p",   { id: "bibi-navigator-message", className: "animate" }));
-	N.Mark    =       N.Panel.appendChild(sML.create("p",   { id: "bibi-navigator-mark", className: "animate" }));
+	N.Panel   = document.body.appendChild(sML.create("div", { id: "bibi-notifier-panel" }));
+	N.Mark    =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-mark", className: "animate" }));
+	N.Message =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-message", className: "animate" }));
+	N.Powered =       N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-powered", innerHTML: '<small>powered by</small> ' + O.getLogo({ Linkify: true }) }));
 	for(var i = 1; i <= 8; i++) N.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	// Drag & Drop
@@ -1487,14 +1498,14 @@ O.createNotifier = function() {
 		N.Panel.addEventListener("drop",      function(e) { e.preventDefault(); document.body.style.opacity = 1.0;
 			var BookFile = e.dataTransfer.files[0];
 			if(!BookFile.size || BookFile.type != "application/epub+zip") {
-				N.note('Give Me <span style="color:rgb(128,128,128);">EPUB</span>. Drop Here.');
+				N.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 			} else {
 				O.log(2, 'Loading EPUB...');
 				sML.addClass(N.Panel, "animate");
 				var Book = BookFile.name;
 				O.log(3, '"' + Book + '"');
 				sML.setMembers(new FileReader(), {
-					onerror : function() { document.body.style.opacity = 1.0; N.note('Error. Something Trouble...'); },
+					onerror : function() { document.body.style.opacity = 1.0; N.note('Error. Something trouble...'); },
 					onload  : function() {
 						var FR = this;
 						O.log(2, 'Loaded.');

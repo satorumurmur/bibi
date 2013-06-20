@@ -17,7 +17,7 @@ P = BiB.i.Preset = {
 	"spread-margin-start_narrow-device" : 4,                            // px
 	"spread-margin-end_narrow-device"   : 4,                            // px
 
-	"spread-orientation"                : "portrait",                   // "portrait" or "landscape" or "window"
+	"spread-orientation"                : "auto",                       // "portrait" or "landscape" or "auto"
 	"spread-min-length"                 : "auto",                       // "self" or "window" or "auto"
 	"spread-min-length_single-image"    : "auto",                       // "self" or "window" or "auto"
 	"spread-border-radius"              : "2px",                        // CSS or ""
