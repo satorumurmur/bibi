@@ -11,7 +11,7 @@ I = BiB.i.Info = {
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
 	Date        : "Tue June 19 08:45:00 2013 +0900",
 
-	Version     : 0.96, // alpha
+	Version     : 0.96, // beta
 	Build       : 20130619.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
