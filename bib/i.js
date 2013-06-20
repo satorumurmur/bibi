@@ -1,9 +1,12 @@
-// for BiB/i
+// for BiB/i - http://sarasa.la/bib/i
 
 (function() {
-	if(document.body.getAttribute('data-bibi-status')) return;
-	document.body.setAttribute('data-bibi-status', "embedding");
-	window.addEventListener("load", function() {
+	if(window["bibi-status"]) return;
+	window["bibi-status"] = "waiting";
+	var embedBiBi = function() {
+		if(window["bibi-status"] != "waiting") return;
+		window["bibi-status"] = "processing";
+		var SmartPhone = /((iPod|iPhone|iPad)( Simulator)?;|Android )/.test(navigator.userAgent);
 		var BiBiAs = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function() {
 			var BiBiAs = [], As = document.body.getElementsByTagName("a");
 			for(var L = As.length, i = 0; i < L; i++) if(As[i].getAttribute("data-bibi")) BiBiAs.push(As[i]);
@@ -12,7 +15,7 @@
 		for(var L = BiBiAs.length, i = 0; i < L; i++) {
 			var Href = BiBiAs[i].getAttribute("href");
 			if(!Href) continue;
-			if(/((iPod|iPhone|iPad)( Simulator)?;|Android )/.test(navigator.userAgent)) Href = Href.replace(/&wait=[^&]+/, "") + "&wait=true";
+			if(SmartPhone) Href = Href.replace(/&wait=[^&]+/, "") + "&wait=true";
 			var IFrame = document.createElement("iframe");
 			IFrame.setAttribute("frameborder",  0);
 			IFrame.setAttribute("scrolling", "yes");
@@ -21,6 +24,8 @@
 			BiBiAs[i].style.display = "none";
 			BiBiAs[i].parentNode.insertBefore(IFrame, BiBiAs[i]);
 		}
-		document.body.setAttribute('data-bibi-status', "embeded");
-	}, false);
+		window["bibi-status"] = "processed";
+	}
+	document.addEventListener("DOMContentLoaded", embedBiBi, false);
+	  window.addEventListener("load",           embedBiBi, false);
 })();

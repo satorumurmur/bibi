@@ -765,7 +765,6 @@ R.postprocessContents = function() {
 						sML.stopPropagation(e);
 						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
 					} : function(e) {
-						var R = parent.R;
 						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
 					};
 					Postprocessed.Linkage++;
