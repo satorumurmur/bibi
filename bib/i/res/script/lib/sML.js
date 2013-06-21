@@ -9,10 +9,10 @@ sML = /* JavaScript Library */ (function() { var sML = {
 	Description : "I'm a Simple and Middling Library.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Wed June 12 00:58:00 2013 +0900",
+	Date        : "Wed June 21 12:00:00 2013 +0900",
 
-	Version     : 0.992,
-	Build       : 20130612.0,
+	Version     : 0.993,
+	Build       : 20130621.0,
 
 	WebSite     : "http://sarasa.la/sML"
 
@@ -390,7 +390,7 @@ sML.create = sML.createElement = function(tagName, M, S) {
 
 sML.changeClass = sML.changeClassName = function(E, CN) {
 	if(CN) E.className = CN;
-	else /*@ E.removeAttribute("className"); // @*/ E.removeAttribute("class");
+	else /*@cc_on E.removeAttribute("className"); // @*/ E.removeAttribute("class");
 	return E.className;
 }
 
