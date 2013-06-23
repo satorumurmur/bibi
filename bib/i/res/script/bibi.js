@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue June 23 09:20:00 2013 +0900",
+	Date        : "Tue June 24 07:46:00 2013 +0900",
 
-	Version     : 0.961, // beta
-	Build       : 20130623.0,
+	Version     : 0.963, // beta
+	Build       : 20130624.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 

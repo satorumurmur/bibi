@@ -441,6 +441,138 @@ div#bibi-notifier-panel p#bibi-notifier-powered {
     -webkit-filter: blur(0);
   }
 }
+@-moz-keyframes fade {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}
+@-moz-keyframes rotate {
+  0% {
+    -webkit-transform: rotate(0);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@-moz-keyframes rotate-scale-blur {
+  0% {
+    -webkit-transform: rotate(0) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+  50% {
+    -webkit-transform: rotate(180deg) scale(1.1);
+    -webkit-filter: blur(1px);
+  }
+  100% {
+    -webkit-transform: rotate(360deg) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+}
+@-ms-keyframes fade {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}
+@-ms-keyframes rotate {
+  0% {
+    -webkit-transform: rotate(0);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@-ms-keyframes rotate-scale-blur {
+  0% {
+    -webkit-transform: rotate(0) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+  50% {
+    -webkit-transform: rotate(180deg) scale(1.1);
+    -webkit-filter: blur(1px);
+  }
+  100% {
+    -webkit-transform: rotate(360deg) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+}
+@-o-keyframes fade {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}
+@-o-keyframes rotate {
+  0% {
+    -webkit-transform: rotate(0);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@-o-keyframes rotate-scale-blur {
+  0% {
+    -webkit-transform: rotate(0) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+  50% {
+    -webkit-transform: rotate(180deg) scale(1.1);
+    -webkit-filter: blur(1px);
+  }
+  100% {
+    -webkit-transform: rotate(360deg) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+}
+@keyframes fade {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}
+@keyframes rotate {
+  0% {
+    -webkit-transform: rotate(0);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes rotate-scale-blur {
+  0% {
+    -webkit-transform: rotate(0) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+  50% {
+    -webkit-transform: rotate(180deg) scale(1.1);
+    -webkit-filter: blur(1px);
+  }
+  100% {
+    -webkit-transform: rotate(360deg) scale(0.9);
+    -webkit-filter: blur(0);
+  }
+}
 div#bibi-notifier-panel.animate p#bibi-notifier-message,
 div#bibi-notifier-panel.animate p#bibi-notifier-mark {
   -webkit-animation-timing-function: linear;
@@ -546,6 +678,7 @@ html.spread-ttb div#epub-contents {
   -webkit-writing-mode: horizontal-tb;
   -epub-writing-mode: horizontal-tb;
   -moz-writing-mode: horizontal-tb;
+  -ms-writing-mode: lr-tb;
   -ms-writing-mode: horizontal-tb;
   -o-writing-mode: horizontal-tb;
   writing-mode: lr-tb;
@@ -555,6 +688,7 @@ html.spread-ltr div#epub-contents {
   -webkit-writing-mode: vertical-lr;
   -epub-writing-mode: vertical-lr;
   -moz-writing-mode: vertical-lr;
+  -ms-writing-mode: tb-lr;
   -ms-writing-mode: vertical-lr;
   -o-writing-mode: vertical-lr;
   writing-mode: tb-lr;
@@ -564,6 +698,7 @@ html.spread-rtl div#epub-contents {
   -webkit-writing-mode: vertical-rl;
   -epub-writing-mode: vertical-rl;
   -moz-writing-mode: vertical-rl;
+  -ms-writing-mode: tb-rl;
   -ms-writing-mode: vertical-rl;
   -o-writing-mode: vertical-rl;
   writing-mode: tb-rl;
@@ -1078,6 +1213,7 @@ html.spread-ltr div#bibi-control-bar div#bibi-control-navigation div#bibi-contro
   -webkit-writing-mode: horizontal-tb;
   -epub-writing-mode: horizontal-tb;
   -moz-writing-mode: horizontal-tb;
+  -ms-writing-mode: lr-tb;
   -ms-writing-mode: horizontal-tb;
   -o-writing-mode: horizontal-tb;
   writing-mode: lr-tb;
@@ -1160,6 +1296,7 @@ html.spread-rtl div#bibi-control-bar div#bibi-control-navigation div#bibi-contro
   -webkit-writing-mode: vertical-rl;
   -epub-writing-mode: vertical-rl;
   -moz-writing-mode: vertical-rl;
+  -ms-writing-mode: tb-rl;
   -ms-writing-mode: vertical-rl;
   -o-writing-mode: vertical-rl;
   writing-mode: tb-rl;
