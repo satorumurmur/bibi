@@ -119,7 +119,7 @@ R.getQueries = function() {
 	if(Q.bdm)                        Q.dm  = Q.dm;
 	if(Q["spread-layout-direction"]) Q.sld = Q["spread-layout-direction"];
 	if(Q.sld)                        Q.sd  = Q.sld;
-	if(Q["spread-orientation"])      Q.so  = Q["spread-orientation"];
+	if(Q["page-orientation"])        Q.po  = Q["page-orientation"];
 }
 
 
@@ -267,7 +267,7 @@ R.loadPreset = function() {
 			if(P["spread-separation"] % 2) P["spread-separation"]++;
 			if(typeof Q.dm == "string" && /^(all|spread|item)$/.test(                     Q.dm)) P["book-display-mode"      ] = Q.dm;
 			if(typeof Q.sd == "string" && /^(ttb|ltr|rtl|vertical|horizontal|auto)$/.test(Q.sd)) P["spread-layout-direction"] = Q.sd;
-			if(typeof Q.so == "string" && /^(portrait|landscape|auto|window)$/.test(      Q.so)) P["spread-orientation"     ] = Q.so;
+			if(typeof Q.po == "string" && /^(portrait|landscape|auto|window)$/.test(      Q.po)) P["page-orientation"       ] = Q.po;
 			if(sML.UA.InternetExplorer || sML.UA.Gecko || sML.UA.Opera) {
 				P["book-display-mode"] = "all";
 				P["spread-layout-direction"] = "ttb";
@@ -918,9 +918,11 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 		TargetItem = Current.Item;
 		Progress = [Current.Page.PageIndexInItem, Current.Item.Pages.length];
 	} else if(TargetItem == "head") {
-		if(S["spread-layout-direction"] == "rtl") TargetItem = "foot";
+		     if(S["book-display-mode"] != "all") TargetItem = R.Items[0], Progress = [0, 1];
+		else if(S["spread-layout-direction"] == "rtl") TargetItem = "foot";
 	} else if(TargetItem == "foot") {
-		if(S["spread-layout-direction"] == "rtl") TargetItem = "head";
+		     if(S["book-display-mode"] != "all") TargetItem = R.Items[R.Items.length - 1], Progress = [0, 1];
+		else if(S["spread-layout-direction"] == "rtl") TargetItem = "head";
 	} else if(typeof Progress != "object" || Progress.length != 2) {
 		Progress = [0, 1];
 	} else {
@@ -932,10 +934,10 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 	R.updateSetting(Setting);
 
 	if(!NoLog) {
-		O.log(3, '"book-display-mode":          "' + S["book-display-mode"]          + '"');
-		O.log(3, '"spread-layout-direction":    "' + S["spread-layout-direction"]    + '"');
+		O.log(3, '"book-display-mode": "'          + S["book-display-mode"]          + '"');
+		O.log(3, '"spread-layout-direction": "'    + S["spread-layout-direction"]    + '"');
 		O.log(3, '"page-progression-direction": "' + S["page-progression-direction"] + '"');
-		O.log(3, '"spread-orientation":         "' + S["spread-orientation"]         + '"');
+		O.log(3, '"page-orientation": "'           + S["page-orientation"]           + '"');
 	}
 
 	//sML.each(R.Items, function() { this.Spread.style.display = this.Box.style.display = "block"; });
@@ -1008,13 +1010,13 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 			// -- Reflowable
 				Item.scrolling = "no";
 				var isSingleImageItem = (!Item.HTML.innerText && Item.HTML.getElementsByTagName("img").length == 1);
-				var SpreadMinLength = isSingleImageItem ? S["spread-min-length_single-image"] : S["spread-min-length"];
+				var SpreadMinLength = isSingleImageItem ? "auto" : "self";
 				var PageB = WindowB;
 				var PageL = WindowL;
 				var PageGap = S["item-padding-" + S.BASE.a] + S["spread-separation"] + S["item-padding-" + S.BASE.b];
-				if(S["spread-orientation"] == "portrait" || S["spread-orientation"] == "landscape") {
+				if(S["page-orientation"] == "portrait" || S["page-orientation"] == "landscape") {
 					var Ratio = 1.414 / 0.96;
-					if((S.SIZE.l == "width" && S["spread-orientation"] == "portrait") || (S.SIZE.l == "height" && S["spread-orientation"] == "landscape")) Ratio = 1 / Ratio;
+					if((S.SIZE.l == "width" && S["page-orientation"] == "portrait") || (S.SIZE.l == "height" && S["page-orientation"] == "landscape")) Ratio = 1 / Ratio;
 					PageL = Math.min(WindowL, Math.floor(PageB * Ratio));
 				}
 				Spread.style[S.SIZE.b] = Box.style[S.SIZE.b] = PageB + (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]) + "px";
@@ -1059,17 +1061,17 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 					Page.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + S["spread-separation"] / 2 + "px";
 					Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
 					Page.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
-					Page.style[S.SIZE.b] = PageB + "px";
-					Page.style[S.SIZE.l] = PageL + "px";
-					Page.style[S.BASE.b] = (PageL + PageGap) * i - S["spread-separation"] / 2 + "px";
-					Page.PageIndex       =    R.Pages.length;    R.Pages.push(Page);
-					Page.PageIndexInItem = Item.Pages.length; Item.Pages.push(Page);
+					Page.style[            S.SIZE.b] = PageB + "px";
+					Page.style[            S.SIZE.l] = PageL + "px";
+					Page.style[            S.BASE.b] = (PageL + PageGap) * i - S["spread-separation"] / 2 + "px";
+					Page.PageIndex                   =    R.Pages.length;    R.Pages.push(Page);
+					Page.PageIndexInItem             = Item.Pages.length; Item.Pages.push(Page);
 					Page.Item = Item;
 				}
 				if(Pages > 1) {
 					var LastPage = sML.lastOf(Item.Pages);
-					LastPage.style[S.BASE.b] = "";
-					LastPage.style[S.BASE.a] = S["spread-separation"] / 2 * -1 + "px";
+					LastPage.style[        S.BASE.b] = "";
+					LastPage.style[        S.BASE.a] = S["spread-separation"] / 2 * -1 + "px";
 				}
 			}
 		});
@@ -1133,7 +1135,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 
 R.changeView = function(Setting) {
 	if(!Setting) Setting = {};
-	Setting.Reflesh = (Setting["spread-layout-direction"] || Setting["spread-orientation"]);
+	Setting.Reflesh = (Setting["spread-layout-direction"] || Setting["page-orientation"]);
 	var Current = R.getCurrent();
 	sML.style(R.Contents, [
 		"transition", "opacity 0.5s linear",
@@ -1189,10 +1191,10 @@ R.updateSetting = function(Setting) {
 
 	// Shortening
 	S.DM = S.DisplayMode       = S["book-display-mode"];
-	S.PD = S.PageDir           = S["page-progression-direction"];
 	S.SD = S.SpreadDir         = S["spread-layout-direction"];
-	S.SO = S.SpreadOrientation = S["spread-orientation"];
 	S.SS = S.SpreadSeparation  = S["spread-separation"];
+	S.PD = S.PageDir           = S["page-progression-direction"];
+	S.PO = S.PageOrientation   = S["page-orientation"];
 
 	// Layout Dictionary
 	if(S.SD == "ttb") {

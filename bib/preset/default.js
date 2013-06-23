@@ -3,9 +3,11 @@ P = BiB.i.Preset = {
 	name                                : "BiB/i Default",              // "Name of this preset. As you like."
 	description                         : "Default Preset.",            // "Description of this preset. As you like."
 
-	"book-display-mode"                 : "all",                        // "all" or "spread" or "item"
-	"spread-layout-direction"           : "auto",                       // "auto" or "vertical" or "horizontal"
+
+	"book-display-mode"                 : "item",                        // "all" or "spread" or "item"
 	"page-progression-direction"        : "ltr",                        // "ltr" or "rtl" ("ltr" is recommended.)
+	"spread-layout-direction"           : "auto",                       // "auto" or "vertical" or "horizontal"
+	"page-orientation"                  : "auto",                       // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
 
 	"book-background"                   : "rgb(64,64,64)",              // CSS or ""
 
@@ -17,9 +19,6 @@ P = BiB.i.Preset = {
 	"spread-margin-start_narrow-device" : 4,                            // px
 	"spread-margin-end_narrow-device"   : 4,                            // px
 
-	"spread-orientation"                : "auto",                       // "portrait" or "landscape" or "auto"
-	"spread-min-length"                 : "auto",                       // "self" or "window" or "auto"
-	"spread-min-length_single-image"    : "auto",                       // "self" or "window" or "auto"
 	"spread-border-radius"              : "2px",                        // CSS or ""
 	"spread-box-shadow"                 : "0 1px 4px rgba(0,0,0,0.75)", // CSS or ""
 
@@ -38,13 +37,3 @@ P = BiB.i.Preset = {
 	"center-end-spreads"                : true,                         // true or false (no quotes required)
 
 loaded: true } // do not edit.
-
-
-
-/* 
-
-
-□ 指定マニュアル readme.txt をご参照ください。
-
-
-*/
