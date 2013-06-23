@@ -33,6 +33,3 @@ BiB = { is: "abbreviation of Books-in-Browsers." };  /* and */  BiB.i = { is: "E
 		'<script src="./res/script/bibi.js"></script>'
 
 );
-
-
-
