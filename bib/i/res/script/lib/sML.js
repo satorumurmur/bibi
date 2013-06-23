@@ -9,10 +9,10 @@ sML = /* JavaScript Library */ (function() { var sML = {
 	Description : "I'm a Simple and Middling Library.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Wed June 21 12:00:00 2013 +0900",
+	Date        : "Wed June 23 09:19:00 2013 +0900",
 
-	Version     : 0.993,
-	Build       : 20130621.0,
+	Version     : 0.999,
+	Build       : 20130623.0,
 
 	WebSite     : "http://sarasa.la/sML"
 
@@ -44,12 +44,16 @@ sML.DeviceName = sML.DN = (function(nUA, v2n) {
 		Safari           : ((nUA.indexOf("Safari/")     > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).+$/)     : undefined),
 		Chrome           : ((nUA.indexOf("Chrome/")     > -1) ? v2n(nUA, /^.+Chrome\/([\d\.]+).+$/)      : undefined),
 		Gecko            : ((nUA.indexOf("Gecko/")      > -1) ? v2n(nUA, /^.+rv\:([\d\.]+).+$/)          : undefined),
+		Firefox          : ((nUA.indexOf("Firefox/")    > -1) ? v2n(nUA, /^.+Firefox\/([\d\.]+).+$/)     : undefined),
 		Presto           : ((nUA.indexOf("Presto")      > -1) ? v2n(nUA, /^.+Presto\/([\d\.]+).+$/)      : undefined),
 		Opera            : ((nUA.indexOf("Opera/")      > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/)     : undefined),
+		Trident          : undefined,
 		InternetExplorer : undefined,
 		Flash            : undefined
 	}
 	if(sML.OS.OSX)     return "Mac";
+	if(sML.OS.Windows) return "PC";
+	if(sML.OS.Linux)   return "PC";
 	if(sML.OS.iOS)     return nUA.replace(/^.+?(iPod|iPhone|iPad)( Simulator)?;.+$/, "$1");
 	if(sML.OS.Android) return nUA.replace(/^.+?\(.+?; ([^;]+)\).+$/, "$1");
 	return "";
@@ -66,30 +70,20 @@ try {
 } catch(e) {}
 
 /*@cc_on
-	sML.UA.InternetExplorer = document.documentMode ? document.documentMode : ((navigator.userAgent.indexOf("MSIE 7") > -1) ? 7 : 1);
+	sML.UA.Trident = sML.UA.InternetExplorer = document.documentMode ? document.documentMode : ((navigator.userAgent.indexOf("MSIE 7") > -1) ? 7 : 1);
 	try {
 		var fAX = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7"); // Farewell to Flash Player Under-7
 		sML.UA.Flash = parseFloat(fAX.GetVariable("$version").replace(/^[^\d]+(\d+)\,([\d\,]+)$/, "$1.$2").replace(/\,/g, ""));
 	} catch(e) {}
 @*/
 
-sML.OS.Apple     = sML.OS.Apl = (sML.OS.OSX || sML.OS.iOS);
-sML.OS.Microsoft = sML.OS.MS  = (sML.OS.Windows);
-sML.OS.Google    = sML.OS.Ggl = (sML.OS.Android || sML.OS.Chrome);
+sML.OS.Mac = sML.OS.OSX, sML.OS.Win = sML.OS.Windows, sML.OS.Lin = sML.OS.Linux, sML.OS.And = sML.OS.Android;
 
-sML.OS.Mac = sML.OS.OSX;
-sML.OS.Win = sML.OS.Windows;
-sML.OS.Lin = sML.OS.Linux;
-sML.OS.And = sML.OS.Android;
-
-sML.UA.WK = sML.UA.WebKit;
-sML.UA.Sa = sML.UA.Safari;
-sML.UA.Ch = sML.UA.Chrome;
-sML.UA.Ge = sML.UA.Gecko;
-sML.UA.Pr = sML.UA.Presto;
-sML.UA.Op = sML.UA.Opera;
-sML.UA.IE = sML.UA.InternetExplorer;
-sML.UA.FP = sML.UA.Flash;
+sML.UA.WK = sML.UA.WebKit,  sML.UA.Sa = sML.UA.Safari, sML.UA.Ch = sML.UA.Chrome;
+sML.UA.Ge = sML.UA.Gecko,   sML.UA.Fx = sML.UA.Firefox;
+sML.UA.Pr = sML.UA.Presto,  sML.UA.Op = sML.UA.Opera;
+sML.UA.Tr = sML.UA.Trident, sML.UA.IE = sML.UA.InternetExplorer;
+sML.UA.Fl = sML.UA.Flash;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,31 +131,9 @@ sML.Event.add(window, "unload", function() { sML = null; delete sML; });
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.onLoad = sML.onload = {
-	Executed: 0,
-	Functions: [],
-	executeAll: function() {
-		if(this.Executed) return;
-		this.Executed = 1;
-		for(var L = this.Functions.length, i = 0; i < L; i++) this.Functions[i]();
-		this.Functions = [];
-	},
-	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
-}
-
-sML.done = function(F) { return sML.onLoad.addEventListener(F); };
-
-sML.Event.add(window, "load", function() {
-	sML.Event.remove(window, "load", arguments.callee, false);
-	sML.onLoad.executeAll();
-}, false);
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 sML.onRead = sML.onread = {
-	Executed: 0,
 	Functions: [],
-	executeAll: function() {
+	execute: function() {
 		if(this.Executed) return;
 		this.Executed = 1;
 		for(var L = this.Functions.length, i = 0; i < L; i++) this.Functions[i]();
@@ -170,25 +142,42 @@ sML.onRead = sML.onread = {
 	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
 }
 
+sML.onLoad = sML.onload = {
+	Functions: [],
+	execute: function() {
+		if(this.Executed) return;
+		this.Executed = 1;
+		for(var L = this.Functions.length, i = 0; i < L; i++) this.Functions[i]();
+		this.Functions = [];
+	},
+	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
+}
+
+sML.done  = function(F) { return sML.onLoad.addEventListener(F); };
 sML.ready = function(F) { return sML.onRead.addEventListener(F); };
 
 if(document.addEventListener && (!sML.UA.WK || sML.UA.WK > 525)) {
 	document.addEventListener("DOMContentLoaded", function() {
 		document.removeEventListener("DOMContentLoaded", arguments.callee, false);
-		sML.onRead.executeAll();
+		sML.onRead.execute();
 	}, false);
 } else if(document.attachEvent) {
 	document.attachEvent("onreadystatechange", function() {
 		if(document.readyState !== "complete") return;
 		document.detachEvent("onreadystatechange", arguments.callee);
-		sML.onRead.executeAll();
+		sML.onRead.execute();
 	});
 	if(document.documentElement.doScroll && window == window.top) { (function() {
 		if(sML.onRead.Executed) return;
 		try { document.documentElement.doScroll("left"); } catch(e) { setTimeout(arguments.callee, 0); return; }
-		sML.onRead.executeAll();
+		sML.onRead.execute();
 	})(); }
-} else sML.onLoad.addEventListener(function() { sML.onRead.executeAll(); });
+} else sML.onLoad.addEventListener(function() { sML.onRead.execute(); });
+
+sML.Event.add(window, "load", function() {
+	sML.Event.remove(window, "load", arguments.callee, false);
+	sML.onLoad.execute();
+}, false);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -206,7 +195,7 @@ sML.onresizefont = sML.onResizeFont = {
 		if(!T) var T = 200;
 		this.checker = E;
 		this.timer = setInterval(function() {
-			var currentHeight = sML.coord.getElementSize(sML.onResizeFont.checker).h;
+			var currentHeight = sML.Coord.getElementSize(sML.onResizeFont.checker).h;
 			if(sML.onResizeFont.prevHeight && sML.onResizeFont.prevHeight != currentHeight) {
 				var Functions = sML.onResizeFont.RegularFunctions;
 				if(sML.onResizeFont.prevHeight && sML.onResizeFont.prevHeight < currentHeight) {
@@ -280,9 +269,7 @@ if(!document.getElementsByClassName) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sML.getElementsByIds = document.getElementsByIds = function() {
-	for(var Es = [], L = arguments.length, i = 0; i < L; i++) {
-		if(document.getElementById(arguments[i])) Es.push(document.getElementById(arguments[i]));
-	}
+	for(var Es = [], L = arguments.length, i = 0; i < L; i++) if(document.getElementById(arguments[i])) Es.push(document.getElementById(arguments[i]));
 	return Es;
 }
 
@@ -291,59 +278,6 @@ sML.getElementsByIds = document.getElementsByIds = function() {
 sML.getElements = sML.getElementsBySelector = function() {
 	for(var i = 1, L = arguments.length; i < L; i++) arguments[0] += "," + arguments[i];
 	return document.querySelectorAll(arguments[0]);
-	/*
-	var Es = [], Ps = [document];
-	for(var aL = arguments.length, i = 0; i < aL; i++) {
-		var Ss = arguments[i].replace(/>/g, " >").split(" ");
-		for(var sL = Ss.length, j = 0; j < sL; j++) {
-			for(var pL = Ps.length, k = 0; k < pL; k++) {
-				var tEs = [], IDCheck = "", CNCheck = "", TNCheck = "";
-				if(Ss[j].charAt(0) == ">") {
-					var ChildOnly = 1;
-					Ss[j] = Ss[j].replace(/^>/, "");
-				}
-				var Req = Ss[j].replace(/([>\.#])/g, ",$1").replace(/^\,/, "").split(",");
-				for(var rL = Req.length, l = 0; l < rL; l++) {
-					     if(Req[l].charAt(0) == "#") IDCheck  = Req[l].replace(/^#/, "");
-					else if(Req[l].charAt(0) == ".") CNCheck += Req[l].replace(/^./, "") + " ";
-					else                             TNCheck  = Req[l].toUpperCase();
-				}
-				if(CNCheck) CNCheck = CNCheck.replace(/ $/, "");
-				if(IDCheck) {
-					var Cs = [document.getElementById(IDCheck)];
-					if(Cs.length && TNCheck) {
-						if(Cs[0].tagName.toUpperCase() != TNCheck) Cs = [];
-					}
-					if(Cs.length && CNCheck) {
-						var CNs = CNCheck.split(" ");
-						for(var cnL = CNs.length, l = 0; l < cnL; l++) {
-							if(Cs[0].className.indexOf(CNs[l]) < 0) {
-								Cs = [];
-								break;
-							}
-						}
-					}
-				} else if(CNCheck) {
-					var Cs = Ps[k].getElementsByClassName(CNCheck);
-					if(TNCheck) {
-						for(var ttEs = [], cL = Cs.length, l = 0; l < cL; l++) {
-							if(Cs[l].tagName.toUpperCase() == TNCheck) ttEs.push(Cs[l]);
-						}
-						Cs = ttEs;
-					}
-				} else if(TNCheck) {
-					var Cs = Ps[k].getElementsByTagName(TNCheck);
-				}
-				if(ChildOnly) { for(var cL = Cs.length, l = 0; l < cL; l++) if(Cs[l].parentNode == Ps[k]) tEs.push(Cs[l]); }
-				else          { for(var cL = Cs.length, l = 0; l < cL; l++)                               tEs.push(Cs[l]); }
-			}
-			if(Ss[j].indexOf(">") > -1) Ss[j].split(">")[0];
-			Ps = tEs;
-		}
-		Es = Es.concat(tEs);
-	}
-	return Es;
-	*/
 }
 
 sML.getInnerText = function(E) {
@@ -358,26 +292,6 @@ sML.cloneObject = function(O) {
 	return new F();
 }
 
-sML.toArray = function() {
-	for(var A = [], aL = arguments.length, i = 0; i < aL; i++) {
-		if(typeof arguments[i].length == "undefined")              A.push(arguments[i]);
-		else for(var eL = arguments[i].length, j = 0; j < eL; j++) A.push(arguments[i][j]);
-	}
-	return A;
-}
-
-sML.getLength = function(O) {
-	if(typeof O == "object") {
-		var L = 0;
-		for(var i in O) L++;
-		return L;
-	}
-	if(typeof O == "array" ) return        O.length;
-	if(typeof O == "string") return        O.length;
-	if(typeof O == "number") return ("" + O).length;
-	return null;
-}
-
 sML.set = sML.edit = sML.setMembers = function(O, M, S) {
 	if(M) for(var m in M) O[m] = M[m];
 	if(S) sML.CSS.set(O, S);
@@ -385,12 +299,12 @@ sML.set = sML.edit = sML.setMembers = function(O, M, S) {
 }
 
 sML.create = sML.createElement = function(tagName, M, S) {
-	return (tagName ? sML.edit(document.createElement(tagName), M, S) : null);
+	return (tagName ? sML.set(document.createElement(tagName), M, S) : null);
 }
 
 sML.changeClass = sML.changeClassName = function(E, CN) {
 	if(CN) E.className = CN;
-	else /*@cc_on E.removeAttribute("className"); // @*/ E.removeAttribute("class");
+	else /*@cc_on if(sML.UA.IE < 10) { E.removeAttribute("className"); } else @*/ E.removeAttribute("class");
 	return E.className;
 }
 
@@ -486,7 +400,7 @@ if(sML.UA.IE) {
 	window.getComputedStyle = document.defaultView.getComputedStyle;
 }
 
-sML.CSS = sML.css = {
+sML.CSS = sML.S = {
 	Prefix:        (sML.UA.WK ? "-webkit-"            : (sML.UA.Ge ? "-moz-"         : (sML.UA.IE ? "-ms-"            : (sML.UA.Op ? "-o-"            : "")))),
 	TransitionEnd: (sML.UA.WK ? "webkitTransitionEnd" : (sML.UA.Ge ? "transitionend" : (sML.UA.IE ? "MSTransitionEnd" : (sML.UA.Op ? "oTransitionEnd" : "")))),
 	AnimationEnd:  (sML.UA.WK ? "webkitAnimationEnd"  : (sML.UA.Ge ? "animationend"  : (sML.UA.IE ? "MSAnimationEnd"  : (sML.UA.Op ? "oAnimationEnd"  : "")))),
@@ -556,7 +470,7 @@ sML.CSS = sML.css = {
 	setProperty: function(E, P, V, pfx) {
 		if(!E || !P) return E;
 		     if(P == "opacity") return this.setOpacity(E, V); // 2012/11/01
-		else if(/^transition|transform|column|filter/.test(P)) pfx = true; // 2013/06/12
+		else if(/^transition|transform|column|filter|writing/.test(P)) pfx = true; // 2013/06/12
 		else if(P == "float") /*@cc_on P = "styleFloat"; // @*/ P = "cssFloat";
 		if(pfx) E.style[this.Prefix + P] = V;
 		E.style[P] = V;
@@ -611,11 +525,7 @@ sML.CSS = sML.css = {
 	}
 }
 
-// compatibility
-sML.getComputedStyle = sML.CSS.getComputedStyle;
-sML.style = sML.CSS.set;
-sML.getOpacity = sML.CSS.getOpacity, sML.setOpacity = sML.CSS.setOpacity;
-sML.setFloat = sML.CSS.setFloat;
+sML.style = sML.css = function(E, PV, Cb) { return sML.CSS.set(E, PV, Cb); }
 
 
 
@@ -624,11 +534,11 @@ sML.setFloat = sML.CSS.setFloat;
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Transition / Animation / Effect
+//-- Transition
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.Transition = sML.T = sML.transition = sML.t = {
+sML.Transition = sML.T = {
 	Catalogue : [],
 	getSFO : function(E) {
 		for(var L = this.Catalogue.length, i = 0; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
@@ -682,146 +592,7 @@ sML.Transition = sML.T = sML.transition = sML.t = {
 	}
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-sML.Animate = sML.Anim = {};
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-sML.Effect = {};
-
-sML.Effect.fadeTo = function(Ob, Op, Ps, Cb, To) {
-	if(typeof Ps == "function") {
-		if(typeof Cb == "number") var To = Cb;
-		var Cb = Ps;
-		var Ps = {};
-	}
-	var F = function() {
-		sML.Transition.begin(Ob, Ps, {
-			s: function(SFO) { SFO.sO = sML.getOpacity(this); },
-			m: function(SFO) { sML.CSS.setOpacity(this, SFO.getNext(SFO.sO, Op)); },
-			e: function(SFO) { sML.CSS.setOpacity(this,                     Op ); },
-			c: Cb
-		});
-	}
-	return (To ? setTimeout(F, To) : F());
-}
-
-sML.fadeTo = sML.Effect.fadeTo;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-sML.Overlay = {
-	Layers: [],
-	showLayer: function(L) {
-		sML.Effect.fadeTo(L, 1, { f:10, t:10 });
-	},
-	removeLayer: function(L) {
-		if(L.Removing) return;
-		L.Removing = 1;
-		sML.Effect.fadeTo(L, 0, { f:10, t:10 }, function() {
-			sML.removeElement(L);
-			delete(L);
-		});
-	},
-	createLayer: function(P) {
-		sML.CSS.addRule('div#' + P.id + ', div#' + P.id + ' *', [
-			'display: block;',
-			'overflow: hidden;',
-			'position: fixed;',
-			'z-index: 99999;',
-			'left: 0;',
-			'top: 0;',
-			'margin: 0;',
-			'padding: 0;',
-			'border: none 0;',
-			'width: 100%;',
-			'height: 100%;',
-			'background: transparent;'
-		].join(""));
-		var Layer = P.parentElement.appendChild(sML.createElement("div", { id: P.id }, { opacity: 0, background: P.background }));
-		Layer.onclick = Layer.onkeypress = function() { sML.Overlay.removeLayer(this); };
-		this.Layers.push(Layer);
-		return Layer;
-	}
-};
-
-sML.Overlay.Mesh = function(P) {
-	if(!P) P = {};
-	if(!P.parentElement) P.parentElement = document.body;
-	if(!P.id) P.id = "sML-Overlay" + sML.padZero(this.Layers.length + 1, 2);
-	if(!P.background) P.background = 'rgba(0,0,0,0.5)';
-	var Layer = this.createLayer(P);
-	if(!P.noCells) {
-		if(!P.cellWidth)      P.cellWidth      = '4px';
-		if(!P.cellHeight)     P.cellHeight     = '4px';
-		if(!P.horizontalLine) P.horizontalLine = 'solid 2px rgba(0,0,0,0.5)';
-		if(!P.verticalLine)   P.verticalLine   = 'solid 2px rgba(0,0,0,0.5)';
-		sML.CSS.addRule('div#' + P.id + ' div.' + P.id + '-Horizontal', [
-			'border-bottom: ' + P.horizontalLine + ';',
-			'height: ' + P.cellHeight + ';'
-		].join(""));
-		sML.CSS.addRule('div#' + P.id + ' div.' + P.id + '-Vertical', [
-			'border-right: ' + P.verticalLine + ';',
-			'width: ' + P.cellWidth + ';'
-		].join(""));
-		var S = sML.Coord.getScreenSize();
-		var H = Layer.appendChild(sML.createElement("div", { className: P.id + '-Horizontal' }));
-		var V = Layer.appendChild(sML.createElement("div", { className: P.id + '-Vertical'   }));
-		var cH = sML.Coord.getElementSize(H).h;
-		var cW = sML.Coord.getElementSize(V).w;
-		for(var Hs = [], hL = Math.ceil(S.h / cH), hI = 1; hI < hL; hI++) {
-			Hs.push(Layer.appendChild(sML.createElement("div", { className: P.id + '-Horizontal' }, { top:  cH * hI + "px" })));
-//			setTimeout(function() { Hs.shift().style.opacity = 1; }, 5 * hI);
-		}
-		for(var Vs = [], vL = Math.ceil(S.w / cW), vI = 1; vI < vL; vI++) {
-			Vs.push(Layer.appendChild(sML.createElement("div", { className: P.id + '-Vertical'   }, { left: cW * vI + "px" })));
-//			setTimeout(function() { Vs.shift().style.opacity = 1; }, Math.ceil(5 * hL / vL) * vI);
-		}
-	}
-	this.showLayer(Layer);
-	return Layer;
-}
-
-sML.Overlay.Tiles = function(P) {
-	if(!P) P = {};
-	if(!P.parentElement) P.parentElement = document.body;
-	if(!P.id) P.id = "sML-Overlay" + sML.padZero(this.Layers.length + 1, 2);
-	if(!P.background) P.background = 'transparent';
-	var Layer = this.createLayer(P);
-	if(!P.noCells) {
-		if(!P.cellWidth)        P.cellWidth        = '100px';
-		if(!P.cellHeight)       P.cellHeight       = '100px';
-		if(!P.cellBackground)   P.cellBackground   = 'rgba(0,0,0,0.5)';
-		if(!P.horizontalMargin) P.horizontalMargin = '5px';
-		if(!P.verticalMargin)   P.verticalMargin   = '5px';
-		sML.CSS.addRule('div#' + P.id + ' div.' + P.id + '-Tile', [
-			'border-bottom: ' + P.horizontalLine + ';',
-			'width: ' + P.cellWidth + ';',
-			'height: ' + P.cellHeight + ';',
-			'background: ' + P.cellBackground + ';'
-		].join(""));
-		var S = sML.Coord.getScreenSize();
-		var T = Layer.appendChild(sML.createElement("div", { className: P.id + '-Tile' }, { padding: "0 " + P.horizontalMargin + " " + P.verticalMargin + " 0" }));
-		var cH = sML.Coord.getElementSize(T).h;
-		var cW = sML.Coord.getElementSize(T).w;
-		sML.removeElement(T);
-		Layer.Tiles = [];
-		for(var vL = Math.ceil(S.h / cH), vI = 0; vI < vL; vI++) {
-			for(var hL = Math.ceil(S.w / cW), hI = 0; hI < hL; hI++) {
-				Layer.Tiles.push(Layer.appendChild(sML.createElement("div", { className: P.id + '-Tile' }, { left: cW * hI + "px", top: cH * vI + "px", opacity: 0 })));
-			}
-		}
-		Layer.turnTiles = function() {
-			if(!Layer.Tiles.length) return;
-			sML.Effect.fadeTo(Layer.Tiles.shift(), 1, { t:25, f:10 });
-			setTimeout(arguments.callee, 0);
-		}
-		Layer.turnTiles();
-	}
-	this.showLayer(Layer);
-	return Layer;
-}
+sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); }
 
 
 
@@ -834,7 +605,7 @@ sML.Overlay.Tiles = function(P) {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.Coord = sML.C = sML.coord = sML.c = {
+sML.Coord = sML.C = {
 	/*@cc_on setIEF : function() {
 		var cX = window.screenLeft;
 		var cY = window.screenTop;
@@ -1077,17 +848,17 @@ sML.Coord = sML.C = sML.coord = sML.c = {
 		if(!ForceScroll) this.addScrollCancelation();
 	},
 	addScrollCancelation : function() {
-		   sML.addEventListener(document, "mousedown",      sML.coord.cancelScrolling);
-		   sML.addEventListener(document, "keydown",        sML.coord.cancelScrolling);
-		   sML.addEventListener(document, "mousewheel",     sML.coord.cancelScrolling);
-		   sML.addEventListener(document, "DOMMouseScroll", sML.coord.cancelScrolling);
+		   sML.addEventListener(document, "mousedown",      sML.Coord.cancelScrolling);
+		   sML.addEventListener(document, "keydown",        sML.Coord.cancelScrolling);
+		   sML.addEventListener(document, "mousewheel",     sML.Coord.cancelScrolling);
+		   sML.addEventListener(document, "DOMMouseScroll", sML.Coord.cancelScrolling);
 	},
 	cancelScrolling : function() {
-		clearTimeout(sML.coord.timer);
-		sML.removeEventListener(document, "mousedown",      sML.coord.cancelScrolling);
-		sML.removeEventListener(document, "keydown",        sML.coord.cancelScrolling);
-		sML.removeEventListener(document, "mousewheel",     sML.coord.cancelScrolling);
-		sML.removeEventListener(document, "DOMMouseScroll", sML.coord.cancelScrolling);
+		clearTimeout(sML.Coord.timer);
+		sML.removeEventListener(document, "mousedown",      sML.Coord.cancelScrolling);
+		sML.removeEventListener(document, "keydown",        sML.Coord.cancelScrolling);
+		sML.removeEventListener(document, "mousewheel",     sML.Coord.cancelScrolling);
+		sML.removeEventListener(document, "DOMMouseScroll", sML.Coord.cancelScrolling);
 	},
 	preventUserScrolling: function() {
 		   sML.addEventListener(document, "mousedown",      sML.preventDefault);
@@ -1103,7 +874,7 @@ sML.Coord = sML.C = sML.coord = sML.c = {
 	}
 }
 
-sML.getCoord = sML.C.getCoord;
+sML.getCoord = sML.Coord.getCoord;
 
 sML.scrollTo = function(tC, Ps, Fs, ForceScroll) {
 	if(typeof Fs == "function") Fs = { c: Fs };
@@ -1126,108 +897,11 @@ sML.scrollBy = function(bD, Ps, Fs, ForceScroll) {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Array / List
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.filter = function(A, F) {
-	if(typeof F != "function") throw new TypeError();
-	for(var newArray = [], L = A.length, i = 0; i < L; i++) if(F.call(A[i], i, A)) newArray.push(A[i]);
-	return newArray;
-}
-
-sML.foreach = function(O, F, pThis) {
-	for(var L = O.length, i = 0; i < L; i++) if(F.call(pThis, O[i], i, O) === false) break;
-	return O;
-}
-
-sML.each    = function(O, F, iN, LN) {
-	for(var L = (LN ? LN : O.length), i = (iN ? iN : 0); i < L; i++) if(F.call(O[i], i, O) === false) break;
-	return O;
-}
-
-sML.firstOf = function(A) {
-	return (A.length ? A[           0] : null);
-}
-
-sML.lastOf  = function(A) {
-	return (A.length ? A[A.length - 1] : null);
-}
-
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Math
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.Math = {
-	sum: function() {
-		var Sum = 0;
-		for(var L = arguments.length, i = 0; i < L; i++) {
-			var Num = 0;
-			     if(typeof arguments[i] == "number") Num = arguments[i];
-			else if(typeof arguments[i] == "string") Num = arguments[i].length;
-			Sum += Num;
-		}
-		return Sum;
-	},
-	random: function(A, B) {
-		     if(isNaN(A) && isNaN(B)) A = 0, B = 1;
-		else if(isNaN(A)            ) A = 0       ;
-		else if(            isNaN(B))        B = 0;
-		var Min = Math.min(A, B), Max = Math.max(A, B);
-		return Math.floor(Math.random() * (Max - Min + 1)) + Min;
-	}
-}
-
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- String
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.String = {
-	padZero: function(N, D) {
-		if((N + "").length >= D) return N;
-		var Padding = "0";
-		while(Padding.length < D) Padding += "0";
-		return (Padding + N).slice(-D);
-	},
-	insertZeroWidthSpace: function(T) {
-		return T.replace(/(?=\w)/g, "&#x200B;");
-	},
-	replace: function(T, R) {
-		if(R.length % 2) return this;
-		for(var L = R.length / 2, i = 0; i < L; i++) T = T.replace(R[i * 2], R[i * 2 + 1]);
-		return T;
-	}
-}
-
-sML.padZero = sML.zeroPadding = sML.String.padZero;
-sML.insertZeroWidthSpace = sML.String.insertZeroWidthSpace;
-
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
 //-- Ajax
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.Ajax = sML.ajax = sML.AJAX = sML.a = {
+sML.Ajax = sML.A = {
 	ships : [],
 	build : function() {
 		var ship = {};
@@ -1275,7 +949,7 @@ sML.Ajax = sML.ajax = sML.AJAX = sML.a = {
 		if(!Settings.onsuccess) Settings.onsuccess = function() {};
 		if(!Settings.onfailed)  Settings.onfailed  = function() { sML.each(arguments, function() { sML.log(this + ""); }); };
 		if(!Settings.ontimeout) Settings.ontimeout = Settings.onfailed;
-		var Ship = sML.ajax.build();
+		var Ship = this.build();
 		Ship.Timeout = 0;
 		Ship.TimeoutTimer = setTimeout(function() {
 			Ship.Timeout = 1;
@@ -1302,6 +976,7 @@ sML.Ajax = sML.ajax = sML.AJAX = sML.a = {
 	}
 }
 
+sML.ajax = function(URL, Settings) { return sML.Ajax.open(URL, Settings); }
 
 
 
@@ -1434,348 +1109,115 @@ sML.CookieMonster = {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Flowers
+//-- Array / List
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.preloadImages = function() {
-	var SRCs = (typeof arguments[0] == "array")  ? arguments[0] : arguments;
-	for(var L = SRCs.length, i = 0; i < L; i++) (new Image()).src = SRCs[i];
+sML.toArray = function() {
+	for(var A = [], aL = arguments.length, i = 0; i < aL; i++) {
+		if(typeof arguments[i].length == "undefined")              A.push(arguments[i]);
+		else for(var eL = arguments[i].length, j = 0; j < eL; j++) A.push(arguments[i][j]);
+	}
+	return A;
 }
 
-sML.replaceImageAfterLoaded = function(I, SRC) {
-	if(I.src == SRC) return;
-	setTimeout(function() {
-		var nI = new Image();
-		nI.onload = function() { I.src = SRC; };
-		nI.src = SRC;
-	}, 0);
+sML.filter = function(A, F) {
+	if(typeof F != "function") throw new TypeError();
+	for(var newArray = [], L = A.length, i = 0; i < L; i++) if(F.call(A[i], i, A)) newArray.push(A[i]);
+	return newArray;
 }
 
-sML.ISR = function(Ps) { /* Image-Swapper/Interaction-Switch Returner */ 
-	if(Ps.S) (new Image()).src = Ps.S;
-	if( (Ps.I && Ps.S) &&  Ps.F) return function() { Ps.I.src = Ps.S; Ps.F.call(Ps.I); };
-	if( (Ps.I && Ps.S) && !Ps.F) return function() { Ps.I.src = Ps.S; };
-	if(!(Ps.I && Ps.S) &&  Ps.F) return Ps.F;
+sML.foreach = function(O, F, pThis) {
+	for(var L = O.length, i = 0; i < L; i++) if(F.call(pThis, O[i], i, O) === false) break;
+	return O;
+}
+
+sML.each    = function(O, F, iN, LN) {
+	for(var L = (LN ? LN : O.length), i = (iN ? iN : 0); i < L; i++) if(F.call(O[i], i, O) === false) break;
+	return O;
+}
+
+sML.firstOf = function(A) {
+	return (A.length ? A[           0] : null);
+}
+
+sML.lastOf  = function(A) {
+	return (A.length ? A[A.length - 1] : null);
+}
+
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Math
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.Math = {
+	sum: function() {
+		var Sum = 0;
+		for(var L = arguments.length, i = 0; i < L; i++) {
+			var Num = 0;
+			     if(typeof arguments[i] == "number") Num = arguments[i];
+			else if(typeof arguments[i] == "string") Num = arguments[i].length;
+			Sum += Num;
+		}
+		return Sum;
+	},
+	random: function(A, B) {
+		     if(isNaN(A) && isNaN(B)) A = 0, B = 1;
+		else if(isNaN(A)            ) A = 0       ;
+		else if(            isNaN(B))        B = 0;
+		var Min = Math.min(A, B), Max = Math.max(A, B);
+		return Math.floor(Math.random() * (Max - Min + 1)) + Min;
+	}
+}
+
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- String / Number
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.String = {
+	padZero: function(N, D) {
+		if((N + "").length >= D) return N;
+		var Padding = "0";
+		while(Padding.length < D) Padding += "0";
+		return (Padding + N).slice(-D);
+	},
+	insertZeroWidthSpace: function(T) {
+		return T.replace(/(?=\w)/g, "&#x200B;");
+	},
+	replace: function(T, R) {
+		if(R.length % 2) return this;
+		for(var L = R.length / 2, i = 0; i < L; i++) T = T.replace(R[i * 2], R[i * 2 + 1]);
+		return T;
+	}
+}
+
+sML.getLength = function(O) {
+	if(typeof O == "object") {
+		var L = 0;
+		for(var i in O) L++;
+		return L;
+	}
+	if(typeof O == "array" ) return        O.length;
+	if(typeof O == "string") return        O.length;
+	if(typeof O == "number") return ("" + O).length;
 	return null;
-};
-
-sML.setButtonInteractions = function(Es, Ts, Fs, WithoutInput) {
-	if(!Es || !Es.length) return;
-	if(!Ts) var Ts = [];
-	if(!Fs) var Fs = {};
-	var UIs = [];
-	for(var eL = Es.length, i = 0; i < eL; i++) {
-		for(var As = Es[i].getElementsByTagName("a"), aL = As.length, j = 0; j < aL; j++) {
-			var IMGs = As[j].getElementsByTagName("img");
-			if(IMGs.length) UIs.push([As[j], IMGs[0]]);
-		}
-		if(WithoutInput) continue;
-		for(var INPUTs = Es[i].getElementsByTagName("input"), iL = INPUTs.length, j = 0; j < iL; j++) {
-			if(/image/i.test(INPUTs[j].type)) UIs.push([INPUTs[j], INPUTs[j]]);
-		}
-	}
-	for(var L = UIs.length, i = 0; i < L; i++) {
-		if(Fs.e && !Fs.e.call(UIs[i][0])) continue;
-		if(Fs.s) Fs.s.call(UIs[i][0]);
-		var Src = {}, Act = {};
-		if(Ts.length > 0) {
-			Ts[0] = Ts[0].replace(/^_?(.+)/, "$1");
-			Src.h = UIs[i][1].src.replace(/(_|\.)(link|on|in|at|hover|active)(\.\w+)$/, "$1" + Ts[0] + "$3");
-			Src.b = UIs[i][1].src;
-			Act.h = sML.ISR({ I:UIs[i][1], S:((Src.h != Src.b) ? Src.h : null), F:Fs.h });
-			Act.b = sML.ISR({ I:UIs[i][1], S:((Src.h != Src.b) ? Src.b : null), F:Fs.b });
-		} else {
-			Act.h = Fs.h;
-			Act.b = Fs.b;
-		}
-		if(Act.h) sML.addEventListener(UIs[i][0], "mouseover", Act.h);
-		if(Act.b) sML.addEventListener(UIs[i][0], "mouseout",  Act.b);
-		if(Ts.length < 2 && !Fs.d && !Fs.u) continue;
-		if(Ts.length > 1) {
-			Ts[1] = Ts[1].replace(/^_?(.+)/, "$1");
-			if(Ts.length > 2) Ts[2] = Ts[2].replace(/^_?(.+)/, "$1"); if(Ts[2] == "*") Ts[2] = "$1";
-			Src.d = UIs[i][1].src.replace(/(_|\.)(link|on|in|at|hover|active)(\.\w+)$/, "$1" + Ts[1] + "$3");
-			Src.u = (Ts.length > 2) ? UIs[i][1].src.replace(/(_|\.)(link|on|in|at|hover|active)(\.\w+)$/, "$1" + Ts[2] + "$3") : Src.h;
-			Act.d = sML.ISR({ I:UIs[i][1], S:Src.d, F:Fs.d });
-			Act.u = sML.ISR({ I:UIs[i][1], S:Src.u, F:Fs.u });
-		} else {
-			Act.d = Fs.d;
-			Act.u = Fs.u;
-		}
-		if(Act.d) sML.addEventListener(UIs[i][0], "mousedown", Act.d), sML.addEventListener(UIs[i][0], "keydown", Act.d);
-		if(Act.u) sML.addEventListener(UIs[i][0], "mouseup",   Act.u), sML.addEventListener(UIs[i][0], "keyup",   Act.u);
-	}
 }
 
-sML.openInNewWindow = function() {
-	window.open(this.href);
-	if(sML.UA.Ge) this.blur();
-	return false;
-}
-
-sML.setLinkToOpenNewWindow = function(LINK) {
-	LINK.onclick = LINK.onkeypress = function() {
-		window.open(this.href);
-		if(sML.UA.Ge) this.blur();
-		return false;
-	}
-}
-
-sML.setOddEven = function() {
-	var LISTs = sML.toArray(
-		document.getElementsByTagName("ul"),
-		document.getElementsByTagName("ol"),
-		document.getElementsByTagName("menu")
-	);
-	if(LISTs.length) for(var listL = LISTs.length, i = 0; i < listL; i++) {
-		var LIs = sML.toArray(LISTs[i].getElementsByTagName("li")).filter(function(LI) { return (LI.parentNode == LISTs[i]); });
-		for(var L = LIs.length, j = 0; j < L; j += 2) LIs[j].className = LIs[j].className + (LIs[j].className ? " " : "") + "odd";
-		for(var L = LIs.length, j = 1; j < L; j += 2) LIs[j].className = LIs[j].className + (LIs[j].className ? " " : "") + "even";
-	}
-	var DLs = document.getElementsByTagName("dl");
-	if(DLs.length) for(var dlL = DLs.length, i = 0; i < dlL; i++) {
-		var DTs = DLs[i].getElementsByTagName("dt"), DDs = DLs[i].getElementsByTagName("dd");
-		for(var L = DTs.length, j = 0; j < L; j += 2) DTs[j].className = DTs[j].className + (DTs[j].className ? " " : "") + "odd";
-		for(var L = DTs.length, j = 1; j < L; j += 2) DTs[j].className = DTs[j].className + (DTs[j].className ? " " : "") + "even";
-		for(var L = DDs.length, j = 0; j < L; j += 2) DDs[j].className = DDs[j].className + (DDs[j].className ? " " : "") + "odd";
-		for(var L = DDs.length, j = 1; j < L; j += 2) DDs[j].className = DDs[j].className + (DDs[j].className ? " " : "") + "even";
-	}
-	var TABLEs = document.getElementsByTagName("table");
-	if(TABLEs.length) for(var tableL = TABLEs.length, i = 0; i < tableL; i++) {
-		var TRs = TABLEs[i].getElementsByTagName("tr");
-		for(var L = TRs.length, j = 0; j < L; j += 2) TRs[j].className = TRs[j].className + (TRs[j].className ? " " : "") + "odd";
-		for(var L = TRs.length, j = 1; j < L; j += 2) TRs[j].className = TRs[j].className + (TRs[j].className ? " " : "") + "even";
-	}
-}
-
-sML.equalizeHeight = function(Elements, ElementsPerGroup, Padding, FixedHeight) {
-	var Group = [], Groups = [];
-	if(!ElementsPerGroup) var ElementsPerGroup = Elements.length;
-	if(!Padding) var Padding = 0;
-	for(var L = Elements.length, i = 0; i < L; i++) {
-		if(i % ElementsPerGroup == 0) Group = [];
-		Group.push(Elements[i]);
-		if(i % ElementsPerGroup == ElementsPerGroup - 1 || i == Elements.length - 1) Groups.push(Group);
-	}
-	for(var gsL = Groups.length, i = 0; i < gsL; i++) {
-		var H = 0;
-		var Highest = null;
-		for(var gL = Groups[i].length, j = 0; j < gL; j++) {
-			Groups[i][j].style.height = "auto";
-			var eH = parseInt(getComputedStyle(Groups[i][j], "").height);	//	var eH = sML.coord.getElementSize(Groups[i][j]).h;
-			if(eH > H) {
-				H = eH;
-				Highest = Groups[i][j];
-			}
-		}
-		for(var gL = Groups[i].length, j = 0; j < gL; j++) {
-//			if(Groups[i][j] == Highest) continue;
-			if(FixedHeight) Groups[i][j].style.height    = H + "px"; //			if(FixedHeight) Groups[i][j].style.height    = (H - Padding) + "px";
-			else            Groups[i][j].style.minHeight = H + "px"; //			else            Groups[i][j].style.minHeight = (H - Padding) + "px";
-		}
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.Twitter = {
-	timeline: {
-		Params : [],
-		load : function(Style, Param) {
-			var Prtcl = document.location.protocol;
-			if(!Param.Style) Param.Style = Style;
-			if(!Param.Placeholder && this.Style[Param.Style].Placeholder) Param.Placeholder = this.Style[Param.Style].Placeholder;
-			if(!Param.Callback) Param.Callback = this.Style[Param.Style].after ? this.Style[Param.Style].after : function() {};
-			if(!Param.Timeout) Param.Timeout = 8000;
-			Param.ModuleNum = this.Params.length;
-			Param.ModuleID = sML.padZero(Param.ModuleNum, 2);
-			var SCRIPT = document.createElement("script"), SRC = "";
-			if(Param.User && !Param.Key) Param.Key = Param.User.replace(/^@/, "");
-			if(/^[^#@\/\*]/.test(Param.Key)) {
-				Param.SingleUser = 1;
-				Param.Keys = ["", Param.Key];
-				SRC = Prtcl + "//api.twitter.com/1/statuses/user_timeline.json?screen_name=" + Param.Keys[1] + "&count=" + Param.Tweets;
-			} else {
-				Param.SingleUser = 0, Param.Prefix = Param.Key.charAt(0);
-					 if(Param.Prefix == "#") Param.Keys = ["%23",   Param.Key.split("#")[1]];
-				else if(Param.Prefix == "@") Param.Keys = ["to%3A", Param.Key.split("@")[1]];
-				else if(Param.Prefix == "*") Param.Keys = ["",      Param.Key.split("*")[1]];
-				else                         Param.Keys = ["",      Param.Key];
-				if(Param.Keys[1].indexOf("/") > -1) {
-					var ListKeys = Param.Keys[1].split("/");
-					Param.Keys[1] = ListKeys[0];
-					Param.Keys[2] = ListKeys[1];
-				}
-				if(Param.Keys[2]) SRC += Prtcl + "//api.twitter.com/1/" + Param.Keys[1] + "/lists/" + Param.Keys[2] + "/statuses.json?per_page=";
-				else              SRC += Prtcl + "//search.twitter.com/search.json?q=" + Param.Keys[0] + Param.Keys[1] + "&rpp=";
-				SRC += Param.Tweets;
-			}
-			SRC += "&callback=sML.Twitter.timeline.Callback" + Param.ModuleID;
-			this["Callback" + Param.ModuleID] = function(T) {
-				if(sML.Twitter.timeline["isError_" + Param.ModuleID]) return;
-				if(sML.Twitter.timeline["showError_" + Param.ModuleID]) clearTimeout(sML.Twitter.timeline["showError_" + Param.ModuleID]);
-				if(T instanceof Array) T = { results: T };
-				if(T.results.length) {
-					sML.Twitter.timeline.set(Param, T);
-					var Success =  1;
-				} else {
-					var Success = -1;
-				}
-				Param.Callback(Param, Success);
-			}
-			if(!Param.Placeholder) {
-				sML.write(
-					'<div class="sML-Twitter-Timeline-Placeholder" id="sML-Twitter-Timeline-Placeholder_' + Param.ModuleID + '">',
-						(this.Style[Param.Style].Template.alt ? this.Style[Param.Style].Template.alt(Param) : ""),
-					'</div>'
-				);
-				Param.Placeholder = document.getElementById("sML-Twitter-Timeline-Placeholder_" + Param.ModuleID);
-			} else if(this.Style[Param.Style].Template.alt) {
-				Param.Placeholder = sML.replaceElement(sML.hatch(this.Style[Param.Style].Template.alt(Param)), Param.Placeholder);
-				if(Param.altCallback) Param.altCallback(Param, -1);
-			}
-			this.Params[Param.ModuleNum] = Param;
-			if(this.Style[Param.Style].Template.error) this["showError_" + Param.ModuleID] = setTimeout(function() {
-				sML.Twitter.timeline["isError_" + Param.ModuleID] = 1;
-				sML.replaceElement(sML.hatch(sML.Twitter.timeline.Style[Param.Style].Template.error(Param)), Param.Placeholder);
-				Param.Callback(Param, 0);
-			}, Param.Timeout);
-			var SCIRPT = document.createElement("script");
-			SCRIPT.id = "sML-Twitter-Timeline-Loader_" + Param.ModuleID, SCRIPT.src = SRC;
-			sML.onRead.addEventListener(function() { document.getElementsByTagName("body")[0].appendChild(SCRIPT); });
-		},
-		set : function(Param, T) {
-			if(Param.SingleUser) {
-				if(!Param.UserName) Param.UserName = T.results[0].user.name;
-				Param.UserImage =  T.results[0].user.profile_image_url;
-			}
-			var TMPL = this.Style[Param.Style].Template;
-			Param.HTML = "";
-			if(TMPL.head) Param.HTML += TMPL.head(Param);
-			for(var L = T.results.length, i = 0; i < L; i++) {
-				var R = T.results[i];
-				R.text = sML.String.replace(R.text, [
-					/</g, '&lt;',
-					/>/g, '&gt;',
-					/(^|[\s　])(https?(:\/\/[\w\d\-.!~*;\/?@&=+\$,%#]+))/g, '$1<a href="$2">$2</a>',
-					/(^|[\s　])(@[\w\d]+)/g, '$1<a href="http://twitter.com/$2">$2</a>',
-					/(^|[^&\/\w\dａ-ｚＡ-Ｚ０-９ぁ-ヶ一-龠ｦ-ﾟー゛゜々ヾヽ])([#＃][\w\dａ-ｚＡ-Ｚ０-９ぁ-ヶ一-龠ｦ-ﾟー゛゜々ヾヽ]+)/g, '$1<a href="http://twitter.com/search?q=$2">$2</a>'
-				]);
-				Param.HTML += TMPL.body(R);
-			}
-			if(Param.SingleUser) Param.HTML = Param.HTML.replace("{UserName}", Param.UserName);
-			if(TMPL.foot) Param.HTML += TMPL.foot(Param);
-			Param.Placeholder = (typeof Param.Placeholder == "object") ? Param.Placeholder : sML.getElements(Param.Placeholder)[0];
-			sML.replaceElement(sML.hatch(Param.HTML), Param.Placeholder);
-			sML.removeElement(document.getElementById("sML-Twitter-Timeline-Loader_" + Param.ModuleID));
-			T = Param = null;
-			delete T;
-			delete Param;
-		}
-	},
-	button: {
-		getURL: function(Ps, isFrame) {
-			if(!Ps.count)            Ps.count            = "none";
-			if(!Ps.original_referer) Ps.original_referer = location.href;
-			if(!Ps.url)              Ps.url              = location.href;
-			if(Ps.related && typeof Ps.related == "object") {
-				var Rel = "";
-				for(var a in Ps.related) Rel += a + (Ps.related[a] ? (":" + Ps.related[a]) : "");
-				Ps.related = Rel;
-			}
-			var Prtcl = document.location.protocol;
-			var            URL  = Prtcl + (isFrame ? "//platform0.twitter.com/widgets/tweet_button.html" : "//twitter.com/share");
-			               URL += "?_="                + (new Date()).getTime();
-			               URL += "&count="            + Ps.count;
-			if(!isFrame)   URL += "&original_referer=" + encodeURIComponent(Ps.original_referer);
-			if(Ps.text)    URL += "&text="             + encodeURIComponent(Ps.text);
-			               URL += "&url="              + encodeURIComponent(Ps.url);
-			if(Ps.via)     URL += "&via="              + Ps.via;
-			if(Ps.related) URL += "&related="          + encodeURIComponent(Ps.related);
-			return URL;
-		},
-		open: function(Ps, wPs) {
-			if(!wPs) var wPs = {};
-			var dS = { w:550, h:450 };
-			var sS = sML.coord.getScreenSize();
-			var wParams = {
-				left        : (wPs.left        ? wPs.left        : Math.round((sS.w - dS.w) / 2)),
-				top         : (wPs.top         ? wPs.top         : Math.round((sS.h - dS.h) / 2)),
-				width       : (wPs.width       ? wPs.width       :                         dS.w ),
-				height      : (wPs.height      ? wPs.height      :                         dS.h ),
-				personalbar : (wPs.personalbar ? wPs.personalbar :                           "1"),
-				toolbar     : (wPs.toolbar     ? wPs.toolbar     :                           "1"),
-				scrollbars  : (wPs.scrollbars  ? wPs.scrollbars  :                           "1"),
-				location    : (wPs.location    ? wPs.location    :                           "1"),
-				resizable   : (wPs.resizable   ? wPs.resizable   :                           "1"),
-				status      : (wPs.status      ? wPs.status      :                           "1")
-			}
-			var wP = "";
-			for(var P in wParams) wP += P + "=" + wParams[P] + ",";
-			wP = wP.replace(/\,$/, "");
-			var W = window.open(this.getURL(Ps, 0), "twitter_tweet", wP);
-			if(W) W.focus();
-		},
-		getFrame: function(Ps, Styles) {
-			if(!Ps.count) Ps.count = "none";
-			var IFRAME = [
-				'<iframe',
-				' class="twitter-share-button twitter-count-' + Ps.count + '"',
-				' allowtransparency="true" frameborder="0" scrolling="no" tabindex="0"',
-				'></iframe>'
-			].join("");
-			var DIV = document.createElement("div");
-			DIV.innerHTML = IFRAME;
-			IFRAME = DIV.firstChild.cloneNode(false);
-			IFRAME.src = this.getURL(Ps, 1);
-			IFRAME.title = "Twitter For Websites: Tweet Button";
-			if(Styles) IFRAME = sML.CSS.set(IFRAME, Styles);
-			return IFRAME;
-		}
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.Ustream = {
-	getMType : function(M) {
-		if(/^s/i.test(M)) return "S";
-		if(/^m/i.test(M)) return "M";
-		if(/^l/i.test(M)) return "L";
-	},
-	getHTML : function(M, Ps) {
-		M = this.getMType(M);
-		if(!Ps.height) {
-			     if(M == "S") Ps.height = Math.ceil(Ps.width *   4 /   5);
-			else if(M == "M") Ps.height = Math.ceil(Ps.width * 293 / 240);
-			else if(M == "L") Ps.height = Math.ceil(Ps.width *   4 /   5);
-		}
-		if(M == "S") {
-			return [
-				'<iframe',
-					' src="http://www.ustream.tv/socialstream/' + Ps.cid + '"',
-					' frameborder="0" scrolling="no"',
-					' style="border:none 0; width:' + Ps.width + 'px; height:' + Ps.height + 'px;"',
-				'></iframe>'
-			].join("");
-		} else {
-			return sML.fp.getHTML({
-				id: Ps.id,
-				data: "http://www.ustream.tv/flash/" + ((M == "L") ? ("live/1/" + Ps.cid) : "mediastream/" + Ps.cid),
-				width: Ps.width,
-				height: Ps.height,
-				bgcolor : "#000000",
-				allowfullscreen : "true",
-				allowscriptaccess : "always",
-				flashvars: ((M == "L") ? "autoplay=false&amp;brand=embed&amp;" : "") + "cid=" + Ps.cid + "&amp;locale=ja_JP"
-			}, 9);
-		}
-	},
-	write : function(M, Ps) {
-		sML.write(this.getHTML(M, Ps));
-	}
-}
+sML.padZero = sML.zeroPadding = sML.String.padZero;
+sML.insertZeroWidthSpace = sML.String.insertZeroWidthSpace;
 
 
 
