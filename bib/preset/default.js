@@ -4,7 +4,7 @@ P = BiB.i.Preset = {
 	description                         : "Default Preset.",            // "Description of this preset. As you like."
 
 
-	"book-display-mode"                 : "item",                        // "all" or "spread" or "item"
+	"book-display-mode"                 : "all",                        // "all" or "spread" or "item"
 	"page-progression-direction"        : "ltr",                        // "ltr" or "rtl" ("ltr" is recommended.)
 	"spread-layout-direction"           : "auto",                       // "auto" or "vertical" or "horizontal"
 	"page-orientation"                  : "auto",                       // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
