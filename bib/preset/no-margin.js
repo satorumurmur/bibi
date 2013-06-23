@@ -3,34 +3,39 @@ P = BiB.i.Preset = {
 	name:        "BiB/i Monloe",
 	description: "No-Margin / Spread-Mode",
 
-	"book-display-mode"              : "all",  // "all" or "spread" or "item"
-	"spread-layout-direction"        : "auto", // "auto" or "vertical" or "horizontal"
-	"page-progression-direction"     : "ltr",  // "ltr" or "rtl"
+	"book-display-mode"                 : "all",
+	"page-progression-direction"        : "ltr",
+	"spread-layout-direction"           : "auto",
+	"page-orientation"                  : "auto",
 
-	"book-padding-before"            : 0,
-	"book-padding-after"             : 0,
-	"book-padding-start"             : 0,
-	"book-padding-end"               : 0,
-	"book-background"                : "rgb(80,80,80)",
+	"book-background"                   : "rgb(64,64,64)",
 
-	"spread-separation"              : 40,
-	"spread-min-length"              : "self",    // "self" or "window" or "A"
-	"spread-min-length_single-image" : "self",    // "self" or "window" or "A"
-	"spread-border-radius"           : 0,
-	"spread-box-shadow"              : "none",
+	"spread-separation"                 : 2,
+	"spread-margin-start"               : 0,
+	"spread-margin-end"                 : 0,
 
-	"item-padding-before"            : 0,
-	"item-padding-after"             : 0,
-	"item-padding-start"             : 0,
-	"item-padding-end"               : 0,
+	"spread-separation_narrow-device"   : 2,
+	"spread-margin-start_narrow-device" : 0,
+	"spread-margin-end_narrow-device"   : 0,
 
-	"center-end-spreads"             : true,   // true or false (no quotes required)
+	"spread-border-radius"              : "",
+	"spread-box-shadow"                 : "",
 
-	loaded : true
+	"item-padding-left"                 : 10,
+	"item-padding-right"                : 10,
+	"item-padding-top"                  : 15,
+	"item-padding-bottom"               : 15,
 
-}
+	"item-padding-left_narrow-device"   : 10,
+	"item-padding-right_narrow-device"  : 10,
+	"item-padding-top_narrow-device"    : 15,
+	"item-padding-bottom_narrow-device" : 15,
 
+	"item-column-rule"                  : "",
 
+	"center-end-spreads"                : true,
+
+loaded: true }
 
 /*
 

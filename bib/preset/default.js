@@ -3,7 +3,6 @@ P = BiB.i.Preset = {
 	name                                : "BiB/i Default",              // "Name of this preset. As you like."
 	description                         : "Default Preset.",            // "Description of this preset. As you like."
 
-
 	"book-display-mode"                 : "all",                        // "all" or "spread" or "item"
 	"page-progression-direction"        : "ltr",                        // "ltr" or "rtl" ("ltr" is recommended.)
 	"spread-layout-direction"           : "auto",                       // "auto" or "vertical" or "horizontal"
