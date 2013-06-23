@@ -350,13 +350,13 @@ html.spread-rtl div#epub-contents {
 	}
 }
 html.spread-ttb div#epub-contents {
-	.writing-mode(horizontal-tb);
+	.writing-mode(horizontal-tb, lr-tb);
 }
 html.spread-ltr div#epub-contents {
-	.writing-mode(vertical-lr);
+	.writing-mode(vertical-lr, tb-lr);
 }
 html.spread-rtl div#epub-contents {
-	.writing-mode(vertical-rl);
+	.writing-mode(vertical-rl, tb-rl);
 }
 html.spread-vertical div#epub-contents {
 	.transform(translateX(0));
@@ -564,7 +564,7 @@ html.spread-horizontal div#bibi-control-bar {
 // - Bar > Menus
 // --------------------------------------------------------------------------------
 
-div#bibi-control-bar div#bibi-menus {
+div#bibi-control-bar div#bibi-control-menus {
 	position: fixed;
 	z-index: 10;
 	top: 0;
@@ -574,20 +574,20 @@ div#bibi-control-bar div#bibi-menus {
 	background: black;
 	background: rgba(0,0,0,0.5);
 }
-html.spread-vertical div#bibi-control-bar div#bibi-menus {
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus {
 	padding-top: 43px;
 	height: 100%;
 	width: 44px;
 	border-right-width: 1px;
 }
-html.spread-horizontal div#bibi-control-bar div#bibi-menus {
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus {
 	padding-left: 43px;
 	width: 100%;
 	height: 44px;
 	border-bottom-width: 1px;
 }
 
-div#bibi-control-bar div#bibi-menus menu {
+div#bibi-control-bar div#bibi-control-menus menu {
 	padding: 8px;
 	li {
 		position: relative;
@@ -617,7 +617,7 @@ div#bibi-control-bar div#bibi-menus menu {
 		}
 	}
 }
-html.spread-vertical div#bibi-control-bar div#bibi-menus menu {
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus menu {
 	//padding: 10px 8px;
 	width: 27px;
 	li {
@@ -625,7 +625,7 @@ html.spread-vertical div#bibi-control-bar div#bibi-menus menu {
 		&:first-child { margin-top: 0; }
 	}
 }
-html.spread-horizontal div#bibi-control-bar div#bibi-menus menu {
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus menu {
 	float: left;
 	//padding: 8px 10px;
 	height: 27px;
@@ -637,10 +637,10 @@ html.spread-horizontal div#bibi-control-bar div#bibi-menus menu {
 }
 
 
-div#bibi-control-bar div#bibi-menus menu#move {
+div#bibi-control-bar div#bibi-control-menus menu#move {
 	display: none;
 }
-html.spread-rtl div#bibi-control-bar div#bibi-menus menu#move {
+html.spread-rtl div#bibi-control-bar div#bibi-control-menus menu#move {
 	li#move-back {
 		left: 32px;
 	}
@@ -649,12 +649,12 @@ html.spread-rtl div#bibi-control-bar div#bibi-menus menu#move {
 	}
 }
 
-html.spread-vertical div#bibi-control-bar div#bibi-menus menu#spread-layout-direction {
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus menu#spread-layout-direction {
 	li#spread-layout-vertical {
 		display: none;
 	}
 }
-html.spread-horizontal div#bibi-control-bar div#bibi-menus menu#spread-layout-direction {
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus menu#spread-layout-direction {
 	li#spread-layout-horizontal {
 		display: none;
 	}
@@ -664,7 +664,7 @@ html.spread-horizontal div#bibi-control-bar div#bibi-menus menu#spread-layout-di
 // - Bar > Misc
 // --------------------------------------------------------------------------------
 
-div#bibi-control-bar div#bibi-misc {
+div#bibi-control-bar div#bibi-control-misc {
 	.box-sizing(border-box);
 	position: fixed;
 	z-index: 100;
@@ -684,13 +684,13 @@ div#bibi-control-bar div#bibi-misc {
 		&:hover { color: white; }
 	}
 }
-html.spread-vertical div#bibi-control-bar div#bibi-misc {
+html.spread-vertical div#bibi-control-bar div#bibi-control-misc {
 	left: 0;
 	bottom: 0;
 	//border-top-width: 1px;
 	//width: 100%;
 }
-html.spread-horizontal div#bibi-control-bar div#bibi-misc {
+html.spread-horizontal div#bibi-control-bar div#bibi-control-misc {
 	right: 0;
 	top: 0;
 	//border-left-width: 1px;
@@ -798,7 +798,7 @@ html.spread-vertical div#bibi-control-bar div#bibi-control-navigation,
 html.spread-ltr div#bibi-control-bar div#bibi-control-navigation {
 	div#bibi-control-navigation-box {
 		div#bibi-control-navigation-item {
-			.writing-mode(horizontal-tb);
+			.writing-mode(horizontal-tb, lr-tb);
 			nav {
 				margin-bottom: 1em;
 				h1, h2, h3, h4, h5, h6,
@@ -843,7 +843,7 @@ html.spread-ltr div#bibi-control-bar div#bibi-control-navigation {
 html.spread-rtl div#bibi-control-bar div#bibi-control-navigation {
 	div#bibi-control-navigation-box {
 		div#bibi-control-navigation-item {
-			.writing-mode(vertical-rl);
+			.writing-mode(vertical-rl, tb-rl);
 			nav {
 				margin-left: 1em;
 				h1, h2, h3, h4, h5, h6,

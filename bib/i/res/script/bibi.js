@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue June 19 08:45:00 2013 +0900",
+	Date        : "Tue June 23 09:20:00 2013 +0900",
 
-	Version     : 0.96, // beta
-	Build       : 20130619.0,
+	Version     : 0.961, // beta
+	Build       : 20130623.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -62,7 +62,6 @@ O.start = function() {
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
 		var HTML = document.getElementsByTagName("html")[0];
-		sML.addClass(HTML, "device-" + sML.DN);
 		O.setOrientation = function() {
 			window.scrollBy(1, 1);
 			sML.removeClass(HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
@@ -132,7 +131,7 @@ R.waitEPUB = function() {
 	if(typeof Book != "string" || !Book || /\//.test(Book)) {
 		// File Open or Stop
 		if(window.File) {
-			N.Panel.appendChild(sML.createElement("p", { id: "bibi-drop" }));
+			N.Panel.appendChild(sML.create("p", { id: "bibi-drop" }));
 			return N.note('Drop an EPUB into this window.');
 		} else {
 			return N.note('Tell me EPUB name via URL in address-bar.');
@@ -175,10 +174,10 @@ R.waitEPUB = function() {
 			R.Chain.start();
 		}
 		if(Q.wait || (parent && parent != window && !Q.autostart)) {
-			N.Panel.appendChild(sML.createElement("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/, "")); } : function() {
+			N.Panel.appendChild(sML.create("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/, "")); } : function() {
 				R.loadEPUB();
 				this.onclick = "";
-				sML.CSS.set(this, { opacity: 0, cursor: "default" });
+				sML.style(this, { opacity: 0, cursor: "default" });
 			} }));
 			return N.note('<a href="' + location.href.replace(/&wait=[^&]+/, "") + '" target="_blank">open in new window.</a>');
 		}
@@ -192,6 +191,11 @@ R.waitEPUB = function() {
 R.initialize = function(Settings) {
 
 	O.HTML.removeAttribute("class");
+
+	var HTMLClassNames = [];
+	for(var OS in sML.OS) if(sML.OS[OS]) HTMLClassNames.push(OS);
+	for(var UA in sML.UA) if(sML.UA[UA]) HTMLClassNames.push(UA);
+	sML.addClass(HTMLClassNames.join(" "));
 
 	sML.addClass(R.Contents, "processing");
 
@@ -264,7 +268,10 @@ R.loadPreset = function() {
 			if(typeof Q.dm == "string" && /^(all|spread|item)$/.test(                     Q.dm)) P["book-display-mode"      ] = Q.dm;
 			if(typeof Q.sd == "string" && /^(ttb|ltr|rtl|vertical|horizontal|auto)$/.test(Q.sd)) P["spread-layout-direction"] = Q.sd;
 			if(typeof Q.so == "string" && /^(portrait|landscape|auto|window)$/.test(      Q.so)) P["spread-orientation"     ] = Q.so;
-			if(!sML.UA.WebKit) P["spread-layout-direction"] = "ttb";
+			if(sML.UA.InternetExplorer || sML.UA.Gecko || sML.UA.Opera) {
+				P["book-display-mode"] = "all";
+				P["spread-layout-direction"] = "ttb";
+			}
 		} }),
 		sML.lastOf(document.head.getElementsByTagName("script"))
 	);
@@ -827,8 +834,6 @@ R.postprocessContents = function() {
 		}
 		// Linkage
 		postprocessLinkage(Item.Path, Item.Body);
-		// For Multi-column Layout
-		Item.ColumnCSSIndex = sML.CSS.addRule("body", "", Item.contentDocument);
 	});
 
 	if(Postprocessed.Viewport) O.log(3, sML.String.padZero(Postprocessed.Viewport, A.FileDigit) + ' Viewport');
@@ -861,7 +866,7 @@ R.finish = function() {
 			this.Box.style.background  = this.contentDocument.defaultView.getComputedStyle(this.HTML).background;  this.HTML.style.background = "";
 			this.style.background      = this.contentDocument.defaultView.getComputedStyle(this.Body).background;  this.Body.style.background = "";
 		});
-		sML.CSS.set(N.Panel, [
+		sML.style(N.Panel, [
 			"transition", "opacity 1s linear",
 			"opacity", 0.75
 		], function() {
@@ -869,7 +874,7 @@ R.finish = function() {
 				window.scrollTo(S["spread-layout-direction"] == "rtl" ? document.body["scroll" + S.SIZE.L] - document.body["client" + S.SIZE.L] : 0, 0);
 				R.Contents.addEventListener(sML.CSS.TransitionEnd, function() {
 					this.removeEventListener(sML.CSS.TransitionEnd, arguments.callee);
-					sML.each([C.Go, C.Switch], function() { sML.CSS.set(this, { opacity: 1 }); });
+					sML.each([C.Go, C.Switch], function() { sML.style(this, { opacity: 1 }); });
 					setTimeout(function() { N.close(); }, 400);
 					O.log(1, 'Completed');
 					//C.Switch.toggleControlBar();
@@ -973,7 +978,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 				PageL = Math.floor(Ref.viewport[S.SIZE.l] * Scale);
 				Item.style[S.SIZE.b] = Ref.viewport[S.SIZE.b] + "px";
 				Item.style[S.SIZE.l] = Ref.viewport[S.SIZE.l] + "px";
-				sML.CSS.set(Item, { transform: "scale(" + Scale + ")" });
+				sML.style(Item, { transform: "scale(" + Scale + ")" });
 				var BoxB = PageB;
 				var BoxL = PageL;
 				Box.style[S.SIZE.b] = BoxB + "px";
@@ -983,7 +988,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 				}/*
 				var Pages = 2;
 				for(var i = 0; i < Pages; i++) {*/
-					var Page = Box.appendChild(sML.createElement("span", { className: "page" }));
+					var Page = Box.appendChild(sML.create("span", { className: "page" }));
 					Page.style["padding" + S.BASE.B] = S["spread-separation"] / 2 + "px";
 					Page.style["padding" + S.BASE.A] = S["spread-separation"] / 2 + "px";
 					Page.style[S.SIZE.b] = PageB + "px";
@@ -1021,7 +1026,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 				Item.style[S.SIZE.l] = PageL + "px";
 				Item.HTML.style[S.SIZE.b] = PageB + "px"
 				Item.HTML.style[S.SIZE.l] = PageL + "px";
-				sML.CSS.set(Item.HTML, { "column-axis": "", "column-width": "", "column-gap": "", "column-rule": "" });
+				sML.style(Item.HTML, { "column-axis": "", "column-width": "", "column-gap": "", "column-rule": "" });
 				Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
 				(function(Z, H, B) {
 					Z = H.clientWidth; Z = H.clientHeight; Z = H.scrollWidth; Z = H.scrollHeight; Z = H.offsetWidth; Z = H.offsetHeight;
@@ -1031,7 +1036,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 					Item.ColumnBreadth = PageB;
 					Item.ColumnLength  = PageL;
 					Item.ColumnGap     = PageGap;
-					sML.CSS.set(Item.HTML, {
+					sML.style(Item.HTML, {
 						"column-axis": (S.SIZE.l == "width" ? "horizontal" : "vertical"),
 						"column-width": Item.ColumnLength + "px",
 						"column-gap": Item.ColumnGap + "px",
@@ -1049,7 +1054,7 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 				//Item.scrolling = "yes";
 				var Pages = Math.ceil(ItemL / (PageL + PageGap));
 				for(var i = 0; i < Pages; i++) {
-					var Page = Box.appendChild(sML.createElement("span", { className: "page" }));
+					var Page = Box.appendChild(sML.create("span", { className: "page" }));
 					Page.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + S["spread-separation"] / 2 + "px";
 					Page.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + S["spread-separation"] / 2 + "px";
 					Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
@@ -1095,10 +1100,10 @@ R.layout = function(Setting, TargetItem, ProgressArrayInTargetItem) {
 		R.CurrentEdgeSpread.L.style["margin" + S.BASE.A] = ( LastSpreadMarginAfter  > 0 ?  LastSpreadMarginAfter  : 0) + "px";
 	}
 
-	sML.CSS.set(C.Navigation.Item, { float: "" });
+	sML.style(C.Navigation.Item, { float: "" });
 	if(S["spread-layout-direction"] == "rtl") {
 		var theWidth = C.Navigation.Item.scrollWidth - window.innerWidth;
-		if(C.Navigation.Item.scrollWidth - window.innerWidth < 0) sML.CSS.set(C.Navigation.Item, { float: "right" });
+		if(C.Navigation.Item.scrollWidth - window.innerWidth < 0) sML.style(C.Navigation.Item, { float: "right" });
 		C.Navigation.Box.scrollLeft = C.Navigation.Box.scrollWidth - window.innerWidth;
 	}
 
@@ -1130,14 +1135,14 @@ R.changeView = function(Setting) {
 	if(!Setting) Setting = {};
 	Setting.Reflesh = (Setting["spread-layout-direction"] || Setting["spread-orientation"]);
 	var Current = R.getCurrent();
-	sML.CSS.set(R.Contents, [
+	sML.style(R.Contents, [
 		"transition", "opacity 0.5s linear",
 		"opacity", 0
 	], function() {
 		R.ResizeTriggerCanceled++;
 		R.layout(Setting, Current.Item, [Current.Page.PageIndexInItem, Current.Item.Pages.length]);
 		setTimeout(function() {
-			sML.CSS.set(R.Contents, [
+			sML.style(R.Contents, [
 				"transition", "opacity 0.5s linear",
 				"opacity", 1
 			], function() {
@@ -1372,7 +1377,7 @@ R.move = function(bfPM) { // bfPM = "back" ? -1 : 1;
 				if(CurrentItem.Pair && CurrentItem.Pair == AdjacentItem && (AdjacentItem.ItemIndex + bfPM) * bfPM <= EndItemIndex * bfPM) TargetItem = R.Items[AdjacentItem.ItemIndex + bfPM];
 				if(bfPM < 0 && TargetItem.Pair) TargetItem = TargetItem.Pair;
 			}
-			return sML.CSS.set(R.Contents, [
+			return sML.style(R.Contents, [
 				"transition", "opacity 0.1s linear",
 				"opacity", 0
 			], function() {
@@ -1435,7 +1440,7 @@ O.createNotifier = function() {
 			if(!this.Closed) return this.close(function() { N.open(Cb); });
 			this.Closed = false;
 			N.Panel.style.zIndex = 100;
-			sML.CSS.set(N.Panel, [
+			sML.style(N.Panel, [
 				"transition", N.OpeningTransition,
 				"transform", [
 					"perspective(" + N.Perspective + "px)",
@@ -1455,7 +1460,7 @@ O.createNotifier = function() {
 			if(!this.Opened) return;
 			this.Opened = false;
 			N.Message.style.opacity = 0;
-			sML.CSS.set(N.Panel, [
+			sML.style(N.Panel, [
 				"transition", N.ClosingTransition,
 				"transform", [
 					"perspective(" + N.Perspective + "px)",
@@ -1465,7 +1470,7 @@ O.createNotifier = function() {
 				].join(" "),
 				"opacity", 0
 			], function() {
-				sML.CSS.set(N.Panel, [
+				sML.style(N.Panel, [
 					"transition", "none",
 					"transform", [
 						"perspective(" + N.Perspective + "px)",
@@ -1553,14 +1558,14 @@ O.createControls = function() {
 	C.Switch.toggleControlBar = function(CB) {
 		var TranslateAxis = (S["spread-layout-direction"] == "ttb" ? "X" : "Y");
 		if(!C.Switch.Opened) {
-			sML.CSS.set(C.Bar, { transition: "0.2s ease-in" });
-			sML.CSS.set(R.Contents, { transition: "0.2s ease-in" }, CB);
+			sML.style(C.Bar, { transition: "0.2s ease-in" });
+			sML.style(R.Contents, { transition: "0.2s ease-in" }, CB);
 			sML.addClass(C.Bar,      "bibi-control-bar-opened");
 			sML.addClass(C.Switch,   "bibi-control-bar-opened");
 			sML.addClass(R.Contents, "bibi-control-bar-opened");
 		} else {
-			sML.CSS.set(C.Bar, { transition: "0.2s ease-out" });
-			sML.CSS.set(R.Contents, { transition: "0.2s ease-out" }, CB);
+			sML.style(C.Bar, { transition: "0.2s ease-out" });
+			sML.style(R.Contents, { transition: "0.2s ease-out" }, CB);
 			sML.removeClass(C.Bar,      "bibi-control-bar-opened");
 			sML.removeClass(C.Switch,   "bibi-control-bar-opened");
 			sML.removeClass(R.Contents, "bibi-control-bar-opened");
@@ -1572,22 +1577,32 @@ O.createControls = function() {
 	// Bar
 	C.Bar = document.body.appendChild(sML.create("div", { id: "bibi-control-bar" }));
 
+	// Bar > Misc
+	C.Misc = C.Bar.appendChild(sML.create("div", { id: "bibi-control-misc", innerHTML: O.getLogo({ Linkify: true }) }));
+
+	// Bar > Navigation
+	C.Navigation      = C.Bar.appendChild(           sML.create("div", { id: "bibi-control-navigation" }));
+	C.Navigation.Box  = C.Navigation.appendChild(    sML.create("div", { id: "bibi-control-navigation-box", onclick: function() { C.Switch.toggleControlBar(); } }));
+	C.Navigation.Item = C.Navigation.Box.appendChild(sML.create("div", { id: "bibi-control-navigation-item" }));
+
+	//////////////////////////////////////////////////////////////////////
+	if(sML.UA.InternetExplorer < 11 || sML.UA.Gecko || sML.UA.Opera) return;
+	//////////////////////////////////////////////////////////////////////
+
 	// Bar > Menus
-	C.Menus = C.Bar.appendChild(sML.create("div", { id: "bibi-menus" }));
+	C.Menus = C.Bar.appendChild(sML.create("div", { id: "bibi-control-menus" }));
 	C.Menus["move"] = C.Menus.appendChild(sML.create("menu", { id: "move" }));
 	C.Menus["move"].Buttons = {
 		"back": C.Menus["move"].appendChild(
 			sML.create("li", { id: "move-back",
 				innerHTML: '<span class="bibi-icon bibi-icon-back" title="移動：戻る">' + C.Shape.Back + '</span>',
-				onclick: function() { R.page(-1); }
-				//onclick: function() { R.move(-1); }
+				onclick: function() { R.page(-1); } // onclick: function() { R.move(-1); }
 			})
 		),
 		"forward": C.Menus["move"].appendChild(
 			sML.create("li", { id: "move-forward",
 				innerHTML: '<span class="bibi-icon bibi-icon-forward" title="移動：進む">' + C.Shape.Forward + '</span>',
-				onclick: function() { R.page(+1); }
-				//onclick: function() { R.move(+1); }
+				onclick: function() { R.page(+1); } // onclick: function() { R.move(+1); }
 			})
 		)
 	}
@@ -1628,13 +1643,6 @@ O.createControls = function() {
 		)
 	}
 
-	// Bar > Misc
-	C.Misc = C.Bar.appendChild(sML.create("div", { id: "bibi-misc", innerHTML: O.getLogo({ Linkify: true }) }));
-
-	// Bar > Navigation
-	C.Navigation      = C.Bar.appendChild(           sML.create("div", { id: "bibi-control-navigation" }));
-	C.Navigation.Box  = C.Navigation.appendChild(    sML.create("div", { id: "bibi-control-navigation-box", onclick: function() { C.Switch.toggleControlBar(); } }));
-	C.Navigation.Item = C.Navigation.Box.appendChild(sML.create("div", { id: "bibi-control-navigation-item" }));
 }
 
 
