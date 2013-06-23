@@ -1,3 +1,10 @@
+
+
+
+BiB = { is: "abbreviation of Books-in-Browsers." };  /* and */  BiB.i = { is: "EPUB Reader on Your Site." };
+
+
+
 (function() {
 
 	document.open();
@@ -6,11 +13,8 @@
 
 })(
 
-	'<link rel="stylesheet" href="./res/style/bibi.css" />',
-
 	'<!-- Entypo - http://www.entypo.com/ - Copyright: Daniel Bruce - Licensed under SIL Open Font License. -->',
 		'<link rel="stylesheet" href="./res/font/entypo.css" />',
-		'<link rel="stylesheet" href="./res/font/entypo-social.css" />',
 
 	'<!-- JSZip - http://stuartk.com/jszip - Copyright: Stuart Knightley - Dual licenced under the MIT license or GPLv3. -->',
 		'<script src="./res/script/lib/jszip.js"></script>',
@@ -25,6 +29,7 @@
 		'<script src="./res/script/lib/sML.js"></script>',
 
 	'<!-- BiB/i - http://sarasa.la/bib/i/ - Copyright: Satoru MATSUSHIMA - Licensed under the MIT license. -->',
+		'<link rel="stylesheet" href="./res/style/bibi.css" />',
 		'<script src="./res/script/bibi.js"></script>'
 
 );
