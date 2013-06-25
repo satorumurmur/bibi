@@ -11,7 +11,7 @@ I = BiB.i.Info = {
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
 	Date        : "Tue June 24 07:46:00 2013 +0900",
 
-	Version     : 0.963, // beta
+	Version     : 0.97, // beta
 	Build       : 20130624.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
@@ -220,7 +220,6 @@ R.initialize = function(Settings) {
 		(B.Zipped ? R.preprocessContents : function() { R.Chain.next(); }),
 		R.loadNavigationDocument,
 		R.loadSpineItems,
-		R.postprocessContents,
 		R.finish
 	);
 
@@ -461,15 +460,15 @@ R.readPackageDocument = function(FileContent) {
 		var Title = "BiB/i | ";
 		if(B.package.metadata.title) {
 			Title += B.package.metadata.title;
-			O.log(3, "title: " + B.title);
+			O.log(3, "title: " + B.package.metadata.title);
 		}
 		if(B.package.metadata.creator) {
 			Title += " - " + B.package.metadata.creator;
-			O.log(3, "creator: " + B.creator);
+			O.log(3, "creator: " + B.package.metadata.creator);
 		}
 		if(B.package.metadata.publisher) {
 			Title += " - " + B.package.metadata.publisher;
-			O.log(3, "publisher: " + B.publisher);
+			O.log(3, "publisher: " + B.package.metadata.publisher);
 		}
 	}
 	if(Title) document.title = Title;
@@ -632,7 +631,7 @@ R.loadSpineItems = function() {
 		Item.contentDocument.write(HTML ? HTML : [
 			'<html>',
 				'<head>' + Head + '</head>',
-				'<body onload="parent.R.Items[' + Item.ItemIndex + '].onItemLoaded(); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
+				'<body onload="parent.R.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
 			'</html>'
 		].join(""));
 		Item.contentDocument.close();
@@ -642,6 +641,7 @@ R.loadSpineItems = function() {
 	sML.each(B.package.spine.itemref, function(i) {
 		var Ref  = this;
 		var Path = R.getPath(B.package.dir, B.package.manifest.item[Ref.idref].href);
+		O.log(3, sML.String.padZero(i + 1, A.FileDigit) + '/' + sML.String.padZero(B.package.spine.itemref.length, A.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
 		var Item = sML.create("iframe", {
 			className: "item",
 			id: "item-" + sML.String.padZero(i + 1, A.FileDigit),
@@ -653,17 +653,8 @@ R.loadSpineItems = function() {
 			Pair: null,
 			Spread: null,
 			Box: null,
-			Loaded: false,
-			onItemLoaded: function() {
-				var Item = this;
-				Item.Loaded = true;
-				R.LoadedItems++;
-				Item.HTML = Item.contentDocument.getElementsByTagName("html")[0];
-				Item.Head = Item.contentDocument.getElementsByTagName("head")[0];
-				Item.Body = Item.contentDocument.getElementsByTagName("body")[0];
-				sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
-				//delete this.onItemLoaded;
-			}
+			Postprocessed: { Linkage:0, Viewport:0 },
+			Loaded: false
 		});
 		Item.name = Item.id;
 		Item.setAttribute("scrolling", "no");
@@ -720,17 +711,15 @@ R.loadSpineItems = function() {
 		} else { // If HTML or Others
 			if(B.Zipped) {
 				writeItemHTML(Item, A.Files[Path]);
-				Item.onItemLoaded();
+				R.postprocessItem(Item);
 			} else {
-				Item.onload = Item.onItemLoaded;
+				Item.onload = function() { R.postprocessItem(Item); };
 				Item.src = "../bookshelf/" + B.Name + "/" + Path;
 			}
 		}
-		// Done
-		O.log(3, sML.String.padZero(i + 1, A.FileDigit) + '/' + sML.String.padZero(B.package.spine.itemref.length, A.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
 	});
 
-	// Done
+	// Done?
 	R.ct = 25; (function() {
 		if(R.ct <= 0) {
 			O.log(0, 'Failed.');
@@ -745,103 +734,107 @@ R.loadSpineItems = function() {
 		}
 	})();
 
+	if(C.Navigation.Item) R.postprocessLinkage(B.package.manifest.navigation.path, C.Navigation.Item, "inBiBiNavigation");
+
 }
 
 
 
-R.postprocessContents = function() {
-
-	O.log(2, 'Postprocessing Contents...');
-
-	var Postprocessed = { Viewport: 0, Linkage:0 };
-
-	var postprocessLinkage = function(FilePath, BodyElement, isNavigation) {
-		var FileDir = FilePath.replace(/\/?[^\/]+$/, "");
-		sML.each(BodyElement.getElementsByTagName("a"), function(i) {
-			var A = this;
-			var HrefPathInSource = A.getAttribute("href");
-			if(!HrefPathInSource) return;
-			if(/^[a-zA-Z]+:/.test(HrefPathInSource)) return A.setAttribute("target", "_blank");
-			var HrefPath = R.getPath(FileDir, (!/^(\.*\/+|#)/.test(HrefPathInSource) ? "./" : "") + HrefPathInSource);
-			var HrefFnH = HrefPath.split("#"), HrefFile = HrefFnH[0] ? HrefFnH[0] : FilePath, HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
-			sML.each(R.Items, function() {
-				var rItem = this;
-				if(HrefFile == rItem.Path) {
-					A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
-					A.onclick = isNavigation ? function(e) {
-						sML.stopPropagation(e);
-						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
-					} : function(e) {
-						return R.focus(rItem, HrefHash, { p:0.75, t:20 });
-					};
-					Postprocessed.Linkage++;
-					return;
-				}
-			});
+R.postprocessLinkage = function(FilePath, RootElement, inBiBiNavigation) {
+	var Processed = 0;
+	var FileDir = FilePath.replace(/\/?[^\/]+$/, "");
+	sML.each(RootElement.getElementsByTagName("a"), function(i) {
+		var A = this;
+		var HrefPathInSource = A.getAttribute("href");
+		if(!HrefPathInSource) return;
+		if(/^[a-zA-Z]+:/.test(HrefPathInSource)) return A.setAttribute("target", "_blank");
+		var HrefPath = R.getPath(FileDir, (!/^(\.*\/+|#)/.test(HrefPathInSource) ? "./" : "") + HrefPathInSource);
+		var HrefFnH = HrefPath.split("#"), HrefFile = HrefFnH[0] ? HrefFnH[0] : FilePath, HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
+		sML.each(R.Items, function() {
+			var rItem = this;
+			if(HrefFile == rItem.Path) {
+				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
+				A.inBiBiNavigation = inBiBiNavigation;
+				A.onclick = function(e) {
+					if(this.inBiBiNavigation) sML.stopPropagation(e);
+					R.focus(rItem, HrefHash, { p:0.75, t:20 });
+					return false;
+				};
+				Processed++;
+				return;
+			}
 		});
+	});
+	return Processed;
+}
+
+
+
+R.postprocessItem = function(Item) {
+
+	var Box = Item.Box, Ref = Item.Ref;
+
+	R.LoadedItems++;
+	Item.Loaded = true;
+
+	Item.HTML = Item.contentDocument.getElementsByTagName("html")[0];
+	Item.Head = Item.contentDocument.getElementsByTagName("head")[0];
+	Item.Body = Item.contentDocument.getElementsByTagName("body")[0];
+
+	sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
+
+	// Margin & Padding & Background
+	sML.CSS.add({ "html, body" : "margin: 0; padding: 0;", "html" : "-webkit-text-size-adjust: none;" }, Item.contentDocument);
+
+	// Single SVG / IMG Item
+	var ItemBodyChildren = [];
+	sML.each(Item.Body.getElementsByTagName("*"), function() { if(this.parentNode == Item.Body) ItemBodyChildren.push(this); });
+	if(ItemBodyChildren.length == 1) {
+			 if(/^svg$/i.test(ItemBodyChildren[0].tagName)) Item.SingleSVG = true;
+		else if(/^img$/i.test(ItemBodyChildren[0].tagName)) Item.SingleIMG = true;
 	}
 
-	if(C.Navigation.Item) postprocessLinkage(B.package.manifest.navigation.path, C.Navigation.Item, "isNavigation");
-
-	sML.each(R.Items, function() {
-		var Item = this, Box = this.Box, Ref = this.Ref;
-		// Margin & Padding & Background
-		sML.CSS.add({ "html, body" : "margin: 0; padding: 0;", "html" : "-webkit-text-size-adjust: none;" }, Item.contentDocument);
-		// Single SVG / IMG Item
-		var ItemBodyChildren = [];
-		sML.each(Item.Body.getElementsByTagName("*"), function() { if(this.parentNode == Item.Body) ItemBodyChildren.push(this); });
-		if(ItemBodyChildren.length == 1) {
-			     if(/^svg$/i.test(ItemBodyChildren[0].tagName)) Item.SingleSVG = true;
-			else if(/^img$/i.test(ItemBodyChildren[0].tagName)) Item.SingleIMG = true;
-		}
-		// Viewport
-		sML.each(Item.Head.getElementsByTagName("meta"), function() { // META viewport
-			if(this.name == "viewport") {
-				Ref.viewport.content = this.getAttribute("content");
-				if(Ref.viewport.content) {
-					var viewportWidth  = Ref.viewport.content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
-					var viewportHeight = Ref.viewport.content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
-					if(!isNaN(viewportWidth) && !isNaN(viewportHeight)) {
-						Ref.viewport.width  = viewportWidth;
-						Ref.viewport.height = viewportHeight;
-						Postprocessed.Viewport++;
-					}
+	// Viewport
+	sML.each(Item.Head.getElementsByTagName("meta"), function() { // META viewport
+		if(this.name == "viewport") {
+			Ref.viewport.content = this.getAttribute("content");
+			if(Ref.viewport.content) {
+				var viewportWidth  = Ref.viewport.content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
+				var viewportHeight = Ref.viewport.content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
+				if(!isNaN(viewportWidth) && !isNaN(viewportHeight)) {
+					Ref.viewport.width  = viewportWidth;
+					Ref.viewport.height = viewportHeight;
+					Item.Postprocessed.Viewport;
 				}
 			}
-		});
-		if(Ref["rendition:layout"] == "pre-paginated" && !(Ref.viewport.width * Ref.viewport.height)) { // If Fixed-Layout Item without viewport
-			if(Item.SingleSVG) { // If Single-SVG-HTML or SVG-in-Spine, Use SVG "viewBox" for viewport.
-				if(ItemBodyChildren[0].getAttribute("viewBox")) {
-					Ref.viewBox.content = ItemBodyChildren[0].getAttribute("viewBox");
-					var viewBoxCoords  = Ref.viewBox.content.split(" ");
-					if(viewBoxCoords.length == 4) {
-						var viewBoxWidth  = viewBoxCoords[2] * 1 - viewBoxCoords[0] * 1;
-						var viewBoxHeight = viewBoxCoords[3] * 1 - viewBoxCoords[1] * 1;
-						if(viewBoxWidth && viewBoxHeight) {
-							if(ItemBodyChildren[0].getAttribute("width")  != "100%") ItemBodyChildren[0].setAttribute("width",  "100%");
-							if(ItemBodyChildren[0].getAttribute("height") != "100%") ItemBodyChildren[0].setAttribute("height", "100%");
-							Ref.viewport.width  = Ref.viewBox.width  = viewBoxWidth;
-							Ref.viewport.height = Ref.viewBox.height = viewBoxHeight;
-							Postprocessed.Viewport++;
-						}
-					}
-				}
-			} else if(Item.SingleIMG) { // If Single-IMG-HTML or Bitmap-in-Spine, Use IMG "width" / "height" for viewport.
-				Ref.viewport.width  = ItemBodyChildren[0].width;
-				Ref.viewport.height = ItemBodyChildren[0].height;
-				Postprocessed.Viewport++;
-			}
 		}
-		// Linkage
-		postprocessLinkage(Item.Path, Item.Body);
 	});
+	if(Ref["rendition:layout"] == "pre-paginated" && !(Ref.viewport.width * Ref.viewport.height)) { // If Fixed-Layout Item without viewport
+		if(Item.SingleSVG) { // If Single-SVG-HTML or SVG-in-Spine, Use SVG "viewBox" for viewport.
+			if(ItemBodyChildren[0].getAttribute("viewBox")) {
+				Ref.viewBox.content = ItemBodyChildren[0].getAttribute("viewBox");
+				var viewBoxCoords  = Ref.viewBox.content.split(" ");
+				if(viewBoxCoords.length == 4) {
+					var viewBoxWidth  = viewBoxCoords[2] * 1 - viewBoxCoords[0] * 1;
+					var viewBoxHeight = viewBoxCoords[3] * 1 - viewBoxCoords[1] * 1;
+					if(viewBoxWidth && viewBoxHeight) {
+						if(ItemBodyChildren[0].getAttribute("width")  != "100%") ItemBodyChildren[0].setAttribute("width",  "100%");
+						if(ItemBodyChildren[0].getAttribute("height") != "100%") ItemBodyChildren[0].setAttribute("height", "100%");
+						Ref.viewport.width  = Ref.viewBox.width  = viewBoxWidth;
+						Ref.viewport.height = Ref.viewBox.height = viewBoxHeight;
+						Item.Postprocessed.Viewport++;
+					}
+				}
+			}
+		} else if(Item.SingleIMG) { // If Single-IMG-HTML or Bitmap-in-Spine, Use IMG "width" / "height" for viewport.
+			Ref.viewport.width  = ItemBodyChildren[0].width;
+			Ref.viewport.height = ItemBodyChildren[0].height;
+			Item.Postprocessed.Viewport++;
+		}
+	}
 
-	if(Postprocessed.Viewport) O.log(3, sML.String.padZero(Postprocessed.Viewport, A.FileDigit) + ' Viewport');
-	if(Postprocessed.Linkage)  O.log(3, sML.String.padZero(Postprocessed.Linkage,  A.FileDigit) + ' Linkage');
-
-	O.log(2, 'Postprocessed.');
-
-	R.Chain.next();
+	// Linkage
+	Item.Postprocessed.Linkage = R.postprocessLinkage(Item.Path, Item.Body);
 
 }
 
@@ -1687,7 +1680,7 @@ O.log = function(Lv, Message) {
 	else if(Lv == 1) Message = "---------------- " + Message + " ----------------";
 	else if(Lv == 2) Message = Message;
 	else if(Lv == 3) Message = " - " + Message;
-	else if(Lv == 4) Message = " . " + Message;
+	else if(Lv == 4) Message = "   . " + Message;
 	sML.log('BiB/i: ' + Message);
 }
 
