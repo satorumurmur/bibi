@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue June 24 07:46:00 2013 +0900",
+	Date        : "Tue June 26 00:58:00 2013 +0900",
 
 	Version     : 0.97, // beta
-	Build       : 20130624.0,
+	Build       : 20130626.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -59,6 +59,8 @@ Q = BiB.i.Queries  = {};
 
 O.start = function() {
 
+	O.getQueries();
+
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
 		var HTML = document.getElementsByTagName("html")[0];
@@ -84,42 +86,23 @@ O.start = function() {
 	O.HTML = document.getElementsByTagName("html")[0];
 	O.Body = document.getElementsByTagName("body")[0];
 
-	R.Contents            = document.body.appendChild(sML.create("div", { id: "epub-contents"  }));
-	R.Asides              = document.body.appendChild(sML.create("div", { id: "epub-asides"    }));
-
-	R.Metafiles           = document.body.appendChild(sML.create("div", { id: "epub-metafiles" }));
-	R.Metafiles.Container =   R.Metafiles.appendChild(sML.create("div", { id: "epub-container" }));
-	R.Metafiles.Package   =   R.Metafiles.appendChild(sML.create("div", { id: "epub-package"   }));
-
 	O.createNotifier();
 	O.createControls();
 
-	R.getQueries();
 	R.waitEPUB();
 
 }
 
 
 
-R.getQueries = function() {
+O.getQueries = function() {
 	Q = sML.getQueries();
-	if(Q.pb) {
-		var PB = Q.pb.split(",");
-		Q.preset = PB[0];
-		Q.book   = PB[1];
-	}
-	if(Q.bp) {
-		var BP = Q.bp.split(",");
-		Q.book   = BP[0];
-		Q.preset = BP[1];
-	}
-	if(Q.book)                       Q.b   = Q.book;
-	if(Q.preset)                     Q.p   = Q.preset;
-	if(Q["book-display-mode"])       Q.bdm = Q["book-display-mode"];
-	if(Q.bdm)                        Q.dm  = Q.dm;
-	if(Q["spread-layout-direction"]) Q.sld = Q["spread-layout-direction"];
-	if(Q.sld)                        Q.sd  = Q.sld;
-	if(Q["page-orientation"])        Q.po  = Q["page-orientation"];
+	if(history.replaceState) history.replaceState(null, null, location.href.replace(/&wait=[^&]+/g, ""));
+	if(Q.book)                       Q.b  = Q.book;
+	if(Q.preset)                     Q.p  = Q.preset;
+	if(Q["book-display-mode"])       Q.dm = Q["book-display-mode"];
+	if(Q["spread-layout-direction"]) Q.sd = Q["spread-layout-direction"];
+	if(Q["page-orientation"])        Q.po = Q["page-orientation"];
 }
 
 
@@ -174,12 +157,12 @@ R.waitEPUB = function() {
 			R.Chain.start();
 		}
 		if(Q.wait || (parent && parent != window && !Q.autostart)) {
-			N.Panel.appendChild(sML.create("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/, "")); } : function() {
+			N.Panel.appendChild(sML.create("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/g, "")); } : function() {
 				R.loadEPUB();
 				this.onclick = "";
 				sML.style(this, { opacity: 0, cursor: "default" });
 			} }));
-			return N.note('<a href="' + location.href.replace(/&wait=[^&]+/, "") + '" target="_blank">open in new window.</a>');
+			return N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
 		}
 		R.loadEPUB();
 	}
@@ -192,17 +175,20 @@ R.initialize = function(Settings) {
 
 	O.HTML.removeAttribute("class");
 
+	if(R.Contents) sML.deleteElement(R.Contents);
+	R.Contents = document.body.appendChild(sML.create("div", { id: "epub-contents"  }));
+
 	var HTMLClassNames = [];
-	for(var OS in sML.OS) if(sML.OS[OS]) HTMLClassNames.push(OS);
-	for(var UA in sML.UA) if(sML.UA[UA]) HTMLClassNames.push(UA);
-	sML.addClass(HTMLClassNames.join(" "));
+	for(var OS in sML.OS) if(sML.OS[OS]                                  ) HTMLClassNames.push(OS);
+	for(var UA in sML.UA) if(sML.UA[UA] && UA.length > 2 && UA != "Flash") HTMLClassNames.push(UA);
+	sML.addClass(O.HTML, HTMLClassNames.join(" "));
 
 	sML.addClass(R.Contents, "processing");
 
 	B = {
 		Name: Settings.Name,
 		Zipped: Settings.Zipped,
-		container: { path: "META-INF/container.xml" },
+		container: { Path: "META-INF/container.xml" },
 		package: {}
 	};
 
@@ -248,7 +234,7 @@ R.loadPreset = function() {
 
 	var PresetScript = sML.insertAfter(
 		sML.create("script", { src: "../preset/" + P.file, onload: function() {
-			if(sML.OS.iOS || sML.OS.Android) {
+			if(O.SmartPhone) {
 				P["spread-separation"]   = P["spread-separation_narrow-device"];
 				P["spread-margin-start"] = P["spread-margin-start_narrow-device"];
 				P["spread-margin-end"]   = P["spread-margin-end_narrow-device"];
@@ -328,10 +314,10 @@ R.extractEPUB = function() {
 R.readContainer = function(FileContent) {
 
 	if(B.Zipped) {
-		var FileContent = A.Files[B.container.path];
+		var FileContent = A.Files[B.container.Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.container.path, {
+			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.container.Path, {
 				onsuccess: function(FileContent) { R.readContainer(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -344,10 +330,15 @@ R.readContainer = function(FileContent) {
 
 	O.log(2, 'Reading Container XML...');
 
-	R.Metafiles.Container.innerHTML = R.toBiBiXML(FileContent);
-	B.package.path = R.Metafiles.Container.getElementsByTagName("bibi:rootfile")[0].getAttribute("full-path");
-	B.package.dir  = B.package.path.replace(/\/?[^\/]+$/, "");
-	O.log(3, B.container.path);
+	R.Container = document.body.appendChild(sML.create("div", { id: "epub-container" }));
+
+	R.Container.innerHTML = R.toBiBiXML(FileContent);
+	B.package.Path = R.Container.getElementsByTagName("bibi:rootfile")[0].getAttribute("full-path");
+	B.package.Dir  = B.package.Path.replace(/\/?[^\/]+$/, "");
+
+	sML.deleteElement(R.Container);
+
+	O.log(3, B.container.Path);
 	O.log(2, 'Read.');
 	R.Chain.next();
 
@@ -358,10 +349,10 @@ R.readContainer = function(FileContent) {
 R.readPackageDocument = function(FileContent) {
 
 	if(B.Zipped) {
-		var FileContent = A.Files[B.package.path];
+		var FileContent = A.Files[B.package.Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.path, {
+			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.Path, {
 				onsuccess: function(FileContent) { R.readPackageDocument(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -374,15 +365,17 @@ R.readPackageDocument = function(FileContent) {
 
 	O.log(2, 'Reading Package Document...');
 
+	R.Package = document.body.appendChild(sML.create("div", { id: "epub-package"   }));
+
 	// Package
-	R.Metafiles.Package.innerHTML = R.toBiBiXML(FileContent);
-	var Metadata = R.Metafiles.Package.getElementsByTagName("bibi:metadata")[0];
-	var Manifest = R.Metafiles.Package.getElementsByTagName("bibi:manifest")[0];
-	var Spine    = R.Metafiles.Package.getElementsByTagName("bibi:spine")[0];
+	R.Package.innerHTML = R.toBiBiXML(FileContent);
+	var Metadata = R.Package.getElementsByTagName("bibi:metadata")[0];
+	var Manifest = R.Package.getElementsByTagName("bibi:manifest")[0];
+	var Spine    = R.Package.getElementsByTagName("bibi:spine")[0];
 	var ManifestItems = Manifest.getElementsByTagName("bibi:item");
 	var SpineItemrefs = Spine.getElementsByTagName("bibi:itemref");
-	if(ManifestItems.length <= 0) return O.log(0, '"' + B.package.path + '" has no <item> in <manifest>.');
-	if(SpineItemrefs.length <= 0) return O.log(0, '"' + B.package.path + '" has no <itemref> in <spine>.');
+	if(ManifestItems.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <item> in <manifest>.');
+	if(SpineItemrefs.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <itemref> in <spine>.');
 	B.package.metadata = { title: "", creator: "", publisher: "", titles: [], creators: [], publishers: [] };
 	B.package.manifest = { item: {}, navigation: {} };
 	B.package.spine    = { itemref: [] };
@@ -394,9 +387,9 @@ R.readPackageDocument = function(FileContent) {
 		if(/^(title|creator|publisher)$/.test(Property)) B.package.metadata[Property + "s"].push(this.innerHTML);
 		else if(!B.package.metadata[Property]) B.package.metadata[Property] = this.innerText;
 	});
-	if(!B.package.metadata["titles"    ].length) sML.each(R.Metafiles.Package.getElementsByTagName("bibi:dc:title"),     function() { B.package.metadata["titles"    ].push(this.innerHTML); return false; });
-	if(!B.package.metadata["creators"  ].length) sML.each(R.Metafiles.Package.getElementsByTagName("bibi:dc:creator"),   function() { B.package.metadata["creators"  ].push(this.innerHTML); });
-	if(!B.package.metadata["publishers"].length) sML.each(R.Metafiles.Package.getElementsByTagName("bibi:dc:publisher"), function() { B.package.metadata["publishers"].push(this.innerHTML); });
+	if(!B.package.metadata["titles"    ].length) sML.each(R.Package.getElementsByTagName("bibi:dc:title"),     function() { B.package.metadata["titles"    ].push(this.innerHTML); return false; });
+	if(!B.package.metadata["creators"  ].length) sML.each(R.Package.getElementsByTagName("bibi:dc:creator"),   function() { B.package.metadata["creators"  ].push(this.innerHTML); });
+	if(!B.package.metadata["publishers"].length) sML.each(R.Package.getElementsByTagName("bibi:dc:publisher"), function() { B.package.metadata["publishers"].push(this.innerHTML); });
 	B.package.metadata.title     = B.package.metadata.titles.join(    ", ");
 	B.package.metadata.creator   = B.package.metadata.creators.join(  ", ");
 	B.package.metadata.publisher = B.package.metadata.publishers.join(", ");
@@ -414,7 +407,7 @@ R.readPackageDocument = function(FileContent) {
 			"fallback"   : this.getAttribute("fallback")   || ""
 		};
 		if(Item.id && Item.href) B.package.manifest.item[Item.id] = Item;
-		if(/ nav /.test(" " + Item.properties + " ")) B.package.manifest.navigation.path = R.getPath(B.package.path.replace(/\/[^\/]+$/, ""), Item.href);
+		if(/ nav /.test(" " + Item.properties + " ")) B.package.manifest.navigation.Path = R.getPath(B.package.Path.replace(/\/[^\/]+$/, ""), Item.href);
 	});
 
 	// SPINE
@@ -454,8 +447,6 @@ R.readPackageDocument = function(FileContent) {
 		B.package.spine.itemref.push(Ref);
 	});
 
-	O.log(3, B.package.path);
-
 	if(B.package.metadata.creator || B.package.metadata.title) {
 		var Title = "BiB/i | ";
 		if(B.package.metadata.title) {
@@ -472,6 +463,10 @@ R.readPackageDocument = function(FileContent) {
 		}
 	}
 	if(Title) document.title = Title;
+
+	sML.deleteElement(R.Package);
+
+	O.log(3, B.package.Path);
 	O.log(2, 'Read.');
 	R.Chain.next();
 
@@ -574,16 +569,16 @@ R.preprocessContents = function() {
 
 R.loadNavigationDocument = function(FileContent) {
 
-	if(!B.package.manifest.navigation.path) {
+	if(!B.package.manifest.navigation.Path) {
 		O.log(2, 'No Navigation Document.');
 		return R.Chain.next();
 	}
 
 	if(B.Zipped) {
-		var FileContent = A.Files[B.package.manifest.navigation.path];
+		var FileContent = A.Files[B.package.manifest.navigation.Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.manifest.navigation.path, {
+			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.manifest.navigation.Path, {
 				onsuccess: function(FileContent) { R.loadNavigationDocument(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -596,7 +591,7 @@ R.loadNavigationDocument = function(FileContent) {
 
 	O.log(2, 'Loading Navigation Document...');
 
-	O.log(3, '"' + B.package.manifest.navigation.path + '"');
+	O.log(3, '"' + B.package.manifest.navigation.Path + '"');
 
 	var TempDivs = { A: sML.create("div", { innerHTML: FileContent.replace(/^.+<body( [^>]+)?>/, '').replace(/<\/body>.+$/, '') }), B: document.createElement("div") };
 	sML.each(sML.toArray(TempDivs.A.getElementsByTagName("nav")), function() { TempDivs.B.appendChild(this); });
@@ -640,7 +635,7 @@ R.loadSpineItems = function() {
 	// Spreads, Boxes, and Items
 	sML.each(B.package.spine.itemref, function(i) {
 		var Ref  = this;
-		var Path = R.getPath(B.package.dir, B.package.manifest.item[Ref.idref].href);
+		var Path = R.getPath(B.package.Dir, B.package.manifest.item[Ref.idref].href);
 		O.log(3, sML.String.padZero(i + 1, A.FileDigit) + '/' + sML.String.padZero(B.package.spine.itemref.length, A.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
 		var Item = sML.create("iframe", {
 			className: "item",
@@ -734,7 +729,7 @@ R.loadSpineItems = function() {
 		}
 	})();
 
-	if(C.Navigation.Item) R.postprocessLinkage(B.package.manifest.navigation.path, C.Navigation.Item, "inBiBiNavigation");
+	if(C.Navigation.Item) R.postprocessLinkage(B.package.manifest.navigation.Path, C.Navigation.Item, "inBiBiNavigation");
 
 }
 
@@ -850,14 +845,14 @@ R.finish = function() {
 	R.updateSetting({ Reset: true });
 
 	setTimeout(function() {
-		window.addEventListener((sML.OS.iOS || sML.OS.Android) ? "orientationchange" : "resize", function() {
+		window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", function() {
 			if(R.layoutTimer) clearTimeout(R.layoutTimer);
 			R.layoutTimer = setTimeout(function() { if(!R.ResizeTriggerCanceled) R.layout({ Reflesh: true }); }, (sML.OS.iOS || sML.OS.Android) ? 800 : 400);
 		});
 		R.layout({ Reflesh: true }, "head");
 		sML.each(R.Items, function(){
-			this.Box.style.background  = this.contentDocument.defaultView.getComputedStyle(this.HTML).background;  this.HTML.style.background = "";
-			this.style.background      = this.contentDocument.defaultView.getComputedStyle(this.Body).background;  this.Body.style.background = "";
+			this.Box.style.background = this.contentDocument.defaultView.getComputedStyle(this.HTML).background;  this.HTML.style.background = "";
+			this.style.background     = this.contentDocument.defaultView.getComputedStyle(this.Body).background;  this.Body.style.background = "";
 		});
 		sML.style(N.Panel, [
 			"transition", "opacity 1s linear",
@@ -1183,11 +1178,11 @@ R.updateSetting = function(Setting) {
 	if(S["spread-layout-direction"] == "vertical")   S["spread-layout-direction"] =                                                    "ttb";
 
 	// Shortening
-	S.DM = S.DisplayMode       = S["book-display-mode"];
-	S.SD = S.SpreadDir         = S["spread-layout-direction"];
-	S.SS = S.SpreadSeparation  = S["spread-separation"];
-	S.PD = S.PageDir           = S["page-progression-direction"];
-	S.PO = S.PageOrientation   = S["page-orientation"];
+	S.DM = S.DisplayMode      = S["book-display-mode"];
+	S.SD = S.SpreadDir        = S["spread-layout-direction"];
+	S.SS = S.SpreadSeparation = S["spread-separation"];
+	S.PD = S.PageDir          = S["page-progression-direction"];
+	S.PO = S.PageOrientation  = S["page-orientation"];
 
 	// Layout Dictionary
 	if(S.SD == "ttb") {
