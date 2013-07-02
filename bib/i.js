@@ -16,7 +16,7 @@
 			if(!BiBiAs[i].getAttribute("href")) continue;
 			var A = BiBiAs[i];
 			var BiBi = A["BiB/i"] = {
-				Frame  : document.createElement("iframe", { frameborder: 0, scrolling: "yes" }),
+				Frame  : document.createElement("iframe", { "frameborder": "0", "scrolling": "yes", "allowfullscreen": "true" }),
 				Src    : A.getAttribute("href"),
 				Class  : A.getAttribute("data-bibi-class"),
 				ID     : A.getAttribute("data-bibi-id"),
@@ -31,9 +31,8 @@
 			BiBi.Frame.setAttribute("style", "margin: 0; padding: 0; border: none 0; " + BiBi.Style ? BiBi.Style : "");
 			A.style.display = "none";
 			A.parentNode.insertBefore(BiBi.Frame, A);
-			BiBi.Frame.onload = function() { this.contentWindow.O.ParentFrame = this; }
+			BiBi.Frame.onload = function() { try { this.contentWindow.O.ParentFrame = this; } catch(e) {} }
 			BiBi.Frame.src = BiBi.Src;
-			BiBi.Frame.contentWindow.parentFrame = BiBi.Frame;
 		}
 		window["bibi-status"] = "processed";
 	}

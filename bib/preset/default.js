@@ -10,9 +10,9 @@ P = BiB.i.Preset = {
 
 	"book-background"                   : "rgb(64,64,64)",              // CSS or ""
 
-	"spread-separation"                 : 16,                           // px (if you set odd-number, it will be added 1.)
-	"spread-margin-start"               : 8,                            // px
-	"spread-margin-end"                 : 8,                            // px
+	"spread-separation"                 : 8,                            // px (if you set odd-number, it will be added 1.)
+	"spread-margin-start"               : 4,                            // px
+	"spread-margin-end"                 : 4,                            // px
 
 	"spread-separation_narrow-device"   : 8,                            // px (if you set odd-number, it will be added 1.)
 	"spread-margin-start_narrow-device" : 4,                            // px

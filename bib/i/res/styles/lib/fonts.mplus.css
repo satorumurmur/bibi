@@ -1,0 +1,315 @@
+/* M+ 1P :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-1p-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-bold.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-heavy;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-heavy.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1p-black;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1p-black.ttf')
+     format("truetype");
+}
+
+/* M+ 2P :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-2p-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-bold.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-heavy;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-heavy.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2p-black;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2p-black.ttf')
+     format("truetype");
+}
+
+/* M+ 1C :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-1c-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-bold.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-heavy;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-heavy.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1c-black;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1c-black.ttf')
+     format("truetype");
+}
+
+/* M+ 2C :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-2c-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-bold.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-heavy;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-heavy.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2c-black;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2c-black.ttf')
+     format("truetype");
+}
+
+/* M+ 1M :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-1m-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1m-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1m-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1m-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1m-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1m-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1m-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1m-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1m-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1m-bold.ttf')
+     format("truetype");
+}
+
+/* M+ 2M :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-2m-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2m-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2m-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2m-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2m-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2m-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2m-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2m-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-2m-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-2m-bold.ttf')
+     format("truetype");
+}
+
+/* M+ 1MN ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+@font-face
+{
+font-family: mplus-1mn-thin;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-thin.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1mn-light;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-light.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1mn-regular;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-regular.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1mn-medium;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-medium.ttf')
+     format("truetype");
+}
+
+@font-face
+{
+font-family: mplus-1mn-bold;
+src: url('http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-bold.ttf')
+     format("truetype");
+}
+
