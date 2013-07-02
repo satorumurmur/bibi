@@ -470,7 +470,7 @@ sML.CSS = sML.S = {
 	setProperty: function(E, P, V, pfx) {
 		if(!E || !P) return E;
 		     if(P == "opacity") return this.setOpacity(E, V); // 2012/11/01
-		else if(/^transition|transform|column|filter|writing/.test(P)) pfx = true; // 2013/06/12
+		else if(/^(animation|box|column|filter|transition|transform|writing|background-size)/.test(P)) pfx = true; // 2013/06/30
 		else if(P == "float") /*@cc_on P = "styleFloat"; // @*/ P = "cssFloat";
 		if(pfx) E.style[this.Prefix + P] = V;
 		E.style[P] = V;
@@ -490,8 +490,15 @@ sML.CSS = sML.S = {
 		if(!E || typeof PV != "object") return E;
 		this.removeTransitionEndListener(E);
 		if(typeof Cb == "function") this.addTransitionEndListener(E, Cb);
-		if(!(PV instanceof Array)) for(var P in PV)                              this.setProperty(E,         P,         PV[P]);
-		else if(PV.length % 2 < 1) for(var L = PV.length / 2, i = 0; i < L; i++) this.setProperty(E, PV[i * 2], PV[i * 2 + 1]);
+		if(!(PV instanceof Array)) {
+			var PVArray = [];
+			for(var P in PV) {
+				if(/^transition/.test(P)) this.setProperty(E, P, PV[P]);
+				else                      PVArray[PVArray.push(P)] = PV[P];
+			}
+			PV = PVArray;
+		}
+		if(PV.length % 2 < 1) for(var L = PV.length / 2, i = 0; i < L; i++) this.setProperty(E, PV[i * 2], PV[i * 2 + 1]);
 		return E;
 	},
 	getRGB: function(Property) {
@@ -1218,6 +1225,40 @@ sML.getLength = function(O) {
 
 sML.padZero = sML.zeroPadding = sML.String.padZero;
 sML.insertZeroWidthSpace = sML.String.insertZeroWidthSpace;
+
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- String / Number
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.requestFullScreen = function(E) {
+	if(!E) E = document.documentElement || document.body;
+	if(E.requestFullScreen)       return E.requestFullScreen();
+	if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
+	if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
+	if(E.msRequestFullScreen)     return E.msRequestFullScreen();
+	if(E.oRequestFullScreen)      return E.oRequestFullScreen();
+}
+
+sML.exitFullScreen = function(D) {
+	if(!D) D = document;
+	if(D.exitFullScreen)          return D.exitFullScreen();
+	if(D.cencelFullScreen)        return D.cancelFullScreen();
+	if(D.webkitExitFullScreen)    return D.webkitExitFullScreen();
+	if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
+	if(D.mozExitFullScreen)       return D.mozExitFullScreen();
+	if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
+	if(D.msExitFullScreen)        return D.msExitFullScreen();
+	if(D.msCancelFullScreen)      return D.msCancelFullScreen();
+	if(D.oExitFullScreen)         return D.oExitFullScreen();
+	if(D.oCancelFullScreen)       return D.oCancelFullScreen();
+}
 
 
 
