@@ -1,7 +1,9 @@
 @font-face {
-    font-family: 'Entypo';
-    src: url(./entypo.woff) format('woff'),
-         url(./entypo.ttf)  format('truetype');
-    font-weight: normal;
-    font-style: normal;
+	font-family: 'Entypo';
+	src: url(./entypo.woff) format('woff'),
+	     url(./entypo.ttf)  format('truetype'),
+	     url(./entypo.eot)  format('embedded-opentype'),
+	     url(./entypo.svg)  format('svg');
+	font-weight: normal;
+	font-style: normal;
 }
