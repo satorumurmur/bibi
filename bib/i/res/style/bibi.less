@@ -81,7 +81,7 @@ span.bibi-type {
 
 
 // ================================================================================
-// + Navigator
+// + Notifier
 // --------------------------------------------------------------------------------
 
 div#bibi-notifier-panel {
@@ -96,7 +96,7 @@ div#bibi-notifier-panel {
 	height: 100%;
 	font-size: 15px;
 	color: white;
-	background: rgb(64,64,64);
+	background: rgb(48,48,48);
 	opacity: 1;/*
 	p#bibi-notifier-message {
 		padding-top: 30%;
@@ -105,21 +105,37 @@ div#bibi-notifier-panel {
 		text-align: center;
 		font-weight: bold;
 		color: rgb(96,96,96);
-//		text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
+		//text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
 	}*/
-	p#bibi-play,
-	p#bibi-drop,
+	div#bibi-notifier-cover {
+		overflow: hidden;
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		top: 0;
+		.box-sizing(border-box);
+		border: solid 10px transparent;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		.transition(opacity 0.5s linear);
+		background: transparent no-repeat center center;
+		.background-size(contain);
+	}
 	p#bibi-notifier-mark,
 	p#bibi-notifier-message,
-	p#bibi-notifier-powered {
+	p#bibi-notifier-powered,
+	p#bibi-play,
+	p#bibi-drop {
 		position: absolute;
 		font-size: 20px;
-		font-weight: bold;
-		color: rgba(255,255,255,0.15);
+		color: rgba(255,255,255,0.4);
 		//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
-		text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
+		text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
 		a {
 			color: inherit;
+			text-decoration: none;
+			border-bottom: solid 1px rgb(96,96,96);
 			.transition(0.25s linear);
 			&:hover {
 				color: rgb(192,192,192);
@@ -129,22 +145,22 @@ div#bibi-notifier-panel {
 	p#bibi-play,
 	p#bibi-drop {
 		z-index: 10;
-		left: 50%;
-		top: 50%;
-		margin: -48px;
-		width: 96px;
-		height: 96px;
-		text-align: center;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 		&:before {
-			display: block;
-			position: relative;
-			left: -16px;
-			top: -80px;
-			width: 128px;
-			height: 128px;
+			display: inline-block;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			margin: -128px;
+			width: 256px;
+			height: 256px;
+			line-height: 256px;
+			text-align: center;
 			font-size: 256px;
 			font-family: "Entypo";
-			text-align: center;
 		}
 	}
 	p#bibi-play {
@@ -171,136 +187,138 @@ div#bibi-notifier-panel {
 	}
 	p#bibi-notifier-mark {
 		display: none;
-		z-index: 1;
+		z-index: 100;
 		left: 50%;
 		top: 50%;
-		margin: -38px -19px 0;
-		width: 38px;
-		height: 38px;
+		margin: -38px -38px 0;
+		width: 76px;
+		height: 76px;
 		span {
 			display: block;
 			position: absolute;
-			width: 6px;
-			height: 6px;
-			border-radius: 3px;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
 			opacity: 0.25;
-			&.dot1 { left: 16px; top:  0px; background: rgba(255,255,255,0.125); }
-			&.dot2 { left: 27px; top:  4px; background: rgba(255,255,255,0.250); }
-			&.dot3 { left: 32px; top: 16px; background: rgba(255,255,255,0.375); }
-			&.dot4 { left: 27px; top: 27px; background: rgba(255,255,255,0.500); }
-			&.dot5 { left: 16px; top: 32px; background: rgba(255,255,255,0.625); }
-			&.dot6 { left:  4px; top: 27px; background: rgba(255,255,255,0.750); }
-			&.dot7 { left:  0px; top: 16px; background: rgba(255,255,255,0.875); }
-			&.dot8 { left:  4px; top:  4px; background: rgba(255,255,255,1.000); }
+			box-shadow: 0 0 2px black;
+			&.dot1 { left: 32px; top:  0px; background: rgba(128,128,128,0.125); }
+			&.dot2 { left: 54px; top:  8px; background: rgba(128,128,128,0.250); }
+			&.dot3 { left: 64px; top: 32px; background: rgba(128,128,128,0.375); }
+			&.dot4 { left: 54px; top: 54px; background: rgba(128,128,128,0.500); }
+			&.dot5 { left: 32px; top: 64px; background: rgba(128,128,128,0.625); }
+			&.dot6 { left:  8px; top: 54px; background: rgba(128,128,128,0.750); }
+			&.dot7 { left:  0px; top: 32px; background: rgba(128,128,128,0.875); }
+			&.dot8 { left:  8px; top:  8px; background: rgba(128,128,128,1.000); }
 		}
-	}
+	}/*
 	&:after {
 		content: "";
 		display: block;
 		position: absolute;
 		left: 0;
-		bottom: 1.8em;
+		bottom: 2.2em;
 		width: 100%;
 		height: 0;
 		border-top: solid 1px rgba(0,0,0,0.2);
 		border-bottom: solid 1px rgba(255,255,255,0.1);
-	}
+	}*/
 	p#bibi-notifier-message,
 	p#bibi-notifier-powered {
 		width: 100%;
-		bottom: 0.25em;
-		font-size: 0.9em;
+		bottom: 0.2em;
+		font-size: 1.2em;
 		line-height: 1.6;
 		small {
 			font-size: 0.75em;
 		}
 	}
 	p#bibi-notifier-message {
-		z-index: 10;
+		z-index: 100;
 		left: 8px;
 		text-align: left;
 	}
 	p#bibi-notifier-powered {
-		z-index: 100;
+		z-index: 1000;
 		right: 8px;
 		width: 10em;
 		text-align: right;
+		font-weight: bold;
 	}
 }
 
 @-webkit-keyframes fade {
-	  0% { opacity: 1.0; }
-	 50% { opacity: 0.9; }
-	100% { opacity: 1.0; }
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
 }
 @-webkit-keyframes rotate {
 	  0% { -webkit-transform: rotate(  0   ); }
 	100% { -webkit-transform: rotate(360deg); }
 }
 @-webkit-keyframes rotate-scale-blur {
-	  0% { -webkit-transform: rotate(  0   ) scale(0.9); -webkit-filter: blur(0  ); }
-	 50% { -webkit-transform: rotate(180deg) scale(1.1); -webkit-filter: blur(1px); }
-	100% { -webkit-transform: rotate(360deg) scale(0.9); -webkit-filter: blur(0  ); }
+	  0% { -webkit-transform: rotate(  0   ) scale(0.75); -webkit-filter: blur(0  ); }
+	 50% { -webkit-transform: rotate(180deg) scale(1.00); -webkit-filter: blur(0); }
+	100% { -webkit-transform: rotate(360deg) scale(0.75); -webkit-filter: blur(0  ); }
 }
 
 @-moz-keyframes fade {
-	  0% { opacity: 1.0; }
-	 50% { opacity: 0.9; }
-	100% { opacity: 1.0; }
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
 }
 @-moz-keyframes rotate {
 	  0% { -webkit-transform: rotate(  0   ); }
 	100% { -webkit-transform: rotate(360deg); }
 }
 @-moz-keyframes rotate-scale-blur {
-	  0% { -webkit-transform: rotate(  0   ) scale(0.9); -webkit-filter: blur(0  ); }
-	 50% { -webkit-transform: rotate(180deg) scale(1.1); -webkit-filter: blur(1px); }
-	100% { -webkit-transform: rotate(360deg) scale(0.9); -webkit-filter: blur(0  ); }
+	  0% { -webkit-transform: rotate(  0   ) scale(0.75); -webkit-filter: blur(0  ); }
+	 50% { -webkit-transform: rotate(180deg) scale(1.00); -webkit-filter: blur(1px); }
+	100% { -webkit-transform: rotate(360deg) scale(0.75); -webkit-filter: blur(0  ); }
 }
 
 @-ms-keyframes fade {
-	  0% { opacity: 1.0; }
-	 50% { opacity: 0.9; }
-	100% { opacity: 1.0; }
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
 }
 @-ms-keyframes rotate {
 	  0% { -webkit-transform: rotate(  0   ); }
 	100% { -webkit-transform: rotate(360deg); }
 }
 @-ms-keyframes rotate-scale-blur {
-	  0% { -webkit-transform: rotate(  0   ) scale(0.9); -webkit-filter: blur(0  ); }
-	 50% { -webkit-transform: rotate(180deg) scale(1.1); -webkit-filter: blur(1px); }
-	100% { -webkit-transform: rotate(360deg) scale(0.9); -webkit-filter: blur(0  ); }
+	  0% { -webkit-transform: rotate(  0   ) scale(0.75); -webkit-filter: blur(0  ); }
+	 50% { -webkit-transform: rotate(180deg) scale(1.00); -webkit-filter: blur(1px); }
+	100% { -webkit-transform: rotate(360deg) scale(0.75); -webkit-filter: blur(0  ); }
 }
 
 @-o-keyframes fade {
-	  0% { opacity: 1.0; }
-	 50% { opacity: 0.9; }
-	100% { opacity: 1.0; }
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
 }
 @-o-keyframes rotate {
 	  0% { -webkit-transform: rotate(  0   ); }
 	100% { -webkit-transform: rotate(360deg); }
 }
 @-o-keyframes rotate-scale-blur {
-	  0% { -webkit-transform: rotate(  0   ) scale(0.9); -webkit-filter: blur(0  ); }
-	 50% { -webkit-transform: rotate(180deg) scale(1.1); -webkit-filter: blur(1px); }
-	100% { -webkit-transform: rotate(360deg) scale(0.9); -webkit-filter: blur(0  ); }
+	  0% { -webkit-transform: rotate(  0   ) scale(0.75); -webkit-filter: blur(0  ); }
+	 50% { -webkit-transform: rotate(180deg) scale(1.00); -webkit-filter: blur(1px); }
+	100% { -webkit-transform: rotate(360deg) scale(0.75); -webkit-filter: blur(0  ); }
 }
 
 @keyframes fade {
-	  0% { opacity: 1.0; }
-	 50% { opacity: 0.9; }
-	100% { opacity: 1.0; }
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
 }
 @keyframes rotate {
 	  0% { -webkit-transform: rotate(  0   ); }
 	100% { -webkit-transform: rotate(360deg); }
 }
 @keyframes rotate-scale-blur {
-	  0% { -webkit-transform: rotate(  0   ) scale(0.9); -webkit-filter: blur(0  ); }
-	 50% { -webkit-transform: rotate(180deg) scale(1.1); -webkit-filter: blur(1px); }
-	100% { -webkit-transform: rotate(360deg) scale(0.9); -webkit-filter: blur(0  ); }
+	  0% { -webkit-transform: rotate(  0   ) scale(0.75); -webkit-filter: blur(0  ); }
+	 50% { -webkit-transform: rotate(180deg) scale(1.00); -webkit-filter: blur(1px); }
+	100% { -webkit-transform: rotate(360deg) scale(0.75); -webkit-filter: blur(0  ); }
 }
 
 div#bibi-notifier-panel.animate {
@@ -347,18 +365,12 @@ div#epub-contents {
 	min-height: 100%;
 	min-width: 100%;
 	box-shadow: 0 0 20px rgb(32,32,32);
-	//box-shadow: 0 0 20px rgba(0,0,0,0.8);
 	.transition(0.75s ease-in-out);
-	.transition-property(opacity, left, top, transform);
-	&.processing {
-		opacity: 0;
-		top: 200px;
-	}
+	.transition-property(transform opacity);
 	div.spread {
 		.box-sizing(border-box);
 		overflow: hidden;
 		background: white;
-		//box-shadow: 0 0 4px rgb(64,64,64);
 		div.item-box {
 			display: inline-block;
 			position: relative;
@@ -547,39 +559,56 @@ html.spread-rtl div#bibi-control-go div#bibi-control-go-back {
 // --------------------------------------------------------------------------------
 
 div#bibi-control-switch {
-	.box-sizing(border-box);
-	display: block;
-	overflow: hidden;
-	position: fixed;
-	z-index: 1000;
-	top: 8px;
-	left: 8px;
-	border-radius: 2px;
-	width: 27px;
-	height: 27px;
-	line-height: 25px;
-	text-align: center;
-	font-family: "Entypo";
-	font-size: 48px;
-	color: rgba(192,192,192,0.75);
-	background: rgba(160,160,160,0.125);
-	cursor: pointer;
-	&:before {
-		content: "☰"; // Burger
-		display: inline-block;
-	}
-	&.bibi-control-bar-opened {
-		color: rgba(255,255,255,0.75);
-		border: solid 1px rgba(128,128,128,0.5);
-		background: transparent;
+	div {
+		.box-sizing(border-box);
+		display: block;
+		overflow: hidden;
+		position: fixed;
+		z-index: 1000;
+		top: 8px;
+		border-radius: 2px;
+		width: 27px;
+		height: 27px;
+		line-height: 25px;
+		text-align: center;
+		font-family: "Entypo";
+		font-size: 48px;
+		color: rgba(192,192,192,0.75);
+		background: rgba(160,160,160,0.125);
+		cursor: pointer;
 		&:before {
-			content: "❌"; // Cross
+			display: inline-block;
 		}
-	}
-	&.bibi-control-switch-touching {
-		color: rgb(192,192,192);
-		&.bibi-control-switch-opened {
-			color: white;
+		&#bibi-control-switch-bar {
+			left: 8px;
+			&:before {
+				content: "☰";
+			}
+			&.bibi-control-bar-opened {
+				color: rgba(255,255,255,0.75);
+				border: solid 1px rgba(128,128,128,0.5);
+				background: transparent;
+				&:before {
+					content: "❌";
+				}
+			}
+		}
+		&#bibi-control-switch-fullscreen {
+			right: 8px;
+			&:before {
+				content: "";
+			}
+			&.bibi-fullscreen {
+				&:before {
+					content: "";
+				}
+			}
+		}
+		&.bibi-control-switch-touching {
+			color: rgb(192,192,192);
+			&.bibi-control-switch-opened {
+				color: white;
+			}
 		}
 	}
 }
