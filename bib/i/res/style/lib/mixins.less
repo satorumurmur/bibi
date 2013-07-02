@@ -2,6 +2,18 @@
 // Mixins
 // --------------------------------------------------------------------------------
 
+.animation-timing-function(@v) {
+	-webkit-animation-timing-function:@v; -epub-animation-timing-function:@v; -moz-animation-timing-function:@v; -ms-animation-timing-function:@v; -o-animation-timing-function:@v; animation-timing-function:@v; }
+
+.animation-iteration-count(@v) {
+	-webkit-animation-iteration-count:@v; -epub-animation-iteration-count:@v; -moz-animation-iteration-count:@v; -ms-animation-iteration-count:@v; -o-animation-iteration-count:@v; animation-iteration-count:@v; }
+
+.background-size(@v) {
+	-webkit-background-size:@v; -epub-background-size:@v; -moz-background-size:@v; -ms-background-size:@v; -o-background-size:@v; background-size:@v; }
+
+.box-shadow(@v) {
+	-webkit-box-shadow:@v; -epub-box-shadow:@v; -moz-box-shadow:@v; -ms-box-shadow:@v; -o-box-shadow:@v; box-shadow:@v; }
+
 .box-sizing(@v) {
 	-webkit-box-sizing:@v; -epub-box-sizing:@v; -moz-box-sizing:@v; -ms-box-sizing:@v; -o-box-sizing:@v; box-sizing:@v; }
 
@@ -44,3 +56,5 @@
 
 .writing-mode(@v, @v2) {
 	-webkit-writing-mode:@v; -epub-writing-mode:@v; -moz-writing-mode:@v; -ms-writing-mode:@v2; -ms-writing-mode:@v; -o-writing-mode:@v; writing-mode:@v2; writing-mode:@v; }
+
+
