@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------
-// Mixins
+// Properties
 // --------------------------------------------------------------------------------
 
 .animation-timing-function(@v) {
@@ -10,6 +10,11 @@
 
 .background-size(@v) {
 	-webkit-background-size:@v; -epub-background-size:@v; -moz-background-size:@v; -ms-background-size:@v; -o-background-size:@v; background-size:@v; }
+.background-image-linear-gradient(...) { @value: ~`"@{arguments}".replace(/[\[\]]/g, '')`;
+	background-image: -webkit-linear-gradient(@value); background-image: -epub-linear-gradient(@value); background-image: -moz-linear-gradient(@value); background-image: -ms-linear-gradient(@value); background-image: -o-linear-gradient(@value); background-image: linear-gradient(@value); }
+
+.border-radius(@v) {
+	-webkit-border-radius:@v; -epub-border-radius:@v; -moz-border-radius:@v; -ms-border-radius:@v; -o-border-radius:@v; border-radius:@v; }
 
 .box-shadow(@v) {
 	-webkit-box-shadow:@v; -epub-box-shadow:@v; -moz-box-shadow:@v; -ms-box-shadow:@v; -o-box-shadow:@v; box-shadow:@v; }
@@ -56,5 +61,26 @@
 
 .writing-mode(@v, @v2) {
 	-webkit-writing-mode:@v; -epub-writing-mode:@v; -moz-writing-mode:@v; -ms-writing-mode:@v2; -ms-writing-mode:@v; -o-writing-mode:@v; writing-mode:@v2; writing-mode:@v; }
+
+
+
+// --------------------------------------------------------------------------------
+// Sets
+// --------------------------------------------------------------------------------
+
+.off-left() {
+	display: block;
+	overflow: hidden;
+	position: absolute;
+	left: -9999px;
+	top: -9999px;
+	margin: 0;
+	padding: 0;
+	border: none 0 transparent;
+	width: 0;
+	height: 0;
+	color: transparent;
+	background: transparent;
+}
 
 
