@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 4 13:44:00 2013 +0900",
+	Date        : "Tue July 5 00:45:00 2013 +0900",
 
-	Version     : 0.982, // beta
-	Build       : 20130704.0,
+	Version     : 0.983, // beta
+	Build       : 20130705.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -271,7 +271,11 @@ R.loadPreset = function() {
 	PresetScript.id = "bibi-preset";
 
 	O.log(2, 'Loaded.');
-	R.Chain.next();
+
+	(function() {
+		if(!P.loaded) return setTimeout(arguments.callee, 100);
+		R.Chain.next();
+	})()
 
 }
 
