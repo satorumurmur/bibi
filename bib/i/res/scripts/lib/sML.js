@@ -9,10 +9,10 @@ sML = /* JavaScript Library */ (function() { var sML = {
 	Description : "I'm a Simple and Middling Library.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 2 13:40:00 2013 +0900",
+	Date        : "Tue July 4 13:36:00 2013 +0900",
 
-	Version     : 0.9991,
-	Build       : 20130702.0,
+	Version     : 0.9992,
+	Build       : 20130704.0,
 
 	WebSite     : "http://sarasa.la/sML"
 
@@ -394,10 +394,9 @@ sML.getContentDocument = function(F) { /*@cc_on return F.contentWindow.document;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-if(sML.UA.IE) {
-	window.getComputedStyle = function(E) { return E.currentStyle; };
-} else if(!window.getComputedStyle && document.defaultView && document.defaultView.getComputedStyle) {
-	window.getComputedStyle = document.defaultView.getComputedStyle;
+if(!window.getComputedStyle) {
+	     if(document.defaultView && document.defaultView.getComputedStyle) window.getComputedStyle = document.defaultView.getComputedStyle;
+	else if(sML.UA.InternetExplorer)                                       window.getComputedStyle = function(E) { return E.currentStyle; };
 }
 
 sML.CSS = sML.S = {

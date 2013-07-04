@@ -24,9 +24,9 @@ html#bibi body {
 
 html#bibi {
 	background: rgb(64,64,64);
-	overflow: scroll;
-	-webkit-font-smoothing: subpixel-antialiased;
 	overflow: hidden;
+	font-family: "Helvetica", "Trebuchet MS";
+	-webkit-font-smoothing: subpixel-antialiased;
 	&.spread-vertical {
 		overflow-x: hidden;
 		overflow-y: scroll;
@@ -149,40 +149,48 @@ div#bibi-notifier-panel {
 		top: 0;
 		width: 100%;
 		height: 100%;
-		&:before {
-			display: inline-block;
+		opacity: 0.5;
+		.transition(opacity 0.25s linear);
+		span {
+			display: block;
+			overflow: hidden;
 			position: absolute;
 			left: 50%;
 			top: 50%;
-			margin: -128px;
-			width: 256px;
-			height: 256px;
-			line-height: 256px;
-			text-align: center;
-			font-size: 256px;
-			font-family: "Entypo";
+			img {
+				position: absolute;
+			}
 		}
+		&:hover  { opacity: 0.75; }
+		&:active { opacity: 0.50; }
 	}
 	p#bibi-play {
 		overflow: hidden;
 		cursor: pointer;
-		.transition(0.1s linear);
-		&:before {
-			content: "";
-		}
-		&:hover {
-			color: rgba(255,255,255,0.48);
-			text-shadow: -1px -1px 0 rgba(0,0,0,0.48);
-		}
-		&:active {
-			color: rgba(255,255,255,0.64);
-			text-shadow: -1px -1px 0 rgba(0,0,0,0.64);
+		span {
+			margin: -100px;
+			width: 200px;
+			height: 200px;
+			img { // 
+				left: -1600px;
+				top: -400px;
+				width: 1800px;
+				height: 600px;
+			}
 		}
 	}
 	p#bibi-drop {
 		overflow: visible;
-		&:before {
-			content: "📕";
+		span {
+			margin: -100px;
+			width: 200px;
+			height: 200px;
+			img { // 📕
+				left: -1000px;
+				top: 0;
+				width: 1800px;
+				height: 600px;
+			}
 		}
 	}
 	p#bibi-notifier-mark {
@@ -224,25 +232,27 @@ div#bibi-notifier-panel {
 	}*/
 	p#bibi-notifier-message,
 	p#bibi-notifier-powered {
-		width: 100%;
+		.box-sizing(border-box);
 		bottom: 0.2em;
+		padding: 0 8px;
 		font-size: 1.2em;
-		line-height: 1.6;
+		line-height: 1.5;
 		small {
 			font-size: 0.75em;
 		}
 	}
 	p#bibi-notifier-message {
-		z-index: 100;
-		left: 8px;
+		z-index: 1000;
+		left: 0;
 		text-align: left;
 	}
 	p#bibi-notifier-powered {
-		z-index: 1000;
-		right: 8px;
-		width: 10em;
+		z-index: 100;
+		right: 0;
+		width: 100%;
 		text-align: right;
 		font-weight: bold;
+		background: rgba(0,0,0,0.75);
 	}
 }
 
@@ -770,12 +780,14 @@ html.spread-vertical div#bibi-control-bar div#bibi-control-misc {
 	//width: 100%;
 }
 html.spread-horizontal div#bibi-control-bar div#bibi-control-misc {
-	left: 50%;
+	right: 43px;
 	top: 0;
-	margin-left: -22px;
 	text-align: center;
 	//border-left-width: 1px;
 	//height: 100%;
+}
+html.spread-horizontal.not-enabled-full-screen div#bibi-control-bar div#bibi-control-misc {
+	right: 8px;
 }
 
 
