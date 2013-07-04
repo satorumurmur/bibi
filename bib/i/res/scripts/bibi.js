@@ -857,7 +857,6 @@ R.postprocessItem = function(Item) {
 			Ref.viewport.height = parseInt(getComputedStyle(ItemBodyChildren[0]).height);
 			Item.Postprocessed.Viewport++;
 		}
-		sML.log("w:" + Ref.viewport.width + ", h:" + Ref.viewport.height);
 	}
 
 	// Linkage
@@ -1054,7 +1053,6 @@ R.layout = function(Setting, TargetItem, Progress) {
 					Item.ColumnBreadth = PageB;
 					Item.ColumnLength  = PageL;
 					Item.ColumnGap     = PageGap;
-					sML.log("columned");
 					sML.style(Item.HTML, {
 						"column-axis": (S.SIZE.l == "width" ? "horizontal" : "vertical"),
 						"column-width": Item.ColumnLength + "px",
