@@ -114,7 +114,8 @@ div#bibi-notifier-panel {
 		left: 0;
 		top: 0;
 		.box-sizing(border-box);
-		border: solid 10px transparent;
+		border: solid transparent;
+		border-width: 8px;
 		width: 100%;
 		height: 100%;
 		opacity: 0;
@@ -129,7 +130,7 @@ div#bibi-notifier-panel {
 	p#bibi-drop {
 		position: absolute;
 		font-size: 20px;
-		color: rgba(255,255,255,0.4);
+		color: rgba(255,255,255,0.64);
 		//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
 		text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
 		a {
@@ -138,7 +139,7 @@ div#bibi-notifier-panel {
 			border-bottom: solid 1px rgb(96,96,96);
 			.transition(0.25s linear);
 			&:hover {
-				color: rgb(192,192,192);
+				color: white;
 			}
 		}
 	}
@@ -168,14 +169,14 @@ div#bibi-notifier-panel {
 		overflow: hidden;
 		cursor: pointer;
 		span {
-			margin: -100px;
-			width: 200px;
-			height: 200px;
+			margin: -100px * 0.75;
+			width: 200px * 0.75;
+			height: 200px * 0.75;
 			img { // 
-				left: -1600px;
-				top: -400px;
-				width: 1800px;
-				height: 600px;
+				left: -1600px * 0.75;
+				top: -400px * 0.75;
+				width: 1800px * 0.75;
+				height: 600px * 0.75;
 			}
 		}
 	}
@@ -233,10 +234,11 @@ div#bibi-notifier-panel {
 	p#bibi-notifier-message,
 	p#bibi-notifier-powered {
 		.box-sizing(border-box);
-		bottom: 0.2em;
+		bottom: 0;
 		padding: 0 8px;
-		font-size: 1.2em;
-		line-height: 1.5;
+		height: 30px;
+		line-height: 28px;
+		font-size: 16px;
 		small {
 			font-size: 0.75em;
 		}
@@ -249,10 +251,11 @@ div#bibi-notifier-panel {
 	p#bibi-notifier-powered {
 		z-index: 100;
 		right: 0;
+		border-top: solid 1px rgba(0,0,0,0.72);
 		width: 100%;
 		text-align: right;
 		font-weight: bold;
-		background: rgba(0,0,0,0.75);
+		background: rgba(0,0,0,0.64);
 	}
 }
 
@@ -502,7 +505,6 @@ html.page-rtl div#epub-contents {
 // --------------------------------------------------------------------------------
 
 img.bibi-icon-image {
-	content: url(../images/icons.png);
 	display: block;
 	position: absolute;
 }

@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 5 00:45:00 2013 +0900",
+	Date        : "Tue July 18 15:00:00 2013 +0900",
 
-	Version     : 0.983, // beta
-	Build       : 20130705.0,
+	Version     : 0.985, // beta
+	Build       : 20130718.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -96,11 +96,10 @@ O.start = function() {
 		// File Open or Stop
 		if(window.File) {
 			N.Panel.appendChild(
-				sML.create("p", { id: "bibi-drop" })
-			).appendChild(
-				sML.create("span")
-			).appendChild(
-				sML.create("img", { alt: "Drop Me an EPUB!", className: "bibi-icon-image", src: "./res/images/icons.png" })
+				sML.create("p", {
+					id: "bibi-drop",
+					innerHTML: '<span><img class="bibi-icon-image" alt="Drop Me an EPUB!" src="./res/images/icons.png" /></span>'
+				})
 			);
 			N.note('Drop an EPUB into this window.');
 		} else {
@@ -134,15 +133,16 @@ O.start = function() {
 		}
 		if(Q.wait/* || (parent && parent != window && !Q.autostart)*/) {
 			N.Panel.appendChild(
-				sML.create("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/g, "")); } : function() {
-					loadEPUB();
-					this.onclick = "";
-					sML.style(this, { opacity: 0, cursor: "default" });
-				} })
-			).appendChild(
-				sML.create("span")
-			).appendChild(
-				sML.create("img", { alt: "Touch Me to Read!", className: "bibi-icon-image", src: "./res/images/icons.png" })
+				sML.create("p", {
+					id: "bibi-play",
+					innerHTML: '<span><img class="bibi-icon-image" alt="Touch Me to Read!" src="./res/images/icons.png" /></span>',
+					onclick: function() {
+						if(O.SmartPhone) return window.open(location.href.replace(/&wait=[^&]+/g, ""));
+						loadEPUB();
+						this.onclick = "";
+						sML.style(this, { opacity: 0, cursor: "default" });
+					}
+				})
 			);
 			N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
 		} else {
@@ -259,7 +259,7 @@ R.loadPreset = function() {
 			if(typeof Q.dm == "string" && /^(all|spread|item)$/.test(                     Q.dm)) P["book-display-mode"      ] = Q.dm;
 			if(typeof Q.sd == "string" && /^(ttb|ltr|rtl|vertical|horizontal|auto)$/.test(Q.sd)) P["spread-layout-direction"] = Q.sd;
 			if(typeof Q.po == "string" && /^(portrait|landscape|auto|window)$/.test(      Q.po)) P["page-orientation"       ] = Q.po;
-			if(sML.UA.InternetExplorer < 10 || sML.UA.Gecko || sML.UA.Opera < 15) {
+			if(sML.UA.InternetExplorer < 11 || sML.UA.Gecko || sML.UA.Opera < 15) {
 				P["book-display-mode"] = "all";
 				P["spread-layout-direction"] = "ttb";
 			}
@@ -396,7 +396,7 @@ R.readPackageDocument = function(FileContent) {
 		if(this.getAttribute("property")) {
 			var Property = this.getAttribute("property").replace(/^dcterms:/, "");
 			if(/^(title|creator|publisher)$/.test(Property)) B.package.metadata[Property + "s"].push(this.innerHTML);
-			else if(!B.package.metadata[Property]) B.package.metadata[Property] = this.innerText;
+			else if(!B.package.metadata[Property]) B.package.metadata[Property] = this.innerHTML;
 		}
 		if(this.getAttribute("name") && this.getAttribute("content")) {
 			B.package.metadata[this.getAttribute("name")] = this.getAttribute("content");
@@ -492,17 +492,18 @@ R.readPackageDocument = function(FileContent) {
 	if(!B.Zipped && Q.wait/* || (parent && parent != window && !Q.autostart)*/) {
 		sML.removeClass(N.Panel, "animate");
 		N.Panel.appendChild(
-			sML.create("p", { id: "bibi-play", onclick: O.SmartPhone ? function() { window.open(location.href.replace(/&wait=[^&]+/g, "")); } : function() {
-				this.onclick = "";
-				N.note('Loading ...');
-				sML.style(this, { opacity: 0, cursor: "default" });
-				sML.addClass(N.Panel, "animate");
-				R.Chain.next();
-			} })
-		).appendChild(
-			sML.create("span")
-		).appendChild(
-			sML.create("img", { alt: "Touch Me to Read!", className: "bibi-icon-image", src: "./res/images/icons.png" })
+			sML.create("p", {
+				id: "bibi-play",
+				innerHTML: '<span><img class="bibi-icon-image" alt="Touch Me to Read!" src="./res/images/icons.png" /></span>',
+				onclick: function() {
+					if(O.SmartPhone) return window.open(location.href.replace(/&wait=[^&]+/g, ""));
+					this.onclick = "";
+					N.note('Loading ...');
+					sML.style(this, { opacity: 0, cursor: "default" });
+					sML.addClass(N.Panel, "animate");
+					R.Chain.next();
+				}
+			})
 		);
 		N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
 	} else {
@@ -767,7 +768,7 @@ R.loadSpineItems = function() {
 		}
 	})();
 
-	if(C.Navigation.Item) R.postprocessLinkage(B.package.manifest.navigation.Path, C.Navigation.Item, "inBiBiNavigation");
+	if(B.package.manifest.navigation.Path) R.postprocessLinkage(B.package.manifest.navigation.Path, C.Navigation.Item, "inBiBiNavigation");
 
 }
 
@@ -1617,7 +1618,7 @@ O.createControls = function() {
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
-	if(sML.UA.InternetExplorer < 10 || sML.UA.Gecko || sML.UA.Opera < 15) return;
+	if(sML.UA.InternetExplorer < 11 || sML.UA.Gecko || sML.UA.Opera < 15) return;
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 

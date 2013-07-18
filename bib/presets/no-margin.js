@@ -33,6 +33,9 @@ P = BiB.i.Preset = {
 
 	"item-column-rule"                  : "",
 
+	"img-max-width"                     : "100%",
+	"img-max-height"                    : "100%",
+
 	"center-end-spreads"                : true,
 
 loaded: true }
