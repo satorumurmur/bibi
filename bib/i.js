@@ -4,7 +4,7 @@
 	Description : "Putting in an EPUB on Web Page with BiB/i.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 18 15:00:00 2013 +0900",
+	Date        : "Tue July 18 21:11:00 2013 +0900",
 
 	Version     : 0.985, // beta
 	Build       : 20130718.0,
@@ -20,11 +20,12 @@
 	  window.addEventListener("load",             embedBiBi, false);
 })(function() {
 	if(window["bibi-status"] != "waiting") return;
-	window["bibi-status"] = "processing";
+	window["bibi-status"] = "processed";
 	var BiBiAs = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function(As, BiBiAs) {
 		for(var L = As.length, i = 0; i < L; i++) if(As[i].getAttribute("data-bibi")) BiBiAs.push(As[i]);
 		return BiBiAs;
 	})(document.body.getElementsByTagName("a"), []);
+	if(!BiBiAs.length) return;
 	var SmartPhone = /((iPod|iPhone|iPad)( Simulator)?;|Android )/.test(navigator.userAgent);
 	var BaseStyle = "display: inline-block; position: relative; margin: 0; padding: 0; border: none 0; vertical-align: top; line-height: 1; text-decoration: none; ";
 	var create = function(TagName, Properties) {
@@ -35,6 +36,13 @@
 		}
 		return Element;
 	}
+	document.getElementsByTagName("head")[0].appendChild(create("link", {
+		rel: "stylesheet",
+		href: (function(Scripts) {
+			for(var L = Scripts.length, i = 0; i < L; i++) if(/\/bib\/i\.js$/.test(Scripts[i].src)) return Scripts[i].src.replace(/\.js$/, ".css");
+			return "";
+		})(document.getElementsByTagName("script"))
+	}));
 	for(var L = BiBiAs.length, i = 0; i < L; i++) {
 		var A = BiBiAs[i];
 		if(!A.getAttribute("href")) continue;
@@ -48,16 +56,15 @@
 			AutoStart   : A.getAttribute("data-bibi-autostart")
 		}
 		var Holder = create("span", {
-			className: "bibi-holder" + (BiBi.Class ? " " + BiBi.Class : ""),
+			class: "bibi-holder" + (BiBi.Class ? " " + BiBi.Class : ""),
 			id: BiBi.ID,
-			style: BaseStyle + (BiBi.Style ? BiBi.Style : "")
+			style: (BiBi.Style ? BiBi.Style : "")
 		});
 		var Frame = create("iframe", {
 			frameborder: "0",
 			scrolling: "yes",
 			allowfullscreen: "true",
-			className: "bibi-frame",
-			style: BaseStyle + "z-index: 1; width: 100%; height: 100%;",
+			class: "bibi-frame",
 			onload: function() {
 				try { this.contentWindow.O.ParentFrame = this; } catch(e) {}
 			}
@@ -66,11 +73,9 @@
 		A.parentNode.insertBefore(Holder, A).appendChild(Frame);
 		if(BiBi.Poster && !BiBi.AutoStart) {
 			var Poster = Holder.appendChild(create("a", {
-				className: "bibi-poster",
-				style: BaseStyle + "position: absolute; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; text-align: center; " + (BiBi.PosterStyle ? BiBi.PosterStyle : ""),
+				class: "bibi-poster",
+				style: (BiBi.PosterStyle ? BiBi.PosterStyle : ""),
 				href: BiBi.Src,
-				onmouseover: function() { this.style.opacity = 0.75; },
-				onmouseout:  function() { this.style.opacity = 1.00; },
 				onclick: function() {
 					var Poster = this;
 					Poster.style.opacity = 0;
@@ -80,15 +85,12 @@
 				}
 			}));
 			var PosterIMG = Poster.appendChild(create("img", {
-				className: "bibi-poster-image",
+				class: "bibi-poster-image",
 				alt: (A.innerText ? A.innerText + " " : "") + "(powered by BiB/i)",
-				src: BiBi.Poster,
-				style: BaseStyle + "max-width: 100%; max-height: 100%; width: auto; height: auto;",
+				src: BiBi.Poster
 			}));
-			Poster.style["-webkit-transition"] = Poster.style["-moz-transition"] = Poster.style["-ms-transition"] = Poster.style["-o-transition"] = Poster.style["transition"] = "opacity linear 0.25s";
 			PosterIMG.title = PosterIMG.alt;
 		}
 		Frame.src = BiBi.Src + ((!/&wait=[^&]+/.test(BiBi.Src) && (SmartPhone || !BiBi.AutoStart)) ? "&wait=true" : "");
 	}
-	window["bibi-status"] = "processed";
 });
