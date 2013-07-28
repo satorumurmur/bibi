@@ -1,17 +1,17 @@
 /* BiB/i Putter = {
 
 	Name        : "BiB/i Putter",
-	Description : "Putting in an EPUB on Web Page with BiB/i.",
+	Description : "Putting EPUBs in Web Page with BiB/i.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 18 21:11:00 2013 +0900",
+	Date        : "Wed July 24 02:43:00 2013 +0900",
 
-	Version     : 0.985, // beta
-	Build       : 20130718.0,
+	Version     : 0.986, // beta
+	Build       : 20130724.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
-}*/
+} */
 
 (function(embedBiBi) {
 	if(window["bibi-status"]) return;
@@ -21,76 +21,36 @@
 })(function() {
 	if(window["bibi-status"] != "waiting") return;
 	window["bibi-status"] = "processed";
-	var BiBiAs = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function(As, BiBiAs) {
-		for(var L = As.length, i = 0; i < L; i++) if(As[i].getAttribute("data-bibi")) BiBiAs.push(As[i]);
-		return BiBiAs;
+	var As = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function(_As, As) {
+		for(var L = _As.length, i = 0; i < L; i++) if(_As[i].getAttribute("data-bibi")) As.push(_As[i]);
+		return As;
 	})(document.body.getElementsByTagName("a"), []);
-	if(!BiBiAs.length) return;
+	if(!As.length) return;
 	var SmartPhone = /((iPod|iPhone|iPad)( Simulator)?;|Android )/.test(navigator.userAgent);
-	var BaseStyle = "display: inline-block; position: relative; margin: 0; padding: 0; border: none 0; vertical-align: top; line-height: 1; text-decoration: none; ";
-	var create = function(TagName, Properties) {
-		var Element = document.createElement(TagName);
-		for(var Attribute in Properties) {
-			     if(/^on[a-z]+$/.test(Attribute)) Element[Attribute] =            Properties[Attribute];
-			else if(Properties[Attribute])        Element.setAttribute(Attribute, Properties[Attribute]);
+	var create = function(TagName, Properties) { var Element = document.createElement(TagName); for(var Attribute in Properties) Element[Attribute] = Properties[Attribute]; return Element; }
+	document.getElementsByTagName("head")[0].appendChild(create("link", { rel: "stylesheet", href: As[0].href.replace(/^(.+?bib\/i)\/.+$/, "$1.css") }));
+	for(var L = As.length, i = 0; i < L; i++) {
+		if(!As[i].getAttribute("href")) continue;
+		var Href      =  As[i].getAttribute("href");
+		var Style     =  As[i].getAttribute("data-bibi-style");
+		var Poster    =  As[i].getAttribute("data-bibi-poster");
+		var AutoStart = (As[i].getAttribute("data-bibi-autostart") && !SmartPhone);
+		var Holder = create("span", { className: "bibi-holder", title: (As[i].innerText ? As[i].innerText + " " : "") + "(powered by BiB/i)" });
+		if(Style) Holder.setAttribute("style", Style);
+		if(Poster && !AutoStart) {
+			Holder.className = Holder.className + " bibi-holder-with-poster";
+			Holder.appendChild(create("span", { className: "bibi-poster", innerHTML: '<img alt="' + Holder.title + '" src="' + Poster + '" />' }));
 		}
-		return Element;
-	}
-	document.getElementsByTagName("head")[0].appendChild(create("link", {
-		rel: "stylesheet",
-		href: (function(Scripts) {
-			for(var L = Scripts.length, i = 0; i < L; i++) if(/\/bib\/i\.js$/.test(Scripts[i].src)) return Scripts[i].src.replace(/\.js$/, ".css");
-			return "";
-		})(document.getElementsByTagName("script"))
-	}));
-	for(var L = BiBiAs.length, i = 0; i < L; i++) {
-		var A = BiBiAs[i];
-		if(!A.getAttribute("href")) continue;
-		var BiBi = {
-			Src         : A.getAttribute("href"),
-			Class       : A.getAttribute("data-bibi-class"),
-			ID          : A.getAttribute("data-bibi-id"),
-			Style       : A.getAttribute("data-bibi-style"),
-			Poster      : A.getAttribute("data-bibi-poster"),
-			PosterStyle : A.getAttribute("data-bibi-poster"),
-			AutoStart   : A.getAttribute("data-bibi-autostart")
-		}
-		var Holder = create("span", {
-			class: "bibi-holder" + (BiBi.Class ? " " + BiBi.Class : ""),
-			id: BiBi.ID,
-			style: (BiBi.Style ? BiBi.Style : "")
-		});
-		var Frame = create("iframe", {
-			frameborder: "0",
-			scrolling: "yes",
-			allowfullscreen: "true",
-			class: "bibi-frame",
+		As[i].style.display = "none";
+		As[i].parentNode.insertBefore(Holder, As[i]).appendChild(create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true",
 			onload: function() {
+				var Holder = this.parentNode;
+				this.contentWindow.addEventListener("click", function() {
+					Holder.className = Holder.className + " bibi-holder-started";
+					this.removeEventListener("click", arguments.callee);
+				}, "false");
 				try { this.contentWindow.O.ParentFrame = this; } catch(e) {}
 			}
-		});
-		A.style.display = "none";
-		A.parentNode.insertBefore(Holder, A).appendChild(Frame);
-		if(BiBi.Poster && !BiBi.AutoStart) {
-			var Poster = Holder.appendChild(create("a", {
-				class: "bibi-poster",
-				style: (BiBi.PosterStyle ? BiBi.PosterStyle : ""),
-				href: BiBi.Src,
-				onclick: function() {
-					var Poster = this;
-					Poster.style.opacity = 0;
-					try { Poster.parentNode.getElementsByTagName("iframe")[0].contentDocument.getElementById("bibi-play").click(); } catch(e) {}
-					setTimeout(function() { Poster.parentNode.removeChild(Poster); }, 750);
-					return false;
-				}
-			}));
-			var PosterIMG = Poster.appendChild(create("img", {
-				class: "bibi-poster-image",
-				alt: (A.innerText ? A.innerText + " " : "") + "(powered by BiB/i)",
-				src: BiBi.Poster
-			}));
-			PosterIMG.title = PosterIMG.alt;
-		}
-		Frame.src = BiBi.Src + ((!/&wait=[^&]+/.test(BiBi.Src) && (SmartPhone || !BiBi.AutoStart)) ? "&wait=true" : "");
+		})).src = (SmartPhone ? Href.replace(/&po=[^&]+/, "") : Href) + ((AutoStart || /&wait=[^&]+/.test(Href)) ? "" : "&wait=true");
 	}
 });

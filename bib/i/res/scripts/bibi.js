@@ -9,10 +9,10 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 18 21:11:00 2013 +0900",
+	Date        : "Wed July 24 02:43:00 2013 +0900",
 
-	Version     : 0.985, // beta
-	Build       : 20130718.0,
+	Version     : 0.986, // beta
+	Build       : 20130724.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -70,9 +70,18 @@ O.start = function() {
 			window.scrollBy(1, 1);
 			sML.removeClass(HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
 			sML.addClass(   HTML, "orientation-" + (window.orientation == 0 ? "portrait"  : "landscape"));
-			HTML.style.minHeight = window.innerHeight + "px";
+			var MinHeight = window.innerHeight;
+			if(sML.OS.iOS) {
+				     if(Math.max(screen.availHeight, screen.availWidth) > 900) MinHeight = (window.orientation == 0) ? 928 : 672;
+				else if(Math.max(screen.availHeight, screen.availWidth) > 500) MinHeight = (window.orientation == 0) ? 504 : 268;
+				else                                                           MinHeight = (window.orientation == 0) ? 416 : 268;
+			}
+			HTML.style.minHeight = MinHeight + "px";
 		}
 		window.addEventListener("orientationchange", O.setOrientation);
+		O.setOrientation();
+		setTimeout(O.setOrientation, 1);
+		setTimeout(O.setOrientation, 100);
 		setTimeout(O.setOrientation, 800);
 	}
 
