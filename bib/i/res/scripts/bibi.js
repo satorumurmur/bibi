@@ -9,12 +9,12 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Wed July 24 02:43:00 2013 +0900",
+	Date        : "Sat September 7 10:29:00 2013 +0900",
 
-	Version     : 0.986, // beta
-	Build       : 20130724.0,
+	Version     : 0.987, // beta
+	Build       : 20130907.0,
 
-	WebSite     : "http://sarasa.la/bib/i"
+	WebSite     : "http://sarasa.la/bib/i/"
 
 }
 
@@ -22,27 +22,29 @@ I = BiB.i.Info = {
 
 
 
-O = BiB.i.O        = {};
-
-R = BiB.i.Reader   = {};
-
 A = BiB.i.Archive  = {};
 
 B = BiB.i.Book     = {};
 
 C = BiB.i.Controls = {};
 
-V = BiB.i.View     = {};
+L = BiB.i.Loader   = {};
 
 N = BiB.i.Notifier = {};
 
+O = BiB.i.Operator = {};
+
 P = BiB.i.Preset   = {};
+
+Q = BiB.i.Queries  = {};
+
+R = BiB.i.Reader   = {};
 
 S = BiB.i.Setting  = {};
 
 U = BiB.i.User     = {};
 
-Q = BiB.i.Queries  = {};
+V = BiB.i.View     = {};
 
 X = BiB.i.Extra    = {};
 
@@ -59,9 +61,9 @@ X = BiB.i.Extra    = {};
 
 
 
-O.start = function() {
+R.start = function() {
 
-	O.getQueries();
+	R.getQueries();
 
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
@@ -121,15 +123,14 @@ O.start = function() {
 			sML.addClass(N.Panel, "animate");
 			N.note('Loading ...');
 			O.log(3, '"' + Book + '"');
-			sML.Ajax.open("../bookshelf/" + Book, {
+			sML.ajax("../bookshelf/" + Book, {
 				mimetype: "text/plain;charset=x-user-defined",
 				onsuccess: function(FileContent) {
 					O.log(2, 'Loaded.');
 					R.initialize({
 						Name: Book.replace(/\.epub$/, ""),
 						Format: "EPUB",
-						Zipped: true,
-						Content: FileContent
+						Zip: FileContent
 					});
 					R.Chain.start();
 				},
@@ -163,9 +164,7 @@ O.start = function() {
 		N.note('Loading ...');
 		R.initialize({
 			Name: Book,
-			Format: "EPUB",
-			Zipped: false,
-			Content: ""
+			Format: "EPUB"
 		});
 		R.Chain.start();
 	}
@@ -174,7 +173,7 @@ O.start = function() {
 
 
 
-O.getQueries = function() {
+R.getQueries = function() {
 	Q = sML.getQueries();
 	if(history.replaceState) history.replaceState(null, null, location.href.replace(/&wait=[^&]+/g, ""));
 	if(Q.book)                       Q.b  = Q.book;
@@ -202,13 +201,13 @@ R.initialize = function(Settings) {
 
 	B = {
 		Name: Settings.Name,
-		Zipped: Settings.Zipped,
+		Zipped: Settings.Zip ? true : false,
 		container: { Path: "META-INF/container.xml" },
 		package: {}
 	};
 
 	A = {
-		Zip: Settings.Content,
+		Zip: Settings.Zip ? (new JSZip()).load(Settings.Zip) : undefined,
 		Files: {},
 		FileDigit: 3
 	};
@@ -295,10 +294,10 @@ R.extractEPUB = function() {
 	O.log(2, 'Extracting EPUB...');
 
 	A.FileCount = { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0 };
-
-	var UnZipped = (new JSZip()).load(A.Zip).files;  delete(A.Zip);
-	for(var FileName in UnZipped) {
-		if(UnZipped[FileName].data) {
+ 
+	for(var FileName in A.Zip.files) {
+		//sML.log(A.Zip.file(FileName).asText());
+		if(A.Zip.files[FileName]._data) {
 			A.FileCount.All++;
 			     if(         /\.(x?html?)$/i.test(FileName)) A.FileCount.HTML++;
 			else if(             /\.(css)$/i.test(FileName)) A.FileCount.CSS++;
@@ -307,7 +306,7 @@ R.extractEPUB = function() {
 			else if(    /\.(woff|otf|ttf)$/i.test(FileName)) A.FileCount.Font++;
 			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) A.FileCount.Audio++;
 			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) A.FileCount.Video++;
-			A.Files[FileName] = R.isBin(FileName) ? UnZipped[FileName].data : Base64.btou(UnZipped[FileName].data);
+			A.Files[FileName] = O.isBin(FileName) ? A.Zip.file(FileName).asBinary() : Base64.btou(A.Zip.file(FileName).asText());
 		}
 	}
 
@@ -321,6 +320,8 @@ R.extractEPUB = function() {
 	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   A.FileDigit) + ' Font');
 	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  A.FileDigit) + ' Audio');
 	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  A.FileDigit) + ' Video');
+
+	delete(A.Zip);
 
 	O.log(2, 'Extracted.');
 
@@ -336,7 +337,7 @@ R.readContainer = function(FileContent) {
 		var FileContent = A.Files[B.container.Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.container.Path, {
+			return sML.ajax("../bookshelf/" + B.Name + "/" + B.container.Path, {
 				onsuccess: function(FileContent) { R.readContainer(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -351,7 +352,7 @@ R.readContainer = function(FileContent) {
 
 	R.Container = document.body.appendChild(sML.create("div", { id: "epub-container" }));
 
-	R.Container.innerHTML = R.toBiBiXML(FileContent);
+	R.Container.innerHTML = O.toBiBiXML(FileContent);
 	B.package.Path = R.Container.getElementsByTagName("bibi:rootfile")[0].getAttribute("full-path");
 	B.package.Dir  = B.package.Path.replace(/\/?[^\/]+$/, "");
 
@@ -371,7 +372,7 @@ R.readPackageDocument = function(FileContent) {
 		var FileContent = A.Files[B.package.Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.Path, {
+			return sML.ajax("../bookshelf/" + B.Name + "/" + B.package.Path, {
 				onsuccess: function(FileContent) { R.readPackageDocument(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -384,10 +385,10 @@ R.readPackageDocument = function(FileContent) {
 
 	O.log(2, 'Reading Package Document...');
 
-	R.Package = document.body.appendChild(sML.create("div", { id: "epub-package"   }));
+	R.Package = document.body.appendChild(sML.create("div", { id: "epub-package" }));
 
 	// Package
-	R.Package.innerHTML = R.toBiBiXML(FileContent);
+	R.Package.innerHTML = O.toBiBiXML(FileContent);
 	var Metadata = R.Package.getElementsByTagName("bibi:metadata")[0];
 	var Manifest = R.Package.getElementsByTagName("bibi:manifest")[0];
 	var Spine    = R.Package.getElementsByTagName("bibi:spine")[0];
@@ -396,7 +397,7 @@ R.readPackageDocument = function(FileContent) {
 	if(ManifestItems.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <item> in <manifest>.');
 	if(SpineItemrefs.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <itemref> in <spine>.');
 	B.package.metadata = { title: "", creator: "", publisher: "", titles: [], creators: [], publishers: [] };
-	B.package.manifest = { items: {}, "cover-image": {}, "navigation": {} };
+	B.package.manifest = { items: {}, "cover-image": {}, "navigation": {}, "toc-ncx": {} };
 	B.package.spine    = { itemrefs: [] };
 
 	// METADATA
@@ -423,6 +424,7 @@ R.readPackageDocument = function(FileContent) {
 	if(!B.package.metadata["cover"])                 B.package.metadata["cover"]                 = "";
 
 	// MANIFEST
+	var TOCID = Spine.getAttribute("toc");
 	sML.each(ManifestItems, function() {
 		var Item = {
 			"id"         : this.getAttribute("id")         || "",
@@ -431,11 +433,14 @@ R.readPackageDocument = function(FileContent) {
 			"properties" : this.getAttribute("properties") || "",
 			"fallback"   : this.getAttribute("fallback")   || ""
 		};
-		if(Item.id && Item.href) B.package.manifest.items[Item.id] = Item;
-		(function(ItemProperties) {
-			if(/ cover-image /.test(ItemProperties)) B.package.manifest["cover-image"].Path = R.getPath(B.package.Dir, Item.href);
-			if(        / nav /.test(ItemProperties)) B.package.manifest["navigation" ].Path = R.getPath(B.package.Dir, Item.href);
-		})(" " + Item.properties + " ");
+		if(Item.id && Item.href) {
+			B.package.manifest.items[Item.id] = Item;
+			(function(ItemProperties) {
+				if(/ cover-image /.test(ItemProperties)) B.package.manifest["cover-image"].Path = O.getPath(B.package.Dir, Item.href);
+				if(        / nav /.test(ItemProperties)) B.package.manifest["navigation" ].Path = O.getPath(B.package.Dir, Item.href);
+			})(" " + Item.properties + " ");
+			if(TOCID && Item.id == TOCID) B.package.manifest["toc-ncx"].Path = O.getPath(B.package.Dir, Item.href);
+		}
 	});
 	if(B.package.manifest["cover-image"].Path) {
 		sML.create("img", {
@@ -445,7 +450,10 @@ R.readPackageDocument = function(FileContent) {
 					opacity: 1
 				});
 			}
-		}).src = "../bookshelf/" + B.Name + "/" + B.package.manifest["cover-image"].Path + "?cover-image";
+		}).src = (function() {
+			if(!B.Zipped) return "../bookshelf/" + B.Name + "/" + B.package.manifest["cover-image"].Path + "?cover-image";
+			else          return O.getDataURI(B.package.manifest["cover-image"].Path);
+		})();
 	}
 
 	// SPINE
@@ -538,9 +546,9 @@ R.preprocessContents = function() {
 				var ExtRE = new RegExp('\.' + ExtLists[Attribute] + '$', "i");
 				sML.each(Matches, function() {
 					var ResPathInSource = this.replace(MatchRE, "$1");
-					var ResPath = R.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
+					var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
 					var ResFnH = ResPath.split("#"), ResFile = ResFnH[0] ? ResFnH[0] : FilePath, ResHash = ResFnH[1] ? ResFnH[1] : "";
-					if(ExtRE.test(ResFile) && A.Files[ResFile]) Source = Source.replace(this, this.replace(ResPathInSource, R.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
+					if(ExtRE.test(ResFile) && A.Files[ResFile]) Source = Source.replace(this, this.replace(ResPathInSource, O.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
 				});
 			}
 		}
@@ -562,7 +570,7 @@ R.preprocessContents = function() {
 			var Imports = A.Files[FilePath].match(RE);
 			if(Imports) {
 				sML.each(Imports, function() {
-					var ImportPath = R.getPath(FilePath.replace(/[^\/]+$/, ""), this.replace(RE, "$1"));
+					var ImportPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), this.replace(RE, "$1"));
 					if(A.Files[ImportPath]) A.Files[FilePath] = A.Files[FilePath].replace(this, getImportedCSS(ImportPath));
 				});
 			}
@@ -617,16 +625,16 @@ R.preprocessContents = function() {
 
 R.loadNavigationDocument = function(FileContent) {
 
-	if(!B.package.manifest.navigation.Path) {
+	if(!B.package.manifest["navigation"].Path) {
 		O.log(2, 'No Navigation Document.');
-		return R.Chain.next();
+		return R.loadTOCNCX();
 	}
 
 	if(B.Zipped) {
-		var FileContent = A.Files[B.package.manifest.navigation.Path];
+		var FileContent = A.Files[B.package.manifest["navigation"].Path];
 	} else {
 		if(!FileContent) {
-			return sML.Ajax.open("../bookshelf/" + B.Name + "/" + B.package.manifest.navigation.Path, {
+			return sML.ajax("../bookshelf/" + B.Name + "/" + B.package.manifest["navigation"].Path, {
 				onsuccess: function(FileContent) { R.loadNavigationDocument(FileContent); },
 				onfailed: function() {
 					O.log(2, 'Failed.');
@@ -639,12 +647,71 @@ R.loadNavigationDocument = function(FileContent) {
 
 	O.log(2, 'Loading Navigation Document...');
 
-	O.log(3, '"' + B.package.manifest.navigation.Path + '"');
+	O.log(3, '"' + B.package.manifest["navigation"].Path + '"');
 
 	var TempDivs = { A: sML.create("div", { innerHTML: FileContent.replace(/^.+<body( [^>]+)?>/, '').replace(/<\/body>.+$/, '') }), B: document.createElement("div") };
 	sML.each(TempDivs.A.querySelectorAll("nav"), function() { sML.each(this.getElementsByTagName("*"), function() { this.removeAttribute("style"); }); TempDivs.B.appendChild(this); });
 	C.Navigation.Item.innerHTML = TempDivs.B.innerHTML;
 	sML.deleteElement(TempDivs.A); sML.deleteElement(TempDivs.B); delete TempDivs;
+
+	O.log(2, 'Loaded.');
+
+	R.Chain.next();
+
+}
+
+
+
+R.loadTOCNCX = function(FileContent) {
+
+	if(!B.package.manifest["toc-ncx"].Path) {
+		O.log(2, 'No TOC-NCX.');
+		return R.Chain.next();
+	}
+
+	if(B.Zipped) {
+		var FileContent = A.Files[B.package.manifest["toc-ncx"].Path];
+	} else {
+		if(!FileContent) {
+			return sML.ajax("../bookshelf/" + B.Name + "/" + B.package.manifest["toc-ncx"].Path, {
+				onsuccess: function(FileContent) { R.loadTOCNCX(FileContent); },
+				onfailed: function() {
+					O.log(2, 'Failed.');
+					sML.removeClass(N.Panel, "animate");
+					N.note('Failed. Check and try again, or drop an EPUB into this window.');
+				}
+			});
+		}
+	}
+
+	O.log(2, 'Loading TOC-NCX...');
+
+	O.log(3, '"' + B.package.manifest["toc-ncx"].Path + '"');
+
+	R.TOCNCX = document.body.appendChild(sML.create("div", { id: "epub-toc-ncx" }));
+	R.TOCNCX.innerHTML = O.toBiBiXML(FileContent).replace(/[\r\n]/g, "").replace(/[\t\s]*</g, "<").replace(/>[\t\s]*/g, ">").replace(/^.+<bibi:navMap( [^>]+)?>/, "").replace(/<\/bibi:navMap>.+$/, "");
+	sML.each(R.TOCNCX.getElementsByTagName("bibi:navPoint"), function() {
+		sML.insertBefore(
+			sML.create("a", {
+				href: this.getElementsByTagName("bibi:content")[0].getAttribute("src"),
+				innerHTML: this.getElementsByTagName("bibi:text")[0].innerHTML
+			}),
+			this.getElementsByTagName("bibi:navLabel")[0]
+		);
+		sML.removeElement(this.getElementsByTagName("bibi:navLabel")[0]);
+		sML.removeElement(this.getElementsByTagName("bibi:content")[0]);
+		var LI = sML.create("li");
+		LI.setAttribute("id", this.getAttribute("id"));
+		LI.setAttribute("playorder", this.getAttribute("playorder"));
+		sML.insertBefore(LI, this).appendChild(this);
+		if(!LI.previousSibling || /^a$/i.test(LI.previousSibling.tagName)) {
+			sML.insertBefore(sML.create("ul"), LI).appendChild(LI);
+		} else {
+			LI.previousSibling.appendChild(LI);
+		}
+	});
+	C.Navigation.Item.innerHTML = '<nav>' + R.TOCNCX.innerHTML.replace(/<bibi:navPoint( [^>]+)?>/ig, "").replace(/<\/bibi:navPoint>/ig, "") + '</nav>';
+	sML.deleteElement(R.TOCNCX);
 
 	O.log(2, 'Loaded.');
 
@@ -683,7 +750,7 @@ R.loadSpineItems = function() {
 	// Spreads, Boxes, and Items
 	sML.each(B.package.spine.itemrefs, function(i) {
 		var Ref  = this;
-		var Path = R.getPath(B.package.Dir, B.package.manifest.items[Ref.idref].href);
+		var Path = O.getPath(B.package.Dir, B.package.manifest.items[Ref.idref].href);
 		O.log(3, sML.String.padZero(i + 1, A.FileDigit) + '/' + sML.String.padZero(B.package.spine.itemrefs.length, A.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
 		var Item = sML.create("iframe", {
 			className: "item",
@@ -739,12 +806,12 @@ R.loadSpineItems = function() {
 		R.Items.push(Item);
 		// Item Content
 		if(/\.(gif|jpe?g|png)$/i.test(Path)) { // If Bitmap-in-Spine
-			writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? R.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+			writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? O.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
 		} else if(/\.(svg)$/i.test(Path)) { // If SVG-in-Spine
 			if(B.Zipped) {
 				writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			} else {
-				sML.Ajax.open("../bookshelf/" + B.Name + "/" + Path, {
+				sML.ajax("../bookshelf/" + B.Name + "/" + Path, {
 					onsuccess: function(FileContent) {
 						writeItemHTML(Item, false, '<base href="../bookshelf/' + B.Name + '/' + Path + '" />', FileContent.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 					},
@@ -754,7 +821,7 @@ R.loadSpineItems = function() {
 		} else { // If HTML or Others
 			if(B.Zipped) {
 				writeItemHTML(Item, A.Files[Path]);
-				R.postprocessItem(Item);
+				setTimeout(R.postprocessItem, 10, Item);
 			} else {
 				Item.onload = function() { R.postprocessItem(Item); };
 				Item.src = "../bookshelf/" + B.Name + "/" + Path;
@@ -777,7 +844,8 @@ R.loadSpineItems = function() {
 		}
 	})();
 
-	if(B.package.manifest.navigation.Path) R.postprocessLinkage(B.package.manifest.navigation.Path, C.Navigation.Item, "inBiBiNavigation");
+	     if(B.package.manifest["navigation"].Path) R.postprocessLinkage(B.package.manifest["navigation"].Path, C.Navigation.Item, "inBiBiNavigation");
+	else if(B.package.manifest["toc-ncx"].Path)    R.postprocessLinkage(B.package.manifest["toc-ncx"].Path,    C.Navigation.Item, "inBiBiNavigation");
 
 }
 
@@ -791,7 +859,7 @@ R.postprocessLinkage = function(FilePath, RootElement, inBiBiNavigation) {
 		var HrefPathInSource = A.getAttribute("href");
 		if(!HrefPathInSource) return;
 		if(/^[a-zA-Z]+:/.test(HrefPathInSource)) return A.setAttribute("target", "_blank");
-		var HrefPath = R.getPath(FileDir, (!/^(\.*\/+|#)/.test(HrefPathInSource) ? "./" : "") + HrefPathInSource);
+		var HrefPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(HrefPathInSource) ? "./" : "") + HrefPathInSource);
 		var HrefFnH = HrefPath.split("#"), HrefFile = HrefFnH[0] ? HrefFnH[0] : FilePath, HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
 		sML.each(R.Items, function() {
 			var rItem = this;
@@ -918,7 +986,7 @@ R.finish = function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Operation
+//-- Manipuration
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1440,7 +1508,7 @@ R.move = function(bfPM) { // bfPM = "back" ? -1 : 1;
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- O
+//-- Interface
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1519,27 +1587,26 @@ O.createNotifier = function() {
 		N.Panel.addEventListener("dragleave", function(e) { e.preventDefault(); document.body.style.opacity = 1.0; }, 1);
 		N.Panel.addEventListener("drop",      function(e) { e.preventDefault(); document.body.style.opacity = 1.0;
 			var BookFile = e.dataTransfer.files[0];
-			if(!BookFile.size || BookFile.type != "application/epub+zip") {
+			if(!BookFile.size || !/\.epub$/i.test(BookFile.name)/* || BookFile.type != "application/epub+zip"*/) {
 				N.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 			} else {
 				O.log(2, 'Loading EPUB...');
 				sML.addClass(N.Panel, "animate");
+				N.note('Loading ...');
 				var Book = BookFile.name;
 				O.log(3, '"' + Book + '"');
-				sML.setMembers(new FileReader(), {
-					onerror : function() { document.body.style.opacity = 1.0; N.note('Error. Something trouble...'); },
-					onload  : function() {
-						var FR = this;
+				sML.edit(new FileReader(), {
+					onerror : function(e) { document.body.style.opacity = 1.0; N.note('Error. Something trouble...'); },
+					onload  : function(e) {
 						O.log(2, 'Loaded.');
 						R.initialize({
 							Name: Book.replace(/\.epub$/, ""),
 							Format: "EPUB",
-							Zipped: true,
-							Content: FR.result
+							Zip: this.result
 						});
 						R.Chain.start();
 					}
-				}).readAsBinaryString(BookFile);
+				}).readAsArrayBuffer(BookFile);
 			}
 		}, 1);
 	}
@@ -1747,13 +1814,13 @@ O.log = function(Lv, Message) {
 
 
 
-R.isBin = function(T) {
+O.isBin = function(T) {
 	return /\.(gif|jpe?g|png|ttf|otf|woff)$/i.test(T);
 }
 
 
 
-R.getPath = function() {
+O.getPath = function() {
 	return (function(Arguments) {
 		for(var Path = Arguments[0], L = Arguments.length, i = 1; i < L; i++) Path += "/" + Arguments[i];
 		return Path;
@@ -1770,21 +1837,21 @@ R.getPath = function() {
 
 
 
-R.toBiBiXML = function(XML) {
+O.toBiBiXML = function(XML) {
 	return XML.replace(
 		/<\?[^>]*?\?>/g, ""
 	).replace(
 		/<([\w:\d]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	).replace(
-		/<([^!\?\/ >]+)/g, "<bibi:$1"
+		/<(opf:)?([^!\?\/ >]+)/g, "<bibi:$2"
 	).replace(
-		/<\/([^!\?\/ >]+)>/g, "</bibi:$1>"
+		/<\/(opf:)?([^!\?\/ >]+)>/g, "</bibi:$2>"
 	);
 }
 
 
 
-R.ContentTypeList = {
+O.ContentTypeList = {
 	"image/gif"             :   /\.gif$/i,
 	"image/png"             :   /\.png$/i,
 	"image/jpeg"            : /\.jpe?g$/i,
@@ -1798,10 +1865,10 @@ R.ContentTypeList = {
 	"application/xhtml+xml" : /\.xhtml$/i
 };
 
-R.getDataURI = function(FilePath) {
-	for(var ContentType in R.ContentTypeList) {
-		if(R.ContentTypeList[ContentType].test(FilePath)) {
-			return "data:" + ContentType + ";base64," + (R.isBin(FilePath) ? btoa(A.Files[FilePath]) : Base64.encode(A.Files[FilePath]));
+O.getDataURI = function(FilePath) {
+	for(var ContentType in O.ContentTypeList) {
+		if(O.ContentTypeList[ContentType].test(FilePath)) {
+			return "data:" + ContentType + ";base64," + (O.isBin(FilePath) ? btoa(A.Files[FilePath]) : Base64.encode(A.Files[FilePath]));
 		}
 	}
 	return "";
@@ -1822,7 +1889,7 @@ R.getDataURI = function(FilePath) {
 
 
 
-sML.ready(O.start);
+sML.ready(R.start);
 
 
 

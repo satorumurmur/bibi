@@ -9,10 +9,10 @@ sML = /* JavaScript Library */ (function() { var sML = {
 	Description : "I'm a Simple and Middling Library.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Tue July 4 13:36:00 2013 +0900",
+	Date        : "Wed July 31 21:09:00 2013 +0900",
 
-	Version     : 0.9992,
-	Build       : 20130704.0,
+	Version     : 0.9993,
+	Build       : 20130731.0,
 
 	WebSite     : "http://sarasa.la/sML"
 
@@ -329,6 +329,11 @@ sML.removeClass = sML.removeClassName = function(E, CN) {
 	return sML.changeClass(E, CN);
 }
 
+sML.appendChildren = function(Es, P) {
+	for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
+	return Es;
+}
+
 sML.insertBefore = function(E, S) {
 	S.parentNode.insertBefore(E, S);
 	return S.previousSibling;
@@ -374,12 +379,14 @@ sML.hatch = function() {
 	return chick;
 }
 
-sML.getSelection = function() { /*@cc_on var S = document.selection.createRange().text + ""; return (S ? S : ""); @*/
+sML.getSelection = function() {
+	/*@cc_on var S = document.selection.createRange().text + ""; return (S ? S : ""); @*/
 	var S = window.getSelection() + "";
 	return (S ? S : "");
 }
 
-sML.getContentDocument = function(F) { /*@cc_on return F.contentWindow.document; @*/
+sML.getContentDocument = function(F) {
+	/*@cc_on return F.contentWindow.document; @*/
 	return F.contentDocument;
 }
 
@@ -1138,7 +1145,7 @@ sML.foreach = function(O, F, pThis) {
 	return O;
 }
 
-sML.each    = function(O, F, iN, LN) {
+sML.each = function(O, F, iN, LN) {
 	for(var L = (LN ? LN : O.length), i = (iN ? iN : 0); i < L; i++) if(F.call(O[i], i, O) === false) break;
 	return O;
 }

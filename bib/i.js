@@ -4,10 +4,10 @@
 	Description : "Putting EPUBs in Web Page with BiB/i.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Wed July 24 02:43:00 2013 +0900",
+	Date        : "Thu August 1 14:39:00 2013 +0900",
 
-	Version     : 0.986, // beta
-	Build       : 20130724.0,
+	Version     : 0.9861, // beta
+	Build       : 20130801.0,
 
 	WebSite     : "http://sarasa.la/bib/i"
 
@@ -32,6 +32,8 @@
 	for(var L = As.length, i = 0; i < L; i++) {
 		if(!As[i].getAttribute("href")) continue;
 		var Href      =  As[i].getAttribute("href");
+		var ID        =  As[i].getAttribute("data-bibi-id");
+		var Class     =  As[i].getAttribute("data-bibi-class");
 		var Style     =  As[i].getAttribute("data-bibi-style");
 		var Poster    =  As[i].getAttribute("data-bibi-poster");
 		var AutoStart = (As[i].getAttribute("data-bibi-autostart") && !SmartPhone);
@@ -41,6 +43,8 @@
 			Holder.className = Holder.className + " bibi-holder-with-poster";
 			Holder.appendChild(create("span", { className: "bibi-poster", innerHTML: '<img alt="' + Holder.title + '" src="' + Poster + '" />' }));
 		}
+		if(Class) Holder.className = Holder.className + " " + Class;
+		if(ID)    Holder.id = ID;
 		As[i].style.display = "none";
 		As[i].parentNode.insertBefore(Holder, As[i]).appendChild(create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true",
 			onload: function() {
