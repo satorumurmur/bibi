@@ -29,7 +29,7 @@ Demo is [here](http://sarasa.la/bib/i/#demo).
 
 1. Upload `bib` directory to your web server,
 2. upload your EPUB books(for instance, `my-book.epub` here) to `bib/bookshelf` directory and
-3. access to `http://your.web.site/bib/i/?my-book.epub` by your browser.
+3. access to `http://your.web.site/bib/i/?book=my-book.epub` by your browser.
 4. Or embed code below into your blog and visit the blog entry.
 
 ```
@@ -46,4 +46,4 @@ This is recommended because it accelarates reading experience of your readers.
   1. Change the file extension from `.epub` to `.zip`(`my-book.epub` -> `my-book.zip`) and then
   2. unzip the file with some tool.
 2. upload it to `bib/bookshelf` directory, and
-3. visit `http://your.web.site/bib/i/?my-book`(note that it has *no extension*) or embed code for it.
+3. visit `http://your.web.site/bib/i/?book=my-book`(note that it has *no extension*) or embed code for it.
