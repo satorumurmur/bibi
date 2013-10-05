@@ -9,7 +9,7 @@ I = BiB.i.Info = {
 	Description : "EPUB Reader on Your Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Sat October 5 17:56:00 2013 +0900",
+	Date        : "Sat October 5 19:59:00 2013 +0900",
 
 	Version     : 0.993, // beta
 	Build       : 20131005.0,
@@ -1230,11 +1230,9 @@ R.layout = function(Setting, Target, doAfter) {
 				}
 				R.MaxSpreadWidth = Math.max(R.MaxSpreadWidth, Spread.offsetWidth);
 				var Page = Box.appendChild(sML.create("span", { className: "page" }));
-				     if(!Item.Pair)                    Page.style[S.BASE.b] = S["spread-gap"] / 2 * -1 + "px";
-				else if(Ref["page-spread"] == "left")  Page.style.left      = S["spread-gap"] / 2 * -1 + "px";
-				else if(Ref["page-spread"] == "right") Page.style.right     = S["spread-gap"] / 2 * -1 + "px";
-				Page.style["padding" + S.BASE.B] = S["spread-gap"] / 2 + "px";
-				Page.style["padding" + S.BASE.A] = S["spread-gap"] / 2 + "px";
+				if(Ref["page-spread"] == "right") Page.style.right = S["spread-gap"] / 2 * -1 + "px";
+				else                              Page.style.left  = S["spread-gap"] / 2 * -1 + "px";
+				Page.style.paddingLeft = Page.style.paddingRight = S["spread-gap"] / 2 + "px";
 				Page.style[S.SIZE.b] = PageB + "px";
 				Page.style[S.SIZE.l] = PageL + "px";
 				Page.PageIndex         =      R.Pages.length;      R.Pages.push(Page);
@@ -1257,7 +1255,7 @@ R.layout = function(Setting, Target, doAfter) {
 
 	// Change Display
 	sML.each(R.Spreads, function() {
-		if(S["spread-layout-direction"] == "ttb") this.style.marginLeft = Math.max(0, Math.floor((window.innerWidth - R.MaxSpreadWidth) / 2)) + this.MarginMore + "px";
+		if(S.SLD == "ttb") this.style.marginLeft = S["spread-margin-start"] + this.MarginMore + "px";//Math.max(S["spread-margin-start"], Math.floor(window.innerWidth - R.MaxSpreadWidth)) + this.MarginMore + "px";
 		var Display = (S.BDM == "all") ? "" : "none";
 		if(S.BDM == "each" && this == Target.Item.Spread) Display = "", R.CurrentEdgeSpread.Head = R.CurrentEdgeSpread.Foot = Target.Item.Spread;
 		this.style.display = Display;

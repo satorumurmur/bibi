@@ -402,9 +402,11 @@ div#epub-contents {
 		}
 	}
 	div.spread.pre-paginated {
-		div.item-box {
-			iframe.item {
-			}
+		div.item-box.page-spread-left {
+			float: left;
+		}
+		div.item-box.page-spread-right {
+			float: right;
 		}
 	}
 	div#epub-asides {
@@ -449,6 +451,14 @@ html.spread-vertical div#epub-contents {
 		div.item-box {
 			span.page {
 				left: 0;
+			}
+		}
+	}
+	div.spread.pre-paginated {
+		div.item-box {
+			span.page {
+				left: auto;
+				top: 0;
 			}
 		}
 	}
