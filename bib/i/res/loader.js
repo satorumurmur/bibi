@@ -30,10 +30,8 @@ BiB = { is: "abbreviation of Books-in-Browsers." };  /* and */  BiB.i = { is: "E
 
 	'<!-- BiB/i - http://sarasa.la/bib/i/ - Copyright: Satoru MATSUSHIMA - Licensed under the MIT license. -->',
 		'<link rel="stylesheet" href="./res/styles/bibi.css" />',
-		'<script id="bibi-script" src="./res/scripts/bibi.js"></script>',
-		'<script id="bibi-preset" src="../presets/default.js"></script>'
+		'<script id="bibi-script"  src="./res/scripts/bibi.js"></script>',
+		'<script id="bibi-epubcfi" src="./res/scripts/bibi.epubcfi.js"></script>',
+		'<script id="bibi-preset"  src="../presets/default.js"></script>'
 
 );
-
-
-

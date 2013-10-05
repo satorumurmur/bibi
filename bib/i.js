@@ -31,20 +31,23 @@
 	document.getElementsByTagName("head")[0].appendChild(create("link", { rel: "stylesheet", href: As[0].href.replace(/^(.+?bib\/i)\/.+$/, "$1.css") }));
 	for(var L = As.length, i = 0; i < L; i++) {
 		if(!As[i].getAttribute("href")) continue;
-		var Href      =  As[i].getAttribute("href");
-		var ID        =  As[i].getAttribute("data-bibi-id");
-		var Class     =  As[i].getAttribute("data-bibi-class");
-		var Style     =  As[i].getAttribute("data-bibi-style");
-		var Poster    =  As[i].getAttribute("data-bibi-poster");
-		var AutoStart = (As[i].getAttribute("data-bibi-autostart") && !SmartPhone);
 		var Holder = create("span", { className: "bibi-holder", title: (As[i].innerText ? As[i].innerText + " " : "") + "(powered by BiB/i)" });
+		var Href      = As[i].getAttribute("href");
+		var Class     = As[i].getAttribute("data-bibi-class");
+		var ID        = As[i].getAttribute("data-bibi-id");
+		var Style     = As[i].getAttribute("data-bibi-style");
+		var Poster    = As[i].getAttribute("data-bibi-poster");
+		var Autostart = As[i].getAttribute("data-bibi-autostart");
+		if(Class) Holder.className = Holder.className + " " + Class;
+		if(ID)    Holder.id = ID;
 		if(Style) Holder.setAttribute("style", Style);
-		if(Poster && !AutoStart) {
+		if(Poster) {
 			Holder.className = Holder.className + " bibi-holder-with-poster";
 			Holder.appendChild(create("span", { className: "bibi-poster", innerHTML: '<img alt="' + Holder.title + '" src="' + Poster + '" />' }));
 		}
-		if(Class) Holder.className = Holder.className + " " + Class;
-		if(ID)    Holder.id = ID;
+		if(Autostart) {
+			Href = Href + (/#/.test(Href) ? "," : "#") + "auto(start)";
+		}
 		As[i].style.display = "none";
 		As[i].parentNode.insertBefore(Holder, As[i]).appendChild(create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true",
 			onload: function() {
@@ -55,6 +58,6 @@
 				}, "false");
 				try { this.contentWindow.O.ParentFrame = this; } catch(e) {}
 			}
-		})).src = (SmartPhone ? Href.replace(/&po=[^&]+/, "") : Href) + ((AutoStart || /&wait=[^&]+/.test(Href)) ? "" : "&wait=true");
+		})).src = Href;
 	}
 });

@@ -3,6 +3,7 @@ BiB/i
 
 EPUB Reader on Your Site.
 
+
 How to setup
 ------------
 
@@ -21,6 +22,7 @@ Read EPUB books in browser
 1. Open `bib/i/index.html` in your browser and
 2. drag an EPUB book and drop it into the window.
 3. That's all!
+
 
 Read EPUB books via web
 -----------------------

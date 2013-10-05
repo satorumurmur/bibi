@@ -3,18 +3,18 @@ P = BiB.i.Preset = {
 	name                                : "BiB/i Default",              // "Name of this preset. As you like."
 	description                         : "Default Preset.",            // "Description of this preset. As you like."
 
-	"book-display-mode"                 : "all",                        // "all" or "spread" or "item"
+	"book-display-mode"                 : "all",                        // "all" or "each"
 	"page-progression-direction"        : "ltr",                        // "ltr" or "rtl" ("ltr" is recommended.)
-	"spread-layout-direction"           : "auto",                       // "auto" or "vertical" or "horizontal" (or "ttb" or "ltr" or "rtl")
-	"page-orientation"                  : "auto",                       // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
+	"spread-layout-axis"                : "auto",                       // "auto" or "vertical" or "horizontal"
+	"page-size-format"                  : "auto",                       // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
 
 	"book-background"                   : "rgb(64,64,64)",              // CSS value or ""
 
-	"spread-separation"                 : 8,                            // px (if you set odd-number, it will be added 1.)
+	"spread-gap"                        : 8,                            // px (if you set odd-number, it will be added 1.)
 	"spread-margin-start"               : 4,                            // px
 	"spread-margin-end"                 : 4,                            // px
 
-	"spread-separation_narrow-device"   : 8,                            // px (if you set odd-number, it will be added 1.)
+	"spread-gap_narrow-device"          : 8,                            // px (if you set odd-number, it will be added 1.)
 	"spread-margin-start_narrow-device" : 4,                            // px
 	"spread-margin-end_narrow-device"   : 4,                            // px
 
@@ -33,9 +33,7 @@ P = BiB.i.Preset = {
 
 	"item-column-rule"                  : "",                           // CSS value or ""
 
-	"img-max-width"                     : "100%",                       // CSS value or "" (if you set CSS value, it will be used when img-elements have no max-width CSS property)
-	"img-max-height"                    : "100%",                       // CSS value or "" (if you set CSS value, it will be used when img-elements have no max-height CSS property)
-
-	"center-end-spreads"                : true,                         // true or false (no quotes required)
+	"fit-images"                        : "always",                     // "no" or "always" or "in-single-image-only-item" (only one image, without text)
+	"fit-images_breadth-only"           : false,                        // true or false (if true, height in ttb (width in ltr/rtl) can oversize window.)
 
 loaded: true } // do not edit.
