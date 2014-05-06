@@ -6,15 +6,15 @@
 I = BiB.i.Info = {
 
 	Name        : "BiB/i",
-	Description : "EPUB Reader on Your Site.",
+	Description : "EPUB Reader on Your Web Site.",
 	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
 	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Fri October 25 19:00:00 2013 +0900",
+	Date        : "Tue May 6 19:15:00 2014 +0900",
 
-	Version     : 0.9931, // beta
-	Build       : 20131025.0,
+	Version     : 0.994, // beta
+	Build       : 20140506.0,
 
-	WebSite     : "http://sarasa.la/bib/i/"
+	WebSite     : "http://sarasa.la/bib/i"
 
 }
 
@@ -293,18 +293,12 @@ L.getBook = function(BookFileName) {
 		}
 		if(!X.Wait) fetchEPUB();
 		else {
-			N.Panel.appendChild(
-				sML.create("p", { id: "bibi-play", innerHTML: '<span><img class="bibi-icon-image" alt="Touch Me to Read!" src="./res/images/icons.png" /></span>',
-					onclick: function() {
-						if(O.SmartPhone) return window.open(location.href.replace(/&wait=[^&]+/g, ""));
-						fetchEPUB();
-						delete X.Wait;
-						this.onclick = "";
-						sML.style(this, { opacity: 0, cursor: "default" });
-					}
-				})
-			);
-			N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
+			N.createPlayButton(function() {
+				fetchEPUB();
+				delete X.Wait;
+			});
+			//N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
+			N.note('');
 		}
 	} else {
 		// EPUB Folder
@@ -324,7 +318,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 	A = {
 		Files: {},
-		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0 },
+		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0 },
 		getDataURI: function(FilePath) {
 			for(var ContentType in O.ContentTypeList) {
 				if(O.ContentTypeList[ContentType].test(FilePath)) {
@@ -347,6 +341,7 @@ L.preprocessEPUB = function(EPUBZip) {
 			else if(    /\.(woff|otf|ttf)$/i.test(FileName)) A.FileCount.Font++;
 			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) A.FileCount.Audio++;
 			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) A.FileCount.Video++;
+			else if(             /\.(pdf)$/i.test(FileName)) A.FileCount.PDF++;
 			A.Files[FileName] = O.isBin(FileName) ? EPUBZip.file(FileName).asBinary() : Base64.btou(EPUBZip.file(FileName).asText());
 		}
 	}
@@ -361,6 +356,7 @@ L.preprocessEPUB = function(EPUBZip) {
 	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font');
 	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio');
 	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video');
+	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF');
 
 	delete EPUBZip;
 
@@ -631,19 +627,14 @@ L.readPackageDocument = function(FileContent) {
 	if(!X.Wait) L.loadNavigation();
 	else {
 		sML.removeClass(N.Panel, "animate");
-		N.Panel.appendChild(
-			sML.create("p", { id: "bibi-play", innerHTML: '<span><img class="bibi-icon-image" alt="Touch Me to Read!" src="./res/images/icons.png" /></span>',
-				onclick: function() {
-					if(O.SmartPhone) return window.open(location.href);
-					this.onclick = "";
-					sML.addClass(N.Panel, "animate");
-					N.note('Loading ...');
-					sML.style(this, { opacity: 0, cursor: "default" });
-					L.loadNavigation();
-				}
-			})
-		);
-		N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
+		N.createPlayButton(function() {
+			sML.addClass(N.Panel, "animate");
+			N.note('Loading ...');
+			L.loadNavigation();
+		});
+		N.Play.className = "bibi-play-" + B.package.spine["page-progression-direction"];
+		//N.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
+		N.note('');
 	}
 
 }
@@ -802,8 +793,13 @@ L.loadSpineItems = function() {
 		R.Items.push(Item);
 		// Item Content
 		if(/\.(gif|jpe?g|png)$/i.test(Path)) { // If Bitmap-in-Spine
+			Item.IsBitmap = true;
 			writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+		} else if(/\.(pdf)$/i.test(Path)) { // If PDF-in-Spine
+			Item.IsPDF = true;
+			writeItemHTML(Item, false, '', '<iframe src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
 		} else if(/\.(svg)$/i.test(Path)) { // If SVG-in-Spine
+			Item.IsSVG = true;
 			if(B.Zipped) {
 				writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			} else {
@@ -858,8 +854,8 @@ L.postprocessItem = function(Item) {
 	sML.each([Item.HTML, Item.Body], function() {
 		this.BiBi = {
 			DefaultStyle: {
-				margin:  (this.style.margin  ? this.style.margin  : ""),
-				padding: (this.style.padding ? this.style.padding : "")
+				margin:  (this.style && this.style.margin  ? this.style.margin  : ""),
+				padding: (this.style && this.style.padding ? this.style.padding : "")
 			}
 		}
 	});
@@ -1015,7 +1011,8 @@ R.start = function() {
 		});
 		sML.style(R.Contents, { transition: "opacity 0.75s ease-in-out" });
 		sML.each([R.Contents, C.Go, C.Switch], function() { sML.style(this, { opacity: 1 }); });
-		sML.each([C.Go.Back, C.Go.Forward], function() { sML.style(this, { opacity: 1 }); });
+		if(X.To) sML.style(C.Go.Back, { opacity: 1 });
+		sML.style(C.Go.Forward, { opacity: 1 });
 		setTimeout(function() {
 			N.close(function() { setTimeout(function() { sML.each([C.Go.Back, C.Go.Forward], function() { sML.style(this, { opacity: "" }); }); }, 888); });
 		}, 444);
@@ -1092,7 +1089,8 @@ R.layout = function(Setting, Target, doAfter) {
 			if(Ref["rendition:layout"] != "pre-paginated" || !Ref.viewport[S.SIZE.b] || !Ref.viewport[S.SIZE.l]) {
 			// -- Reflowable
 				Item.scrolling = "no";
-				var IsSingleImageItem = (Item.HTML.innerText == "" && Item.Body.querySelectorAll("img").length == 1); // textContent... mmm...
+				var IsSingleImageItem = (Item.HTML.innerText == "" && Item.Body.querySelectorAll("img"   ).length == 1); // textContent... mmm...
+				var IsSingleFrameItem = (Item.HTML.innerText == "" && Item.Body.querySelectorAll("iframe").length == 1); // textContent... mmm...
 				var StageB = R.StageSize.Reflowable.Breadth, StageL = R.StageSize.Reflowable.Length;
 				var PageB  = R.StageSize.Reflowable.Breadth,  PageL = R.StageSize.Reflowable.Length;
 				var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
@@ -1142,6 +1140,11 @@ R.layout = function(Setting, Target, doAfter) {
 							this.style[S.SIZE.b] = "auto";
 						}
 					});
+				}
+				if(IsSingleFrameItem) {
+					var IFrame = Item.Body.querySelector("iframe");
+					IFrame.style[S.SIZE.b] = PageB + "px";
+					IFrame.style[S.SIZE.l] = PageL + "px";
 				}
 				var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
 				Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
@@ -1618,6 +1621,32 @@ N.arise = function() {
 	N.Powered = N.Panel.appendChild(sML.create("p",   { id: "bibi-notifier-powered", innerHTML: O.getLogo({ Linkify: true }) }));
 	for(var i = 1; i <= 8; i++) N.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
+	N.createPlayButton = function(OnClick) {
+		N.Play = N.Panel.appendChild(
+			sML.create("p", {
+				id: "bibi-play",
+				innerHTML: '<span><img class="bibi-icon-image" alt="Touch Me to Read!" src="./res/images/icons.png" /></span>',
+				onclick: function() {
+					if(O.SmartPhone) return window.open(location.href.replace(/&wait=[^&]+/g, ""));
+					sML.each([this, N.NewWindow.querySelector("a")], function() {
+						this.onclick = function() { return false; };
+						sML.style(this, { opacity: 0, cursor: "default" });
+					});
+					OnClick();
+				}
+			})
+		);
+		if(!O.SmartPhone) N.NewWindow = N.Panel.appendChild(
+			sML.create("p", {
+				id: "bibi-new-window",
+				innerHTML: '<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">or open in new window</a>',
+				onclick: function() {
+					return;
+				}
+			})
+		);
+	}
+
 }
 
 
@@ -1638,7 +1667,17 @@ C.arise = function() {
 	C.Go         = O.Body.appendChild(sML.create("div", { id: "bibi-control-go" }, { transition: "opacity 0.75s linear", opacity: 0 }));
 	C.Go.Back    =   C.Go.appendChild(sML.create("div", { title: "Back",    className: "bibi-control-go", id: "bibi-control-go-back",    onclick: function() { R.page(-1); } }));
 	C.Go.Forward =   C.Go.appendChild(sML.create("div", { title: "Forward", className: "bibi-control-go", id: "bibi-control-go-forward", onclick: function() { R.page(+1); } }));
-	sML.each([C.Go.Back, C.Go.Forward], function() { this.appendChild(sML.create("img", { alt: this.title, className: "bibi-icon-image", src: "./res/images/icons.png" })); });
+	sML.each([C.Go.Back, C.Go.Forward], function() {
+		this.appendChild(sML.create("span", { innerHTML: '<img class="bibi-icon-image" alt="' + this.title + '" src="./res/images/icons.png" />' }));
+		this.addEventListener("mouseover", function() { if(this.clickedTimer) clearTimeout(this.clickedTimer); sML.addClass(this, "shown"); });
+		this.addEventListener("mouseout",  function() { sML.removeClass(this, "shown"); });
+		this.addEventListener("click", function() {
+			sML.addClass(this, "shown");
+			var This = this;
+			if(this.clickedTimer) clearTimeout(this.clickedTimer);
+			this.clickedTimer = setTimeout(function() { sML.removeClass(This, "shown"); }, 500);
+		});
+	});
 
 	// Switch
 	C.Switch     =   O.Body.appendChild(sML.create("div", { id: "bibi-control-switch" }, [ "opacity", 0, "transition", "opacity 0.75s linear" ]));
@@ -1949,7 +1988,7 @@ O.log = function(Lv, Message) {
 
 
 O.isBin = function(T) {
-	return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm)$/i.test(T);
+	return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(T);
 }
 
 
@@ -1996,7 +2035,8 @@ O.ContentTypeList = {
 	"text/css"              :   /\.css$/i,
 	"text/javascript"       :    /\.js$/i,
 	"text/html"             : /\.html?$/i,
-	"application/xhtml+xml" : /\.xhtml$/i
+	"application/xhtml+xml" : /\.xhtml$/i,
+	"application/pdf"       : /\.pdf$/i
 };
 
 

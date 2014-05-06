@@ -41,7 +41,7 @@
 		if(Class) Holder.className = Holder.className + " " + Class;
 		if(ID)    Holder.id = ID;
 		if(Style) Holder.setAttribute("style", Style);
-		if(Poster) {
+		if(Poster && !Autostart) {
 			Holder.className = Holder.className + " bibi-holder-with-poster";
 			Holder.appendChild(create("span", { className: "bibi-poster", innerHTML: '<img alt="' + Holder.title + '" src="' + Poster + '" />' }));
 		}
@@ -55,7 +55,7 @@
 				this.contentWindow.addEventListener("click", function() {
 					Holder.className = Holder.className + " bibi-holder-started";
 					this.removeEventListener("click", arguments.callee);
-				}, "false");
+				}, false);
 				try { this.contentWindow.O.ParentFrame = this; } catch(e) {}
 			}
 		})).src = Href;
