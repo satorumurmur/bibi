@@ -143,8 +143,8 @@ div#bibi-notifier-panel {
 			}
 		}
 	}
-	p#bibi-play,
-	p#bibi-drop {
+	p#bibi-drop,
+	p#bibi-play {
 		z-index: 10;
 		left: 0;
 		top: 0;
@@ -166,8 +166,23 @@ div#bibi-notifier-panel {
 		&:hover  { opacity: 0.75; }
 		&:active { opacity: 0.50; }
 	}
+	p#bibi-drop {
+		overflow: visible;
+		span {
+			margin: -100px;
+			width: 200px;
+			height: 200px;
+			img { // 📕
+				left: -1000px;
+				top: 0;
+				width: 1800px;
+				height: 600px;
+			}
+		}
+	}
 	p#bibi-play {
 		overflow: hidden;
+		margin-top: -25px;
 		cursor: pointer;
 		span {
 			margin: -100px * 0.75;
@@ -195,36 +210,24 @@ div#bibi-notifier-panel {
 			}
 		}
 	}
-	p#bibi-drop {
-		overflow: visible;
-		span {
-			margin: -100px;
-			width: 200px;
-			height: 200px;
-			img { // 📕
-				left: -1000px;
-				top: 0;
-				width: 1800px;
-				height: 600px;
-			}
-		}
-	}
 	p#bibi-new-window {
+		display: block;
+		position: absolute;
+		z-index: 100;
+		left: 0;
+		top: 50%;
+		.box-sizing(border-box);
+		margin: 100px * 0.75 0;
+		width: 100%;
+		text-align: center;
+		//border: solid 1px rgba(0,0,0,0.5);
 		a {
-			display: block;
-			position: absolute;
-			z-index: 100;
-			left: 50%;
-			top: 50%;
-			.box-sizing(border-box);
-			margin: (100px * 0.75 + 10px) -100px;
-			//border: solid 1px rgba(0,0,0,0.5);
+			display: inline-block;
+			padding: 0 .75em .1em 1.5em;
 			border-radius: .75em;
-			width: 200px;
 			height: 1.5em;
 			line-height: 1.5em;
 			text-align: center;
-			padding-left: .6em;
 			font-size: 15px;
 			color: rgba(255,255,255,0.9);
 			background: rgba(0,0,0,0.5);
@@ -233,6 +236,14 @@ div#bibi-notifier-panel {
 			opacity: 1;
 			cursor: pointer;
 			.transition(0.25s linear);
+			span {
+				 display: inline-block;
+				 position: relative;
+			}
+			span[lang="ja"] {
+				top: .1em;
+				font-size: 0.86em;
+			}
 			&:after {
 				.fa();
 				content: "\f08e";
@@ -241,7 +252,7 @@ div#bibi-notifier-panel {
 				line-height: inherit;
 				top: .1em;
 				vertical-align: bottom;
-				margin-left: .25em;
+				margin-left: .5em;
 			}
 			&:hover {
 				color: rgba(255,255,255,1);

@@ -515,7 +515,7 @@ L.readPackageDocument = function(FileContent) {
 	var SpineItemrefs = Spine.getElementsByTagName("bibi:itemref");
 	if(ManifestItems.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <item> in <manifest>.');
 	if(SpineItemrefs.length <= 0) return O.log(0, '"' + B.package.Path + '" has no <itemref> in <spine>.');
-	B.package.metadata = { title: "", creator: "", publisher: "", titles: [], creators: [], publishers: [] };
+	B.package.metadata = { title: "", creator: "", publisher: "", language: "", titles: [], creators: [], publishers: [], languages: [] };
 	B.package.manifest = { items: {}, "cover-image": {}, "navigation": {}, "toc-ncx": {} };
 	B.package.spine    = { itemrefs: [] };
 
@@ -534,9 +534,11 @@ L.readPackageDocument = function(FileContent) {
 	if(!B.package.metadata["titles"    ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:title"),     function() { B.package.metadata["titles"    ].push(this.innerHTML); return false; });
 	if(!B.package.metadata["creators"  ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:creator"),   function() { B.package.metadata["creators"  ].push(this.innerHTML); });
 	if(!B.package.metadata["publishers"].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:publisher"), function() { B.package.metadata["publishers"].push(this.innerHTML); });
+	if(!B.package.metadata["languages" ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:language"),  function() { B.package.metadata["languages" ].push(this.innerHTML); });
 	B.package.metadata.title     = B.package.metadata.titles.join(    ", ");
 	B.package.metadata.creator   = B.package.metadata.creators.join(  ", ");
 	B.package.metadata.publisher = B.package.metadata.publishers.join(", ");
+	B.package.metadata.language  = B.package.metadata.languages.join( ", ");
 	if(!B.package.metadata["rendition:layout"])      B.package.metadata["rendition:layout"]      = "reflowable";
 	if(!B.package.metadata["rendition:orientation"]) B.package.metadata["rendition:orientation"] = "auto";
 	if(!B.package.metadata["rendition:spread"])      B.package.metadata["rendition:spread"]      = "auto";
@@ -1622,6 +1624,8 @@ N.arise = function() {
 	for(var i = 1; i <= 8; i++) N.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	N.createPlayButton = function(OnClick) {
+		var DefaultLanguage = "en"; try { DefaultLanguage = B.package.metadata.languages[0]; } catch(e) {}
+		var OpenInNewWindow = (DefaultLanguage == "ja" ? '<span lang="ja">新しいウィンドウで読む</span>' : 'open in new window');
 		N.Play = N.Panel.appendChild(
 			sML.create("p", {
 				id: "bibi-play",
@@ -1639,7 +1643,7 @@ N.arise = function() {
 		if(!O.SmartPhone) N.NewWindow = N.Panel.appendChild(
 			sML.create("p", {
 				id: "bibi-new-window",
-				innerHTML: '<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">or open in new window</a>',
+				innerHTML: '<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">' + OpenInNewWindow + '</a>',
 				onclick: function() {
 					return;
 				}
