@@ -14,10 +14,7 @@ BiB = { is: "abbreviation of Books-in-Browsers." };  /* and */  BiB.i = { is: "E
 })(
 
 	'<!-- JSZip - http://stuartk.com/jszip - Copyright: Stuart Knightley - Dual licenced under the MIT license or GPLv3. -->',
-		'<script src="./res/scripts/lib/jszip.js"></script>',
-		'<script src="./res/scripts/lib/jszip-inflate.js"></script>',
-		'<script src="./res/scripts/lib/jszip-deflate.js"></script>',
-		'<script src="./res/scripts/lib/jszip-load.js"></script>',
+		'<script src="./res/scripts/lib/jszip.min.js"></script>',
 
 	'<!-- base64.js - https://github.com/dankogai/js-base64 - Copyright: dankogai - Licensed under the MIT license. -->',
 		'<script src="./res/scripts/lib/base64.js"></script>',
