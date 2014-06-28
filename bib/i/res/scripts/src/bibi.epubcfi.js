@@ -1,21 +1,23 @@
-BiBiEPUBCFI = {
 
-	Name        : "BiB/i EPUB-CFI Utilities",
-	Description : "epubcfi Utilities (for BiB/i, or others)",
-	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
-	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Mon September 23 12:39:00 2013 +0900",
 
-	Version     : 0.31, // alpha
-	Build       : 20130923.0,
 
-	WebSite     : "http://sarasa.la/bib/i/",
 
-	/* -----------------------------------------------------------------------------------------------------------------
+BibiEPUBCFI = { /*!
+ *
+ *  # BiB/i EPUB-CFI Utilities
+ *
+ *  - "EPUB-CFI Utilities (for BiB/i, or Others)"
+ *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
+ *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *
+ *  - Sun June 22 23:59:59 2014 +0900
+ */    Version: 0.32, Build: 20140622.0,
 
-	An Example is Bottom of This Document.
+/* -----------------------------------------------------------------------------------------------------------------
 
-	----------------------------------------------------------------------------------------------------------------- */
+    - An Example is Bottom of This Document.
+
+----------------------------------------------------------------------------------------------------------------- */
 
 	CFIString: "", Current: 0, // Log: true, LogCorrection: true, LogCancelation: true,
 
@@ -26,7 +28,7 @@ BiBiEPUBCFI = {
 		if(Scope == "Fragment") CFIString = CFIString.replace(/^(epubcfi\()?/, "epubcfi(").replace(/(\))?$/, ")");
 		this.CFIString = CFIString, this.Current = 0;
 		if(this.Log && this.LogCancelation) {
-			this.log(1, "BiBiEPUBCFI");
+			this.log(1, "BiB/i EPUB-CFI");
 			this.log(2, "parse");
 			this.log(3, "CFIString: " + this.CFIString);
 		}
@@ -135,60 +137,67 @@ BiBiEPUBCFI = {
 		console.log('BiB/i EPUB-CFI: ' + Message);
 	}
 
-	/* -----------------------------------------------------------------------------------------------------------------
-
-	BiBiEPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
-
-	{
-		Type: "CFI",
-		Path: {
-			Type: "Path",
-			Steps: [
-				{
-					Type: "Step",
-					Index: "6"
-				},
-				{
-					Type: "Step",
-					Index: "4"
-				},
-				{
-					Type: "IndirectPath",
-					Steps: [
-						{
-							Type: "IndirectStep",
-							Index: "4"
-						},
-						{
-							Type: "Step",
-							Index: "10"
-						},
-						{
-							Type: "IndirectPath",
-							Steps: [
-								{
-									Type: "IndirectStep",
-									Index: "4"
-								},
-								{
-									Type: "Step",
-									Index: "2"
-								}
-							],
-							TermStep: {
-								Type: "TermStep",
-								Index: "32",
-								Preceding: "All You Need Is",
-								Following: "Love",
-								Side: "a"
-							}
-						}
-					]
-				}
-			]
-		}
-	}
-
-	----------------------------------------------------------------------------------------------------------------- */
-
 }
+
+/* -----------------------------------------------------------------------------------------------------------------
+
+   EXAMPLE:
+
+   - BibiEPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
+
+--------------------------------------------------------------------------------------------------------------------
+
+{
+	Type: "CFI",
+	Path: {
+		Type: "Path",
+		Steps: [
+			{
+				Type: "Step",
+				Index: "6"
+			},
+			{
+				Type: "Step",
+				Index: "4"
+			},
+			{
+				Type: "IndirectPath",
+				Steps: [
+					{
+						Type: "IndirectStep",
+						Index: "4"
+					},
+					{
+						Type: "Step",
+						Index: "10"
+					},
+					{
+						Type: "IndirectPath",
+						Steps: [
+							{
+								Type: "IndirectStep",
+								Index: "4"
+							},
+							{
+								Type: "Step",
+								Index: "2"
+							}
+						],
+						TermStep: {
+							Type: "TermStep",
+							Index: "32",
+							Preceding: "All You Need Is",
+							Following: "Love",
+							Side: "a"
+						}
+					}
+				]
+			}
+		]
+	}
+}
+
+----------------------------------------------------------------------------------------------------------------- */
+
+
+

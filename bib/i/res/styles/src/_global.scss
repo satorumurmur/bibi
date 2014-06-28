@@ -1,0 +1,69 @@
+// ================================================================================
+// + Global
+// --------------------------------------------------------------------------------
+
+
+// - HTML / Body
+// --------------------------------------------------------------------------------
+
+html#bibi,
+html#bibi body {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+html#bibi {
+	overflow: hidden;
+	font-family: "Helvetica", "Trebuchet MS";
+	-webkit-font-smoothing: subpixel-antialiased;
+	background: black;
+	&.spread-vertical {
+		overflow-x: hidden;
+		overflow-y: scroll;
+	}
+	&.spread-horizontal {
+		overflow-x: scroll;
+		overflow-y: hidden;
+	}
+}
+
+
+// - IFrame
+// --------------------------------------------------------------------------------
+
+iframe {
+	margin: 0;
+	padding: 0;
+	border: none 0;
+	line-height: 1;
+	vertical-align: top;
+	background: white;
+}
+
+
+// - BiB/i Type
+// --------------------------------------------------------------------------------
+
+span.bibi-type {
+	display: inline-block;
+	position: relative;
+	font-weight: inherit;
+	font-family: "Quando", serif;
+	letter-spacing: -0.075em;
+	word-break: keep-all;
+	span {
+		display: inline-block;
+		position: relative;
+	}
+	span.bibi-type-B {
+	}
+	span.bibi-type-i {
+	}
+	span.bibi-type-slash {
+		font-family: "Lato", sans-serif; margin-right: 0.0275em;
+		font-family: "Cantata One", serif; top: 0.05em; margin-left: -0.05em; margin-right: -0.081em;
+		font-weight: 300;
+		font-size: .69em;
+	}
+}

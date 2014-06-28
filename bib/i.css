@@ -4,6 +4,11 @@ span.bibi-holder,
 span.bibi-holder span.bibi-poster,
 span.bibi-holder span.bibi-poster img,
 span.bibi-holder iframe.bibi-frame {
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+	    -ms-box-sizing: border-box;
+	     -o-box-sizing: border-box;
+	        box-sizing: border-box;
 	display: inline-block;
 	position: relative;
 	margin: 0;
@@ -16,6 +21,7 @@ span.bibi-holder iframe.bibi-frame {
 }
 
 span.bibi-holder {
+	border: solid 1px rgb(248,248,248);
 }
 
 	span.bibi-holder span.bibi-poster,

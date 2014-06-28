@@ -2,22 +2,17 @@
 
 
 
-
-sML = /* JavaScript Library */ (function() { var sML = {
-
-	Name        : "sML JavaScript Library",
-	Description : "I'm a Simple and Middling Library.",
-	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
-	Licence     : "Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Mon September 30 18:42:00 2013 +0900",
-
-	Version     : 0.99933,
-	Build       : 20130930.0,
-
-	WebSite     : "http://sarasa.la/sML/"
-
+sML = (function() { var sML = { /*!
+ *
+ *  # sML JavaScript Library
+ *
+ *  - "I'm a Simple and Middling Library."
+ *  - (c) Satoru MATSUSHIMA - http://sarasa.la/sML
+ *  _ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *
+ *  - Fri June 27 19:26:00 2014 +0900
+ */    Version: 0.9994, Build: 20140627.0
 }
-
 
 
 
@@ -46,11 +41,13 @@ sML.DeviceName = sML.DN = (function(nUA, v2n) {
 		Gecko            : ((nUA.indexOf("Gecko/")      > -1) ? v2n(nUA, /^.+rv\:([\d\.]+).+$/)          : undefined),
 		Firefox          : ((nUA.indexOf("Firefox/")    > -1) ? v2n(nUA, /^.+Firefox\/([\d\.]+).+$/)     : undefined),
 		Presto           : ((nUA.indexOf("Presto")      > -1) ? v2n(nUA, /^.+Presto\/([\d\.]+).+$/)      : undefined),
-		Opera            : ((nUA.indexOf("Opera/")      > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/)     : undefined),
-		Trident          : undefined,
-		InternetExplorer : undefined,
+		Opera            : ((nUA.indexOf("OPR/")        > -1) ? v2n(nUA, /^.+OPR\/([\d\.]+).*$/)         : undefined),
+		Trident          : ((nUA.indexOf("Trident/")    > -1) ? v2n(nUA, /^.+Trident\/([\d\.]+).*$/)     : undefined),
+		InternetExplorer : ((nUA.indexOf("MSIE ")       > -1) ? v2n(nUA, /^.+MSIE ([\d\.]+).*$/)         : undefined),
 		Flash            : undefined
 	}
+	if(sML.UA.Trident >= 7) sML.UA.InternetExplorer = v2n(nUA, /^.+rv:([\d\.]+).*$/);
+	if(!sML.UA.Opera) sML.UA.Opera = ((nUA.indexOf("Opera/") > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/) : undefined);
 	if(sML.OS.OSX)     return "Mac";
 	if(sML.OS.Windows) return "PC";
 	if(sML.OS.Linux)   return "PC";
@@ -68,14 +65,9 @@ sML.DeviceName = sML.DN = (function(nUA, v2n) {
 try {
 	sML.UA.Flash = parseFloat(navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description.replace(/^.+?([\d\.]+).*$/, "$1"));
 } catch(e) {}
-
-/*@cc_on
-	sML.UA.Trident = sML.UA.InternetExplorer = document.documentMode ? document.documentMode : ((navigator.userAgent.indexOf("MSIE 7") > -1) ? 7 : 1);
-	try {
-		var fAX = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7"); // Farewell to Flash Player Under-7
-		sML.UA.Flash = parseFloat(fAX.GetVariable("$version").replace(/^[^\d]+(\d+)\,([\d\,]+)$/, "$1.$2").replace(/\,/g, ""));
-	} catch(e) {}
-@*/
+if(sML.UA.InternetExplorer) { try {
+	sML.UA.Flash = parseFloat((new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7")).GetVariable("$version").replace(/^[^\d]+(\d+)\,([\d\,]+)$/, "$1.$2").replace(/\,/g, ""));
+} catch(e) {} }
 
 sML.OS.Mac = sML.OS.OSX, sML.OS.Win = sML.OS.Windows, sML.OS.Lin = sML.OS.Linux, sML.OS.And = sML.OS.Android;
 
@@ -91,15 +83,14 @@ if(sML.UA.Opera && !window.console) console = { log: opera.postError };
 
 sML.log = function() {
 	for(var Log = arguments[0], L = arguments.length, i = 1; i < L; i++) Log += ", " + arguments[i];
-	try { console.log(Log); } catch(e) {}
+	try { return console.log(Log); } catch(e) {}
 };
 
 sML.write = function() {
 	document.open();
 	for(var L = arguments.length, i = 0; i < L; i++) document.write(arguments[i]);
 	document.close();
-}
-
+};
 
 
 
@@ -140,7 +131,7 @@ sML.OnRead = sML.onRead = {
 		this.Functions = [];
 	},
 	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
-}
+};
 sML.onread = sML.ready = function(F) { return sML.OnRead.addEventListener(F); };
 
 sML.OnLoad = sML.onLoad = {
@@ -152,7 +143,7 @@ sML.OnLoad = sML.onLoad = {
 		this.Functions = [];
 	},
 	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
-}
+};
 sML.onload = sML.done  = function(F) { return sML.OnLoad.addEventListener(F); };
 
 if(document.addEventListener && (!sML.UA.WK || sML.UA.WK > 525)) {
@@ -210,7 +201,7 @@ sML.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
 	stopDetect: function() {
 		if(this.timer) clearTimeout(this.timer);
 	}
-}
+};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -226,8 +217,25 @@ sML.Chain = function() {
 	this.skip = function(D) {
 		if(typeof D == "number") for(var i = 0; i < D; i++) this.Functions.shift();
 	}
-}
+};
 
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Timers
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.Timers = {
+	setTimeout:  function(T, F, A1, A2, A3, A4, A5, A6, A7, A8, A9) { return setTimeout( F, T, A1, A2, A3, A4, A5, A6, A7, A8, A9); },
+	setInterval: function(T, F, A1, A2, A3, A4, A5, A6, A7, A8, A9) { return setInterval(F, T, A1, A2, A3, A4, A5, A6, A7, A8, A9); }
+};
+
+sML.setTimeout  = sML.Timers.setTimeout;
+sML.setInterval = sML.Timers.setInterval;
 
 
 
@@ -245,7 +253,7 @@ sML.extendElements = function(tE) {
 	for(var L = cEs[0].length, i = 0; i < L; i++) cEs[1][i] = cEs[0][i];
 	var Es = [tE].concat(cEs[1]);
 	for(var L = Es.length, i = 0; i < L; i++) Es[i].getElementsByClassName = sML.getElementsByClassName;
-}
+};
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -263,25 +271,25 @@ if(!document.getElementsByClassName) {
 		if(HTMLElement.prototype.getElementsByClassName == undefined) HTMLElement.prototype.getElementsByClassName = sML.getElementsByClassName;
 		if(   Document.prototype.getElementsByClassName == undefined)    Document.prototype.getElementsByClassName = sML.getElementsByClassName;
 	} else sML.OnRead.addEventListener(function() { sML.extendElements(document); });
-}
+};
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sML.getElementsByIds = document.getElementsByIds = function() {
 	for(var Es = [], L = arguments.length, i = 0; i < L; i++) if(document.getElementById(arguments[i])) Es.push(document.getElementById(arguments[i]));
 	return Es;
-}
+};
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sML.getElements = sML.getElementsBySelector = function() {
 	for(var i = 1, L = arguments.length; i < L; i++) arguments[0] += "," + arguments[i];
 	return document.querySelectorAll(arguments[0]);
-}
+};
 
 sML.getInnerText = function(E) {
 	return E.innerText || E.textContent;
-}
+};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -289,23 +297,27 @@ sML.cloneObject = function(O) {
 	var F = function() {};
 	F.prototype = O;
 	return new F();
-}
+};
 
 sML.set = sML.edit = sML.setMembers = function(O, M, S) {
 	if(M) for(var m in M) O[m] = M[m];
 	if(S) sML.CSS.set(O, S);
 	return O;
-}
+};
 
 sML.create = sML.createElement = function(tagName, M, S) {
 	return (tagName ? sML.set(document.createElement(tagName), M, S) : null);
-}
+};
 
-sML.changeClass = sML.changeClassName = function(E, CN) {
+sML.changeClass = sML.changeClassName = ((sML.UA.IE < 10) ? function(E, CN) {
 	if(CN) E.className = CN;
-	else /*@cc_on if(sML.UA.IE < 10) { E.removeAttribute("className"); } else @*/ E.removeAttribute("class");
+	else E.removeAttribute("className");
 	return E.className;
-}
+} : function(E, CN) {
+	if(CN) E.className = CN;
+	else E.removeAttribute("class");
+	return E.className;
+});
 
 sML.addClass = sML.addClassName = function(E, CN) {
 	if(typeof CN != "string") return E.className;
@@ -316,7 +328,7 @@ sML.addClass = sML.addClassName = function(E, CN) {
 		CN = E.className + " " + CN;
 	}
 	return sML.changeClass(E, CN);
-}
+};
 
 sML.removeClass = sML.removeClassName = function(E, CN) {
 	if(!E.className) return "";
@@ -326,42 +338,46 @@ sML.removeClass = sML.removeClassName = function(E, CN) {
 	if((" " + E.className + " ").indexOf(" " + CN + " ") <  0) return E.className;
 	CN = (" " + E.className + " ").replace(" " + CN + " ", " ").replace(/ +/g, " ").replace(/^ /, "").replace(/ $/, "");
 	return sML.changeClass(E, CN);
-}
+};
 
-sML.replaceClass = sML.replaceClassName = function(E, RCN, ACN) { sML.removeClass(E, RCN); sML.addClass(E, ACN); return E.className; }
+sML.replaceClass = sML.replaceClassName = function(E, RCN, ACN) {
+	sML.removeClass(E, RCN);
+	sML.addClass(E, ACN);
+	return E.className;
+};
 
 sML.appendChildren = function(Es, P) {
 	for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
 	return Es;
-}
+};
 
 sML.insertBefore = function(E, S) {
 	S.parentNode.insertBefore(E, S);
 	return S.previousSibling;
-}
+};
 
 sML.insertAfter = function(E, S) {
 	S.parentNode.insertBefore(E, S.nextSibling);
 	return S.nextSibling;
-}
+};
 
 sML.replaceElement = function(E, S) {
 	S.parentNode.insertBefore(E, S);
 	E = S.previousSibling;
 	S.parentNode.removeChild(S);
 	return E;
-}
+};
 
 sML.removeElement = function(E) {
 	E.parentNode.removeChild(E);
-}
+};
 
 sML.deleteElement = function(E) {
 	if(E.parentNode) E.parentNode.removeChild(E);
 	E.innerHTML = "";
 	E = null;
 	delete E;
-}
+};
 
 sML.hatch = function() {
 	for(var HTML = "", L = arguments.length, i = 0; i < L; i++) HTML += arguments[i];
@@ -371,20 +387,17 @@ sML.hatch = function() {
 		egg.innerHTML = HTML;
 		for(var L = egg.childNodes.length, i = 0; i < L; i++) chick.appendChild(egg.firstChild);
 	}
-	if(sML.UA.IE && sML.UA.IE < 9) {
-		egg.style.display = "none";
-		document.body.appendChild(egg);
+	if(sML.UA.IE < 9) {
+		document.body.appendChild(egg).display = "none";
 		brood();
 		document.body.removeChild(egg);
 	} else brood();
 	return chick;
-}
+};
 
 sML.getContentDocument = function(F) {
-	/*@cc_on return F.contentWindow.document; @*/
-	return F.contentDocument;
-}
-
+	return (sML.UA.IE < 8) ? F.contentWindow.document : F.contentDocument;
+};
 
 
 
@@ -416,7 +429,7 @@ sML.CSS = sML.S = {
 	},
 	StyleSheets: [],
 	getStyleSheet: function(ParentDocument) {
-		/*@cc_on if(sML.UA.IE < 9) return ParentDocument.styleSheets[ParentDocument.styleSheets.length - 1]; @*/
+		if(sML.UA.IE < 9) return ParentDocument.styleSheets[ParentDocument.styleSheets.length - 1];
 		for(var L = this.StyleSheets.length, i = 0; i < L; i++) {
 			if(this.StyleSheets[i].StyleFor == ParentDocument) {
 				return this.StyleSheets[i].StyleSheet;
@@ -471,7 +484,7 @@ sML.CSS = sML.S = {
 	setProperty: function(E, P, V, pfx) {
 		if(!E || !P) return E;
 		     if(/^(animation|background(-s|S)ize|box|break|column|filter|flow|hyphens|region|shape|transform|transition|writing)/.test(P)) pfx = true; // 2013/09/25
-		else if(P == "float") /*@cc_on P = "styleFloat"; // @*/ P = "cssFloat";
+		else if(P == "float") P = sML.UA.IE ? "styleFloat" : "cssFloat";
 		if(pfx) E.style[this.Prefix + P] = V;
 		E.style[P] = V;
 		return E;
@@ -512,10 +525,8 @@ sML.CSS = sML.S = {
 		if(!RGBA[3]) RGBA[3] = 1;
 		return RGBA;
 	}
-}
-
-sML.style = sML.css = function(E, PV, Cb) { return sML.CSS.set(E, PV, Cb); }
-
+};
+sML.style = sML.css = function(E, PV, Cb) { return sML.CSS.set(E, PV, Cb); };
 
 
 
@@ -579,10 +590,8 @@ sML.Transition = sML.T = {
 			}
 		})();
 	}
-}
-
-sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); }
-
+};
+sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); };
 
 
 
@@ -595,13 +604,12 @@ sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); }
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.Coord = sML.C = {
-	/*@cc_on setIEF : function() {
-		var cX = window.screenLeft;
-		var cY = window.screenTop;
+	setIEF : function() {
+		var cX = window.screenLeft, cY = window.screenTop;
 		window.moveTo(cX, cY);
 		this.IEF = { w: window.screenLeft - cX, h: window.screenTop  - cY };
 		window.moveBy(-this.IEF.w, -this.IEF.h);
-	}, @*/
+	},
 	getScreenSize : function() {
 		return { w: screen.availWidth, h: screen.availHeight };
 	},
@@ -612,40 +620,37 @@ sML.Coord = sML.C = {
 		var H = document.documentElement.clientHeight || document.body.clientHeight || document.body.scrollHeight
 		return { w: W, h: H };
 	}),
-	getWindowOuterSize : function() {
-		/*@cc_on
-			if(!this.IEF) this.setIEF();
-			var iS = this.getWindowInnerSize();
-			return { w: iS.w + this.IEF.w * 2, h: iS.h + this.IEF.h + 50 }
-		@*/
+	getWindowOuterSize : ((sML.UA.IE < 9) ? function() {
+		if(!this.IEF) this.setIEF();
+		var iS = this.getWindowInnerSize();
+		return { w: iS.w + this.IEF.w * 2, h: iS.h + this.IEF.h + 50 };
+	} : function() {
 		return { w: window.outerWidth, h: window.outerHeight };
-	},
-	getDocumentSize : function() {
-		/*@cc_on
-			if(sML.UA.IE < 8) return { w: document.body.scrollWidth, h: document.body.scrollHeight };
-		@*/
+	}),
+	getDocumentSize : ((sML.UA.IE < 8) ? function() {
+		return { w: document.body.scrollWidth, h: document.body.scrollHeight };
+	} : function() {
 		var W = document.documentElement.scrollWidth  || document.body.scrollWidth;
 		var H = document.documentElement.scrollHeight || document.body.scrollHeight;
 		return { w: W, h: H };
-	},
+	}),
 	getElementSize : function (E) {
 		return { w: E.offsetWidth, h: E.offsetHeight };
 	},
-	getWindowCoord : function (E) {
-		/*@cc_on
-			if(!this.IEF) this.setIEF();
-			var cX = window.screenLeft;
-			var cY = window.screenTop;
-			var X = cX - this.IEF.w;
-			var Y = cY - this.IEF.h;
-			if(X < 0) X = 0;
-			if(Y < 0) Y = 0;
-			return { x: X, y: Y };
-		@*/
+	getWindowCoord : ((sML.UA.IE < 9) ? function (E) {
+		if(!this.IEF) this.setIEF();
+		var cX = window.screenLeft;
+		var cY = window.screenTop;
+		var X = cX - this.IEF.w;
+		var Y = cY - this.IEF.h;
+		if(X < 0) X = 0;
+		if(Y < 0) Y = 0;
+		return { x: X, y: Y };
+	} : function(E) {
 		var X = window.screenLeft || window.screenX;
 		var Y = window.screenTop  || window.screenY;
 		return { x: X, y: Y };
-	},
+	}),
 	getScrollLimitCoord : function(RtL) {
 		var dS = this.getDocumentSize();
 		var wS = this.getWindowInnerSize();
@@ -666,12 +671,11 @@ sML.Coord = sML.C = {
 		}
 		return eC;
 	},
-	getEventCoord : function(e) {
-		/*@cc_on if(sML.UA.IE < 9) {
-			return { x: event.clientX + document.documentElement.scrollLeft, y: event.clientY + document.documentElement.scrollTop }
-		} @*/
+	getEventCoord : ((sML.UA.IE < 9) ? function(e) {
+		return { x: event.clientX + document.documentElement.scrollLeft, y: event.clientY + document.documentElement.scrollTop };
+	} : function(e) {
 		return (e ? { x: e.pageX, y: e.pageY } : { x: 0, y: 0 });
-	},
+	}),
 	getCoord : function(O, RtL) {
 		var C = {};
 		if(RtL) {
@@ -740,7 +744,6 @@ sML.Coord = sML.C = {
 	},
 	isInside : function(ARGUMENT, WHOLE, RtL) {
 		var sWH = this.getWindowInnerSize();
-//		if(RtL) sLT.x = sLT.x * -1;
 		if(RtL) {
 			var sRT = this.getScrollCoord();
 			var sLT = { x: sRT.x - sWH.w, y: sRT.y         };
@@ -862,13 +865,12 @@ sML.Coord = sML.C = {
 		sML.removeEventListener(document, "DOMMouseScroll", sML.preventDefault);
 	}
 }
-
 sML.getCoord = sML.Coord.getCoord;
 
 sML.scrollTo = function(tC, Ps, Fs, ForceScroll) {
 	if(typeof Fs == "function") Fs = { c: Fs };
 	return sML.C.scrollTo(tC, Ps, Fs, ForceScroll);
-}
+};
 
 sML.scrollBy = function(bD, Ps, Fs, ForceScroll) {
 	if(typeof Fs == "function") Fs = { c: Fs };
@@ -877,8 +879,7 @@ sML.scrollBy = function(bD, Ps, Fs, ForceScroll) {
 	if(bD.y) tC.y = wC.y + bD.y;
 	sML.log(tC);
 	return sML.C.scrollTo(tC, Ps, Fs, ForceScroll);
-}
-
+};
 
 
 
@@ -891,81 +892,67 @@ sML.scrollBy = function(bD, Ps, Fs, ForceScroll) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.Ajax = sML.A = {
-	ships : [],
-	build : function() {
-		var ship = {};
-		try { ship.XHR = new XMLHttpRequest(); } catch(e) { try { ship.XHR = new ActiveXObject("Msxml2.XMLHTTP"); } catch(e) { try { ship.XHR = new ActiveXObject("Microsoft.XMLHTTP"); } catch(e) {} } }
-		if(!ship.XHR) return sML.log("sML.ShipBuilder could not find XHR.");
-		ship.sail = function(Ps, Fs) {
-			if(!Ps) var Ps = {};
-			if(!Fs) var Fs = {};
-			Ps.method = (Ps.method && /^POST$/i.test(Ps.method)) ? "POST" : "GET";
-			if(!Ps.auth) Ps.auth = ["", ""];
-			if(Ps.async !== false) Ps.async = true;
-//			if(!Ps.query.nocache) Ps.query.nocache = (new Date()).getTime();
-			var QueryString = "";
-			if(Ps.query) for(var Q in Ps.query) QueryString += "&" + Q + "=" + encodeURIComponent(Ps.query[Q]);
-			if(QueryString) {
-				if(Ps.method == "GET") {
-					Ps.url = Ps.url + ((Ps.url.indexOf("?") > 0) ? QueryString : QueryString.replace(/^&/, "?"));
-					QueryString = null;
-				} else if(Ps.method == "POST") {
-					QueryString = QueryString.replace(/^&/, "");
-				}
-			}
-			this.XHR.onreadystatechange = function() {
-				if(Fs[1] && this.readyState == 1) return Fs[1].call(this, this.responseText, this.responseXML); // loading
-				if(Fs[2] && this.readyState == 2) return Fs[2].call(this, this.responseText, this.responseXML); // loaded
-				if(Fs[3] && this.readyState == 3) return Fs[3].call(this, this.responseText, this.responseXML); // interactive
-				if(Fs[4] && this.readyState == 4) return Fs[4].call(this, this.responseText, this.responseXML); // complete
-				if(Fs[0]                        ) return Fs[0].call(this, this.responseText, this.responseXML);
-			}
-			if(Ps.mimetype) this.XHR.overrideMimeType(Ps.mimetype);
-			this.XHR.open(Ps.method, Ps.url, Ps.async, Ps.auth[0], Ps.auth[1]);
-			if(Ps.method == "POST") this.XHR.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-			this.XHR.send(QueryString);
-			return this;
-		}
-		this.ships.push(ship);
-		return ship;
-	},
-	open : function(URL, Settings) {
-		if(typeof Settings != "object") var Settings = {};
-		if(!Settings.method)    Settings.method = "get";
-		if(!Settings.query)     Settings.query = null;
-		if(!Settings.auth)      Settings.auth = ["", ""];
-		if(!Settings.mimetype)  Settings.mimetype = null;
+	open : function(Settings) {
+		try { var XHR = new XMLHttpRequest(); } catch(e) { try { var XHR = new ActiveXObject("Msxml2.XMLHTTP"); } catch(e) { try { var XHR = new ActiveXObject("Microsoft.XMLHTTP"); } catch(e) {} } };
+		if(!XHR) return sML.log("sML.ShipBuilder could not find XHR.");
+		if(typeof Settings != "object" || typeof Settings.URI != "string" || typeof Settings.onsuccess != "function") return false;
+		if(!Settings.Query)     Settings.Query = null;
+		if(!Settings.Auth)      Settings.Auth = ["", ""];
+		if(!Settings.MimeType)  Settings.MimeType = null;
 		if(!Settings.onsuccess) Settings.onsuccess = function() {};
 		if(!Settings.onfailed)  Settings.onfailed  = function() { sML.each(arguments, function() { sML.log(this + ""); }); };
 		if(!Settings.ontimeout) Settings.ontimeout = Settings.onfailed;
-		var Ship = this.build();
-		Ship.Timeout = 0;
-		Ship.TimeoutTimer = setTimeout(function() {
-			Ship.Timeout = 1;
-			Settings.ontimeout("sML.AJAX.get Timeout: " + URL);
-		}, 10000);
-		Ship.sail({
-			url: URL,
-			method: Settings.method,
-			mimetype: Settings.mimetype,
-			query: Settings.query,
-			auth: Settings.auth,
-			overrideMimeType: Settings.overrideMimeType
-		}, {
-			4: function(rT, rX) {
-				if(Ship.Timeout) return;
-				clearTimeout(Ship.TimeoutTimer);
-				if(Ship.XHR.status == 200 || Ship.XHR.status == 0) {
-					Settings.onsuccess(rT, rX);
-				} else {
-					Settings.onfailed("sML.AJAX.get Failed: (" + Ship.XHR.status + ") " + URL);
-				}
+		if(Settings.Async !== false) Settings.Async = true;
+		Settings.Method = (Settings.Method && /^POST$/i.test(Settings.Method)) ? "POST" : "GET";
+		var QueryString = "";
+		if(Settings.Query) for(var Q in Settings.Query) QueryString += "&" + Q + "=" + encodeURIComponent(Settings.Query[Q]);
+		if(QueryString) {
+			if(Settings.method == "GET") {
+				Settings.URI = Settings.URI + ((Settings.URI.indexOf("?") > 0) ? QueryString : QueryString.replace(/^&/, "?"));
+				QueryString = null;
+			} else if(Settings.Method == "POST") {
+				QueryString = QueryString.replace(/^&/, "");
 			}
-		});
+		}
+		XHR.sMLAjaxTimeout = 0, XHR.sMLAjaxTimeoutTimer = setTimeout(function() { XHR.sMLAjaxTimeout = 1; Settings.ontimeout("sML.AJAX.get Timeout: " + Settings.URI); }, 10000);
+		Settings.onstate4 = function(rT, rX) {
+			if(XHR.sMLAjaxTimeout) return;
+			clearTimeout(XHR.sMLAjaxTimeoutTimer);
+			if(XHR.status == 200 || XHR.status == 0) Settings.onsuccess(rT, rX);
+			else                                     Settings.onfailed("sML.AJAX.get Failed: (" + XHR.status + ") " + URL);
+			delete XHR;
+		}
+		XHR.onreadystatechange = function() {
+			switch(this.readyState) {
+			//	case 1: if(Settings.onstate1) return Settings.onstate1.call(this, this.responseText, this.responseXML); break; // loading
+			//	case 2: if(Settings.onstate2) return Settings.onstate2.call(this, this.responseText, this.responseXML); break; // loaded
+			//	case 3: if(Settings.onstate3) return Settings.onstate3.call(this, this.responseText, this.responseXML); break; // interactive
+				case 4:                       return Settings.onstate4.call(this, this.responseText, this.responseXML); break; // complete
+			}
+		}
+		if(Settings.MimeType) XHR.overrideMimeType(Settings.MimeType);
+		XHR.open(Settings.Method, Settings.URI, Settings.Async, Settings.Auth[0], Settings.Auth[1]);
+		if(Settings.Method == "POST") XHR.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		XHR.send(QueryString);
+		return XHR;
 	}
-}
-
-sML.ajax = function(URL, Settings) { return sML.Ajax.open(URL, Settings); }
+};
+sML.ajax = function() {
+	var Settings = {};
+	if(typeof arguments[0] == "object") {
+		Settings = arguments[0];
+		if(typeof Settings.URI != "string") return false;
+	} else if(typeof arguments[0] == "string") {
+		if(typeof arguments[1] == "object") Settings = arguments[1];
+		Settings.URI = arguments[0];
+	} else return false;
+	if(typeof Settings.onsuccess != "function") {
+		if(typeof arguments[1] == "function") Settings.onsuccess = arguments[1]; else return false;
+		if(typeof arguments[2] == "function") Settings.onfailed  = arguments[2];
+		if(typeof arguments[3] == "function") Settings.ontimeout = arguments[3];
+	}
+	return sML.Ajax.open(Settings);
+};
 
 
 
@@ -1010,10 +997,8 @@ sML.Location = sML.Loc = {
 	isSameHash:      function(U, L) { return (this.getHash(U)      == (L ? this.getHash(L)      : (location.hash))                                                                        ); },
 	isSameDirectory: function(U, L) { return (this.getDirectory(U) == (L ? this.getDirectory(L) : (location.protocol + "//" + location.host + location.pathname).replace(/\/[^\/]*$/, ""))); },
 	isSameId:        function(U, L) { return (this.getId(U)        == (L ? this.getId(L)        : (location.hash).replace("#", ""))                                                       ); }
-}
-
+};
 sML.getQueries = sML.Location.getQueries;
-
 
 
 
@@ -1047,7 +1032,7 @@ sML.Cookies = sML.cookies = {
 		}
 		return CookieValue;
 	}
-}
+};
 
 sML.CookieMonster = {
 	Cookies: {},
@@ -1089,8 +1074,7 @@ sML.CookieMonster = {
 		if(K) return ((typeof this.Cookies[N][K] == "undefined") ? "" : this.Cookies[N][K]);
 		return this.Cookies[N];
 	}
-}
-
+};
 
 
 
@@ -1108,32 +1092,31 @@ sML.toArray = function() {
 		else for(var eL = arguments[i].length, j = 0; j < eL; j++) A.push(arguments[i][j]);
 	}
 	return A;
-}
+};
 
 sML.filter = function(A, F) {
 	if(typeof F != "function") throw new TypeError();
 	for(var newArray = [], L = A.length, i = 0; i < L; i++) if(F.call(A[i], i, A)) newArray.push(A[i]);
 	return newArray;
-}
+};
 
 sML.foreach = function(O, F, pThis) {
 	for(var L = O.length, i = 0; i < L; i++) if(F.call(pThis, O[i], i, O) === false) break;
 	return O;
-}
+};
 
 sML.each = function(O, F, iN, LN) {
 	for(var L = (LN ? LN : O.length), i = (iN ? iN : 0); i < L; i++) if(F.call(O[i], i, O) === false) break;
 	return O;
-}
+};
 
 sML.firstOf = function(A) {
 	return (A.length ? A[           0] : null);
-}
+};
 
 sML.lastOf  = function(A) {
 	return (A.length ? A[A.length - 1] : null);
-}
-
+};
 
 
 
@@ -1163,8 +1146,7 @@ sML.Math = {
 		var Min = Math.min(A, B), Max = Math.max(A, B);
 		return Math.floor(Math.random() * (Max - Min + 1)) + Min;
 	}
-}
-
+};
 
 
 
@@ -1177,10 +1159,10 @@ sML.Math = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.String = {
-	padZero: function(N, D) {
-		if((N + "").length >= D) return N;
-		var Padding = "0";
-		while(Padding.length < D) Padding += "0";
+	pad: function(N, D, P) {
+		N = N + ""; if((N).length >= D) return N;
+		if(typeof P != "string") P = "0";
+		var Padding = ""; while(Padding.length < D) Padding += P;
 		return (Padding + N).slice(-D);
 	},
 	insertZeroWidthSpace: function(T) {
@@ -1191,7 +1173,7 @@ sML.String = {
 		for(var L = R.length / 2, i = 0; i < L; i++) T = T.replace(R[i * 2], R[i * 2 + 1]);
 		return T;
 	}
-}
+};
 
 sML.getLength = function(O) {
 	if(typeof O == "object") {
@@ -1203,11 +1185,10 @@ sML.getLength = function(O) {
 	if(typeof O == "string") return        O.length;
 	if(typeof O == "number") return ("" + O).length;
 	return null;
-}
+};
 
-sML.padZero = sML.zeroPadding = sML.String.padZero;
+sML.padZero = sML.zeroPadding = sML.String.padZero = sML.String.pad;
 sML.insertZeroWidthSpace = sML.String.insertZeroWidthSpace;
-
 
 
 
@@ -1269,7 +1250,7 @@ sML.Range = {
 			  End: { Node: EN, Text: ET }
 		};
 	}
-}
+};
 
 sML.Selection = {
 	selectRange: function(R) {
@@ -1279,17 +1260,18 @@ sML.Selection = {
 		S.addRange(R);
 		return R;
 	},
-	getSelectedText: function() {
-		/*@cc_on var S = document.selection.createRange().text + ""; return (S ? S : ""); @*/
-		var S = window.getSelection() + "";
+	getSelectedText: ((sML.UA.IE < 9) ? function() {
+		var S = "" + document.selection.createRange().text;
 		return (S ? S : "");
-	}
-}
+	} : function() {
+		var S = "" + window.getSelection();
+		return (S ? S : "");
+	})
+};
 sML.getSelection = function() { return sML.Selection.getSelectedText(); };
 
 sML.select = function(Sides, OwnerDocument)   { return sML.Selection.selectRange(sML.Range.getRange(Sides, OwnerDocument)); };
 sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange(sML.Range.getRange(sML.Range.find(SearchText, TargetNode))); };
-
 
 
 
@@ -1304,7 +1286,7 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 sML.fullScreenEnabled = function(D) {
 	if(!D) D = document;
 	return ((D.body.requestFullScreen || D.body.webkitRequestFullScreen || D.body.mozRequestFullScreen || D.body.msRequestFullScreen || D.body.oRequestFullScreen) ? true : false);
-}
+};
 
 sML.requestFullScreen = function(E) {
 	if(!E) E = document.documentElement || document.body;
@@ -1313,7 +1295,7 @@ sML.requestFullScreen = function(E) {
 	if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
 	if(E.msRequestFullScreen)     return E.msRequestFullScreen();
 	if(E.oRequestFullScreen)      return E.oRequestFullScreen();
-}
+};
 
 sML.exitFullScreen = function(D) {
 	if(!D) D = document;
@@ -1327,8 +1309,7 @@ sML.exitFullScreen = function(D) {
 	if(D.msCancelFullScreen)      return D.msCancelFullScreen();
 	if(D.oExitFullScreen)         return D.oExitFullScreen();
 	if(D.oCancelFullScreen)       return D.oCancelFullScreen();
-}
-
+};
 
 
 
@@ -1341,4 +1322,6 @@ sML.exitFullScreen = function(D) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 return sML; })();
+
+
 

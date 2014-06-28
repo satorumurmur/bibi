@@ -1,0 +1,517 @@
+// ================================================================================
+// + Controls
+// --------------------------------------------------------------------------------
+
+
+
+// - Icon Image
+// --------------------------------------------------------------------------------
+
+img.bibi-icon-image {
+	display: block;
+	position: absolute;
+}
+
+
+
+// - Go
+// --------------------------------------------------------------------------------
+
+div#bibi-control-go div {
+	position: fixed;
+	z-index: 1000;
+	line-height: 1;
+	opacity: 0;
+	background: transparent;
+	cursor: pointer;
+	@include transition(opacity 0.2s linear);
+	&:before {
+		display: block;
+		position: absolute;
+		width: 1em;
+		height: 1em;
+		font-size: 120px;
+		line-height: 1em;
+		text-align: center;
+		@include font-icon("FontAwesome");
+		color: rgba(96,96,96,0.75);
+	}
+	&.shown {
+		opacity: 0.8;
+	}
+}
+
+html.spread-vertical div#bibi-control-go div {
+	left: 10%;
+	width: 80%;
+	height: 50px;
+	&:before {
+		left: 50%;
+		margin-left: -0.5em;
+		@include transform(scale(1.5, 1));
+	}
+}
+html.spread-vertical.spread-ttb div#bibi-control-go div#bibi-control-go-back,
+html.spread-vertical.spread-btt div#bibi-control-go div#bibi-control-go-forward {
+	top: 0;
+	&:before {
+		content: $fa-var-angle-up;
+		top: -.1em;
+	}
+}
+html.spread-vertical.spread-ttb div#bibi-control-go div#bibi-control-go-forward,
+html.spread-vertical.spread-btt div#bibi-control-go div#bibi-control-go-back {
+	bottom: 0;
+	&:before {
+		content: $fa-var-angle-down;
+		bottom: -.1em;
+	}
+}
+
+html.spread-horizontal div#bibi-control-go div {
+	top: 10%;
+	width: 50px;
+	height: 80%;
+	&:before {
+		top: 50%;
+		margin-top: -0.5em;
+		@include transform(scale(1, 1.5));
+	}
+}
+html.spread-horizontal.spread-rtl div#bibi-control-go div#bibi-control-go-back,
+html.spread-horizontal.spread-ltr div#bibi-control-go div#bibi-control-go-forward {
+	right: 0;
+	&:before {
+		content: $fa-var-angle-right;
+		right: -.1em;
+	}
+}
+html.spread-horizontal.spread-rtl div#bibi-control-go div#bibi-control-go-forward,
+html.spread-horizontal.spread-ltr div#bibi-control-go div#bibi-control-go-back {
+	left: 0;
+	&:before {
+		content: $fa-var-angle-left;
+		left: -.1em;
+	}
+}
+
+
+// - Switch
+// --------------------------------------------------------------------------------
+
+html.wait-please div#bibi-control-switch {
+	display: none;
+}
+
+div#bibi-control-switch span,
+div#bibi-control-switch a {
+	@include box-sizing(border-box);
+	display: block;
+	overflow: hidden;
+	position: fixed;
+	z-index: 5000;
+	top: 8px;
+	border-radius: 2px;
+	border: solid 1px rgba(128,128,128,0.25);
+	width: 27px;
+	height: 27px;
+	line-height: 27px;
+	text-align: center;
+	color: white;
+	background: rgba(32,32,32,0.5);
+	opacity: 1;
+	cursor: pointer;
+	text-decoration: none;
+	@include transition(0.15s linear);
+	&:hover {
+		background: rgba(64,64,64,0.5);
+	}
+	&:before {
+		@include font-icon("FontAwesome");
+		font-size: 18px;
+	}
+}
+html.bibi-control-bar-opened div#bibi-control-switch span,
+html.bibi-control-bar-opened div#bibi-control-switch a {
+	border-color: rgba(128,128,128,0.5);
+	background: transparent;
+}
+
+div#bibi-control-switch span#bibi-control-switch-bar {
+	left: 8px;
+	&:before {
+		content: $fa-var-bars;
+	}
+}
+html.bibi-control-bar-opened div#bibi-control-switch span#bibi-control-switch-bar {
+	&:before {
+		content: $fa-var-times;
+	}
+}
+
+div#bibi-control-switch a#bibi-control-switch-newwindow {
+	right: 43px;
+	text-indent: 2px;
+	line-height: 29px;
+	&:before {
+		content: "\f08e";
+	}
+}
+html.bibi-fullscreen div#bibi-control-switch a#bibi-control-switch-newwindow {
+	display: none;
+}
+html.not-enabled-full-screen div#bibi-control-switch a#bibi-control-switch-newwindow {
+	right: 8px;
+}
+
+div#bibi-control-switch span#bibi-control-switch-fullscreen {
+	right: 8px;
+	&:before {
+		content: $fa-var-expand;
+	}
+}
+html.bibi-fullscreen div#bibi-control-switch span#bibi-control-switch-fullscreen {
+	&:before {
+		content: $fa-var-compress;
+	}
+}
+
+
+
+// - Sheet
+// --------------------------------------------------------------------------------
+
+div#bibi-control-sheet {
+	@include box-sizing(border-box);
+	overflow: hidden;
+	position: fixed;
+	z-index: 99;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: none;
+	background: transparent;
+}
+html.bibi-control-bar-opened div#bibi-control-sheet {
+	display: block;
+}
+
+
+
+// - Bar
+// --------------------------------------------------------------------------------
+
+div#bibi-control-bar {
+	@include box-sizing(border-box);
+	overflow: hidden;
+	z-index: 3000;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	box-shadow: 0 0 8px rgba(0,0,0,0.5);
+	opacity: 0;
+}
+
+html.spread-horizontal div#bibi-control-bar {
+	@include transform(translateY(-100%));
+}
+
+html.spread-vertical div#bibi-control-bar {
+	@include transform(translateX(-100%));
+}
+
+html.bibi-control-bar-opened div#bibi-control-bar {
+	opacity: 1;
+	@include transform(none);
+}
+
+
+// - Bar > Menus
+// --------------------------------------------------------------------------------
+
+div#bibi-control-bar div#bibi-control-menus {
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 10;
+	top: 0;
+	left: 0;
+	border: solid 0 rgba(255,255,255,0.25);
+	color: white;
+	background: black;
+	background: rgba(0,0,0,0.5);
+}
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus {
+	padding-top: 43px;
+	height: 100%;
+	width: 44px;
+	border-right-width: 1px;
+}
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus {
+	padding-left: 43px;
+	width: 100%;
+	height: 44px;
+	border-bottom-width: 1px;
+}
+
+div#bibi-control-bar div#bibi-control-menus ul {
+	padding: 8px;
+	li {
+		position: relative;
+		span.bibi-icon {
+			cursor: pointer;
+			&:hover {
+				border-color: rgb(192,192,192);
+				background: rgb(128,128,128);
+			}
+			&:active {
+				top: 1px;
+			}
+		}
+	}
+	li.disabled {
+		opacity: 0.5;
+		span.bibi-icon {
+			opacity: 0.5;
+			cursor: default;
+			&:hover {
+				border-color: inherit;
+				background: inherit;
+			}
+			&:active {
+				top: 0;
+			}
+		}
+	}
+}
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus ul {
+	//padding: 10px 8px;
+	width: 27px;
+	li {
+		margin-top: 5px;
+		&:first-child { margin-top: 0; }
+	}
+}
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus ul {
+	float: left;
+	//padding: 8px 10px;
+	height: 27px;
+	li {
+		float: left;
+		margin-left: 5px;
+		&:first-child { margin-left: 0; }
+	}
+}
+
+html.spread-vertical div#bibi-control-bar div#bibi-control-menus ul#spread-layout-axis {
+	li#layout-vertical {
+		display: none;
+	}
+}
+html.spread-horizontal div#bibi-control-bar div#bibi-control-menus ul#spread-layout-axis {
+	li#layout-horizontal {
+		display: none;
+	}
+}
+
+
+// - Bar > Misc
+// --------------------------------------------------------------------------------
+
+div#bibi-control-bar div#bibi-control-misc {
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 100;
+	padding: 8px;
+	border: solid 0 rgba(255,255,255,0.1);
+	width: 44px;
+	height: 44px;
+	line-height: 30px;
+	font-size: 14px;
+	color: white;
+	a {
+		text-decoration: none;
+		text-shadow: 0 -1px 0 rgb(64,64,64);
+		color: rgb(128,128,128);
+		@include transition(.25s linear);
+		&:hover { color: white; }
+	}
+}
+html.spread-vertical div#bibi-control-bar div#bibi-control-misc {
+	left: 0;
+	bottom: 0;
+	text-align: left;
+}
+html.spread-horizontal div#bibi-control-bar div#bibi-control-misc {
+	left: 50%;
+	top: 0;
+	margin-left: -22px;
+	text-align: center;
+}
+
+
+// - Bar > Navigation
+// --------------------------------------------------------------------------------
+
+div#bibi-control-bar div#bibi-control-navigation {
+	@include box-sizing(border-box);
+	position: relative;
+	z-index: 1;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	line-height: 1.5;
+	font-size: 14px;
+	color: rgba(255,255,255,0.5);
+	background: rgba(0,0,0,0.69);
+	box-shadow: 0 0 8px rgba(0,0,0,0.2);
+	div#bibi-control-navigation-box {
+		@include box-sizing(border-box);
+		width: 100%;
+		height: 100%;
+		padding: 16px;
+		&::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
+		&::-webkit-scrollbar-thumb {
+			background: rgba(255,255,255,0.25);
+			border-radius: 3px;
+		}
+		div#bibi-control-navigation-item {
+			@include box-sizing(border-box);
+			display: inline-block;
+			position: relative;
+			width: 100%;
+			height: 100%;
+			nav {
+				line-height: 1.5;
+				h1, h2, h3, h4, h5, h6 {
+					font-size: 14px;
+					font-weight: bold;
+					color: rgb(216,216,216);
+				}
+				ul, ol {
+					li {
+						ul, ol {
+							position: relative;
+							&:before {
+								content: "";
+								display: block;
+								position: absolute;
+								background: rgba(255,255,255,0.2);
+							}
+							li {
+							}
+						}
+					}
+				}
+				a {
+					color: white;
+					&:hover { color: yellow; }
+				}
+			}
+		}
+	}
+}
+
+html.spread-vertical div#bibi-control-bar div#bibi-control-navigation,
+html.spread-ltr div#bibi-control-bar div#bibi-control-navigation {
+	div#bibi-control-navigation-box {
+		div#bibi-control-navigation-item {
+			nav {
+				margin-bottom: 1em;
+				h1, h2, h3, h4, h5, h6,
+				>ul, >ol {
+					margin-bottom: 0.5em;
+				}
+				ul, ol {
+					li {
+						ul, ol {
+							&:before {
+								left: .25em;
+								top: 0;
+								width: 1px;
+								height: 100%;
+							}
+							li {
+								margin-left: 1em;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+html.spread-vertical div#bibi-control-bar div#bibi-control-navigation {
+	div#bibi-control-navigation-box {
+		overflow-x: hidden;
+		overflow-y: scroll;
+		div#bibi-control-navigation-item {
+			@include writing-mode(horizontal-tb, lr-tb);
+			padding-left: 60px;
+		}
+	}
+}
+
+html.spread-horizontal div#bibi-control-bar div#bibi-control-navigation {
+	div#bibi-control-navigation-box {
+		overflow-x: scroll;
+		overflow-y: hidden;
+		div#bibi-control-navigation-item {
+			padding-top: 60px;
+		}
+	}
+}
+
+html.spread-ltr div#bibi-control-bar div#bibi-control-navigation {
+	div#bibi-control-navigation-box {
+		div#bibi-control-navigation-item {
+			@include writing-mode(horizontal-tb, lr-tb);
+			@include column-axis(horizontal);
+			@include column-width(240px);
+			@include column-gap(20px);
+		}
+	}
+}
+
+html.spread-rtl div#bibi-control-bar div#bibi-control-navigation {
+	div#bibi-control-navigation-box {
+		div#bibi-control-navigation-item {
+			@include writing-mode(vertical-rl, tb-rl);
+			nav {
+				margin-left: 1em;
+				h1, h2, h3, h4, h5, h6,
+				>ul, >ol {
+					margin-left: 0.5em;
+				}
+				ul, ol {
+					li {
+						ul, ol {
+							&:before {
+								top: .25em;
+								right: 0;
+								width: 100%;
+								height: 1px;
+							}
+							li {
+								margin-top: 1em;
+							}
+						}
+					}
+				}
+				a {
+					text-decoration: none;
+					border-right: solid 1px;
+				}
+			}
+		}
+	}
+}
