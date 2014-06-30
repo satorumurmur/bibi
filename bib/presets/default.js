@@ -28,5 +28,6 @@ P = {
 	"fit-images_breadth-only"           : false,                        // true or false (if true, height in ttb (width in ltr/rtl) can oversize window.)
 
 	"epub-additional-stylesheet"        : "",
+	"epub-additional-script"            : "",
 
 "loaded": true } // do not edit.

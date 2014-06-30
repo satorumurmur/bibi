@@ -834,7 +834,8 @@ L.postprocessItem = function(Item) {
 
 	sML.each(Item.Body.getElementsByTagName("link"), function() { Item.Head.appendChild(this); });
 
-	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link", { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
+	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
+	if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
 
 	// Margin & Padding & Background
 	sML.each([Item.HTML, Item.Body], function() {
