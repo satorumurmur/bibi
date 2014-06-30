@@ -16,7 +16,9 @@ div#epub-metafiles * {
 // --------------------------------------------------------------------------------
 
 html.preparing div#epub-contents {
-	display: none;
+	overflow: hidden;
+	width: 0;
+	height: 0;
 }
 
 div#epub-contents {
