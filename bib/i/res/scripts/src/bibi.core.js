@@ -1756,13 +1756,14 @@ C.createPanel = function() {
 				var TranslateAxis = (S["spread-layout-direction"] == "ttb" ? "X" : "Y");
 				if(!this.Opened) {
 					sML.style(C.Panel, { transition: "0.2s ease-in" });
-					sML.style(R.Contents, { transition: "0.2s ease-in" }, Cb);
+					sML.style(R.Contents, { transition: "0.2s ease-in" });
 					sML.addClass(O.HTML, "bibi-panel-opened");
 				} else {
 					sML.style(C.Panel, { transition: "0.2s ease-out" });
-					sML.style(R.Contents, { transition: "0.2s ease-out" }, Cb);
+					sML.style(R.Contents, { transition: "0.2s ease-out" });
 					sML.removeClass(O.HTML, "bibi-panel-opened");
 				}
+				setTimeout(Cb, 250);
 				this.Opened = (!this.Opened);
 			}
 		})

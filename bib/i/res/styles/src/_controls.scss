@@ -475,7 +475,7 @@ html.spread-horizontal.spread-ltr div#bibi-arrows div#bibi-arrows-back {
 }
 
 
-// - Switch
+// - Switches
 // --------------------------------------------------------------------------------
 
 html.wait-please div#bibi-switches {
@@ -612,13 +612,19 @@ div#bibi-panel div#bibi-panel-misc {
 html.spread-vertical div#bibi-panel div#bibi-panel-misc {
 	left: 0;
 	bottom: 0;
-	text-align: left;
+	text-align: center;
 }
 html.spread-horizontal div#bibi-panel div#bibi-panel-misc {
-	left: 50%;
+	right: 78px;
 	top: 0;
-	margin-left: -22px;
-	text-align: center;
+	text-align: right;
+}
+html.spread-horizontal.not-enabled-full-screen div#bibi-panel div#bibi-panel-misc,
+html.spread-horizontal.not-embeded div#bibi-panel div#bibi-panel-misc {
+	right: 43px;
+}
+html.spread-horizontal.not-enabled-full-screen.not-embeded div#bibi-panel div#bibi-panel-misc {
+	right: 8px;
 }
 
 
