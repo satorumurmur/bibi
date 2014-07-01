@@ -70,6 +70,7 @@ This is recommended because it accelarates reading experience of your readers.
 2. How to arrange development environment
 --------------------------------------------------------------------------------------------------------------------------------
 
+
 ### Requirements
 
 * [Node.js + npm](http://nodejs.org/) - how to install: [Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager) (or [Download the installer](http://nodejs.org/download/))
@@ -77,21 +78,26 @@ This is recommended because it accelarates reading experience of your readers.
 * [Compass](http://compass-style.org/) (+ [Sass](http://sass-lang.com/)) - how to install: `$ gem update --system && gem install compass`
 * [Grunt](http://gruntjs.com/) - how to install: `$ npm install -g grunt-cli` ... ([Getting Started](http://gruntjs.com/getting-started))
 
-#### If you installed the requirements:
+
+#### Arrangements
 
 1. Clone this repository.
-2. `$ cd the/repository/directory`
-3. `$ npm install` then `npm-modules` directory including modules will be installed. And the arrangement is done.
-4. `$ grunt` and start watching changes of files, and make these files:
+2. `$ cd <the repository>`
+3. `$ npm install` then `npm-modules` directory including modules will be installed.
+
+
+#### Development
+
+1. `$ grunt` and start watching changes of files, and make these files:
     * `bib/i/res/scripts/bibi.lib.js`
     * `bib/i/res/scripts/bibi.js`
     * `bib/i/res/styles/bibi.css`
-5. Edit files.
+2. Edit files.
     * Sources of the `bib/i/res/scripts/bibi.lib.js` are in `bib/i/res/scripts/lib/`.
     * Sources of the `bib/i/res/scripts/bibi.js` are in `bib/i/res/scripts/src/`.
     * Sources of the `bib/i/res/styles/bibi.css` are in `bib/i/res/styles/src/`.
 
-#### Following files are not watched or processed by Grunt tasks:
+Following files are not watched or processed by Grunt tasks:
 
 * `bib/i.js` (to embed in HTML)
 * `bib/i.css` (to style embedded HTML elements of BiB/i)
