@@ -73,10 +73,10 @@ This is recommended because it accelarates reading experience of your readers.
 
 ### Requirements
 
-1. [Node.js + npm](http://nodejs.org/) - how to install: [Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager) (or [Download the installer](http://nodejs.org/download/))
-2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - how to install: [Installing Ruby](https://www.ruby-lang.org/en/installation/) (+ [RubyGems Basics](http://guides.rubygems.org/rubygems-basics/))
+1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
+2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
 3. [Compass](http://compass-style.org/) (+ [Sass](http://sass-lang.com/)) - how to install: `$ gem update --system && gem install compass`
-4. [Grunt](http://gruntjs.com/) - how to install: `$ npm install -g grunt-cli` ... ([Getting Started](http://gruntjs.com/getting-started))
+4. [Grunt](http://gruntjs.com/) - how to install: `$ npm install -g grunt-cli` ... (“[Getting Started](http://gruntjs.com/getting-started)”)
 
 
 ### Arrangements
