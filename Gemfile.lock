@@ -13,5 +13,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  compass (= 0.12.2)
-  sass (= 3.2.10)
+  compass
