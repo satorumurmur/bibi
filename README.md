@@ -67,7 +67,7 @@ This is recommended because it accelarates reading experience of your readers.
 
 
 
-2 How to arrange development environment
+2. How to arrange development environment
 --------------------------------------------------------------------------------------------------------------------------------
 
 ### Requirements
