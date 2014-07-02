@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Mon June 30 21:27:00 2014 +0900
- */    Version: 0.996, Build: 20140630.0
+ *  - Fri July 4 09:00:00 2014 +0900
+ */    Version: 0.997, Build: 20140704.0
 }
 
 
@@ -55,6 +55,8 @@ X = {}; // Bibi.Extra
 O.welcome = function() {
 
 	O.log(1, 'Welcome !');
+
+	if(parent != window) O.ParentFrame = parent;
 
 	O.HTML  = document.getElementsByTagName("html" )[0];
 	O.Head  = document.getElementsByTagName("head" )[0];
@@ -171,12 +173,47 @@ L.shutUpLoading = function(Message) {
 }
 
 
+L.error = function(Message) {
+	sML.removeClass(O.HTML, "wait-please");
+	sML.removeClass(C.Cartain, "animate");
+	O.log(0, Message);
+}
+
+
+L.download = function(URI, MimeType) {
+	var XHR = new XMLHttpRequest();
+	if(MimeType) XHR.overrideMimeType(MimeType);
+	XHR.open('GET', URI, false);
+	XHR.send(null);
+	if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
+	return XHR;
+}
+
+
+L.requestDocument = function(Path) {
+	if(B.Zipped) {
+		var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
+		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(A.Files[Path]) : A.Files[Path] });
+		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
+			this.getElementsByTagName = function(TagName) {
+				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
+			}
+		});
+	} else {
+		var Document = L.download("../bookshelf/" + B.Name + "/" +  Path).responseXML;
+	}
+	if(!Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+	return Document;
+}
+
+
 L.getBook = function(BookFileName) {
 
 	var loadFile = function(BookFile) {
 		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)/* || BookFile.type != "application/epub+zip"*/) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
+			Q = H = X = {};
 			O.initialize();
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
@@ -217,19 +254,11 @@ L.getBook = function(BookFileName) {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFileName + '"');
-			sML.ajax("../bookshelf/" + BookFileName, {
-				mimetype: "text/plain;charset=x-user-defined",
-				onsuccess: function(FileContent) {
-					O.log(2, 'Fetched.');
-					L.preprocessEPUB(FileContent);
-					B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-					L.readContainer();
-				},
-				onfailed: function() {
-					O.log(2, 'Failed to Load EPUB.');
-					L.shutUpLoading('Failed. Check and try again, or Drop an EPUB into this window.');
-				}
-			});
+			var EPUBZip = L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").responseText;
+			O.log(2, 'Fetched.');
+			L.preprocessEPUB(EPUBZip);
+			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+			L.readContainer();
 		}
 		if(!X.Wait) fetchEPUB();
 		else {
@@ -386,70 +415,40 @@ L.preprocessEPUB = function(EPUBZip) {
 }
 
 
-L.readContainer = function(FileContent) {
+L.readContainer = function() {
 
-	if(B.Zipped) {
-		var FileContent = A.Files[B.Container.Path];
-	} else {
-		if(!FileContent) {
-			return sML.ajax("../bookshelf/" + B.Name + "/" + B.Container.Path, {
-				onsuccess: function(FileContent) { L.readContainer(FileContent); },
-				onfailed: function() {
-					O.log(2, 'Failed to Load Container XML.');
-					L.shutUpLoading('Failed. Check and try again, or drop an EPUB into this window.');
-				}
-			});
-		}
-	}
+	var Document = L.requestDocument(B.Container.Path);
 
 	O.log(2, 'Reading Container XML...');
 
 	O.log(3, B.Container.Path);
 
-	var TempContainer = O.Body.appendChild(sML.create("div"));
-
-	TempContainer.innerHTML = O.toBibiXML(FileContent);
-	B.Package.Path = TempContainer.getElementsByTagName("bibi:rootfile")[0].getAttribute("full-path");
+	B.Package.Path = Document.getElementsByTagName("rootfile")[0].getAttribute("full-path");
 	B.Package.Dir  = B.Package.Path.replace(/\/?[^\/]+$/, "");
 
-	sML.deleteElement(TempContainer);
-
 	O.log(2, 'Read.');
+
+	delete Document;
 
 	L.readPackageDocument();
 
 }
 
 
-L.readPackageDocument = function(FileContent) {
+L.readPackageDocument = function() {
 
-	if(B.Zipped) {
-		var FileContent = A.Files[B.Package.Path];
-	} else {
-		if(!FileContent) {
-			return sML.ajax("../bookshelf/" + B.Name + "/" + B.Package.Path, {
-				onsuccess: function(FileContent) { L.readPackageDocument(FileContent); },
-				onfailed: function() {
-					O.log(2, 'Failed to Load Package Document.');
-					L.shutUpLoading('Failed. Check and try again, or drop an EPUB into this window.');
-				}
-			});
-		}
-	}
+	var Document = L.requestDocument(B.Package.Path);
 
 	O.log(2, 'Reading Package Document...');
 
 	O.log(3, B.Package.Path);
 
-	var TempPackage = O.Body.appendChild(sML.create("div"));
-
 	// Package
-	TempPackage.innerHTML = O.toBibiXML(FileContent);
-	var Metadata = TempPackage.getElementsByTagName("bibi:metadata")[0];
-	var Manifest = TempPackage.getElementsByTagName("bibi:manifest")[0];
-	var Spine    = TempPackage.getElementsByTagName("bibi:spine")[0];
-	var ManifestItems = Manifest.getElementsByTagName("bibi:item");
-	var SpineItemrefs = Spine.getElementsByTagName("bibi:itemref");
+	var Metadata = Document.getElementsByTagName("metadata")[0];
+	var Manifest = Document.getElementsByTagName("manifest")[0];
+	var Spine    = Document.getElementsByTagName("spine")[0];
+	var ManifestItems = Manifest.getElementsByTagName("item");
+	var SpineItemrefs = Spine.getElementsByTagName("itemref");
 	if(ManifestItems.length <= 0) return O.log(0, '"' + B.Package.Path + '" has no <item> in <manifest>.');
 	if(SpineItemrefs.length <= 0) return O.log(0, '"' + B.Package.Path + '" has no <itemref> in <spine>.');
 
@@ -458,7 +457,7 @@ L.readPackageDocument = function(FileContent) {
 	B.Package.Spine    = { "itemrefs": [] };
 
 	// METADATA
-	sML.each(Metadata.getElementsByTagName("bibi:meta"), function() {
+	sML.each(Metadata.getElementsByTagName("meta"), function() {
 		if(this.getAttribute("refines")) return;
 		if(this.getAttribute("property")) {
 			var Property = this.getAttribute("property").replace(/^dcterms:/, "");
@@ -469,10 +468,10 @@ L.readPackageDocument = function(FileContent) {
 			B.Package.Metadata[this.getAttribute("name")] = this.getAttribute("content");
 		}
 	});
-	if(!B.Package.Metadata["titles"    ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:title"),     function() { B.Package.Metadata["titles"    ].push(this.innerHTML); return false; });
-	if(!B.Package.Metadata["creators"  ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:creator"),   function() { B.Package.Metadata["creators"  ].push(this.innerHTML); });
-	if(!B.Package.Metadata["publishers"].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:publisher"), function() { B.Package.Metadata["publishers"].push(this.innerHTML); });
-	if(!B.Package.Metadata["languages" ].length) sML.each(TempPackage.getElementsByTagName("bibi:dc:language"),  function() { B.Package.Metadata["languages" ].push(this.innerHTML); });
+	if(!B.Package.Metadata["titles"    ].length) sML.each(Document.getElementsByTagName("dc:title"),     function() { B.Package.Metadata["titles"    ].push(this.innerHTML); return false; });
+	if(!B.Package.Metadata["creators"  ].length) sML.each(Document.getElementsByTagName("dc:creator"),   function() { B.Package.Metadata["creators"  ].push(this.innerHTML); });
+	if(!B.Package.Metadata["publishers"].length) sML.each(Document.getElementsByTagName("dc:publisher"), function() { B.Package.Metadata["publishers"].push(this.innerHTML); });
+	if(!B.Package.Metadata["languages" ].length) sML.each(Document.getElementsByTagName("dc:language"),  function() { B.Package.Metadata["languages" ].push(this.innerHTML); });
 	if(!B.Package.Metadata["languages" ].length) B.Package.Metadata["languages"][0] = "en";
 	B.Package.Metadata["title"]     = B.Package.Metadata["titles"].join(    ", ");
 	B.Package.Metadata["creator"]   = B.Package.Metadata["creators"].join(  ", ");
@@ -549,12 +548,12 @@ L.readPackageDocument = function(FileContent) {
 		O.Title.appendChild(document.createTextNode("BiB/i | " + TitleFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">")));
 	}
 
-	sML.deleteElement(TempPackage);
-
 	C.createPanel();
 	C.createSwitches();
 
 	O.log(2, 'Read.');
+
+	delete Document;
 
 	O.updateSetting({ Reset: true });
 
@@ -670,54 +669,37 @@ L.loadCoverImage = function() {
 }
 
 
-L.loadNavigation = function(FileContent) {
+L.loadNavigation = function() {
 
-	if(!R.Navigation) {
-		if(B.Package.Manifest["nav"].Path) {
-			R.Navigation = { Path: B.Package.Manifest["nav"].Path, Type: "NavigationDocument" };
+	if(B.Package.Manifest["nav"].Path) {
+		R.Navigation = { Path: B.Package.Manifest["nav"].Path, Type: "NavigationDocument" };
+	} else {
+		O.log(2, 'No Navigation Document.');
+		if(B.Package.Manifest["toc-ncx"].Path) {
+			R.Navigation = { Path: B.Package.Manifest["toc-ncx"].Path, Type: "TOC-NCX" };
 		} else {
-			O.log(2, 'No Navigation Document.');
-			if(B.Package.Manifest["toc-ncx"].Path) {
-				R.Navigation = { Path: B.Package.Manifest["toc-ncx"].Path, Type: "TOC-NCX" };
-			} else {
-				O.log(2, 'No TOC-NCX.');
-				return L.loadSpineItems();
-			}
-		}
-		if(B.Zipped) {
-			var FileContent = A.Files[R.Navigation.Path];
-		} else {
-			if(!FileContent) {
-				return sML.ajax("../bookshelf/" + B.Name + "/" + R.Navigation.Path, {
-					onsuccess: function(FileContent) { L.loadNavigation(FileContent); },
-					onfailed: function() {
-						O.log(2, 'Failed to Load Navigation.');
-						L.shutUpLoading('Failed to Load Navigation.');
-					}
-				});
-			}
+			O.log(2, 'No TOC-NCX.');
+			return L.loadSpineItems();
 		}
 	}
+
+	var Document = L.requestDocument(R.Navigation.Path);
 
 	O.log(2, 'Loading Navigation...');
 
 	O.log(3, '"' + R.Navigation.Path + '"');
 
 	if(R.Navigation.Type == "NavigationDocument") {
-		var TempDivs = { A: sML.create("div", { innerHTML: FileContent.replace(/^.+<body( [^>]+)?>/, '').replace(/<\/body>.+$/, '') }), B: document.createElement("div") };
-		sML.each(TempDivs.A.querySelectorAll("nav"), function() { sML.each(this.querySelectorAll("*"), function() { this.removeAttribute("style"); }); TempDivs.B.appendChild(this); });
-		C.Panel.Navigation.Item.innerHTML = TempDivs.B.innerHTML;
-		sML.deleteElement(TempDivs.A); sML.deleteElement(TempDivs.B); delete TempDivs;
+		sML.each(Document.querySelectorAll("nav"), function() { sML.each(this.querySelectorAll("*"), function() { this.removeAttribute("style"); }); C.Panel.Navigation.Item.appendChild(this); });
 	} else {
-		var TempTOCNCX = O.Body.appendChild(sML.create("div"));
-		TempTOCNCX.innerHTML = O.toBibiXML(FileContent).replace(/[\r\n]/g, "").replace(/[\t\s]*</g, "<").replace(/>[\t\s]*/g, ">").replace(/^.+<bibi:navMap( [^>]+)?>/, "").replace(/<\/bibi:navMap>.+$/, "");
-		sML.each(TempTOCNCX.getElementsByTagName("bibi:navPoint"), function() {
+		var TempTOCNCX = Document.getElementsByTagName("navMap")[0];
+		sML.each(TempTOCNCX.getElementsByTagName("navPoint"), function() {
 			sML.insertBefore(
-				sML.create("a", { href: this.getElementsByTagName("bibi:content")[0].getAttribute("src"), innerHTML: this.getElementsByTagName("bibi:text")[0].innerHTML }),
-				this.getElementsByTagName("bibi:navLabel")[0]
+				sML.create("a", { href: this.getElementsByTagName("content")[0].getAttribute("src"), innerHTML: this.getElementsByTagName("text")[0].innerHTML }),
+				this.getElementsByTagName("navLabel")[0]
 			);
-			sML.removeElement(this.getElementsByTagName("bibi:navLabel")[0]);
-			sML.removeElement(this.getElementsByTagName("bibi:content")[0]);
+			sML.removeElement(this.getElementsByTagName("navLabel")[0]);
+			sML.removeElement(this.getElementsByTagName("content")[0]);
 			var LI = sML.create("li");
 			LI.setAttribute("id", this.getAttribute("id"));
 			LI.setAttribute("playorder", this.getAttribute("playorder"));
@@ -728,13 +710,14 @@ L.loadNavigation = function(FileContent) {
 				LI.previousSibling.appendChild(LI);
 			}
 		});
-		C.Panel.Navigation.Item.innerHTML = '<nav>' + TempTOCNCX.innerHTML.replace(/<bibi:navPoint( [^>]+)?>/ig, "").replace(/<\/bibi:navPoint>/ig, "") + '</nav>';
-		sML.deleteElement(TempTOCNCX);
+		C.Panel.Navigation.Item.innerHTML = '<nav>' + TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "") + '</nav>';
 	}
 
 	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "inBiBiNavigation");
 
 	O.log(2, 'Loaded.');
+
+	delete Document;
 
 	if(!X.Wait) L.loadSpineItems();
 	else {
@@ -783,12 +766,8 @@ L.loadSpineItems = function() {
 			if(B.Zipped) {
 				writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			} else {
-				sML.ajax("../bookshelf/" + B.Name + "/" + Path, {
-					onsuccess: function(FileContent) {
-						writeItemHTML(Item, false, '<base href="../bookshelf/' + B.Name + '/' + Path + '" />', FileContent.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
-					},
-					onfailed: function() {}
-				});
+				var URI = "../bookshelf/" + B.Name + "/" + Path;
+				writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			}
 		} else { // If HTML or Others
 			if(B.Zipped) {
@@ -2111,8 +2090,11 @@ O.getLogo = function(Setting) {
 }
 
 
+O.Log = ((!parent || parent == window) && console && console.log);
+
+
 O.log = function(Lv, Message) {
-	if((parent && parent != window) || !console || !console.log || !Message || typeof Message != "string") return;
+	if(!O.Log || !Message || typeof Message != "string") return;
 	O.showStatus(Message);
 	// if(Lv == 2) C.Cartain.Message.note(Message);
 	     if(Lv == 0) Message = "[ERROR] " + Message;
@@ -2156,11 +2138,11 @@ O.toBibiXML = function(XML) {
 	return XML.replace(
 		/<\?[^>]*?\?>/g, ""
 	).replace(
-		/<([\w:\d]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
+		/<(\/?)([\w\d]+):/g, "<$1$2_"
 	).replace(
-		/<(opf:)?([^!\?\/ >]+)/g, "<bibi:$2"
+		/<(\/?)(opf_)?([^!\?\/ >]+)/g, "<$1bibi_$3"
 	).replace(
-		/<\/(opf:)?([^!\?\/ >]+)>/g, "</bibi:$2>"
+		/<([\w\d_]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	);
 }
 
@@ -2177,7 +2159,8 @@ O.ContentTypeList = {
 	"text/javascript"       :    /\.js$/i,
 	"text/html"             : /\.html?$/i,
 	"application/xhtml+xml" : /\.xhtml$/i,
-	"application/pdf"       : /\.pdf$/i
+	"application/xml"       :   /\.xml$/i,
+	"application/pdf"       :   /\.pdf$/i
 };
 
 

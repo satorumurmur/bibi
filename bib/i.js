@@ -1,17 +1,14 @@
-/* BiB/i Putter = {
-
-	Name        : "BiB/i Putter",
-	Description : "Putting EPUBs in Web Page with BiB/i.",
-	Copyright   : "(c) 2013 Satoru MATSUSHIMA",
-	Licence     : "Licensed Under the MIT License. - http://www.opensource.org/licenses/mit-license.php",
-	Date        : "Thu August 1 14:39:00 2013 +0900",
-
-	Version     : 0.9861, // beta
-	Build       : 20130801.0,
-
-	WebSite     : "http://sarasa.la/bib/i"
-
-} */
+BibiPutter = { /*!
+ *
+ *  # BiB/i Putter
+ *
+ *  - "Putting EPUBs in Web Page with BiB/i."
+ *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
+ *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *
+ *  - Fri July 4 09:00:00 2014 +0900
+ */    Version: 0.997, Build: 20140704.0
+}
 
 (function(embedBiBi) {
 	if(window["bibi-status"]) return;
@@ -49,15 +46,17 @@
 			Href = Href + (/#/.test(Href) ? "," : "#") + "auto(start)";
 		}
 		As[i].style.display = "none";
-		As[i].parentNode.insertBefore(Holder, As[i]).appendChild(create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true",
-			onload: function() {
-				var Holder = this.parentNode;
-				this.contentWindow.addEventListener("click", function() {
-					Holder.className = Holder.className + " bibi-holder-started";
-					this.removeEventListener("click", arguments.callee);
-				}, false);
-				try { this.contentWindow.O.ParentFrame = this; } catch(e) {}
-			}
-		})).src = Href;
+		As[i].parentNode.insertBefore(Holder, As[i]).appendChild(
+			create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true",
+				onload: function() {
+					var Holder = this.parentNode;
+					this.contentWindow.addEventListener("click", function() {
+						Holder.className = Holder.className + " bibi-holder-started";
+						this.removeEventListener("click", arguments.callee);
+					}, false);
+				},
+				src: Href
+			})
+		);
 	}
 });
