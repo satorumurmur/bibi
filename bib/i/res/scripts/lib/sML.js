@@ -10,8 +10,8 @@ sML = (function() { var sML = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/sML
  *  _ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Fri June 27 19:26:00 2014 +0900
- */    Version: 0.9994, Build: 20140627.0
+ *  - Thu July 03 18:58:00 2014 +0900
+ */    Version: 0.9995, Build: 20140703.0
 }
 
 
@@ -1285,7 +1285,7 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 
 sML.fullScreenEnabled = function(D) {
 	if(!D) D = document;
-	return ((D.body.requestFullScreen || D.body.webkitRequestFullScreen || D.body.mozRequestFullScreen || D.body.msRequestFullScreen || D.body.oRequestFullScreen) ? true : false);
+	return ((D.body.requestFullScreen || D.body.webkitRequestFullScreen || D.body.mozRequestFullScreen || D.body.msRequestFullscreen || D.body.oRequestFullScreen) ? true : false);
 };
 
 sML.requestFullScreen = function(E) {
@@ -1293,21 +1293,16 @@ sML.requestFullScreen = function(E) {
 	if(E.requestFullScreen)       return E.requestFullScreen();
 	if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
 	if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
-	if(E.msRequestFullScreen)     return E.msRequestFullScreen();
+	if(E.msRequestFullscreen)     return E.msRequestFullscreen();
 	if(E.oRequestFullScreen)      return E.oRequestFullScreen();
 };
 
 sML.exitFullScreen = function(D) {
 	if(!D) D = document;
-	if(D.exitFullScreen)          return D.exitFullScreen();
 	if(D.cencelFullScreen)        return D.cancelFullScreen();
-	if(D.webkitExitFullScreen)    return D.webkitExitFullScreen();
 	if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
-	if(D.mozExitFullScreen)       return D.mozExitFullScreen();
 	if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
-	if(D.msExitFullScreen)        return D.msExitFullScreen();
-	if(D.msCancelFullScreen)      return D.msCancelFullScreen();
-	if(D.oExitFullScreen)         return D.oExitFullScreen();
+	if(D.msExitFullscreen)        return D.msExitFullscreen();
 	if(D.oCancelFullScreen)       return D.oCancelFullScreen();
 };
 
