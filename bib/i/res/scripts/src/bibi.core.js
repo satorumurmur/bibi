@@ -56,8 +56,6 @@ O.welcome = function() {
 
 	O.log(1, 'Welcome !');
 
-	if(parent != window) O.ParentFrame = parent;
-
 	O.HTML  = document.getElementsByTagName("html" )[0];
 	O.Head  = document.getElementsByTagName("head" )[0];
 	O.Body  = document.getElementsByTagName("body" )[0];
@@ -1840,21 +1838,19 @@ C.createSwitches = function() {
 			display: "none"
 		})
 	);
-	if(O.ParentFrame) C.Switches.NewWindow.style.display = "";
+	if(parent != window) C.Switches.NewWindow.style.display = "";
 	else sML.addClass(O.HTML, "not-embeded");
 
 	C.Switches.FullScreen = C.Switches.appendChild(
 		sML.create("span", { id: "bibi-switches-fullscreen",
 			On: false,
-			Req: O.ParentFrame ? O.ParentFrame : document.documentElement,
-			Doc: O.ParentFrame ? parent.document : document,
 			Labels: [
 				(B.Package.Metadata["languages"][0] == "ja" ? 'フルスクリーンモードを開始' : 'Enter Full-Screen'),
 				(B.Package.Metadata["languages"][0] == "ja" ? 'フルスクリーンモードを終了' :  'Exit Full-Screen')
 			],
 			enter: function(Cb) {
 				this.On = true;
-				sML.requestFullScreen(this.Req);
+				sML.requestFullScreen(parent != window ? O.ParentFrame : null);
 				setTimeout(function() {
 					C.Switches.changeLabel(C.Switches.FullScreen, C.Switches.FullScreen.Labels[1]);
 					sML.addClass(   O.HTML, "bibi-fullscreen");
@@ -1863,7 +1859,7 @@ C.createSwitches = function() {
 			},
 			exit: function(Cb) {
 				this.On = false;
-				sML.exitFullScreen(this.Doc);
+				sML.exitFullScreen(parent.document);
 				setTimeout(function() {
 					C.Switches.changeLabel(C.Switches.FullScreen, C.Switches.FullScreen.Labels[0]);
 					sML.removeClass(O.HTML, "bibi-fullscreen");
@@ -1878,7 +1874,7 @@ C.createSwitches = function() {
 			display: "none"
 		})
 	);
-	if(sML.fullScreenEnabled(C.Switches.FullScreen.Doc) && (parent == window || O.ParentFrame)) C.Switches.FullScreen.style.display = "";
+	if(sML.fullScreenEnabled(parent.document)) C.Switches.FullScreen.style.display = "";
 	else sML.addClass(O.HTML, "not-enabled-full-screen");
 
 	sML.each([C.Switches.Panel, C.Switches.NewWindow, C.Switches.FullScreen], function() { C.Switches.changeLabel(this, this.Labels[0]); });

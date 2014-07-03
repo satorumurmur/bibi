@@ -54,6 +54,7 @@ BibiPutter = { /*!
 						Holder.className = Holder.className + " bibi-holder-started";
 						this.removeEventListener("click", arguments.callee);
 					}, false);
+					this.contentWindow.O.ParentFrame = this;
 				},
 				src: Href
 			})
