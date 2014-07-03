@@ -8,7 +8,7 @@ BibiPutter = { /*!
  *
  *  - Fri July 4 09:00:00 2014 +0900
  */    Version: 0.997, Build: 20140704.0
-}
+};
 
 (function(embedBiBi) {
 	if(window["bibi-status"]) return;
