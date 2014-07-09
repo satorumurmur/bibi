@@ -450,11 +450,11 @@ sML.CSS = sML.S = {
 			Styles = tStyles.join(" ");
 		}
 		var StyleSheet = this.getStyleSheet((ParentDocument ? ParentDocument : document));
-		if(StyleSheet.addRule) {
+		if(StyleSheet && StyleSheet.addRule) {
 			var Index = StyleSheet.rules.length;
 			StyleSheet.addRule(Selector, Styles, Index);
 			return Index;
-		} else if(StyleSheet.insertRule) {
+		} else if(StyleSheet && StyleSheet.insertRule) {
 			return StyleSheet.insertRule(Selector + "{" + Styles + "}", StyleSheet.cssRules.length);
 		}
 		return null;
@@ -470,8 +470,8 @@ sML.CSS = sML.S = {
 	},
 	removeRule: function(Index, ParentDocument) {
 		var StyleSheet = this.getStyleSheet((ParentDocument ? ParentDocument : document));
-		     if(StyleSheet.removeRule) StyleSheet.removeRule(Index);
-		else if(StyleSheet.deleteRule) StyleSheet.deleteRule(Index);
+		     if(StyleSheet && StyleSheet.removeRule) StyleSheet.removeRule(Index);
+		else if(StyleSheet && StyleSheet.deleteRule) StyleSheet.deleteRule(Index);
 		return Index;
 	},
 	removeRules: function(Indexes, ParentDocument) {
