@@ -702,7 +702,7 @@ L.loadNavigation = function() {
 			LI.setAttribute("id", this.getAttribute("id"));
 			LI.setAttribute("playorder", this.getAttribute("playorder"));
 			sML.insertBefore(LI, this).appendChild(this);
-			if(!LI.previousSibling || /^a$/i.test(LI.previousSibling.tagName)) {
+			if(!LI.previousSibling || !LI.previousSibling.tagName || /^a$/i.test(LI.previousSibling.tagName)) {
 				sML.insertBefore(sML.create("ul"), LI).appendChild(LI);
 			} else {
 				LI.previousSibling.appendChild(LI);
