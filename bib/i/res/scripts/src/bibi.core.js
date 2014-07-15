@@ -130,6 +130,10 @@ O.initialize = function() {
 		if(X.BDM && /^(all|each)$/.test(                 X.BDM)) P["book-display-mode" ] = X.BDM;
 		if(X.SLA && /^(horizontal|vertical)$/.test(      X.SLA)) P["spread-layout-axis"] = X.SLA;
 		if(X.PSF && /^(portrait|landscape|window)$/.test(X.PSF)) P["page-size-format"  ] = X.PSF;
+		P.loaded = true;
+		if(P.FileName !== "default.js"){
+		  O.updateSetting(P);
+		}
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
 		applyPreset();
