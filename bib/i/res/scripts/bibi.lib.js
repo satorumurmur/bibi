@@ -6,7 +6,7 @@
  * 2. bib/i/res/scripts/lib/jszip.min.js
  * 3. bib/i/res/scripts/lib/base64.js
  *
- * - 2014/07/16
+ * - 2014/07/22
  */
 sML=function(){var sML={/*!
  *
