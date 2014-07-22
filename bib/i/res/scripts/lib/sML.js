@@ -10,8 +10,8 @@ sML = (function() { var sML = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/sML
  *  _ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Thu July 03 18:58:00 2014 +0900
- */    Version: 0.9995, Build: 20140703.0
+ *  - Mon July 14 13:25:00 2014 +0900
+ */    Version: 0.9996, Build: 20140714.0
 }
 
 
@@ -450,12 +450,14 @@ sML.CSS = sML.S = {
 			Styles = tStyles.join(" ");
 		}
 		var StyleSheet = this.getStyleSheet((ParentDocument ? ParentDocument : document));
-		if(StyleSheet.addRule) {
-			var Index = StyleSheet.rules.length;
-			StyleSheet.addRule(Selector, Styles, Index);
-			return Index;
-		} else if(StyleSheet.insertRule) {
-			return StyleSheet.insertRule(Selector + "{" + Styles + "}", StyleSheet.cssRules.length);
+		if(StyleSheet) {
+			if(StyleSheet.addRule) {
+				var Index = StyleSheet.rules.length;
+				StyleSheet.addRule(Selector, Styles, Index);
+				return Index;
+			} else if(StyleSheet.insertRule) {
+				return StyleSheet.insertRule(Selector + "{" + Styles + "}", StyleSheet.cssRules.length);
+			}
 		}
 		return null;
 	},
@@ -470,9 +472,13 @@ sML.CSS = sML.S = {
 	},
 	removeRule: function(Index, ParentDocument) {
 		var StyleSheet = this.getStyleSheet((ParentDocument ? ParentDocument : document));
-		     if(StyleSheet.removeRule) StyleSheet.removeRule(Index);
-		else if(StyleSheet.deleteRule) StyleSheet.deleteRule(Index);
-		return Index;
+		if(StyleSheet) {
+			     if(StyleSheet.removeRule) StyleSheet.removeRule(Index);
+			else if(StyleSheet.deleteRule) StyleSheet.deleteRule(Index);
+			else                           return null;
+			return Index;
+		}
+		return null;
 	},
 	removeRules: function(Indexes, ParentDocument) {
 		for(var L = Indexes.length, i = 0; i < L; i++) this.removeRule(Indexes[i], ParentDocument);
