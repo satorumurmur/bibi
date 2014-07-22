@@ -26,11 +26,11 @@ span.bibi-holder {
 
 	span.bibi-holder span.bibi-poster,
 	span.bibi-holder iframe.bibi-frame {
-		-webkit-transition: opacity linear 0.25s;
-		   -moz-transition: opacity linear 0.25s;
-		    -ms-transition: opacity linear 0.25s;
-		     -o-transition: opacity linear 0.25s;
-		        transition: opacity linear 0.25s;
+		-webkit-transition: opacity .25s ease;
+		   -moz-transition: opacity .25s ease;
+		    -ms-transition: opacity .25s ease;
+		     -o-transition: opacity .25s ease;
+		        transition: opacity .25s ease;
 	}
 
 	span.bibi-holder span.bibi-poster {
@@ -64,7 +64,7 @@ span.bibi-holder {
 		opacity: 0;
 	}
 	span.bibi-holder-with-poster iframe.bibi-frame:hover {
-		opacity: 0.75;
+		opacity: .75;
 	}
 	span.bibi-holder-started iframe.bibi-frame {
 		opacity: 1 !important;
