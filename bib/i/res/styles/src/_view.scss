@@ -30,33 +30,37 @@ div#epub-contents {
 	box-shadow: 0 0 20px rgb(32,32,32);
 	@include transition(0.75s ease-in-out);
 	@include transition-property(transform opacity);
-	div.spread {
-		@include box-sizing(border-box);
-		overflow: hidden;
-		background: white;
-		div.item-box {
-			display: block;
-			position: relative;
+	div.spread-box {
+		div.spread {
+			@include box-sizing(border-box);
 			overflow: hidden;
-			iframe.item, span.page {
+			background: white;
+			div.item-box {
 				display: block;
-			}
-			iframe.item {
 				position: relative;
-				z-index: 2;
-			}
-			span.page {
-				position: absolute;
-				z-index: 1;
+				overflow: hidden;
+				iframe.item, span.page {
+					display: block;
+				}
+				iframe.item {
+					position: relative;
+					z-index: 2;
+				}
+				span.page {
+					position: absolute;
+					z-index: 1;
+				}
 			}
 		}
 	}
-	div.spread.pre-paginated {
-		div.item-box.page-spread-left {
-			float: left;
-		}
-		div.item-box.page-spread-right {
-			float: right;
+	div.spread-box.pre-paginated {
+		div.spread {
+			div.item-box.page-spread-left {
+				float: left;
+			}
+			div.item-box.page-spread-right {
+				float: right;
+			}
 		}
 	}
 	div#epub-asides {
@@ -97,18 +101,22 @@ html.spread-rtl div#epub-contents {
 }
 html.spread-vertical div#epub-contents {
 	@include transform(translateX(0));
-	div.spread {
-		div.item-box {
-			span.page {
-				left: 0;
+	div.spread-box {
+		div.spread {
+			div.item-box {
+				span.page {
+					left: 0;
+				}
 			}
 		}
 	}
-	div.spread.pre-paginated {
-		div.item-box {
-			span.page {
-				left: auto;
-				top: 0;
+	div.spread-box.pre-paginated {
+		div.spread {
+			div.item-box {
+				span.page {
+					left: auto;
+					top: 0;
+				}
 			}
 		}
 	}
@@ -120,10 +128,12 @@ html.spread-vertical.bibi-control-bar-opened div#epub-contents {
 }
 html.spread-horizontal div#epub-contents {
 	@include transform(translateY(0));
-	div.spread {
-		div.item-box {
-			span.page {
-				top: 0;
+	div.spread-box {
+		div.spread {
+			div.item-box {
+				span.page {
+					top: 0;
+				}
 			}
 		}
 	}
@@ -134,19 +144,23 @@ html.spread-horizontal.bibi-control-bar-opened div#epub-contents {
 	@include transform(translateY(44px));
 }
 html.page-ltr div#epub-contents {
-	div.spread {
-		div.item-box {
-			iframe.item {
-				@include transform-origin(0 0);
+	div.spread-box {
+		div.spread {
+			div.item-box {
+				iframe.item {
+					@include transform-origin(0 0);
+				}
 			}
 		}
 	}
 }
 html.page-rtl div#epub-contents {
-	div.spread {
-		div.item-box {
-			iframe.item {
-				@include transform-origin(100% 0);
+	div.spread-box {
+		div.spread {
+			div.item-box {
+				iframe.item {
+					@include transform-origin(100% 0);
+				}
 			}
 		}
 	}

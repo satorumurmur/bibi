@@ -393,10 +393,10 @@ p#bibi-cartain-message {
 }
 
 
-// - Go
+// - Arrows
 // --------------------------------------------------------------------------------
 
-div#bibi-arrows div {
+div#bibi-arrows div.bibi-arrow {
 	position: fixed;
 	z-index: 1000;
 	line-height: 1;
@@ -420,7 +420,7 @@ div#bibi-arrows div {
 	}
 }
 
-html.spread-vertical div#bibi-arrows div {
+html.spread-vertical div#bibi-arrows div.bibi-arrow {
 	left: 10%;
 	width: 80%;
 	height: 50px;
@@ -430,16 +430,16 @@ html.spread-vertical div#bibi-arrows div {
 		@include transform(scale(1.5, 1));
 	}
 }
-html.spread-vertical.spread-ttb div#bibi-arrows div#bibi-arrows-back,
-html.spread-vertical.spread-btt div#bibi-arrows div#bibi-arrows-forward {
+html.spread-vertical.spread-ttb div#bibi-arrows div#bibi-arrow-back,
+html.spread-vertical.spread-btt div#bibi-arrows div#bibi-arrow-forward {
 	top: 0;
 	&:before {
 		content: $fa-var-angle-up;
 		top: -.1em;
 	}
 }
-html.spread-vertical.spread-ttb div#bibi-arrows div#bibi-arrows-forward,
-html.spread-vertical.spread-btt div#bibi-arrows div#bibi-arrows-back {
+html.spread-vertical.spread-ttb div#bibi-arrows div#bibi-arrow-forward,
+html.spread-vertical.spread-btt div#bibi-arrows div#bibi-arrow-back {
 	bottom: 0;
 	&:before {
 		content: $fa-var-angle-down;
@@ -447,7 +447,7 @@ html.spread-vertical.spread-btt div#bibi-arrows div#bibi-arrows-back {
 	}
 }
 
-html.spread-horizontal div#bibi-arrows div {
+html.spread-horizontal div#bibi-arrows div.bibi-arrow {
 	top: 10%;
 	width: 50px;
 	height: 80%;
@@ -457,16 +457,16 @@ html.spread-horizontal div#bibi-arrows div {
 		@include transform(scale(1, 1.5));
 	}
 }
-html.spread-horizontal.spread-rtl div#bibi-arrows div#bibi-arrows-back,
-html.spread-horizontal.spread-ltr div#bibi-arrows div#bibi-arrows-forward {
+html.spread-horizontal.spread-rtl div#bibi-arrows div#bibi-arrow-back,
+html.spread-horizontal.spread-ltr div#bibi-arrows div#bibi-arrow-forward {
 	right: 0;
 	&:before {
 		content: $fa-var-angle-right;
 		right: -.1em;
 	}
 }
-html.spread-horizontal.spread-rtl div#bibi-arrows div#bibi-arrows-forward,
-html.spread-horizontal.spread-ltr div#bibi-arrows div#bibi-arrows-back {
+html.spread-horizontal.spread-rtl div#bibi-arrows div#bibi-arrow-forward,
+html.spread-horizontal.spread-ltr div#bibi-arrows div#bibi-arrow-back {
 	left: 0;
 	&:before {
 		content: $fa-var-angle-left;
@@ -640,7 +640,7 @@ div#bibi-panel div#bibi-panel-navigation {
 	height: 100%;
 	line-height: 1.5;
 	font-size: 14px;
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		@include box-sizing(border-box);
 		width: 100%;
 		height: 100%;
@@ -662,12 +662,12 @@ div#bibi-panel div#bibi-panel-navigation {
 			position: relative;
 			width: 100%;
 			height: 100%;
+			color: rgb(160,160,160);
 			nav {
 				line-height: 1.5;
 				h1, h2, h3, h4, h5, h6 {
 					font-size: 14px;
 					font-weight: bold;
-					color: rgb(192,192,192);
 				}
 				ul, ol {
 					li {
@@ -686,7 +686,18 @@ div#bibi-panel div#bibi-panel-navigation {
 				}
 				a {
 					color: white;
-					&:hover { color: yellow; }
+					&:hover {
+						color: yellow;
+					}
+				}
+				a.bibi-navigation-inactive-link {
+					color: inherit !important;
+					text-decoration: none !important;
+					border: none 0 !important;
+					cursor: default !important;
+					&:hover {
+						color: inherit !important;
+					}
 				}
 			}
 		}
@@ -695,7 +706,7 @@ div#bibi-panel div#bibi-panel-navigation {
 
 html.spread-vertical div#bibi-panel div#bibi-panel-navigation,
 html.spread-ltr div#bibi-panel div#bibi-panel-navigation {
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		div#bibi-panel-navigation-item {
 			nav {
 				margin-bottom: 1em;
@@ -724,7 +735,7 @@ html.spread-ltr div#bibi-panel div#bibi-panel-navigation {
 }
 
 html.spread-vertical div#bibi-panel div#bibi-panel-navigation {
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		overflow-x: hidden;
 		overflow-y: scroll;
 		div#bibi-panel-navigation-item {
@@ -735,7 +746,7 @@ html.spread-vertical div#bibi-panel div#bibi-panel-navigation {
 }
 
 html.spread-horizontal div#bibi-panel div#bibi-panel-navigation {
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		overflow-x: scroll;
 		overflow-y: hidden;
 		div#bibi-panel-navigation-item {
@@ -745,7 +756,7 @@ html.spread-horizontal div#bibi-panel div#bibi-panel-navigation {
 }
 
 html.spread-ltr div#bibi-panel div#bibi-panel-navigation {
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		div#bibi-panel-navigation-item {
 			@include writing-mode(horizontal-tb, lr-tb);
 			@include column-axis(horizontal);
@@ -756,7 +767,7 @@ html.spread-ltr div#bibi-panel div#bibi-panel-navigation {
 }
 
 html.spread-rtl div#bibi-panel div#bibi-panel-navigation {
-	div#bibi-panel-navigation-box {
+	div#bibi-panel-navigation-item-box {
 		div#bibi-panel-navigation-item {
 			@include writing-mode(vertical-rl, tb-rl);
 			nav {

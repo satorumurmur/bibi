@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Fri July 4 09:00:00 2014 +0900
- */    Version: 0.997, Build: 20140704.0
+ *  - Mon July 21 23:05:00 2014 +0900
+ */    Version: 0.997, Build: 20140721.0
 }
 
 
@@ -189,18 +189,21 @@ L.download = function(URI, MimeType) {
 
 
 L.requestDocument = function(Path) {
-	if(B.Zipped) {
-		var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
-		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(A.Files[Path]) : A.Files[Path] });
+	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
+	if(!B.Zipped) {
+		var XHR = L.download("../bookshelf/" + B.Name + "/" +  Path);
+		if(!IsXML) var Document = XHR.responseXML;
+	}
+	if(typeof Document == "undefined" || !Document) {
+		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
+		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
 		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
 			this.getElementsByTagName = function(TagName) {
 				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
 			}
 		});
-	} else {
-		var Document = L.download("../bookshelf/" + B.Name + "/" +  Path).responseXML;
 	}
-	if(!Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+	if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
 	return Document;
 }
 
@@ -459,17 +462,17 @@ L.readPackageDocument = function() {
 		if(this.getAttribute("refines")) return;
 		if(this.getAttribute("property")) {
 			var Property = this.getAttribute("property").replace(/^dcterms:/, "");
-			if(/^(title|creator|publisher|language)$/.test(Property)) B.Package.Metadata[Property + "s"].push(this.innerHTML);
-			else if(!B.Package.Metadata[Property]) B.Package.Metadata[Property] = this.innerHTML;
+			if(/^(title|creator|publisher|language)$/.test(Property)) B.Package.Metadata[Property + "s"].push(this.textContent);
+			else if(!B.Package.Metadata[Property]) B.Package.Metadata[Property] = this.textContent;
 		}
 		if(this.getAttribute("name") && this.getAttribute("content")) {
 			B.Package.Metadata[this.getAttribute("name")] = this.getAttribute("content");
 		}
 	});
-	if(!B.Package.Metadata["titles"    ].length) sML.each(Document.getElementsByTagName("dc:title"),     function() { B.Package.Metadata["titles"    ].push(this.innerHTML); return false; });
-	if(!B.Package.Metadata["creators"  ].length) sML.each(Document.getElementsByTagName("dc:creator"),   function() { B.Package.Metadata["creators"  ].push(this.innerHTML); });
-	if(!B.Package.Metadata["publishers"].length) sML.each(Document.getElementsByTagName("dc:publisher"), function() { B.Package.Metadata["publishers"].push(this.innerHTML); });
-	if(!B.Package.Metadata["languages" ].length) sML.each(Document.getElementsByTagName("dc:language"),  function() { B.Package.Metadata["languages" ].push(this.innerHTML); });
+	if(!B.Package.Metadata["titles"    ].length) sML.each(Document.getElementsByTagName("dc:title"),     function() { B.Package.Metadata["titles"    ].push(this.textContent); return false; });
+	if(!B.Package.Metadata["creators"  ].length) sML.each(Document.getElementsByTagName("dc:creator"),   function() { B.Package.Metadata["creators"  ].push(this.textContent); });
+	if(!B.Package.Metadata["publishers"].length) sML.each(Document.getElementsByTagName("dc:publisher"), function() { B.Package.Metadata["publishers"].push(this.textContent); });
+	if(!B.Package.Metadata["languages" ].length) sML.each(Document.getElementsByTagName("dc:language"),  function() { B.Package.Metadata["languages" ].push(this.textContent); });
 	if(!B.Package.Metadata["languages" ].length) B.Package.Metadata["languages"][0] = "en";
 	B.Package.Metadata["title"]     = B.Package.Metadata["titles"].join(    ", ");
 	B.Package.Metadata["creator"]   = B.Package.Metadata["creators"].join(  ", ");
@@ -479,6 +482,7 @@ L.readPackageDocument = function() {
 	if(!B.Package.Metadata["rendition:orientation"]) B.Package.Metadata["rendition:orientation"] = "auto";
 	if(!B.Package.Metadata["rendition:spread"])      B.Package.Metadata["rendition:spread"]      = "auto";
 	if(!B.Package.Metadata["cover"])                 B.Package.Metadata["cover"]                 = "";
+	O.getMetadata = function() { return B.Package.Metadata; };
 
 	// MANIFEST
 	var TOCID = Spine.getAttribute("toc");
@@ -566,7 +570,7 @@ L.prepareSpineItems = function() {
 
 	R.Contents.innerHTML = "";
 
-	R.Spreads = [], R.Boxes = [], R.Items = [], R.Pages = [];
+	R.Spreads = [], R.Items = [], R.Pages = [];
 
 	// For Paring of Pre-Pagenated
 	if(S.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
@@ -574,56 +578,40 @@ L.prepareSpineItems = function() {
 
 	// Spreads, Boxes, and Items
 	sML.each(B.Package.Spine["itemrefs"], function(i) {
-		var Ref  = this;
-		var Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][Ref["idref"]].href);
-		var Item = sML.create("iframe", { className: "item", id: "item-" + sML.String.padZero(i, L.FileDigit), scrolling: "no", allowtransparency: "true",
-			Dir: Path.replace(/\/?[^\/]+$/, ""),
-			Path: Path,
-			Ref: Ref,
-			ItemIndex: i,
-			ItemNumber: i + 1,
-			Spread: null,
-			Box: null,
-			Pair: null,
-			IsPrePaginated: (Ref["rendition:layout"] == "pre-paginated"),
-			Postprocessed: { Linkage:0, Viewport:0 },
-			Loaded: false
-		});
-		// Spread
-		if(Ref["rendition:layout"] == "pre-paginated" && i) {
+		var ItemRef = this;
+		// Item: A
+		var Item = sML.create("iframe", { className: "item", id: "item-" + sML.String.padZero(i, L.FileDigit), scrolling: "no", allowtransparency: "true" });
+		Item.ItemRef = ItemRef;
+		Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
+		Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
+		Item.IsPrePaginated = (ItemRef["rendition:layout"] == "pre-paginated");
+		// SpreadBox & Spread
+		if(ItemRef["rendition:layout"] == "pre-paginated" && i) {
 			var PrevItem = R.Items[i - 1];
-			if(PrevItem.Ref["rendition:layout"] == "pre-paginated") {
-				if(Ref["page-spread"] == PairAfter || Ref["page-spread"] == "") {
-					if(PrevItem.Ref["page-spread"] == "" || PrevItem.Ref["page-spread"] == PairBefore) {
-						Item.Pair = PrevItem, PrevItem.Pair = Item, Ref["page-spread"] = PairAfter, PrevItem.Ref["page-spread"] = PairBefore;
-					}
-				} else if(Ref["page-spread"] == PairBefore || Ref["page-spread"] == "center") {
-					if(PrevItem.Ref["page-spread"] == "") {
-						PrevItem.Ref["page-spread"] = "center";
-					}
-				}
+			if(PrevItem.ItemRef["rendition:layout"] == "pre-paginated" && PrevItem.ItemRef["page-spread"] == PairBefore && ItemRef["page-spread"] == PairAfter) {
+				Item.Pair = PrevItem;
+				PrevItem.Pair = Item;
 			}
-			if(!Ref["page-spread"] && i == B.Package.Spine["itemrefs"].length - 1) Ref["page-spread"] = "center";
 		}
 		if(Item.Pair) {
 			var Spread = Item.Pair.Spread;
 		} else {
-			var Spread = R.Contents.appendChild(sML.create("div", { className: "spread", Items: [] }))
-			if(Ref["rendition:layout"] == "pre-paginated") sML.addClass(Spread, "pre-paginated");
+			var SpreadBox = R.Contents.appendChild(sML.create("div", { className: "spread-box" }));
+			var Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
+			if(ItemRef["rendition:layout"] == "pre-paginated") sML.addClass(SpreadBox, "pre-paginated");
+			Spread.SpreadBox = SpreadBox;
+			Spread.Items = [];
+			Spread.SpreadIndex = R.Spreads.length;
 			R.Spreads.push(Spread);
 		}
-		Item.ItemIndexInSpread = Spread.Items.length;
-		Spread.Items.push(Item);
-		// Box
-		var Box = Spread.appendChild(sML.create("div", { className: "item-box" }));
-		if(Ref["page-spread"]) sML.addClass(Box, "page-spread-" + Ref["page-spread"]);
-		R.Boxes.push(Box);
-		Box.Spread = Item.Spread;
-		Box.Item = Item;
-		// Item
+		// ItemBox
+		var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
+		if(ItemRef["page-spread"]) sML.addClass(ItemBox, "page-spread-" + ItemRef["page-spread"]);
+		// Item: B
 		Item.Spread = Spread;
-		Item.Box = Box;
-		R.Items.push(Item);
+		Item.ItemBox = ItemBox;
+		Item.ItemIndexInSpread = Spread.Items.length; Spread.Items.push(Item);
+		Item.ItemIndex         =      R.Items.length;      R.Items.push(Item);
 	});
 
 	O.log(3, sML.String.padZero(R.Items.length, L.FileDigit) + ' Items');
@@ -677,7 +665,7 @@ L.loadNavigation = function() {
 			R.Navigation = { Path: B.Package.Manifest["toc-ncx"].Path, Type: "TOC-NCX" };
 		} else {
 			O.log(2, 'No TOC-NCX.');
-			return L.loadSpineItems();
+			return L.loadItems();
 		}
 	}
 
@@ -702,7 +690,7 @@ L.loadNavigation = function() {
 			LI.setAttribute("id", this.getAttribute("id"));
 			LI.setAttribute("playorder", this.getAttribute("playorder"));
 			sML.insertBefore(LI, this).appendChild(this);
-			if(!LI.previousSibling || /^a$/i.test(LI.previousSibling.tagName)) {
+			if(!LI.previousSibling || !LI.previousSibling.tagName || /^a$/i.test(LI.previousSibling.tagName)) {
 				sML.insertBefore(sML.create("ul"), LI).appendChild(LI);
 			} else {
 				LI.previousSibling.appendChild(LI);
@@ -711,18 +699,18 @@ L.loadNavigation = function() {
 		C.Panel.Navigation.Item.innerHTML = '<nav>' + TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "") + '</nav>';
 	}
 
-	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "inBiBiNavigation");
+	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "InBibiNavigation");
 
 	O.log(2, 'Loaded.');
 
 	delete Document;
 
-	if(!X.Wait) L.loadSpineItems();
+	if(!X.Wait) L.loadItems();
 	else {
 		L.shutUpLoading();
 		C.Cartain.createPlayButton({
 			onplay: function() {
-				L.loadSpineItems();
+				L.loadItems();
 			}
 		});
 		//C.Cartain.Message.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
@@ -732,70 +720,78 @@ L.loadNavigation = function() {
 }
 
 
-L.loadSpineItems = function() {
+L.loadItems = function() {
 
-	O.log(2, 'Loading Spine Items...');
+	O.log(2, 'Loading Items...');
+
+	R.resetStage();
+	R.resetNavigation();
 
 	L.LoadedItems = 0;
 
-	var writeItemHTML = function(Item, HTML, Head, Body) {
-		Item.Box.appendChild(Item);
-		Item.contentDocument.open();
-		Item.contentDocument.write(HTML ? HTML : [
-			'<html>',
-				'<head>' + Head + '</head>',
-				'<body onload="parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
-			'</html>'
-		].join(""));
-		Item.contentDocument.close();
-	}
+	L.ResizedWhileLoading = false;
+	L.listenResizingWhileLoading = function() { L.ResizedWhileLoading = true; };
+	window.addEventListener("resize", L.listenResizingWhileLoading);
 
-	sML.each(R.Items, function(i) {
-		// Item Content
-		var Item = this, Path = this.Path;
-		if(/\.(gif|jpe?g|png)$/i.test(Path)) { // If Bitmap-in-Spine
-			Item.IsBitmap = true;
-			writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
-		} else if(/\.(pdf)$/i.test(Path)) { // If PDF-in-Spine
-			Item.IsPDF = true;
-			writeItemHTML(Item, false, '', '<iframe src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
-		} else if(/\.(svg)$/i.test(Path)) { // If SVG-in-Spine
-			Item.IsSVG = true;
-			if(B.Zipped) {
-				writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
-			} else {
-				var URI = "../bookshelf/" + B.Name + "/" + Path;
-				writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
-			}
-		} else { // If HTML or Others
-			if(B.Zipped) {
-				writeItemHTML(Item, A.Files[Path]);
-				setTimeout(L.postprocessItem, 10, Item);
-			} else {
-				Item.src = "../bookshelf/" + B.Name + "/" + Path;
-				Item.onload = function() { L.postprocessItem(R.Items[Item.ItemIndex]); };
-				Item.Box.appendChild(Item);
-			}
-		}
-		O.log(3, sML.String.padZero(i + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
-	});
+	sML.each(R.Items, function() { L.loadItem(this); });
 
 	// Done?
-
-	L.CheckCount = 0; setTimeout(function() {
-		/*if(L.CheckCount > 40) {
-			L.shutUpLoading('ERROR');
-			O.log(0, 'Loaded ' + L.LoadedItems + "/" + R.Items.length + ' Items, But Failed to Load All Items at Once. Please Reload.');
-		} else */if(L.LoadedItems < R.Items.length) {
-			L.CheckCount++;
-			setTimeout(arguments.callee, 500);
-		} else {
-			document.body.style.display = "";
-			O.log(2, 'Loaded.');
-			L.start();
-		}
+	setTimeout(function() {
+		if(L.LoadedItems < R.Items.length) return setTimeout(arguments.callee, 500);
+		document.body.style.display = "";
+		R.resetPages();
+		O.log(2, 'Loaded.');
+		L.start();
 	}, 250);
 
+}
+
+
+L.loadItem = function(Item) {
+	var Path = Item.Path;
+	Item.Loaded = false;
+	if(/\.(x?html?)$/i.test(Path)) {
+		// If HTML or Others
+		if(B.Zipped) {
+			L.writeItemHTML(Item, A.Files[Path]);
+			setTimeout(L.postprocessItem, 10, Item);
+		} else {
+			Item.src = "../bookshelf/" + B.Name + "/" + Path;
+			Item.onload = function() { L.postprocessItem(R.Items[Item.ItemIndex]); };
+			Item.ItemBox.appendChild(Item);
+		}
+	} else if(/\.(svg)$/i.test(Path)) {
+		// If SVG-in-Spine
+		Item.IsSVG = true;
+		if(B.Zipped) {
+			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+		} else {
+			var URI = "../bookshelf/" + B.Name + "/" + Path;
+			L.writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+		}
+	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
+		// If Bitmap-in-Spine
+		Item.IsBitmap = true;
+		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+	} else if(/\.(pdf)$/i.test(Path)) {
+		// If PDF-in-Spine
+		Item.IsPDF = true;
+		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+	}
+	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
+}
+
+
+L.writeItemHTML = function(Item, HTML, Head, Body) {
+	Item.ItemBox.appendChild(Item);
+	Item.contentDocument.open();
+	Item.contentDocument.write(HTML ? HTML : [
+		'<html>',
+			'<head>' + Head + '</head>',
+			'<body onload="parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
+		'</html>'
+	].join(""));
+	Item.contentDocument.close();
 }
 
 
@@ -803,7 +799,7 @@ L.postprocessItem = function(Item) {
 
 	O.showStatus("Loading... ( " + (L.LoadedItems + 1) + "/" + R.Items.length + " Items )");
 
-	var Box = Item.Box, Ref = Item.Ref;
+	var ItemRef = Item.ItemRef;
 
 	Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
 	Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
@@ -816,7 +812,7 @@ L.postprocessItem = function(Item) {
 
 	// Margin & Padding & Background
 	sML.each([Item.HTML, Item.Body], function() {
-		this.BiBi = {
+		this.Bibi = {
 			DefaultStyle: {
 				margin:  (this.style && this.style.margin  ? this.style.margin  : ""),
 				padding: (this.style && this.style.padding ? this.style.padding : "")
@@ -835,7 +831,7 @@ L.postprocessItem = function(Item) {
 		else if(/^img$/i.test(ItemBodyChildren[0].tagName)) Item.SingleIMG = true;
 	}
 	sML.each(Item.Body.getElementsByTagName("img"), function() {
-		this.BiBi = {
+		this.Bibi = {
 			DefaultStyle: {
 				margin:    (this.style.margin    ? this.style.margin    : ""),
 				width:     (this.style.width     ? this.style.width     : ""),
@@ -849,44 +845,48 @@ L.postprocessItem = function(Item) {
 	// Viewport
 	sML.each(Item.Head.getElementsByTagName("meta"), function() { // META Viewport
 		if(this.name == "viewport") {
-			Ref["viewport"].content = this.getAttribute("content");
-			if(Ref["viewport"].content) {
-				var ViewportWidth  = Ref["viewport"].content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
-				var ViewportHeight = Ref["viewport"].content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
+			ItemRef["viewport"].content = this.getAttribute("content");
+			if(ItemRef["viewport"].content) {
+				var ViewportWidth  = ItemRef["viewport"].content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
+				var ViewportHeight = ItemRef["viewport"].content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
 				if(!isNaN(ViewportWidth) && !isNaN(ViewportHeight)) {
-					Ref["viewport"].width  = ViewportWidth;
-					Ref["viewport"].height = ViewportHeight;
-					Item.Postprocessed.Viewport;
+					ItemRef["viewport"].width  = ViewportWidth;
+					ItemRef["viewport"].height = ViewportHeight;
 				}
 			}
 		}
 	});
-	if(Ref["rendition:layout"] == "pre-paginated" && !(Ref["viewport"].width * Ref["viewport"].height)) { // If Fixed-Layout Item without Viewport
+	if(ItemRef["rendition:layout"] == "pre-paginated" && !(ItemRef["viewport"].width * ItemRef["viewport"].height)) { // If Fixed-Layout Item without Viewport
 		if(Item.SingleSVG) { // If Single-SVG-HTML or SVG-in-Spine, Use ViewBox for Viewport.
 			if(ItemBodyChildren[0].getAttribute("viewBox")) {
-				Ref["viewBox"].content = ItemBodyChildren[0].getAttribute("viewBox");
-				var ViewBoxCoords  = Ref["viewBox"].content.split(" ");
+				ItemRef["viewBox"].content = ItemBodyChildren[0].getAttribute("viewBox");
+				var ViewBoxCoords  = ItemRef["viewBox"].content.split(" ");
 				if(ViewBoxCoords.length == 4) {
 					var ViewBoxWidth  = ViewBoxCoords[2] * 1 - ViewBoxCoords[0] * 1;
 					var ViewBoxHeight = ViewBoxCoords[3] * 1 - ViewBoxCoords[1] * 1;
 					if(ViewBoxWidth && ViewBoxHeight) {
 						if(ItemBodyChildren[0].getAttribute("width")  != "100%") ItemBodyChildren[0].setAttribute("width",  "100%");
 						if(ItemBodyChildren[0].getAttribute("height") != "100%") ItemBodyChildren[0].setAttribute("height", "100%");
-						Ref["viewport"].width  = Ref["viewBox"].width  = ViewBoxWidth;
-						Ref["viewport"].height = Ref["viewBox"].height = ViewBoxHeight;
-						Item.Postprocessed.Viewport++;
+						ItemRef["viewport"].width  = ItemRef["viewBox"].width  = ViewBoxWidth;
+						ItemRef["viewport"].height = ItemRef["viewBox"].height = ViewBoxHeight;
 					}
 				}
 			}
 		} else if(Item.SingleIMG) { // If Single-IMG-HTML or Bitmap-in-Spine, Use IMG "width" / "height" for Viewport.
-			Ref["viewport"].width  = parseInt(getComputedStyle(ItemBodyChildren[0]).width);
-			Ref["viewport"].height = parseInt(getComputedStyle(ItemBodyChildren[0]).height);
-			Item.Postprocessed.Viewport++;
+			ItemRef["viewport"].width  = parseInt(getComputedStyle(ItemBodyChildren[0]).width);
+			ItemRef["viewport"].height = parseInt(getComputedStyle(ItemBodyChildren[0]).height);
 		}
 	}
 
 	// Linkage
-	Item.Postprocessed.Linkage = L.postprocessLinkage(Item.Path, Item.Body);
+	L.postprocessLinkage(Item.Path, Item.Body);
+
+	// Layout Inside of the Spread
+	R.resetItem(Item);
+	R.resetSpread(Item.Spread);
+
+	// Keys
+	Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
 
 	L.LoadedItems++;
 	Item.Loaded = true;
@@ -894,9 +894,8 @@ L.postprocessItem = function(Item) {
 }
 
 
-L.postprocessLinkage = function(FilePath, RootElement, inBiBiNavigation) {
+L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 
-	var Processed = 0;
 	var FileDir  = FilePath.replace(/\/?([^\/]+)$/, "");
 	var FileName = FilePath.replace(/^.+?([^\/]+)$/, "$1");
 
@@ -904,7 +903,13 @@ L.postprocessLinkage = function(FilePath, RootElement, inBiBiNavigation) {
 		var A = this;
 		A.NavAIndex = i;
 		var HrefPathInSource = A.getAttribute("href");
-		if(!HrefPathInSource) return;
+		if(!HrefPathInSource) {
+			if(InBibiNavigation) {
+				A.onclick = function() { return false; };
+				sML.addClass(A, "bibi-navigation-inactive-link");
+			}
+			return;
+		}
 		if(/^[a-zA-Z]+:/.test(HrefPathInSource)) return A.setAttribute("target", "_blank");
 		var HrefPath = O.getPath(FileDir, (!/^\.*\/+/.test(HrefPathInSource) ? "./" : "") + (/^#/.test(HrefPathInSource) ? FileName : "") + HrefPathInSource);
 		var HrefFnH = HrefPath.split("#"), HrefFile = HrefFnH[0] ? HrefFnH[0] : FilePath, HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
@@ -913,85 +918,89 @@ L.postprocessLinkage = function(FilePath, RootElement, inBiBiNavigation) {
 			if(HrefFile == rItem.Path) {
 				A.setAttribute("data-bibi-original-href", HrefPathInSource);
 				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
-				A.inBiBiNavigation = inBiBiNavigation;
+				A.InBibiNavigation = InBibiNavigation;
 				A.Target = { Item: rItem, Element: (HrefHash ? "#" + HrefHash : null) };
 				A.onclick = function(e) {
 					if(R.Started) {
-						if(this.inBiBiNavigation) sML.stopPropagation(e);
+						if(this.InBibiNavigation) sML.stopPropagation(e);
 						R.focus(this.Target, { p:0.75, t:20 });
 					} else {
 						C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
 					}
 					return false;
 				};
-				Processed++;
 				return;
 			}
 		});
 		if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
 			A.setAttribute("data-bibi-original-href", HrefPathInSource);
 			A.setAttribute("href", "bibi://" + B.Name + "/#" + HrefHash);
-			A.inBiBiNavigation = inBiBiNavigation;
+			A.InBibiNavigation = InBibiNavigation;
 			A.Target = O.getEPUBCFITarget(HrefHash);
 			A.onclick = function(e) {
 				if(!this.Target) return false;
 				if(R.Started) {
-					if(this.inBiBiNavigation) sML.stopPropagation(e);
+					if(this.InBibiNavigation) sML.stopPropagation(e);
 					R.focus(this.Target, { p:0.75, t:20 });
 				} else {
 					C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
 				}
 				return false;
 			};
-			Processed++;
 		}
-		if(inBiBiNavigation && typeof X.Nav == "number" && i == X.Nav && A.Target) X.To = A.Target;
+		if(InBibiNavigation && typeof X.Nav == "number" && i == X.Nav && A.Target) X.To = A.Target;
 	});
-
-	return Processed;
 
 }
 
 
 L.start = function() {
 
-	R.LayoutCanceled = 0;
-	R.ResizeTriggerCanceled = 0;
-
-	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", function() {
-		if(R.layoutTimer) clearTimeout(R.layoutTimer);
-		R.layoutTimer = setTimeout(function() { if(!R.ResizeTriggerCanceled) R.layout({ Reflesh: true }); }, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
-	});
-
 	C.createArrows();
-	C.listenKeys();
-
 	L.shutUpLoading();
+
 	sML.removeClass(O.HTML, "preparing");
 
-	R.layout({ Reflesh: true }, (X.To ? X.To : "head"), function() {
-		sML.each(R.Items, function(){
-			this.Box.style.background = this.contentDocument.defaultView.getComputedStyle(this.HTML).background;  this.HTML.style.background = "";
-			this.style.background     = this.contentDocument.defaultView.getComputedStyle(this.Body).background;  this.Body.style.background = "";
-		});
-		sML.style(R.Contents, { transition: "opacity 0.75s ease-in-out" });
-		sML.each([R.Contents, C.Arrows], function() { sML.style(this, { opacity: 1 }); });
-		sML.style(C.Switches.Panel, { display: "block" });
-		if(X.To) sML.style(C.Arrows.Back, { opacity: 1 });
-		sML.style(C.Arrows.Forward, { opacity: 1 });
-		setTimeout(function() {
-			C.Cartain.close(function() {
-				setTimeout(function() {
-					sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-						sML.style(this, { opacity: "" });
-					});
-				}, 888);
-			});
-		}, 444);
-		L.shutUpLoading();
-		R.Started = true;
-		O.log(1, 'Enjoy!');
+	R.layout({
+		Reset: (L.ResizedWhileLoading ? true : false),
+		Target: (X.To ? X.To : "head")
 	});
+
+	window.removeEventListener("resize", L.listenResizingWhileLoading);
+	delete L.listenResizingWhileLoading;
+	delete L.ResizedWhileLoading;
+
+	sML.each(R.Items, function(){
+		this.ItemBox.style.background = this.contentDocument.defaultView.getComputedStyle(this.HTML).background;  this.HTML.style.background = "";
+		this.style.background         = this.contentDocument.defaultView.getComputedStyle(this.Body).background;  this.Body.style.background = "";
+	});
+
+	sML.style(R.Contents, {
+		transition: "opacity 0.75s ease-in-out",
+		opacity: 1
+	});
+	sML.style(C.Switches.Panel, { display: "block" });
+	sML.style(C.Arrows, { opacity: 1 });
+	if(X.To) sML.style(C.Arrows.Back, { opacity: 1 });
+	sML.style(C.Arrows.Forward, { opacity: 1 });
+	setTimeout(function() {
+		C.Cartain.close(function() {
+			setTimeout(function() {
+				sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
+					sML.style(this, { opacity: "" });
+				});
+			}, 500);
+		});
+	}, 1);
+
+	L.shutUpLoading();
+
+	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
+	window.addEventListener("keydown", C.listenKeys, false);
+
+	R.Started = true;
+
+	O.log(1, 'Enjoy!');
 
 }
 
@@ -1005,358 +1014,399 @@ L.start = function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-
-R.layout = function(Setting, Target, doAfter) {
-
-	if(R.LayoutCanceled) return;
-
-	R.LayoutCanceled++;
-	R.ResizeTriggerCanceled++;
-
-	var Reflesh = null, NoLog = null;
-	if(Setting && Setting.Reflesh) { Reflesh = true; delete Setting.Reflesh; }
-	if(Setting && Setting.NoLog)   { NoLog   = true; delete Setting.NoLog;   }
-
-	if(!NoLog) O.log(2, 'Laying Out...');
-
-	if(!Target) {
-		if(R.Layouted) {
-			var CurrentPage = R.getCurrentPages().Start;
-			Target = { Item: CurrentPage.Item, PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length };
-		} else {
-			Target = { Edge: "head" };
-		}
+R.resetStage = function() {
+	if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S["spread-layout-direction"] == "ttb" ? "100%" : window.innerHeight + "px";
+	R.StageSize = {
+		Breadth: O.Body["client" + S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"],
+		Length:  O.Body["client" + S.SIZE.L] - S["spread-gap"]
 	}
+	R.Contents.style["padding" + S.BASE.B] = R.Contents.style["padding" + S.BASE.A] = S["spread-gap"] / 2 + "px";
+	R.Contents.style["padding" + S.BASE.S] = R.Contents.style["padding" + S.BASE.E] = S["spread-margin-start"] + "px";
+	R.Contents.style["background"] = S["book-background"];
+}
 
-	O.updateSetting(Setting);
+R.resetItem = function(Item) {
+	Item.Reset = false;
+	Item.Reflowable = (Item.ItemRef["rendition:layout"] != "pre-paginated" || !Item.ItemRef["viewport"][S.SIZE.b] || !Item.ItemRef["viewport"][S.SIZE.l]);
+	Item.Reflowable ? R.resetItem_Reflowable(Item) : R.resetItem_PrePagenated(Item);
+	Item.Reset = true;
+}
 
-	if(!NoLog) {
+R.resetItem_Reflowable = function(Item) {
+	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
+	Item.Pages = [];
+	Item.scrolling = "no";
+	var IsSingleImageItem = (Item.HTML.innerText == "" && Item.Body.getElementsByTagName("img"   ).length == 1); // textContent... mmm...
+	var IsSingleFrameItem = (Item.HTML.innerText == "" && Item.Body.getElementsByTagName("iframe").length == 1); // textContent... mmm...
+	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
+	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
+	var PageB  = StageB;
+	var PageL  = StageL;
+	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
+	if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
+		var Ratio = 1.414 / 0.96;
+		if((S.SIZE.l == "width" && S["page-size-format"] == "portrait") || (S.SIZE.l == "height" && S["page-size-format"] == "landscape")) Ratio = 1 / Ratio;
+		PageL = Math.min(StageL, Math.floor(PageB * Ratio));
+	}
+	ItemBox.style[S.SIZE.b] = PageB + (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]) + "px";
+	Item.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + "px";
+	Item.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + "px";
+	Item.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
+	Item.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
+	Item.style[S.SIZE.b] = PageB + "px";
+	Item.style[S.SIZE.l] = PageL + "px";
+	Item.HTML.style[S.SIZE.b] = PageB + "px"
+	Item.HTML.style[S.SIZE.l] = PageL + "px";
+	sML.style(Item.HTML, {
+		"column-axis": "",
+		"column-width": "",
+		"column-gap": "",
+		"column-rule": ""
+	});
+	if((function() {
+		if(typeof S["fit-images"] != "string" || S["fit-images"] == "no")           return false;
+		if(S["fit-images"] == "always")                                             return  true;
+		if(Item.HTML.innerText && Item.Body.getElementsByTagName("img").length > 1) return false;
+		if(S["fit-images"] == "in-single-image-only-item")                          return  true;
+		else                                                                        return false;
+	})()) {
+		var Scale = 1;
+		if(IsSingleImageItem) {
+			sML.style(Item.HTML, {
+				"transform-origin": "",
+				"transformOrigin": "",
+				"transform": ""
+			});
+			if(Item.HTML["scroll" + S.SIZE.B] > PageB || Item.HTML["scroll" + S.SIZE.L] > PageL) {
+				Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
+				sML.style(Item.HTML, {
+					"transform-origin": "50% 0",
+					"transformOrigin": "50% 0",
+					"transform": "scale(" + Scale + ")"
+				});
+			}
+		}
+		sML.each(Item.Body.getElementsByTagName("img"), function() {
+			this.style.width  = this.Bibi.DefaultStyle.width;
+			this.style.height = this.Bibi.DefaultStyle.height;
+			var MaxB = Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.b]), Math.floor(PageB / Scale));
+			var MaxL = Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.l]), Math.floor(PageL / Scale));
+			if(parseInt(getComputedStyle(this)[S.SIZE.b]) > MaxB) {
+				this.style[S.SIZE.b] = MaxB + "px";
+				this.style[S.SIZE.l] = "auto";
+			}
+			if(parseInt(getComputedStyle(this)[S.SIZE.l]) > MaxL) /*if(!S["fit-images_breadth-only"])*/ {
+				this.style[S.SIZE.l] = MaxL + "px";
+				this.style[S.SIZE.b] = "auto";
+			}
+		});
+	}
+	if(IsSingleFrameItem) {
+		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
+		IFrame.style[S.SIZE.b] = PageB + "px";
+		IFrame.style[S.SIZE.l] = PageL + "px";
+	}
+	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
+	Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
+	(function(Z, H, B) {
+		Z = H.clientWidth; Z = H.clientHeight; Z = H.scrollWidth; Z = H.scrollHeight; Z = H.offsetWidth; Z = H.offsetHeight;
+		Z = B.clientWidth; Z = B.clientHeight; Z = B.scrollWidth; Z = B.scrollHeight; Z = B.offsetWidth; Z = B.offsetHeight;
+	})(0, Item.HTML, Item.Body);
+	if(Item.Body["scroll" + S.SIZE.B] > PageB) {
+		S.Paged = true;
+		Item.ColumnBreadth = PageB;
+		Item.ColumnLength  = PageL;
+		Item.ColumnGap     = PageGap;
+		sML.style(Item.HTML, {
+			"column-axis": (S.SLD != "ttb" ? "horizontal" : "vertical"),
+			"column-width": Item.ColumnLength + "px",
+			"column-gap": Item.ColumnGap + "px",
+			"column-rule": ""
+		});
+	}
+	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
+	var BodyL = Item.Body["scroll" + S.SIZE.L];
+	if(sML.UA.InternetExplorer >= 10) BodyL = Item.Body["client" + S.SIZE.L];
+	var ItemL = IsSingleImageItem ? Math.max(BodyL,  PageL) : BodyL;
+	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
+	ItemL = (PageL + PageGap) * Pages - PageGap;
+	ItemBox.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + "px";
+	Item.style[S.SIZE.l] = ItemL + "px";
+	for(var i = 0; i < Pages; i++) {
+		var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
+		Page.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + S["spread-gap"] / 2 + "px";
+		Page.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + S["spread-gap"] / 2 + "px";
+		Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
+		Page.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
+		Page.style[            S.SIZE.b] = PageB + "px";
+		Page.style[            S.SIZE.l] = PageL + "px";
+		Page.style[            S.BASE.b] = (PageL + PageGap) * i - S["spread-gap"] / 2 + "px";
+		Page.Item = Item, Page.Spread = Spread;
+		Page.PageIndexInItem = Item.Pages.length;
+		Item.Pages.push(Page);
+	}/*
+	if(Pages > 1) {
+		var LastPage = sML.lastOf(Item.Pages);
+		LastPage.style[        S.BASE.b] = "";
+		LastPage.style[        S.BASE.a] = S["spread-gap"] / 2 * -1 + "px";
+	}*/
+	return Item;
+}
+
+R.resetItem_PrePagenated = function(Item) {
+	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
+	Item.Pages = [];
+	S.Paged = true;
+	Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
+	var PageB = R.StageSize.Breadth;
+	var PageL = R.StageSize.Length;
+	Item.style["padding" + S.BASE.B] = Item.style["padding" + S.BASE.A] = Item.style["padding" + S.BASE.S] = Item.style["padding" + S.BASE.E] = 0;
+	if((S["spread-layout-direction"] == "ttb") && (ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left")) {
+		PageB = PageB / 2;
+	}
+	var Scale = Math.min(
+		Math.min(ItemRef["viewport"][S.SIZE.b], PageB) / ItemRef["viewport"][S.SIZE.b],
+		Math.min(ItemRef["viewport"][S.SIZE.l], PageL) / ItemRef["viewport"][S.SIZE.l]
+	);
+	PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
+	PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
+	Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
+	Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
+	sML.style(Item.HTML, {
+		"width": ItemRef["viewport"].width + "px",
+		"height": ItemRef["viewport"].height + "px",
+		"transform-origin": "0 0",
+		"transformOrigin": "0 0",
+		"transform": "scale(" + Scale + ")"
+	});
+	var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
+	//if(ItemRef["page-spread"] == "right") Page.style.right = S["spread-gap"] / 2 * -1 + "px";
+	//else                                  Page.style.left  = S["spread-gap"] / 2 * -1 + "px";
+	//Page.style.paddingLeft    = Page.style.paddingRight    = S["spread-gap"] / 2 + "px";
+	if(ItemRef["page-spread"] == "right") Page.style.right = 0;
+	else                                  Page.style.left  = 0;
+	//Page.style.paddingLeft    = Page.style.paddingRight    = S["spread-gap"] / 2 + "px";
+	Page.style[S.SIZE.b] = PageB + "px";
+	Page.style[S.SIZE.l] = PageL + "px";
+	Page.Item = Item, Page.Spread = Spread;
+	Page.PageIndexInItem = Item.Pages.length;
+	Item.Pages.push(Page);
+	return Item;
+}
+
+R.resetSpread = function(Spread) {
+	var SpreadBox = Spread.SpreadBox;
+	SpreadBox.style["margin" + S.BASE.B] = SpreadBox.style["margin" + S.BASE.A] = "";
+	SpreadBox.style["margin" + S.BASE.E] = SpreadBox.style["margin" + S.BASE.S] = "auto";
+	SpreadBox.style.padding = "";
+	if(Spread.Items.length == 1) {
+		SpreadBox.style[S.SIZE.b] = Spread.style[S.SIZE.b] = Spread.Items[0].ItemBox.style[S.SIZE.b];
+		SpreadBox.style[S.SIZE.l] = Spread.style[S.SIZE.l] = Spread.Items[0].ItemBox.style[S.SIZE.l];
+	} else {
+		SpreadBox.style.width  = Spread.style.width  = Math.ceil(        (parseFloat(Spread.Items[0].ItemBox.style.width) + parseFloat(Spread.Items[1].ItemBox.style.width) )) + "px";
+		SpreadBox.style.height = Spread.style.height = Math.ceil(Math.max(parseFloat(Spread.Items[0].ItemBox.style.height), parseFloat(Spread.Items[1].ItemBox.style.height))) + "px";
+	}
+	Spread.style["border-radius"] = S["spread-border-radius"];
+	Spread.style["box-shadow"]    = S["spread-box-shadow"];
+}
+
+R.resetPages = function() { R.Pages = [];
+	R.Spreads.forEach(function(Spread) { Spread.Pages = [];
+		Spread.Items.forEach(function(Item) {
+			Item.Pages.forEach(function(Page) {
+				Page.PageIndexInSpread = Spread.Pages.length; Spread.Pages.push(Page);
+				Page.PageIndex         =      R.Pages.length;      R.Pages.push(Page);
+			});
+		});
+	});
+	return R.Pages;
+}
+
+R.resetNavigation = function() {
+	sML.style(C.Panel.Navigation.Item, { float: "" });
+	if(S.SLD == "rtl") {
+		var theWidth = C.Panel.Navigation.Item.scrollWidth - window.innerWidth;
+		if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
+		C.Panel.Navigation.ItemBox.scrollLeft = C.Panel.Navigation.ItemBox.scrollWidth - window.innerWidth;
+	}
+}
+
+
+R.layoutSpread = function(Spread, Target) {
+	var SpreadBox = Spread.SpreadBox;
+	var IsHeadSpread = false, IsFootSpread = false;
+	if(S.BDM == "each") {
+		if(Spread == Target.Item.Spread) {
+			IsHeadSpread = IsFootSpread = true;
+			SpreadBox.style.display = "";
+		} else {
+			SpreadBox.style.display = "none";
+		}
+	} else {
+		IsHeadSpread = (Spread.SpreadIndex == 0);
+		IsFootSpread = (Spread.SpreadIndex == R.Spreads.length - 1);
+		SpreadBox.style.display = "";
+	}
+	SpreadBox.style.padding = "";
+	if(SpreadBox.offsetHeight < R.StageSize[S.SIZE.H]) SpreadBox.style.padding = Math.floor((R.StageSize[S.SIZE.H] - SpreadBox.offsetHeight) / 2) + "px 0";
+	if(S.SLA == "vertical") {
+		     if(Spread.Items.length == 1 && Spread.Items[0].ItemRef["page-spread"] == "right") SpreadBox.style.paddingLeft  = Spread.offsetWidth + "px";
+		else if(Spread.Items.length == 1 && Spread.Items[0].ItemRef["page-spread"] == "left")  SpreadBox.style.paddingRight = Spread.offsetWidth + "px";
+		var MarginTop = 0;
+		     if(IsHeadSpread)                                           MarginTop = 0;
+		else if(B.Package.Metadata["rendition:layout"] == "reflowable") MarginTop = S["spread-gap"];
+		else                                                            MarginTop = Math.floor( R.StageSize.Length  / 4 - S["spread-gap"]);
+		SpreadBox.style.marginTop    = MarginTop ? MarginTop + "px" : "";
+		SpreadBox.style.marginBottom = "";
+	} else {
+		var MarginBefore = 0, MarginAfter = 0;
+		if(IsHeadSpread) {
+			MarginBefore = Math.floor((R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
+			if(MarginBefore < 0) MarginBefore = 0;
+		}
+		else if(B.Package.Metadata["rendition:layout"] == "reflowable") MarginBefore = S["spread-gap"];
+		else                                                            MarginBefore = Math.floor( R.StageSize.Breadth / 2 - S["spread-gap"]);
+		if(IsFootSpread) {
+			MarginAfter  = Math.ceil( (R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
+			if(MarginAfter  < 0) MarginAfter  = 0;
+		}
+		SpreadBox.style["margin" + S.BASE.B] = MarginBefore ? MarginBefore + "px" : "";
+		SpreadBox.style["margin" + S.BASE.A] = MarginAfter  ? MarginAfter  + "px" : "";
+	}
+}
+
+
+R.layout = function(Param) {
+
+	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
+
+	if(!Param) Param = {};
+
+	if(!Param.NoLog) {
+		O.log(2, 'Laying Out...');
 		O.log(3, "book-display-mode: "  + S["book-display-mode"]);
 		O.log(3, "spread-layout-axis: " + S["spread-layout-axis"]);
 		O.log(3, "page-size-format: "   + S["page-size-format"]);
 	}
 
-	//sML.each(R.Items, function() { this.Spread.style.display = this.Box.style.display = "block"; });
-
-	sML.each(R.Spreads, function(i) {
-		this.style.display = "";
-		this.style["margin" + S.BASE.B] = i ? S["spread-gap"] + "px" : "";
-		this.style["margin" + S.BASE.A] = "";
-		this.style["margin" + S.BASE.S] = S["spread-margin-start"] + "px";
-		this.style["margin" + S.BASE.E] = ""; // S["spread-margin-end"  ] + "px";
-	});
-
-	if(Reflesh) {
-		S.Paged = false;
-		if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S["spread-layout-direction"] == "ttb" ? "100%" : window.innerHeight + "px";
-		sML.each(R.Pages, function() { sML.removeElement(this); }); R.Pages = [];
-		R.Contents.style["padding" + S.BASE.B] = R.Contents.style["padding" + S.BASE.A] = S["spread-gap"] / 2 + "px";
-		R.Contents.style["padding" + S.BASE.S] = R.Contents.style["padding" + S.BASE.E] = 0;
-		R.Contents.style["background"] = S["book-background"];
-		sML.each(R.Spreads, function() {
-			this.Pages = [];
-			this.style.width = this.style.height = "";
-			this.style["border-radius"] = S["spread-border-radius"];
-			this.style["box-shadow"]    = S["spread-box-shadow"];
-		});
-		R.StageSize = {
-			Reflowable:   {
-				Breadth: O.Body["client" + S.SIZE.B] - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e] + S["spread-margin-start"] + S["spread-margin-end"]),
-				Length:  O.Body["client" + S.SIZE.L] - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a] + S["spread-gap"])
-			},
-			PrePagenated: {
-				Breadth: O.Body["client" + S.SIZE.B] - (S["spread-margin-start"] + S["spread-margin-end"]),
-				Length:  O.Body["client" + S.SIZE.L] - (S["spread-gap"])
-			}
-		}
-		R.MaxSpreadWidth = 0;
-		sML.each(R.Items, function(ItemIndex) {
-			if(!NoLog) O.showStatus("Laying Out... ( " + (ItemIndex + 1) + "/" + R.Items.length + " Items )");
-			var Item = this, Spread = this.Spread, Box = this.Box, Ref = this.Ref;
-			Item.Pages = [];
-			if(Ref["rendition:layout"] != "pre-paginated" || !Ref["viewport"][S.SIZE.b] || !Ref["viewport"][S.SIZE.l]) {
-			// -- Reflowable
-				Item.scrolling = "no";
-				var IsSingleImageItem = (Item.HTML.innerText == "" && Item.Body.getElementsByTagName("img"   ).length == 1); // textContent... mmm...
-				var IsSingleFrameItem = (Item.HTML.innerText == "" && Item.Body.getElementsByTagName("iframe").length == 1); // textContent... mmm...
-				var StageB = R.StageSize.Reflowable.Breadth, StageL = R.StageSize.Reflowable.Length;
-				var PageB  = R.StageSize.Reflowable.Breadth,  PageL = R.StageSize.Reflowable.Length;
-				var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
-				if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
-					var Ratio = 1.414 / 0.96;
-					if((S.SIZE.l == "width" && S["page-size-format"] == "portrait") || (S.SIZE.l == "height" && S["page-size-format"] == "landscape")) Ratio = 1 / Ratio;
-					PageL = Math.min(StageL, Math.floor(PageB * Ratio));
-				}
-				Spread.style[S.SIZE.b] = Box.style[S.SIZE.b] = PageB + (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]) + "px";
-				Item.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + "px";
-				Item.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + "px";
-				Item.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
-				Item.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
-				Item.style[S.SIZE.b] = PageB + "px";
-				Item.style[S.SIZE.l] = PageL + "px";
-				Item.HTML.style[S.SIZE.b] = PageB + "px"
-				Item.HTML.style[S.SIZE.l] = PageL + "px";
-				sML.style(Item.HTML, {
-					"column-axis": "",
-					"column-width": "",
-					"column-gap": "",
-					"column-rule": ""
-				});
-				if((function() {
-					if(typeof S["fit-images"] != "string" || S["fit-images"] == "no")       return false;
-					if(S["fit-images"] == "always")                                         return  true;
-					if(Item.HTML.innerText && Item.Body.getElementsByTagName("img").length > 1) return false;
-					if(S["fit-images"] == "in-single-image-only-item")                      return  true; else return false;
-				})()) {
-					var Scale = 1;
-					if(IsSingleImageItem) {
-						sML.style(Item.HTML, {
-							"transform-origin": "",
-							"transform": ""
-						});
-						if(Item.HTML["scroll" + S.SIZE.B] > PageB || Item.HTML["scroll" + S.SIZE.L] > PageL) {
-							Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
-							sML.style(Item.HTML, {
-								"transform-origin": "50% 0",
-								"transform": "scale(" + Scale + ")"
-							});
-						}
-					}
-					sML.each(Item.Body.getElementsByTagName("img"), function() {
-						this.style.width  = this.BiBi.DefaultStyle.width;
-						this.style.height = this.BiBi.DefaultStyle.height;
-						var MaxB = Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.b]), Math.floor(PageB / Scale));
-						var MaxL = Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.l]), Math.floor(PageL / Scale));
-						if(parseInt(getComputedStyle(this)[S.SIZE.b]) > MaxB) {
-							this.style[S.SIZE.b] = MaxB + "px";
-							this.style[S.SIZE.l] = "auto";
-						}
-						if(parseInt(getComputedStyle(this)[S.SIZE.l]) > MaxL) /*if(!S["fit-images_breadth-only"])*/ {
-							this.style[S.SIZE.l] = MaxL + "px";
-							this.style[S.SIZE.b] = "auto";
-						}
-					});
-				}
-				if(IsSingleFrameItem) {
-					var IFrame = Item.Body.getElementsByTagName("iframe")[0];
-					IFrame.style[S.SIZE.b] = PageB + "px";
-					IFrame.style[S.SIZE.l] = PageL + "px";
-				}
-				var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
-				Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
-				(function(Z, H, B) {
-					Z = H.clientWidth; Z = H.clientHeight; Z = H.scrollWidth; Z = H.scrollHeight; Z = H.offsetWidth; Z = H.offsetHeight;
-					Z = B.clientWidth; Z = B.clientHeight; Z = B.scrollWidth; Z = B.scrollHeight; Z = B.offsetWidth; Z = B.offsetHeight;
-				})(0, Item.HTML, Item.Body);
-				if(Item.Body["scroll" + S.SIZE.B] > PageB) {
-					S.Paged = true;
-					Item.ColumnBreadth = PageB;
-					Item.ColumnLength  = PageL;
-					Item.ColumnGap     = PageGap;
-					sML.style(Item.HTML, {
-						"column-axis": (S.SLD != "ttb" ? "horizontal" : "vertical"),
-						"column-width": Item.ColumnLength + "px",
-						"column-gap": Item.ColumnGap + "px",
-						"column-rule": ""
-					});
-				}
-				sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
-				var BodyL = Item.Body["scroll" + S.SIZE.L];
-				if(sML.UA.InternetExplorer >= 10) BodyL = Item.Body["client" + S.SIZE.L];
-				var ItemL = IsSingleImageItem ? Math.max(BodyL,  PageL) : BodyL;
-				var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
-				ItemL = (PageL + PageGap) * Pages - PageGap;
-				Spread.style[S.SIZE.l] = Box.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + "px";
-				Item.style[S.SIZE.l] = ItemL + "px";
-				R.MaxSpreadWidth = Math.max(R.MaxSpreadWidth, Spread.offsetWidth);
-				for(var i = 0; i < Pages; i++) {
-					var Page = Box.appendChild(sML.create("span", { className: "page" }));
-					Page.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + S["spread-gap"] / 2 + "px";
-					Page.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + S["spread-gap"] / 2 + "px";
-					Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
-					Page.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
-					Page.style[            S.SIZE.b] = PageB + "px";
-					Page.style[            S.SIZE.l] = PageL + "px";
-					Page.style[            S.BASE.b] = (PageL + PageGap) * i - S["spread-gap"] / 2 + "px";
-					Page.PageIndex         =      R.Pages.length;      R.Pages.push(Page);
-					Page.PageIndexInItem   =   Item.Pages.length;   Item.Pages.push(Page);
-					Page.PageIndexInSpread = Spread.Pages.length; Spread.Pages.push(Page);
-					Page.Item = Item, Page.Box = Box, Page.Spread = Spread;
-				}/*
-				if(Pages > 1) {
-					var LastPage = sML.lastOf(Item.Pages);
-					LastPage.style[        S.BASE.b] = "";
-					LastPage.style[        S.BASE.a] = S["spread-gap"] / 2 * -1 + "px";
-				}*/
-			} else {
-			// -- Pre Pagenated (Fixed Layout)
-				S.Paged = true;
-				Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
-				var PageB  = R.StageSize.PrePagenated.Breadth,  PageL = R.StageSize.PrePagenated.Length;
-				Item.style["padding" + S.BASE.B] = Item.style["padding" + S.BASE.A] = Item.style["padding" + S.BASE.S] = Item.style["padding" + S.BASE.E] = 0;
-				if((S["spread-layout-direction"] == "ttb") && (Ref["page-spread"] == "right" || Ref["page-spread"] == "left")) {
-					PageB = PageB / 2;
-				}
-				var Scale = Math.min(
-					Math.min(Ref["viewport"][S.SIZE.b], PageB) / Ref["viewport"][S.SIZE.b],
-					Math.min(Ref["viewport"][S.SIZE.l], PageL) / Ref["viewport"][S.SIZE.l]
-				);
-				PageL = Math.floor(Ref["viewport"][S.SIZE.l] * Scale);
-				PageB = Math.floor(Ref["viewport"][S.SIZE.b] * (PageL / Ref["viewport"][S.SIZE.l]));
-				Item.style[S.SIZE.l] = Box.style[S.SIZE.l] = PageL + "px";
-				Item.style[S.SIZE.b] = Box.style[S.SIZE.b] = PageB + "px";
-				sML.style(Item.HTML, {
-					"width": Ref["viewport"].width + "px",
-					"height": Ref["viewport"].height + "px",
-					"transform-origin": "0 0",
-					"transform": "scale(" + Scale + ")"
-				});
-				if(!ItemIndex || !Item.Pair || Item.Pair != R.Items[ItemIndex - 1]) {
-					Spread.MarginMore = 0;
-					if(S["spread-layout-direction"] != "ttb") {
-						Spread.style[S.SIZE.b] = PageB + "px";
-						Spread.style[S.SIZE.l] = PageL + "px";
-					} else {
-						Spread.style[S.SIZE.b] = PageB + "px";
-						Spread.style[S.SIZE.l] = PageL + "px";
-						if(!Item.Pair) {
-							     if(Ref["page-spread"] == "right")  Spread.MarginMore = PageB;
-							else if(Ref["page-spread"] == "center") Spread.MarginMore = Math.floor(PageB / 2);
-						}
-					}
-				} else {
-					if(S["spread-layout-direction"] != "ttb") {
-						Spread.style[S.SIZE.l] = (parseInt(Spread.style[S.SIZE.l]) + PageL) + "px";
-					} else {
-						Spread.style[S.SIZE.b] = (parseInt(Spread.style[S.SIZE.b]) + PageB) + "px";
-					}
-				}
-				R.MaxSpreadWidth = Math.max(R.MaxSpreadWidth, Spread.offsetWidth);
-				var Page = Box.appendChild(sML.create("span", { className: "page" }));
-				if(Ref["page-spread"] == "right") Page.style.right = S["spread-gap"] / 2 * -1 + "px";
-				else                              Page.style.left  = S["spread-gap"] / 2 * -1 + "px";
-				Page.style.paddingLeft = Page.style.paddingRight = S["spread-gap"] / 2 + "px";
-				Page.style[S.SIZE.b] = PageB + "px";
-				Page.style[S.SIZE.l] = PageL + "px";
-				Page.PageIndex         =      R.Pages.length;      R.Pages.push(Page);
-				Page.PageIndexInItem   =   Item.Pages.length;   Item.Pages.push(Page);
-				Page.PageIndexInSpread = Spread.Pages.length; Spread.Pages.push(Page);
-				Page.Item = Item, Page.Box = Box, Page.Spread = Spread;
-			}
-		});
-		sML.style(C.Panel.Navigation.Item, { float: "" });
-		if(S.SLD == "rtl") {
-			var theWidth = C.Panel.Navigation.Item.scrollWidth - window.innerWidth;
-			if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
-			C.Panel.Navigation.Box.scrollLeft = C.Panel.Navigation.Box.scrollWidth - window.innerWidth;
+	if(!Param.Target) {
+		Param.Target = {
+			ItemIndex: CurrentPage.Item.ItemIndex,
+			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
 		}
 	}
+	var Target = R.getTarget(Param.Target);
 
-	Target = R.getTarget(Target);
+	if(Param.Setting) O.updateSetting(Param.Setting);
 
-	R.CurrentEdgeSpread = { Head: R.Spreads[0], Foot: R.Spreads[R.Spreads.length - 1] };
+	if(Param.Reset) {
+		S.Paged = false;
+		R.resetStage();
+		sML.each(R.Spreads, function(i) {
+			O.showStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
+			sML.each(this.Items, function() {
+				R.resetItem(this);
+			});
+			R.resetSpread(this);
+		});
+		R.resetPages();
+		R.resetNavigation();
+	}
 
-	// Change Display
 	sML.each(R.Spreads, function() {
-		if(S.SLD == "ttb") this.style.marginLeft = S["spread-margin-start"] + this.MarginMore + "px";//Math.max(S["spread-margin-start"], Math.floor(window.innerWidth - R.MaxSpreadWidth)) + this.MarginMore + "px";
-		var Display = (S.BDM == "all") ? "" : "none";
-		if(S.BDM == "each" && this == Target.Item.Spread) Display = "", R.CurrentEdgeSpread.Head = R.CurrentEdgeSpread.Foot = Target.Item.Spread;
-		this.style.display = Display;
+		R.layoutSpread(this, Target);
 	});
 
-	// Centering Edge Sporeads
-	var FirstSpreadMarginBefore = Math.floor((window["inner" + S.SIZE.L] - R.CurrentEdgeSpread.Head["offset" + S.SIZE.L] - S["spread-gap"]) / 2);
-	var  LastSpreadMarginAfter  = Math.ceil( (window["inner" + S.SIZE.L] - R.CurrentEdgeSpread.Foot["offset" + S.SIZE.L] - S["spread-gap"]) / 2);
-	R.CurrentEdgeSpread.Head.style["margin" + S.BASE.B] = (FirstSpreadMarginBefore > 0 ? FirstSpreadMarginBefore : 0) + "px";
-	R.CurrentEdgeSpread.Foot.style["margin" + S.BASE.A] = ( LastSpreadMarginAfter  > 0 ?  LastSpreadMarginAfter  : 0) + "px";
+	R.focus(Target, { p:1, t:1 });
 
-	if(R.Layouted) R.focus(Target, { p:1, t:1 });
+	if(!Param.NoLog) O.log(2, 'Laid Out.');
+	if(typeof doAfter == "function") doAfter();
 
-	setTimeout(function() {
-		if(!R.Layouted) R.focus(Target, { p:0.5, t:1 });
-		R.LayoutCanceled--;
-		R.Layouted = true;
-		if(!NoLog) O.log(2, 'Laid Out.');
-		setTimeout(function() { R.ResizeTriggerCanceled--; }, 444);
-		if(typeof doAfter == "function") doAfter();
-	}, 888);
+	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
 
 	return S;
 
 }
 
 
+R.resize = function() {
+	if(R.Timer_layout_whenResized) clearTimeout(R.Timer_layout_whenResized);
+	R.Timer_layout_whenResized = setTimeout(function() {
+		var CurrentPage = R.getCurrentPages().Start;
+		R.layout({
+			Reset: true
+		});
+	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
+}
+
+
 R.changeView = function(Setting) {
-	if(!Setting) Setting = {};
-	Setting.Reflesh = (Setting["spread-layout-axis"] || Setting["page-size-format"]);
 	var CurrentPage = R.getCurrentPages().Start;
 	sML.style(R.Contents, {
 		transition: "opacity 0.5s linear",
 		opacity: 0
 	}, function() {
-		R.ResizeTriggerCanceled++;
-		R.layout(Setting, { ItemIndex: CurrentPage.Item.ItemIndex, PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length });
+		R.layout({
+			Setting: Setting,
+			Reset: (Setting["spread-layout-axis"] || Setting["page-size-format"])
+		});
 		setTimeout(function() {
 			sML.style(R.Contents, {
 				transition: "opacity 0.5s linear",
 				opacity: 1
-			}, function() {
-				setTimeout(function() { R.ResizeTriggerCanceled--; }, 444);
 			});
 		}, 100);
 	});
 }
 
-R.changeBookDisplayMode  = function(BDM) { if(BDM != S.BDM) R.changeView({ "book-display-mode":  BDM }); }
-R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.changeView({ "spread-layout-axis": SLA }); }
-R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.changeView({ "page-size-format":   PSF }); }
+R.changeBookDisplayMode  = function(BDM) { if(BDM != S.BDM) R.changeView({ "book-display-mode"  : BDM }); }
+R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.changeView({ "spread-layout-axis" : SLA }); }
+R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.changeView({ "page-size-format"   : PSF }); }
 
 
-R.getTarget = function(T) {
-	     if(typeof T == "string") T = { Edge: T };
-	else if(typeof T == "number") T = { Item: R.Items[T] };
-	if(typeof T != "object" || !T) return null;
-	if(T.tagName) {
-		TargetElement = T, T = {};
-		     if(typeof TargetElement.Items     == "object") T.Item    = TargetElement.Items[0];
-		else if(typeof TargetElement.ItemIndex == "number") T.Item    = TargetElement;
-		else if(typeof TargetElement.PageIndex == "number") T.Page    = TargetElement;
-		else                                                T.Element = TargetElement;
+R.getTarget = function(Target) {
+	     if(typeof Target == "string") Target = { Edge: Target };
+	else if(typeof Target == "number") Target = { Item: R.Items[Target] };
+	if(typeof Target != "object" || !Target) return null;
+	if(Target.tagName) {
+		TargetElement = Target, Target = {};
+		     if(typeof TargetElement.SpreadIndex == "number") Target.Item    = TargetElement.Items[0];
+		else if(typeof TargetElement.ItemIndex   == "number") Target.Item    = TargetElement;
+		else if(typeof TargetElement.PageIndex   == "number") Target.Page    = TargetElement;
+		else                                                  Target.Element = TargetElement;
 	}
-	if(typeof T.Edge == "string") {
-		if(T.Edge == "head") return { Edge: "head", EdgeTRBL: (S.SLD == "ttb" ? "T" : (S.SLD == "rtl" ? "R" : "L")), Item: R.Items[0],                  Page: R.Pages[0] };
-		if(T.Edge == "foot") return { Edge: "foot", EdgeTRBL: (S.SLD == "ttb" ? "B" : (S.SLD == "rtl" ? "L" : "R")), Item: R.Items[R.Items.length - 1], Page: R.Pages[R.Pages.length - 1] };
+	if(typeof Target.Edge == "string") {
+		if(Target.Edge == "head") return { Edge: "head", EdgeTRBL: (S.SLD == "ttb" ? "T" : (S.SLD == "rtl" ? "R" : "L")), Item: R.Items[0],                  Page: R.Pages[0] };
+		if(Target.Edge == "foot") return { Edge: "foot", EdgeTRBL: (S.SLD == "ttb" ? "B" : (S.SLD == "rtl" ? "L" : "R")), Item: R.Items[R.Items.length - 1], Page: R.Pages[R.Pages.length - 1] };
 	}
-	if(!T.Item && typeof T.ItemIndex == "number") T.Item = R.Items[T.ItemIndex];
-	if(T.Element) {
-		if(T.Element.tagName) {
-			var E = T.Element; //while(E.offsetParent) E = E.offsetParent;
-			if(E.ownerDocument.body.Item) T.Item = E.ownerDocument.body.Item; else return null;//if(E.Item) T.Item = E.Item; else return null;
+	if(!Target.Item && typeof Target.ItemIndex == "number") Target.Item = R.Items[Target.ItemIndex];
+	if(Target.Element) {
+		if(Target.Element.tagName) { // In-Frame Content
+			Target.Item = Target.Element.ownerDocument.body.Item ? Target.Element.ownerDocument.body.Item : null;
+		} else if(typeof Target.Element == "string" && Target.Item) { // Selector
+			Target.Element = Target.Item.contentDocument.querySelector(Target.Element);
+			if(!Target.Element) delete Target.Element;
 		}
-		if(typeof T.Element == "string") {
-			if(T.Item) T.Element = T.Item.contentDocument.querySelector(T.Element); else return true;
-			if(!T.Element) delete T.Element;
-		}
-		T.Page = T.Item.Pages[0];
-	} else if(T.Page) {
-		T.Item = T.Page.Item;
-	} else if(typeof T.PageIndexInItem == "number" && T.Item) {
-		T.Page = T.Item.Pages[T.PageIndexInItem];
-	} else if(typeof T.PageProgressInItem == "number" && T.Item) {
-		T.Page = T.Item.Pages[Math.floor(T.Item.Pages.length * T.PageProgressInItem)];
-	} else if(typeof T.PageIndex == "number") {
-		T.Page = R.Pages[T.PageIndex];
-		T.Item = T.Page.Item;
+		Target.Page = Target.Item.Pages[0];
+	} else if(Target.Page) {
+		Target.Item = Target.Page.Item;
+	} else if(typeof Target.PageIndexInItem == "number" && Target.Item) {
+		Target.Page = Target.Item.Pages[Target.PageIndexInItem];
+	} else if(typeof Target.PageProgressInItem == "number" && Target.Item) {
+		Target.Page = Target.Item.Pages[Math.floor(Target.Item.Pages.length * Target.PageProgressInItem)];
+	} else if(typeof Target.PageIndex == "number") {
+		Target.Page = R.Pages[Target.PageIndex];
+		Target.Item = Target.Page.Item;
 	}
-	if(!T.Item) return null;
-	if(!T.Page) T.Page = T.Item.Pages[0];
-	return T;
+	if(!Target.Item) return null;
+	if(!Target.Page) Target.Page = Target.Item.Pages[0];
+	return Target;
 }
 
 
 R.getCurrentPages = function() {
 	var WindowCoord = sML.getCoord(window);
-	var CurrentPages = [], Start = null, Center = null, End = null, Longest = 0, Nearest = WindowCoord[S.SIZE.l] / 2;
+	var CurrentPages = [], CenterPage = null, Longest = 0, Nearest = WindowCoord[S.SIZE.l] / 2;
 	for(var L = R.Pages.length, i = 0; i < L; i++) {
 		if(R.Pages[i].style.display == "none") continue;
 		var PageCoord = sML.getCoord(R.Pages[i]);
@@ -1366,10 +1416,14 @@ R.getCurrentPages = function() {
 		     if(Length <  Longest) { if(!CurrentPages.length) continue; else break; }
 		else if(Length == Longest) CurrentPages.push(R.Pages[i]);
 		else if(Length  > Longest) CurrentPages[0] = R.Pages[i], Longest = Length;
-		if(Distance < Nearest) Center = R.Pages[i], Nearest = Distance;
+		if(Distance < Nearest) CenterPage = R.Pages[i], Nearest = Distance;
 	}
-	Start = CurrentPages[0], End = CurrentPages[CurrentPages.length - 1];
-	return { All: CurrentPages, Start: Start, Center: Center, End: End };
+	return {
+		All:    CurrentPages,
+		Start:  CurrentPages[0],
+		Center: CenterPage,
+		End:    CurrentPages[CurrentPages.length - 1]
+	};
 }
 
 
@@ -1390,7 +1444,13 @@ R.getPageGroup = function(Target) {
 		Pages.reverse();
 		MarginBeforePage += (Length - Target.Page["offset" + S.SIZE.L]);
 	}
-	return { Page: Target.Page, Pages: Pages, Length: Length, MarginBeforeGroup: MarginBeforeGroup, MarginBeforePage: MarginBeforePage };
+	return {
+		Page:              Target.Page,
+		Pages:             Pages,
+		Length:            Length,
+		MarginBeforeGroup: MarginBeforeGroup,
+		MarginBeforePage:  MarginBeforePage
+	};
 }
 
 
@@ -1403,7 +1463,9 @@ R.focus = function(Target, ScrollOption) {
 		return false;
 	}
 	if(S.BDM == "each" && FocusTarget.Spread != R.getCurrentPages().Start.Spread) {
-		R.layout({ Reflesh: false, NoLog: true }, { Item: FocusTarget.Item, PageProgressInItem: FocusTarget.Page.PageIndexInItem / FocusTarget.Item.Pages.length });
+		sML.each(R.Spreads, function() {
+			R.layoutSpread(this, FocusTarget);
+		});
 	}
 	if(S.SLD == "ttb") var TorL = ["Top", "Left"], tORl = ["top", "left"];
 	else               var TorL = ["Left", "Top"], tORl = ["left", "top"];
@@ -1434,24 +1496,6 @@ R.focus = function(Target, ScrollOption) {
 			if((ElementPoint + 8) * S.AXIS.PM < PageBefore * S.AXIS.PM) return false;
 			FocusPoint = PageBefore;
 		});
-		/*
-		// Search TextNode & Index in Element to Select
-		if(typeof TextLocationTarget.TextNodeIndex != "number" && /[^ 　\s\t\r\n]/.test(TextLocationTarget.Element.textContent)) {
-			var TextLocationTargetNode = TextLocationTarget.Element;
-			while(TextLocationTargetNode.childNodes.length) {
-				sML.each(TextLocationTargetNode.childNodes, function(i) {
-					if(/[^ 　\s\t\r\n]/.test(this.textContent)) {
-						TextLocationTargetNode = this;
-						if(this.nodeType == 3) {
-							TextLocationTarget.Element = this.parentNode;
-							TextLocationTarget.TextNodeIndex = i;
-						}
-						return false;
-					}
-				});
-			}
-		}
-		*/
 		if(typeof TextLocationTarget.TextNodeIndex == "number") R.pointTextLocation(TextLocationTarget); // Colorize Target with Selection
 	} else {
 		var FocusTargetPageGroup = R.getPageGroup(FocusTarget);
@@ -1506,13 +1550,13 @@ R.page = function(Distance) {
 	if(S.SLA == "vertical" && TargetPage.Item.Pair) {
 		if(CurrentPage.Item.Pair == TargetPage.Item) TargetPageIndex += (Distance > 0 ? +1 : -1);
 	}
-	if(S.SLA == "horizontal" && TargetPage.Item.Pair) {
+	if(S.SLA == "horizontal" && TargetPage.Item.Pair && window["inner" + S.SIZE.L] > TargetPage.Item[S.SIZE.L] * 2) {
 		if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
 		if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
 	}
 	var wCoord = sML.getCoord(window);
 	if(S.BDM == "each" && TargetPage.Spread != CurrentPage.Spread) {
-		return R.layout({ Reflesh: false, NoLog: true }, { Item: TargetPage.Item, PageProgressInItem: TargetPage.PageIndexInItem / TargetPage.Item.Pages.length });
+		return R.focus(TargetPage, { p:1, t:1 });
 	}
 	return R.focus({ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") });
 }
@@ -1541,132 +1585,54 @@ R.to = function(BibitoString) {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Setting
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-O.updateSetting = function(Setting) {
-
-	if(!Setting || typeof Setting != "object") return S;
-
-	var PrevBDM = S.BDM, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevPSF = S.PSF, PrevPPD = S.PPD;
-
-	// Reset
-	if(Setting.Reset) {
-		for(var Property in S) delete S[Property];
-		for(var Property in P) S[Property] = P[Property];
-		S["page-progression-direction"] = B.Package.Spine["page-progression-direction"];
-		if(S["page-progression-direction"] == "default") S["page-progression-direction"] = P["page-progression-direction"];
-		delete Setting.Reset;
-	}
-	for(var Property in Setting) S[Property] = Setting[Property];
-
-	// Spread Layout Axis
-	if(S["spread-layout-axis"] == "auto")       S["spread-layout-axis"]      = B.Package.Spine["page-progression-direction"];
-	if(S["spread-layout-axis"] == "default")    S["spread-layout-axis"]      = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
-	if(S["spread-layout-axis"] != "vertical")   S["spread-layout-axis"]      = "horizontal";
-
-	// Spread Layout Direction
-	if(S["spread-layout-axis"] == "vertical")   S["spread-layout-direction"] = "ttb";
-	if(S["spread-layout-axis"] == "horizontal") S["spread-layout-direction"] = S["page-progression-direction"] != "rtl" ? "ltr" : "rtl";
-
-	// BackCompat
-	if(sML.UA.InternetExplorer < 11 || sML.UA.Gecko || sML.UA.Opera < 15) {
-		S["book-display-mode"] = "all";
-		S["spread-layout-axis"] = "vertical";
-		S["page-size-format"] = "window";
-	}
-
-	// Shortening
-	S.BDM = S["book-display-mode"];
-	S.SLA = S["spread-layout-axis"];
-	S.SLD = S["spread-layout-direction"];
-	S.PPD = S["page-progression-direction"];
-	S.PSF = S["page-size-format"];
-
-	// Layout Dictionary
-	if(S.SLA == "vertical") {
-		/**/S.SIZE = { b: "width",  B: "Width",  l: "height", L: "Height" };
-		/**/S.AXIS = { XY: "Y",     YX: "X",     PM: +1 };
-		if(S.PPD == "ltr") {
-			S.BASE = { b: "top",    B: "Top",    a: "bottom", A: "Bottom", s: "left", S: "Left", e: "right",  E: "Right",  c: "center", m: "middle" };
-		} else {
-			S.BASE = { b: "top",    B: "Top",    a: "bottom", A: "Bottom", s: "right", S: "Right", e: "left",  E: "Left",  c: "center", m: "middle" };
-		}
-	} else {
-		/**/S.SIZE = { b: "height", B: "Height", l: "width",  L: "Width"  };
-		if(S.PPD == "ltr") {
-			S.AXIS = { XY: "X",     YX: "Y",     PM: +1 };
-			S.BASE = { b: "left",   B: "Left",   a: "right",  A: "Right",  s: "top",  S: "Top",  e: "bottom", E: "Bottom", c: "middle", m: "center" };
-		} else {
-			S.AXIS = { XY: "X",     YX: "Y",     PM: -1 };
-			S.BASE = { b: "right",  B: "Right",  a: "left",   A: "Left",   s: "top",  S: "Top",  e: "bottom", E: "Bottom", c: "middle", m: "center" };
-		}
-	}
-
-	// Root Class
-	if(PrevBDM != S.BDM) { sML.replaceClass(O.HTML, "display-" + PrevBDM, "display-" + S.BDM ); }
-	if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-"  + PrevSLA, "spread-"  + S.SLA ); }
-	if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-"  + PrevSLD, "spread-"  + S.SLD ); }
-	if(PrevPSF != S.PSF) { sML.replaceClass(O.HTML, "page-"    + PrevPSF, "page-"    + S.PSF ); }
-	if(PrevPPD != S.PPD) { sML.replaceClass(O.HTML, "page-"    + PrevPPD, "page-"    + S.PPD ); }
-
-	return S;
-
-}
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Interface
+//-- Controls
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 C.weaveCartain = function() {
 
-	C.Cartain = O.Body.appendChild(sML.create("div", { id: "bibi-cartain",
-		Opened: true, Closed: false,
-		Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
-		OpeningTransition: "0.5s ease-out",
-		ClosingTransition: "0.5s ease-in",
-		open: function(Cb) {
-			if(!this.Closed) return this.close(function() { C.Cartain.open(Cb); });
-			this.Closed = false;
-			this.style.zIndex = 100;
-			sML.style(this, {
-				transition: this.OpeningTransition,
-				transform: "translate" + S.AXIS.XY + "(0)",
-				opacity: 0.75
-			}, function() {
-				this.Message.style.opacity = 1;
-				this.Opened = true;
-				if(typeof Cb == "function") Cb();
-			});
-		},
-		close: function(Cb) {
-			if(!this.Opened) return;
-			this.Opened = false;
-			this.Message.style.opacity = 0;
-			sML.style(this, {
-				transition: this.ClosingTransition,
-				transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * -1 * this.Translate) + "%)",
-				opacity: 0
-			}, function() {
+	C.Cartain = O.Body.appendChild(
+		sML.create("div", { id: "bibi-cartain",
+			State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
+			open: function(Cb) {
+				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
+				this.State = 1;
+				this.style.display = "block";
+				this.style.zIndex = 100;
 				sML.style(this, {
-					transition: "none",
-					transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * this.Translate) + "%)"
+					transition: "0.5s ease-out",
+					transform: "translate" + S.AXIS.XY + "(0)",
+					opacity: 0.75
+				}, function() {
+					if(typeof Cb == "function") Cb();
 				});
-				this.style.zIndex = 1;
-				this.Closed = true;
-				if(typeof Cb == "function") Cb();
-			});
-		}
-	}));
+				return this.State;
+			},
+			close: function(Cb) {
+				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
+				this.State = 0;
+				this.Message.style.opacity = 0;
+				sML.style(this, {
+					transition: "0.5s ease-in",
+					transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * -1 * 240) + "%)",
+					opacity: 0
+				}, function() {
+					sML.style(this, {
+						transition: "none",
+						transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * 240) + "%)"
+					});
+					this.style.zIndex = 1;
+					this.style.display = "none";
+					if(typeof Cb == "function") Cb();
+				});
+				return this.State;
+			},
+			toggle: function(Cb) {
+				return (this.State == 0 ? this.open(Cb) : this.close(Cb));
+			}
+		})
+	);
 
 	C.Cartain.Cover   = C.Cartain.appendChild(sML.create("div", { id: "bibi-cartain-cover" }));
 	C.Cartain.Mark    = C.Cartain.appendChild(sML.create("p",   { id: "bibi-cartain-mark",    className: "animate" }));
@@ -1729,35 +1695,45 @@ C.createPanel = function() {
 	if(C.Panel) C.Panel.innerHTML = "";
 	else C.Panel = O.Body.appendChild(
 		sML.create("div", { id: "bibi-panel",
-			Opened: false,
-			toggle: function(Cb) {
-				var TranslateAxis = (S["spread-layout-direction"] == "ttb" ? "X" : "Y");
-				if(!this.Opened) {
-					sML.style(C.Panel, { transition: "0.2s ease-in" });
-					sML.style(R.Contents, { transition: "0.2s ease-in" });
-					sML.addClass(O.HTML, "bibi-panel-opened");
-				} else {
-					sML.style(C.Panel, { transition: "0.2s ease-out" });
-					sML.style(R.Contents, { transition: "0.2s ease-out" });
-					sML.removeClass(O.HTML, "bibi-panel-opened");
-				}
+			State: 0,
+			open: function(Cb) {
+				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
+				this.State = 1;
+				C.Switches.Panel.toggleState(this.State);
+				sML.style(C.Panel, { transition: "0.2s ease-in" });
+				sML.style(R.Contents, { transition: "0.2s ease-in" });
+				sML.addClass(O.HTML, "bibi-panel-opened");
 				setTimeout(Cb, 250);
-				this.Opened = (!this.Opened);
+				return this.State;
+			},
+			close: function(Cb) {
+				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
+				this.State = 0;
+				C.Switches.Panel.toggleState(this.State);
+				sML.style(C.Panel, { transition: "0.2s ease-out" });
+				sML.style(R.Contents, { transition: "0.2s ease-out" });
+				sML.removeClass(O.HTML, "bibi-panel-opened");
+				setTimeout(Cb, 250);
+				return this.State;
+			},
+			toggle: function(Cb) {
+				return (this.State == 0 ? this.open(Cb) : this.close(Cb));
 			}
 		})
 	);
 
 	C.Panel.Misc = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-misc", innerHTML: O.getLogo({ Linkify: true }) }));
 
-	C.Panel.Navigation      = C.Panel.appendChild(               sML.create("div", { id: "bibi-panel-navigation" }));
-	C.Panel.Navigation.Box  = C.Panel.Navigation.appendChild(    sML.create("div", { id: "bibi-panel-navigation-box", onclick: function() { C.Panel.toggle(); } }));
-	C.Panel.Navigation.Item = C.Panel.Navigation.Box.appendChild(sML.create("div", { id: "bibi-panel-navigation-item" }));
+	C.Panel.Navigation         = C.Panel.appendChild(                   sML.create("div", { id: "bibi-panel-navigation" }));
+	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(        sML.create("div", { id: "bibi-panel-navigation-item-box", onclick: function() { C.Panel.toggle(); } }));
+	C.Panel.Navigation.Item    = C.Panel.Navigation.ItemBox.appendChild(sML.create("div", { id: "bibi-panel-navigation-item" }));
 
 	C.Panel.Menu = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu" }));
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
-	if(sML.UA.InternetExplorer < 12 || sML.UA.Gecko || sML.UA.Opera < 15) return;
+	if(sML.UA.InternetExplorer < 12 || sML.UA.Opera < 15) return;
+	if(sML.UA.Gecko) return;
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -1804,80 +1780,90 @@ C.createPanel = function() {
 C.createSwitches = function() {
 
 	if(C.Switches) C.Switches.innerHTML = "";
-	else C.Switches = O.Body.appendChild(
-		sML.create("div", { id: "bibi-switches",
-			changeLabel: function(Switch, Label) {
-				Switch.title = Label;
-				Switch.innerHTML = '<span class="non-visual">' + Label + '</span>';
-			}
-		}, {
-			"transition": "opacity 0.75s linear"
-		})
-	);
+	else           C.Switches = O.Body.appendChild(sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" }));
+
+	var toggleState = function(State) {
+		this.State = typeof State == "number" ? State : Math.abs(this.State - 1);
+		var Language = B.Package.Metadata["languages"][0].split("-")[0];
+		var Label = (Language && Language != "en" ? this.Labels[this.State][Language] + " / " : "") + this.Labels[this.State]["en"];
+		this.title = Label;
+		this.innerHTML = '<span class="non-visual">' + Label + '</span>';
+		return this.State;
+	}
 
 	C.Switches.Panel = C.Switches.appendChild(
-		sML.create("span", { id: "bibi-switches-panel",
+		sML.create("span", { className: "bibi-switches-switch", id: "bibi-switches-panel",
+			State: 0,
 			Labels: [
-				(B.Package.Metadata["languages"][0] == "ja" ? 'メニューを開く'   :  'Open Menu'),
-				(B.Package.Metadata["languages"][0] == "ja" ? 'メニューを閉じる' : 'Close Menu')
+				{ ja: 'メニューを開く',   en: 'Open Menu'  },
+				{ ja: 'メニューを閉じる', en: 'Close Menu' }
 			],
-			onclick: function() { C.Panel.toggle(); }
-		}, {
-			//display: "none"
+			toggleState: toggleState,
+			onclick: function() { return C.Panel.toggle(); }
 		})
 	);
-
-	C.Switches.NewWindow = C.Switches.appendChild(
-		sML.create("a", { id: "bibi-switches-newwindow",
-			Labels: [
-				(B.Package.Metadata["languages"][0] == "ja" ? '新しいウィンドウで開く' : 'Open in New Window')
-			],
-			href: location.href.replace(/&wait=[^&]+/g, ""),
-			target: "_blank"
-		}, {
-			display: "none"
-		})
-	);
-	if(parent != window) C.Switches.NewWindow.style.display = "";
-	else sML.addClass(O.HTML, "not-embeded");
 
 	C.Switches.FullScreen = C.Switches.appendChild(
-		sML.create("span", { id: "bibi-switches-fullscreen",
-			On: false,
+		sML.create("span", { className: "bibi-switches-switch", id: "bibi-switches-fullscreen",
+			State: 0,
 			Labels: [
-				(B.Package.Metadata["languages"][0] == "ja" ? 'フルスクリーンモードを開始' : 'Enter Full-Screen'),
-				(B.Package.Metadata["languages"][0] == "ja" ? 'フルスクリーンモードを終了' :  'Exit Full-Screen')
+				{ ja: 'フルスクリーンモードを開始', en: 'Enter Full-Screen' },
+				{ ja: 'フルスクリーンモードを終了', en:  'Exit Full-Screen' }
 			],
+			toggleState: toggleState,
 			enter: function(Cb) {
-				this.On = true;
+				this.toggleState(1);
 				sML.requestFullScreen(parent != window ? O.ParentFrame : null);
 				setTimeout(function() {
-					C.Switches.changeLabel(C.Switches.FullScreen, C.Switches.FullScreen.Labels[1]);
 					sML.addClass(   O.HTML, "bibi-fullscreen");
 					if(typeof Cb == "function") Cb();
 				}, 200);
 			},
 			exit: function(Cb) {
-				this.On = false;
+				this.toggleState(0);
 				sML.exitFullScreen(parent.document);
 				setTimeout(function() {
-					C.Switches.changeLabel(C.Switches.FullScreen, C.Switches.FullScreen.Labels[0]);
 					sML.removeClass(O.HTML, "bibi-fullscreen");
 					if(typeof Cb == "function") Cb();
 				}, 200);
 			},
 			toggle: function(Cb) {
-				!this.On ? this.enter(Cb) : this.exit(Cb);
+				return (this.State == 0 ? this.enter(Cb) : this.exit(Cb));
 			},
 			onclick: function() { this.toggle(); }
 		}, {
-			display: "none"
+			display: (function() {
+				try {
+					if(sML.fullScreenEnabled(parent.document)) return "";
+					else throw new Error();
+				} catch(e) {
+					sML.addClass(O.HTML, "not-enabled-full-screen");
+					return "none";
+				}
+			})()
 		})
 	);
-	if(sML.fullScreenEnabled(parent.document)) C.Switches.FullScreen.style.display = "";
-	else sML.addClass(O.HTML, "not-enabled-full-screen");
 
-	sML.each([C.Switches.Panel, C.Switches.NewWindow, C.Switches.FullScreen], function() { C.Switches.changeLabel(this, this.Labels[0]); });
+	C.Switches.NewWindow = C.Switches.appendChild(
+		sML.create("a", { className: "bibi-switches-switch", id: "bibi-switches-newwindow",
+			href: location.href.replace(/&wait=[^&]+/g, ""),
+			target: "_blank",
+			Labels: [
+				{ ja: '新しいウィンドウで開く', en: 'Open in New Window' }
+			],
+			toggleState: toggleState
+		}, {
+			display: (function() {
+				if(parent != window) return "";
+				else {
+					sML.addClass(O.HTML, "not-embeded");
+					return "none";
+				}
+			})()
+		})
+	);
+
+	sML.each(C.Switches.getElementsByClassName("bibi-switches-switch"), function() { this.toggleState(0); });
 
 }
 
@@ -1889,8 +1875,8 @@ C.createArrows = function() {
 		sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
 	);
 
-	C.Arrows.Back    =   C.Arrows.appendChild(sML.create("div", { title: "Back",    className: "bibi-arrows", id: "bibi-arrows-back",    onclick: function() { R.page(-1); } }));
-	C.Arrows.Forward =   C.Arrows.appendChild(sML.create("div", { title: "Forward", className: "bibi-arrows", id: "bibi-arrows-forward", onclick: function() { R.page(+1); } }));
+	C.Arrows.Back    =   C.Arrows.appendChild(sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",    onclick: function() { R.page(-1); } }));
+	C.Arrows.Forward =   C.Arrows.appendChild(sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", onclick: function() { R.page(+1); } }));
 
 	sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
 		this.addEventListener("mouseover", function() { if(this.clickedTimer) clearTimeout(this.clickedTimer); sML.addClass(this, "shown"); });
@@ -1906,20 +1892,104 @@ C.createArrows = function() {
 }
 
 
-C.listenKeys = function() {
+C.listenKeys = function(e) {
+	if(!R.Started) return;
+	var Window = (parent != window && parent.Bibi) ? parent : window;
+	Window.C.KeyCode = e.keyCode;
+	var Dir = null; //                                                        W                          N                          E                          S
+	/**/ if(S["spread-layout-direction"] == "ttb") switch(e.keyCode) {  case 37: Dir =  0; break;  case 38: Dir = -1; break;  case 39: Dir =  0; break;  case 40: Dir = +1; break;  }
+	else if(S["spread-layout-direction"] == "ltr") switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir =  0; break;  case 39: Dir = +1; break;  case 40: Dir =  0; break;  }
+	else if(S["spread-layout-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir =  0; break;  case 39: Dir = -1; break;  case 40: Dir =  0; break;  }
+	switch(Dir) {
+		case -1: return Window.R.page(-1);
+		case +1: return Window.R.page(+1);
+		case  0: return Window.C.Panel.toggle();
+	}
+}
 
-	window.addEventListener("keydown", function(e) {
-		C.KeyCode = e.keyCode;
-		var Dir = null; //                                                        W                          N                          E                          S
-		/**/ if(S["spread-layout-direction"] == "ttb") switch(e.keyCode) {  case 37: Dir =  0; break;  case 38: Dir = -1; break;  case 39: Dir =  0; break;  case 40: Dir = +1; break;  }
-		else if(S["spread-layout-direction"] == "ltr") switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir =  0; break;  case 39: Dir = +1; break;  case 40: Dir =  0; break;  }
-		else if(S["spread-layout-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir =  0; break;  case 39: Dir = -1; break;  case 40: Dir =  0; break;  }
-		switch(Dir) {
-			case -1: return R.page(-1);
-			case +1: return R.page(+1);
-			case  0: return C.Panel.toggle();
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Setting
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+O.updateSetting = function(Setting) {
+
+	if(typeof Setting != "object") return S;
+
+	var PrevBDM = S.BDM, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevPSF = S.PSF, PrevPPD = S.PPD;
+
+	// Reset
+	if(Setting.Reset) {
+		for(var Property in S) delete S[Property];
+		for(var Property in P) S[Property] = P[Property];
+		S["page-progression-direction"] = B.Package.Spine["page-progression-direction"];
+		if(S["page-progression-direction"] == "default") S["page-progression-direction"] = P["page-progression-direction"];
+		delete Setting.Reset;
+	}
+	for(var Property in Setting) S[Property] = Setting[Property];
+
+	// BackCompat
+	if(sML.UA.InternetExplorer < 11 || sML.UA.Opera < 15) {
+		S["book-display-mode"] = "all";
+		S["spread-layout-axis"] = "vertical";
+		S["page-size-format"] = "window";
+	}
+	if(sML.UA.Gecko) {
+		S["book-display-mode"] = "all";
+		S["spread-layout-axis"] = "vertical";
+		S["page-size-format"] = "window";
+	}
+
+	// Spread Layout Axis
+	if(S["spread-layout-axis"] == "auto")       S["spread-layout-axis"]      = B.Package.Spine["page-progression-direction"];
+	if(S["spread-layout-axis"] == "default")    S["spread-layout-axis"]      = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
+	if(S["spread-layout-axis"] != "vertical")   S["spread-layout-axis"]      = "horizontal";
+
+	// Spread Layout Direction
+	if(S["spread-layout-axis"] == "vertical")   S["spread-layout-direction"] = "ttb";
+	if(S["spread-layout-axis"] == "horizontal") S["spread-layout-direction"] = S["page-progression-direction"] != "rtl" ? "ltr" : "rtl";
+
+	// Shortening
+	S.BDM = S["book-display-mode"];
+	S.SLA = S["spread-layout-axis"];
+	S.SLD = S["spread-layout-direction"];
+	S.PPD = S["page-progression-direction"];
+	S.PSF = S["page-size-format"];
+
+	// Layout Dictionary
+	if(S.SLA == "vertical") {
+		/**/S.SIZE = { b: "width",  B: "Width",  l: "height", L: "Height", w: "breadth", W: "Breadth", h: "length",  H: "Length" };
+		/**/S.AXIS = { XY: "Y",     YX: "X",     PM: +1 };
+		if(S.PPD == "ltr") {
+			S.BASE = { b: "top",    B: "Top",    a: "bottom", A: "Bottom", s: "left",    S: "Left",    e: "right",   E: "Right",  c: "center", m: "middle" };
+		} else {
+			S.BASE = { b: "top",    B: "Top",    a: "bottom", A: "Bottom", s: "right",   S: "Right",   e: "left",    E: "Left",   c: "center", m: "middle" };
 		}
-	}, false);
+	} else {
+		/**/S.SIZE = { b: "height", B: "Height", l: "width",  L: "Width",  w: "length",  W: "Length",  h: "breadth", H: "Breadth" };
+		if(S.PPD == "ltr") {
+			S.AXIS = { XY: "X",     YX: "Y",     PM: +1 };
+			S.BASE = { b: "left",   B: "Left",   a: "right",  A: "Right",  s: "top",     S: "Top",     e: "bottom",  E: "Bottom", c: "middle", m: "center" };
+		} else {
+			S.AXIS = { XY: "X",     YX: "Y",     PM: -1 };
+			S.BASE = { b: "right",  B: "Right",  a: "left",   A: "Left",   s: "top",     S: "Top",     e: "bottom",  E: "Bottom", c: "middle", m: "center" };
+		}
+	}
+
+	// Root Class
+	if(PrevBDM != S.BDM) { sML.replaceClass(O.HTML, "display-" + PrevBDM, "display-" + S.BDM ); }
+	if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-"  + PrevSLA, "spread-"  + S.SLA ); }
+	if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-"  + PrevSLD, "spread-"  + S.SLD ); }
+	if(PrevPSF != S.PSF) { sML.replaceClass(O.HTML, "page-"    + PrevPSF, "page-"    + S.PSF ); }
+	if(PrevPPD != S.PPD) { sML.replaceClass(O.HTML, "page-"    + PrevPPD, "page-"    + S.PPD ); }
+
+	return S;
 
 }
 
@@ -1939,23 +2009,10 @@ O.readExtra = function() {
 	Q = sML.getQueries(), H = O.parseHash(), X = {};
 	if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]bibi_x\([^\)]*\)$/g, ""));
 
-	// Back Compat.
-	Q = (function(Queries, Book, BiBi) {
-		Q.BDM = Q["book-display-mode"]       || Q["dm"];
-		Q.SLA = Q["spread-layout-direction"] || Q["sd"];
-		Q.PSF = Q["page-size-format"]        || Q["po"];
-		if(Q["preset"]) BiBi.push("preset:" + Q["preset"]);
-		if(Q.BDM) BiBi.push(Q.BDM);
-		if(Q.SLA) BiBi.push(Q.SLA);
-		if(Q.PSF) BiBi.push(Q.PSF);
-		if(BiBi.length) Queries["bibi"] = BiBi.join(",");
-		Queries.book = Book;
-		return Queries;
-	})({}, Q["book"], []);
-	if(history.replaceState) history.replaceState(null, null, location.href.replace(/[#\,]$/, "").replace(/(\?book=[^&#]+)[^#]*(#.+)?$/g, "$1$2"));
-	if(!H["bibi"] && Q["bibi"]) {
-		H["bibi"] = Q["bibi"];
-		if(history.replaceState) history.replaceState(null, null, location.href + (location.hash ? "," : "#") + "bibi(" + H["bibi"] + ")");
+	if(!Q["book"]) {
+		var PathFragments = location.pathname.split("/");
+		var BibiFileName = PathFragments[PathFragments.length - 1];
+		if(BibiFileName != "" && BibiFileName != "index.html") Q["book"] = BibiFileName.replace(/\.html$/, "");
 	}
 
 	X.Wait = true;

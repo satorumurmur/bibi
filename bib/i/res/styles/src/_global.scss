@@ -6,16 +6,16 @@
 // - HTML / Body
 // --------------------------------------------------------------------------------
 
-html#bibi,
-html#bibi body {
+html,
+html body {
 	width: 100%;
 	height: 100%;
 	position: relative;
 }
 
-html#bibi {
+html {
 	overflow: hidden;
-	font-family: "Helvetica", "Trebuchet MS";
+	font-family: "Helvetica", "Trebuchet MS", sans-serif;
 	-webkit-font-smoothing: subpixel-antialiased;
 	background: black;
 	&.spread-vertical {
