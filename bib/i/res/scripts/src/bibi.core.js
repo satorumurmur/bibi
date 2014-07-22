@@ -130,10 +130,11 @@ O.initialize = function() {
 		if(X.BDM && /^(all|each)$/.test(                 X.BDM)) P["book-display-mode" ] = X.BDM;
 		if(X.SLA && /^(horizontal|vertical)$/.test(      X.SLA)) P["spread-layout-axis"] = X.SLA;
 		if(X.PSF && /^(portrait|landscape|window)$/.test(X.PSF)) P["page-size-format"  ] = X.PSF;
+		if(P.FileName !== "default.js") O.updateSetting(P);
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
-		applyPreset();
 		P.FileName = "default.js";
+		applyPreset();
 	} else if(P.FileName != PresetFileName) {
 		P.loaded = false;
 		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
