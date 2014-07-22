@@ -11,7 +11,7 @@ Bibi = { /*!
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  *  - Fri July 4 09:00:00 2014 +0900
- */    Version: 0.997, Build: 20140704.0
+ */    Version: 0.997, Build: 20140721.0
 }
 
 
@@ -136,8 +136,8 @@ O.initialize = function() {
 		}
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
+		P.FileName = "default.js";		
 		applyPreset();
-		P.FileName = "default.js";
 	} else if(P.FileName != PresetFileName) {
 		P.loaded = false;
 		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
