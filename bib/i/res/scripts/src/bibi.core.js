@@ -1291,6 +1291,7 @@ R.layout = function(Param) {
 	}
 
 	if(!Param.Target) {
+		var CurrentPage = R.getCurrentPages().Start;
 		Param.Target = {
 			ItemIndex: CurrentPage.Item.ItemIndex,
 			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
@@ -1333,7 +1334,6 @@ R.layout = function(Param) {
 R.resize = function() {
 	if(R.Timer_layout_whenResized) clearTimeout(R.Timer_layout_whenResized);
 	R.Timer_layout_whenResized = setTimeout(function() {
-		var CurrentPage = R.getCurrentPages().Start;
 		R.layout({
 			Reset: true
 		});
@@ -1342,7 +1342,6 @@ R.resize = function() {
 
 
 R.changeView = function(Setting) {
-	var CurrentPage = R.getCurrentPages().Start;
 	sML.style(R.Contents, {
 		transition: "opacity 0.5s linear",
 		opacity: 0
