@@ -810,6 +810,24 @@ L.postprocessItem = function(Item) {
 
 	sML.each(Item.Body.getElementsByTagName("link"), function() { Item.Head.appendChild(this); });
 
+	// Writing Mode for Internet Explorer
+	if(sML.UA.InternetExplorer < 12) {
+		sML.each(Item.contentDocument.styleSheets, function () {
+			for(var L = this.cssRules.length, i = 0; i < L; i++) {
+				var CSSRule = this.cssRules[i];
+				if(CSSRule.styleSheet) {
+					arguments.callee.call(CSSRule.styleSheet);
+					continue;
+				}
+				if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) {
+					CSSRule.style.writingMode = "tb-rl";
+				} else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) {
+					CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+				}
+			}
+		});
+	}
+
 	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
 	if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
 
