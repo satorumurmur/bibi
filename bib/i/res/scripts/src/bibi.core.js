@@ -560,14 +560,14 @@ L.readPackageDocument = function() {
 
 	O.updateSetting({ Reset: true });
 
-	L.prepareSpineItems();
+	L.prepareSpine();
 
 }
 
 
-L.prepareSpineItems = function() {
+L.prepareSpine = function() {
 
-	O.log(2, 'Preparing Spine Items...');
+	O.log(2, 'Preparing Spine...');
 
 	R.Contents.innerHTML = "";
 
@@ -602,6 +602,7 @@ L.prepareSpineItems = function() {
 			if(ItemRef["rendition:layout"] == "pre-paginated") sML.addClass(SpreadBox, "pre-paginated");
 			Spread.SpreadBox = SpreadBox;
 			Spread.Items = [];
+			Spread.Pages = [];
 			Spread.SpreadIndex = R.Spreads.length;
 			R.Spreads.push(Spread);
 		}
@@ -611,6 +612,7 @@ L.prepareSpineItems = function() {
 		// Item: B
 		Item.Spread = Spread;
 		Item.ItemBox = ItemBox;
+		Item.Pages = [];
 		Item.ItemIndexInSpread = Spread.Items.length; Spread.Items.push(Item);
 		Item.ItemIndex         =      R.Items.length;      R.Items.push(Item);
 	});
@@ -996,7 +998,7 @@ L.start = function() {
 
 	L.shutUpLoading();
 
-	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
+	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	window.addEventListener("keydown", C.listenKeys, false);
 
 	R.Started = true;
@@ -1145,12 +1147,7 @@ R.resetItem_Reflowable = function(Item) {
 		Page.Item = Item, Page.Spread = Spread;
 		Page.PageIndexInItem = Item.Pages.length;
 		Item.Pages.push(Page);
-	}/*
-	if(Pages > 1) {
-		var LastPage = sML.lastOf(Item.Pages);
-		LastPage.style[        S.BASE.b] = "";
-		LastPage.style[        S.BASE.a] = S["spread-gap"] / 2 * -1 + "px";
-	}*/
+	}
 	return Item;
 }
 
@@ -1181,12 +1178,8 @@ R.resetItem_PrePagenated = function(Item) {
 		"transform": "scale(" + Scale + ")"
 	});
 	var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
-	//if(ItemRef["page-spread"] == "right") Page.style.right = S["spread-gap"] / 2 * -1 + "px";
-	//else                                  Page.style.left  = S["spread-gap"] / 2 * -1 + "px";
-	//Page.style.paddingLeft    = Page.style.paddingRight    = S["spread-gap"] / 2 + "px";
 	if(ItemRef["page-spread"] == "right") Page.style.right = 0;
 	else                                  Page.style.left  = 0;
-	//Page.style.paddingLeft    = Page.style.paddingRight    = S["spread-gap"] / 2 + "px";
 	Page.style[S.SIZE.b] = PageB + "px";
 	Page.style[S.SIZE.l] = PageL + "px";
 	Page.Item = Item, Page.Spread = Spread;
@@ -1279,7 +1272,7 @@ R.layoutSpread = function(Spread, Target) {
 
 R.layout = function(Param) {
 
-	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
+	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 
 	if(!Param) Param = {};
 
@@ -1297,7 +1290,7 @@ R.layout = function(Param) {
 			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
 		}
 	}
-	var Target = R.getTarget(Param.Target);
+	Param.Target = R.getTarget(Param.Target);
 
 	if(Param.Setting) O.updateSetting(Param.Setting);
 
@@ -1316,22 +1309,22 @@ R.layout = function(Param) {
 	}
 
 	sML.each(R.Spreads, function() {
-		R.layoutSpread(this, Target);
+		R.layoutSpread(this, Param.Target);
 	});
 
-	R.focus(Target, { p:1, t:1 });
+	R.focus(Param.Target, { p:1, t:1 });
 
 	if(!Param.NoLog) O.log(2, 'Laid Out.');
 	if(typeof doAfter == "function") doAfter();
 
-	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.resize);
+	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 
 	return S;
 
 }
 
 
-R.resize = function() {
+R.onresize = function() {
 	if(R.Timer_layout_whenResized) clearTimeout(R.Timer_layout_whenResized);
 	R.Timer_layout_whenResized = setTimeout(function() {
 		R.layout({
