@@ -1204,8 +1204,14 @@ R.resetSpread = function(Spread) {
 	Spread.style["box-shadow"]    = S["spread-box-shadow"];
 }
 
-R.resetPages = function() { R.Pages = [];
-	R.Spreads.forEach(function(Spread) { Spread.Pages = [];
+R.resetPages = function() {
+	R.Pages.forEach(function(Page) {
+		Page.parentNode.removeChild(Page);
+		delete Page;
+	});
+	R.Pages = [];
+	R.Spreads.forEach(function(Spread) {
+		Spread.Pages = [];
 		Spread.Items.forEach(function(Item) {
 			Item.Pages.forEach(function(Page) {
 				Page.PageIndexInSpread = Spread.Pages.length; Spread.Pages.push(Page);
@@ -1290,7 +1296,6 @@ R.layout = function(Param) {
 			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
 		}
 	}
-	Param.Target = R.getTarget(Param.Target);
 
 	if(Param.Setting) O.updateSetting(Param.Setting);
 
@@ -1307,6 +1312,8 @@ R.layout = function(Param) {
 		R.resetPages();
 		R.resetNavigation();
 	}
+
+	Param.Target = R.getTarget(Param.Target);
 
 	sML.each(R.Spreads, function() {
 		R.layoutSpread(this, Param.Target);
