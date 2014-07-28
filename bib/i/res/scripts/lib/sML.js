@@ -10,8 +10,8 @@ sML = (function() { var sML = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/sML
  *  _ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Mon July 14 13:25:00 2014 +0900
- */    Version: 0.9996, Build: 20140714.0
+ *  - Mon July 28 23:26:00 2014 +0900
+ */    Version: 0.9997, Build: 20140728.0
 }
 
 
@@ -347,8 +347,14 @@ sML.replaceClass = sML.replaceClassName = function(E, RCN, ACN) {
 };
 
 sML.appendChildren = function(Es, P) {
-	for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
+	if(!Es.length) P.appendChild(Es);
+	else for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
 	return Es;
+};
+
+sML.appendTo = function(Es, P) {
+	sML.appendChildren(Es, P);
+	return P;
 };
 
 sML.insertBefore = function(E, S) {
@@ -1111,9 +1117,9 @@ sML.foreach = function(O, F, pThis) {
 	return O;
 };
 
-sML.each = function(O, F, iN, LN) {
-	for(var L = (LN ? LN : O.length), i = (iN ? iN : 0); i < L; i++) if(F.call(O[i], i, O) === false) break;
-	return O;
+sML.each = function(C, F, SI, LI) {
+	for(var L = (LI ? LI + 1 : C.length), i = (SI ? SI : 0); i < L; i++) if(F.call(C[i], i, C) === false) break;
+	return C;
 };
 
 sML.firstOf = function(A) {
