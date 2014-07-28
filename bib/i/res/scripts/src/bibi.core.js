@@ -1796,7 +1796,7 @@ C.createSwitches = function() {
 	var toggleState = function(State) {
 		this.State = typeof State == "number" ? State : Math.abs(this.State - 1);
 		var Language = B.Package.Metadata["languages"][0].split("-")[0];
-		var Label = (Language && Language != "en" ? this.Labels[this.State][Language] + " / " : "") + this.Labels[this.State]["en"];
+		var Label = (Language && /^(ja)$/.test(Language) ? this.Labels[this.State][Language] + " / " : "") + this.Labels[this.State]["en"];
 		this.title = Label;
 		this.innerHTML = '<span class="non-visual">' + Label + '</span>';
 		return this.State;
