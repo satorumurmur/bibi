@@ -10,7 +10,7 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Mon July 21 23:05:00 2014 +0900
+ *  - Fri July 25 23:00:00 2014 +0900
  */    Version: 0.997, Build: 20140721.0
 }
 
@@ -112,15 +112,6 @@ O.initialize = function() {
 	R.CoverImage = null;
 	R.Navigation = null;
 
-	/*
-	sML.each(["Panel", "Switches", "Arrows"], function() {
-		if(C[this]) {
-			C[this].parentNode.removeChild(C[this]);
-			delete C[this];
-		}
-	});
-	*/
-
 	var PresetFileName = (typeof X.Preset == "string" && X.Preset && !/\//.test(X.Preset)) ? X.Preset.replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
 		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
@@ -212,7 +203,7 @@ L.requestDocument = function(Path) {
 L.getBook = function(BookFileName) {
 
 	var loadFile = function(BookFile) {
-		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)/* || BookFile.type != "application/epub+zip"*/) {
+		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
 			Q = H = X = {};
