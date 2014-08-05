@@ -120,18 +120,16 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 ### BiB/i
 
-#copy; Satoru MATSUSHIMA - http://sarasa.la/bib/i
+&copy; Satoru MATSUSHIMA - http://sarasa.la/bib/i
 Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
 ### BiB/i is including these softwares
 
-<dl>
-	<dt><a href="http://stuartk.com/jszip">JSZip</a></dt><dd>&copy; Stuart Knightley (Dual licenced under the MIT license or GPLv3.)</dd>
-	<dt><a href="https://github.com/dankogai/js-base64">base64.js</a></dt><dd>&copy; dankogai (Licensed under the MIT license.)</dd>
-	<dt><a href="http://fortawesome.github.io/Font-Awesome/">Font Awesome 4.0.3</a></dt><dd>&copy; Dave Gandy (Licensed under SIL Open Font License.)</dd>
-	<dt><a href="http://zurb.com/playground/foundation-icon-fonts-3">Foundation Icons v 3.0</a></dt><dd>&copy; ZURB (Licensed under the MIT license.)</dd>
-	<dt><a href="http://sarasa.sm/sML">sML</a></dt><dd>&copy; Satoru MATSUSHIMA (Licensed under the MIT license.)</dd>
-</dl>
+* [JSZip](http://stuartk.com/jszip) &copy; Stuart Knightley (Dual licenced under the MIT license or GPLv3.)
+* [base64.js](https://github.com/dankogai/js-base64) &copy; dankogai (Licensed under the MIT license.)
+* [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) &copy; Dave Gandy (Licensed under SIL Open Font License.)
+* [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) &copy; ZURB (Licensed under the MIT license.)
+* [sML](http://sarasa.sm/sML) &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 
 
