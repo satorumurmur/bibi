@@ -110,7 +110,6 @@ Following files are not watched or processed by Grunt tasks:
 * Files in `bib/i/res/fonts/` (icon fonts)
 
 And `bib/bookshelf/` directory is including `.gitkeep`
-```
 
 
 
