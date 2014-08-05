@@ -126,7 +126,7 @@ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license
 
 ### BiB/i is including these softwares
 
-* [JSZip](http://stuartk.com/jszip) &copy; Stuart Knightley (Dual licenced under the MIT license or GPLv3.)
+* [JSZip](http://stuartk.com/jszip) &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) &copy; dankogai (Licensed under the MIT license.)
 * [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) &copy; Dave Gandy (Licensed under SIL Open Font License.)
 * [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) &copy; ZURB (Licensed under the MIT license.)
