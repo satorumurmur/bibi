@@ -7,8 +7,8 @@ sML = (function() { var sML = { /*!
  *  # sML JavaScript Library
  *
  *  - "I'm a Simple and Middling Library."
- *  - (c) Satoru MATSUSHIMA - http://sarasa.la/sML
- *  _ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *  - Copyright (c) Satoru MATSUSHIMA - http://sarasa.la/sML
+ *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  *  - Mon July 28 23:26:00 2014 +0900
  */    Version: 0.9997, Build: 20140728.0
@@ -1295,27 +1295,40 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.fullScreenEnabled = function(D) {
-	if(!D) D = document;
-	return ((D.body.requestFullScreen || D.body.webkitRequestFullScreen || D.body.mozRequestFullScreen || D.body.msRequestFullscreen || D.body.oRequestFullScreen) ? true : false);
-};
-
-sML.requestFullScreen = function(E) {
+sML.requestFullscreen = function(E) {
 	if(!E) E = document.documentElement || document.body;
+	if(E.requestFullscreen)       return E.requestFullscreen();
 	if(E.requestFullScreen)       return E.requestFullScreen();
+	if(E.webkitRequestFullscreen) return E.webkitRequestFullscreen();
 	if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
+	if(E.mozRequestFullscreen)    return E.mozRequestFullscreen();
 	if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
 	if(E.msRequestFullscreen)     return E.msRequestFullscreen();
-	if(E.oRequestFullScreen)      return E.oRequestFullScreen();
+	return false;
 };
 
-sML.exitFullScreen = function(D) {
+sML.exitFullscreen = function(D) {
 	if(!D) D = document;
+	if(D.exitFullscreen)          return D.exitFullscreen();
 	if(D.cencelFullScreen)        return D.cancelFullScreen();
+	if(D.webkitExitFullscreen)    return D.webkitExitFullscreen();
 	if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
+	if(D.mozExitFullscreen)       return D.mozExitFullscreen();
 	if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
 	if(D.msExitFullscreen)        return D.msExitFullscreen();
-	if(D.oCancelFullScreen)       return D.oCancelFullScreen();
+	return false;
+};
+
+sML.getFullscreenElement = function(D) {
+	if(!D) D = document;
+	if(D.fullscreenElement)       return D.fullscreenElement;
+	if(D.fullScreenElement)       return D.fullScreenElement;
+	if(D.webkitFullscreenElement) return D.webkitFullscreenElement;
+	if(D.webkitFullScreenElement) return D.webkitFullScreenElement;
+	if(D.mozFullscreenElement)    return D.mozFullscreenElement;
+	if(D.mozFullScreenElement)    return D.mozFullScreenElement;
+	if(D.msFullscreenElement)     return D.msFullscreenElement;
+	return null;
 };
 
 

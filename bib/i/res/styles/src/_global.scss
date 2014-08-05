@@ -17,7 +17,8 @@ html {
 	overflow: hidden;
 	font-family: "Helvetica", "Trebuchet MS", sans-serif;
 	-webkit-font-smoothing: subpixel-antialiased;
-	background: black;
+	background: black no-repeat center center;
+	@include background-size(contain);
 	&.spread-vertical {
 		overflow-x: hidden;
 		overflow-y: scroll;
@@ -25,6 +26,16 @@ html {
 	&.spread-horizontal {
 		overflow-x: scroll;
 		overflow-y: hidden;
+	}
+	body {
+		@include transition(opacity .25s ease);
+	}
+	&.with-poster {
+		overflow-x: hidden;
+		overflow-y: hidden;
+		body {
+			opacity: 0; &:hover { opacity: 1; }
+		}
 	}
 }
 

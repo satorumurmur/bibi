@@ -5,6 +5,7 @@ EPUB Reader on Your Web Site.
 
 1. How to setup & read/publish EPUB books (for users)
 2. How to arrange development environment (for developers)
+3. License
 
 
 
@@ -90,25 +91,48 @@ This is recommended because it accelarates reading experience of your readers.
 ### Development
 
 1. `$ grunt` and start watching changes of files, and make these files:
-    * `bib/i/res/scripts/bibi.lib.js`
-    * `bib/i/res/scripts/bibi.js`
+    * `bib/i/res/scripts/bibi.lib.js` ... sML.js + JSZip.js + base64.js
+    * `bib/i/res/scripts/bibi.js` ... bibi.core.js + bibi.epubcfi.js
     * `bib/i/res/styles/bibi.css`
+    * `bib/i/res/styles/pipi.css` ... Newly added. (formerly `bib/i.css`, for embedding BiB/i to webpage)
 2. Edit files.
-    * Sources of the `bib/i/res/scripts/bibi.lib.js` are in `bib/i/res/scripts/lib/`.
-    * Sources of the `bib/i/res/scripts/bibi.js` are in `bib/i/res/scripts/src/`.
-    * Sources of the `bib/i/res/styles/bibi.css` are in `bib/i/res/styles/src/`.
+    * JavaScript sources of the `bib/i/res/scripts/bibi.lib.js` are in `bib/i/res/scripts/lib/`.
+    * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `bib/i/res/scripts/src/`.
+    * SCSS sources of the `bib/i/res/styles/bibi.css` are in `bib/i/res/styles/src/`.
+    * SCSS sources of the `bib/i/res/styles/pipi.css` are in `bib/i/res/styles/src/`.
 
 Following files are not watched or processed by Grunt tasks:
 
-* `bib/i.js` (to embed in HTML)
-* `bib/i.css` (to style embedded HTML elements of BiB/i)
-* `bib/manifest.json` (to use as Chrome application)
 * `bib/i/index.html` (as portal)
-* `bib/i/res/loader.js` (to load scripts and styles for index.html)
+* `bib/i.js` (to embed in HTML)
+* `bib/manifest.json` (to use as Chrome application)
 * Files in `bib/presets/` (customisable settings and styles)
 * Files in `bib/i/res/fonts/` (icon fonts)
 
 And `bib/bookshelf/` directory is including `.gitkeep`
+```
 
+
+
+
+3. License
+--------------------------------------------------------------------------------------------------------------------------------
+
+
+### BiB/i
+
+#copy; Satoru MATSUSHIMA - http://sarasa.la/bib/i
+Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+
+
+### BiB/i is including these softwares
+
+<dl>
+	<dt><a href="http://stuartk.com/jszip">JSZip</a></dt><dd>&copy; Stuart Knightley (Dual licenced under the MIT license or GPLv3.)</dd>
+	<dt><a href="https://github.com/dankogai/js-base64">base64.js</a></dt><dd>&copy; dankogai (Licensed under the MIT license.)</dd>
+	<dt><a href="http://fortawesome.github.io/Font-Awesome/">Font Awesome 4.0.3</a></dt><dd>&copy; Dave Gandy (Licensed under SIL Open Font License.)</dd>
+	<dt><a href="http://zurb.com/playground/foundation-icon-fonts-3">Foundation Icons v 3.0</a></dt><dd>&copy; ZURB (Licensed under the MIT license.)</dd>
+	<dt><a href="http://sarasa.sm/sML">sML</a></dt><dd>&copy; Satoru MATSUSHIMA (Licensed under the MIT license.)</dd>
+</dl>
 
 

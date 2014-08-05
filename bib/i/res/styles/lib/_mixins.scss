@@ -1,5 +1,9 @@
 // ================================================================================
-// + Properties
+// + Mix-Ins
+// --------------------------------------------------------------------------------
+
+
+// - Properties
 // --------------------------------------------------------------------------------
 
 @mixin column($v) {
@@ -26,8 +30,7 @@
 	-webkit-writing-mode:$v; -moz-writing-mode:$v; -ms-writing-mode:$v2; -ms-writing-mode:$v; -o-writing-mode:$v; writing-mode:$v2; writing-mode:$v; }
 
 
-// ================================================================================
-// + Sets
+// - Sets
 // --------------------------------------------------------------------------------
 
 @mixin off-left() {
@@ -56,12 +59,19 @@
 	background: transparent;
 }
 
+@mixin font-icon($FamilyName) {
+	font-family: $FamilyName;
+	font-style: normal;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
 
-// ================================================================================
-// + Fonts
+
+// - Fonts
 // --------------------------------------------------------------------------------
 
-@mixin font-face($FamilyName, $FilePath, $SVGName: "") {
+@mixin at-font-face($FamilyName, $FilePath, $SVGName: "") {
 	@font-face {
 		font-family: $FamilyName;
 		src: url("#{$FilePath}.eot");
@@ -74,10 +84,3 @@
 	}
 }
 
-@mixin font-icon($FamilyName) {
-	font-family: $FamilyName;
-	font-style: normal;
-	font-weight: normal;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}

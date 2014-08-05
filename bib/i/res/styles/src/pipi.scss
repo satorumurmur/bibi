@@ -1,5 +1,5 @@
 @charset "utf-8";
-
+ 
 @import "../lib/_mixins";
 
 
@@ -11,9 +11,9 @@
  *  - Released under a slightly modified MIT License. - https://github.com/Compass/compass/blob/stable/LICENSE.markdown
  *
  */
-
+ 
 @import "compass";
-@import "compass/reset";
+//@import "compass/reset";
 
 
 /*!
@@ -30,28 +30,13 @@
 
 /*!
  *
- *  # Foundation Icons v 3.0
+ *  # Pipi Style
  *
- *  - Made by ZURB 2013 http://zurb.com/playground/foundation-icon-fonts-3
- *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- *
- */
-@import "../lib/foundation-icons/scss/_variables";
-@include at-font-face("FoundationIcons", "../fonts/foundation-icons", "#fontcustom");
-
-
-/*!
- *
- *  # BiB/i Style
- *
- *  - "Styles for BiB/i"
+ *  - "Styles for Pipi, an Embedder of BiB/i"
  *  - Copyright (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  */
 
-@import "../lib/_distiller";
-@import "_global";
-@import "_view";
-@import "_controls";
+@import "_pipi.scss";
 

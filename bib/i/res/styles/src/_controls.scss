@@ -503,57 +503,45 @@ div#bibi-switches a {
 	text-decoration: none;
 	@include transition(0.15s linear);
 	&:hover {
-		background: rgba(64,64,64,0.5);
+		background: rgba(128,128,128,0.5);
 	}
 	&:before {
 		@include font-icon("FontAwesome");
 		font-size: 18px;
 	}
 }
-html.bibi-panel-opened div#bibi-switches span,
-html.bibi-panel-opened div#bibi-switches a {
-	border-color: rgba(128,128,128,0.5);
-	background: transparent;
-}
 
-div#bibi-switches span#bibi-switches-panel {
+div#bibi-switches span.bibi-switch-panel {
 	left: 8px;
 	&:before {
 		content: $fa-var-bars;
 	}
 }
-html.bibi-panel-opened div#bibi-switches span#bibi-switches-panel {
+html.bibi-panel-opened div#bibi-switches span.bibi-switch-panel {
 	&:before {
 		content: $fa-var-times;
 	}
 }
 
-div#bibi-switches a#bibi-switches-newwindow {
-	right: 43px;
-	text-indent: 2px;
-	line-height: 29px;
-	&:before {
-		content: "\f08e";
-	}
-}
-html.bibi-fullscreen div#bibi-switches a#bibi-switches-newwindow {
-	display: none;
-}
-html.not-enabled-full-screen div#bibi-switches a#bibi-switches-newwindow {
-	right: 8px;
-}
-
-div#bibi-switches span#bibi-switches-fullscreen {
+div#bibi-switches span.bibi-switch-fullscreen {
 	right: 8px;
 	&:before {
 		content: $fa-var-expand;
 	}
 }
-html.bibi-fullscreen div#bibi-switches span#bibi-switches-fullscreen {
+
+@mixin bibi-fullscreen() { div#bibi-switches span.bibi-switch-fullscreen {
 	&:before {
 		content: $fa-var-compress;
 	}
-}
+} }
+html:fullscreen { @include bibi-fullscreen(); }
+html:full-screen { @include bibi-fullscreen(); }
+html:-webkit-fullscreen { @include bibi-fullscreen(); }
+html:-webkit-full-screen { @include bibi-fullscreen(); }
+html:-moz-fullscreen { @include bibi-fullscreen(); }
+html:-moz-full-screen { @include bibi-fullscreen(); }
+html:-ms-fullscreen { @include bibi-fullscreen(); }
 
 
 
@@ -615,16 +603,16 @@ html.spread-vertical div#bibi-panel div#bibi-panel-misc {
 	text-align: center;
 }
 html.spread-horizontal div#bibi-panel div#bibi-panel-misc {
-	right: 78px;
+	right: 8px;
 	top: 0;
 	text-align: right;
 }
-html.spread-horizontal.not-enabled-full-screen div#bibi-panel div#bibi-panel-misc,
-html.spread-horizontal.not-embeded div#bibi-panel div#bibi-panel-misc {
+html.spread-horizontal.window-not-embeded.fullscreen-enabled div#bibi-panel div#bibi-panel-misc,
+html.spread-horizontal.window-embeded.fullscreen-not-enabled div#bibi-panel div#bibi-panel-misc {
 	right: 43px;
 }
-html.spread-horizontal.not-enabled-full-screen.not-embeded div#bibi-panel div#bibi-panel-misc {
-	right: 8px;
+html.spread-horizontal.window-embeded.fullscreen-enabled div#bibi-panel div#bibi-panel-misc {
+	right: 78px;
 }
 
 

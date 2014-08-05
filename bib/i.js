@@ -1,64 +1,141 @@
-BibiPutter = { /*!
+Pipi = { /*!
  *
- *  # BiB/i Putter
+ *  # Pipi: BiB/i Putter
  *
  *  - "Putting EPUBs in Web Page with BiB/i."
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Fri July 25 23:00:00 2014 +0900
- */    Version: 0.997, Build: 20140724.0
+ *  - Tue August 5 15:00:00 2014 +0900
+ */    Version: 0.997, Build: 20140805.0
 };
 
-(function(embedBiBi) {
-	if(window["bibi-status"]) return;
-	window["bibi-status"] = "waiting";
-	document.addEventListener("DOMContentLoaded", embedBiBi, false);
-	  window.addEventListener("load",             embedBiBi, false);
+(function(embedBibi) {
+	if(window["bibi-pipi"]) return;
+	window["bibi-pipi"] = { Status: "waiting" };
+	document.addEventListener("DOMContentLoaded", embedBibi, false);
+	  window.addEventListener("load",             embedBibi, false);
 })(function() {
-	if(window["bibi-status"] != "waiting") return;
-	window["bibi-status"] = "processing";
+	if(window["bibi-pipi"].Status != "waiting") return;
+	window["bibi-pipi"].Status = "processing";
 	var As = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function(_As, As) {
 		for(var L = _As.length, i = 0; i < L; i++) if(_As[i].getAttribute("data-bibi")) As.push(_As[i]);
 		return As;
 	})(document.body.getElementsByTagName("a"), []);
 	if(As.length) {
-		var create = function(TagName, Properties) { var Element = document.createElement(TagName); for(var Attribute in Properties) Element[Attribute] = Properties[Attribute]; return Element; }
-		document.getElementsByTagName("head")[0].appendChild(create("link", { rel: "stylesheet", href: As[0].href.replace(/^(.+?bib\/i)\/.+$/, "$1.css") }));
+		var create = function(TagName, Properties) {
+			var Element = document.createElement(TagName);
+			for(var Attribute in Properties) Element[Attribute] = Properties[Attribute];
+			return Element;
+		};
+		var BibiPath = As[0].href.replace(/^(.+?bib\/i)\/.+$/, "$1");
+		var FullScreenEnabled = (function(B) {
+			if(B.requestFullscreen       || B.requestFullScreen)       return true;
+			if(B.webkitRequestFullscreen || B.webkitRequestFullScreen) return true;
+			if(B.mozRequestFullscreen    || B.mozRequestFullScreen)    return true;
+			if(B.msRequestFullscreen)                                  return true;
+			return false;
+		})(document.body);
+		if(FullScreenEnabled) {
+			window["bibi-pipi"].requestFullscreen = function(E) {
+				if(E.requestFullscreen)       return E.requestFullscreen();
+				if(E.requestFullScreen)       return E.requestFullScreen();
+				if(E.webkitRequestFullscreen) return E.webkitRequestFullscreen();
+				if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
+				if(E.mozRequestFullscreen)    return E.mozRequestFullscreen();
+				if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
+				if(E.msRequestFullscreen)     return E.msRequestFullscreen();
+			};
+			window["bibi-pipi"].exitFullscreen = function(D) {
+				if(D.exitFullscreen)          return D.exitFullscreen();
+				if(D.cencelFullScreen)        return D.cancelFullScreen();
+				if(D.webkitExitFullscreen)    return D.webkitExitFullscreen();
+				if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
+				if(D.mozExitFullscreen)       return D.mozExitFullscreen();
+				if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
+				if(D.msExitFullscreen)        return D.msExitFullscreen();
+			};
+			window["bibi-pipi"].getFullscreenElement = function(D) {
+				if(D.fullscreenElement)       return D.fullscreenElement;
+				if(D.fullScreenElement)       return D.fullScreenElement;
+				if(D.webkitFullscreenElement) return D.webkitFullscreenElement;
+				if(D.webkitFullScreenElement) return D.webkitFullScreenElement;
+				if(D.mozFullscreenElement)    return D.mozFullscreenElement;
+				if(D.mozFullScreenElement)    return D.mozFullScreenElement;
+				if(D.msFullscreenElement)     return D.msFullscreenElement;
+				return null;
+			};
+		}
+		document.getElementsByTagName("head")[0].appendChild(
+			create("link", { rel: "stylesheet", id: "bibi-css", href: BibiPath + "/res/styles/pipi.css" })
+		);
+		window["bibi-pipi"].Holders = [];
 		for(var L = As.length, i = 0; i < L; i++) {
 			if(!As[i].getAttribute("href")) continue;
-			var Holder = create("span", { className: "bibi-holder", title: (As[i].innerText ? As[i].innerText + " " : "") + "(powered by BiB/i)" });
+			var Holder = create("span", {
+				className: "bibi-holder " + (FullScreenEnabled ? "bibi-fullscreen-enabled" : "bibi-fullscreen-not-enabled"),
+				title: (As[i].innerText ? As[i].innerText + " " : "") + "(powered by BiB/i)"
+			});
 			var Href      = As[i].getAttribute("href");
+			var Src       = Href;
 			var Class     = As[i].getAttribute("data-bibi-class");
 			var ID        = As[i].getAttribute("data-bibi-id");
 			var Style     = As[i].getAttribute("data-bibi-style");
 			var Poster    = As[i].getAttribute("data-bibi-poster");
 			var Autostart = As[i].getAttribute("data-bibi-autostart");
-			if(Class) Holder.className = Holder.className + " " + Class;
+			if(Class) Holder.className += " " + Class;
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
-			if(Poster && !Autostart) {
-				Holder.className = Holder.className + " bibi-holder-with-poster";
-				Holder.appendChild(create("span", { className: "bibi-poster", innerHTML: '<img alt="' + Holder.title + '" src="' + Poster + '" />' }));
-			}
 			if(Autostart) {
-				Href = Href + (/#/.test(Href) ? "," : "#") + "auto(start)";
+				Src += (/#/.test(Src) ? "," : "#") + "pipi(autostart:true)";
+			} else if(Poster) {
+				var PosterLink = create("link", { href: Poster });
+				Poster = PosterLink.href;
+				delete PosterLink;
+				Src += (/#/.test(Src) ? "," : "#") + "pipi(poster:" + encodeURIComponent(Poster).replace("(", "_BibiKakkoOpen_").replace(")", "_BibiKakkoClose_") + ")";
 			}
 			As[i].style.display = "none";
-			As[i].parentNode.insertBefore(Holder, As[i]).appendChild(
-				create("iframe", { className: "bibi-frame", frameborder: "0", scrolling: "auto", allowfullscreen: "true", webkitallowfullscreen: "true", mozallowfullscreen: "true",
-					onload: function() {
-						var Holder = this.parentNode;
-						this.contentWindow.addEventListener("click", function() {
-							Holder.className = Holder.className + " bibi-holder-started";
-							this.removeEventListener("click", arguments.callee);
-						}, false);
-						this.contentWindow.O.ParentFrame = this;
-					},
-					src: Href
+			As[i].parentNode.insertBefore(Holder, As[i]);
+			Holder.appendChild(
+				create("iframe", {
+					className: "bibi-frame",
+					frameborder: "0",
+					scrolling: "auto",
+					allowfullscreen: "true",
+					webkitallowfullscreen: "true",
+					mozallowfullscreen: "true",
+					src: Src
 				})
 			);
+			Holder.SwitchNewWindow = Holder.appendChild(
+				create("a", {
+					className: "bibi-switch-newwindow",
+					title: "Open in New Window",
+					target: "_blank",
+					href: Href
+				})
+			);
+			if(FullScreenEnabled) {
+				Holder.className += " bibi-fullscreen-enabled";
+				Holder.SwitchFullscreen = Holder.appendChild(
+					create("span", {
+						className: "bibi-switch-fullscreen",
+						title: "Enter Fullscreen",
+						Holder: Holder,
+						onclick: function() {
+							if(!window["bibi-pipi"].getFullscreenElement(document)) {
+								window["bibi-pipi"].requestFullscreen(this.Holder);
+								this.title = "Exit Fullscreen";
+							} else {
+								window["bibi-pipi"].exitFullscreen(document);
+								this.title = "Enter Fullscreen";
+							}
+						}
+					})
+				);
+			}
+			window["bibi-pipi"].Holders.push(Holder);
 		}
 	}
-	window["bibi-status"] = "processed";
+	window["bibi-pipi"].Status = "processed";
 });

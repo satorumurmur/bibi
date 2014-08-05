@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Fri July 25 23:00:00 2014 +0900
- */    Version: 0.997, Build: 20140721.0
+ *  - Tue August 5 15:00:00 2014 +0900
+ */    Version: 0.997, Build: 20140805.0
 }
 
 
@@ -81,10 +81,24 @@ O.welcome = function() {
 		O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black" }));
 	}
 
-	var HTMLClassNames = ["preparing"];
+	var HTMLClassNames = [];
 	for(var OS in sML.OS) if(sML.OS[OS]                                  ) HTMLClassNames.push(OS);
 	for(var UA in sML.UA) if(sML.UA[UA] && UA.length > 2 && UA != "Flash") HTMLClassNames.push(UA);
-	O.HTML.className = HTMLClassNames.join(" ");
+	O.HTML.className = HTMLClassNames.join(" ") + " preparing";
+
+	O.WindowEmbeded = (function() {
+		if(parent == window) {
+			sML.addClass(O.HTML, "window-not-embeded");
+			return 0;
+		} else {
+			sML.addClass(O.HTML, "window-embeded");
+			try {
+				return (location.host == parent.location.host ? 1 : -1);
+			} catch(e) {
+				return -1;
+			}
+		}
+	})();
 
 	R.Contents = O.Body.appendChild(sML.create("div", { id: "epub-contents" }));
 
@@ -261,7 +275,6 @@ L.getBook = function(BookFileName) {
 					delete X.Wait;
 				}
 			});
-			//C.Cartain.Message.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
 			C.Cartain.Message.note('');
 		}
 	} else {
@@ -707,7 +720,6 @@ L.loadNavigation = function() {
 				L.loadItems();
 			}
 		});
-		//C.Cartain.Message.note('<a href="' + location.href.replace(/&wait=[^&]+/g, "") + '" target="_blank">open in new window.</a>');
 		C.Cartain.Message.note('');
 	}
 
@@ -717,6 +729,9 @@ L.loadNavigation = function() {
 L.loadItems = function() {
 
 	O.log(2, 'Loading Items...');
+
+	sML.style(O.HTML, { backgroundImage: "none" });
+	sML.removeClass(O.HTML, "with-poster");
 
 	R.resetStage();
 	R.resetNavigation();
@@ -976,8 +991,8 @@ L.start = function() {
 	sML.removeClass(O.HTML, "preparing");
 
 	R.layout({
-		Reset: (L.ResizedWhileLoading ? true : false),
-		Target: (X.To ? X.To : "head")
+		Target: (X.To ? X.To : "head"),
+		Reset: (L.ResizedWhileLoading ? true : false)
 	});
 
 	window.removeEventListener("resize", L.listenResizingWhileLoading);
@@ -1289,16 +1304,19 @@ R.layoutSpread = function(Spread, Target) {
 
 R.layout = function(Param) {
 
+	/*
+		Param: {
+			Target: BibiTarget (Required),
+			Reset: Boolean (Required),
+			Setting: BibiSetting (Optional)
+		}
+	*/
+
+	O.log(2, 'Laying Out...');
+
 	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 
 	if(!Param) Param = {};
-
-	if(!Param.NoLog) {
-		O.log(2, 'Laying Out...');
-		O.log(3, "book-display-mode: "  + S["book-display-mode"]);
-		O.log(3, "spread-layout-axis: " + S["spread-layout-axis"]);
-		O.log(3, "page-size-format: "   + S["page-size-format"]);
-	}
 
 	if(!Param.Target) {
 		var CurrentPage = R.getCurrentPages().Start;
@@ -1309,6 +1327,10 @@ R.layout = function(Param) {
 	}
 
 	if(Param.Setting) O.updateSetting(Param.Setting);
+
+	O.log(3, "book-display-mode: "  + S["book-display-mode"]);
+	O.log(3, "spread-layout-axis: " + S["spread-layout-axis"]);
+	O.log(3, "page-size-format: "   + S["page-size-format"]);
 
 	if(Param.Reset) {
 		S.Paged = false;
@@ -1324,7 +1346,7 @@ R.layout = function(Param) {
 		R.resetNavigation();
 	}
 
-	Param.Target = R.getTarget(Param.Target);
+	Param.Target = R.getTarget(Param.Target); sML.log(Param.Target);
 
 	sML.each(R.Spreads, function() {
 		R.layoutSpread(this, Param.Target);
@@ -1344,8 +1366,13 @@ R.layout = function(Param) {
 
 R.onresize = function() {
 	if(R.Timer_layout_whenResized) clearTimeout(R.Timer_layout_whenResized);
+	var CurrentPage = R.getCurrentPages().Start;
 	R.Timer_layout_whenResized = setTimeout(function() {
 		R.layout({
+			Target: {
+				ItemIndex: CurrentPage.Item.ItemIndex,
+				PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
+			},
 			Reset: true
 		});
 	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
@@ -1353,13 +1380,18 @@ R.onresize = function() {
 
 
 R.changeView = function(Setting) {
+	var CurrentPage = R.getCurrentPages().Start;
 	sML.style(R.Contents, {
 		transition: "opacity 0.5s linear",
 		opacity: 0
 	}, function() {
 		R.layout({
-			Setting: Setting,
-			Reset: (Setting["spread-layout-axis"] || Setting["page-size-format"])
+			Target: {
+				ItemIndex: CurrentPage.Item.ItemIndex,
+				PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
+			},
+			Reset: (Setting["spread-layout-axis"] || Setting["page-size-format"]),
+			Setting: Setting
 		});
 		setTimeout(function() {
 			sML.style(R.Contents, {
@@ -1657,7 +1689,8 @@ C.weaveCartain = function() {
 				play: function(To, NavAIndex) {
 					if(O.SmartPhone) {
 						var URI = location.href.replace(/&wait=[^&]+/g, "");
-						if(typeof NavAIndex == "number") URI = [URI, 'bibi_x(nav:' + NavAIndex + ')'].join(/#/.test(URI) ? "," : "#");
+						alert(H["pipi"]);
+						if(typeof NavAIndex == "number") URI = [URI, 'pipi(nav:' + NavAIndex + ')'].join(/#/.test(URI) ? "," : "#");
 						return window.open(URI);
 					}
 					if(To) X.To = To;
@@ -1803,7 +1836,7 @@ C.createSwitches = function() {
 	}
 
 	C.Switches.Panel = C.Switches.appendChild(
-		sML.create("span", { className: "bibi-switches-switch", id: "bibi-switches-panel",
+		sML.create("span", { className: "bibi-switch bibi-switch-panel",
 			State: 0,
 			Labels: [
 				{ ja: 'メニューを開く',   en: 'Open Menu'  },
@@ -1814,67 +1847,43 @@ C.createSwitches = function() {
 		})
 	);
 
-	C.Switches.FullScreen = C.Switches.appendChild(
-		sML.create("span", { className: "bibi-switches-switch", id: "bibi-switches-fullscreen",
-			State: 0,
-			Labels: [
-				{ ja: 'フルスクリーンモードを開始', en: 'Enter Full-Screen' },
-				{ ja: 'フルスクリーンモードを終了', en:  'Exit Full-Screen' }
-			],
-			toggleState: toggleState,
-			enter: function(Cb) {
-				this.toggleState(1);
-				sML.requestFullScreen(parent != window ? O.ParentFrame : null);
-				setTimeout(function() {
-					sML.addClass(   O.HTML, "bibi-fullscreen");
-					if(typeof Cb == "function") Cb();
-				}, 200);
-			},
-			exit: function(Cb) {
-				this.toggleState(0);
-				sML.exitFullScreen(parent.document);
-				setTimeout(function() {
-					sML.removeClass(O.HTML, "bibi-fullscreen");
-					if(typeof Cb == "function") Cb();
-				}, 200);
-			},
-			toggle: function(Cb) {
-				return (this.State == 0 ? this.enter(Cb) : this.exit(Cb));
-			},
-			onclick: function() { this.toggle(); }
-		}, {
-			display: (function() {
-				try {
-					if(sML.fullScreenEnabled(parent.document)) return "";
-					else throw new Error();
-				} catch(e) {
-					sML.addClass(O.HTML, "not-enabled-full-screen");
-					return "none";
+	if((function() {
+		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
+		if(document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen) return true;
+		if(document.body.mozRequestFullscreen    || document.body.mozRequestFullScreen)    return true;
+		if(document.body.msRequestFullscreen)                                              return true;
+		return false;
+	})()) {
+		sML.addClass(O.HTML, "fullscreen-enabled");
+		if(!O.WindowEmbeded) C.Switches.Fullscreen = C.Switches.appendChild(
+			sML.create("span", { className: "bibi-switch bibi-switch-fullscreen",
+				State: 0,
+				Labels: [
+					{ ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
+					{ ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
+				],
+				toggleState: toggleState,
+				enter: function() {
+					sML.requestFullscreen(O.HTML);
+					this.toggleState(1);
+				},
+				exit: function() {
+					sML.exitFullscreen();
+					this.toggleState(0);　　
+				},
+				toggle: function() {
+					return (!sML.getFullscreenElement() ? this.enter() : this.exit());
+				},
+				onclick: function() {
+					return this.toggle();
 				}
-			})()
-		})
-	);
+			})
+		);
+	} else {
+		sML.addClass(O.HTML, "fullscreen-not-enabled");
+	}
 
-	C.Switches.NewWindow = C.Switches.appendChild(
-		sML.create("a", { className: "bibi-switches-switch", id: "bibi-switches-newwindow",
-			href: location.href.replace(/&wait=[^&]+/g, ""),
-			target: "_blank",
-			Labels: [
-				{ ja: '新しいウィンドウで開く', en: 'Open in New Window' }
-			],
-			toggleState: toggleState
-		}, {
-			display: (function() {
-				if(parent != window) return "";
-				else {
-					sML.addClass(O.HTML, "not-embeded");
-					return "none";
-				}
-			})()
-		})
-	);
-
-	sML.each(C.Switches.getElementsByClassName("bibi-switches-switch"), function() { this.toggleState(0); });
+	sML.each(C.Switches.getElementsByClassName("bibi-switch"), function() { this.toggleState(0); });
 
 }
 
@@ -2018,7 +2027,7 @@ O.readExtra = function() {
 	O.EPUBCFI = BibiEPUBCFI;
 
 	Q = sML.getQueries(), H = O.parseHash(), X = {};
-	if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]bibi_x\([^\)]*\)$/g, ""));
+	if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ""));
 
 	if(!Q["book"]) {
 		var PathFragments = location.pathname.split("/");
@@ -2026,41 +2035,61 @@ O.readExtra = function() {
 		if(BibiFileName != "" && BibiFileName != "index.html") Q["book"] = BibiFileName.replace(/\.html$/, "");
 	}
 
-	X.Wait = true;
-	if(((parent == window) && !H.wait) || H.auto) delete X.Wait;
-	if(history.replaceState) history.replaceState(null, null, location.href.replace(/\,?(wait|auto)\([^\)]*\)/g, ""));
-
-	if(H["bibi"]) {
-		H["bibi"] = H["bibi"].replace(" ", "");
-		sML.each(H["bibi"].split(","), function() {
+	if(!H["bibi"]) {
+		H["bibi"] = {};
+	} else {
+		H["bibi"] = { Data: H["bibi"] };
+		sML.each(H["bibi"].Data.replace(" ", "").split(","), function() {
 			var KnV = this.split(":"); if(!KnV[0]) return;
-			if(KnV[1]) switch(KnV[0]) {
-				case "preset": X.Preset = KnV[1].replace(/(\.js)?$/, ".js"); return;
-				case     "to": X.To     = O.getBibitoTarget(KnV[1]);         return;
-				default      : return;
+			if(!KnV[1]) {
+				switch(KnV[0]) {
+					case "all": case "each":                          KnV[1] = KnV[0], KnV[0] = "book-display-mode";  break;
+					case "horizontal": case "vertical":               KnV[1] = KnV[0], KnV[0] = "spread-layout-axis"; break;
+					case "window": case "portrait": case "landscape": KnV[1] = KnV[0], KnV[0] = "page-size-format";   break;
+					default: return;
+				}
 			}
 			switch(KnV[0]) {
-				// display-mode
-				case "all": case "each":
-				if(!X.BDM) X.BDM = KnV[0]; return;
-				// spread-layout-axis
-				case "horizontal": case "vertical":
-				if(!X.SLA) X.SLA = KnV[0]; return;
-				// page-size-format
-				case "window": case "portrait": case "landscape":
-				if(!X.PSF) X.PSF = KnV[0]; return;
+				case "preset":             X.Preset = KnV[1].replace(/(\.js)?$/, ".js"); break;
+				case "to":                 X.To     = O.getBibitoTarget(KnV[1]); break;
+				case "book-display-mode":  X.BDM    = KnV[1]; break;
+				case "spread-layout-axis": X.SLA    = KnV[1]; break;
+				case "page-size-format":   X.PSF    = KnV[1]; break;
+				default: return;
 			}
+			H["bibi"][KnV[0]] = KnV[1];
 		});
 	}
 
-	if(H["bibi_x"]) {
-		H["bibi_x"] = H["bibi_x"].replace(" ", "");
-		sML.each(H["bibi_x"].split(","), function() {
+	if(!H["pipi"]) {
+		H["pipi"] = {};
+	} else {
+		H["pipi"] = { Data: H["pipi"] };
+		sML.each(H["pipi"].Data.replace(" ", "").split(","), function() {
 			var KnV = this.split(":"); if(!KnV[0]) return;
-			if(KnV[1]) switch(KnV[0]) {
-				case "nav": X.Nav = KnV[1] * 1; return;
+			if(!KnV[1]) {
+				switch(KnV[0]) {
+					case "wait":      KnV[1] = true, KnV[0] = "wait";      break;
+					case "autostart": KnV[1] = true, KnV[0] = "autostart"; break;
+					default: return;
+				}
 			}
+			switch(KnV[0]) {
+				case "wait": break;
+				case "autostart": break;
+				case "poster": KnV[1] = decodeURIComponent(KnV[1].replace("_BibiKakkoClose_", ")").replace("_BibiKakkoOpen_", "(")); break;
+				case "nav": X.Nav = KnV[1] * 1; break;
+				default: return;
+			}
+			H["pipi"][KnV[0]] = KnV[1];
 		});
+	}
+
+	X.Wait = (!H["pipi"]["autostart"] && (H["pipi"]["wait"] || parent != window));
+
+	if(H["pipi"]["poster"]) {
+		sML.addClass(O.HTML, "with-poster");
+		O.HTML.style.backgroundImage = "url(" + H["pipi"]["poster"] + ")";
 	}
 
 	if(!X.To && H["epubcfi"]) X.To = O.getEPUBCFITarget(H["epubcfi"]);
