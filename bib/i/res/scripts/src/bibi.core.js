@@ -23,17 +23,11 @@ B = {}; // Bibi.Book
 
 C = {}; // Bibi.Controls
 
-H = {}; // Bibi.Hash
-
 L = {}; // Bibi.Loader
-
-N = {}; // Bibi.Notifier
 
 O = {}; // Bibi.Operator
 
 P = {}; // Bibi.Preset
-
-Q = {}; // Bibi.Queries 
 
 R = {}; // Bibi.Reader
 
@@ -106,7 +100,7 @@ O.welcome = function() {
 
 	O.readExtra();
 
-	L.getBook(Q["book"]);
+	L.getBook(X["book"]);
 
 }
 
@@ -126,15 +120,15 @@ O.initialize = function() {
 	R.CoverImage = null;
 	R.Navigation = null;
 
-	var PresetFileName = (typeof X.Preset == "string" && X.Preset && !/\//.test(X.Preset)) ? X.Preset.replace(/(\.js)?$/, ".js") : "default.js";
+	var PresetFileName = (typeof X["bibi"].Preset == "string" && X["bibi"].Preset && !/\//.test(X["bibi"].Preset)) ? X["bibi"].Preset.replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
 		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
 			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
 		});
 		if(P["spread-gap"] % 2) P["spread-gap"]++;
-		if(X.BDM && /^(all|each)$/.test(                 X.BDM)) P["book-display-mode" ] = X.BDM;
-		if(X.SLA && /^(horizontal|vertical)$/.test(      X.SLA)) P["spread-layout-axis"] = X.SLA;
-		if(X.PSF && /^(portrait|landscape|window)$/.test(X.PSF)) P["page-size-format"  ] = X.PSF;
+		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
+		if(X["bibi"]["spread-layout-axis"] && /^(horizontal|vertical)$/.test(      X["bibi"]["spread-layout-axis"])) P["spread-layout-axis"] = X["bibi"]["spread-layout-axis"];
+		if(X["bibi"]["page-size-format"  ] && /^(portrait|landscape|window)$/.test(X["bibi"]["page-size-format"  ])) P["page-size-format"  ] = X["bibi"]["page-size-format"  ];
 		if(P.FileName !== "default.js") O.updateSetting(P);
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
@@ -220,7 +214,7 @@ L.getBook = function(BookFileName) {
 		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
-			Q = H = X = {};
+			X = {};
 			O.initialize();
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
@@ -267,12 +261,12 @@ L.getBook = function(BookFileName) {
 			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
 			L.readContainer();
 		}
-		if(!X.Wait) fetchEPUB();
+		if(! X["pipi"]["wait"]) fetchEPUB();
 		else {
 			C.Cartain.createPlayButton({
 				onplay: function() {
 					fetchEPUB();
-					delete X.Wait;
+					delete  X["pipi"]["wait"];
 				}
 			});
 			C.Cartain.Message.note('');
@@ -712,7 +706,7 @@ L.loadNavigation = function() {
 
 	delete Document;
 
-	if(!X.Wait) L.loadItems();
+	if(! X["pipi"]["wait"]) L.loadItems();
 	else {
 		L.shutUpLoading();
 		C.Cartain.createPlayButton({
@@ -977,7 +971,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 				return false;
 			};
 		}
-		if(InBibiNavigation && typeof X.Nav == "number" && i == X.Nav && A.Target) X.To = A.Target;
+		if(InBibiNavigation && typeof  X["pipi"]["nav"] == "number" && i ==  X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
 	});
 
 }
@@ -991,7 +985,7 @@ L.start = function() {
 	sML.removeClass(O.HTML, "preparing");
 
 	R.layout({
-		Target: (X.To ? X.To : "head"),
+		Target: (X["bibi"].To ? X["bibi"].To : "head"),
 		Reset: (L.ResizedWhileLoading ? true : false)
 	});
 
@@ -1010,7 +1004,7 @@ L.start = function() {
 	});
 	sML.style(C.Switches.Panel, { display: "block" });
 	sML.style(C.Arrows, { opacity: 1 });
-	if(X.To) sML.style(C.Arrows.Back, { opacity: 1 });
+	if(X["bibi"].To) sML.style(C.Arrows.Back, { opacity: 1 });
 	sML.style(C.Arrows.Forward, { opacity: 1 });
 	setTimeout(function() {
 		C.Cartain.close(function() {
@@ -1141,8 +1135,7 @@ R.resetItem_Reflowable = function(Item) {
 		Z = H.clientWidth; Z = H.clientHeight; Z = H.scrollWidth; Z = H.scrollHeight; Z = H.offsetWidth; Z = H.offsetHeight;
 		Z = B.clientWidth; Z = B.clientHeight; Z = B.scrollWidth; Z = B.scrollHeight; Z = B.offsetWidth; Z = B.offsetHeight;
 	})(0, Item.HTML, Item.Body);
-	if(Item.Body["scroll" + S.SIZE.B] > PageB) {
-		S.Paged = true;
+	if(S["book-display-mode"] == "each" || Item.Body["scroll" + S.SIZE.B] > PageB) {
 		Item.ColumnBreadth = PageB;
 		Item.ColumnLength  = PageL;
 		Item.ColumnGap     = PageGap;
@@ -1180,7 +1173,6 @@ R.resetItem_Reflowable = function(Item) {
 R.resetItem_PrePagenated = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	Item.Pages = [];
-	S.Paged = true;
 	Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
 	var PageB = R.StageSize.Breadth;
 	var PageL = R.StageSize.Length;
@@ -1333,7 +1325,6 @@ R.layout = function(Param) {
 	O.log(3, "page-size-format: "   + S["page-size-format"]);
 
 	if(Param.Reset) {
-		S.Paged = false;
 		R.resetStage();
 		sML.each(R.Spreads, function(i) {
 			O.showStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
@@ -1390,7 +1381,7 @@ R.changeView = function(Setting) {
 				ItemIndex: CurrentPage.Item.ItemIndex,
 				PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
 			},
-			Reset: (Setting["spread-layout-axis"] || Setting["page-size-format"]),
+			Reset: true,//(Setting["spread-layout-axis"] || Setting["page-size-format"]),
 			Setting: Setting
 		});
 		setTimeout(function() {
@@ -1583,7 +1574,6 @@ R.pointTextLocation = function(Target) {
 
 
 R.page = function(Distance) {
-	if(!S.Paged) return R.scroll(Distance);
 	if(Distance != -1) Distance = +1;
 	var CurrentPages = R.getCurrentPages(), CurrentPage = Distance < 0 ? CurrentPages.Start : CurrentPages.End;
 	var TargetPageIndex = CurrentPage.PageIndex + Distance;
@@ -1606,7 +1596,6 @@ R.page = function(Distance) {
 
 
 R.scroll = function(Distance) {
-	if(S.Paged) return R.page(Distance);
 	if(Distance != -1) Distance = +1;
 	var WindowCoord = sML.getCoord(window), ScrollTo = {};
 	switch(S.SLD) {
@@ -1689,11 +1678,10 @@ C.weaveCartain = function() {
 				play: function(To, NavAIndex) {
 					if(O.SmartPhone) {
 						var URI = location.href.replace(/&wait=[^&]+/g, "");
-						alert(H["pipi"]);
 						if(typeof NavAIndex == "number") URI = [URI, 'pipi(nav:' + NavAIndex + ')'].join(/#/.test(URI) ? "," : "#");
 						return window.open(URI);
 					}
-					if(To) X.To = To;
+					if(To) X["bibi"].To = To;
 					L.sayLoading();
 					this.onclick = function() { return false; };
 					sML.style(this, { opacity: 0, cursor: "default" });
@@ -2026,20 +2014,20 @@ O.readExtra = function() {
 
 	O.EPUBCFI = BibiEPUBCFI;
 
-	Q = sML.getQueries(), H = O.parseHash(), X = {};
+	X = O.parseHash(), X["book"] = sML.getQueries()["book"];
 	if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ""));
 
-	if(!Q["book"]) {
+	if(!X["book"]) {
 		var PathFragments = location.pathname.split("/");
 		var BibiFileName = PathFragments[PathFragments.length - 1];
-		if(BibiFileName != "" && BibiFileName != "index.html") Q["book"] = BibiFileName.replace(/\.html$/, "");
+		if(BibiFileName != "" && BibiFileName != "index.html") X["book"] = BibiFileName.replace(/\.html$/, "");
 	}
 
-	if(!H["bibi"]) {
-		H["bibi"] = {};
+	if(!X["bibi"]) {
+		X["bibi"] = {};
 	} else {
-		H["bibi"] = { Data: H["bibi"] };
-		sML.each(H["bibi"].Data.replace(" ", "").split(","), function() {
+		X["bibi"] = { Data: X["bibi"] };
+		sML.each(X["bibi"].Data.replace(" ", "").split(","), function() {
 			var KnV = this.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
@@ -2050,22 +2038,20 @@ O.readExtra = function() {
 				}
 			}
 			switch(KnV[0]) {
-				case "preset":             X.Preset = KnV[1].replace(/(\.js)?$/, ".js"); break;
-				case "to":                 X.To     = O.getBibitoTarget(KnV[1]); break;
-				case "book-display-mode":  X.BDM    = KnV[1]; break;
-				case "spread-layout-axis": X.SLA    = KnV[1]; break;
-				case "page-size-format":   X.PSF    = KnV[1]; break;
+				case "preset": KnV[1] = KnV[1].replace(/(\.js)?$/, ".js"); break;
+				case "to":     KnV[1] = O.getBibitoTarget(KnV[1]); break;
+				case "book-display-mode": case "spread-layout-axis": case "page-size-format": break;
 				default: return;
 			}
-			H["bibi"][KnV[0]] = KnV[1];
+			X["bibi"][KnV[0]] = KnV[1];
 		});
 	}
 
-	if(!H["pipi"]) {
-		H["pipi"] = {};
+	if(!X["pipi"]) {
+		X["pipi"] = {};
 	} else {
-		H["pipi"] = { Data: H["pipi"] };
-		sML.each(H["pipi"].Data.replace(" ", "").split(","), function() {
+		X["pipi"] = { Data: X["pipi"] };
+		sML.each(X["pipi"].Data.replace(" ", "").split(","), function() {
 			var KnV = this.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
@@ -2075,24 +2061,23 @@ O.readExtra = function() {
 				}
 			}
 			switch(KnV[0]) {
-				case "wait": break;
-				case "autostart": break;
+				case "wait": case "autostart": break;
 				case "poster": KnV[1] = decodeURIComponent(KnV[1].replace("_BibiKakkoClose_", ")").replace("_BibiKakkoOpen_", "(")); break;
-				case "nav": X.Nav = KnV[1] * 1; break;
+				case "nav": KnV[1] = KnV[1] * 1; break;
 				default: return;
 			}
-			H["pipi"][KnV[0]] = KnV[1];
+			X["pipi"][KnV[0]] = KnV[1];
 		});
 	}
 
-	X.Wait = (!H["pipi"]["autostart"] && (H["pipi"]["wait"] || parent != window));
+	 X["pipi"]["wait"] = (!X["pipi"]["autostart"] && (X["pipi"]["wait"] || parent != window));
 
-	if(H["pipi"]["poster"]) {
+	if(X["pipi"]["poster"]) {
 		sML.addClass(O.HTML, "with-poster");
-		O.HTML.style.backgroundImage = "url(" + H["pipi"]["poster"] + ")";
+		O.HTML.style.backgroundImage = "url(" + X["pipi"]["poster"] + ")";
 	}
 
-	if(!X.To && H["epubcfi"]) X.To = O.getEPUBCFITarget(H["epubcfi"]);
+	if(!X["bibi"].To && X["epubcfi"]) X["bibi"].To = O.getEPUBCFITarget(X["epubcfi"]);
 
 }
 
