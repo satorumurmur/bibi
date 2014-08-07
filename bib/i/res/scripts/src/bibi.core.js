@@ -58,16 +58,11 @@ O.welcome = function() {
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
 		O.setOrientation = function() {
-			window.scrollBy(1, 1);
 			sML.removeClass(O.HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
 			sML.addClass(   O.HTML, "orientation-" + (window.orientation == 0 ? "portrait"  : "landscape"));
-			O.HTML.style.minHeight = window.innerHeight + "px";
 		}
 		window.addEventListener("orientationchange", O.setOrientation);
 		O.setOrientation();
-		setTimeout(O.setOrientation, 1);
-		setTimeout(O.setOrientation, 100);
-		setTimeout(O.setOrientation, 800);
 	}
 
 	if(sML.OS.iOS) {
@@ -1254,16 +1249,16 @@ R.layoutSpread = function(Spread, Target) {
 	var SpreadBox = Spread.SpreadBox;
 	var IsHeadSpread = false, IsFootSpread = false;
 	if(S.BDM == "each") {
-		if(Spread == Target.Item.Spread) {
+		//if(Spread == Target.Item.Spread) {
 			IsHeadSpread = IsFootSpread = true;
-			SpreadBox.style.display = "";
-		} else {
-			SpreadBox.style.display = "none";
-		}
+		//	SpreadBox.style.display = "";
+		//} else {
+		//	SpreadBox.style.display = "none";
+		//}
 	} else {
 		IsHeadSpread = (Spread.SpreadIndex == 0);
 		IsFootSpread = (Spread.SpreadIndex == R.Spreads.length - 1);
-		SpreadBox.style.display = "";
+		//SpreadBox.style.display = "";
 	}
 	SpreadBox.style.padding = "";
 	if(SpreadBox.offsetHeight < R.StageSize[S.SIZE.H]) SpreadBox.style.padding = Math.floor((R.StageSize[S.SIZE.H] - SpreadBox.offsetHeight) / 2) + "px 0";
@@ -1496,11 +1491,13 @@ R.focus = function(Target, ScrollOption) {
 		sML.scrollTo((S.SLD == "ttb" ? { y: FocusPoint } : { x: FocusPoint }), ScrollOption);
 		return false;
 	}
+	/*
 	if(S.BDM == "each" && FocusTarget.Spread != R.getCurrentPages().Start.Spread) {
 		sML.each(R.Spreads, function() {
 			R.layoutSpread(this, FocusTarget);
 		});
 	}
+	*/
 	if(S.SLD == "ttb") var TorL = ["Top", "Left"], tORl = ["top", "left"];
 	else               var TorL = ["Left", "Top"], tORl = ["left", "top"];
 	var E, FocusPoint, TextLocationTarget = { Element: FocusTarget.Element, TextNodeIndex: FocusTarget.TextNodeIndex, TermStep: FocusTarget.TermStep }, doAfterScrolling = function() {};
@@ -1588,9 +1585,11 @@ R.page = function(Distance) {
 		if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
 	}
 	var wCoord = sML.getCoord(window);
+	/*
 	if(S.BDM == "each" && TargetPage.Spread != CurrentPage.Spread) {
 		return R.focus(TargetPage, { p:1, t:1 });
 	}
+	*/
 	return R.focus({ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") });
 }
 
