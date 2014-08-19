@@ -32,7 +32,7 @@ div#epub-contents {
 	@include transition-property(transform opacity);
 	div.spread-box {
 		div.spread {
-			@include box-sizing(border-box);
+			//@include box-sizing(border-box);
 			overflow: hidden;
 			background: white;
 			div.item-box {
@@ -121,10 +121,10 @@ html.spread-vertical div#epub-contents {
 		}
 	}
 }
-html.spread-vertical.bibi-control-bar-opened div#epub-contents {
+html.spread-vertical.panel-opened div#epub-contents {
 	//@include transform-origin(100% 50%);
 	//@include transform(rotateY(-45deg));
-	@include transform(translateX(44px));
+	@include transform(translateX(36px));
 }
 html.spread-horizontal div#epub-contents {
 	@include transform(translateY(0));
@@ -138,10 +138,10 @@ html.spread-horizontal div#epub-contents {
 		}
 	}
 }
-html.spread-horizontal.bibi-control-bar-opened div#epub-contents {
+html.spread-horizontal.panel-opened div#epub-contents {
 	//@include transform-origin(50% 100%);
 	//@include transform(rotateX(-45deg));
-	@include transform(translateY(44px));
+	@include transform(translateY(36px));
 }
 html.page-ltr div#epub-contents {
 	div.spread-box {

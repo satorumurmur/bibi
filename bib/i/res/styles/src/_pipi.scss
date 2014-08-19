@@ -54,7 +54,7 @@ span.bibi-holder {
 		overflow: hidden;
 		position: absolute;
 		z-index: 5000;
-		top: 8px;
+		top: 4px;
 		border-radius: 2px;
 		border: solid 1px rgba(128,128,128,0.25);
 		width: 27px;
@@ -76,7 +76,7 @@ span.bibi-holder {
 		}
 	}
 	a.bibi-switch-newwindow {
-		right: 8px;
+		right: 4px;
 		text-indent: 2px;
 		line-height: 29px;
 		&:before {
@@ -87,10 +87,10 @@ span.bibi-holder {
 
 span.bibi-holder.bibi-fullscreen-enabled {
 	a.bibi-switch-newwindow {
-		right: 43px;
+		right: 35px;
 	}
 	span.bibi-switch-fullscreen {
-		right: 8px;
+		right: 4px;
 		&:before {
 			content: $fa-var-expand;
 		}

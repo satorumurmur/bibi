@@ -489,7 +489,7 @@ div#bibi-switches a {
 	overflow: hidden;
 	position: fixed;
 	z-index: 5000;
-	top: 8px;
+	top: 4px;
 	border-radius: 2px;
 	border: solid 1px rgba(128,128,128,0.25);
 	width: 27px;
@@ -512,19 +512,19 @@ div#bibi-switches a {
 }
 
 div#bibi-switches span.bibi-switch-panel {
-	left: 8px;
+	left: 4px;
 	&:before {
 		content: $fa-var-bars;
 	}
 }
-html.bibi-panel-opened div#bibi-switches span.bibi-switch-panel {
+html.panel-opened div#bibi-switches span.bibi-switch-panel {
 	&:before {
 		content: $fa-var-times;
 	}
 }
 
 div#bibi-switches span.bibi-switch-fullscreen {
-	right: 8px;
+	right: 4px;
 	&:before {
 		content: $fa-var-expand;
 	}
@@ -569,7 +569,7 @@ html.spread-vertical div#bibi-panel {
 	@include transform(translateX(-100%));
 }
 
-html.bibi-panel-opened div#bibi-panel {
+html.panel-opened div#bibi-panel {
 	opacity: 1;
 	@include transform(none);
 }
@@ -582,10 +582,10 @@ div#bibi-panel div#bibi-panel-misc {
 	@include box-sizing(border-box);
 	position: fixed;
 	z-index: 100;
-	padding: 8px;
+	padding: 4px;
 	border: solid 0 rgba(255,255,255,0.1);
-	width: 44px;
-	height: 44px;
+	width: 36px;
+	height: 36px;
 	line-height: 30px;
 	font-size: 14px;
 	color: white;
@@ -603,16 +603,16 @@ html.spread-vertical div#bibi-panel div#bibi-panel-misc {
 	text-align: center;
 }
 html.spread-horizontal div#bibi-panel div#bibi-panel-misc {
-	right: 8px;
+	right: 4px;
 	top: 0;
 	text-align: right;
 }
 html.spread-horizontal.window-not-embeded.fullscreen-enabled div#bibi-panel div#bibi-panel-misc,
 html.spread-horizontal.window-embeded.fullscreen-not-enabled div#bibi-panel div#bibi-panel-misc {
-	right: 43px;
+	right: 35px;
 }
 html.spread-horizontal.window-embeded.fullscreen-enabled div#bibi-panel div#bibi-panel-misc {
-	right: 78px;
+	right: 66px;
 }
 
 
@@ -632,7 +632,7 @@ div#bibi-panel div#bibi-panel-navigation {
 		@include box-sizing(border-box);
 		width: 100%;
 		height: 100%;
-		padding: 16px;
+		padding: 36px;
 		-webkit-overflow-scrolling: touch;
 		>* {
 			-webkit-transform: translateZ(0);
@@ -732,7 +732,7 @@ html.spread-vertical div#bibi-panel div#bibi-panel-navigation {
 		overflow-y: scroll;
 		div#bibi-panel-navigation-item {
 			@include writing-mode(horizontal-tb, lr-tb);
-			padding-left: 60px;
+			padding-left: 16px;
 		}
 	}
 }
@@ -742,7 +742,7 @@ html.spread-horizontal div#bibi-panel div#bibi-panel-navigation {
 		overflow-x: scroll;
 		overflow-y: hidden;
 		div#bibi-panel-navigation-item {
-			padding-top: 60px;
+			padding-top: 16px;
 		}
 	}
 }
@@ -807,20 +807,20 @@ div#bibi-panel div#bibi-panel-menu {
 	background: rgba(0,0,0,0.5);
 }
 html.spread-vertical div#bibi-panel div#bibi-panel-menu {
-	padding-top: 43px;
+	padding-top: 35px;
 	height: 100%;
-	width: 44px;
+	width: 36px;
 	border-right-width: 1px;
 }
 html.spread-horizontal div#bibi-panel div#bibi-panel-menu {
-	padding-left: 43px;
+	padding-left: 35px;
 	width: 100%;
-	height: 44px;
+	height: 36px;
 	border-bottom-width: 1px;
 }
 
 div#bibi-panel div#bibi-panel-menu ul {
-	padding: 8px;
+	padding: 4px;
 	li {
 		position: relative;
 		span.bibi-icon {
@@ -869,12 +869,12 @@ html.spread-horizontal div#bibi-panel div#bibi-panel-menu ul {
 }
 
 html.spread-vertical div#bibi-panel div#bibi-panel-menu ul#spread-layout-axis {
-	li#layout-vertical {
+	li.layout-vertical {
 		display: none;
 	}
 }
 html.spread-horizontal div#bibi-panel div#bibi-panel-menu ul#spread-layout-axis {
-	li#layout-horizontal {
+	li.layout-horizontal {
 		display: none;
 	}
 }
