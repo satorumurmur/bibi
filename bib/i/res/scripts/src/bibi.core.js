@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Tue August 19 15:00:00 2014 +0900
- */    Version: 0.997, Build: 20140819.0
+ *  - Sun August 24 21:32:00 2014 +0900
+ */    Version: 0.9971, Build: 20140824.0
 };
 
 
@@ -115,7 +115,7 @@ O.initialize = function() {
 	R.CoverImage = null;
 	R.Navigation = null;
 
-	var PresetFileName = (typeof X["bibi"].Preset == "string" && X["bibi"].Preset && !/\//.test(X["bibi"].Preset)) ? X["bibi"].Preset.replace(/(\.js)?$/, ".js") : "default.js";
+	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
 		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
 			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
@@ -182,7 +182,6 @@ L.download = function(URI, MimeType) {
 	return XHR;
 }
 
-
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	if(!B.Zipped) {
@@ -209,7 +208,7 @@ L.getBook = function(BookFileName) {
 		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
-			X = {};
+			X = { book: "", bibi: {}, pipi: {} };
 			O.initialize();
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
@@ -294,7 +293,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		}
 	}
  
- 	EPUBZip = (new JSZip()).load(EPUBZip);
+ 	EPUBZip = (new JSZip()).load(EPUBZip); sML.log(EPUBZip);
  
 	for(var FileName in EPUBZip.files) {
 		if(EPUBZip.files[FileName]._data) {
@@ -479,6 +478,7 @@ L.readPackageDocument = function() {
 	O.getMetadata = function() { return B.Package.Metadata; };
 
 	// MANIFEST
+	R.CSSFiles = [], L.loadedCSSFiles = 0;
 	var TOCID = Spine.getAttribute("toc");
 	sML.each(ManifestItems, function() {
 		var ManifestItem = {
@@ -488,13 +488,14 @@ L.readPackageDocument = function() {
 			"properties" : this.getAttribute("properties") || "",
 			"fallback"   : this.getAttribute("fallback")   || ""
 		};
-		if(ManifestItem.id && ManifestItem.href) {
-			B.Package.Manifest["items"][ManifestItem.id] = ManifestItem;
+		if(ManifestItem["id"] && ManifestItem["href"]) {
+			B.Package.Manifest["items"][ManifestItem["id"]] = ManifestItem;
 			(function(ManifestItemProperties) {
-				if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = O.getPath(B.Package.Dir, ManifestItem.href);
-				if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = O.getPath(B.Package.Dir, ManifestItem.href);
+				if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
+				if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
 			})(" " + ManifestItem.properties + " ");
-			if(TOCID && ManifestItem.id == TOCID) B.Package.Manifest["toc-ncx"].Path = O.getPath(B.Package.Dir, ManifestItem.href);
+			if(TOCID && ManifestItem["id"] == TOCID) B.Package.Manifest["toc-ncx"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
+			if(ManifestItem["media-type"] == "text/css") R.CSSFiles.push({ Path: O.getPath(B.Package.Dir, ManifestItem["href"]) });
 		}
 	});
 
@@ -701,16 +702,45 @@ L.loadNavigation = function() {
 
 	delete Document;
 
-	if(! X["pipi"]["wait"]) L.loadItems();
+	if(!X["pipi"]["wait"]) L.loadCSSFiles();
 	else {
 		L.shutUpLoading();
 		C.Cartain.createPlayButton({
 			onplay: function() {
-				L.loadItems();
+				L.loadCSSFiles();
 			}
 		});
 		C.Cartain.Message.note('');
 	}
+
+}
+
+
+L.loadCSSFiles = function() {
+
+	if(!R.CSSFiles.length || B.Zipped) return L.loadItems();
+
+	O.log(2, 'Loading CSS Files...');
+
+	sML.each(R.CSSFiles, function(i) {
+		O.log(3, sML.String.padZero(i + 1, L.FileDigit) + '/' + sML.String.padZero(R.CSSFiles.length, L.FileDigit) + ' "' + this.Path + '"');
+		document.body.appendChild(
+			sML.create("iframe", {
+				onload: function() {
+					L.loadedCSSFiles++;
+					document.body.removeChild(this);
+				},
+				src: "../bookshelf/" + B.Name + "/" + this.Path
+			})
+		);
+	});
+
+	// Done?
+	setTimeout(function() {
+		if(L.LoadedCSSFiles < R.CSSFiles.length) return setTimeout(arguments.callee, 500);
+		O.log(2, 'Loaded.');
+		L.loadItems();
+	}, 250);
 
 }
 
@@ -740,7 +770,7 @@ L.loadItems = function() {
 		R.resetPages();
 		O.log(2, 'Loaded.');
 		L.start();
-	}, 250);
+	}, 10);
 
 }
 
@@ -752,10 +782,10 @@ L.loadItem = function(Item) {
 		// If HTML or Others
 		if(B.Zipped) {
 			L.writeItemHTML(Item, A.Files[Path]);
-			setTimeout(L.postprocessItem, 10, Item);
+			setTimeout(L.postprocessItem, 400, Item);
 		} else {
 			Item.src = "../bookshelf/" + B.Name + "/" + Path;
-			Item.onload = function() { L.postprocessItem(R.Items[Item.ItemIndex]); };
+			Item.onload = function() { setTimeout(function() { L.postprocessItem(R.Items[Item.ItemIndex]); }, 400); };
 			Item.ItemBox.appendChild(Item);
 		}
 	} else if(/\.(svg)$/i.test(Path)) {
@@ -803,7 +833,7 @@ L.postprocessItem = function(Item) {
 	Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
 	Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
 
-	sML.each(Item.Body.getElementsByTagName("link"), function() { Item.Head.appendChild(this); });
+	sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
 
 	// Writing Mode for Internet Explorer
 	if(sML.UA.InternetExplorer < 12) {
@@ -1083,6 +1113,7 @@ R.shock = function(Item) {
 	var Z = 0, H = Item.HTML, B = Item.Body;
 	Z = H.clientWidth; Z = H.clientHeight; Z = H.scrollWidth; Z = H.scrollHeight; Z = H.offsetWidth; Z = H.offsetHeight;
 	Z = B.clientWidth; Z = B.clientHeight; Z = B.scrollWidth; Z = B.scrollHeight; Z = B.offsetWidth; Z = B.offsetHeight;
+	return;
 	sML.each(Item.HTML.querySelectorAll("body>*"), function() {
 		Item.Body.removeChild(this);
 		Item.Body.appendChild(this);
@@ -1111,15 +1142,20 @@ R.resetItem_Reflowable = function(Item) {
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
 	Item.style["padding-" + S.BASE.s] = S["item-padding-" + S.BASE.s] + "px";
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
-	Item.style[S.SIZE.b] = Item.HTML.style[S.SIZE.b] = PageB + "px";
-	Item.style[S.SIZE.l] = Item.HTML.style[S.SIZE.l] = PageL + "px";
-	sML.style(Item.HTML, { "column-axis": "", "column-width": "", "column-gap": "", "column-rule": "" });
+	Item.style[S.SIZE.b] = PageB + "px";
+	Item.style[S.SIZE.l] = PageL + "px";
+	Item.HTML.style[S.SIZE.b] = PageB + "px";
+	Item.HTML.style[S.SIZE.l] = PageL + "px";
+	sML.style(Item.HTML, { "column-width": "", "column-gap": "", "column-rule": "" });
 	Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
+	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
+	R.shock(Item);
 	if(IsSingleFrameItem) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
 		IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
 	}
 	if(IsSingleImageItem) {
+		// Fitting Images
 		if(S["fit-images"]) {
 			sML.style(Item.HTML, {
 				"transform-origin": "",
@@ -1137,15 +1173,7 @@ R.resetItem_Reflowable = function(Item) {
 			}
 		}
 	} else {
-		if(S["book-display-mode"] == "each" || Item.Body["scroll" + S.SIZE.B] > PageB) {
-			Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
-			sML.style(Item.HTML, {
-				"column-axis": (S.SLD != "ttb" ? "horizontal" : "vertical"),
-				"column-width": Item.ColumnLength + "px",
-				"column-gap": Item.ColumnGap + "px",
-				"column-rule": ""
-			});
-		}
+		// Fitting Images
 		if(S["fit-images"] && S["fit-images"] != "in-single-image-only-item") {
 			sML.each(Item.Body.getElementsByTagName("img"), function() {
 				this.style.display         = this.Bibi.DefaultStyle["display"];
@@ -1168,31 +1196,55 @@ R.resetItem_Reflowable = function(Item) {
 				}
 			});
 		}
+		// Making Columns
+		/*
+		sML.log([
+			Item.ItemIndex,
+			getComputedStyle(Item.HTML).webkitWritingMode,
+			'Item.Body["scroll" + "' + S.SIZE.B + '"]: ' + Item.Body["scroll" + S.SIZE.B],
+			'PageB: ' + PageB
+		].join(" / "));
+		*/
+		if(S["book-display-mode"] == "each" || Item.HTML["scroll" + S.SIZE.B] > PageB) {
+			Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
+			sML.style(Item.HTML, {
+				"column-width": Item.ColumnLength + "px",
+				"column-gap": Item.ColumnGap + "px",
+				"column-rule": ""
+			});
+		}
+		// Breaking Pages
 		if(S["page-breaking"]) {
-			if(Item.Body["offset" + S.SIZE.B] <= PageB) var PageBreakerRulers = [((S.SLA == "vertical") ? "Top" : "Left"), PageL, S.SIZE.L, S.SIZE.l, S.BASE.a];
-			else                                        var PageBreakerRulers = [((S.SLA == "vertical") ? "Left" : "Top"), PageB, S.SIZE.B, S.SIZE.b, S.BASE.e];
+			var PBR; // PageBreakerRulers
+			if(Item.Body["offset" + S.SIZE.B] <= PageB) PBR = [(S.SLA == "vertical" ? "Top" : "Left"), window["inner" + S.SIZE.L]/*PageL*/, S.SIZE.L, S.SIZE.l, S.BASE.a];
+			else                                        PBR = [(S.SLA == "vertical" ? "Left" : "Top"), /*window["inner" + S.SIZE.B]*/PageB, S.SIZE.B, S.SIZE.b, S.BASE.e];
 			sML.each(Item.contentDocument.querySelectorAll("html>body *"), function() {
 				var ComputedStyle = getComputedStyle(this);
 				if(ComputedStyle.pageBreakBefore != "always" && ComputedStyle.pageBreakAfter != "always") return;
-				if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PageBreakerRulers[3]] = "";
-				if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PageBreakerRulers[3]] = "";
-				var E = this, BreakPoint = E["offset" + PageBreakerRulers[0]], Add = 0;
-				while(E.offsetParent) E = E.offsetParent, BreakPoint += E["offset" + PageBreakerRulers[0]];
+				if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PBR[3]] = "";
+				if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PBR[3]] = "";
+				var E = this, BreakPoint = E["offset" + PBR[0]], Add = 0;
+				while(E.offsetParent) E = E.offsetParent, BreakPoint += E["offset" + PBR[0]];
+				if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
+				sML.log(PBR);
+				sML.log(Item.ItemIndex + ": " + BreakPoint);
 				if(ComputedStyle.pageBreakBefore == "always") {
 					if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = sML.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
-					Add = (PageBreakerRulers[1] - BreakPoint % PageBreakerRulers[1]); if(Add == PageBreakerRulers[1]) Add = 0;
-					this.BibiPageBreakerBefore.style[PageBreakerRulers[3]] = Add + "px";
+					Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
+					this.BibiPageBreakerBefore.style[PBR[3]] = Add + "px";
 				}
 				if(ComputedStyle.pageBreakAfter == "always") {
-					BreakPoint += Add + this["offset" + PageBreakerRulers[2]];
-					this.style["margin-" + PageBreakerRulers[4]] = 0;
+					BreakPoint += Add + this["offset" + PBR[2]];
+				sML.log(Item.ItemIndex + ": " + BreakPoint);
+					this.style["margin-" + PBR[4]] = 0;
 					if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = sML.insertAfter(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this);
-					Add = (PageBreakerRulers[1] - BreakPoint % PageBreakerRulers[1]); if(Add == PageBreakerRulers[1]) Add = 0;
-					this.BibiPageBreakerAfter.style[PageBreakerRulers[3]] = Add + "px";
+					Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
+					this.BibiPageBreakerAfter.style[PBR[3]] = Add + "px";
 				}
 			});
 		}
 	}
+	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
 	/**/ if(IsSingleImageItem)             var ItemL = PageL;
 	else if(sML.UA.InternetExplorer >= 10) var ItemL = Item.Body["client" + S.SIZE.L];
 	else                                   var ItemL = Item.Body["scroll" + S.SIZE.L];
@@ -1552,9 +1604,9 @@ R.focus = function(Target, ScrollOption) {
 			} else {
 				OffsetInItem = (FocusTarget.Item.ColumnLength + FocusTarget.Item.ColumnGap) * Math.ceil( OffsetInItemO / FocusTarget.Item.ColumnBreadth) - (S["item-padding-" + S.BASE.a]);
 			}
-			if(S.SLD == "rtl") OffsetInItem = FocusTarget.Item["offset" + S.SIZE.L] - OffsetInItem;
+			if(S.SLD == "rtl") OffsetInItem = FocusTarget.Item["offsetWidth"] - OffsetInItem;
 		} else {
-			if(S.SLD == "rtl") OffsetInItem = OffsetInItem + FocusTarget.Element["offset" + S.SIZE.L];
+			if(S.SLD == "rtl") OffsetInItem += FocusTarget.Element["offsetWidth"];
 		}
 		ElementPoint += S["item-padding-" + Top_or_Left[0].toLowerCase()] + OffsetInItem;
 		// Find Nearest Page
