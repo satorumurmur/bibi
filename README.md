@@ -82,7 +82,7 @@ This is recommended because it accelarates reading experience of your readers.
 
 ### Arrangements
 
-1. Clone this repository.
+1. Clone this repository. (https://github.com/satorumurmur/bibi/)
 2. `$ cd <the repository>`
 3. `$ bundle install --path=vendor/bundle` then `vendor/bundle` directory including RubyGems(Compass and dependent gems) will be installed.
 4. `$ npm install` then `npm-modules` directory including modules will be installed.
