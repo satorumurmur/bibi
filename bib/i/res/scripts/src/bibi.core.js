@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Sun August 24 21:32:00 2014 +0900
- */    Version: 0.9971, Build: 20140824.0
+ *  - Wed August 27 23:25:00 2014 +0900
+ */    Version: 0.9972, Build: 20140827.0
 };
 
 
@@ -135,7 +135,7 @@ O.initialize = function() {
 		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../presets/" + PresetFileName;
 		P.FileName = PresetFileName;
 	}
-	O.log(3, 'preset: "' + PresetFileName + '"');
+	O.log(3, 'preset: ' + PresetFileName);
 
 	O.log(2, 'Initialized.');
 
@@ -293,7 +293,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		}
 	}
  
- 	EPUBZip = (new JSZip()).load(EPUBZip); sML.log(EPUBZip);
+ 	EPUBZip = (new JSZip()).load(EPUBZip);
  
 	for(var FileName in EPUBZip.files) {
 		if(EPUBZip.files[FileName]._data) {
@@ -478,7 +478,6 @@ L.readPackageDocument = function() {
 	O.getMetadata = function() { return B.Package.Metadata; };
 
 	// MANIFEST
-	R.CSSFiles = [], L.loadedCSSFiles = 0;
 	var TOCID = Spine.getAttribute("toc");
 	sML.each(ManifestItems, function() {
 		var ManifestItem = {
@@ -495,7 +494,6 @@ L.readPackageDocument = function() {
 				if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
 			})(" " + ManifestItem.properties + " ");
 			if(TOCID && ManifestItem["id"] == TOCID) B.Package.Manifest["toc-ncx"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
-			if(ManifestItem["media-type"] == "text/css") R.CSSFiles.push({ Path: O.getPath(B.Package.Dir, ManifestItem["href"]) });
 		}
 	});
 
@@ -702,45 +700,16 @@ L.loadNavigation = function() {
 
 	delete Document;
 
-	if(!X["pipi"]["wait"]) L.loadCSSFiles();
+	if(!X["pipi"]["wait"]) L.loadItems();
 	else {
 		L.shutUpLoading();
 		C.Cartain.createPlayButton({
 			onplay: function() {
-				L.loadCSSFiles();
+				L.loadItems();
 			}
 		});
 		C.Cartain.Message.note('');
 	}
-
-}
-
-
-L.loadCSSFiles = function() {
-
-	if(!R.CSSFiles.length || B.Zipped) return L.loadItems();
-
-	O.log(2, 'Loading CSS Files...');
-
-	sML.each(R.CSSFiles, function(i) {
-		O.log(3, sML.String.padZero(i + 1, L.FileDigit) + '/' + sML.String.padZero(R.CSSFiles.length, L.FileDigit) + ' "' + this.Path + '"');
-		document.body.appendChild(
-			sML.create("iframe", {
-				onload: function() {
-					L.loadedCSSFiles++;
-					document.body.removeChild(this);
-				},
-				src: "../bookshelf/" + B.Name + "/" + this.Path
-			})
-		);
-	});
-
-	// Done?
-	setTimeout(function() {
-		if(L.LoadedCSSFiles < R.CSSFiles.length) return setTimeout(arguments.callee, 500);
-		O.log(2, 'Loaded.');
-		L.loadItems();
-	}, 250);
 
 }
 
@@ -782,10 +751,10 @@ L.loadItem = function(Item) {
 		// If HTML or Others
 		if(B.Zipped) {
 			L.writeItemHTML(Item, A.Files[Path]);
-			setTimeout(L.postprocessItem, 400, Item);
+			setTimeout(L.postprocessItem, 10, Item);
 		} else {
 			Item.src = "../bookshelf/" + B.Name + "/" + Path;
-			Item.onload = function() { setTimeout(function() { L.postprocessItem(R.Items[Item.ItemIndex]); }, 400); };
+			Item.onload = function() { setTimeout(L.postprocessItem, 10, Item); };
 			Item.ItemBox.appendChild(Item);
 		}
 	} else if(/\.(svg)$/i.test(Path)) {
@@ -806,7 +775,7 @@ L.loadItem = function(Item) {
 		Item.IsPDF = true;
 		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
 	}
-	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? '"' + Path + '"' : '... Not Found.'));
+	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? Path : '... Not Found.'));
 }
 
 
@@ -825,8 +794,6 @@ L.writeItemHTML = function(Item, HTML, Head, Body) {
 
 L.postprocessItem = function(Item) {
 
-	O.showStatus("Loading... ( " + (L.LoadedItems + 1) + "/" + R.Items.length + " Items )");
-
 	var ItemRef = Item.ItemRef;
 
 	Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
@@ -840,16 +807,12 @@ L.postprocessItem = function(Item) {
 		sML.each(Item.contentDocument.styleSheets, function () {
 			for(var L = this.cssRules.length, i = 0; i < L; i++) {
 				var CSSRule = this.cssRules[i];
-				if(CSSRule.styleSheet) {
-					arguments.callee.call(CSSRule.styleSheet);
-					continue;
-				}
-				/*  */ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) {
-					CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-				} else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) {
-					CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-				} else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) {
-					CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+				     if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+				else {
+					     if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+					else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+					else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
 				}
 			}
 		});
@@ -857,6 +820,16 @@ L.postprocessItem = function(Item) {
 
 	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
 	if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
+
+	Item.StyleSheets = [];
+	sML.CSS.add({ "html" : "-webkit-text-size-adjust: none;" }, Item.contentDocument);
+	sML.each(Item.HTML.querySelectorAll("link, style"), function() {
+		if(/^link$/i.test(this.tagName)) {
+			if(!/^(alternate )?stylesheet$/.test(this.rel)) return;
+			if(sML.UA.Safari && this.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
+		}
+		Item.StyleSheets.push(this);
+	});
 
 	// Margin & Padding & Background
 	sML.each([Item.HTML, Item.Body], function() {
@@ -867,10 +840,6 @@ L.postprocessItem = function(Item) {
 			}
 		}
 	});
-	if(!sML.UA.Gecko) sML.CSS.add({
-		"html" : "-webkit-text-size-adjust: none;",
-		"::selection" : "background: rgba(255,192,0,0.5);"
-	}, Item.contentDocument);
 
 	// Single SVG / IMG Item
 	var ItemBodyChildren = Item.contentDocument.querySelectorAll("body>*");
@@ -927,16 +896,19 @@ L.postprocessItem = function(Item) {
 		}
 	}
 
+	// Linkage
+	L.postprocessLinkage(Item.Path, Item.Body);
+
 	setTimeout(function() {
-		// Linkage
-		L.postprocessLinkage(Item.Path, Item.Body);
+		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		// Layout Inside of the Spread
 		R.resetItem(Item);
 		R.resetSpread(Item.Spread);
 		// Keys
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
-		L.LoadedItems++;
 		Item.Loaded = true;
+		L.LoadedItems++;
+		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
 	}, 100);
 
 }
@@ -1149,7 +1121,6 @@ R.resetItem_Reflowable = function(Item) {
 	sML.style(Item.HTML, { "column-width": "", "column-gap": "", "column-rule": "" });
 	Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
-	R.shock(Item);
 	if(IsSingleFrameItem) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
 		IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
@@ -1197,14 +1168,6 @@ R.resetItem_Reflowable = function(Item) {
 			});
 		}
 		// Making Columns
-		/*
-		sML.log([
-			Item.ItemIndex,
-			getComputedStyle(Item.HTML).webkitWritingMode,
-			'Item.Body["scroll" + "' + S.SIZE.B + '"]: ' + Item.Body["scroll" + S.SIZE.B],
-			'PageB: ' + PageB
-		].join(" / "));
-		*/
 		if(S["book-display-mode"] == "each" || Item.HTML["scroll" + S.SIZE.B] > PageB) {
 			Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
 			sML.style(Item.HTML, {
@@ -1445,47 +1408,32 @@ R.layout = function(Param) {
 }
 
 
-R.onresize = function() {
-	if(R.Timer_layout_whenResized) clearTimeout(R.Timer_layout_whenResized);
+R.relayout = function(Setting, Timing) {
+	if(R.Timer_relayout) clearTimeout(R.Timer_relayout);
 	var CurrentPage = R.getCurrentPages().Start;
-	R.Timer_layout_whenResized = setTimeout(function() {
-		R.layout({
-			Target: {
-				ItemIndex: CurrentPage.Item.ItemIndex,
-				PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
-			},
-			Reset: true
-		});
-	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
-}
-
-
-R.changeView = function(Setting) {
-	var CurrentPage = R.getCurrentPages().Start;
-	sML.style(R.Contents, {
-		transition: "opacity 0.5s linear",
-		opacity: 0
-	}, function() {
-		R.layout({
-			Target: {
-				ItemIndex: CurrentPage.Item.ItemIndex,
-				PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
-			},
-			Reset: true,//(Setting["spread-layout-axis"] || Setting["page-size-format"]),
-			Setting: Setting
-		});
+	Timer_relayout = setTimeout(function() {
+		sML.style(R.Contents, { transition: "opacity 0.4s ease", opacity: 0 });
 		setTimeout(function() {
-			sML.style(R.Contents, {
-				transition: "opacity 0.5s linear",
-				opacity: 1
+			R.layout({
+				Target: {
+					ItemIndex: CurrentPage.Item.ItemIndex,
+					PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
+				},
+				Reset: true,
+				Setting: Setting
 			});
+			setTimeout(function() {
+				sML.style(R.Contents, { transition: "opacity 0.4s ease", opacity: 1 });
+			}, 100);
 		}, 100);
-	});
+	}, Timing);
 }
 
-R.changeBookDisplayMode  = function(BDM) { if(BDM != S.BDM) R.changeView({ "book-display-mode"  : BDM }); }
-R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.changeView({ "spread-layout-axis" : SLA }); }
-R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.changeView({ "page-size-format"   : PSF }); }
+
+R.onresize               = function(   ) { R.relayout(null, (sML.OS.iOS || sML.OS.Android) ? 888 : 444); }
+R.changeBookDisplayMode  = function(BDM) { if(BDM != S.BDM) R.relayout({ "book-display-mode"  : BDM }, 100); }
+R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.relayout({ "spread-layout-axis" : SLA }, 100); }
+R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.relayout({ "page-size-format"   : PSF }, 100); }
 
 
 R.getTarget = function(Target) {
@@ -2274,9 +2222,9 @@ O.log = function(Lv, Message) {
 
 
 O.showStatus = function(Message) {
-	status = 'BiB/i: ' + Message;
+	window.status = 'BiB/i: ' + Message;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
-	O.statusClearer = setTimeout(function() { status = defaultStatus; }, 3210);
+	O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
 }
 
 
