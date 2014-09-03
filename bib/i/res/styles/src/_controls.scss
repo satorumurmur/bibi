@@ -878,6 +878,11 @@ html.spread-horizontal div#bibi-panel div#bibi-panel-menu ul#spread-layout-axis 
 		display: none;
 	}
 }
+html.display-each div#bibi-panel div#bibi-panel-menu ul#spread-layout-axis {
+	li {
+		display: none;
+	}
+}
 
 html.preparing div#bibi-panel div#bibi-panel-menu ul {
 	display: none;

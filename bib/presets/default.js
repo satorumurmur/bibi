@@ -5,8 +5,8 @@ P = {
 
 	"book-display-mode"                 : "all",             // "all" or "each"
 	"page-progression-direction"        : "ltr",             // "ltr" or "rtl" ("ltr" is recommended.)
-	"spread-layout-axis"                : "auto",            // "auto" or "vertical" or "horizontal"
-	"page-size-format"                  : "auto",            // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
+	"spread-layout-axis"                : "horizontal",            // "auto" or "vertical" or "horizontal"
+	"page-size-format"                  : "portrait",            // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
 
 	"book-background"                   : "rgb(36,36,36)",   // CSS value or ""
 

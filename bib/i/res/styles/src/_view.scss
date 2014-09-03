@@ -95,9 +95,23 @@ html.spread-ttb div#epub-contents {
 }
 html.spread-ltr div#epub-contents {
 	@include writing-mode(vertical-lr, tb-lr);
+	/*
+	overflow: hidden;
+	div.spread-box, div.spread, div.item-box, iframe.item {
+		overflow: hidden;
+		float: left;
+	}
+	*/
 }
 html.spread-rtl div#epub-contents {
 	@include writing-mode(vertical-rl, tb-rl);
+	/*
+	overflow: hidden;
+	div.spread-box, div.spread, div.item-box, iframe.item {
+		overflow: hidden;
+		float: right;
+	}
+	*/
 }
 html.spread-vertical div#epub-contents {
 	@include transform(translateX(0));
