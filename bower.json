@@ -1,0 +1,24 @@
+{
+  "name": "bibi",
+  "version": "0.9973",
+  "authors": [
+    "Satoru Matsushima"
+  ],
+  "description": "EPUB Reader on Your Web Site.",
+  "main": "bib/i/index.html",
+  "keywords": [
+    "EPUB",
+    "Books in Browsers",
+    "Reading System",
+    "Viewer"
+  ],
+  "license": "MIT",
+  "homepage": "http://sarasa.la/bib/i/",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
