@@ -1,0 +1,28 @@
+{
+	"name": "bibi",
+	"version": "0.9973",
+	"authors": [
+		"Satoru MATSUSHIMA"
+	],
+	"description": "BiB/i | EPUB Reader on Your Web Site.",
+	"keywords": [
+		"EPUB",
+		"Reading System",
+		"Viewer",
+		"Books-in-Browsers"
+	],
+	"license": "MIT",
+	"homepage": "http://sarasa.la/bib/i",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/satorumurmur/bibi.git"
+	},
+	"main": "bib/i/index.html",
+	"ignore": [
+		"**/.*",
+		"node_modules",
+		"bower_components",
+		"test",
+		"tests"
+	]
+}

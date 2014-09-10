@@ -1,20 +1,23 @@
 {
 	"name": "bibi",
-	"version": "0.9.96",
+	"version": "0.9973",
+	"author": {
+		"name": "Satoru MATSUSHIMA"
+	},
 	"description": "BiB/i | EPUB Reader on Your Web Site.",
 	"keywords": [
 		"EPUB",
-		"Books-in-Browsers",
-		"JavaScript"
+		"Reading System",
+		"Viewer",
+		"Books-in-Browsers"
 	],
-	"homepage": "http://sarasa.la/bib/i",
-	"bugs": "https://github.com/satorumurmur/bibi/issues",
 	"license": "MIT",
-	"author": "Satoru MATSUSHIMA <soarstre+bibi@gmail.com (http://sarasa.la/)",
+	"homepage": "http://sarasa.la/bib/i",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/satorumurmur/bibi.git"
+		"url": "git://github.com/satorumurmur/bibi.git"
 	},
+	"bugs": "https://github.com/satorumurmur/bibi/issues",
 	"readmeFilename": "README.md",
 	"devDependencies": {
 		"grunt": "~0.4.5",
@@ -30,7 +33,8 @@
 		"grunt-contrib-sass": "~0.7.3",
 		"grunt-contrib-uglify": "~0.4.0",
 		"grunt-contrib-watch": "~0.6.1",
-		"matchdep": "~0.3.0"
+		"matchdep": "~0.3.0",
+		"bower": "~1.3.9"
 	},
 	"dependencies": {
 	}
