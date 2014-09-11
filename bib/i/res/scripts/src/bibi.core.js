@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Wed September 3 13:45:00 2014 +0900
- */    Version: 0.9973, Build: 20140903.0
+ *  - Thu September 11 10:45:00 2014 +0900
+ */    Version: "0.997.4", Build: 20140911.0
 };
 
 

@@ -7,7 +7,7 @@ Pipi = { /*!
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  *  - Tue August 19 15:00:00 2014 +0900
- */    Version: 0.997, Build: 20140819.0
+ */    Version: "0.997.0", Build: 20140819.0
 };
 
 (function(embedBibi) {
