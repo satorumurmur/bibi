@@ -10,8 +10,8 @@ Bibi = { /*!
  *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Thu September 11 10:45:00 2014 +0900
- */    Version: "0.997.4", Build: 20140911.0
+ *  - Tue November 11 18:56:00 2014 +0900
+ */    Version: "0.997.5", Build: 20141111.0
 };
 
 
@@ -89,55 +89,22 @@ O.welcome = function() {
 		}
 	})();
 
-	R.Contents = O.Body.appendChild(sML.create("div", { id: "epub-contents" }));
-
-	C.weaveCartain();
-
-	O.readExtra();
-
-	L.getBook(X["book"]);
+	O.found();
+	O.open();
 
 }
 
+O.found = function() {
 
-O.initialize = function() {
+	C.weaveCartain();
+	R.Contents = O.Body.insertBefore(sML.create("div", { id: "epub-contents" }), C.Cartain);
 
-	O.log(2, 'Initializing BiB/i...');
+}
 
-	L.FileDigit = 3;
+O.open = function() {
 
-	B = {
-		Container: { Path: "META-INF/container.xml" },
-		Package: {}
-	}
-
-	R.Contents.innerHTML = "", R.Contents.style.opacity = 0;
-	R.CoverImage = null;
-	R.Navigation = null;
-
-	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
-	var applyPreset = function() {
-		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
-			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
-		});
-		if(P["spread-gap"] % 2) P["spread-gap"]++;
-		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
-		if(X["bibi"]["spread-layout-axis"] && /^(horizontal|vertical)$/.test(      X["bibi"]["spread-layout-axis"])) P["spread-layout-axis"] = X["bibi"]["spread-layout-axis"];
-		if(X["bibi"]["page-size-format"  ] && /^(portrait|landscape|window)$/.test(X["bibi"]["page-size-format"  ])) P["page-size-format"  ] = X["bibi"]["page-size-format"  ];
-		if(P.FileName !== "default.js") O.updateSetting(P);
-	}
-	if(!P.FileName && PresetFileName == "default.js") {
-		P.FileName = "default.js";
-		applyPreset();
-	} else if(P.FileName != PresetFileName) {
-		P.loaded = false;
-		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
-		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../presets/" + PresetFileName;
-		P.FileName = PresetFileName;
-	}
-	O.log(3, 'preset: ' + PresetFileName);
-
-	O.log(2, 'Initialized.');
+	O.readExtra();
+	L.getBook(X["book"]);
 
 }
 
@@ -209,7 +176,7 @@ L.getBook = function(BookFileName) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
 			X = { book: "", bibi: {}, pipi: {} };
-			O.initialize();
+			L.initialize();
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFile.name + '"');
@@ -244,7 +211,7 @@ L.getBook = function(BookFileName) {
 		}
 	} else if(/\.epub$/i.test(BookFileName)) {
 		// EPUB XHR
-		O.initialize();
+		L.initialize();
 		var fetchEPUB = function() {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
@@ -267,11 +234,53 @@ L.getBook = function(BookFileName) {
 		}
 	} else {
 		// EPUB Folder
-		O.initialize();
+		L.initialize();
 		L.sayLoading();
 		B.Name = BookFileName, B.Format = "EPUB";
 		L.readContainer();
 	}
+
+}
+
+
+L.initialize = function() {
+
+	O.log(2, 'Initializing BiB/i...');
+
+	L.FileDigit = 3;
+
+	B = {
+		Container: { Path: "META-INF/container.xml" },
+		Package: {}
+	}
+
+	R.Contents.innerHTML = "", R.Contents.style.opacity = 0;
+	R.CoverImage = null;
+	R.Navigation = null;
+
+	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
+	var applyPreset = function() {
+		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
+			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
+		});
+		if(P["spread-gap"] % 2) P["spread-gap"]++;
+		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
+		if(X["bibi"]["spread-layout-axis"] && /^(horizontal|vertical)$/.test(      X["bibi"]["spread-layout-axis"])) P["spread-layout-axis"] = X["bibi"]["spread-layout-axis"];
+		if(X["bibi"]["page-size-format"  ] && /^(portrait|landscape|window)$/.test(X["bibi"]["page-size-format"  ])) P["page-size-format"  ] = X["bibi"]["page-size-format"  ];
+		if(P.FileName !== "default.js") O.updateSetting(P);
+	}
+	if(!P.FileName && PresetFileName == "default.js") {
+		P.FileName = "default.js";
+		applyPreset();
+	} else if(P.FileName != PresetFileName) {
+		P.loaded = false;
+		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
+		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../presets/" + PresetFileName;
+		P.FileName = PresetFileName;
+	}
+	O.log(3, 'preset: ' + PresetFileName);
+
+	O.log(2, 'Initialized.');
 
 }
 
@@ -1558,7 +1567,7 @@ R.focus = function(Target, ScrollOption) {
 	var FocusTarget = R.getTarget(Target); if(typeof FocusTarget != "object" || !FocusTarget) return false;
 	if(FocusTarget.Edge) {
 		var FocusPoint = /^[TL]$/.test(FocusTarget.EdgeTRBL) ? 0 : O.Body["scroll" + S.SIZE.L] - O.Body["client" + S.SIZE.L];
-		O.scrollTo((S.SLD == "ttb" ? { Y: FocusPoint * R.Scale } : { X: FocusPoint * R.Scale }), ScrollOption);
+		sML.scrollTo((S.SLD == "ttb" ? { Y: FocusPoint * R.Scale } : { X: FocusPoint * R.Scale }), ScrollOption);
 		return false;
 	}
 	var Top_or_Left = (S.SLD == "ttb") ? ["Top", "Left"] : ["Left", "Top"];
@@ -1604,7 +1613,7 @@ R.focus = function(Target, ScrollOption) {
 		}
 	}
 	if(S.SLD == "rtl") FocusPoint = FocusPoint - window["inner" + S.SIZE.L];
-	O.scrollTo((S.SLD == "ttb" ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale }), ScrollOption);
+	sML.scrollTo((S.SLD == "ttb" ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale }), ScrollOption);
 	return false;
 }
 
@@ -1666,7 +1675,7 @@ R.scroll = function(Distance) {
 		case "ltr": ScrollTo = { X: WindowCoord.left + (R.StageSize.Length + S["spread-gap"]) * Distance      }; break;
 		case "rtl": ScrollTo = { X: WindowCoord.left + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 }; break;
 	}
-	return O.scrollTo(ScrollTo);
+	return sML.scrollTo(ScrollTo);
 }
 
 
@@ -1711,52 +1720,53 @@ R.zoom = function(Scale) {
 
 C.weaveCartain = function() {
 
-	C.Cartain = O.Body.appendChild(
-		sML.create("div", { id: "bibi-cartain",
-			State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
-			open: function(Cb) {
-				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
-				this.State = 1;
-				this.style.display = "block";
-				this.style.zIndex = 100;
-				sML.style(this, {
-					transition: "0.5s ease-out",
-					transform: "translate" + S.AXIS.XY + "(0)",
-					opacity: 0.75
-				}, function() {
-					if(typeof Cb == "function") Cb();
-				});
-				return this.State;
-			},
-			close: function(Cb) {
-				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
-				this.State = 0;
-				this.Message.style.opacity = 0;
-				sML.style(this, {
-					transition: "0.5s ease-in",
-					transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * -1 * 240) + "%)",
-					opacity: 0
-				}, function() {
-					sML.style(this, {
-						transition: "none",
-						transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * 240) + "%)"
-					});
-					this.style.zIndex = 1;
-					this.style.display = "none";
-					if(typeof Cb == "function") Cb();
-				});
-				return this.State;
-			},
-			toggle: function(Cb) {
-				return (this.State == 0 ? this.open(Cb) : this.close(Cb));
-			}
-		})
-	);
+	C.Cartain = document.getElementById("bibi-cartain");
 
-	C.Cartain.Cover   = C.Cartain.appendChild(sML.create("div", { id: "bibi-cartain-cover" }));
-	C.Cartain.Mark    = C.Cartain.appendChild(sML.create("p",   { id: "bibi-cartain-mark",    className: "animate" }));
-	C.Cartain.Message = C.Cartain.appendChild(sML.create("p",   { id: "bibi-cartain-message", className: "animate" }));
-	C.Cartain.Powered = C.Cartain.appendChild(sML.create("p",   { id: "bibi-cartain-powered", innerHTML: '' + O.getLogo({ Linkify: true }) }));
+	sML.edit(C.Cartain, {
+		State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
+		open: function(Cb) {
+			if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
+			this.State = 1;
+			this.style.display = "block";
+			this.style.zIndex = 100;
+			sML.style(this, {
+				transition: "0.5s ease-out",
+				transform: "translate" + S.AXIS.XY + "(0)",
+				opacity: 0.75
+			}, function() {
+				if(typeof Cb == "function") Cb();
+			});
+			return this.State;
+		},
+		close: function(Cb) {
+			if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
+			this.State = 0;
+			this.Message.style.opacity = 0;
+			sML.style(this, {
+				transition: "0.5s ease-in",
+				transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * -1 * 240) + "%)",
+				opacity: 0
+			}, function() {
+				sML.style(this, {
+					transition: "none",
+					transform: "translate" + S.AXIS.XY + "(" + (S.AXIS.PM * 240) + "%)"
+				});
+				this.style.zIndex = 1;
+				this.style.display = "none";
+				if(typeof Cb == "function") Cb();
+			});
+			return this.State;
+		},
+		toggle: function(Cb) {
+			return (this.State == 0 ? this.open(Cb) : this.close(Cb));
+		}
+	});
+
+	C.Cartain.Powered = C.Cartain.appendChild(sML.create("p", { id: "bibi-cartain-powered", innerHTML: O.getLogo({ Linkify: true }) }));
+
+	C.Cartain.Cover   = C.Cartain.insertBefore(sML.create("div", { id: "bibi-cartain-cover" }), C.Cartain.Powered);
+	C.Cartain.Mark    = C.Cartain.insertBefore(sML.create("div", { id: "bibi-cartain-mark",    className: "animate" }), C.Cartain.Powered);
+	C.Cartain.Message = C.Cartain.insertBefore(sML.create("p",   { id: "bibi-cartain-message", className: "animate" }), C.Cartain.Powered);
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	C.Cartain.createPlayButton = function(Param) {
@@ -2256,33 +2266,6 @@ O.getEPUBCFITarget = function(CFIString) {
 //-- Utilities
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-O.scrollTo = function(Goal, Param) {
-	if(typeof Goal != "object" || (typeof Goal.X != "number" && typeof Goal.Y != "number")) return;
-	if(typeof Param != "object") Param = {};
-	Param.Duration = (typeof Param.Duration == "number" && Param.Duration >= 0) ? Param.Duration : 100;
-	Param.Easing   = (typeof Param.Easing   == "number")                        ? Param.Easing   : 100;
-	if(O.SrollingTimer) clearTimeout(O.SrollingTimer);
-	(function(Start, Goal, Param) {
-		var TimeProgress = ((new Date()).getTime() - Start.Time) / Param.Duration;
-		if(TimeProgress >= 1) return window.scrollTo(Goal.X, Goal.Y);
-		var Progress = TimeProgress + Param.Easing / 100 * (1 - TimeProgress) * TimeProgress;
-		window.scrollTo(
-			Math.round(Start.X + (Goal.X - Start.X) * Progress),
-			Math.round(Start.Y + (Goal.Y - Start.Y) * Progress)
-		);
-		O.ScrollingTimer = setTimeout(arguments.callee, 10, Start, Goal, Param);
-	})(
-		{
-			X: (document.body.scrollLeft || document.documentElement.scrollLeft || 0),
-			Y: (document.body.scrollTop  || document.documentElement.scrollTop  || 0),
-			Time: (new Date()).getTime()
-		},
-		Goal,
-		Param
-	);
-}
 
 
 O.getLogo = function(Setting) {

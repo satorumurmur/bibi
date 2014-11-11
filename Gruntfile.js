@@ -22,7 +22,8 @@ module.exports = function(grunt){
 		// Clean Document Directory
 		clean: {
 			css: [
-				'bib/i/res/styles/bibi.css'
+				'bib/i/res/styles/bibi.css',
+				'bib/i/res/styles/pipi.css'
 			],
 			js_lib: [
 				'bib/i/res/scripts/bibi.lib.js'
@@ -82,17 +83,18 @@ module.exports = function(grunt){
 			// Libraries
 			script_lib: {
 				src: [
-					'bib/i/res/scripts/lib/sML.js',
-					'bib/i/res/scripts/lib/jszip.min.js',
-					'bib/i/res/scripts/lib/base64.js'
+					'bibi-dev/res/scripts/lib/jszip.min.js',
+					'bibi-dev/res/scripts/lib/base64.js',
+					'bibi-dev/res/scripts/lib/easing.js',
+					'bibi-dev/res/scripts/lib/sML.js'
 				],
 				dest: 'bib/i/res/scripts/bibi.lib.js'
 			},
 			// Scripts
 			script: {
 				src: [
-					'bib/i/res/scripts/src/bibi.core.js',
-					'bib/i/res/scripts/src/bibi.epubcfi.js'
+					'bibi-dev/res/scripts/src/bibi.core.js',
+					'bibi-dev/res/scripts/src/bibi.epubcfi.js'
 				],
 				dest: 'bib/i/res/scripts/bibi.js'
 			}
@@ -108,11 +110,14 @@ module.exports = function(grunt){
 						' *',
 						' * # Script Libraries for BiB/i',
 						' *',
-						' * 1. bib/i/res/scripts/lib/sML.js',
-						' * 2. bib/i/res/scripts/lib/jszip.min.js',
-						' * 3. bib/i/res/scripts/lib/base64.js',
+						' * - Including these open source softwares.',
 						' *',
-						' * - <%= grunt.template.today("yyyy/mm/dd") %>',
+						' * 1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licenced under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js',
+						' * 2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js',
+						' * 3. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js',
+						' * 4. sML       - http://sarasa.la/sML                  - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js',
+						' *',
+						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'
 					].join('\n') + '\n'
 				},
@@ -127,12 +132,12 @@ module.exports = function(grunt){
 					banner: [
 						'/*!',
 						' *',
-						' * # BiB/i: Scripts',
+						' * # BiB/i - http://sarasa.la/bib/i - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
 						' *',
-						' * 1. bib/i/res/scripts/src/bibi.core.js',
-						' * 2. bib/i/res/scripts/src/bibi.epubcfi.js',
+						' * 1. bibi-dev/res/scripts/src/bibi.core.js',
+						' * 2. bibi-dev/res/scripts/src/bibi.epubcfi.js',
 						' *',
-						' * - <%= grunt.template.today("yyyy/mm/dd") %>',
+						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'
 					].join('\n') + '\n'
 				},
@@ -161,7 +166,7 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bib/i/res/styles/src/*.scss'
+					'bibi-dev/res/styles/src/*.scss'
 				],
 				tasks: [
 					'build_minstyle',
@@ -173,7 +178,7 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bib/i/res/scripts/lib/*.js'
+					'bibi-dev/res/scripts/lib/*.js'
 				],
 				tasks: [
 					'build_minscript_lib',
@@ -185,7 +190,7 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bib/i/res/scripts/src/*.js'
+					'bibi-dev/res/scripts/src/*.js'
 				],
 				tasks: [
 					'build_minscript',

@@ -2,17 +2,16 @@
 
 
 
-sML = (function() { var sML = { /*!
+/*!
  *
- *  # sML JavaScript Library
+ * # sML JavaScript Library
  *
- *  - "I'm a Simple and Middling Library."
- *  - Copyright (c) Satoru MATSUSHIMA - http://sarasa.la/sML
- *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ * - "I'm a Simple and Middling Library."
+ * - Copyright (c) Satoru MATSUSHIMA - http://sarasa.la/sML
+ * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Mon July 28 23:26:00 2014 +0900
- */    Version: 0.9997, Build: 20140728.0
-}
+ * - Thu October 15 23:44:00 2014 +0900
+ */ sML = { Version: "0.999.9", Build: 20141015.0 };
 
 
 
@@ -98,80 +97,130 @@ sML.write = function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Events
+//-- Polyfill
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.Event = {};
-
-if(document.addEventListener) {
-	sML.Event.add    = sML.addEventListener    = function(O, Ev, F, uC) { O.addEventListener(   Ev, F, (uC ? true : false)); return O; };
-	sML.Event.remove = sML.removeEventListener = function(O, Ev, F, uC) { O.removeEventListener(Ev, F, (uC ? true : false)); return O; };
-} else if(document.attachEvent) {
-	sML.Event.add    = sML.addEventListener    = function(O, Ev, F)     { O.attachEvent("on" + Ev, F); return O; };
-	sML.Event.remove = sML.removeEventListener = function(O, Ev, F)     { O.detachEvent("on" + Ev, F); return O; };
-} else {
-	sML.Event.add    = sML.addEventListener    = function(O, Ev, F)     { O["on" + Ev] = F; return O; };
-	sML.Event.remove = sML.removeEventListener = function(O, Ev, F)     { O["on" + Ev] = F; return O; };
-}
-
-sML.stopPropagation = sML.Event.stopPropagation = sML.UA.IE ? function() { event.cancelBubble = true; } : function(e) { return e.stopPropagation(); };
-sML.preventDefault  = sML.Event.preventDefault  = sML.UA.IE ? function() { event.returnValue = false; } : function(e) { return e.preventDefault();  };
-
-sML.Event.add(window, "unload", function() { sML = null; delete sML; });
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-sML.OnRead = sML.onRead = {
-	Functions: [],
-	execute: function() {
-		if(this.Executed) return;
-		this.Executed = 1;
-		for(var L = this.Functions.length, i = 0; i < L; i++) this.Functions[i]();
-		this.Functions = [];
-	},
-	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
+sML.Polyfill = {
+	extendElements: function(E) { return E; }
 };
-sML.onread = sML.ready = function(F) { return sML.OnRead.addEventListener(F); };
 
-sML.OnLoad = sML.onLoad = {
-	Functions: [],
-	execute: function() {
-		if(this.Executed) return;
-		this.Executed = 1;
-		for(var L = this.Functions.length, i = 0; i < L; i++) this.Functions[i]();
-		this.Functions = [];
-	},
-	addEventListener: function(F) { return (this.Executed) ? F() : this.Functions.push(F); }
-};
-sML.onload = sML.done  = function(F) { return sML.OnLoad.addEventListener(F); };
-
-if(document.addEventListener && (!sML.UA.WK || sML.UA.WK > 525)) {
-	document.addEventListener("DOMContentLoaded", function() {
-		document.removeEventListener("DOMContentLoaded", arguments.callee, false);
-		sML.OnRead.execute();
-	}, false);
-} else if(document.attachEvent) {
+if(sML.UA.InternetExplorer < 9) {
+	sML.Polyfill.extendElement = function(E) {
+		E.getElementsByClassName = sML.Polyfill.getElementsByClassName;
+		E.addEventListener       = sML.Polyfill.addEventListener;
+		E.removeEventListener    = sML.Polyfill.removeEventListener;
+		return E;
+	};
+	sML.Polyfill.extendElements = function(E) {
+		sML.Polyfill.extendElement(E);
+		sML.each(E.getElementsByTagName("*"), function() { sML.Polyfill.extendElement(this); });
+		return E;
+	};
+	sML.Polyfill.getElementsByClassName = function(Cs) {
+		return this.querySelectorAll("." + Cs.replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/, "."));
+	};
+	sML.Polyfill.addEventListener    = function(EN, EL) {
+		if(!this["FunctionsOn" + EN]) this["FunctionsOn" + EN] = [], this["XWrappersOn" + EN] = [];
+		var E = this, Functions = this["FunctionsOn" + EN], XWrappers = this["XWrappersOn" + EN];
+		if(EN == "DOMContentLoaded") {
+			var XEL = function() { if(E.readyState === "complete") EL.apply(E, arguments); };
+			EN = "readystatechange";
+		} else {
+			var XEL = function() { EL.apply(E, arguments); };
+		}
+		this.attachEvent("on" + EN, XEL);
+		XWrappers.push(XEL);
+		Functions.push( EL);
+		return this;
+	};
+	sML.Polyfill.removeEventListener = function(EN, EL) {
+		var E = this, Functions = this["FunctionsOn" + EN], XWrappers = this["XWrappersOn" + EN];
+		for(var L = Functions.length, i = 0; i < L; i++) if(Functions[i] == EL) break;
+		if(EN == "DOMContentLoaded") EN = "readystatechange";
+		this.detachEvent("on" + EN, XWrappers[i]);
+		XWrappers[i] = Functions[i] = null;
+		return this;
+	};
+	window.getComputedStyle = function(E) { return E.currentStyle; };
+	window.addEventListener    = function(EN, EL) { this.attachEvent("on" + EN, EL); return this; };
+	window.removeEventListener = function(EN, EL) { this.detachEvent("on" + EN, EL); return this; };
+	sML.Polyfill.extendElement(document);
 	document.attachEvent("onreadystatechange", function() {
 		if(document.readyState !== "complete") return;
 		document.detachEvent("onreadystatechange", arguments.callee);
-		sML.OnRead.execute();
+		sML.extendElements(document.documentElement);
 	});
-	if(document.documentElement.doScroll && window == window.top) { (function() {
-		if(sML.OnRead.Executed) return;
-		try { document.documentElement.doScroll("left"); } catch(e) { setTimeout(arguments.callee, 0); return; }
-		sML.OnRead.execute();
-	})(); }
-} else sML.OnLoad.addEventListener(function() { sML.OnRead.execute(); });
+	window.Event.prototype.stopPropagation = function() { this.cancelBubble = true; };
+	window.Event.prototype.preventDefault  = function() { this.returnValue = false; };
+	Array.prototype.forEach = function(Fn, This) {
+		if(typeof Fn != "function") throw new TypeError();
+		for(var L = this.length, i = 0; i < L; i++) Fn.call(This, this[i], i, this);
+	};
+	Array.prototype.map = function(Fn, This) {
+		if(typeof Fn != "function") throw new TypeError();
+		for(var Md = [], L = this.length, i = 0; i < L; i++) Md.push(Fn.call(This, this[i], i, this));
+		return Md;
+	};
+	Array.prototype.filter = function(Fn, This) {
+		if(typeof Fn != "function") throw new TypeError();
+		for(var Fd = [], L = this.length, i = 0; i < L; i++) if(Fn.call(This, this[i], i, this)) Fd.push(this[i]);
+		return Fd;
+	};
+	["section", "article", "nav", "aside", "header", "footer", "figure"].forEach(function(TagName) { document.createElement(TagName); });
+}
 
-sML.Event.add(window, "load", function() {
-	sML.Event.remove(window, "load", arguments.callee, false);
-	sML.OnLoad.execute();
+sML.extendElements = sML.Polyfill.extendElements;
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Events / Chain
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.Event = {
+	OnRead: { Done: false, Functions: [] },
+	OnLoad: { Done: false, Functions: [] },
+	add:    function(E, EN, EL, UC) { E.addEventListener(   EN, EL, (UC ? true : false)); return E; },
+	remove: function(E, EN, EL, UC) { E.removeEventListener(EN, EL, (UC ? true : false)); return E; },
+	stopPropagation: function(E) { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return E.stopPropagation(); },
+	preventDefault:  function(E) { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return E.preventDefault(); }
+};
+
+sML.addEventListener    = sML.Event.add;
+sML.removeEventListener = sML.Event.remove;
+sML.stopPropagation = sML.Event.stopPropagation;
+sML.preventDefault  = sML.Event.preventDefault;
+
+sML.Event.OnRead.doOnRead = sML.Event.OnLoad.doOnLoad = function() {
+	if(this.Done) return;
+	this.Done = true;
+	while(this.Functions.length) this.Functions.shift()();
+};
+sML.Event.OnRead.addEventListener = sML.Event.OnLoad.addEventListener = function(EL) {
+	return (this.Done) ? EL() : this.Functions.push(EL);
+};
+
+sML.onread = sML.ready = function(EL) { return sML.Event.OnRead.addEventListener(EL); };
+sML.onload = sML.done  = function(EL) { return sML.Event.OnLoad.addEventListener(EL); };
+
+document.addEventListener("DOMContentLoaded", function() {
+	document.removeEventListener("DOMContentLoaded", arguments.callee, false);
+	sML.Event.OnRead.doOnRead();
+}, false);
+window.addEventListener("load", function() {
+	window.removeEventListener("load", arguments.callee, false);
+	sML.Event.OnRead.doOnRead();
+	sML.Event.OnLoad.doOnLoad();
 }, false);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sML.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
+sML.Event.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
 	RegularFunctions: [],
 	onZoomInFunctions: [],
 	onZoomOutFunctions: [],
@@ -230,8 +279,20 @@ sML.Chain = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.Timers = {
-	setTimeout:  function(T, F, A1, A2, A3, A4, A5, A6, A7, A8, A9) { return setTimeout( F, T, A1, A2, A3, A4, A5, A6, A7, A8, A9); },
-	setInterval: function(T, F, A1, A2, A3, A4, A5, A6, A7, A8, A9) { return setInterval(F, T, A1, A2, A3, A4, A5, A6, A7, A8, A9); }
+	setTimeout:  function() {
+		var T = Array.prototype.shift.call(arguments);
+		var F = Array.prototype.shift.call(arguments);
+		Array.prototype.unshift.call(arguments, T);
+		Array.prototype.unshift.call(arguments, F);
+		return setTimeout.apply(window, arguments);
+	},
+	setInterval: function() {
+		var T = Array.prototype.shift.call(arguments);
+		var F = Array.prototype.shift.call(arguments);
+		Array.prototype.unshift.call(arguments, T);
+		Array.prototype.unshift.call(arguments, F);
+		return setInterval.apply(window, arguments);
+	}
 };
 
 sML.setTimeout  = sML.Timers.setTimeout;
@@ -247,51 +308,10 @@ sML.setInterval = sML.Timers.setInterval;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.extendElements = function(tE) {
-	if(tE.getElementsByClassName) return;
-	var cEs = [tE.getElementsByTagName("*"), []];
-	for(var L = cEs[0].length, i = 0; i < L; i++) cEs[1][i] = cEs[0][i];
-	var Es = [tE].concat(cEs[1]);
-	for(var L = Es.length, i = 0; i < L; i++) Es[i].getElementsByClassName = sML.getElementsByClassName;
-};
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if(!document.getElementsByClassName) {
-	sML.getElementsByClassName = function(Cs) {
-		var Es = [], aEs = this.getElementsByTagName("*"), Cs = Cs.replace(/^\s+/, "").replace(/\s+$/, "").split(" ").sort();
-		for(var eL = aEs.length, i = 0; i < eL; i++) {
-			var eCs = " " + aEs[i].className.replace(/^[\t\s]+/, "").replace(/[\t\s]+$/, "").split(" ").sort().join(" ") + " ";
-			for(var m = 1, cL = Cs.length, j = 0; j < cL; j++) if(eCs.indexOf(" " + Cs[j] + " ") < 0) { m = 0; break; }
-			if(m) Es.push(aEs[i]);
-		}
-		return Es;
-	}
-	if(window.HTMLElement && window.Document) {
-		if(HTMLElement.prototype.getElementsByClassName == undefined) HTMLElement.prototype.getElementsByClassName = sML.getElementsByClassName;
-		if(   Document.prototype.getElementsByClassName == undefined)    Document.prototype.getElementsByClassName = sML.getElementsByClassName;
-	} else sML.OnRead.addEventListener(function() { sML.extendElements(document); });
-};
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-sML.getElementsByIds = document.getElementsByIds = function() {
-	for(var Es = [], L = arguments.length, i = 0; i < L; i++) if(document.getElementById(arguments[i])) Es.push(document.getElementById(arguments[i]));
-	return Es;
-};
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 sML.getElements = sML.getElementsBySelector = function() {
 	for(var i = 1, L = arguments.length; i < L; i++) arguments[0] += "," + arguments[i];
 	return document.querySelectorAll(arguments[0]);
 };
-
-sML.getInnerText = function(E) {
-	return E.innerText || E.textContent;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.cloneObject = function(O) {
 	var F = function() {};
@@ -302,22 +322,18 @@ sML.cloneObject = function(O) {
 sML.set = sML.edit = sML.setMembers = function(O, M, S) {
 	if(M) for(var m in M) O[m] = M[m];
 	if(S) sML.CSS.set(O, S);
-	return O;
+	/*@cc_on @if (@_jscript_version<9) sML.Polyfill.extendElements(arguments[0]); @end @*/ return O;
 };
 
-sML.create = sML.createElement = function(tagName, M, S) {
-	return (tagName ? sML.set(document.createElement(tagName), M, S) : null);
+sML.create = sML.createElement = function(TagName, M, S) {
+	return sML.set(document.createElement(TagName), M, S);
 };
 
-sML.changeClass = sML.changeClassName = ((sML.UA.IE < 10) ? function(E, CN) {
-	if(CN) E.className = CN;
-	else E.removeAttribute("className");
-	return E.className;
-} : function(E, CN) {
+sML.changeClass = sML.changeClassName = function(E, CN) {
 	if(CN) E.className = CN;
 	else E.removeAttribute("class");
 	return E.className;
-});
+};
 
 sML.addClass = sML.addClassName = function(E, CN) {
 	if(typeof CN != "string") return E.className;
@@ -350,11 +366,6 @@ sML.appendChildren = function(Es, P) {
 	if(!Es.length) P.appendChild(Es);
 	else for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
 	return Es;
-};
-
-sML.appendTo = function(Es, P) {
-	sML.appendChildren(Es, P);
-	return P;
 };
 
 sML.insertBefore = function(E, S) {
@@ -393,7 +404,7 @@ sML.hatch = function() {
 		egg.innerHTML = HTML;
 		for(var L = egg.childNodes.length, i = 0; i < L; i++) chick.appendChild(egg.firstChild);
 	}
-	if(sML.UA.IE < 9) {
+	if(sML.UA.InternetExplorer < 9) {
 		document.body.appendChild(egg).display = "none";
 		brood();
 		document.body.removeChild(egg);
@@ -414,11 +425,6 @@ sML.getContentDocument = function(F) {
 //-- CSS
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
-
-if(!window.getComputedStyle) {
-	     if(document.defaultView && document.defaultView.getComputedStyle) window.getComputedStyle = document.defaultView.getComputedStyle;
-	else if(sML.UA.InternetExplorer)                                       window.getComputedStyle = function(E) { return E.currentStyle; };
-}
 
 sML.CSS = sML.S = {
 	Prefix:        (sML.UA.WK ? "-webkit-"            : (sML.UA.Ge ? "-moz-"         : (sML.UA.IE ? "-ms-"            : (sML.UA.Op ? "-o-"            : "")))),
@@ -546,6 +552,24 @@ sML.style = sML.css = function(E, PV, Cb) { return sML.CSS.set(E, PV, Cb); };
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+//-- Easing
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.Easing = (typeof window.easing == "object") ? window.easing : {};
+
+sML.Easing.linear = function(Pos) { return Pos; };
+sML.Easing.getEaser = function(Easing) {
+	return function(Pos) {
+		return Pos + Easing / 100 * (1 - Pos) * Pos
+	};
+}
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 //-- Transition
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
@@ -556,29 +580,29 @@ sML.Transition = sML.T = {
 		for(var L = this.Catalogue.length, i = 0; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
 		return this.Catalogue[this.Catalogue.push({ Element: E }) - 1];
 	},
-	begin : function(E, Ps, Fs) {
-		if(!Ps) var Ps = {};
-		if(!Fs) var Fs = {};
+	begin : function(E, Param, Functions) {
+		if(!Param) var Param = {};
+		if(!Functions) var Functions = {};
 		this.Element = E;
 		var SFO = this.getSFO(E);
 		if(SFO.Timer) clearTimeout(SFO.Timer);
-		SFO.Ps = { // Params
+		SFO.Param = { // Params
 			c:                   0 , // "C"urrent Frame (auto)
-			f: (Ps.f ? Ps.f :   10), // "F"rames
-			t: (Ps.t ? Ps.t :   10), // "T"ime/Frames (milli-seconds)
-			e: (Ps.e ? Ps.e : null), // "E"asing (default)
-			x: (Ps.x ? Ps.x : null)  // "X" for Easing (default)
+			f: (Param.f ? Param.f :   10), // "F"rames
+			t: (Param.t ? Param.t :   10), // "T"ime/Frames (milli-seconds)
+			e: (Param.e ? Param.e : null), // "E"asing (default)
+			x: (Param.x ? Param.x : null)  // "X" for Easing (default)
 		}
-		SFO.Fs = { // Functions
-			s: (Fs.s ? Fs.s : null),
-			m: (Fs.m ? Fs.m : null),
-			e: (Fs.e ? Fs.e : null),
-			c: (Fs.c ? Fs.c : null)
+		SFO.Functions = { // Functions
+			s: (Functions.s ? Functions.s : null),
+			m: (Functions.m ? Functions.m : null),
+			e: (Functions.e ? Functions.e : null),
+			c: (Functions.c ? Functions.c : null)
 		}
 		SFO.gN = SFO.getNext = function(S, E, e, x) {
-			var s = 1, t = SFO.Ps.c / SFO.Ps.f;
-			if(!e && SFO.Ps.e) var e = SFO.Ps.e;
-			if(!x && SFO.Ps.x) var x = SFO.Ps.x;
+			var s = 1, t = SFO.Param.c / SFO.Param.f;
+			if(!e && SFO.Param.e) var e = SFO.Param.e;
+			if(!x && SFO.Param.x) var x = SFO.Param.x;
 			     if(!e)     s = t;
 			else if(x == 0) s = t + e / (100 * Math.PI) * Math.sin(Math.PI * t);
 			else if(!x)     s = t + e / 100 * (1 - t) * t;
@@ -591,19 +615,19 @@ sML.Transition = sML.T = {
 			for(var i = 0; i < sL; i++) RGBA[i] = Math.round(this.gN(S[i], E[i]));
 			return RGBA;
 		}
-		if(SFO.Fs.s) SFO.Fs.s.call(E, SFO);
+		if(SFO.Functions.s) SFO.Functions.s.call(E, SFO);
 		(function() {
-			if(SFO.Ps.c++ != SFO.Ps.f) {
-				if(SFO.Fs.m) SFO.Fs.m.call(E, SFO);
-				SFO.Timer = setTimeout(arguments.callee, SFO.Ps.t);
+			if(SFO.Param.c++ != SFO.Param.f) {
+				if(SFO.Functions.m) SFO.Functions.m.call(E, SFO);
+				SFO.Timer = setTimeout(arguments.callee, SFO.Param.t);
 			} else {
-				if(SFO.Fs.e) SFO.Fs.e.call(E, SFO);
-				if(SFO.Fs.c) SFO.Fs.c.call(E, SFO);
+				if(SFO.Functions.e) SFO.Functions.e.call(E, SFO);
+				if(SFO.Functions.c) SFO.Functions.c.call(E, SFO);
 			}
 		})();
 	}
 };
-sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); };
+sML.transition = function() { return sML.Transition.begin.apply(sML.Transition, arguments); };
 
 
 
@@ -611,258 +635,245 @@ sML.transition = function(E, Ps, Fs) { return sML.Transition.begin(E, Ps, Fs); }
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Coords
+//-- Coord / Scroller
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.Coord = sML.C = {
-	setIEF : function() {
-		var cX = window.screenLeft, cY = window.screenTop;
-		window.moveTo(cX, cY);
-		this.IEF = { w: window.screenLeft - cX, h: window.screenTop  - cY };
-		window.moveBy(-this.IEF.w, -this.IEF.h);
+	getXY: function(X, Y) {
+		return { X:X, x:X, Y:Y, y:Y };
 	},
-	getScreenSize : function() {
-		return { w: screen.availWidth, h: screen.availHeight };
+	getWH: function(W, H) {
+		return { Width:W, W:W, w:W, Height:H, H:H, h:H };
 	},
-	getWindowInnerSize : ((sML.UA.WK || sML.UA.Op) ? function() {
-		return { w: window.innerWidth, h: window.innerHeight };
-	} : function() {
-		var W = document.documentElement.clientWidth  || document.body.clientWidth  || document.body.scrollWidth;
-		var H = document.documentElement.clientHeight || document.body.clientHeight || document.body.scrollHeight
-		return { w: W, h: H };
-	}),
-	getWindowOuterSize : ((sML.UA.IE < 9) ? function() {
-		if(!this.IEF) this.setIEF();
-		var iS = this.getWindowInnerSize();
-		return { w: iS.w + this.IEF.w * 2, h: iS.h + this.IEF.h + 50 };
-	} : function() {
-		return { w: window.outerWidth, h: window.outerHeight };
-	}),
-	getDocumentSize : ((sML.UA.IE < 8) ? function() {
-		return { w: document.body.scrollWidth, h: document.body.scrollHeight };
-	} : function() {
-		var W = document.documentElement.scrollWidth  || document.body.scrollWidth;
-		var H = document.documentElement.scrollHeight || document.body.scrollHeight;
-		return { w: W, h: H };
-	}),
-	getElementSize : function (E) {
-		return { w: E.offsetWidth, h: E.offsetHeight };
-	},
-	getWindowCoord : ((sML.UA.IE < 9) ? function (E) {
-		if(!this.IEF) this.setIEF();
-		var cX = window.screenLeft;
-		var cY = window.screenTop;
-		var X = cX - this.IEF.w;
-		var Y = cY - this.IEF.h;
-		if(X < 0) X = 0;
-		if(Y < 0) Y = 0;
-		return { x: X, y: Y };
-	} : function(E) {
-		var X = window.screenLeft || window.screenX;
-		var Y = window.screenTop  || window.screenY;
-		return { x: X, y: Y };
-	}),
-	getScrollLimitCoord : function(RtL) {
-		var dS = this.getDocumentSize();
-		var wS = this.getWindowInnerSize();
-		return { x: (dS.w - wS.w) * (RtL ? -1 : 1), y: (dS.h - wS.h) };
-	},
-	getScrollCoord : function() {
-		var X = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
-		var Y = window.pageYOffset || document.documentElement.scrollTop  || document.body.scrollTop;
-		return { x: X, y: Y };
-	},
-	getElementCoord : function (E, RtL) {
-		var eC = { x: E.offsetLeft, y: E.offsetTop };
-		if(RtL) eC.x = eC.x + E.offsetWidth - window.innerWidth;
-		while(E.offsetParent) {
-			E = E.offsetParent;
-			eC.x += E.offsetLeft;
-			eC.y += E.offsetTop;
-		}
-		return eC;
-	},
-	getEventCoord : ((sML.UA.IE < 9) ? function(e) {
-		return { x: event.clientX + document.documentElement.scrollLeft, y: event.clientY + document.documentElement.scrollTop };
-	} : function(e) {
-		return (e ? { x: e.pageX, y: e.pageY } : { x: 0, y: 0 });
-	}),
-	getCoord : function(O, RtL) {
-		var C = {};
-		if(RtL) {
-			/****/ if(O == screen) {
-				C.wh = sML.C.getScreenSize();
-				C.rt = { x: C.wh.w, y:      0 };
-				C.lb = { x:      0, y: C.wh.h };
-			} else if(O == window) {
-				C.wh = sML.C.getWindowInnerSize();
-				C.rt = sML.C.getScrollCoord();
-				C.lb = { x: C.rt.x - C.wh.w, y: C.rt.y + C.wh.h };
-			} else if(O == document) {
-				C.wh = sML.C.getDocumentSize();
-				C.rt = { x:      0, y:      0 };
-				C.lb = { x: C.wh.w, y: C.wh.h };
-			} else if(O.tagName) {
-				C.wh = sML.C.getElementSize(O);
-				C.rt = sML.C.getElementCoord(O, 1);
-				C.lb = { x: C.rt.x - C.wh.w, y: C.rt.y + C.wh.h };
-			} else {
-				return {};
-			}
-			C.cm = { x: Math.round((C.lb.x + C.rt.x) / 2), y: Math.round((C.rt.y + C.lb.y) / 2) };
-			return {
-				left:   C.lb.x,    l: C.lb.x,
-				top:    C.rt.y,    t: C.rt.y,    y: C.rt.y,
-				right:  C.rt.x,    r: C.rt.x,    x: C.rt.x,
-				bottom: C.lb.y,    b: C.lb.y,
-				center: C.cm.x,    c: C.cm.x,
-				middle: C.cm.y,    m: C.cm.y,
-				width:  C.wh.w,    w: C.wh.w,
-				height: C.wh.h,    h: C.wh.h
-			}
-		} else {
-			/****/ if(O == screen) {
-				C.wh = sML.C.getScreenSize();
-				C.lt = { x:      0, y:      0 };
-				C.rb = { x: C.wh.w, y: C.wh.h };
-			} else if(O == window) {
-				C.wh = sML.C.getWindowInnerSize();
-				C.lt = sML.C.getScrollCoord();
-				C.rb = { x: C.lt.x + C.wh.w, y: C.lt.y + C.wh.h };
-			} else if(O == document) {
-				C.wh = sML.C.getDocumentSize();
-				C.lt = { x:      0, y:      0 };
-				C.rb = { x: C.wh.w, y: C.wh.h };
-			} else if(O.tagName) {
-				C.wh = sML.C.getElementSize(O);
-				C.lt = sML.C.getElementCoord(O);
-				C.rb = { x: C.lt.x + C.wh.w, y: C.lt.y + C.wh.h };
-			} else {
-				return {};
-			}
-			C.cm = { x: Math.round((C.lt.x + C.rb.x) / 2), y: Math.round((C.lt.y + C.rb.y) / 2) };
-			return {
-				left:   C.lt.x,    l: C.lt.x,    x: C.lt.x,
-				top:    C.lt.y,    t: C.lt.y,    y: C.lt.y,
-				right:  C.rb.x,    r: C.rb.x,
-				bottom: C.rb.y,    b: C.rb.y,
-				center: C.cm.x,    c: C.cm.x,
-				middle: C.cm.y,    m: C.cm.y,
-				width:  C.wh.w,    w: C.wh.w,
-				height: C.wh.h,    h: C.wh.h
-			}
+	getXYTRBLCMWH: function(X, Y, T, R, B, L, C, M, W, H) {
+		return {
+			                    X:X, x:X,
+			                    Y:Y, y:Y,
+			Top:   T, top:   T, T:T, t:T,
+			Right: R, right: R, R:R, r:R,
+			Bottom:B, bottom:B, B:B, b:B,
+			Left:  L, left:  L, L:L, l:L,
+			Center:C, center:C, C:C, c:C,
+			Middle:M, middle:M, M:M, m:M,
+			Width: W, width: W, W:W, w:W,
+			Height:H, height:H, H:H, h:H
 		}
 	},
-	isInside : function(ARGUMENT, WHOLE, RtL) {
-		var sWH = this.getWindowInnerSize();
-		if(RtL) {
-			var sRT = this.getScrollCoord();
-			var sLT = { x: sRT.x - sWH.w, y: sRT.y         };
-			var sRB = { x: sRT.x,         y: sRT.y + sWH.h };
-		} else {
-			var sLT = this.getScrollCoord();
-			var sRB = { x: sLT.x + sWH.w, y: sLT.y + sWH.h };
-		}
+	getScreenSize: function() {
+		return this.getWH(
+			screen.availWidth,
+			screen.availHeight
+		);
+	},
+	getWindowSize: function() {
+		return this.getWH(
+			document.documentElement.clientWidth,
+			document.documentElement.clientHeight
+		);
+	},
+	getDocumentSize: function() {
+		return this.getWH(
+			document.documentElement.scrollWidth,
+			document.documentElement.scrollHeight
+		);
+	},
+	getElementSize: function (E) {
+		return this.getWH(
+			E.offsetWidth,
+			E.offsetHeight
+		);
+	},
+	getWindowCoord: function(E) {
+		return this.getXY(
+			(window.screenLeft || window.screenX),
+			(window.screenTop  || window.screenY)
+		);
+	},
+	getScrollLimitCoord: function(RtL) {
+		var DS = this.getDocumentSize(), WS = this.getWindowSize();
+		return this.getXY(
+			(DS.W - WS.W) * (RtL ? -1 : 1),
+			(DS.H - WS.H)
+		);
+	},
+	getScrollCoord: function() {
+		return this.getXY(
+			(window.scrollX || window.pageXOffset || document.documentElement.scrollLeft),
+			(window.scrollY || window.pageYOffset || document.documentElement.scrollTop)
+		);
+	},
+	getElementCoord: function (E, RtL) {
+		var X = E.offsetLeft, Y = E.offsetTop;
+		if(RtL) X = X + E.offsetWidth - this.getWindowSize().W;
+		while(E.offsetParent) E = E.offsetParent, X += E.offsetLeft, Y += E.offsetTop;
+		return this.getXY(X, Y);
+	},
+	getEventCoord: function(e) {
+		return (e ? this.getXY(e.pageX, e.pageY) : this.getXY(0, 0));
+	},
+	getCoord: function(O, RtL) {
+		if(RtL) return this.getCoord_RtL(O);
+		/**/ if(O == screen)   var WH = this.getScreenSize(),   LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
+		else if(O == window)   var WH = this.getWindowSize(),   LT = this.getScrollCoord(),      RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
+		else if(O == document) var WH = this.getDocumentSize(), LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
+		else if(O.tagName)     var WH = this.getElementSize(O), LT = this.getElementCoord(O),    RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
+		else return {};
+		return this.getXYTRBLCMWH(
+			/*  XY  */ LT.X, LT.Y,
+			/* TRBL */ LT.Y, RB.X, RB.Y, LT.X,
+			/*  CM  */ Math.round((LT.X + RB.X) / 2), Math.round((LT.Y + RB.Y) / 2),
+			/*  WH  */ WH.W, WH.H
+		);
+	},
+	getCoord_RtL: function(O) {
+		/**/ if(O == screen)   var WH = this.getScreenSize(),   RT = { X: WH.W, Y: 0 },          LB = { X: 0,           Y:        WH.H };
+		else if(O == window)   var WH = this.getWindowSize(),   RT = this.getScrollCoord(),      LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
+		else if(O == document) var WH = this.getDocumentSize(), RT = { X: 0,    Y: 0 },          LB = { X: WH.W,        Y:        WH.H };
+		else if(O.tagName)     var WH = this.getElementSize(O), RT = this.getElementCoord(O, 1), LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
+		else return {};
+		return this.getXYTRBLCMWH(
+			/*  XY  */ RT.X, RT.Y,
+			/* TRBL */ RT.Y, RT.X, LB.Y, LB.X,
+			/*  CM  */ Math.round((LB.X + RT.X) / 2), Math.round((RT.Y + LB.Y) / 2),
+			/*  WH  */ WH.W, WH.H
+		);
+	},
+	isInside: function(ARGUMENT, WHOLE, RtL) {
+		var SWH = this.getWindowSize();
+		if(RtL) var SRT = this.getScrollCoord(),                 S = { T: SRT.Y, R: SRT.X,         B: SRT.Y + SWH.H, L: SRT.X - SWH.W };
+		else    var SLT = this.getScrollCoord(),                 S = { T: SLT.Y, R: SLT.X + SWH.W, B: SLT.Y + SWH.H, L: SLT.X         };
 		if(ARGUMENT.tagName) {
-			var eWH = this.getElementSize(ARGUMENT);
-			if(RtL) {
-				var eRT = this.getElementCoord(ARGUMENT, 1);
-				var eLT = { x: eRT.x - eWH.w, y: eRT.y         };
-				var eRB = { x: eRT.x,         y: eRT.y + eWH.h };
-			} else {
-				var eLT = this.getElementCoord(ARGUMENT);
-				var eRB = { x: eLT.x + eWH.w, y: eLT.y + eWH.h };
-			}
-			var e_C = { x: (eLT.x + eRB.x) / 2, y: (eLT.y + eRB.y) / 2 };
-			var lIn = ((eLT.x >= sLT.x) && (eLT.x <= sRB.x));
-			var hIn = ((e_C.x >= sLT.x) && (e_C.x <= sRB.x));
-			var rIn = ((eRB.x >= sLT.x) && (eRB.x <= sRB.x));
-			var tIn = ((eLT.y >= sLT.y) && (eLT.y <= sRB.y));
-			var vIn = ((e_C.y >= sLT.y) && (e_C.y <= sRB.y));
-			var bIn = ((eRB.y >= sLT.y) && (eRB.y <= sRB.y));
-			var xIn = WHOLE ? (lIn && rIn) : (lIn || hIn || rIn);
-			var yIn = WHOLE ? (tIn && bIn) : (tIn || vIn || bIn);
+			var EWH = this.getElementSize(ARGUMENT);
+			if(RtL) var ERT = this.getElementCoord(ARGUMENT, 1), E = { T: ERT.Y, R: ERT.X,         B: ERT.Y + EWH.H, L: ERT.X - EWH.W };
+			else    var ELT = this.getElementCoord(ARGUMENT),    E = { T: ELT.Y, R: ELT.X + EWH.W, B: ELT.Y + EWH.H, L: ELT.X         };
+			E.C = (E.L + E.R) / 2, E.M = (E.T + E.B) / 2;
+			var InL = ((E.L >= S.L) && (E.L <= S.R)), InH = ((E.C >= S.L) && (E.C <= S.R)), InR = ((E.R >= S.L) && (E.R <= S.R));
+			var InT = ((E.T >= S.T) && (E.T <= S.B)), InV = ((E.M >= S.T) && (E.M <= S.B)), InB = ((E.B >= S.T) && (E.B <= S.B));
+			var InX = WHOLE ? (InL && InR) : (InL || InH || InR);
+			var InY = WHOLE ? (InT && InB) : (InT || InV || InB);
 		} else if(typeof ARGUMENT == "object") {
-			if(typeof ARGUMENT.x == "number") {
-				var xIn = ((ARGUMENT.x >= sLT.x) && (ARGUMENT.x <= sRB.x));
-				if(typeof ARGUMENT.y != "number") return xIn;
+			if(typeof ARGUMENT.X == "number") {
+				var InX = ((ARGUMENT.X >= S.L) && (ARGUMENT.X <= S.R));
+				if(typeof ARGUMENT.Y != "number") return InX;
 			}
-			if(typeof ARGUMENT.y == "number") {
-				var yIn = ((ARGUMENT.y >= sLT.y) && (ARGUMENT.y <= sRB.y));
-				if(typeof ARGUMENT.x != "number") return yIn;
+			if(typeof ARGUMENT.Y == "number") {
+				var InY = ((ARGUMENT.Y >= S.T) && (ARGUMENT.Y <= S.B));
+				if(typeof ARGUMENT.X != "number") return InY;
 			}
 		}
-		return (xIn && yIn);
-	},
-	scrollTo : function(tC, Ps, Fs, ForceScroll) {
-		if(!Ps) var Ps = {};
-		if(!Fs) var Fs = {};
+		return (InX && InY);
+	}
+};
+
+sML.getCoord = function() { return sML.Coord.getCoord.apply(sML.Coord, arguments); };
+
+sML.Scroller = {
+	scrollTo_Legacy: function(tC, Param, Functions, ForceScroll) {
+		if(!Param) Param = {};
+		if(!Functions) Functions = {}; if(typeof Functions == "function") Functions = { c: Functions };
 		this.SFO = {};
-		var RtL = (Ps.rtl || Ps.rl || Ps.vt || Ps.vertical || /-rl$/.test(Ps.writingMode ? Ps.writingMode : (Ps["writing-mode"] ? Ps["writing-mode"] : (Ps.wm ? Ps.wm : undefined))));
-		if(sML.Coord.timer) clearTimeout(sML.Coord.timer);
-		     if(typeof tC == "number") tC = { y: tC };
+		var RtL = (Param.rtl || Param.rl || Param.vt || Param.vertical || /-rl$/.test(Param.writingMode ? Param.writingMode : (Param["writing-mode"] ? Param["writing-mode"] : (Param.wm ? Param.wm : undefined))));
+		if(sML.Scroller.Timer) clearTimeout(sML.Scroller.Timer);
+		     if(typeof tC == "number") tC = { Y: tC };
 		else if(!tC) tC = {};
-		else if(tC.tagName) tC = this.getElementCoord(tC, RtL);
+		else if(tC.tagName) tC = sML.Coord.getElementCoord(tC, RtL);
 		var SFO = this.SFO;
-		var sC = this.getScrollCoord();
-		var lC = this.getScrollLimitCoord(RtL);
-		SFO.dC = {
-			x: (typeof tC.x == "number" ? tC.x : sC.x),
-			y: (typeof tC.y == "number" ? tC.y : sC.y)
+		var SC = sML.Coord.getScrollCoord();
+		var LC = sML.Coord.getScrollLimitCoord(RtL);
+		SFO.DC = {
+			X: (typeof tC.x == "number" ? tC.x : SC.X),
+			Y: (typeof tC.y == "number" ? tC.y : SC.Y)
 		}
 		if(RtL) {
-			if(SFO.dC.x < lC.x) SFO.dC.x = lC.x;
-			if(SFO.dC.x >    0) SFO.dC.x =    0;
+			if(SFO.DC.X < LC.X) SFO.DC.X = LC.X;
+			if(SFO.DC.X >    0) SFO.DC.X =    0;
 		} else {
-			if(SFO.dC.x > lC.x) SFO.dC.x = lC.x;
-			if(SFO.dC.x <    0) SFO.dC.x =    0;
+			if(SFO.DC.X > LC.x) SFO.DC.X = LC.X;
+			if(SFO.DC.X <    0) SFO.DC.X =    0;
 		}
-		if(SFO.dC.y > lC.y) SFO.dC.y = lC.y;
-		if(SFO.dC.y <    0) SFO.dC.y =    0;
-		SFO.Ps = { // Params
-			p: (Ps.p ? Ps.p : 0.25), // "P"roportion
-			t: (Ps.t ? Ps.t : 20)    // "T"ime/Frames (milli-seconds)
+		/**/if(SFO.DC.Y > LC.Y) SFO.DC.Y = LC.Y;
+		/**/if(SFO.DC.Y <    0) SFO.DC.Y =    0;
+		SFO.Param = { // Params
+			P: (Param.p ? Param.p : 0.25), // "P"roportion
+			T: (Param.t ? Param.t : 20)    // "T"ime/Frames (milli-seconds)
 		}
-		SFO.Fs = { // Functions
-			s: (Fs.s ? Fs.s : null),
-			m: (Fs.m ? Fs.m : null),
-			e: (Fs.e ? Fs.e : null),
-			c: (Fs.c ? Fs.c : null)
+		SFO.Functions = { // Functions
+			start:    (Functions.s ? Functions.s : null),
+			middle:   (Functions.m ? Functions.m : null),
+			end:      (Functions.e ? Functions.e : null),
+			callback: (Functions.c ? Functions.c : null)
 		}
-		if(ForceScroll) sML.Coord.preventUserScrolling();
-		if(SFO.Fs.s) SFO.Fs.s(SFO);
+		if(ForceScroll) sML.Scroller.preventUserScrolling();
+		if(SFO.Functions.start) SFO.Functions.start(SFO);
 		(function() {
 			SFO.cC = sML.Coord.getScrollCoord();
 			SFO.mV = {
-				x: Math.floor((SFO.dC.x - SFO.cC.x) * SFO.Ps.p),
-				y: Math.floor((SFO.dC.y - SFO.cC.y) * SFO.Ps.p)
+				X: Math.floor((SFO.DC.X - SFO.cC.X) * SFO.Param.P),
+				Y: Math.floor((SFO.DC.Y - SFO.cC.Y) * SFO.Param.P)
 			}
-			if(Math.abs(SFO.mV.x) <= 1 && Math.abs(SFO.mV.y) <= 1) {
-				RtL ? window.scrollBy(SFO.dC.x - SFO.cC.x, SFO.dC.y - SFO.cC.y) : window.scrollTo(SFO.dC.x, SFO.dC.y);
-				if(ForceScroll) sML.Coord.allowUserScrolling();
-				if(SFO.Fs.e) SFO.Fs.e(SFO);
-				if(SFO.Fs.c) SFO.Fs.c(SFO);
+			if(Math.abs(SFO.mV.X) > 1 || Math.abs(SFO.mV.Y) > 1) {
+				window.scrollBy(SFO.mV.X, SFO.mV.Y);
+				if(SFO.Functions.middle) SFO.Functions.middle(SFO);
+				sML.Scroller.Timer = setTimeout(arguments.callee, SFO.Param.T);
 			} else {
-				window.scrollBy(SFO.mV.x, SFO.mV.y);
-				sML.Coord.timer = setTimeout(arguments.callee, SFO.Ps.t);
-				if(SFO.Fs.m) SFO.Fs.m(SFO);
+				RtL ? window.scrollBy(SFO.DC.X - SFO.cC.X, SFO.DC.Y - SFO.cC.Y) : window.scrollTo(SFO.DC.X, SFO.DC.Y);
+				if(ForceScroll) sML.Scroller.allowUserScrolling();
+				if(SFO.Functions.end)      SFO.Functions.end(SFO);
+				if(SFO.Functions.callback) SFO.Functions.callback(SFO);
 			}
 		})();
-		if(!ForceScroll) this.addScrollCancelation();
+		if(!ForceScroll) sML.Scroller.addScrollCancelation();
 	},
-	addScrollCancelation : function() {
-		   sML.addEventListener(document, "mousedown",      sML.Coord.cancelScrolling);
-		   sML.addEventListener(document, "keydown",        sML.Coord.cancelScrolling);
-		   sML.addEventListener(document, "mousewheel",     sML.Coord.cancelScrolling);
-		   sML.addEventListener(document, "DOMMouseScroll", sML.Coord.cancelScrolling);
+	scrollTo: function(Goal, Param, Functions) {
+		var SC = sML.Coord.getScrollCoord();
+		var LC = sML.Coord.getScrollLimitCoord();
+		if(typeof Goal == "number") Goal = { X: SC.X, Y: Goal }; else if(typeof Goal != "object" || !Goal) return;
+		if(typeof Goal.X != "number") Goal.X = SC.X;
+		if(typeof Goal.Y != "number") Goal.Y = SC.Y;
+		if(!Param) Param = {};
+		     if(typeof Param.Duration != "number" || Param.Duration < 0) Param.Duration = 100;
+		var ease = sML.Easing.linear;
+		     if(typeof Param.Easing == "function") var ease = Param.Easing;
+		else if(typeof Param.Easing == "string")   var ease = sML.Easing[Param.Easing] ? sML.Easing[Param.Easing] : sML.Easing.linear;
+		else if(typeof Param.Easing == "number")   var ease = sML.Easing.getEaser(Param.Easing);
+		     if(typeof Functions == "function") Functions = { callback: Functions };
+		else if(typeof Functions != "object" || !Functions) Functions = {};
+		if(sML.Scroller.Timer) clearTimeout(sML.Scroller.Timer);
+		if(!Param.ForceScroll) sML.Scroller.addScrollCancelation();
+		else                   sML.Scroller.preventUserScrolling();
+		if(typeof Functions.start == "function") Functions.start();
+		(function(Start, Goal, Param, Functions) {
+			var Pos = Param.Duration ? ((new Date()).getTime() - Start.Time) / Param.Duration : 1;
+			if(Pos < 1) {
+				var Progress = ease(Pos);
+				window.scrollTo(
+					Math.round(Start.X + (Goal.X - Start.X) * Progress),
+					Math.round(Start.Y + (Goal.Y - Start.Y) * Progress)
+				);
+				if(typeof Functions.middle == "function") Functions.middle();
+				var Next = arguments.callee;
+				sML.Scroller.Timer = setTimeout(function() { Next(Start, Goal, Param, Functions); }, 10);
+			} else {
+				window.scrollTo(Goal.X, Goal.Y);
+				if(typeof Functions.end == "function") Functions.end();
+				if(typeof Functions.callback == "function") Functions.callback();
+				if(Param.ForceScroll) sML.Scroller.allowUserScrolling();
+			}
+		})({ X: SC.X, Y: SC.Y, Time: (new Date()).getTime() }, Goal, Param, Functions);
 	},
-	cancelScrolling : function() {
-		clearTimeout(sML.Coord.timer);
-		sML.removeEventListener(document, "mousedown",      sML.Coord.cancelScrolling);
-		sML.removeEventListener(document, "keydown",        sML.Coord.cancelScrolling);
-		sML.removeEventListener(document, "mousewheel",     sML.Coord.cancelScrolling);
-		sML.removeEventListener(document, "DOMMouseScroll", sML.Coord.cancelScrolling);
+	addScrollCancelation: function() {
+		   sML.addEventListener(document, "mousedown",      sML.Scroller.cancelScrolling);
+		   sML.addEventListener(document, "keydown",        sML.Scroller.cancelScrolling);
+		   sML.addEventListener(document, "mousewheel",     sML.Scroller.cancelScrolling);
+		   sML.addEventListener(document, "DOMMouseScroll", sML.Scroller.cancelScrolling);
+	},
+	cancelScrolling: function() {
+		//if(sML.Scroller.Timer) clearTimeout(sML.Scroller.Timer);
+		sML.removeEventListener(document, "mousedown",      sML.Scroller.cancelScrolling);
+		sML.removeEventListener(document, "keydown",        sML.Scroller.cancelScrolling);
+		sML.removeEventListener(document, "mousewheel",     sML.Scroller.cancelScrolling);
+		sML.removeEventListener(document, "DOMMouseScroll", sML.Scroller.cancelScrolling);
 	},
 	preventUserScrolling: function() {
 		   sML.addEventListener(document, "mousedown",      sML.preventDefault);
@@ -877,20 +888,14 @@ sML.Coord = sML.C = {
 		sML.removeEventListener(document, "DOMMouseScroll", sML.preventDefault);
 	}
 }
-sML.getCoord = sML.Coord.getCoord;
 
-sML.scrollTo = function(tC, Ps, Fs, ForceScroll) {
-	if(typeof Fs == "function") Fs = { c: Fs };
-	return sML.C.scrollTo(tC, Ps, Fs, ForceScroll);
-};
-
-sML.scrollBy = function(bD, Ps, Fs, ForceScroll) {
-	if(typeof Fs == "function") Fs = { c: Fs };
-	var tC = {}, wC = sML.C.getCoord(window, (bD.RtL || bD.rtl || bD["vertical-rl"] || bD.horizontal));
-	if(bD.x) tC.x = wC.x + bD.x;
-	if(bD.y) tC.y = wC.y + bD.y;
-	sML.log(tC);
-	return sML.C.scrollTo(tC, Ps, Fs, ForceScroll);
+sML.scrollTo = function(Goal, Param, Functions) {
+	if(
+		(typeof Goal  == "object" && (typeof Goal.x == "number"  || typeof Goal.y  == "number")) ||
+		(typeof Param == "object" && (typeof Param.p == "number" || typeof Param.t == "number")) ||
+		arguments.length > 3
+	) return sML.Scroller.scrollTo_Legacy.apply(sML.Scroller, arguments);
+	else return sML.Scroller.scrollTo.apply(    sML.Scroller, arguments);
 };
 
 
@@ -1291,45 +1296,49 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Full Screen
+//-- Fullscreen
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.requestFullscreen = function(E) {
-	if(!E) E = document.documentElement || document.body;
-	if(E.requestFullscreen)       return E.requestFullscreen();
-	if(E.requestFullScreen)       return E.requestFullScreen();
-	if(E.webkitRequestFullscreen) return E.webkitRequestFullscreen();
-	if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
-	if(E.mozRequestFullscreen)    return E.mozRequestFullscreen();
-	if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
-	if(E.msRequestFullscreen)     return E.msRequestFullscreen();
-	return false;
+sML.Fullscreen = {
+	request: (function(E) {
+		var getFunction = function(M) { return function(O) { if(!O) O = E; return O[M](); } };
+		if(E.requestFullscreen)       return getFunction("requestFullscreen");
+		if(E.requestFullScreen)       return getFunction("requestFullScreen");
+		if(E.webkitRequestFullscreen) return getFunction("webkitRequestFullscreen");
+		if(E.webkitRequestFullScreen) return getFunction("webkitRequestFullScreen");
+		if(E.mozRequestFullscreen)    return getFunction("mozRequestFullscreen");
+		if(E.mozRequestFullScreen)    return getFunction("mozRequestFullScreen");
+		if(E.msRequestFullscreen)     return getFunction("msRequestFullscreen");
+		return function() { return false; };
+	})(document.documentElement),
+	exit: (function(D) {
+		var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M](); } };
+		if(D.exitFullscreen)         return getFunction("exitFullscreen");
+		if(D.cencelFullScreen)       return getFunction("cencelFullScreen");
+		if(D.webkitExitFullscreen)   return getFunction("webkitExitFullscreen");
+		if(D.webkitCancelFullScreen) return getFunction("webkitCancelFullScreen");
+		if(D.mozExitFullscreen)      return getFunction("mozExitFullscreen");
+		if(D.mozRequestFullScreen)   return getFunction("mozRequestFullScreen");
+		if(D.msExitFullscreen)       return getFunction("msExitFullscreen");
+		return function() { return false; };
+	})(document),
+	getElement: (function(D) {
+		var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M]; } };
+		if(typeof D.fullscreenElement       != "undefined") return getFunction("fullscreenElement");
+		if(typeof D.fullScreenElement       != "undefined") return getFunction("fullScreenElement");
+		if(typeof D.webkitFullscreenElement != "undefined") return getFunction("webkitFullscreenElement");
+		if(typeof D.webkitFullScreenElement != "undefined") return getFunction("webkitFullScreenElement");
+		if(typeof D.mozFullscreenElement    != "undefined") return getFunction("mozFullscreenElement");
+		if(typeof D.mozFullScreenElement    != "undefined") return getFunction("mozFullScreenElement");
+		if(typeof D.msFullscreenElement     != "undefined") return getFunction("msFullscreenElement");
+		return function() { return null; };
+	})(document)
 };
 
-sML.exitFullscreen = function(D) {
-	if(!D) D = document;
-	if(D.exitFullscreen)          return D.exitFullscreen();
-	if(D.cencelFullScreen)        return D.cancelFullScreen();
-	if(D.webkitExitFullscreen)    return D.webkitExitFullscreen();
-	if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
-	if(D.mozExitFullscreen)       return D.mozExitFullscreen();
-	if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
-	if(D.msExitFullscreen)        return D.msExitFullscreen();
-	return false;
-};
-
-sML.getFullscreenElement = function(D) {
-	if(!D) D = document;
-	if(D.fullscreenElement)       return D.fullscreenElement;
-	if(D.fullScreenElement)       return D.fullScreenElement;
-	if(D.webkitFullscreenElement) return D.webkitFullscreenElement;
-	if(D.webkitFullScreenElement) return D.webkitFullScreenElement;
-	if(D.mozFullscreenElement)    return D.mozFullscreenElement;
-	if(D.mozFullScreenElement)    return D.mozFullScreenElement;
-	if(D.msFullscreenElement)     return D.msFullscreenElement;
-	return null;
-};
+sML.requestFullscreen    = sML.Fullscreen.request;
+sML.exitFullscreen       = sML.Fullscreen.exit;
+sML.getFullscreenElement = sML.Fullscreen.getElement;
 
 
 
@@ -1341,7 +1350,7 @@ sML.getFullscreenElement = function(D) {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-return sML; })();
+window.addEventListener("unload", function() { sML = null; delete sML; });
 
 
 

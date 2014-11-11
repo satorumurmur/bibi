@@ -108,7 +108,7 @@ div#bibi-cartain {
 
 div#bibi-cartain.animate {
 	p#bibi-cartain-message,
-	p#bibi-cartain-mark {
+	div#bibi-cartain-mark {
 		-webkit-animation-timing-function: linear;
 		-webkit-animation-iteration-count: infinite;
 	}
@@ -116,11 +116,22 @@ div#bibi-cartain.animate {
 		-webkit-animation-duration: .2s;
 		-webkit-animation-name: fade;
 	}
-	p#bibi-cartain-mark {
+	div#bibi-cartain-mark {
 		display: block;
 		-webkit-animation-duration: 1s;
 		-webkit-animation-name: rotate-scale-blur;
 	}
+}
+
+
+// - Cartain > H1, UL
+// --------------------------------------------------------------------------------
+
+div#bibi-cartain h1,
+div#bibi-cartain ul {
+	overflow: hidden;
+	width: 0;
+	height: 0;
 }
 
 
@@ -303,7 +314,7 @@ html.InternetExplorer p#bibi-cartain-playbutton {
 // - Cartain > Mark
 // --------------------------------------------------------------------------------
 
-p#bibi-cartain-mark {
+div#bibi-cartain-mark {
 	position: absolute;
 	display: none;
 	z-index: 100;
