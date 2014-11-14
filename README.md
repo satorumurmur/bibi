@@ -1,7 +1,7 @@
 BiB/i
 ================================================================================================================================
 
-EPUB Reader on Your Web Site.
+EPUB Reader on your website.
 
 1. How to setup & read/publish EPUB books (for users)
 2. How to arrange development environment (for developers)
