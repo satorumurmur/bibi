@@ -91,21 +91,18 @@ This is recommended because it accelarates reading experience of your readers.
 ### Development
 
 1. `$ grunt` and start watching changes of files, and make these files:
-    * `bib/i/res/scripts/bibi.lib.js` ... sML.js + JSZip.js + base64.js + easing.js
-    * `bib/i/res/scripts/bibi.js` ... bibi.core.js + bibi.epubcfi.js
+    * `bib/i/res/scripts/bibi.js` ... JSZip.js + base64.js + easing.js + sML.js + bibi.core.js + bibi.epubcfi.js
     * `bib/i/res/styles/bibi.css`
-    * `bib/i/res/styles/pipi.css` ... Newly added. (formerly `bib/i.css`, for embedding BiB/i to webpage)
+    * `bib/i/res/styles/pipi.css` ... (formerly `bib/i.css`, for embedding BiB/i to webpage)
 2. Edit files.
-    * JavaScript sources of the `bib/i/res/scripts/bibi.lib.js` are in `bibi-dev/res/scripts/lib/`.
-    * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `bibi-dev/res/scripts/src/`.
-    * SCSS sources of the `bib/i/res/styles/bibi.css` are in `bibi-dev/res/styles/src/`.
-    * SCSS sources of the `bib/i/res/styles/pipi.css` are in `bibi-dev/res/styles/src/`.
+    * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `bibi-dev/res/scripts/lib/` and `bibi-dev/res/scripts/src/`.
+    * SCSS sources of the `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `bibi-dev/res/styles/src/`.
 
 Following files are not watched or processed by Grunt tasks:
 
 * `bib/i/index.html` (as portal)
-* `bib/i.js` (to embed in HTML)
-* `bib/manifest.json` (to use as Chrome application)
+* `bib/i.js` (for embedding in HTML webpage)
+* `bib/manifest.json` (for using as Chrome application)
 * Files in `bib/presets/` (customisable settings and styles)
 * Files in `bib/i/res/fonts/` (icon fonts)
 
@@ -129,8 +126,8 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 * [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
+* [sML](http://sarasa.la/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 * [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
 * [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
-* [sML](http://sarasa.sm/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 
 

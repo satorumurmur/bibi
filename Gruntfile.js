@@ -80,19 +80,13 @@ module.exports = function(grunt){
 
 		// Concat Scripts
 		concat: {
-			// Libraries
-			script_lib: {
+			// Scripts
+			script: {
 				src: [
 					'bibi-dev/res/scripts/lib/jszip.min.js',
 					'bibi-dev/res/scripts/lib/base64.js',
 					'bibi-dev/res/scripts/lib/easing.js',
-					'bibi-dev/res/scripts/lib/sML.js'
-				],
-				dest: 'bib/i/res/scripts/bibi.lib.js'
-			},
-			// Scripts
-			script: {
-				src: [
+					'bibi-dev/res/scripts/lib/sML.js',
 					'bibi-dev/res/scripts/src/bibi.core.js',
 					'bibi-dev/res/scripts/src/bibi.epubcfi.js'
 				],
@@ -102,30 +96,6 @@ module.exports = function(grunt){
 
 		// Minify Scripts
 		uglify: {
-			script_lib: {
-				options: {
-					preserveComments: 'some',
-					banner: [
-						'/*!',
-						' *',
-						' * # Script Libraries for BiB/i',
-						' *',
-						' * - Including these open source softwares.',
-						' *',
-						' * 1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licenced under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js',
-						' * 2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js',
-						' * 3. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js',
-						' * 4. sML       - http://sarasa.la/sML                  - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js',
-						' *',
-						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
-						' */'
-					].join('\n') + '\n'
-				},
-				src: [
-					'<%= concat.script_lib.dest%>'
-				],
-				dest: '<%= concat.script_lib.dest%>'
-			},
 			script: {
 				options: {
 					preserveComments: 'some',
@@ -134,8 +104,17 @@ module.exports = function(grunt){
 						' *',
 						' * # BiB/i - http://sarasa.la/bib/i - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
 						' *',
-						' * 1. bibi-dev/res/scripts/src/bibi.core.js',
-						' * 2. bibi-dev/res/scripts/src/bibi.epubcfi.js',
+						' * - Open Source Libraries',
+						' *',
+						' *     1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licenced under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js',
+						' *     2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js',
+						' *     3. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js',
+						' *     4. sML       - http://sarasa.la/sML                  - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js',
+						' *',
+						' * - BiB/i Components',
+						' *',
+						' *     1. BiB/i Core               - bibi-dev/res/scripts/src/bibi.core.js',
+						' *     2. BiB/i EPUB-CFI Utilities - bibi-dev/res/scripts/src/bibi.epubcfi.js',
 						' *',
 						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'
@@ -173,24 +152,12 @@ module.exports = function(grunt){
 					''
 				]
 			},
-			script_lib: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'bibi-dev/res/scripts/lib/*.js'
-				],
-				tasks: [
-					'build_minscript_lib',
-					''
-				]
-			},
 			script: {
 				options: {
 					livereload: false
 				},
 				files: [
-					'bibi-dev/res/scripts/src/*.js'
+					'bibi-dev/res/scripts/*/*.js'
 				],
 				tasks: [
 					'build_minscript',
@@ -212,13 +179,6 @@ module.exports = function(grunt){
 		'compass:prod',
 		'cmq',
 		'cssmin',
-		''
-	]);
-
-	grunt.registerTask('build_minscript_lib', [
-		'clean:js_lib',
-		'concat:script_lib',
-		'uglify:script_lib',
 		''
 	]);
 

@@ -1,10 +1,10 @@
 {
 	"name": "bibi",
-	"version": "0.997.4",
+	"version": "0.997.6",
 	"author": {
 		"name": "Satoru MATSUSHIMA"
 	},
-	"description": "BiB/i | EPUB Reader on Your Web Site.",
+	"description": "BiB/i | EPUB Reader on your website.",
 	"keywords": [
 		"EPUB",
 		"Reading System",
