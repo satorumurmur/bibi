@@ -32,7 +32,7 @@ In either case, download BiB/i from [web site](http://bibi.epub.link/#download) 
 
 ### Publish on the web
 
-[Demo](http://sarasa.la/bib/i/#demo).
+[Demo](http://bibi.epub.link/#demo).
 
 You can publish both zipped archive and unzipped folder.
 (Using unzipped is highly recommended.)
