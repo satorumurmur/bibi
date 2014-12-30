@@ -18,7 +18,7 @@ BiB/i supports two ways to read/publish EPUB books:
 * Read in browsers on your local machine, or
 * Publish on the web, to have your books read by someone.
 
-In either case, download BiB/i from [web site](http://sarasa.la/bib/i/#download) and unzip it at first.
+In either case, download BiB/i from [web site](http://bibi.epub.link/#download) and unzip it at first.
 
 
 
@@ -117,7 +117,7 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 ### BiB/i
 
-* &copy; Satoru MATSUSHIMA - http://sarasa.la/bib/i
+* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/
 * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
