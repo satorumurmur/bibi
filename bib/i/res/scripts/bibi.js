@@ -1,13 +1,13 @@
 /*!
  *
- * # BiB/i - http://sarasa.la/bib/i - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.
+ * # BiB/i - http://bibi.epub.link/ - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.
  *
  * - Open Source Libraries
  *
  *     1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licenced under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js
  *     2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js
  *     3. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js
- *     4. sML       - http://sarasa.la/sML                  - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js
+ *     4. sML       - http://fracoco.co/sML                 - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js
  *
  * - BiB/i Components
  *
