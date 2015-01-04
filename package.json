@@ -1,6 +1,6 @@
 {
 	"name": "bibi",
-	"version": "0.997.6",
+	"version": "0.997.7",
 	"author": {
 		"name": "Satoru MATSUSHIMA"
 	},
@@ -12,7 +12,7 @@
 		"Books-in-Browsers"
 	],
 	"license": "MIT",
-	"homepage": "http://sarasa.la/bib/i",
+	"homepage": "http://bibi.epub.link/",
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/satorumurmur/bibi.git"

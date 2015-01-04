@@ -7,11 +7,11 @@ Bibi = { /*!
  *  # BiB/i (core)
  *
  *  - "EPUB Reader on Your Web Site."
- *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
+ *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Fri November 14 22:33:00 2014 +0900
- */    Version: "0.997.6", Build: 20141114.0
+ *  - 4 January 14 18:11:00 2015 +0900
+ */    Version: "0.997.7", Build: 20140104.0
 };
 
 
@@ -2270,7 +2270,7 @@ O.getEPUBCFITarget = function(CFIString) {
 
 O.getLogo = function(Setting) {
 	return [
-		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://sarasa.la/bib/i" target="_blank" title="BiB/i | Web Site"' : ''), '>',
+		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
 			'<span class="bibi-type-B">B</span>',
 			'<span class="bibi-type-i">i</span>',
 			'<span class="bibi-type-B">B</span>',
