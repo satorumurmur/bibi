@@ -1687,8 +1687,9 @@ R.Scale = 1;
 
 R.zoom = function(Scale) {
 	if(typeof Scale != "number" || Scale <= 0) Scale = 1;
+	var CurrentStartPage = R.getCurrentPages().Start;
 	sML.style(R.Contents, {
-		"transition": "0.25s ease",
+		//"transition": "0.25s ease",
 		"transformOrigin":  S.SLD == "rtl" ? "100% 0" : "0 0",
 		"transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0"
 	});
@@ -1703,6 +1704,9 @@ R.zoom = function(Scale) {
 		});
 		O.HTML.style.overflow = "auto";
 	}
+	setTimeout(function() {
+		R.focus(CurrentStartPage, { Duration: 1 });
+	}, 0);
 	R.Scale = Scale;
 }
 
