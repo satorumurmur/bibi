@@ -2,16 +2,16 @@
 
 
 
-BibiEPUBCFI = { /*!
+/*!
  *
- *  # BiB/i EPUB-CFI Utilities
+ * # BiB/i EPUB-CFI Utilities
  *
- *  - "EPUB-CFI Utilities (for BiB/i, or Others)"
- *  - (c) Satoru MATSUSHIMA - http://sarasa.la/bib/i
- *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ * - "EPUB-CFI Utilities (for BiB/i, or Others)"
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Sun June 22 23:59:59 2014 +0900
- */    Version: 0.32, Build: 20140622.0,
+ * - Wed February 4 22:01:00 2015 +0900
+ */ BibiEPUBCFI = { Version: "0.32.1", Build: 20150204.0,
 
 /* -----------------------------------------------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ BibiEPUBCFI = { /*!
 		Step.Index = parseInt(Step.Index);
 		if(this.parseString("[")) {
 			if(Step.Type != "TermStep") {
-				Step.ID = this.parseString(/^[_a-zA-Z][_a-zA-Z0-9\-]+/);
+				Step.ID = this.parseString(/^[a-zA-Z][a-zA-Z0-9_:\-\.]+/);
 				if(!Step.ID) return this.cancel(Foothold, "Step > Assertion > ID");
 			} else {
 				var CSV = [], Side = null, ValueRegExp = /^((\^[\^\[\]\(\)\,\;\=])|[_a-zA-Z0-9%\- ])*/;

@@ -2,17 +2,16 @@
 
 
 
-Bibi = { /*!
+/*!
  *
- *  # BiB/i (core)
+ * # BiB/i (core)
  *
- *  - "EPUB Reader on Your Web Site."
- *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
- *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ * - "EPUB Reader on Your Web Site."
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - 4 January 14 18:11:00 2015 +0900
- */    Version: "0.997.7", Build: 20140104.0
-};
+ * - Wed February 4 22:01:00 2015 +0900
+ */ Bibi = { Version: "0.997.8", Build: 20150204.0 };
 
 
 

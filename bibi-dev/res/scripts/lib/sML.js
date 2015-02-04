@@ -7,11 +7,11 @@
  * # sML JavaScript Library
  *
  * - "I'm a Simple and Middling Library."
- * - Copyright (c) Satoru MATSUSHIMA - http://sarasa.la/sML
+ * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu October 15 23:44:00 2014 +0900
- */ sML = { Version: "0.999.9", Build: 20141015.0 };
+ * - Tue January 6 21:18:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.10", Build = 20150106.0;
 
 
 
@@ -23,43 +23,59 @@
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.DeviceName = sML.DN = (function(nUA, v2n) {
-	var iOSV = /(iPod|iPhone|iPad)( Simulator)?;/.test(nUA) ? v2n(nUA, /^.+? OS ([\d_]+).+$/)       : undefined;
-	var AndV = /Android /.test(nUA)                         ? v2n(nUA, /^.+? Android ([\d\.]+).+$/) : undefined;
-	sML.OperatingSystem = sML.OS = {
-		OSX     : ((nUA.indexOf("Mac")     > -1 && !iOSV) ? 1 : undefined),
-		Windows : ((nUA.indexOf("Windows") > -1         ) ? 1 : undefined),
-		Linux   : ((nUA.indexOf("Linux")   > -1 && !AndV) ? 1 : undefined),
-		iOS     : iOSV,
-		Android : AndV
-	}
-	sML.UserAgent = sML.UA = {
-		WebKit           : ((nUA.indexOf("AppleWebKit") > -1) ? v2n(nUA, /^.+AppleWebKit\/([\d\.]+).+$/) : undefined),
-		Safari           : ((nUA.indexOf("Safari/")     > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).+$/)     : undefined),
-		Chrome           : ((nUA.indexOf("Chrome/")     > -1) ? v2n(nUA, /^.+Chrome\/([\d\.]+).+$/)      : undefined),
-		Gecko            : ((nUA.indexOf("Gecko/")      > -1) ? v2n(nUA, /^.+rv\:([\d\.]+).+$/)          : undefined),
-		Firefox          : ((nUA.indexOf("Firefox/")    > -1) ? v2n(nUA, /^.+Firefox\/([\d\.]+).+$/)     : undefined),
-		Presto           : ((nUA.indexOf("Presto")      > -1) ? v2n(nUA, /^.+Presto\/([\d\.]+).+$/)      : undefined),
-		Opera            : ((nUA.indexOf("OPR/")        > -1) ? v2n(nUA, /^.+OPR\/([\d\.]+).*$/)         : undefined),
-		Trident          : ((nUA.indexOf("Trident/")    > -1) ? v2n(nUA, /^.+Trident\/([\d\.]+).*$/)     : undefined),
-		InternetExplorer : ((nUA.indexOf("MSIE ")       > -1) ? v2n(nUA, /^.+MSIE ([\d\.]+).*$/)         : undefined),
-		Flash            : undefined
-	}
-	if(sML.UA.Trident >= 7) sML.UA.InternetExplorer = v2n(nUA, /^.+rv:([\d\.]+).*$/);
-	if(!sML.UA.Opera) sML.UA.Opera = ((nUA.indexOf("Opera/") > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/) : undefined);
+var sML = function(S) {
+	var SML = (typeof S == "string") ? [sML.create.apply(this, arguments)] : (S.length ? S : [S]);
+	if(window.__proto__) SML.__proto__ = sML.SML; else for(var M in sML.SML) SML[M] = sML.SML[M];
+	return SML;
+};
+
+sML.Version = Version, sML.Build = Build;
+
+var nUA = navigator.userAgent;
+var v2n = function(t, r) { // Version To Number
+	var N = parseFloat(t.replace(r, "$1").replace(/[_\.]/g, ",").replace(/\,/, ".").replace(/\,/g, ""));
+	return (isNaN(N) ? undefined : N);
+}
+
+var iOSV = /(iPod|iPhone|iPad)( Simulator)?;/.test(nUA) ? v2n(nUA, /^.+? OS ([\d_]+).+$/)       : undefined;
+var AndV = /Android /.test(nUA)                         ? v2n(nUA, /^.+? Android ([\d\.]+).+$/) : undefined;
+
+sML.OperatingSystem = sML.OS = {
+	OSX     : ((nUA.indexOf("Mac")     > -1 && !iOSV) ? 1 : undefined),
+	Windows : ((nUA.indexOf("Windows") > -1         ) ? 1 : undefined),
+	Linux   : ((nUA.indexOf("Linux")   > -1 && !AndV) ? 1 : undefined),
+	iOS     : iOSV,
+	Android : AndV
+};
+
+sML.DeviceName = sML.DN = (function() {
 	if(sML.OS.OSX)     return "Mac";
 	if(sML.OS.Windows) return "PC";
 	if(sML.OS.Linux)   return "PC";
 	if(sML.OS.iOS)     return nUA.replace(/^.+?(iPod|iPhone|iPad)( Simulator)?;.+$/, "$1");
 	if(sML.OS.Android) return nUA.replace(/^.+?\(.+?; ([^;]+)\).+$/, "$1");
 	return "";
-})(
-	navigator.userAgent,
-	function(t, r) { // Version To Number
-		var N = parseFloat(t.replace(r, "$1").replace(/[_\.]/g, ",").replace(/\,/, ".").replace(/\,/g, ""));
-		return (isNaN(N) ? undefined : N);
-	}
-);
+})();
+
+sML.UserAgent = sML.UA = {
+	WebKit           : ((nUA.indexOf("AppleWebKit") > -1) ? v2n(nUA, /^.+AppleWebKit\/([\d\.]+).+$/) : undefined),
+	Safari           : ((nUA.indexOf("Safari/")     > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).+$/)     : undefined),
+	Chrome           : ((nUA.indexOf("Chrome/")     > -1) ? v2n(nUA, /^.+Chrome\/([\d\.]+).+$/)      : undefined),
+	Gecko            : ((nUA.indexOf("Gecko/")      > -1) ? v2n(nUA, /^.+rv\:([\d\.]+).+$/)          : undefined),
+	Firefox          : ((nUA.indexOf("Firefox/")    > -1) ? v2n(nUA, /^.+Firefox\/([\d\.]+).+$/)     : undefined),
+	Presto           : ((nUA.indexOf("Presto")      > -1) ? v2n(nUA, /^.+Presto\/([\d\.]+).+$/)      : undefined),
+	Opera            : ((nUA.indexOf("OPR/")        > -1) ? v2n(nUA, /^.+OPR\/([\d\.]+).*$/)         : undefined),
+	Trident          : ((nUA.indexOf("Trident/")    > -1) ? v2n(nUA, /^.+Trident\/([\d\.]+).*$/)     : undefined),
+	InternetExplorer : ((nUA.indexOf("MSIE ")       > -1) ? v2n(nUA, /^.+MSIE ([\d\.]+).*$/)         : undefined),
+	Flash            : undefined
+}
+if(sML.UA.Trident >= 7) sML.UA.InternetExplorer = v2n(nUA, /^.+rv:([\d\.]+).*$/);
+if(!sML.UA.Opera) sML.UA.Opera = ((nUA.indexOf("Opera/") > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/) : undefined);
+
+sML.Environments = sML.Env = (function(Environments, Softwares) {
+	for(var S in Softwares) for(var E in Softwares[S]) if(Softwares[S][E]) Environments.push(E);
+	return Environments;
+})([sML.DeviceName], [sML.OS, sML.UA]);
 
 try {
 	sML.UA.Flash = parseFloat(navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description.replace(/^.+?([\d\.]+).*$/, "$1"));
@@ -69,7 +85,6 @@ if(sML.UA.InternetExplorer) { try {
 } catch(e) {} }
 
 sML.OS.Mac = sML.OS.OSX, sML.OS.Win = sML.OS.Windows, sML.OS.Lin = sML.OS.Linux, sML.OS.And = sML.OS.Android;
-
 sML.UA.WK = sML.UA.WebKit,  sML.UA.Sa = sML.UA.Safari, sML.UA.Ch = sML.UA.Chrome;
 sML.UA.Ge = sML.UA.Gecko,   sML.UA.Fx = sML.UA.Firefox;
 sML.UA.Pr = sML.UA.Presto,  sML.UA.Op = sML.UA.Opera;
@@ -78,16 +93,11 @@ sML.UA.Fl = sML.UA.Flash;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-if(sML.UA.Opera && !window.console) console = { log: opera.postError };
-
-sML.log = function() {
-	for(var Log = arguments[0], L = arguments.length, i = 1; i < L; i++) Log += ", " + arguments[i];
-	try { return console.log(Log); } catch(e) {}
-};
+sML.log = function() { try { return console.log.apply(window, arguments); } catch(e) {} };
 
 sML.write = function() {
 	document.open();
-	for(var L = arguments.length, i = 0; i < L; i++) document.write(arguments[i]);
+	for(var i = 0, L = arguments.length; i < L; i++) document.write(arguments[i]);
 	document.close();
 };
 
@@ -136,7 +146,7 @@ if(sML.UA.InternetExplorer < 9) {
 	};
 	sML.Polyfill.removeEventListener = function(EN, EL) {
 		var E = this, Functions = this["FunctionsOn" + EN], XWrappers = this["XWrappersOn" + EN];
-		for(var L = Functions.length, i = 0; i < L; i++) if(Functions[i] == EL) break;
+		for(var i = 0, L = Functions.length; i < L; i++) if(Functions[i] == EL) break;
 		if(EN == "DOMContentLoaded") EN = "readystatechange";
 		this.detachEvent("on" + EN, XWrappers[i]);
 		XWrappers[i] = Functions[i] = null;
@@ -153,19 +163,19 @@ if(sML.UA.InternetExplorer < 9) {
 	});
 	window.Event.prototype.stopPropagation = function() { this.cancelBubble = true; };
 	window.Event.prototype.preventDefault  = function() { this.returnValue = false; };
-	Array.prototype.forEach = function(Fn, This) {
-		if(typeof Fn != "function") throw new TypeError();
-		for(var L = this.length, i = 0; i < L; i++) Fn.call(This, this[i], i, this);
+	Array.prototype.map = function(F, This) {
+		if(typeof F != "function") throw new TypeError();
+		for(var A = [], i = 0, L = this.length; i < L; i++) A.push(F.call(This, this[i], i, this));
+		return A;
 	};
-	Array.prototype.map = function(Fn, This) {
-		if(typeof Fn != "function") throw new TypeError();
-		for(var Md = [], L = this.length, i = 0; i < L; i++) Md.push(Fn.call(This, this[i], i, this));
-		return Md;
+	Array.prototype.filter = function(F, This) {
+		if(typeof F != "function") throw new TypeError();
+		for(var A = [], i = 0, L = this.length; i < L; i++) if(F.call(This, this[i], i, this)) A.push(this[i]);
+		return A;
 	};
-	Array.prototype.filter = function(Fn, This) {
-		if(typeof Fn != "function") throw new TypeError();
-		for(var Fd = [], L = this.length, i = 0; i < L; i++) if(Fn.call(This, this[i], i, this)) Fd.push(this[i]);
-		return Fd;
+	Array.prototype.forEach = function(F, This) {
+		if(typeof F != "function") throw new TypeError();
+		for(var i = 0, L = this.length; i < L; i++) F.call(This, this[i], i, this);
 	};
 	["section", "article", "nav", "aside", "header", "footer", "figure"].forEach(function(TagName) { document.createElement(TagName); });
 }
@@ -242,7 +252,7 @@ sML.Event.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
 				} else if(sML.onResizeFont.prevHeight && sML.onResizeFont.prevHeight > currentHeight) {
 					Functions = Functions.concat(sML.onResizeFont.onZoomOutFunctions);
 				}
-				for(var L = Functions.length, i = 0; i < L; i++) Functions[i]();
+				for(var i = 0, L = Functions.length; i < L; i++) Functions[i]();
 			}
 			sML.onResizeFont.prevHeight = currentHeight;
 		}, T);
@@ -257,15 +267,15 @@ sML.Event.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
 sML.Chain = function() {
 	this.Functions = arguments.length ? sML.toArray(arguments) : [];
 	this.add = function() {
-		for(var L = arguments.length, i = 0; i < L; i++) this.Functions.push(arguments[i]);
-	}
+		for(var i = 0, L = arguments.length; i < L; i++) this.Functions.push(arguments[i]);
+	};
 	this.start = this.next = function() {
 		var F = this.Functions.shift();
 		if(typeof F == "function") F.apply(null, arguments);
-	}
+	};
 	this.skip = function(D) {
 		if(typeof D == "number") for(var i = 0; i < D; i++) this.Functions.shift();
-	}
+	};
 };
 
 
@@ -319,8 +329,8 @@ sML.cloneObject = function(O) {
 	return new F();
 };
 
-sML.set = sML.edit = sML.setMembers = function(O, M, S) {
-	if(M) for(var m in M) O[m] = M[m];
+sML.set = sML.edit = sML.setProperties = sML.setMembers = function(O, P, S) {
+	if(P) for(var p in P) O[p] = P[p];
 	if(S) sML.CSS.set(O, S);
 	/*@cc_on @if (@_jscript_version<9) sML.Polyfill.extendElements(arguments[0]); @end @*/ return O;
 };
@@ -364,7 +374,7 @@ sML.replaceClass = sML.replaceClassName = function(E, RCN, ACN) {
 
 sML.appendChildren = function(Es, P) {
 	if(!Es.length) P.appendChild(Es);
-	else for(var L = Es.length, i = 0; i < L; i++) P.appendChild(Es[i]);
+	else for(var i = 0, L = Es.length; i < L; i++) P.appendChild(Es[i]);
 	return Es;
 };
 
@@ -397,19 +407,19 @@ sML.deleteElement = function(E) {
 };
 
 sML.hatch = function() {
-	for(var HTML = "", L = arguments.length, i = 0; i < L; i++) HTML += arguments[i];
-	var egg = document.createElement("div");
-	var chick = document.createDocumentFragment();
+	for(var HTML = "", i = 0, L = arguments.length; i < L; i++) HTML += arguments[i];
+	var Egg = document.createElement("div");
+	var Chick = document.createDocumentFragment();
 	var brood = function() {
-		egg.innerHTML = HTML;
-		for(var L = egg.childNodes.length, i = 0; i < L; i++) chick.appendChild(egg.firstChild);
+		Egg.innerHTML = HTML;
+		for(var i = 0, L = Egg.childNodes.length; i < L; i++) Chick.appendChild(Egg.firstChild);
 	}
 	if(sML.UA.InternetExplorer < 9) {
-		document.body.appendChild(egg).display = "none";
+		document.body.appendChild(Egg).display = "none";
 		brood();
-		document.body.removeChild(egg);
+		document.body.removeChild(Egg);
 	} else brood();
-	return chick;
+	return Chick;
 };
 
 sML.getContentDocument = function(F) {
@@ -432,7 +442,7 @@ sML.CSS = sML.S = {
 	AnimationEnd:  (sML.UA.WK ? "webkitAnimationEnd"  : (sML.UA.Ge ? "animationend"  : (sML.UA.IE ? "MSAnimationEnd"  : (sML.UA.Op ? "oAnimationEnd"  : "")))),
 	Catalogue : [],
 	getSFO : function(E) {
-		for(var L = this.Catalogue.length, i = 0; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
+		for(var i = 0, L = this.Catalogue.length; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
 		return this.Catalogue[this.Catalogue.push({ Element: E }) - 1];
 	},
 	getComputedStyle: function(E, P) {
@@ -442,7 +452,7 @@ sML.CSS = sML.S = {
 	StyleSheets: [],
 	getStyleSheet: function(ParentDocument) {
 		if(sML.UA.IE < 9) return ParentDocument.styleSheets[ParentDocument.styleSheets.length - 1];
-		for(var L = this.StyleSheets.length, i = 0; i < L; i++) {
+		for(var i = 0, L = this.StyleSheets.length; i < L; i++) {
 			if(this.StyleSheets[i].StyleFor == ParentDocument) {
 				return this.StyleSheets[i].StyleSheet;
 			}
@@ -475,7 +485,7 @@ sML.CSS = sML.S = {
 	},
 	addRules: function(CSS, ParentDocument) {
 		var Indexes = [];
-		     if(typeof CSS.join == "function") for(var L = CSS.length / 2, i = 0; i < L; i++) Indexes.push(this.addRule(CSS[i * 2], CSS[i * 2 + 1], ParentDocument));
+		     if(typeof CSS.join == "function") for(var i = 0, L = CSS.length / 2; i < L; i++) Indexes.push(this.addRule(CSS[i * 2], CSS[i * 2 + 1], ParentDocument));
 		else if(typeof CSS      == "object")   for(var Selector in CSS)                       Indexes.push(this.addRule(Selector,   CSS[Selector],  ParentDocument));
 		return Indexes;
 	},
@@ -493,7 +503,7 @@ sML.CSS = sML.S = {
 		return null;
 	},
 	removeRules: function(Indexes, ParentDocument) {
-		for(var L = Indexes.length, i = 0; i < L; i++) this.removeRule(Indexes[i], ParentDocument);
+		for(var i = 0, L = Indexes.length; i < L; i++) this.removeRule(Indexes[i], ParentDocument);
 		return Indexes;
 	},
 	remove: function(Indexes, ParentDocument) {
@@ -507,9 +517,9 @@ sML.CSS = sML.S = {
 		E.style[P] = V;
 		return E;
 	},
-	addTransitionEndListener: function(E, Fn) {
-		if(typeof Fn != "function") return;
-		E.sMLTransitionEndListener = Fn;
+	addTransitionEndListener: function(E, F) {
+		if(typeof F != "function") return;
+		E.sMLTransitionEndListener = F;
 		sML.Event.add(E, this.TransitionEnd, E.sMLTransitionEndListener);
 	},
 	removeTransitionEndListener: function(E) {
@@ -529,17 +539,17 @@ sML.CSS = sML.S = {
 			}
 			PV = PVArray;
 		}
-		if(PV.length % 2 < 1) for(var L = PV.length / 2, i = 0; i < L; i++) this.setProperty(E, PV[i * 2], PV[i * 2 + 1]);
+		if(PV.length % 2 < 1) for(var i = 0, L = PV.length / 2; i < L; i++) this.setProperty(E, PV[i * 2], PV[i * 2 + 1]);
 		return E;
 	},
 	getRGB: function(Property) {
 		var RGB = Property.replace(/rgb\(([\d\., ]+)\)/, "$1").replace(/\s/g, "").split(",");
-		for(var L = RGB.length, i = 0; i < L; i++) RGB[i] = parseInt(RGB[i]);
+		for(var i = 0, L = RGB.length; i < L; i++) RGB[i] = parseInt(RGB[i]);
 		return RGB;
 	},
 	getRGBA: function(Property) {
 		var RGBA = Property.replace(/rgba?\(([\d\., ]+)\)/, "$1").replace(/\s/g, "").split(",");
-		for(var L = RGBA.length, i = 0; i < L; i++) RGBA[i] = parseInt(RGBA[i]);
+		for(var i = 0, L = RGBA.length; i < L; i++) RGBA[i] = parseInt(RGBA[i]);
 		if(!RGBA[3]) RGBA[3] = 1;
 		return RGBA;
 	}
@@ -577,7 +587,7 @@ sML.Easing.getEaser = function(Easing) {
 sML.Transition = sML.T = {
 	Catalogue : [],
 	getSFO : function(E) {
-		for(var L = this.Catalogue.length, i = 0; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
+		for(var i = 0, L = this.Catalogue.length; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
 		return this.Catalogue[this.Catalogue.push({ Element: E }) - 1];
 	},
 	begin : function(E, Param, Functions) {
@@ -587,7 +597,7 @@ sML.Transition = sML.T = {
 		var SFO = this.getSFO(E);
 		if(SFO.Timer) clearTimeout(SFO.Timer);
 		SFO.Param = { // Params
-			c:                   0 , // "C"urrent Frame (auto)
+			c:                         0 , // "C"urrent Frame (auto)
 			f: (Param.f ? Param.f :   10), // "F"rames
 			t: (Param.t ? Param.t :   10), // "T"ime/Frames (milli-seconds)
 			e: (Param.e ? Param.e : null), // "E"asing (default)
@@ -997,7 +1007,7 @@ sML.Location = sML.Loc = {
 		if(UnQs.length != 2) return {};
 		var Queries = {};
 		var KnVs = UnQs[1].replace(/#.*$/, "").split("&");
-		for(var L = KnVs.length, i = 0; i < L; i++) {
+		for(var i = 0, L = KnVs.length; i < L; i++) {
 			if(!KnVs[i]) continue;
 			var KnV = KnVs[i].split("=");
 			     if(KnV.length < 2) KnV[1] = null;
@@ -1041,7 +1051,7 @@ sML.Cookies = sML.cookies = {
 	},
 	get: function(N) {
 		var Cs = document.cookie.split("; "), CookieValue = "";
-		for(var L = Cs.length, i = 0; i < L; i++) {
+		for(var i = 0, L = Cs.length; i < L; i++) {
 			if(Cs[i].substr(0, N.length + 1) == (N + "=")) {
 				CookieValue = Cs[i].substr(N.length + 1, Cs[i].length);
 				break;
@@ -1099,40 +1109,38 @@ sML.CookieMonster = {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Array / List
+//-- Array / Collection
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+sML.map     = function(O, F) { return Array.prototype.map.call(O, F); };
+sML.filter  = function(O, F) { return Array.prototype.filter.call(O, F); };
+sML.forEach = function(O, F) { return Array.prototype.forEach.call(O, F); };
+
+sML.foreach = function(O, F, This) {
+	for(var i = 0, L = O.length; i < L; i++) if(F.call(This, O[i], i, O) === false) break;
+	return O;
+};
+
+sML.each = function(O, F, From, Till) {
+	for(var i = (From ? From : 0), L = (Till ? Till + 1 : O.length); i < L; i++) if(F.call(O[i], i, O) === false) break;
+	return O;
+};
+
 sML.toArray = function() {
-	for(var A = [], aL = arguments.length, i = 0; i < aL; i++) {
-		if(typeof arguments[i].length == "undefined")              A.push(arguments[i]);
-		else for(var eL = arguments[i].length, j = 0; j < eL; j++) A.push(arguments[i][j]);
+	for(var A = [], i = 0, aL = arguments.length; i < aL; i++) {
+		if(typeof arguments[i].length == "undefined" || typeof arguments[i] == "string") A.push(arguments[i]);
+		else for(var j = 0, eL = arguments[i].length; j < eL; j++)                       A.push(arguments[i][j]);
 	}
 	return A;
 };
 
-sML.filter = function(A, F) {
-	if(typeof F != "function") throw new TypeError();
-	for(var newArray = [], L = A.length, i = 0; i < L; i++) if(F.call(A[i], i, A)) newArray.push(A[i]);
-	return newArray;
+sML.firstOf = function(O) {
+	return (O.length ? O[           0] : null);
 };
 
-sML.foreach = function(O, F, pThis) {
-	for(var L = O.length, i = 0; i < L; i++) if(F.call(pThis, O[i], i, O) === false) break;
-	return O;
-};
-
-sML.each = function(C, F, SI, LI) {
-	for(var L = (LI ? LI + 1 : C.length), i = (SI ? SI : 0); i < L; i++) if(F.call(C[i], i, C) === false) break;
-	return C;
-};
-
-sML.firstOf = function(A) {
-	return (A.length ? A[           0] : null);
-};
-
-sML.lastOf  = function(A) {
-	return (A.length ? A[A.length - 1] : null);
+sML.lastOf  = function(O) {
+	return (O.length ? O[O.length - 1] : null);
 };
 
 
@@ -1148,7 +1156,7 @@ sML.lastOf  = function(A) {
 sML.Math = {
 	sum: function() {
 		var Sum = 0;
-		for(var L = arguments.length, i = 0; i < L; i++) {
+		for(var i = 0, L = arguments.length; i < L; i++) {
 			var Num = 0;
 			     if(typeof arguments[i] == "number") Num = arguments[i];
 			else if(typeof arguments[i] == "string") Num = arguments[i].length;
@@ -1187,7 +1195,7 @@ sML.String = {
 	},
 	replace: function(T, R) {
 		if(R.length % 2) return this;
-		for(var L = R.length / 2, i = 0; i < L; i++) T = T.replace(R[i * 2], R[i * 2 + 1]);
+		for(var i = 0, L = R.length / 2; i < L; i++) T = T.replace(R[i * 2], R[i * 2 + 1]);
 		return T;
 	}
 };
@@ -1303,24 +1311,24 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 sML.Fullscreen = {
 	request: (function(E) {
 		var getFunction = function(M) { return function(O) { if(!O) O = E; return O[M](); } };
-		if(E.requestFullscreen)       return getFunction("requestFullscreen");
-		if(E.requestFullScreen)       return getFunction("requestFullScreen");
-		if(E.webkitRequestFullscreen) return getFunction("webkitRequestFullscreen");
-		if(E.webkitRequestFullScreen) return getFunction("webkitRequestFullScreen");
-		if(E.mozRequestFullscreen)    return getFunction("mozRequestFullscreen");
-		if(E.mozRequestFullScreen)    return getFunction("mozRequestFullScreen");
-		if(E.msRequestFullscreen)     return getFunction("msRequestFullscreen");
+		if(E.requestFullscreen)                             return getFunction("requestFullscreen");
+		if(E.requestFullScreen)                             return getFunction("requestFullScreen");
+		if(E.webkitRequestFullscreen)                       return getFunction("webkitRequestFullscreen");
+		if(E.webkitRequestFullScreen)                       return getFunction("webkitRequestFullScreen");
+		if(E.mozRequestFullscreen)                          return getFunction("mozRequestFullscreen");
+		if(E.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+		if(E.msRequestFullscreen)                           return getFunction("msRequestFullscreen");
 		return function() { return false; };
 	})(document.documentElement),
 	exit: (function(D) {
 		var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M](); } };
-		if(D.exitFullscreen)         return getFunction("exitFullscreen");
-		if(D.cencelFullScreen)       return getFunction("cencelFullScreen");
-		if(D.webkitExitFullscreen)   return getFunction("webkitExitFullscreen");
-		if(D.webkitCancelFullScreen) return getFunction("webkitCancelFullScreen");
-		if(D.mozExitFullscreen)      return getFunction("mozExitFullscreen");
-		if(D.mozRequestFullScreen)   return getFunction("mozRequestFullScreen");
-		if(D.msExitFullscreen)       return getFunction("msExitFullscreen");
+		if(D.exitFullscreen)                                return getFunction("exitFullscreen");
+		if(D.cencelFullScreen)                              return getFunction("cencelFullScreen");
+		if(D.webkitExitFullscreen)                          return getFunction("webkitExitFullscreen");
+		if(D.webkitCancelFullScreen)                        return getFunction("webkitCancelFullScreen");
+		if(D.mozExitFullscreen)                             return getFunction("mozExitFullscreen");
+		if(D.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+		if(D.msExitFullscreen)                              return getFunction("msExitFullscreen");
 		return function() { return false; };
 	})(document),
 	getElement: (function(D) {
@@ -1346,11 +1354,38 @@ sML.getFullscreenElement = sML.Fullscreen.getElement;
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+//-- SML
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.SML = {
+	each:           function(F)        { sML.each(this, F); return this; },
+	set:            function(P, S)     { return this.each(function() { var O = this; sML.set(O, P, S); }); },
+	style:          function(S)        { return this.each(function() { var O = this; sML.style(O, S); }); },
+	appendChild:    function(Es)       { return this.each(function() { var O = this; sML.each(Es, function() { O.appendChild(this); }); }); },
+	preppendChild:  function(E)        { return this.each(function() { var O = this; sML.each(Es, function() { O.insertBefore(this, S.firstChild); }); }); },
+	insertBefore:   function(E, S)     { return this.each(function() { var O = this; sML.each(Es, function() { O.insertBefore(this, S); }); }); },
+	insertAfter:    function(E, S)     { return this.each(function() { var O = this; sML.each(Es, function() { O.insertBefore(this, S.nextSibling); }); }); },
+	addClass:       function(CN)       { return this.each(function() { var O = this; sML.addClass(O, CN); }); },
+	removeClass:    function(CN)       { return this.each(function() { var O = this; sML.removeClass(O, CN); }); },
+	replaceClass:   function(RCN, ACN) { return this.each(function() { var O = this; sML.replaceClass(O, RCN, ACN); }); }
+};
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 //-- Readied ?
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-window.addEventListener("unload", function() { sML = null; delete sML; });
+window.addEventListener("unload", function() { window.sML = null; delete window.sML; });
+
+return sML;
+
+})();
 
 
 
