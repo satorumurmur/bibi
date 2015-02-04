@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Tue January 6 21:18:00 2015 +0900
- */ sML = (function() { var Version = "0.999.10", Build = 20150106.0;
+ * - Wed February 4 23:05:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.11", Build = 20150204.0;
 
 
 
@@ -415,7 +415,7 @@ sML.hatch = function() {
 		for(var i = 0, L = Egg.childNodes.length; i < L; i++) Chick.appendChild(Egg.firstChild);
 	}
 	if(sML.UA.InternetExplorer < 9) {
-		document.body.appendChild(Egg).display = "none";
+		document.body.appendChild(Egg).style.display = "none";
 		brood();
 		document.body.removeChild(Egg);
 	} else brood();
@@ -1202,11 +1202,11 @@ sML.String = {
 
 sML.getLength = function(O) {
 	if(typeof O == "object") {
+		if(O instanceof Array) return O.length;
 		var L = 0;
 		for(var i in O) L++;
 		return L;
 	}
-	if(typeof O == "array" ) return        O.length;
 	if(typeof O == "string") return        O.length;
 	if(typeof O == "number") return ("" + O).length;
 	return null;
