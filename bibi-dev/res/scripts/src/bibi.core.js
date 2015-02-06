@@ -91,21 +91,23 @@ O.welcome = function() {
 	O.found();
 	O.open();
 
-}
+};
+
 
 O.found = function() {
 
 	C.weaveCartain();
 	R.Contents = O.Body.insertBefore(sML.create("div", { id: "epub-contents" }), C.Cartain);
 
-}
+};
+
 
 O.open = function() {
 
 	O.readExtra();
 	L.getBook(X["book"]);
 
-}
+};
 
 
 
@@ -122,21 +124,21 @@ L.sayLoading = function(Message) {
 	sML.addClass(O.HTML, "wait-please");
 	sML.addClass(C.Cartain, "animate");
 	C.Cartain.Message.note(Message ? Message : 'Loading ...');
-}
+};
 
 
 L.shutUpLoading = function(Message) {
 	sML.removeClass(O.HTML, "wait-please");
 	sML.removeClass(C.Cartain, "animate");
 	C.Cartain.Message.note(Message ? Message : '');
-}
+};
 
 
 L.error = function(Message) {
 	sML.removeClass(O.HTML, "wait-please");
 	sML.removeClass(C.Cartain, "animate");
 	O.log(0, Message);
-}
+};
 
 
 L.download = function(URI, MimeType) {
@@ -146,7 +148,7 @@ L.download = function(URI, MimeType) {
 	XHR.send(null);
 	if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
 	return XHR;
-}
+};
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
@@ -165,7 +167,7 @@ L.requestDocument = function(Path) {
 	}
 	if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
 	return Document;
-}
+};
 
 
 L.getBook = function(BookFileName) {
@@ -239,7 +241,7 @@ L.getBook = function(BookFileName) {
 		L.readContainer();
 	}
 
-}
+};
 
 
 L.initialize = function() {
@@ -281,7 +283,7 @@ L.initialize = function() {
 
 	O.log(2, 'Initialized.');
 
-}
+};
 
 
 L.preprocessEPUB = function(EPUBZip) {
@@ -414,7 +416,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 	O.log(2, 'Preprocessed.');
 
-}
+};
 
 
 L.readContainer = function() {
@@ -434,7 +436,7 @@ L.readContainer = function() {
 
 	L.readPackageDocument();
 
-}
+};
 
 
 L.readPackageDocument = function() {
@@ -562,7 +564,7 @@ L.readPackageDocument = function() {
 
 	L.prepareSpine();
 
-}
+};
 
 
 L.prepareSpine = function() {
@@ -623,7 +625,7 @@ L.prepareSpine = function() {
 
 	L.loadCoverImage();
 
-}
+};
 
 
 L.loadCoverImage = function() {
@@ -655,7 +657,7 @@ L.loadCoverImage = function() {
 		else          return A.getDataURI(R.CoverImage.Path);
 	})();
 
-}
+};
 
 
 L.loadNavigation = function() {
@@ -719,7 +721,7 @@ L.loadNavigation = function() {
 		C.Cartain.Message.note('');
 	}
 
-}
+};
 
 
 L.loadItems = function() {
@@ -749,7 +751,7 @@ L.loadItems = function() {
 		L.start();
 	}, 10);
 
-}
+};
 
 
 L.loadItem = function(Item) {
@@ -784,7 +786,7 @@ L.loadItem = function(Item) {
 		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
 	}
 	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? Path : '... Not Found.'));
-}
+};
 
 
 L.writeItemHTML = function(Item, HTML, Head, Body) {
@@ -797,7 +799,7 @@ L.writeItemHTML = function(Item, HTML, Head, Body) {
 		'</html>'
 	].join(""));
 	Item.contentDocument.close();
-}
+};
 
 
 L.postprocessItem = function(Item) {
@@ -914,7 +916,7 @@ L.postprocessItem = function(Item) {
 		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
 	}, 100);
 
-}
+};
 
 
 L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
@@ -982,7 +984,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 		if(InBibiNavigation && typeof  X["pipi"]["nav"] == "number" && i ==  X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
 	});
 
-}
+};
 
 
 L.start = function() {
@@ -1026,7 +1028,7 @@ L.start = function() {
 
 	O.log(1, 'Enjoy!');
 
-}
+};
 
 
 
@@ -1061,21 +1063,21 @@ R.resetStage = function() {
 		})
 	);
 	*/
-}
+};
 
 R.getItemInnerText = function(Item) {
 	var InnerText = "InnerText";
 	/**/ if(typeof Item.Body.innerText   != "undefined") InnerText = Item.Body.innerText;
 	else if(typeof Item.Body.textContent != "undefined") InnerText = Item.Body.textContent;
 	return InnerText.replace(/[\r\n\s\t ]/g, "");
-}
+};
 
 R.resetItem = function(Item) {
 	Item.Reset = false;
 	Item.Reflowable = (Item.ItemRef["rendition:layout"] != "pre-paginated" || !Item.ItemRef["viewport"][S.SIZE.b] || !Item.ItemRef["viewport"][S.SIZE.l]);
 	Item.Reflowable ? R.resetItem_Reflowable(Item) : R.resetItem_PrePagenated(Item);
 	Item.Reset = true;
-}
+};
 
 R.shock = function(Item) {
 	var Z = 0, H = Item.HTML, B = Item.Body;
@@ -1086,7 +1088,7 @@ R.shock = function(Item) {
 		Item.Body.removeChild(this);
 		Item.Body.appendChild(this);
 	});
-}
+};
 
 R.resetItem_Reflowable = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
@@ -1230,7 +1232,7 @@ R.resetItem_Reflowable = function(Item) {
 		Item.Pages.push(Page);
 	}
 	return Item;
-}
+};
 
 R.resetItem_PrePagenated = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
@@ -1266,7 +1268,7 @@ R.resetItem_PrePagenated = function(Item) {
 	Page.PageIndexInItem = Item.Pages.length;
 	Item.Pages.push(Page);
 	return Item;
-}
+};
 
 R.resetSpread = function(Spread) {
 	var SpreadBox = Spread.SpreadBox;
@@ -1282,7 +1284,7 @@ R.resetSpread = function(Spread) {
 	}
 	Spread.style["border-radius"] = S["spread-border-radius"];
 	Spread.style["box-shadow"]    = S["spread-box-shadow"];
-}
+};
 
 R.resetPages = function() {
 	R.Pages.forEach(function(Page) {
@@ -1300,7 +1302,7 @@ R.resetPages = function() {
 		});
 	});
 	return R.Pages;
-}
+};
 
 R.resetNavigation = function() {
 	sML.style(C.Panel.Navigation.Item, { float: "" });
@@ -1309,7 +1311,7 @@ R.resetNavigation = function() {
 		if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
 		C.Panel.Navigation.ItemBox.scrollLeft = C.Panel.Navigation.ItemBox.scrollWidth - window.innerWidth;
 	}
-}
+};
 
 
 R.layoutSpread = function(Spread, Target) {
@@ -1345,14 +1347,14 @@ R.layoutSpread = function(Spread, Target) {
 		SpreadBox.style["padding" + S.BASE.B] = PaddingBefore ? PaddingBefore + "px" : "";
 		SpreadBox.style["padding" + S.BASE.A] = PaddingAfter  ? PaddingAfter  + "px" : "";
 	}
-}
+};
 
 
 /*
 R.layoutStage = function() {
 	for(var L = R.Spreads.length, i = 0, StageLength = 0; i < L; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
 	R.Contents.style[S.SIZE.l] = StageLength + "px";
-}
+};
 */
 
 
@@ -1420,7 +1422,7 @@ R.layout = function(Param) {
 
 	return S;
 
-}
+};
 
 
 R.Relayouting = 0;
@@ -1450,7 +1452,7 @@ R.relayout = function(Setting, Timing) {
 			}, 100);
 		}, 100);
 	}, (typeof Timing == "number" && Timing >= 0 ? Timing : 100));
-}
+};
 
 
 R.onresize               = function(   ) { R.relayout(null, (sML.OS.iOS || sML.OS.Android) ? 888 : 444); }
@@ -1466,7 +1468,7 @@ R.changeBookDisplayMode  = function(BDM) {
 		}
 		R.relayout(RelayoutRecipe);
 	}
-}
+};
 R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.relayout({ "spread-layout-axis" : SLA }); }
 R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.relayout({ "page-size-format"   : PSF }); }
 
@@ -1508,7 +1510,7 @@ R.getTarget = function(Target) {
 	if(!Target.Item) return null;
 	if(!Target.Page) Target.Page = Target.Item.Pages[0];
 	return Target;
-}
+};
 
 
 R.getCurrentPages = function() {
@@ -1531,7 +1533,7 @@ R.getCurrentPages = function() {
 		Center: CenterPage,
 		End:    CurrentPages[CurrentPages.length - 1]
 	};
-}
+};
 
 
 R.getPageGroup = function(Target) {
@@ -1559,7 +1561,7 @@ R.getPageGroup = function(Target) {
 		MarginBeforeGroup: MarginBeforeGroup,
 		MarginBeforePage:  MarginBeforePage
 	};
-}
+};
 
 
 R.focus = function(Target, ScrollOption) {
@@ -1614,7 +1616,7 @@ R.focus = function(Target, ScrollOption) {
 	if(S.SLD == "rtl") FocusPoint = FocusPoint - window["inner" + S.SIZE.L];
 	sML.scrollTo((S.SLD == "ttb" ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale }), ScrollOption);
 	return false;
-}
+};
 
 
 R.pointTextLocation = function(Target) {
@@ -1639,7 +1641,7 @@ R.pointTextLocation = function(Target) {
 		}
 	}
 	return sML.select(Sides);
-}
+};
 
 
 R.page = function(Distance) {
@@ -1663,7 +1665,7 @@ R.page = function(Distance) {
 	}
 	*/
 	return R.focus({ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") });
-}
+};
 
 
 R.scroll = function(Distance) {
@@ -1675,13 +1677,12 @@ R.scroll = function(Distance) {
 		case "rtl": ScrollTo = { X: WindowCoord.left + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 }; break;
 	}
 	return sML.scrollTo(ScrollTo);
-}
+};
 
 
 R.to = function(BibitoString) {
 	return R.focus(O.getBibitoTarget(BibitoString));
-}
-
+};
 
 R.Scale = 1;
 
@@ -1708,7 +1709,7 @@ R.zoom = function(Scale) {
 		R.focus(CurrentStartPage, { Duration: 1 });
 	}, 0);
 	R.Scale = Scale;
-}
+};
 
 
 
@@ -1819,7 +1820,7 @@ C.weaveCartain = function() {
 		return Note;
 	}
 
-}
+};
 
 
 C.createPanel = function() {
@@ -1922,7 +1923,7 @@ C.createPanel = function() {
 
 	sML.each(C.Panel.Menu.getElementsByClassName("bibi-icon"), function() { this.innerHTML = '<span class="non-visual">' + this.title + '</span>' + this.innerHTML; });
 
-}
+};
 
 
 C.createSwitches = function() {
@@ -1989,7 +1990,7 @@ C.createSwitches = function() {
 
 	sML.each(C.Switches.getElementsByClassName("bibi-switch"), function() { this.toggleState(0); });
 
-}
+};
 
 
 C.createArrows = function() {
@@ -2013,7 +2014,7 @@ C.createArrows = function() {
 		});
 	});
 
-}
+};
 
 
 C.listenKeys = function(e) {
@@ -2029,7 +2030,7 @@ C.listenKeys = function(e) {
 		case +1: return Window.R.page(+1);
 		case  0: return Window.C.Panel.toggle();
 	}
-}
+};
 
 
 
@@ -2115,7 +2116,7 @@ O.updateSetting = function(Setting) {
 
 	return S;
 
-}
+};
 
 
 //==============================================================================================================================================
@@ -2195,7 +2196,7 @@ O.readExtra = function() {
 
 	if(!X["bibi"].To && X["epubcfi"]) X["bibi"].To = O.getEPUBCFITarget(X["epubcfi"]);
 
-}
+};
 
 
 O.parseHash = function() {
@@ -2217,7 +2218,7 @@ O.parseHash = function() {
 		}
 	})();
 	return Fragments;
-}
+};
 
 
 O.getBibitoTarget = function(BibitoString) {
@@ -2230,7 +2231,7 @@ O.getBibitoTarget = function(BibitoString) {
 		ItemIndex: ItemIndex - 1,
 		Element: (ElementSelector ? "body" + ElementSelector : null)
 	};
-}
+};
 
 
 O.getEPUBCFITarget = function(CFIString) {
@@ -2260,7 +2261,7 @@ O.getEPUBCFITarget = function(CFIString) {
 		TermStep: TermStep,
 		IndirectPath: IndirectPath
 	};
-}
+};
 
 
 //==============================================================================================================================================
@@ -2281,7 +2282,7 @@ O.getLogo = function(Setting) {
 			'<span class="bibi-type-i">i</span>',
 		'</', (Setting.Linkify ? 'a' : 'span') , '>'
 	].join("");
-}
+};
 
 
 O.Log = ((!parent || parent == window) && console && console.log);
@@ -2297,19 +2298,19 @@ O.log = function(Lv, Message) {
 	else if(Lv == 3) Message = " - " + Message;
 	else if(Lv == 4) Message = "   . " + Message;
 	console.log('BiB/i: ' + Message);
-}
+};
 
 
 O.showStatus = function(Message) {
 	window.status = 'BiB/i: ' + Message;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
-}
+};
 
 
 O.isBin = function(T) {
 	return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(T);
-}
+};
 
 
 O.getPath = function() {
@@ -2325,7 +2326,7 @@ O.getPath = function() {
 	).replace(
 		/^\//, ""
 	);
-}
+};
 
 
 O.toBibiXML = function(XML) {
@@ -2338,7 +2339,7 @@ O.toBibiXML = function(XML) {
 	).replace(
 		/<([\w\d_]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	);
-}
+};
 
 
 O.ContentTypeList = {
