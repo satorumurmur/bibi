@@ -25,9 +25,6 @@ module.exports = function(grunt){
 				'bib/i/res/styles/bibi.css',
 				'bib/i/res/styles/pipi.css'
 			],
-			js_lib: [
-				'bib/i/res/scripts/bibi.lib.js'
-			],
 			js: [
 				'bib/i/res/scripts/bibi.js'
 			]
@@ -85,6 +82,7 @@ module.exports = function(grunt){
 				src: [
 					'bibi-dev/res/scripts/lib/jszip.min.js',
 					'bibi-dev/res/scripts/lib/base64.js',
+					'bibi-dev/res/scripts/lib/hammer.min.js',
 					'bibi-dev/res/scripts/lib/easing.js',
 					'bibi-dev/res/scripts/lib/sML.js',
 					'bibi-dev/res/scripts/src/bibi.core.js',
@@ -102,19 +100,20 @@ module.exports = function(grunt){
 					banner: [
 						'/*!',
 						' *',
-						' * # BiB/i - http://bibi.epub.link/ - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
+						' * # BiB/i - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
 						' *',
 						' * - Open Source Libraries',
 						' *',
-						' *     1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licenced under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js',
-						' *     2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js',
-						' *     3. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js',
-						' *     4. sML       - http://fracoco.co/sML                 - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js',
+						' *     1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Licenced under the MIT license. - bibi-dev/res/scripts/lib/jszip.min.js',
+						' *     2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license. - bibi-dev/res/scripts/lib/base64.js',
+						' *     3. Hammer.js - http://hammerjs.github.io/            - Copyright (c) Jorik Tangelder   - Licensed under the MIT license. - bibi-dev/res/scripts/lib/hammer.min.js',
+						' *     4. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license. - bibi-dev/res/scripts/lib/easing.js',
+						' *     5. sML       - https://github.com/satorumurmur/sML   - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license. - bibi-dev/res/scripts/lib/sML.js',
 						' *',
 						' * - BiB/i Components',
 						' *',
-						' *     1. BiB/i Core               - bibi-dev/res/scripts/src/bibi.core.js',
-						' *     2. BiB/i EPUB-CFI Utilities - bibi-dev/res/scripts/src/bibi.epubcfi.js',
+						' *     1. BiB/i Core              - bibi-dev/res/scripts/src/bibi.core.js',
+						' *     2. BiB/i EPUBCFI Utilities - bibi-dev/res/scripts/src/bibi.epubcfi.js',
 						' *',
 						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'

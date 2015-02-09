@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed February 4 23:05:00 2015 +0900
- */ sML = (function() { var Version = "0.999.11", Build = 20150204.0;
+ * - Sun February 8 16:21:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.12", Build = 20150208.0;
 
 
 
@@ -93,7 +93,7 @@ sML.UA.Fl = sML.UA.Flash;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.log = function() { try { return console.log.apply(window, arguments); } catch(e) {} };
+sML.log = function() { try { console.log.apply(console, arguments); } catch(e) {} };
 
 sML.write = function() {
 	document.open();
@@ -107,30 +107,40 @@ sML.write = function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Polyfill
+//-- Fill
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-sML.Polyfill = {
-	extendElements: function(E) { return E; }
+sML.Fill = {
+	Prefixes: ['webkit', 'moz', 'MS', 'ms', 'o'],
+	extendElements: function(E) { return E; },
+	carePrefix: function(O, P) {
+		if(P in O) return O[P];
+		P = P[0].toUpperCase() + P.slice(1);
+		for(var Property = "", i = 0, L = this.Prefixes.length; i < L; i++) {
+			Property = this.Prefixes[i] + P;
+			if(Property in O) return O[Property];
+		}
+		return undefined;
+	}
 };
 
 if(sML.UA.InternetExplorer < 9) {
-	sML.Polyfill.extendElement = function(E) {
-		E.getElementsByClassName = sML.Polyfill.getElementsByClassName;
-		E.addEventListener       = sML.Polyfill.addEventListener;
-		E.removeEventListener    = sML.Polyfill.removeEventListener;
+	sML.Fill.extendElement = function(E) {
+		E.getElementsByClassName = sML.Fill.getElementsByClassName;
+		E.addEventListener       = sML.Fill.addEventListener;
+		E.removeEventListener    = sML.Fill.removeEventListener;
 		return E;
 	};
-	sML.Polyfill.extendElements = function(E) {
-		sML.Polyfill.extendElement(E);
-		sML.each(E.getElementsByTagName("*"), function() { sML.Polyfill.extendElement(this); });
+	sML.Fill.extendElements = function(E) {
+		sML.Fill.extendElement(E);
+		sML.each(E.getElementsByTagName("*"), function() { sML.Fill.extendElement(this); });
 		return E;
 	};
-	sML.Polyfill.getElementsByClassName = function(Cs) {
+	sML.Fill.getElementsByClassName = function(Cs) {
 		return this.querySelectorAll("." + Cs.replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/, "."));
 	};
-	sML.Polyfill.addEventListener    = function(EN, EL) {
+	sML.Fill.addEventListener    = function(EN, EL) {
 		if(!this["FunctionsOn" + EN]) this["FunctionsOn" + EN] = [], this["XWrappersOn" + EN] = [];
 		var E = this, Functions = this["FunctionsOn" + EN], XWrappers = this["XWrappersOn" + EN];
 		if(EN == "DOMContentLoaded") {
@@ -144,7 +154,7 @@ if(sML.UA.InternetExplorer < 9) {
 		Functions.push( EL);
 		return this;
 	};
-	sML.Polyfill.removeEventListener = function(EN, EL) {
+	sML.Fill.removeEventListener = function(EN, EL) {
 		var E = this, Functions = this["FunctionsOn" + EN], XWrappers = this["XWrappersOn" + EN];
 		for(var i = 0, L = Functions.length; i < L; i++) if(Functions[i] == EL) break;
 		if(EN == "DOMContentLoaded") EN = "readystatechange";
@@ -152,10 +162,10 @@ if(sML.UA.InternetExplorer < 9) {
 		XWrappers[i] = Functions[i] = null;
 		return this;
 	};
-	window.getComputedStyle = function(E) { return E.currentStyle; };
+	window.getComputedStyle    = function(E)      { return E.currentStyle; };
 	window.addEventListener    = function(EN, EL) { this.attachEvent("on" + EN, EL); return this; };
 	window.removeEventListener = function(EN, EL) { this.detachEvent("on" + EN, EL); return this; };
-	sML.Polyfill.extendElement(document);
+	sML.Fill.extendElement(document);
 	document.attachEvent("onreadystatechange", function() {
 		if(document.readyState !== "complete") return;
 		document.detachEvent("onreadystatechange", arguments.callee);
@@ -180,7 +190,14 @@ if(sML.UA.InternetExplorer < 9) {
 	["section", "article", "nav", "aside", "header", "footer", "figure"].forEach(function(TagName) { document.createElement(TagName); });
 }
 
-sML.extendElements = sML.Polyfill.extendElements;
+if(sML.UA.InternetExplorer <= 9) {
+	if(typeof window.console     == "undefined") window.console     =            {};
+	if(typeof window.console.log != "function" ) window.console.log = function() {};
+}
+
+sML.extendElements = sML.Fill.extendElements;
+
+window.requestAnimationFrame = sML.Fill.carePrefix(window, "requestAnimationFrame") || function(F) { setTimeout(F, 1000/60); };
 
 
 
@@ -264,6 +281,43 @@ sML.Event.OnResizeFont = sML.onResizeFont = sML.onresizefont = {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+sML.addTouchEventObserver = sML.observeTouch = function(E, Option) {
+	/*! Requires Hammer.js - http://hammerjs.github.io/ - Copyright (c) Jorik Tangelder - Licensed under the MIT license. */
+	if(E.addTouchEventListener) return E;
+	if(!window.Hammer) return sML.edit(E, { addTouchEventListener: function() { return false; }, removeTouchEventListener: function() { return false; } });
+	var HM = new Hammer.Manager(E);
+	if(!Option || Option.Pan)       HM.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
+	if(!Option || Option.Swipe)     HM.add(new Hammer.Swipe()).recognizeWith(HM.get('pan'));
+	if(!Option || Option.Rotate)    HM.add(new Hammer.Rotate({ threshold: 0 })).recognizeWith(HM.get('pan'));
+	if(!Option || Option.Pinch)     HM.add(new Hammer.Pinch({ threshold: 0 })).recognizeWith([HM.get('pan'), HM.get('rotate')]);
+	if(!Option || Option.DoubleTap) HM.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
+	if(!Option || Option.Tap)       HM.add(new Hammer.Tap());
+	return sML.edit(E, {
+		TouchEventObserver: HM,
+		TouchEventHandlers: [],
+		addTouchEventListener: function(EN, EH) {
+			var Wrapper = function() { EH.apply(E, arguments); };
+			E.TouchEventHandlers.push([EH, Wrapper]);
+			E.TouchEventObserver.on(EN, Wrapper);
+			return E;
+		},
+		removeTouchEventListener: function(EN, EH) {
+			if(!EH || typeof EH != "function") E.TouchEventObserver.off(EN);
+			else {
+				var TouchEventHandlers = [];
+				for(var i = 0, L = E.TouchEventHandlers.length; i < L; i++) {
+					if(E.TouchEventHandlers[i][0] == EH) E.TouchEventObserver.off(EN, E.TouchEventHandlers[i][1]);
+					else TouchEventHandlers.push(E.TouchEventHandlers[i]);
+				}
+				E.TouchEventHandlers = TouchEventHandlers;
+			}
+			return E;
+		}
+	});
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 sML.Chain = function() {
 	this.Functions = arguments.length ? sML.toArray(arguments) : [];
 	this.add = function() {
@@ -284,7 +338,7 @@ sML.Chain = function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Timers
+//-- Timers / AnimationFrames
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -308,6 +362,22 @@ sML.Timers = {
 sML.setTimeout  = sML.Timers.setTimeout;
 sML.setInterval = sML.Timers.setInterval;
 
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+sML.Drawer = {
+	draw: function(What, F) {
+		if(!What.ToBeDrawn) {
+			requestAnimationFrame(function() {
+				F.apply(What, arguments);
+				What.ToBeDrawn = false;
+			});
+			What.ToBeDrawn = true;
+		}
+	}
+};
+
+sML.draw = sML.Drawer.draw;
+
 
 
 
@@ -330,9 +400,18 @@ sML.cloneObject = function(O) {
 };
 
 sML.set = sML.edit = sML.setProperties = sML.setMembers = function(O, P, S) {
-	if(P) for(var p in P) O[p] = P[p];
+	if(P) {
+		if(P["ObserveTouch"]) {
+			sML.addTouchEventObserver(O);
+			delete P["ObserveTouch"];
+		}
+		for(var p in P) {
+			if(/^data-/.test(p)) O.setAttribute(p, P[p]);
+			else                 O[p] = P[p];
+		}
+	}
 	if(S) sML.CSS.set(O, S);
-	/*@cc_on @if (@_jscript_version<9) sML.Polyfill.extendElements(arguments[0]); @end @*/ return O;
+	/*@cc_on @if (@_jscript_version<9) sML.Fill.extendElements(arguments[0]); @end @*/ return O;
 };
 
 sML.create = sML.createElement = function(TagName, M, S) {

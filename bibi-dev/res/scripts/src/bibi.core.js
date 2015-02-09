@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed February 4 22:01:00 2015 +0900
- */ Bibi = { Version: "0.997.8", Build: 20150204.0 };
+ * - Mon February 9 12:03:00 2015 +0900
+ */ Bibi = { Version: "0.997.9", Build: 20150209.0 };
 
 
 
@@ -223,7 +223,7 @@ L.getBook = function(BookFileName) {
 			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
 			L.readContainer();
 		}
-		if(! X["pipi"]["wait"]) fetchEPUB();
+		if(!X["pipi"]["wait"]) fetchEPUB();
 		else {
 			C.Cartain.createPlayButton({
 				onplay: function() {
@@ -925,12 +925,15 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 	var FileName = FilePath.replace(/^.+?([^\/]+)$/, "$1");
 
 	sML.each(RootElement.getElementsByTagName("a"), function(i) {
-		var A = this;
+		var A = sML.addTouchEventObserver(this);
 		A.NavAIndex = i;
 		var HrefPathInSource = A.getAttribute("href");
 		if(!HrefPathInSource) {
 			if(InBibiNavigation) {
-				A.onclick = function() { return false; };
+				A.addTouchEventListener("tap", function(e) {
+					sML.preventDefault(e);
+					return false;
+				});
 				sML.addClass(A, "bibi-navigation-inactive-link");
 			}
 			return;
@@ -945,7 +948,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
 				A.InBibiNavigation = InBibiNavigation;
 				A.Target = { Item: rItem, Element: (HrefHash ? "#" + HrefHash : null) };
-				A.onclick = function(e) {
+				A.addTouchEventListener("tap", function(e) {
 					if(R.Started) {
 						if(this.InBibiNavigation) {
 							var Target = this.Target;
@@ -956,8 +959,9 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 					} else {
 						C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
 					}
+					sML.preventDefault(e);
 					return false;
-				};
+				});
 				return;
 			}
 		});
@@ -966,7 +970,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 			A.setAttribute("href", "bibi://" + B.Name + "/#" + HrefHash);
 			A.InBibiNavigation = InBibiNavigation;
 			A.Target = O.getEPUBCFITarget(HrefHash);
-			A.onclick = function(e) {
+			A.addTouchEventListener("tap", function(e) {
 				if(!this.Target) return false;
 				if(R.Started) {
 					if(this.InBibiNavigation) {
@@ -979,9 +983,9 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 					C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
 				}
 				return false;
-			};
+			});
 		}
-		if(InBibiNavigation && typeof  X["pipi"]["nav"] == "number" && i ==  X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
+		if(InBibiNavigation && typeof X["pipi"]["nav"] == "number" && i == X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
 	});
 
 };
@@ -1776,6 +1780,7 @@ C.weaveCartain = function() {
 	C.Cartain.createPlayButton = function(Param) {
 		C.Cartain.PlayButton = C.Cartain.appendChild(
 			sML.create("p", { id: "bibi-cartain-playbutton", title: (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open',
+				innerHTML: '<span class="non-visual">' + C.Cartain.PlayButton.title + ' to Open</span>',
 				play: function(To, NavAIndex) {
 					if(O.SmartPhone) {
 						var URI = location.href.replace(/&wait=[^&]+/g, "");
@@ -1784,41 +1789,39 @@ C.weaveCartain = function() {
 					}
 					if(To) X["bibi"].To = To;
 					L.sayLoading();
-					this.onclick = function() { return false; };
+					this.removeTouchEventListener("tap");
 					sML.style(this, { opacity: 0, cursor: "default" });
 					Param.onplay();
-				},
-				onclick: function(e) {
-					this.play();
-					sML.stopPropagation(e);
 				}
 			})
 		);
-		C.Cartain.PlayButton.innerHTML = '<span class="non-visual">' + C.Cartain.PlayButton.title + ' to Open</span>';
-	}
+		sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
+			this.play();
+			sML.stopPropagation(e);
+		});
+	};
 
 	C.Cartain.createCatcher = function(Param) {
 		C.Cartain.Catcher = C.Cartain.appendChild(
-			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!',
-				onclick: function() {
-					if(!this.Input) this.Input = this.appendChild(
-						sML.create("input", { type: "file",
-							onchange: function(e) {
-								Param.onchange(e.target.files[0]);
-								C.Cartain.Catcher.style.opacity = 0;
-							}
-						})
-					);
-					this.Input.click();
-				}
-			})
+			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!' })
 		);
-	}
+		sML.addTouchEventObserver(C.Cartain.Catcher).addTouchEventListener("tap", function() {
+			if(!this.Input) this.Input = this.appendChild(
+				sML.create("input", { type: "file",
+					onchange: function(e) {
+						Param.onchange(e.target.files[0]);
+						C.Cartain.Catcher.style.opacity = 0;
+					}
+				})
+			);
+			this.Input.click();
+		})
+	};
 
 	C.Cartain.Message.note = function(Note) {
 		C.Cartain.Message.innerHTML = Note;
 		return Note;
-	}
+	};
 
 };
 
@@ -1857,11 +1860,22 @@ C.createPanel = function() {
 
 	C.Panel.Misc = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-misc", innerHTML: O.getLogo({ Linkify: true }) }));
 
-	C.Panel.Navigation         = C.Panel.appendChild(                   sML.create("div", { id: "bibi-panel-navigation" }));
-	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(        sML.create("div", { id: "bibi-panel-navigation-item-box", onclick: function() { C.Panel.toggle(); } }));
-	C.Panel.Navigation.Item    = C.Panel.Navigation.ItemBox.appendChild(sML.create("div", { id: "bibi-panel-navigation-item" }));
+	C.Panel.Navigation = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation" })
+	);
+	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item-box" })
+	);
+	C.Panel.Navigation.Item = C.Panel.Navigation.ItemBox.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item" })
+	);
+	sML.addTouchEventObserver(C.Panel.Navigation.ItemBox).addTouchEventListener("tap", function() {
+		C.Panel.toggle();
+	});
 
-	C.Panel.Menu = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu" }));
+	C.Panel.Menu = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-menu" })
+	);
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
@@ -1877,51 +1891,53 @@ C.createPanel = function() {
 	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 	Shape.SpreadsH = '<span class="bibi-shape bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 
-	C.Panel.Menu["book-display-mode"] = C.Panel.Menu.appendChild(sML.create("ul", { id: "book-display-mode" }));
+	C.Panel.Menu["book-display-mode"] = C.Panel.Menu.appendChild(
+		sML.create("ul", { id: "book-display-mode" })
+	);
 	C.Panel.Menu["book-display-mode"].Buttons = {
 		"all": C.Panel.Menu["book-display-mode"].appendChild(
-			sML.create("li", { className: "display-all", innerHTML: '<span class="bibi-icon bibi-icon-all" title="Display All">' + Shape.Spreads + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeBookDisplayMode("all");
-					});
-				}
-			})
+			sML.create("li", { className: "display-all",  innerHTML: '<span class="bibi-icon bibi-icon-all" title="Display All">'  + Shape.Spreads + '</span>' })
 		),
 		"each": C.Panel.Menu["book-display-mode"].appendChild(
-			sML.create("li", { className: "display-each", innerHTML: '<span class="bibi-icon bibi-icon-each" title="Display Each">' + Shape.Spread + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeBookDisplayMode("each");
-					});
-				}
-			})
+			sML.create("li", { className: "display-each", innerHTML: '<span class="bibi-icon bibi-icon-each" title="Display Each">' + Shape.Spread + '</span>' })
 		)
-	}
+	};
+	sML.addTouchEventObserver(C.Panel.Menu["book-display-mode"].Buttons["all"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeBookDisplayMode("all");
+		});
+	});
+	sML.addTouchEventObserver(C.Panel.Menu["book-display-mode"].Buttons["each"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeBookDisplayMode("each");
+		});
+	});
 
-	C.Panel.Menu["spread-layout-axis"] = C.Panel.Menu.appendChild(sML.create("ul", { id: "spread-layout-axis" }));
+	C.Panel.Menu["spread-layout-axis"] = C.Panel.Menu.appendChild(
+		sML.create("ul", { id: "spread-layout-axis" })
+	);
 	C.Panel.Menu["spread-layout-axis"].Buttons = {
 		"vertical": C.Panel.Menu["spread-layout-axis"].appendChild(
-			sML.create("li", { className: "layout-vertical", innerHTML: '<span class="bibi-icon bibi-icon-vertical" title="Layout Vertically">' + Shape.SpreadsV + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeSpreadLayoutAxis("vertical");
-					});
-				}
-			})
+			sML.create("li", { className: "layout-vertical",   innerHTML: '<span class="bibi-icon bibi-icon-vertical" title="Layout Vertically">'     + Shape.SpreadsV + '</span>' })
 		),
 		"horizontal": C.Panel.Menu["spread-layout-axis"].appendChild(
-			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Layout Horizontally">' + Shape.SpreadsH + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeSpreadLayoutAxis("horizontal");
-					});
-				}
-			})
+			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Layout Horizontally">' + Shape.SpreadsH + '</span>' })
 		)
-	}
+	};
+	sML.addTouchEventObserver(C.Panel.Menu["spread-layout-axis"].Buttons["vertical"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeSpreadLayoutAxis("vertical");
+		});
+	});
+	sML.addTouchEventObserver(C.Panel.Menu["spread-layout-axis"].Buttons["horizontal"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeSpreadLayoutAxis("horizontal");
+		});
+	});
 
-	sML.each(C.Panel.Menu.getElementsByClassName("bibi-icon"), function() { this.innerHTML = '<span class="non-visual">' + this.title + '</span>' + this.innerHTML; });
+	sML.each(C.Panel.Menu.getElementsByClassName("bibi-icon"), function() {
+		this.innerHTML = '<span class="non-visual">' + this.title + '</span>' + this.innerHTML;
+	});
 
 };
 
@@ -1929,7 +1945,11 @@ C.createPanel = function() {
 C.createSwitches = function() {
 
 	if(C.Switches) C.Switches.innerHTML = "";
-	else           C.Switches = O.Body.appendChild(sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" }));
+	else {
+		C.Switches = O.Body.appendChild(
+			sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
+		);
+	}
 
 	var toggleState = function(State) {
 		this.State = typeof State == "number" ? State : Math.abs(this.State - 1);
@@ -1947,10 +1967,12 @@ C.createSwitches = function() {
 				{ ja: 'メニューを開く',   en: 'Open Menu'  },
 				{ ja: 'メニューを閉じる', en: 'Close Menu' }
 			],
-			toggleState: toggleState,
-			onclick: function() { return C.Panel.toggle(); }
+			toggleState: toggleState
 		})
 	);
+	sML.addTouchEventObserver(C.Switches.Panel).addTouchEventListener("tap", function() {
+		return C.Panel.toggle();
+	});
 
 	if((function() {
 		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
@@ -1960,30 +1982,32 @@ C.createSwitches = function() {
 		return false;
 	})()) {
 		sML.addClass(O.HTML, "fullscreen-enabled");
-		if(!O.WindowEmbeded) C.Switches.Fullscreen = C.Switches.appendChild(
-			sML.create("span", { className: "bibi-switch bibi-switch-fullscreen",
-				State: 0,
-				Labels: [
-					{ ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
-					{ ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
-				],
-				toggleState: toggleState,
-				enter: function() {
-					sML.requestFullscreen(O.HTML);
-					this.toggleState(1);
-				},
-				exit: function() {
-					sML.exitFullscreen();
-					this.toggleState(0);　　
-				},
-				toggle: function() {
-					return (!sML.getFullscreenElement() ? this.enter() : this.exit());
-				},
-				onclick: function() {
-					return this.toggle();
-				}
-			})
-		);
+		if(!O.WindowEmbeded) {
+			C.Switches.Fullscreen = C.Switches.appendChild(
+				sML.create("span", { className: "bibi-switch bibi-switch-fullscreen",
+					State: 0,
+					Labels: [
+						{ ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
+						{ ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
+					],
+					toggleState: toggleState,
+					enter: function() {
+						sML.requestFullscreen(O.HTML);
+						this.toggleState(1);
+					},
+					exit: function() {
+						sML.exitFullscreen();
+						this.toggleState(0);　　
+					},
+					toggle: function() {
+						return (!sML.getFullscreenElement() ? this.enter() : this.exit());
+					}
+				})
+			);
+			sML.addTouchEventObserver(C.Switches.Fullscreen).addTouchEventListener("tap", function() {
+				return this.toggle();
+			});
+		}
 	} else {
 		sML.addClass(O.HTML, "fullscreen-not-enabled");
 	}
@@ -1996,21 +2020,36 @@ C.createSwitches = function() {
 C.createArrows = function() {
 
 	if(C.Arrows) C.Arrows.innerHTML = "";
-	else C.Arrows = O.Body.appendChild(
-		sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
+	else {
+		C.Arrows = O.Body.appendChild(
+			sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
+		);
+	}
+
+	C.Arrows.Back = C.Arrows.appendChild(
+		sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",    DistanceToMove: -1 })
+	);
+	C.Arrows.Forward = C.Arrows.appendChild(
+		sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", DistanceToMove: +1 })
 	);
 
-	C.Arrows.Back    =   C.Arrows.appendChild(sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",    onclick: function() { R.page(-1); } }));
-	C.Arrows.Forward =   C.Arrows.appendChild(sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", onclick: function() { R.page(+1); } }));
-
 	sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-		this.addEventListener("mouseover", function() { if(this.clickedTimer) clearTimeout(this.clickedTimer); sML.addClass(this, "shown"); });
-		this.addEventListener("mouseout",  function() { sML.removeClass(this, "shown"); });
-		this.addEventListener("click", function() {
+		this.addEventListener("mouseover", function() {
+			if(this.Timer_tap) clearTimeout(this.Timer_tap);
 			sML.addClass(this, "shown");
+		});
+		this.addEventListener("mouseout", function() {
+			sML.removeClass(this, "shown");
+		});
+		sML.addTouchEventObserver(this);
+		this.addTouchEventListener("tap", function() { R.page(this.DistanceToMove); });
+		this.addTouchEventListener("tap", function() {
 			var This = this;
-			if(this.clickedTimer) clearTimeout(this.clickedTimer);
-			this.clickedTimer = setTimeout(function() { sML.removeClass(This, "shown"); }, 500);
+			sML.addClass(This, "shown");
+			if(This.Timer_tap) clearTimeout(This.Timer_tap);
+			This.Timer_tap = setTimeout(function() {
+				sML.removeClass(This, "shown");
+			}, 500);
 		});
 	});
 

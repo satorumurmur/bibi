@@ -117,16 +117,17 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 ### BiB/i
 
-* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/
+* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
 * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
 ### BiB/i is including these softwares
 
-* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
+* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Licensed under the MIT license.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
+* [Hammer.js](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
-* [sML](http://sarasa.la/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
+* [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 * [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
 * [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
 

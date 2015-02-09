@@ -4,9 +4,9 @@
 
 /*!
  *
- * # BiB/i EPUB-CFI Utilities
+ * # BiB/i EPUBCFI Utilities
  *
- * - "EPUB-CFI Utilities (for BiB/i, or Others)"
+ * - "EPUBCFI Utilities (for BiB/i, or Others)"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
