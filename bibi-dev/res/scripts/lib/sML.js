@@ -296,7 +296,7 @@ sML.addTouchEventObserver = sML.observeTouch = function(E, Option) {
 		TouchEventObserver: HM,
 		TouchEventHandlers: [],
 		addTouchEventListener: function(EN, EH) {
-			var Wrapper = function() { EH.apply(E, arguments); };
+			var Wrapper = function(e) { EH.apply(E, [e.srcEvent, e]); };
 			E.TouchEventHandlers.push([EH, Wrapper]);
 			E.TouchEventObserver.on(EN, Wrapper);
 			return E;

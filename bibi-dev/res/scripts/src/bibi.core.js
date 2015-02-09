@@ -930,8 +930,9 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 		var HrefPathInSource = A.getAttribute("href");
 		if(!HrefPathInSource) {
 			if(InBibiNavigation) {
+				A.addEventListener("click", function(e) { e.preventDefault(); });
 				A.addTouchEventListener("tap", function(e) {
-					sML.preventDefault(e);
+					e.stopPropagation();
 					return false;
 				});
 				sML.addClass(A, "bibi-navigation-inactive-link");
@@ -948,18 +949,18 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
 				A.InBibiNavigation = InBibiNavigation;
 				A.Target = { Item: rItem, Element: (HrefHash ? "#" + HrefHash : null) };
+				A.addEventListener("click", function(e) { e.preventDefault(); });
 				A.addTouchEventListener("tap", function(e) {
 					if(R.Started) {
 						if(this.InBibiNavigation) {
 							var Target = this.Target;
-							sML.stopPropagation(e);
+							e.stopPropagation();
 							C.Panel.toggle(function() { R.focus(Target); });
 						}
 						else R.focus(this.Target);
 					} else {
 						C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
 					}
-					sML.preventDefault(e);
 					return false;
 				});
 				return;
@@ -970,12 +971,13 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 			A.setAttribute("href", "bibi://" + B.Name + "/#" + HrefHash);
 			A.InBibiNavigation = InBibiNavigation;
 			A.Target = O.getEPUBCFITarget(HrefHash);
+			A.addEventListener("click", function(e) { e.preventDefault(); });
 			A.addTouchEventListener("tap", function(e) {
 				if(!this.Target) return false;
 				if(R.Started) {
 					if(this.InBibiNavigation) {
 						var Target = this.Target;
-						sML.stopPropagation(e);
+						e.stopPropagation();
 						C.Panel.toggle(function() { R.focus(Target); });
 					}
 					else R.focus(this.Target);
