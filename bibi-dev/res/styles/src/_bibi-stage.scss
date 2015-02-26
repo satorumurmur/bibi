@@ -1,0 +1,161 @@
+// ================================================================================
+// + Stage
+// --------------------------------------------------------------------------------
+
+
+// - HTML / Body
+// --------------------------------------------------------------------------------
+
+html {
+	$background-color: rgb(236,234,232);
+	font-family: "Helvetica", "Trebuchet MS", sans-serif;
+	-webkit-font-smoothing: subpixel-antialiased;
+	-webkit-text-size-adjust: 100%;
+	background: $background-color;
+	@include                       filter-gradient(lighten($background-color, 4%),    darken($background-color, 4%), vertical);
+	@include background-image(linear-gradient(top, lighten($background-color, 4%) 0%, darken($background-color, 4%) 100%));
+	&.spread-vertical {
+		width: 100%;
+		&.preparing {
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
+	}
+	&.spread-horizontal {
+		height: 100%;
+		&.preparing {
+			overflow-x: scroll;
+			overflow-y: hidden;
+		}
+	}
+	&.display-each,
+	&.with-poster {
+		overflow-x: hidden !important;
+		overflow-y: hidden !important;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+body {
+	@include transition(opacity .25s ease);
+	* {
+		-webkit-tap-highlight-color: rgba(255,255,255,0);
+		-webkit-tap-highlight-color: transparent;
+	}
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: transparent no-repeat center center;
+	html.with-poster & {
+		@include background-size(contain);
+		opacity: 0; &:hover { opacity: 1; }
+	}
+}
+
+
+// - EPUB-Metafiles
+// --------------------------------------------------------------------------------
+
+div#epub-metafiles,
+div#epub-metafiles * {
+	display: none;
+}
+
+
+// - EPUB-Content
+// --------------------------------------------------------------------------------
+
+div#epub-content {
+	-webkit-overflow-scrolling: touch;
+	@include transition(.2s ease-out);
+	html.iOS                   & { position: fixed; }
+	html.iOS.spread-horizontal & { width: 100%; height: auto; overflow-x: scroll; overflow-y: hidden; }
+	html.iOS.spread-vertical   & { width: auto; height: 100%; overflow-x: hidden; overflow-y: scroll; }
+//	html.iOS.display-each      & { width: 100%; height: 100%; overflow-x: hidden; overflow-y: hidden; }
+	html.panel-opened & {
+		@include transition(.2s ease-in);
+		@include filter(blur(4px));
+		opacity: 0.75;
+	}
+}
+
+	div#epub-content-main {
+		html.preparing         & { opacity: 0; }
+		@include box-sizing(border-box);
+		overflow: hidden;
+		position: relative;
+		z-index: 10;
+		@include transition(0.75s ease-in-out);
+		@include transition-property(transform opacity);
+//		html.spread-ttb        & { @include writing-mode(horizontal-tb, lr-tb); }
+//		html.spread-ltr        & { @include writing-mode(vertical-lr,   tb-lr); }
+//		html.spread-rtl        & { @include writing-mode(vertical-rl,   tb-rl); }
+//		html.spread-vertical                & { @include transform(translateX( 0  )); }
+//		html.spread-vertical.panel-opened   & { @include transform(translateX(36px)); /* @include transform-origin(100% 50%); @include transform(rotateY(-45deg)); */ }
+//		html.spread-horizontal              & { @include transform(translateY( 0  )); }
+//		html.spread-horizontal.panel-opened & { @include transform(translateY(36px)); /* @include transform-origin(50% 100%); @include transform(rotateX(-45deg)); */ }
+	}
+
+		div.spread-box {
+			html.spread-ltr & { float: left; }
+			html.spread-rtl & { float: right; }
+		}
+
+			div.spread {
+				//@include box-sizing(border-box);
+				overflow: hidden;
+				background: white;
+				//@include transition(opacity .25s ease-in-out);
+			}
+
+				div.item-box {
+					display: block;
+					position: relative;
+					overflow: hidden;
+					div.spread-box.pre-paginated &.page-spread-left  { float: left;  }
+					div.spread-box.pre-paginated &.page-spread-right { float: right; }
+				}
+
+					iframe.item, span.page {
+						display: block;
+					}
+					iframe.item {
+						position: relative;
+						z-index: 2;
+						margin: 0;
+						padding: 0;
+						border: none 0;
+						line-height: 1;
+						vertical-align: top;
+						background: white;
+						html.page-ltr & { @include transform-origin(0 0); }
+						html.page-rtl & { @include transform-origin(100% 0); }
+					}
+					span.page {
+						position: absolute;
+						z-index: 1;
+						html.spread-horizontal & { top: 0; }
+						html.spread-vertical   & { left: 0; }
+						html.spread-vertical div.spread-box.pre-paginated & { left: auto; top: 0; }
+					}
+
+		div#epub-asides {
+			@include box-sizing(border-box);
+			position: absolute;
+			z-index: 100;
+			padding: 8px;
+			border: solid 0 rgba(255,255,255,0.1);
+			width: 44px;
+			height: 44px;
+			line-height: 30px;
+			font-size: 14px;
+			text-align: left;
+			color: white;
+			html.spread-ltr & { right: 0; bottom: 0; }
+			html.spread-rtl & { left:  0; bottom: 0; }
+			html.spread-ttb & { right: 0; bottom: 0; }
+		}
+
+
+

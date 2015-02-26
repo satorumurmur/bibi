@@ -90,10 +90,10 @@ This is recommended because it accelarates reading experience of your readers.
 
 ### Development
 
-1. `$ grunt` and start watching changes of files, and make these files:
-    * `bib/i/res/scripts/bibi.js` ... JSZip.js + base64.js + easing.js + sML.js + bibi.core.js + bibi.epubcfi.js
+1. `$grunt build` and renew these files. Or `$ grunt` and start watching changes of files, and renew these files:
+    * `bib/i/res/scripts/bibi.js`
     * `bib/i/res/styles/bibi.css`
-    * `bib/i/res/styles/pipi.css` ... (formerly `bib/i.css`, for embedding BiB/i to webpage)
+    * `bib/i/res/styles/pipi.css` (formerly `bib/i.css`, for embedding BiB/i to webpage)
 2. Edit files.
     * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `bibi-dev/res/scripts/lib/` and `bibi-dev/res/scripts/src/`.
     * SCSS sources of the `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `bibi-dev/res/styles/src/`.
@@ -121,14 +121,13 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
-### BiB/i is including these softwares
+### BiB/i is including and powered by these open source softwares:
 
-* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Licensed under the MIT license.)
+* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
 * [Hammer.js](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
-* [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
+* [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers (Licensed under the MIT license.)
 * [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
-* [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
-* [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
+* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and MIT license.)
 
 

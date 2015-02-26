@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sun February 8 16:21:00 2015 +0900
- */ sML = (function() { var Version = "0.999.12", Build = 20150208.0;
+ * - Wed February 25 22:22:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.14", Build = 20150225.0;
 
 
 
@@ -750,63 +750,64 @@ sML.Coord = sML.C = {
 		}
 	},
 	getScreenSize: function() {
-		return this.getWH(
-			screen.availWidth,
-			screen.availHeight
-		);
+		return this.getWH(screen.availWidth, screen.availHeight);
 	},
-	getWindowSize: function() {
-		return this.getWH(
-			document.documentElement.clientWidth,
-			document.documentElement.clientHeight
-		);
+	getScrollSize: function (E) {
+		if(!E || E == window || E == document) E = document.documentElement;
+		return this.getWH(E.scrollWidth, E.scrollHeight);
+	},
+	getOffsetSize: function (E) {
+		if(!E || E == window) E = document.documentElement;
+		if(E == document) return this.getScrollSize(document.documentElement);
+		return this.getWH(E.offsetWidth, E.offsetHeight);
+	},
+	getClientSize: function (E) {
+		if(!E || E == window) E = document.documentElement;
+		if(E == document) return this.getScrollSize(document.documentElement);
+		return this.getWH(E.clientWidth, E.clientHeight);
 	},
 	getDocumentSize: function() {
-		return this.getWH(
-			document.documentElement.scrollWidth,
-			document.documentElement.scrollHeight
-		);
+		return this.getScrollSize(document.documentElement);
+	},
+	getWindowSize: function() {
+		return this.getOffsetSize(document.documentElement);
 	},
 	getElementSize: function (E) {
-		return this.getWH(
-			E.offsetWidth,
-			E.offsetHeight
-		);
+		return this.getOffsetSize(E);
 	},
 	getWindowCoord: function(E) {
-		return this.getXY(
-			(window.screenLeft || window.screenX),
-			(window.screenTop  || window.screenY)
-		);
-	},
-	getScrollLimitCoord: function(RtL) {
-		var DS = this.getDocumentSize(), WS = this.getWindowSize();
-		return this.getXY(
-			(DS.W - WS.W) * (RtL ? -1 : 1),
-			(DS.H - WS.H)
-		);
-	},
-	getScrollCoord: function() {
-		return this.getXY(
-			(window.scrollX || window.pageXOffset || document.documentElement.scrollLeft),
-			(window.scrollY || window.pageYOffset || document.documentElement.scrollTop)
-		);
+		return this.getXY((window.screenLeft || window.screenX), (window.screenTop  || window.screenY));
 	},
 	getElementCoord: function (E, RtL) {
 		var X = E.offsetLeft, Y = E.offsetTop;
-		if(RtL) X = X + E.offsetWidth - this.getWindowSize().W;
+		if(RtL) X = X + E.offsetWidth - this.getOffsetSize(document.documentElement).W;
 		while(E.offsetParent) E = E.offsetParent, X += E.offsetLeft, Y += E.offsetTop;
 		return this.getXY(X, Y);
+	},
+	getScrollCoord: function(E) {
+		if(!E || E == window) return this.getXY(
+			(window.scrollX || window.pageXOffset || document.documentElement.scrollLeft),
+			(window.scrollY || window.pageYOffset || document.documentElement.scrollTop)
+		);
+		return this.getXY(E.scrollLeft, E.scrollTop);
+	},
+	getScrollLimitCoord: function(E, RtL) {
+		if(!E || E == window) E = document.documentElement;
+		var SS = this.getScrollSize(E), OS = this.getClientSize(E);
+		return this.getXY(
+			(SS.W - OS.W) * (RtL ? -1 : 1),
+			(SS.H - OS.H)
+		);
 	},
 	getEventCoord: function(e) {
 		return (e ? this.getXY(e.pageX, e.pageY) : this.getXY(0, 0));
 	},
 	getCoord: function(O, RtL) {
 		if(RtL) return this.getCoord_RtL(O);
-		/**/ if(O == screen)   var WH = this.getScreenSize(),   LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
-		else if(O == window)   var WH = this.getWindowSize(),   LT = this.getScrollCoord(),      RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
-		else if(O == document) var WH = this.getDocumentSize(), LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
-		else if(O.tagName)     var WH = this.getElementSize(O), LT = this.getElementCoord(O),    RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
+		/**/ if(O == screen)   var WH = this.getScreenSize(),                         LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
+		else if(O == window)   var WH = this.getOffsetSize(document.documentElement), LT = this.getScrollCoord(),      RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
+		else if(O == document) var WH = this.getScrollSize(document.documentElement), LT = { X: 0,    Y: 0 },          RB = { X: WH.W,        Y:        WH.H };
+		else if(O.tagName)     var WH = this.getOffsetSize(O),                        LT = this.getElementCoord(O),    RB = { X: LT.X + WH.W, Y: LT.Y + WH.H };
 		else return {};
 		return this.getXYTRBLCMWH(
 			/*  XY  */ LT.X, LT.Y,
@@ -816,10 +817,10 @@ sML.Coord = sML.C = {
 		);
 	},
 	getCoord_RtL: function(O) {
-		/**/ if(O == screen)   var WH = this.getScreenSize(),   RT = { X: WH.W, Y: 0 },          LB = { X: 0,           Y:        WH.H };
-		else if(O == window)   var WH = this.getWindowSize(),   RT = this.getScrollCoord(),      LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
-		else if(O == document) var WH = this.getDocumentSize(), RT = { X: 0,    Y: 0 },          LB = { X: WH.W,        Y:        WH.H };
-		else if(O.tagName)     var WH = this.getElementSize(O), RT = this.getElementCoord(O, 1), LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
+		/**/ if(O == screen)   var WH = this.getScreenSize(),                         RT = { X: WH.W, Y: 0 },          LB = { X: 0,           Y:        WH.H };
+		else if(O == window)   var WH = this.getOffsetSize(document.documentElement), RT = this.getScrollCoord(),      LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
+		else if(O == document) var WH = this.getScrollSize(document.documentElement), RT = { X: 0,    Y: 0 },          LB = { X: WH.W,        Y:        WH.H };
+		else if(O.tagName)     var WH = this.getElementSize(O),                       RT = this.getElementCoord(O, 1), LB = { X: RT.X - WH.W, Y: RT.Y + WH.H };
 		else return {};
 		return this.getXYTRBLCMWH(
 			/*  XY  */ RT.X, RT.Y,
@@ -829,7 +830,7 @@ sML.Coord = sML.C = {
 		);
 	},
 	isInside: function(ARGUMENT, WHOLE, RtL) {
-		var SWH = this.getWindowSize();
+		var SWH = this.getOffsetSize(document.documentElement);
 		if(RtL) var SRT = this.getScrollCoord(),                 S = { T: SRT.Y, R: SRT.X,         B: SRT.Y + SWH.H, L: SRT.X - SWH.W };
 		else    var SLT = this.getScrollCoord(),                 S = { T: SLT.Y, R: SLT.X + SWH.W, B: SLT.Y + SWH.H, L: SLT.X         };
 		if(ARGUMENT.tagName) {
@@ -869,7 +870,7 @@ sML.Scroller = {
 		else if(tC.tagName) tC = sML.Coord.getElementCoord(tC, RtL);
 		var SFO = this.SFO;
 		var SC = sML.Coord.getScrollCoord();
-		var LC = sML.Coord.getScrollLimitCoord(RtL);
+		var LC = sML.Coord.getScrollLimitCoord(window, RtL);
 		SFO.DC = {
 			X: (typeof tC.x == "number" ? tC.x : SC.X),
 			Y: (typeof tC.y == "number" ? tC.y : SC.Y)
@@ -914,9 +915,9 @@ sML.Scroller = {
 		})();
 		if(!ForceScroll) sML.Scroller.addScrollCancelation();
 	},
-	scrollTo: function(Goal, Param, Functions) {
-		var SC = sML.Coord.getScrollCoord();
-		var LC = sML.Coord.getScrollLimitCoord();
+	scrollTo: function(TargetElement, Goal, Param, Functions) {
+		var SC = sML.Coord.getScrollCoord(TargetElement);
+		var LC = sML.Coord.getScrollLimitCoord(TargetElement);
 		if(typeof Goal == "number") Goal = { X: SC.X, Y: Goal }; else if(typeof Goal != "object" || !Goal) return;
 		if(typeof Goal.X != "number") Goal.X = SC.X;
 		if(typeof Goal.Y != "number") Goal.Y = SC.Y;
@@ -932,11 +933,12 @@ sML.Scroller = {
 		if(!Param.ForceScroll) sML.Scroller.addScrollCancelation();
 		else                   sML.Scroller.preventUserScrolling();
 		if(typeof Functions.start == "function") Functions.start();
+		var scroll = TargetElement == window ? window.scrollTo : function(X, Y) { TargetElement.scrollLeft = X; TargetElement.scrollTop  = Y; };
 		(function(Start, Goal, Param, Functions) {
 			var Pos = Param.Duration ? ((new Date()).getTime() - Start.Time) / Param.Duration : 1;
 			if(Pos < 1) {
 				var Progress = ease(Pos);
-				window.scrollTo(
+				scroll(
 					Math.round(Start.X + (Goal.X - Start.X) * Progress),
 					Math.round(Start.Y + (Goal.Y - Start.Y) * Progress)
 				);
@@ -944,7 +946,7 @@ sML.Scroller = {
 				var Next = arguments.callee;
 				sML.Scroller.Timer = setTimeout(function() { Next(Start, Goal, Param, Functions); }, 10);
 			} else {
-				window.scrollTo(Goal.X, Goal.Y);
+				scroll(Goal.X, Goal.Y);
 				if(typeof Functions.end == "function") Functions.end();
 				if(typeof Functions.callback == "function") Functions.callback();
 				if(Param.ForceScroll) sML.Scroller.allowUserScrolling();
@@ -978,13 +980,18 @@ sML.Scroller = {
 	}
 }
 
-sML.scrollTo = function(Goal, Param, Functions) {
+sML.scrollTo = function() {
+	var TargetElement, Goal, Param, Functions;
+	if(arguments[0] == window || arguments[0].tagName) {
+		TargetElement = arguments[0], Goal = arguments[1], Param = arguments[2], Functions = arguments[3];
+	} else {
+		TargetElement = window, Goal = arguments[0], Param = arguments[1], Functions = arguments[2];
+	}
 	if(
 		(typeof Goal  == "object" && (typeof Goal.x == "number"  || typeof Goal.y  == "number")) ||
-		(typeof Param == "object" && (typeof Param.p == "number" || typeof Param.t == "number")) ||
-		arguments.length > 3
+		(typeof Param == "object" && (typeof Param.p == "number" || typeof Param.t == "number"))
 	) return sML.Scroller.scrollTo_Legacy.apply(sML.Scroller, arguments);
-	else return sML.Scroller.scrollTo.apply(    sML.Scroller, arguments);
+	else return sML.Scroller.scrollTo.apply(    sML.Scroller, [TargetElement, Goal, Param, Functions]);
 };
 
 
