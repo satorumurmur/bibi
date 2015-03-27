@@ -1,3 +1,17 @@
+if (typeof window.CustomEvent === "undefined") {
+	window.CustomEvent = function(EventName, Args) {
+		Args = Args || {
+			bubbles:    false,
+			cancelable: false,
+			detail:     undefined
+		};
+		var Event = document.createEvent("CustomEvent");
+		Event.initCustomEvent(EventName, Args.bubbles, Args.cancelable, Args.detail);
+		return Event;
+	};
+	window.CustomEvent.prototype = window.Event.prototype;
+}
+
 Pipi = { /*!
  *
  *  # Pipi: BiB/i Putter
