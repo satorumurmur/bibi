@@ -135,6 +135,13 @@ Pipi = { /*!
 				);
 			}
 			window["bibi-pipi"].Holders.push(Holder);
+			As[i].dispatchEvent(
+				new CustomEvent("bibi:holderadded", {
+					bubbles:    true,
+					cancelable: true,
+					detail:     { holder: Holder }
+				})
+			);
 		}
 	}
 	window["bibi-pipi"].Status = "processed";
