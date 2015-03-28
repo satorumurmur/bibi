@@ -139,16 +139,7 @@ L.error = function(Message) {
 }
 
 
-L.download = function(URI, MimeType, async) {
-	if (!async) {
-		var XHR = new XMLHttpRequest();
-		if(MimeType) XHR.overrideMimeType(MimeType);
-		XHR.open('GET', URI, false);
-		XHR.send(null);
-		if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
-		return XHR;
-	}
-
+L.download = function(URI, MimeType) {
 	return new Promise(function(resolve, reject) {
 		var XHR = new XMLHttpRequest();
 		if(MimeType) XHR.overrideMimeType(MimeType);
@@ -170,7 +161,7 @@ L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	var XHR, Document;
 	if(!B.Zipped) {
-		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path, null, true)
+		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path)
 			.then(function(ResolvedXHR) {
 				XHR = ResolvedXHR;
 				if(!IsXML) Document = XHR.responseXML;
@@ -241,7 +232,7 @@ L.getBook = function(BookFileName) {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFileName + '"');
-			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined", true).then(function(XHR) {
+			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
 				var EPUBZip = XHR.responseText;
 				O.log(2, 'Fetched.');
 				L.preprocessEPUB(EPUBZip);
@@ -803,7 +794,7 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
 			var URI = "../bookshelf/" + B.Name + "/" + Path;
-			L.download(URI, null, true).then(function(XHR) {
+			L.download(URI).then(function(XHR) {
 				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			});
 		}
