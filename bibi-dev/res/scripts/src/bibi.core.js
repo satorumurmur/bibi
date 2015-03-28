@@ -139,13 +139,31 @@ L.error = function(Message) {
 }
 
 
-L.download = function(URI, MimeType) {
-	var XHR = new XMLHttpRequest();
-	if(MimeType) XHR.overrideMimeType(MimeType);
-	XHR.open('GET', URI, false);
-	XHR.send(null);
-	if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
-	return XHR;
+L.download = function(URI, MimeType, async) {
+	if (!async) {
+		var XHR = new XMLHttpRequest();
+		if(MimeType) XHR.overrideMimeType(MimeType);
+		XHR.open('GET', URI, false);
+		XHR.send(null);
+		if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
+		return XHR;
+	}
+
+	return new Promise(function(resolve, reject) {
+		var XHR = new XMLHttpRequest();
+		if(MimeType) XHR.overrideMimeType(MimeType);
+		XHR.open('GET', URI, true);
+		XHR.onloadend = function() {
+			if(XHR.status !== 200) {
+				var ErrorMessage = 'XHR HTTP status: ' + XHR.status + ' "' + URI + '"';
+				L.error(ErrorMessage);
+				reject(new Error(ErrorMessage));
+				return;
+			}
+			resolve(XHR);
+		};
+		XHR.send(null);
+	});
 }
 
 L.requestDocument = function(Path) {
