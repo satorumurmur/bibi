@@ -803,7 +803,9 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
 			var URI = "../bookshelf/" + B.Name + "/" + Path;
-			L.writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			L.download(URI, null, true).then(function(XHR) {
+				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			});
 		}
 	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
 		// If Bitmap-in-Spine
