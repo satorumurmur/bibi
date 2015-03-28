@@ -168,11 +168,19 @@ L.download = function(URI, MimeType, async) {
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
+	var XHR, Document;
 	if(!B.Zipped) {
-		var XHR = L.download("../bookshelf/" + B.Name + "/" +  Path);
-		if(!IsXML) var Document = XHR.responseXML;
+		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path, null, true)
+			.then(function(ResolvedXHR) {
+				XHR = ResolvedXHR;
+				if(!IsXML) Document = XHR.responseXML;
+				return Document;
+			});
+	} else {
+		var getDocument = Promise.resolve(Document);
 	}
-	if(typeof Document == "undefined" || !Document) {
+	return getDocument.then(function(Document) {
+		if(Document) return Document;
 		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
 		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
 		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
@@ -180,9 +188,9 @@ L.requestDocument = function(Path) {
 				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
 			}
 		});
-	}
-	if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
-	return Document;
+		if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+		return Document;
+	});
 }
 
 
@@ -437,7 +445,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 L.readContainer = function() {
 
-	var Document = L.requestDocument(B.Container.Path);
+	L.requestDocument(B.Container.Path).then(function(Document) {
 
 	O.log(2, 'Reading Container XML...');
 
@@ -452,12 +460,13 @@ L.readContainer = function() {
 
 	L.readPackageDocument();
 
+	});
 }
 
 
 L.readPackageDocument = function() {
 
-	var Document = L.requestDocument(B.Package.Path);
+	L.requestDocument(B.Package.Path).then(function(Document) {
 
 	O.log(2, 'Reading Package Document...');
 
@@ -580,6 +589,7 @@ L.readPackageDocument = function() {
 
 	L.prepareSpine();
 
+	});
 }
 
 
@@ -690,7 +700,7 @@ L.loadNavigation = function() {
 		}
 	}
 
-	var Document = L.requestDocument(R.Navigation.Path);
+	L.requestDocument(R.Navigation.Path).then(function(Document) {
 
 	O.log(2, 'Loading Navigation...');
 
@@ -737,6 +747,7 @@ L.loadNavigation = function() {
 		C.Cartain.Message.note('');
 	}
 
+	});
 }
 
 
