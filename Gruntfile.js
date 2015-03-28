@@ -87,6 +87,7 @@ module.exports = function(grunt){
 					'bibi-dev/res/scripts/lib/base64.js',
 					'bibi-dev/res/scripts/lib/easing.js',
 					'bibi-dev/res/scripts/lib/sML.js',
+					'bibi-dev/res/scripts/lib/npo.src.js',
 					'bibi-dev/res/scripts/src/bibi.core.js',
 					'bibi-dev/res/scripts/src/bibi.epubcfi.js'
 				],
