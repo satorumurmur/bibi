@@ -241,11 +241,13 @@ L.getBook = function(BookFileName) {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFileName + '"');
-			var EPUBZip = L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").responseText;
-			O.log(2, 'Fetched.');
-			L.preprocessEPUB(EPUBZip);
-			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-			L.readContainer();
+			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined", true).then(function(XHR) {
+				var EPUBZip = XHR.responseText;
+				O.log(2, 'Fetched.');
+				L.preprocessEPUB(EPUBZip);
+				B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+				L.readContainer();
+			});
 		}
 		if(! X["pipi"]["wait"]) fetchEPUB();
 		else {
