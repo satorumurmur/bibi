@@ -82,7 +82,7 @@ Pipi = { /*!
 			var ID        = As[i].getAttribute("data-bibi-id");
 			var Style     = As[i].getAttribute("data-bibi-style");
 			var Poster    = As[i].getAttribute("data-bibi-poster");
-			var Autostart = As[i].getAttribute("data-bibi-autostart");
+			var Autostart = As[i].getAttribute("data-bibi-autostart") === "true";
 			if(Class) Holder.className += " " + Class;
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
