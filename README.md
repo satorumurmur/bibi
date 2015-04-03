@@ -91,7 +91,7 @@ This is recommended because it accelarates reading experience of your readers.
 ### Development
 
 1. `$ grunt` and start watching changes of files, and make these files:
-    * `bib/i/res/scripts/bibi.js` ... JSZip.js + base64.js + easing.js + sML.js + bibi.core.js + bibi.epubcfi.js
+    * `bib/i/res/scripts/bibi.js` ... JSZip.js + base64.js + easing.js + sML.js + npo.src.js + bibi.core.js + bibi.epubcfi.js
     * `bib/i/res/styles/bibi.css`
     * `bib/i/res/styles/pipi.css` ... (formerly `bib/i.css`, for embedding BiB/i to webpage)
 2. Edit files.
@@ -129,5 +129,6 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 * [sML](http://sarasa.la/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 * [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
 * [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
+* [Native Promise Only v0.7.6-a](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
 
 

@@ -140,21 +140,38 @@ L.error = function(Message) {
 
 
 L.download = function(URI, MimeType) {
-	var XHR = new XMLHttpRequest();
-	if(MimeType) XHR.overrideMimeType(MimeType);
-	XHR.open('GET', URI, false);
-	XHR.send(null);
-	if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
-	return XHR;
+	return new Promise(function(resolve, reject) {
+		var XHR = new XMLHttpRequest();
+		if(MimeType) XHR.overrideMimeType(MimeType);
+		XHR.open('GET', URI, true);
+		XHR.onloadend = function() {
+			if(XHR.status !== 200) {
+				var ErrorMessage = 'XHR HTTP status: ' + XHR.status + ' "' + URI + '"';
+				L.error(ErrorMessage);
+				reject(new Error(ErrorMessage));
+				return;
+			}
+			resolve(XHR);
+		};
+		XHR.send(null);
+	});
 }
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
+	var XHR, Document;
 	if(!B.Zipped) {
-		var XHR = L.download("../bookshelf/" + B.Name + "/" +  Path);
-		if(!IsXML) var Document = XHR.responseXML;
+		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path)
+			.then(function(ResolvedXHR) {
+				XHR = ResolvedXHR;
+				if(!IsXML) Document = XHR.responseXML;
+				return Document;
+			});
+	} else {
+		var getDocument = Promise.resolve(Document);
 	}
-	if(typeof Document == "undefined" || !Document) {
+	return getDocument.then(function(Document) {
+		if(Document) return Document;
 		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
 		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
 		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
@@ -162,9 +179,9 @@ L.requestDocument = function(Path) {
 				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
 			}
 		});
-	}
-	if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
-	return Document;
+		if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+		return Document;
+	});
 }
 
 
@@ -215,11 +232,13 @@ L.getBook = function(BookFileName) {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFileName + '"');
-			var EPUBZip = L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").responseText;
-			O.log(2, 'Fetched.');
-			L.preprocessEPUB(EPUBZip);
-			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-			L.readContainer();
+			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
+				var EPUBZip = XHR.responseText;
+				O.log(2, 'Fetched.');
+				L.preprocessEPUB(EPUBZip);
+				B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+				L.readContainer();
+			});
 		}
 		if(! X["pipi"]["wait"]) fetchEPUB();
 		else {
@@ -419,7 +438,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 L.readContainer = function() {
 
-	var Document = L.requestDocument(B.Container.Path);
+	L.requestDocument(B.Container.Path).then(function(Document) {
 
 	O.log(2, 'Reading Container XML...');
 
@@ -434,12 +453,13 @@ L.readContainer = function() {
 
 	L.readPackageDocument();
 
+	});
 }
 
 
 L.readPackageDocument = function() {
 
-	var Document = L.requestDocument(B.Package.Path);
+	L.requestDocument(B.Package.Path).then(function(Document) {
 
 	O.log(2, 'Reading Package Document...');
 
@@ -562,6 +582,7 @@ L.readPackageDocument = function() {
 
 	L.prepareSpine();
 
+	});
 }
 
 
@@ -672,7 +693,7 @@ L.loadNavigation = function() {
 		}
 	}
 
-	var Document = L.requestDocument(R.Navigation.Path);
+	L.requestDocument(R.Navigation.Path).then(function(Document) {
 
 	O.log(2, 'Loading Navigation...');
 
@@ -719,6 +740,7 @@ L.loadNavigation = function() {
 		C.Cartain.Message.note('');
 	}
 
+	});
 }
 
 
@@ -772,7 +794,9 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
 			var URI = "../bookshelf/" + B.Name + "/" + Path;
-			L.writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			L.download(URI).then(function(XHR) {
+				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			});
 		}
 	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
 		// If Bitmap-in-Spine
