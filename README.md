@@ -125,10 +125,10 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 * [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
+* [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
-* [sML](http://sarasa.la/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
-* [Font Awesome 4.0.3](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
-* [Foundation Icons v 3.0](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
-* [Native Promise Only v0.7.6-a](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
+* [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
+* [Font Awesome](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
+* [Foundation Icons](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
 
 
