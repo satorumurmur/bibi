@@ -97,7 +97,7 @@ span.bibi-holder.bibi-fullscreen-enabled {
 	}
 }
 
-@mixin bibi-holder-fullscreen() {
+%bibi-holder-fullscreen {
 	position: fixed !important;
 	left: 0 !important;
 	top: 0 !important;
@@ -116,10 +116,10 @@ span.bibi-holder.bibi-fullscreen-enabled {
 	}
 }
 
-span.bibi-holder:fullscreen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:full-screen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:-webkit-fullscreen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:-webkit-full-screen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:-moz-fullscreen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:-moz-full-screen { @include bibi-holder-fullscreen(); }
-span.bibi-holder:-ms-fullscreen { @include bibi-holder-fullscreen(); }
+span.bibi-holder:fullscreen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:full-screen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:-webkit-fullscreen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:-webkit-full-screen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:-moz-fullscreen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:-moz-full-screen { @extend %bibi-holder-fullscreen; }
+span.bibi-holder:-ms-fullscreen { @extend %bibi-holder-fullscreen; }
