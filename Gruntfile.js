@@ -100,19 +100,19 @@ module.exports = function(grunt){
 		concat: {
 			bibi: {
 				src: [
-					'bibi-dev/res/scripts/lib/jszip.min.js',
-					'bibi-dev/res/scripts/lib/base64.js',
-					'bibi-dev/res/scripts/lib/hammer.min.js',
-					'bibi-dev/res/scripts/lib/easing.js',
-					'bibi-dev/res/scripts/lib/sML.js',
-					'bibi-dev/res/scripts/src/bibi.core.js',
-					'bibi-dev/res/scripts/src/bibi.epubcfi.js'
+					'dev-bib/i/res/scripts/__lib/jszip.min.js',
+					'dev-bib/i/res/scripts/__lib/base64.js',
+					'dev-bib/i/res/scripts/__lib/hammer.min.js',
+					'dev-bib/i/res/scripts/__lib/easing.js',
+					'dev-bib/i/res/scripts/__lib/sML.js',
+					'dev-bib/i/res/scripts/bibi.core.js',
+					'dev-bib/i/res/scripts/bibi.epubcfi.js'
 				],
 				dest: 'bib/i/res/scripts/bibi.js'
 			},
 			pipi: {
 				src: [
-					'bibi-dev/res/scripts/src/pipi.js'
+					'dev-bib/i/res/scripts/pipi.js'
 				],
 				dest: 'bib/i.js'
 			}
@@ -130,16 +130,17 @@ module.exports = function(grunt){
 						' *',
 						' * - Open Source Libraries:',
 						' *',
-						' *     1. JSZip     - http://stuartk.com/jszip              - Copyright (c) Stuart Knightley  - Dual licensed under the MIT license or GPLv3. - bibi-dev/res/scripts/lib/jszip.min.js',
-						' *     2. base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai          - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/base64.js',
-						' *     3. Hammer.js - http://hammerjs.github.io/            - Copyright (c) Jorik Tangelder   - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/hammer.min.js',
-						' *     4. easing.js - https://github.com/danro/easing-js    - Copyright (c) Dan Rogers        - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/easing.js',
-						' *     5. sML       - https://github.com/satorumurmur/sML   - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.               - bibi-dev/res/scripts/lib/sML.js',
+						' *     1. dev-bib/i/res/scripts/__lib/jszip.min.js  - JSZip - http://stuartk.com/jszip - Copyright (c) Stuart Knightley - Dual licensed under the MIT license or GPLv3.',
+						' *     2. dev-bib/i/res/scripts/__lib/base64.js     - base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai - Licensed under the MIT license.',
+						' *     3. dev-bib/i/res/scripts/__lib/hammer.min.js - Hammer.js - http://hammerjs.github.io/ - Copyright (c) Jorik Tangelder - Licensed under the MIT license.',
+						' *     4. dev-bib/i/res/scripts/__lib/easing.js     - easing.js - https://github.com/danro/easing-js - Copyright (c) Dan Rogers - Licensed under the MIT license.',
+						' *     5. dev-bib/i/res/scripts/__lib/npo.src.js    - Native Promise Only - https://github.com/getify/native-promise-only - Copyright (c) Kyle Simpson - Licensed under the MIT license.',
+						' *     6. dev-bib/i/res/scripts/__lib/sML.js        - sML - https://github.com/satorumurmur/sML - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
 						' *',
 						' * - BiB/i Components:',
 						' *',
-						' *     1. BiB/i Core              - bibi-dev/res/scripts/src/bibi.core.js',
-						' *     2. BiB/i EPUBCFI Utilities - bibi-dev/res/scripts/src/bibi.epubcfi.js',
+						' *     1. dev-bib/i/res/scripts/bibi.core.js        - BiB/i Core',
+						' *     2. dev-bib/i/res/scripts/bibi.epubcfi.js     - BiB/i EPUBCFI Utilities',
 						' *',
 						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'
@@ -169,10 +170,10 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bibi-dev/res/styles/src/_common-icons.scss',
-					'bibi-dev/res/styles/src/_bibi-stage.scss',
-					'bibi-dev/res/styles/src/_bibi-controls.scss',
-					'bibi-dev/res/styles/src/bibi.scss'
+					'dev-bib/i/res/styles/_common-icons.scss',
+					'dev-bib/i/res/styles/_bibi-stage.scss',
+					'dev-bib/i/res/styles/_bibi-controls.scss',
+					'dev-bib/i/res/styles/bibi.scss'
 				],
 				tasks: [
 					'build_bibi_css',
@@ -184,9 +185,9 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bibi-dev/res/styles/src/_common-icons.scss',
-					'bibi-dev/res/styles/src/_pipi.scss',
-					'bibi-dev/res/styles/src/pipi.scss'
+					'dev-bib/i/res/styles/_common-icons.scss',
+					'dev-bib/i/res/styles/_pipi-style.scss',
+					'dev-bib/i/res/styles/pipi.scss'
 				],
 				tasks: [
 					'build_pipi_css',
@@ -198,9 +199,9 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bibi-dev/res/scripts/lib/*.js',
-					'bibi-dev/res/scripts/src/bibi.core.js',
-					'bibi-dev/res/scripts/src/bibi.epubcfi.js'
+					'dev-bib/i/res/scripts/__lib/*.js',
+					'dev-bib/i/res/scripts/bibi.core.js',
+					'dev-bib/i/res/scripts/bibi.epubcfi.js'
 				],
 				tasks: [
 					'build_bibi_js',
@@ -212,7 +213,7 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'bibi-dev/res/scripts/src/pipi.js'
+					'dev-bib/i/res/scripts/pipi.js'
 				],
 				tasks: [
 					'build_pipi_js',

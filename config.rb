@@ -2,7 +2,7 @@ relative_assets = false
 
 project_path = "./"
 
-sass_dir = "bibi-dev/res/styles/src"
+sass_dir = "dev-bib/i/res/styles"
 css_dir = "bib/i/res/styles"
 
 line_comments = false

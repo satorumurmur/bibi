@@ -3,31 +3,33 @@
 // --------------------------------------------------------------------------------
 
 
-// - BiB/i Type
+// - BiB/i Logo
 // --------------------------------------------------------------------------------
 
-.bibi-type {
-	display: inline-block;
-	position: relative;
-	font-weight: inherit;
-	font-family: "Quando", serif;
-	letter-spacing: -0.075em;
-	word-break: keep-all;
-	.bibi-type-B,
-	.bibi-type-i,
-	.bibi-type-slash {
+.bibi-logo {
+	.bibi-type {
 		display: inline-block;
 		position: relative;
-	}
-	.bibi-type-B {
-	}
-	.bibi-type-i {
-	}
-	.bibi-type-slash {
-		font-family: "Lato", sans-serif; margin-right: 0.0275em;
-		font-family: "Cantata One", serif; top: 0.05em; margin-left: -0.05em; margin-right: -0.081em;
-		font-weight: 300;
-		font-size: .69em;
+		font-weight: inherit;
+		font-family: "Quando", serif;
+		letter-spacing: -0.075em;
+		word-break: keep-all;
+		.bibi-type-B,
+		.bibi-type-i,
+		.bibi-type-slash {
+			display: inline-block;
+			position: relative;
+		}
+		.bibi-type-B {
+		}
+		.bibi-type-i {
+		}
+		.bibi-type-slash {
+			font-family: "Lato", sans-serif; margin-right: 0.0275em;
+			font-family: "Cantata One", serif; top: 0.05em; margin-left: -0.05em; margin-right: -0.081em;
+			font-weight: 300;
+			font-size: .69em;
+		}
 	}
 }
 
@@ -105,7 +107,7 @@
 
 // - Write
 // --------------------------------------------------------------------------------
-
+/*
 .bibi-icon.bibi-switch-panel {
 	&:before {
 		content: $ElegantIcons_icon_menu;
@@ -116,6 +118,42 @@
 		content: $ElegantIcons_icon_close;
 		line-height: 24px;
 		text-indent: -1px;
+	}
+}*/
+
+.bibi-icon.bibi-switch-panel {
+	&:before, span, &:after {
+		left: 4px !important;
+		border-bottom: solid 1px !important;
+		width: 17px !important;
+		height: 2px !important;
+		border-radius: 1px;
+		@include transition(.2s linear !important);
+	}
+	&:before, &:after {
+		content: "";
+		display: block;
+		position: absolute;
+	}
+	&:before {
+		top: 6px;
+	}
+	span {
+		top: 11px !important;
+	}
+	&:after {
+		top: 16px;
+	}
+	html.panel-opened & {
+		&:before {
+			@include transform(translateY( 5px) rotate(-225deg));
+		}
+		span {
+			opacity: 0;
+		}
+		&:after {
+			@include transform(translateY(-5px) rotate( 225deg));
+		}
 	}
 }
 
@@ -156,14 +194,19 @@
 //.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
 
 .bibi-icon {
-	border-color: rgb(132,128,124);
-	background: transparent;
+	$color_label: rgb(132,128,124);
+	border-color: rgba(66,64,62,.5);
+	background: rgba(255,255,255,0.8);
 //	opacity: .64;
 	html.panel-opened & {
 //		opacity: 1;
 	}
 	&:before, &:after {
-		color: rgb(132,128,124);
+		color: $color_label;
+	}
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+		border-bottom-color: lighten($color_label, 20%) !important;
+		background: $color_label !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 0.8;
@@ -177,10 +220,15 @@
 }
 
 .bibi-icon:hover {
+	$color_label: white;
 	background: rgba(132,128,124,.75);
 	opacity: 1;
 	&:before, &:after {
-		color: white;
+		color: $color_label;
+	}
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+		border-bottom-color: darken($color_label, 20%) !important;
+		background: $color_label !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 1;

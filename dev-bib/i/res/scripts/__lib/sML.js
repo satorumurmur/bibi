@@ -214,8 +214,8 @@ sML.Event = {
 	OnLoad: { Done: false, Functions: [] },
 	add:    function(E, EN, EL, UC) { E.addEventListener(   EN, EL, (UC ? true : false)); return E; },
 	remove: function(E, EN, EL, UC) { E.removeEventListener(EN, EL, (UC ? true : false)); return E; },
-	stopPropagation: function(E) { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return E.stopPropagation(); },
-	preventDefault:  function(E) { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return E.preventDefault(); }
+	stopPropagation: function() { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return arguments[0].stopPropagation(); },
+	preventDefault:  function() { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return arguments[0].preventDefault(); }
 };
 
 sML.addEventListener    = sML.Event.add;
@@ -516,9 +516,9 @@ sML.getContentDocument = function(F) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.CSS = sML.S = {
-	Prefix:        (sML.UA.WK ? "-webkit-"            : (sML.UA.Ge ? "-moz-"         : (sML.UA.IE ? "-ms-"            : (sML.UA.Op ? "-o-"            : "")))),
-	TransitionEnd: (sML.UA.WK ? "webkitTransitionEnd" : (sML.UA.Ge ? "transitionend" : (sML.UA.IE ? "MSTransitionEnd" : (sML.UA.Op ? "oTransitionEnd" : "")))),
-	AnimationEnd:  (sML.UA.WK ? "webkitAnimationEnd"  : (sML.UA.Ge ? "animationend"  : (sML.UA.IE ? "MSAnimationEnd"  : (sML.UA.Op ? "oAnimationEnd"  : "")))),
+	Prefix:        (sML.UA.WK ? "Webkit"              : (sML.UA.Ge ? "Moz"           : (sML.UA.IE ? "ms"              : ""))),
+	TransitionEnd: (sML.UA.WK ? "webkitTransitionEnd" : (sML.UA.Ge ? "transitionend" : (sML.UA.IE ? "MSTransitionEnd" : ""))),
+	AnimationEnd:  (sML.UA.WK ? "webkitAnimationEnd"  : (sML.UA.Ge ? "animationend"  : (sML.UA.IE ? "MSAnimationEnd"  : ""))),
 	Catalogue : [],
 	getSFO : function(E) {
 		for(var i = 0, L = this.Catalogue.length; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
@@ -588,11 +588,13 @@ sML.CSS = sML.S = {
 	remove: function(Indexes, ParentDocument) {
 		return this.removeRules(Indexes, ParentDocument);
 	},
-	setProperty: function(E, P, V, pfx) {
+	setProperty: function(E, P, V, Prefixing) {
 		if(!E || !P) return E;
-		     if(/^(animation|background(-s|S)ize|box|break|column|filter|flow|hyphens|region|shape|transform|transition|writing)/.test(P)) pfx = true; // 2013/09/25
-		else if(P == "float") P = sML.UA.IE ? "styleFloat" : "cssFloat";
-		if(pfx) E.style[this.Prefix + P] = V;
+		if(/^(animation|background(-s|S)ize|box|break|column|filter|flow|hyphens|region|shape|transform|transition|writing)/.test(P)) { // 2013/09/25
+			E.style[this.Prefix + P.replace(/(-|^)([a-z])/g, function (M0, M1, M2) { return M2 ? M2.toUpperCase() : ""; })] = V;
+		} else if(P == "float") {
+			P = sML.UA.IE ? "styleFloat" : "cssFloat";
+		}
 		E.style[P] = V;
 		return E;
 	},

@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu February 26 21:29:00 2015 +0900 */ Bibi = { Version: "0.998.0-alpha", Build: 20150226.0 };
+ * - Thu April 16 22:07:00 2015 +0900 */ Bibi = { Version: "0.998.0-pb", Build: 20150416.0 };
 
 
 
@@ -48,44 +48,53 @@ O.welcome = function() {
 
 	O.log(1, 'Welcome !');
 
-	O.HTML  = document.getElementsByTagName("html" )[0];
+	O.HTML  = document.getElementsByTagName("html" )[0]; O.HTML.className = "preparing " + sML.Environments.join(" ");
 	O.Head  = document.getElementsByTagName("head" )[0];
 	O.Body  = document.getElementsByTagName("body" )[0];
 	O.Title = document.getElementsByTagName("title")[0];
 
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
+		O.HTML.className = O.HTML.className + " Touch";
 		O.setOrientation = function() {
 			sML.removeClass(O.HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
 			sML.addClass(   O.HTML, "orientation-" + (window.orientation == 0 ? "portrait"  : "landscape"));
 		}
 		window.addEventListener("orientationchange", O.setOrientation);
 		O.setOrientation();
-	}
-
-	if(sML.OS.iOS) {
-		O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
-		O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black" }));
-	}
-
-	var HTMLClassNames = [];
-	for(var OS in sML.OS) if(sML.OS[OS]                                  ) HTMLClassNames.push(OS);
-	for(var UA in sML.UA) if(sML.UA[UA] && UA.length > 2 && UA != "Flash") HTMLClassNames.push(UA);
-	O.HTML.className = HTMLClassNames.join(" ") + " preparing";
-
-	O.WindowEmbeded = (function() {
-		if(parent == window) {
-			sML.addClass(O.HTML, "window-not-embeded");
-			return 0;
-		} else {
-			sML.addClass(O.HTML, "window-embeded");
-			try {
-				return (location.host == parent.location.host ? 1 : -1);
-			} catch(e) {
-				return -1;
-			}
+		if(sML.OS.iOS) {
+			O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
+			O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "white" }));
 		}
-	})();
+	}
+
+	if(parent == window) {
+		O.HTML.className = O.HTML.className + " window-not-embeded";
+		O.WindowEmbeded = 0;
+	} else {
+		O.HTML.className = O.HTML.className + " window-embeded";
+		try {
+			if(location.host == parent.location.host) {
+				O.WindowEmbeded = 1;
+				O.HTML.className = O.HTML.className + " window-embeded-sameorigin";
+			}
+		} catch(e) {
+			O.WindowEmbeded = -1;
+			O.HTML.className = O.HTML.className + " window-embeded-crossorigin";
+		}
+	}
+
+	var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
+	Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
+	if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
+		O.HTML.className = O.HTML.className + " vertical-text-enabled";
+		O.VerticalTextEnabled = true;
+	} else {
+		O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
+		O.VerticalTextEnabled = false;
+	};
+	O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
+	document.body.removeChild(Checker);
 
 	O.found();
 	O.open();
@@ -96,6 +105,7 @@ O.welcome = function() {
 O.found = function() {
 
 	C.weaveCartain();
+
 	R.Content = O.Body.insertBefore(sML.create("div", { id: "epub-content" }), C.Cartain);
 	R.Content.Main = R.Content.appendChild(sML.create("div", { id: "epub-content-main" }));
 	R.Content.Complementary = R.Content.appendChild(sML.create("div", { id: "epub-content-complementary" }));
@@ -109,7 +119,14 @@ O.found = function() {
 O.open = function() {
 
 	O.readExtra();
-	L.getBook(X["book"]);
+
+	if(sML.OS.iOS || sML.OS.Android) {
+		setTimeout(function() {
+			L.getBook(X["book"]);
+		}, 1000);
+	} else {
+		L.getBook(X["book"]);
+	}
 
 };
 
@@ -127,7 +144,7 @@ O.open = function() {
 L.sayLoading = function(Message) {
 	sML.addClass(O.HTML, "wait-please");
 	sML.addClass(C.Cartain, "animate");
-	C.Cartain.Message.note(Message ? Message : 'Loading ...');
+	C.Cartain.Message.note(Message ? Message : 'Loading...');
 };
 
 
@@ -145,22 +162,46 @@ L.error = function(Message) {
 };
 
 
-L.download = function(URI, MimeType) {
-	var XHR = new XMLHttpRequest();
-	if(MimeType) XHR.overrideMimeType(MimeType);
-	XHR.open('GET', URI, false);
-	XHR.send(null);
-	if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
-	return XHR;
+L.download = function(URI, MimeType, Async) {
+	if(!Async) {
+		var XHR = new XMLHttpRequest();
+		if(MimeType) XHR.overrideMimeType(MimeType);
+		XHR.open('GET', URI, false);
+		XHR.send(null);
+		if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
+		return XHR;
+	}
+	return new Promise(function(resolve, reject) {
+		var XHR = new XMLHttpRequest();
+		if(MimeType) XHR.overrideMimeType(MimeType);
+		XHR.open('GET', URI, true);
+		XHR.onloadend = function() {
+			if(XHR.status !== 200) {
+				var ErrorMessage = 'XHR HTTP status: ' + XHR.status + ' "' + URI + '"';
+				L.error(ErrorMessage);
+				reject(new Error(ErrorMessage));
+				return;
+			}
+			resolve(XHR);
+		};
+		XHR.send(null);
+	});
 };
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
+	var XHR, Document;
 	if(!B.Zipped) {
-		var XHR = L.download("../bookshelf/" + B.Name + "/" +  Path);
-		if(!IsXML) var Document = XHR.responseXML;
+		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path, null, true).then(function(ResolvedXHR) {
+			XHR = ResolvedXHR;
+			if(!IsXML) Document = XHR.responseXML;
+			return Document;
+		});
+	} else {
+		var getDocument = Promise.resolve(Document);
 	}
-	if(typeof Document == "undefined" || !Document) {
+	return getDocument.then(function(Document) {
+		if(Document) return Document;
 		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
 		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
 		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
@@ -168,9 +209,15 @@ L.requestDocument = function(Path) {
 				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
 			}
 		});
-	}
-	if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
-	return Document;
+		if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+		return Document;
+	});
+};
+
+
+L.openDocument = function(Path, Option) {
+	if(!Option || typeof Option != "object" || typeof Option.then != "function") Option = { then: function() { return false; } };
+	L.requestDocument(Path).then(Option.then);
 };
 
 
@@ -191,7 +238,7 @@ L.getBook = function(BookFileName) {
 					O.log(2, 'Fetched.');
 					L.preprocessEPUB(this.result);
 					B.Name = BookFile.name.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-					L.readContainer();
+					L.openDocument(B.Container.Path, { then: L.readContainer });
 				}
 			}).readAsArrayBuffer(BookFile);
 		}
@@ -199,9 +246,9 @@ L.getBook = function(BookFileName) {
 
 	// Wait Drop
 	if(!sML.OS.iOS && !sML.OS.Android) {
-		document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9;                                    }, 1);
-		document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9;                                    }, 1);
-		document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0;                                    }, 1);
+		document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
+		document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
+		document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
 		document.body.addEventListener("drop",      function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; loadFile(e.dataTransfer.files[0]); }, 1);
 	}
 
@@ -221,11 +268,13 @@ L.getBook = function(BookFileName) {
 			L.sayLoading();
 			O.log(2, 'Fetching EPUB...');
 			O.log(3, '"' + BookFileName + '"');
-			var EPUBZip = L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").responseText;
-			O.log(2, 'Fetched.');
-			L.preprocessEPUB(EPUBZip);
-			B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-			L.readContainer();
+			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
+				var EPUBZip = XHR.responseText;
+				O.log(2, 'Fetched.');
+				L.preprocessEPUB(EPUBZip);
+				B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+				L.openDocument(B.Container.Path, { then: L.readContainer });
+			});
 		}
 		if(!X["pipi"]["wait"]) fetchEPUB();
 		else {
@@ -242,7 +291,7 @@ L.getBook = function(BookFileName) {
 		L.initialize();
 		L.sayLoading();
 		B.Name = BookFileName, B.Format = "EPUB";
-		L.readContainer();
+		L.openDocument(B.Container.Path, { then: L.readContainer });
 	}
 
 };
@@ -266,8 +315,8 @@ L.initialize = function() {
 
 	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
-		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
-			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
+		["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"].forEach(function(Property) {
+			P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
 		});
 		if(P["spread-gap"] % 2) P["spread-gap"]++;
 		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
@@ -424,9 +473,7 @@ L.preprocessEPUB = function(EPUBZip) {
 };
 
 
-L.readContainer = function() {
-
-	var Document = L.requestDocument(B.Container.Path);
+L.readContainer = function(Document) {
 
 	O.log(2, 'Reading Container XML...');
 
@@ -437,16 +484,11 @@ L.readContainer = function() {
 
 	O.log(2, 'Read.');
 
-	delete Document;
-
-	L.readPackageDocument();
-
+	L.openDocument(B.Package.Path, { then: L.readPackageDocument });
 };
 
 
-L.readPackageDocument = function() {
-
-	var Document = L.requestDocument(B.Package.Path);
+L.readPackageDocument = function(Document) {
 
 	O.log(2, 'Reading Package Document...');
 
@@ -533,11 +575,10 @@ L.readPackageDocument = function() {
 			"rendition:spread"      : B.Package.Metadata["rendition:spread"]
 		};
 		SpineItemref["properties"] = SpineItemref["properties"].replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/g, " ").split(" ");
-		sML.each(PropertyREs, function() {
-			var RE = this;
-			sML.each(SpineItemref["properties"], function() {
-				if(RE.test(this)) {
-					SpineItemref[this.replace(RE, "$1")] = this.replace(RE, "$2").replace("rendition:", "");
+		PropertyREs.forEach(function(RE) {
+			SpineItemref["properties"].forEach(function(Property) {
+				if(RE.test(Property)) {
+					SpineItemref[Property.replace(RE, "$1")] = Property.replace(RE, "$2").replace("rendition:", "");
 					return false;
 				}
 			});
@@ -559,6 +600,10 @@ L.readPackageDocument = function() {
 	}
 
 	C.createPanel();
+	C.createPanelMisc();
+	C.createPanelNavigation();
+	C.createPanelMenu();
+
 	C.createSwitches();
 
 	O.log(2, 'Read.');
@@ -661,16 +706,10 @@ L.loadCoverImage = function() {
 	C.Cartain.Cover.appendChild(
 		sML.create("img", {
 			onload: function() {
-				var BoxW = C.Cartain.Cover.offsetWidth;
-				var BoxH = C.Cartain.Cover.offsetHeight;
-				var ImgW = this.offsetWidth;
-				var ImgH = this.offsetHeight;
-				var Scale = Math.min((BoxW - 44) / ImgW, (BoxH - 44) / ImgH);
+				var ImgW = this.offsetWidth * Math.min((C.Cartain.Cover.offsetWidth - 8) / this.offsetWidth, (C.Cartain.Cover.offsetHeight - 24 * 2) / this.offsetHeight);
 				sML.style(this, {
-					marginLeft: ImgW * Scale / -2 + "px",
-					marginTop:  ImgH * Scale / -2 + (36 + 4) / 2 + "px",
-					width:      ImgW * Scale      + "px",
-					height:     ImgH * Scale      + "px"
+					marginLeft: ImgW / -2 + "px",
+					width:      ImgW + "px"
 				});
 				sML.style(C.Cartain.Cover, {
 					opacity: 1
@@ -701,9 +740,14 @@ L.loadNavigation = function() {
 		}
 	}
 
-	var Document = L.requestDocument(R.Navigation.Path);
+	L.openDocument(R.Navigation.Path, { then: L.createNavigation });
 
-	O.log(2, 'Loading Navigation...');
+};
+
+
+L.createNavigation = function(Document) {
+
+	O.log(2, 'Making Navigation...');
 
 	O.log(3, '"' + R.Navigation.Path + '"');
 
@@ -734,7 +778,7 @@ L.loadNavigation = function() {
 	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "InBibiNavigation");
 	R.resetNavigation();
 
-	O.log(2, 'Loaded.');
+	O.log(2, 'Made.');
 
 	delete Document;
 
@@ -767,7 +811,7 @@ L.loadItems = function() {
 	L.listenResizingWhileLoading = function() { R.ToRelayout = true; };
 	window.addEventListener("resize", L.listenResizingWhileLoading);
 
-	sML.each(R.Items, function() { L.loadItem(this); });
+	R.Items.forEach(function(Item) { L.loadItem(Item); });
 
 	// Done?
 	setTimeout(function() {
@@ -801,7 +845,9 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
 			var URI = "../bookshelf/" + B.Name + "/" + Path;
-			L.writeItemHTML(Item, false, '<base href="' + URI + '" />', L.download(URI).responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			L.download(URI).then(function(XHR) {
+				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			});
 		}
 	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
 		// If Bitmap-in-Spine
@@ -839,34 +885,6 @@ L.postprocessItem = function(Item) {
 
 	sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
 
-	// Writing Mode for Internet Explorer
-	if(sML.UA.InternetExplorer < 12) {
-		sML.each(Item.contentDocument.styleSheets, function () {
-			for(var L = this.cssRules.length, i = 0; i < L; i++) {
-				var CSSRule = this.cssRules[i];
-				     if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
-				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-				else {
-					     if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-					else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-					else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-				}
-			}
-		});
-	}
-
-	Item.HTML.WritingMode = (function(CS) {
-		var Property = (function() {
-			if(/^(vertical|horizontal)-/.test(CS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
-			if(sML.UA.WebKit) return "-webkit-writing-mode";
-			else return undefined;
-		})();
-		     if(!Property)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
-		else if(/^vertical-/.test(CS[Property]))      return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[Property]) ? "lr" : "rl");
-		else if(/^horizontal-/.test(CS[Property]))    return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[Property]) ? "bt" : "tb");
-		else if(/^(lr|rl|tb|bt)-/.test(CS[Property])) return CS[Property];
-	})(getComputedStyle(Item.HTML));
-
 	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
 	if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
 
@@ -898,6 +916,18 @@ L.postprocessItem = function(Item) {
 			}
 		}
 	});
+	if(sML.UA.InternetExplorer) {
+		sML.each(Item.Body.getElementsByTagName("svg"), function() {
+			var ChildImages = this.getElementsByTagName("image");
+			if(ChildImages.length == 1) {
+				var ChildImage = ChildImages[0];
+				if(ChildImage.getAttribute("width") && ChildImage.getAttribute("height")) {
+					this.setAttribute("width",  ChildImage.getAttribute("width"));
+					this.setAttribute("height", ChildImage.getAttribute("height"));
+				}
+			}
+		});
+	}
 
 	// Viewport
 	sML.each(Item.Head.getElementsByTagName("meta"), function() { // META Viewport
@@ -935,14 +965,54 @@ L.postprocessItem = function(Item) {
 		}
 	}
 
+	// Writing Mode
+	if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
+		Item.AdditionalStyles = [];
+		var translateWritingMode = sML.UA.Gecko ? function(CSSRule) {
+			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
+			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
+			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
+		} : function(CSSRule) {
+			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+		};
+		sML.each(Item.contentDocument.styleSheets, function () {
+			var StyleSheet = this;
+			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+				var CSSRule = this.cssRules[i];
+				/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+				else                        translateWritingMode(CSSRule);
+			}
+		});
+	}
+	sML.style(Item.HTML, { "writing-mode": getComputedStyle(Item.Body).writingMode });
+	Item.HTML.WritingMode = (function(CS) {
+		var Property = (function() {
+			if(/^(vertical|horizontal)-/.test(CS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
+			if(sML.UA.WebKit) return "-webkit-writing-mode";
+			else return undefined;
+		})();
+		     if(!Property)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
+		else if(/^vertical-/.test(CS[Property]))      return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[Property]) ? "lr" : "rl");
+		else if(/^horizontal-/.test(CS[Property]))    return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[Property]) ? "bt" : "tb");
+		else if(/^(lr|rl|tb|bt)-/.test(CS[Property])) return CS[Property];
+	})(getComputedStyle(Item.HTML));
+	Item.Body.style["margin" + (function() {
+		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
+		if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
+		return "Bottom";
+	})()] = 0;
+
 	// Linkage
 	L.postprocessLinkage(Item.Path, Item.Body);
 
 	setTimeout(function() {
 		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		// Update Background
-		Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background;  Item.HTML.style.background = "";
-		Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background;  Item.Body.style.background = "";
+		if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
+		if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
 		// Layout Inside of the Spread
 		if(!R.ToRelayout) {
 			R.resetItem(Item);
@@ -1000,8 +1070,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 			}
 			return false;
 		};
-		sML.each(R.Items, function() {
-			var rItem = this;
+		R.Items.forEach(function(rItem) {
 			if(HrefFile == rItem.Path) {
 				A.setAttribute("data-bibi-original-href", HrefPathInSource);
 				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
@@ -1052,9 +1121,8 @@ L.start = function() {
 		C.Cartain.close(function() {
 			sML.removeClass(O.HTML, "preparing");
 			setTimeout(function() {
-				sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-					sML.style(this, { opacity: "" });
-				});
+				[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) { sML.style(Arrow, { opacity: "" }); });
+				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
 			}, 500);
 		});
 	}, 1);
@@ -1083,10 +1151,11 @@ L.start = function() {
 
 R.resetStage = function() {
 	//if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S["spread-layout-direction"] == "ttb" ? "100%" : window.innerHeight + "px";
-	R.StageSize = {
-		Breadth: O.HTML["client" + S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"]/* - 35*/,
-		Length:  O.HTML["client" + S.SIZE.L] - S["spread-gap"] * 2
-	}
+	R.StageSize = {};
+	R.StageSize.Width   = O.HTML.clientWidth;
+	R.StageSize.Height  = O.HTML.clientHeight;// - 35 * 2;
+	R.StageSize.Breadth = R.StageSize[S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"];
+	R.StageSize.Length  = R.StageSize[S.SIZE.L] - S["spread-gap"] * 2;
 	//R.Content.Main.style["padding" + S.BASE.B] = R.Content.Main.style["padding" + S.BASE.A] = S["spread-gap"] + "px";
 	R.Content.Main.style.padding = R.Content.Main.style.width = R.Content.Main.style.height = "";
 	R.Content.Main.style["padding" + S.BASE.S] = R.Content.Main.style["padding" + S.BASE.E] = S["spread-margin-start"]/* + 35*/ + "px";
@@ -1136,19 +1205,22 @@ R.resetItem_Reflowable = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	Item.Pages = [];
 	Item.scrolling = "no";
-	var InnerText = R.getItemInnerText(Item);
-	var IsSingleImageItem = (!InnerText && Item.Body.getElementsByTagName("img"   ).length == 1); // textContent... mmm...
-	var IsSingleFrameItem = (!InnerText && Item.Body.getElementsByTagName("iframe").length == 1); // textContent... mmm...
+	var ItemInnerText = R.getItemInnerText(Item);
+	Item.IsSingleImageItem = (!ItemInnerText && Item.Body.querySelectorAll("img, svg").length - Item.Body.querySelectorAll("svg img").length == 1); // textContent... mmm...
 	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
 	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
 	var PageB  = StageB;
 	var PageL  = StageL;
 	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
-	if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
+	//if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
 		var Ratio = 1.414 / 0.96;
 		if((S.SIZE.l == "width" && S["page-size-format"] == "portrait") || (S.SIZE.l == "height" && S["page-size-format"] == "landscape")) Ratio = 1 / Ratio;
 		PageL = Math.min(StageL, Math.floor(PageB * Ratio));
-	}
+		if(!Item.IsSingleImageItem) {
+			var Half = Math.floor((StageL - PageGap) / 2);
+			PageL = (PageL < Half) ? Half : StageL;       
+		}
+	//}
 	ItemBox.style[S.SIZE.b] = PageB + ( S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e] ) + "px";
 	Item.style["padding-" + S.BASE.b] = S["item-padding-" + S.BASE.b] + "px";
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
@@ -1156,16 +1228,18 @@ R.resetItem_Reflowable = function(Item) {
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
+	Item.HTML.style[S.SIZE.b] = "";
+	Item.HTML.style[S.SIZE.l] = "";
 	Item.HTML.style[S.SIZE.b] = PageB + "px";
 	Item.HTML.style[S.SIZE.l] = PageL + "px";
 	sML.style(Item.HTML, { "column-width": "", "column-gap": "", "column-rule": "" });
 	Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
-	if(IsSingleFrameItem) {
+	if(!ItemInnerText && Item.Body.getElementsByTagName("iframe").length == 1) { // textContent... mmm...
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
 		IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
 	}
-	if(IsSingleImageItem) {
+	if(Item.IsSingleImageItem) {
 		// Fitting Images
 		if(S["fit-images"]) {
 			sML.style(Item.HTML, { "transform-origin": "", "transformOrigin": "", "transform": "" });
@@ -1203,7 +1277,7 @@ R.resetItem_Reflowable = function(Item) {
 			});
 		}
 		// Making Columns
-		if(S["book-display-mode"] == "each" || Item.HTML["scroll" + S.SIZE.B] > PageB) {
+		if(S["book-display-mode"] == "each" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
 			Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
 			sML.style(Item.HTML, {
 				"column-width": Item.ColumnLength + "px",
@@ -1211,7 +1285,8 @@ R.resetItem_Reflowable = function(Item) {
 				"column-rule": ""
 			});
 			// Alternate of column-axis
-			if(Item.HTML["scroll" + S.SIZE.B] > PageB) {
+			if(Item.Body["scroll" + S.SIZE.B] > PageB) {
+				O.log(3, 'Switch Spread-Layout-Axis Automatically among Layouting Item ' + Item.ItemIndex + '.');
 				O.updateSetting({ "spread-layout-axis": S["spread-layout-axis"] == "vertical" ? "horizontal" : "vertical" });
 				R.ToRelayout = true;
 				return;
@@ -1249,9 +1324,9 @@ R.resetItem_Reflowable = function(Item) {
 		}
 	}
 	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
-	/**/ if(IsSingleImageItem)             var ItemL = PageL;
+	/**/ if(Item.IsSingleImageItem)        var ItemL = PageL;
 	else if(sML.UA.InternetExplorer >= 10) var ItemL = Item.Body["client" + S.SIZE.L];
-	else                                   var ItemL = Item.Body["scroll" + S.SIZE.L];
+	else                                   var ItemL = Item.HTML["scroll" + S.SIZE.L];
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
 	ItemBox.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + "px";
@@ -1462,19 +1537,30 @@ R.layout = function(Param) {
 		R.resetNavigation();
 	}
 
+	R.Columned = false;
+	for(var i = 0, L = R.Items.length; i < L; i++) {
+		var Style = R.Items[i].HTML.style;
+		if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
+			R.Columned = true;
+			break;
+		}
+	}
+
 	Param.Target = R.getTarget(Param.Target);
 
-	sML.each(R.Spreads, function() {
-		R.layoutSpread(this, Param.Target);
+	R.Spreads.forEach(function(Spread) {
+		R.layoutSpread(Spread, Param.Target);
 	});
 
 	//R.layoutStage();
 
 	R.focus(Param.Target, { Duration: 0, Easing: 0 });
 
-	O.log(3, "book-display-mode: "  + S["book-display-mode"]);
+	O.log(3, "rendition:layout: " + B.Package.Metadata["rendition:layout"]);
+	O.log(3, "page-progression-direction: " + S["page-progression-direction"]);
 	O.log(3, "spread-layout-axis: " + S["spread-layout-axis"]);
-	O.log(3, "page-size-format: "   + S["page-size-format"]);
+	O.log(3, "book-display-mode: " + S["book-display-mode"]);
+//	O.log(3, "page-size-format: "   + S["page-size-format"]);
 	O.log(2, 'Laid Out.');
 
 	if(typeof doAfter == "function") doAfter();
@@ -1490,6 +1576,10 @@ R.layout = function(Param) {
 R.Relayouting = 0;
 
 R.relayout = function(Param) {
+	if(!R.Started) {
+		if(Param && Param.Setting) O.updateSetting(Param.Setting);
+		return C.Cartain.PlayButton.play();
+	}
 	if(R.Relayouting) return;
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
@@ -1538,29 +1628,33 @@ R.onresize = function() {
 	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
 };
 
-R.changeBookDisplayMode  = function(BDM) {
-	if(S.BDM == "all") {
-		var RelayoutRecipe = { Setting: { "book-display-mode" : "each", "page-size-format": "window" } };
-		R.relayout(RelayoutRecipe);
+
+R.changeView = function(View, Value) {
+	if(View == "paged") {
+		if(S.BDM == "all") {
+			var RelayoutRecipe = { Setting: { "book-display-mode" : "each"/*, "page-size-format": "window"*/ } };
+			R.relayout(RelayoutRecipe);
+		}
+	} else {
+		var Axis = (Value != "vertical") ? "horizontal" : "vertical";
+		if(S.BDM == "each" || Axis != S.SLA) {
+			R.Spreads.forEach(function(Spread) {
+				Spread.style.opacity = 1;
+			});
+			var RelayoutRecipe = { Setting: { "book-display-mode": "all", "spread-layout-axis": Axis, "page-size-format": P["page-size-format"] } };
+			R.relayout(RelayoutRecipe);
+		}
 	}
 };
 
-R.changeSpreadLayoutAxis = function(SLA) {
-	if(S.BDM == "each" || SLA != S.SLA) {
-		R.Spreads.forEach(function(Spread) {
-			Spread.style.opacity = 1;
-		});
-		var RelayoutRecipe = { Setting: { "book-display-mode": "all", "spread-layout-axis": SLA, "page-size-format": P["page-size-format"] } };
-		R.relayout(RelayoutRecipe);
-	}
+R.changeBookDisplayMode  = function(BDM) { // for Back Compatibility.
+	if(BDM == "each") R.changeView("paged");
+	else              R.changeView("scroll", "horizontal");
 };
-/*
-R.changePageSizeFormat   = function(PSF) {
-	if(PSF != S.PSF) {
-		var RelayoutRecipe = { Setting: { "page-size-format": PSF } };
-		R.relayout(RelayoutRecipe);
-	}
-};*/
+
+R.changeSpreadLayoutAxis = function(SLA) { // for Back Compatibility.
+	R.changeView("scroll", SLA);
+};
 
 
 R.getTarget = function(Target) {
@@ -1613,8 +1707,6 @@ R.getCurrentPages = function() {
 		Top:    FrameScrollCoord.Y,
 		Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
 	};
-	FrameScrollCoord.Right  = FrameScrollCoord.Left + FrameClientSize.Width;
-	FrameScrollCoord.Bottom = FrameScrollCoord.Top  + FrameClientSize.Width;
 	var CurrentPages = [], CenterPage = null, Longest = 0, Nearest = FrameClientSize[S.SIZE.L] / 2;
 	for(var L = R.Pages.length, i = 0; i < L; i++) {
 		if(R.Pages[i].style.display == "none") continue;
@@ -1700,8 +1792,8 @@ R.focus = function(Target, ScrollOption) {
 		}
 		ElementPoint += S["item-padding-" + Top_or_Left[0].toLowerCase()] + OffsetInItem;
 		// Find Nearest Page
-		sML.each(FocusTarget.Item.Pages, function() {
-			var PageBefore = sML.getCoord(this)[S.BASE.b];
+		FocusTarget.Item.Pages.forEach(function(Page) {
+			var PageBefore = sML.getCoord(Page)[S.BASE.b];
 			if((ElementPoint + 8) * S.AXIS.PM < PageBefore * S.AXIS.PM) return false;
 			FocusPoint = PageBefore;
 		});
@@ -1735,6 +1827,11 @@ R.focus = function(Target, ScrollOption) {
 				R.Spreads.forEach(function(Spread) {
 					if(Spread != FocusSpread) Spread.style.opacity = 0;
 				});
+				sML.style(R.Content, {
+					"transition": "ease-in 0.05s",
+					"transform": "",
+					"opacity": ""
+				});
 			}
 		} : undefined
 	);
@@ -1767,7 +1864,7 @@ R.pointTextLocation = function(Target) {
 };
 
 
-R.page = function(Distance, callback) {
+R.page = function(Distance) {
 	if(Distance != -1) Distance = +1;
 	var CurrentPages = R.getCurrentPages(), CurrentPage = Distance < 0 ? CurrentPages.Start : CurrentPages.End;
 	var TargetPageIndex = CurrentPage.PageIndex + Distance;
@@ -1786,23 +1883,44 @@ R.page = function(Distance, callback) {
 		return R.focus(TargetPage, { p:1, t:1 });
 	}
 	*/
-	return R.focus(
-		{ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") },
-		(S["book-display-mode"] == "each") ? { Duration: 1 } : undefined,
-		(typeof callback == "function") ? callback : undefined
-	);
+	var focus = function() {
+		return R.focus(
+			{ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") },
+			(S["book-display-mode"] == "each") ? { Duration: 1 } : undefined
+		);
+	};
+	if(S["book-display-mode"] == "each") {
+		var TranslatePx = 10 * Distance * S.AXIS.PM;
+		sML.style(R.Content, {
+			"transition": "ease-out 0.05s",
+			"transform": "translateX(" + TranslatePx + "px)",
+			"opacity": 0
+		});
+		setTimeout(function() {
+			sML.style(R.Content, {
+				"transition": "none",
+				"transform": "translateX(" + TranslatePx * -0.5 + "px)",
+			});
+			return focus();
+		}, 55);
+	} else {
+		return focus();
+	}
 };
 
 
 R.scroll = function(Distance) {
 	if(Distance != -1) Distance = +1;
-	var ScrollCoord = sML.Coord.getScrollCoord(R.Frame), ScrollTo = {};
-	switch(S.SLD) {
-		case "ttb": ScrollTo = { Y: ScrollCoord.Y + (R.StageSize.Length + S["spread-gap"]) * Distance      }; break;
-		case "ltr": ScrollTo = { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance      }; break;
-		case "rtl": ScrollTo = { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 }; break;
-	}
-	return sML.scrollTo(R.Frame, ScrollTo);
+	return sML.scrollTo(
+		R.Frame,
+		(function(ScrollCoord) {
+			switch(S.SLD) {
+				case "ttb": return { Y: ScrollCoord.Y + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+				case "ltr": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+				case "rtl": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 };
+			}
+		})(sML.Coord.getScrollCoord(R.Frame))
+	);
 };
 
 
@@ -1989,7 +2107,17 @@ C.createPanel = function() {
 		})
 	);
 
+};
+
+
+C.createPanelMisc = function() {
+
 	C.Panel.Misc = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-misc", innerHTML: O.getLogo({ Linkify: true }) }));
+
+};
+
+
+C.createPanelNavigation = function() {
 
 	C.Panel.Navigation = C.Panel.appendChild(
 		sML.create("div", { id: "bibi-panel-navigation" })
@@ -2005,6 +2133,11 @@ C.createPanel = function() {
 			C.Panel.toggle();
 		});
 	}
+
+};
+
+
+C.createPanelMenu = function() {
 
 	C.Panel.Menu = C.Panel.appendChild(
 		sML.create("div", { id: "bibi-panel-menu" })
@@ -2022,28 +2155,28 @@ C.createPanel = function() {
 	);
 	C.Panel.Menu["view"].Buttons = {
 		"display-each": C.Panel.Menu["view"].appendChild(
-			sML.create("li", { className: "display-each", innerHTML: '<span class="bibi-icon bibi-icon-each" title="Display Each">' + Shape.SpreadsS + '</span>' })
+			sML.create("li", { className: "display-each",      innerHTML: '<span class="bibi-icon bibi-icon-each"       title="Paged View">'               + Shape.SpreadsS + '</span>' })
 		),
 		"layout-horizontal": C.Panel.Menu["view"].appendChild(
-			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Layout Horizontally">' + Shape.SpreadsH + '</span>' })
+			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Scroll View (Horizontal)">' + Shape.SpreadsH + '</span>' })
 		),
 		"layout-vertical": C.Panel.Menu["view"].appendChild(
-			sML.create("li", { className: "layout-vertical",   innerHTML: '<span class="bibi-icon bibi-icon-vertical" title="Layout Vertically">'     + Shape.SpreadsV + '</span>' })
+			sML.create("li", { className: "layout-vertical",   innerHTML: '<span class="bibi-icon bibi-icon-vertical"   title="Scroll View (Vertical)">'   + Shape.SpreadsV + '</span>' })
 		)
 	};
 	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["display-each"]).addTouchEventListener("tap", function() {
 		C.Panel.toggle(function() {
-			R.changeBookDisplayMode("each");
+			R.changeView("paged");
 		});
 	});
 	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["layout-horizontal"]).addTouchEventListener("tap", function() {
 		C.Panel.toggle(function() {
-			R.changeSpreadLayoutAxis("horizontal");
+			R.changeView("scroll", "horizontal");
 		});
 	});
 	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["layout-vertical"]).addTouchEventListener("tap", function() {
 		C.Panel.toggle(function() {
-			R.changeSpreadLayoutAxis("vertical");
+			R.changeView("scroll", "vertical");
 		});
 	});
 
@@ -2145,18 +2278,21 @@ C.createArrows = function() {
 		sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", DistanceToMove: +1 })
 	);
 
-	sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-		this.addEventListener("mouseover", function() {
-			if(this.Timer_tap) clearTimeout(this.Timer_tap);
-			sML.addClass(this, "shown");
+	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
+		Arrow.addEventListener("mouseover", function() {
+			if(Arrow.Timer_tap) clearTimeout(Arrow.Timer_tap);
+			sML.addClass(Arrow, "shown");
 		});
-		this.addEventListener("mouseout", function() {
-			sML.removeClass(this, "shown");
+		Arrow.addEventListener("mouseout", function() {
+			sML.removeClass(Arrow, "shown");
 		});
-		sML.addTouchEventObserver(this);
-		this.addTouchEventListener("tap", function() { R.page(this.DistanceToMove); });
-		this.addTouchEventListener("tap", function() {
-			var This = this;
+		sML.addTouchEventObserver(Arrow);
+		Arrow.addTouchEventListener("tap", function() {
+			if(R.Columned) R.page(Arrow.DistanceToMove);
+			else         R.scroll(Arrow.DistanceToMove);
+		});
+		Arrow.addTouchEventListener("tap", function() {
+			var This = Arrow;
 			sML.addClass(This, "shown");
 			if(This.Timer_tap) clearTimeout(This.Timer_tap);
 			This.Timer_tap = setTimeout(function() {
@@ -2173,15 +2309,10 @@ C.listenKeys = function(e) {
 	e.preventDefault();
 	var Window = (parent != window && parent.Bibi) ? parent : window;
 	Window.C.KeyCode = e.keyCode;
-	var Dir = null; //                                                        W                          N                          E                          S
-	/**/ if(S["spread-layout-direction"] == "ttb") switch(e.keyCode) {  case 37: Dir =  0; break;  case 38: Dir = -1; break;  case 39: Dir =  0; break;  case 40: Dir = +1; break;  }
-	else if(S["spread-layout-direction"] == "ltr") switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir =  0; break;  case 39: Dir = +1; break;  case 40: Dir =  0; break;  }
-	else if(S["spread-layout-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir =  0; break;  case 39: Dir = -1; break;  case 40: Dir =  0; break;  }
-	switch(Dir) {
-		case -1: return Window.R.page(-1);
-		case +1: return Window.R.page(+1);
-		case  0: return Window.C.Panel.toggle();
-	}
+	var Dir = null; //                                                   W                          N                          E                          S
+	if(S["page-progression-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir = -1; break;  case 39: Dir = -1; break;  case 40: Dir = +1; break;  }
+	else                                         switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir = -1; break;  case 39: Dir = +1; break;  case 40: Dir = +1; break;  }
+	if(Dir) return Window.R.page(Dir);
 };
 
 
@@ -2211,10 +2342,13 @@ O.updateSetting = function(Setting) {
 	}
 	for(var Property in Setting) S[Property] = Setting[Property];
 
+	// Page Progression Direction
+	if(S["page-progression-direction"] == "rtl" && !O.VerticalTextEnabled && B.Package.Metadata["rendition:layout"] != "pre-paginated") S["page-progression-direction"] = "ltr";
+
 	// Spread Layout Axis
-	if(S["spread-layout-axis"] == "auto")       S["spread-layout-axis"]      = B.Package.Spine["page-progression-direction"];
-	if(S["spread-layout-axis"] == "default")    S["spread-layout-axis"]      = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
-	if(S["spread-layout-axis"] != "vertical")   S["spread-layout-axis"]      = "horizontal";
+	if(S["spread-layout-axis"] == "auto")     S["spread-layout-axis"] = B.Package.Spine["page-progression-direction"];
+	if(S["spread-layout-axis"] == "default")  S["spread-layout-axis"] = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
+	if(S["spread-layout-axis"] != "vertical") S["spread-layout-axis"] = "horizontal";
 
 	// Spread Layout Direction
 	if(S["spread-layout-axis"] == "vertical")   S["spread-layout-direction"] = "ttb";
@@ -2284,8 +2418,8 @@ O.readExtra = function() {
 		X["bibi"] = {};
 	} else {
 		X["bibi"] = { Data: X["bibi"] };
-		sML.each(X["bibi"].Data.replace(" ", "").split(","), function() {
-			var KnV = this.split(":"); if(!KnV[0]) return;
+		X["bibi"].Data.replace(" ", "").split(",").forEach(function(XBibiData) {
+			var KnV = XBibiData.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
 					case "all": case "each":                          KnV[1] = KnV[0], KnV[0] = "book-display-mode";  break;
@@ -2308,8 +2442,8 @@ O.readExtra = function() {
 		X["pipi"] = {};
 	} else {
 		X["pipi"] = { Data: X["pipi"] };
-		sML.each(X["pipi"].Data.replace(" ", "").split(","), function() {
-			var KnV = this.split(":"); if(!KnV[0]) return;
+		X["pipi"].Data.replace(" ", "").split(",").forEach(function(XPipiData) {
+			var KnV = XPipiData.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
 					case "wait":      KnV[1] = true, KnV[0] = "wait";      break;
@@ -2365,7 +2499,7 @@ O.getBibitoTarget = function(BibitoString) {
 	if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
 	if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
 	var ElementSelector = "", InE = BibitoString.split("-"), ItemIndex = parseInt(InE[0]), ElementIndex = InE[1] ? InE[1] : null;
-	if(ElementIndex) sML.each(ElementIndex.split("."), function() { ElementSelector += ">*:nth-child(" + this + ")"; });
+	if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
 	return {
 		BibitoString: BibitoString,
 		ItemIndex: ItemIndex - 1,
@@ -2380,14 +2514,14 @@ O.getEPUBCFITarget = function(CFIString) {
 	var ItemIndex = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
 	if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
 		ElementSelector = "";
-		sML.each(CFI.Path.Steps[2].Steps, function(i) {
-			if(this.Type == "IndirectPath") { IndirectPath = this; return false; }
-			if(this.Type == "TermStep")     { TermStep     = this; return false; }
-			if(this.Index % 2 == 1) {
-				TextNodeIndex = this.Index - 1;
+		CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
+			if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
+			if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
+			if(Step.Index % 2 == 1) {
+				TextNodeIndex = Step.Index - 1;
 				if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
 			}
-			if(TextNodeIndex === null) ElementSelector = this.ID ? "#" + this.ID : ElementSelector + ">*:nth-child(" + (this.Index / 2) + ")";
+			if(TextNodeIndex === null) ElementSelector = Step.ID ? "#" + Step.ID : ElementSelector + ">*:nth-child(" + (Step.Index / 2) + ")";
 		});
 		if(ElementSelector && /^>/.test(ElementSelector)) ElementSelector = "html" + ElementSelector;
 		if(!ElementSelector) ElementSelector = null;
@@ -2413,13 +2547,16 @@ O.getEPUBCFITarget = function(CFIString) {
 
 
 O.getLogo = function(Setting) {
+	var Logo = sML.UA.InternetExplorer < 9 ? [
+		'<span class="bibi-type-B">B</span>',
+		'<span class="bibi-type-i">i</span>',
+		'<span class="bibi-type-B">B</span>',
+		'<span class="bibi-type-slash">/</span>',
+		'<span class="bibi-type-i">i</span>'
+	].join("") : '<img alt="BiB/i" src="./res/images/bibi-logo.svg" />';
 	return [
 		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
-			'<span class="bibi-type-B">B</span>',
-			'<span class="bibi-type-i">i</span>',
-			'<span class="bibi-type-B">B</span>',
-			'<span class="bibi-type-slash">/</span>',
-			'<span class="bibi-type-i">i</span>',
+		Logo,
 		'</', (Setting.Linkify ? 'a' : 'span') , '>'
 	].join("");
 };
@@ -2431,18 +2568,20 @@ O.Log = ((!parent || parent == window) && console && console.log);
 O.log = function(Lv, Message) {
 	if(!O.Log || !Message || typeof Message != "string") return;
 	O.showStatus(Message);
-	// if(Lv == 2) C.Cartain.Message.note(Message);
-	     if(Lv == 0) Message = "[ERROR] " + Message;
-	else if(Lv == 1) Message = "---------------- " + Message + " ----------------";
-	else if(Lv == 2) Message = Message;
-	else if(Lv == 3) Message = " - " + Message;
-	else if(Lv == 4) Message = "   . " + Message;
+	switch(Lv) {
+		case 0: Message = "[ERROR] " + Message; break;
+		case 1: Message = "---------------- " + Message + " ----------------"; break;
+		case 2: Message = Message; break;
+		case 3: Message = " - " + Message; break;
+		case 4: Message = "   . " + Message; break;
+	}
 	console.log('BiB/i: ' + Message);
 };
 
 
 O.showStatus = function(Message) {
 	window.status = 'BiB/i: ' + Message;
+	if(C.Cartain && C.Cartain.Message) C.Cartain.Message.note(Message);
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
 };

@@ -6,11 +6,24 @@
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Tue August 19 15:00:00 2014 +0900 */ Pipi = { Version: "0.997.0", Build: 20140819.0 };
+ *  - Thu April 2 14:38:00 2014 +0900 */ Pipi = { Version: "0.998.0", Build: 20150402.0 };
 
 (function(embedBibi) {
 	if(window["bibi-pipi"]) return;
 	window["bibi-pipi"] = { Status: "waiting" };
+	if(typeof window.CustomEvent === "undefined") {
+		window.CustomEvent = function(EventName, Arguments) {
+			Arguments = Arguments || {
+				bubbles:    false,
+				cancelable: false,
+				detail:     undefined
+			};
+			var Event = document.createEvent("CustomEvent");
+			Event.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
+			return Event;
+		};
+		window.CustomEvent.prototype = window.Event.prototype;
+	}
 	document.addEventListener("DOMContentLoaded", embedBibi, false);
 	  window.addEventListener("load",             embedBibi, false);
 })(function() {
@@ -84,7 +97,7 @@
 			if(Class) Holder.className += " " + Class;
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
-			if(Autostart) {
+			if(Autostart && !/^(false|no)$/.test(Autostart)) {
 				Src += (/#/.test(Src) ? "," : "#") + "pipi(autostart:true)";
 			} else if(Poster) {
 				var PosterLink = create("link", { href: Poster });
@@ -133,6 +146,13 @@
 				);
 			}
 			window["bibi-pipi"].Holders.push(Holder);
+			As[i].dispatchEvent(
+				new CustomEvent("bibi:holderadded", {
+					bubbles:    true,
+					cancelable: true,
+					detail:     { holder: Holder }
+				})
+			);
 		}
 	}
 	window["bibi-pipi"].Status = "processed";
