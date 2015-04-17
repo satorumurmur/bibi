@@ -162,15 +162,7 @@ L.error = function(Message) {
 };
 
 
-L.download = function(URI, MimeType, Async) {
-	if(!Async) {
-		var XHR = new XMLHttpRequest();
-		if(MimeType) XHR.overrideMimeType(MimeType);
-		XHR.open('GET', URI, false);
-		XHR.send(null);
-		if(XHR.status !== 200) return L.error('XHR HTTP status: ' + XHR.status + ' "' + URI + '"');
-		return XHR;
-	}
+L.download = function(URI, MimeType) {
 	return new Promise(function(resolve, reject) {
 		var XHR = new XMLHttpRequest();
 		if(MimeType) XHR.overrideMimeType(MimeType);
@@ -192,7 +184,7 @@ L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	var XHR, Document;
 	if(!B.Zipped) {
-		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path, null, true).then(function(ResolvedXHR) {
+		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path).then(function(ResolvedXHR) {
 			XHR = ResolvedXHR;
 			if(!IsXML) Document = XHR.responseXML;
 			return Document;
