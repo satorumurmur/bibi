@@ -348,9 +348,9 @@ L.preprocessEPUB = function(EPUBZip) {
 			return "";
 		}
 	}
- 
- 	EPUBZip = (new JSZip()).load(EPUBZip);
- 
+
+	EPUBZip = (new JSZip()).load(EPUBZip);
+
 	for(var FileName in EPUBZip.files) {
 		if(EPUBZip.files[FileName]._data) {
 			A.FileCount.All++;
@@ -1210,7 +1210,7 @@ R.resetItem_Reflowable = function(Item) {
 		PageL = Math.min(StageL, Math.floor(PageB * Ratio));
 		if(!Item.IsSingleImageItem) {
 			var Half = Math.floor((StageL - PageGap) / 2);
-			PageL = (PageL < Half) ? Half : StageL;       
+			PageL = (PageL < Half) ? Half : StageL;
 		}
 	//}
 	ItemBox.style[S.SIZE.b] = PageB + ( S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e] ) + "px";
@@ -2643,6 +2643,3 @@ O.ContentTypeList = {
 
 
 sML.ready(O.welcome);
-
-
-
