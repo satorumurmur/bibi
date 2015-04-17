@@ -92,12 +92,14 @@ This is recommended because it accelarates reading experience of your readers.
 ### Development
 
 1. `$grunt build` and renew these files. Or `$ grunt` and start watching changes of files for development, and renew these files:
-    * `bib/i/res/scripts/bibi.js`
     * `bib/i/res/styles/bibi.css`
     * `bib/i/res/styles/pipi.css`
+    * `bib/i/res/scripts/bibi.js`
+    * `bib/i.js`
 2. Edit files.
-    * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/lib/` and `dev-bib/i/res/scripts/src/`.
-    * SCSS sources of the `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `dev-bib/i/res/styles/src/`.
+    * SCSS source files of `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `dev-bib/i/res/styles/`.
+    * JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
+    * JavaScript source file of `bib/i.js` is `dev-bib/i/res/scripts/pipi.js`.
 
 Following files are not watched or processed by Grunt tasks:
 
@@ -135,8 +137,8 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 
 
-3. Special Thanks
+4. Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-* @KitaitiMakoto
-* @shunito
+* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
+* Shunsuke Ito ... [@shunito](https://github.com/shunito)
