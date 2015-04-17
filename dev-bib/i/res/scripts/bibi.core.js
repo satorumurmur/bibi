@@ -393,7 +393,7 @@ L.preprocessEPUB = function(EPUBZip) {
 					var ResPathInSource = this.replace(MatchRE, "$1");
 					var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
 					var ResFnH = ResPath.split("#"), ResFile = ResFnH[0] ? ResFnH[0] : FilePath, ResHash = ResFnH[1] ? ResFnH[1] : "";
-					if(ExtRE.test(ResFile) && typeof A.Files[ResFile] != "string") Source = Source.replace(this, this.replace(ResPathInSource, A.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
+					if(ExtRE.test(ResFile) && typeof A.Files[ResFile] == "string") Source = Source.replace(this, this.replace(ResPathInSource, A.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
 				});
 			}
 		}
