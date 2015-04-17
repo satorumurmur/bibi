@@ -40,8 +40,11 @@ vendor/bundle
 
 # BiB/i Bookshelf
 # --------------------------------------------------------------------------------
-bib/bookshelf
+bib/bookshelf/*
 !bib/bookshelf/.gitkeep
+dev-bib/bookshelf/*
+!dev-bib/bookshelf/.gitkeep
+
 
 # Others
 # --------------------------------------------------------------------------------
