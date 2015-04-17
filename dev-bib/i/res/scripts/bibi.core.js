@@ -1286,7 +1286,7 @@ R.resetItem_Reflowable = function(Item) {
 			});
 			// Alternate of column-axis
 			if(Item.Body["scroll" + S.SIZE.B] > PageB) {
-				O.log(3, 'Switch Spread-Layout-Axis Automatically among Layouting Item ' + Item.ItemIndex + '.');
+				O.log(3, 'Switch spread-layout-axis automatically among layouting Item-' + Item.ItemIndex + '.');
 				O.updateSetting({ "spread-layout-axis": S["spread-layout-axis"] == "vertical" ? "horizontal" : "vertical" });
 				R.ToRelayout = true;
 				return;
@@ -2553,7 +2553,7 @@ O.getLogo = function(Setting) {
 		'<span class="bibi-type-B">B</span>',
 		'<span class="bibi-type-slash">/</span>',
 		'<span class="bibi-type-i">i</span>'
-	].join("") : '<img alt="BiB/i" src="./res/images/bibi-logo.svg" />';
+	].join("") : '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo.svg" />';
 	return [
 		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
 		Logo,
