@@ -100,6 +100,9 @@ This is recommended because it accelarates reading experience of your readers.
     * SCSS source files of `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `dev-bib/i/res/styles/`.
     * JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
     * JavaScript source file of `bib/i.js` is `dev-bib/i/res/scripts/pipi.js`.
+3. Run web server.
+    * `bundle exec rackup`
+    * A server starts listening port 9292 by default.
 
 Following files are not watched or processed by Grunt tasks:
 
