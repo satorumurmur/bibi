@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Fri May 1 00:43:00 2015 +0900 */ Bibi = { Version: "0.998.0-pb2", Build: 20150501.0 };
+ * - Fri May 1 01:00:00 2015 +0900 */ Bibi = { Version: "0.998.0-rc", Build: 20150501.0 };
 
 
 
