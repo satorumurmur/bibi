@@ -1,0 +1,269 @@
+// ================================================================================
+// + Icons
+// --------------------------------------------------------------------------------
+
+
+// - BiB/i Logo
+// --------------------------------------------------------------------------------
+
+.bibi-logo {
+	.bibi-type {
+		display: inline-block;
+		position: relative;
+		font-weight: inherit;
+		font-family: "Quando", serif;
+		letter-spacing: -0.075em;
+		word-break: keep-all;
+		.bibi-type-B,
+		.bibi-type-i,
+		.bibi-type-slash {
+			display: inline-block;
+			position: relative;
+		}
+		.bibi-type-B {
+		}
+		.bibi-type-i {
+		}
+		.bibi-type-slash {
+			font-family: "Lato", sans-serif; margin-right: 0.0275em;
+			font-family: "Cantata One", serif; top: 0.05em; margin-left: -0.05em; margin-right: -0.081em;
+			font-weight: 300;
+			font-size: .69em;
+		}
+	}
+}
+
+
+// - Draw
+// --------------------------------------------------------------------------------
+
+.bibi-icon,
+.bibi-icon:before,
+.bibi-icon:after,
+.bibi-icon * {
+	@include box-sizing(border-box);
+	display: block;
+	margin: 0;
+	padding: 0;
+	border-style: none;
+	border-width: 0;
+	text-align: center;
+	vertical-align: middle;
+	text-decoration: none;
+	background: transparent;
+}
+
+.bibi-icon {
+	overflow: hidden;
+	position: relative;
+	border: solid 1px;
+	border-radius: 2px;
+	width: 27px;
+	height: 27px;
+	cursor: pointer;
+	&:before, &:after {
+		@include font-icon("ElegantIcons");
+		content: "";
+	}
+	* {
+		position: absolute;
+	}
+	>span.bibi-shape {
+		left: 4px;
+		top: 5px;
+	}
+	span.bibi-shape-spreads {
+		width: 17px;
+		height: 15px;
+		span.bibi-shape-spread {
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			span.bibi-shape-item {
+				top: 0;
+				&:first-child { left: 0; }
+				&:last-child  { left: 8px; }
+				border: solid 1px;
+				width: 9px;
+				height: 15px;
+			}
+		}
+	}
+	span.bibi-shape-spreads-vertical {
+		span.bibi-shape-spread {
+			&:first-child { top: -17px; }
+			&:last-child  { top: 17px; }
+		}
+	}
+	span.bibi-shape-spreads-horizontal {
+		span.bibi-shape-spread {
+			&:first-child { left: -18px; }
+			&:last-child  { left: 18px; }
+		}
+	}
+}
+
+
+// - Write
+// --------------------------------------------------------------------------------
+/*
+.bibi-icon.bibi-switch-panel {
+	&:before {
+		content: $ElegantIcons_icon_menu;
+		line-height: 27px;
+		font-size: 24px;
+	}
+	html.panel-opened &:before {
+		content: $ElegantIcons_icon_close;
+		line-height: 24px;
+		text-indent: -1px;
+	}
+}*/
+
+.bibi-icon.bibi-switch-panel {
+	&:before, span, &:after {
+		left: 4px !important;
+		border-bottom: solid 1px !important;
+		width: 17px !important;
+		height: 2px !important;
+		border-radius: 1px;
+		@include transition(.2s linear !important);
+	}
+	&:before, &:after {
+		content: "";
+		display: block;
+		position: absolute;
+	}
+	&:before {
+		top: 6px;
+	}
+	span {
+		top: 11px !important;
+	}
+	&:after {
+		top: 16px;
+	}
+	html.panel-opened & {
+		&:before {
+			@include transform(translateY( 5px) rotate(-225deg));
+		}
+		span {
+			opacity: 0;
+		}
+		&:after {
+			@include transform(translateY(-5px) rotate( 225deg));
+		}
+	}
+}
+
+.bibi-icon.bibi-switch-newwindow {
+	&:before {
+		content: $ElegantIcons_arrow_right-up;
+		line-height: 25px;
+		font-size: 18px;
+	}
+}
+
+.bibi-icon.bibi-switch-fullscreen {
+	&:before {
+		content: $ElegantIcons_arrow_expand;
+		line-height: 25.5px;
+		font-size: 18px;
+		html:fullscreen                      & { content: $ElegantIcons_arrow_condense; }
+		html:full-screen                     & { content: $ElegantIcons_arrow_condense; }
+		html:-webkit-fullscreen              & { content: $ElegantIcons_arrow_condense; }
+		html:-webkit-full-screen             & { content: $ElegantIcons_arrow_condense; }
+		html:-moz-fullscreen                 & { content: $ElegantIcons_arrow_condense; }
+		html:-moz-full-screen                & { content: $ElegantIcons_arrow_condense; }
+		html:-ms-fullscreen                  & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:fullscreen          & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:full-screen         & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:-webkit-fullscreen  & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:-webkit-full-screen & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:-moz-fullscreen     & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:-moz-full-screen    & { content: $ElegantIcons_arrow_condense; }
+		span.bibi-holder:-ms-fullscreen      & { content: $ElegantIcons_arrow_condense; }
+	}
+}
+
+
+// - Colour
+// --------------------------------------------------------------------------------
+
+//.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
+
+.bibi-icon {
+	$color_label: rgb(132,128,124);
+	border-color: rgba(66,64,62,.5) !important;
+	background: rgba(255,255,255,0.8) !important;
+//	opacity: .64;
+	@include transition(0.15s linear);
+	html.panel-opened & {
+//		opacity: 1 !important;
+	}
+	&:before, &:after {
+		color: $color_label !important;
+	}
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+		border-bottom-color: lighten($color_label, 20%) !important;
+		background: $color_label !important;
+	}
+	span.bibi-shape-spreads {
+		opacity: 0.8 !important;
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: rgb(164,160,156) !important;
+				background: white !important;
+			}
+		}
+	}
+}
+
+.bibi-icon:hover {
+	$color_label: white;
+	background: rgba(132,128,124,.75) !important;
+	opacity: 1 !important;
+	&:before, &:after {
+		color: $color_label !important;
+	}
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+		border-bottom-color: darken($color_label, 20%) !important;
+		background: $color_label !important;
+	}
+	span.bibi-shape-spreads {
+		opacity: 1 !important;
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: white !important;
+				background: rgb(164,160,156) !important;
+			}
+		}
+	}
+}
+
+html.display-each .bibi-icon-each,
+html.display-all.spread-horizontal .bibi-icon-horizontal,
+html.display-all.spread-vertical .bibi-icon-vertical {
+	// ON
+	cursor: default !important;
+	background: rgba(132,128,124,.33) !important;
+	opacity: 1 !important;
+	span.bibi-shape-spreads {
+		opacity: 1 !important;
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: rgb(164,160,156) !important;
+				background: white !important;
+			}
+		}
+	}
+}
+
+html.display-all .bibi-icon-each,
+html.display-all.spread-vertical .bibi-icon-horizontal,
+html.display-all.spread-horizontal .bibi-icon-vertical,
+html.display-each .bibi-icon-horizontal,
+html.display-each .bibi-icon-vertical {
+	// OFF
+}

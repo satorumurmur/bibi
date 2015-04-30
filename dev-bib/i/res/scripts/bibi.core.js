@@ -10,8 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed February 4 22:01:00 2015 +0900
- */ Bibi = { Version: "0.997.8", Build: 20150204.0 };
+ * - Fri May 1 01:00:00 2015 +0900 */ Bibi = { Version: "0.998.0-rc", Build: 20150501.0 };
 
 
 
@@ -49,63 +48,87 @@ O.welcome = function() {
 
 	O.log(1, 'Welcome !');
 
-	O.HTML  = document.getElementsByTagName("html" )[0];
+	O.HTML  = document.getElementsByTagName("html" )[0]; O.HTML.className = "preparing " + sML.Environments.join(" ");
 	O.Head  = document.getElementsByTagName("head" )[0];
 	O.Body  = document.getElementsByTagName("body" )[0];
 	O.Title = document.getElementsByTagName("title")[0];
 
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
+		O.HTML.className = O.HTML.className + " Touch";
 		O.setOrientation = function() {
 			sML.removeClass(O.HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
 			sML.addClass(   O.HTML, "orientation-" + (window.orientation == 0 ? "portrait"  : "landscape"));
 		}
 		window.addEventListener("orientationchange", O.setOrientation);
 		O.setOrientation();
-	}
-
-	if(sML.OS.iOS) {
-		O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
-		O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "black" }));
-	}
-
-	var HTMLClassNames = [];
-	for(var OS in sML.OS) if(sML.OS[OS]                                  ) HTMLClassNames.push(OS);
-	for(var UA in sML.UA) if(sML.UA[UA] && UA.length > 2 && UA != "Flash") HTMLClassNames.push(UA);
-	O.HTML.className = HTMLClassNames.join(" ") + " preparing";
-
-	O.WindowEmbeded = (function() {
-		if(parent == window) {
-			sML.addClass(O.HTML, "window-not-embeded");
-			return 0;
-		} else {
-			sML.addClass(O.HTML, "window-embeded");
-			try {
-				return (location.host == parent.location.host ? 1 : -1);
-			} catch(e) {
-				return -1;
-			}
+		if(sML.OS.iOS) {
+			O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
+			O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "white" }));
 		}
-	})();
+	}
+
+	if(parent == window) {
+		O.HTML.className = O.HTML.className + " window-not-embedded";
+		O.WindowEmbedded = 0;
+	} else {
+		O.HTML.className = O.HTML.className + " window-embedded";
+		try {
+			if(location.host == parent.location.host) {
+				O.WindowEmbedded = 1;
+				O.HTML.className = O.HTML.className + " window-embedded-sameorigin";
+			}
+		} catch(e) {
+			O.WindowEmbedded = -1;
+			O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
+		}
+	}
+
+	var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
+	Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
+	if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
+		O.HTML.className = O.HTML.className + " vertical-text-enabled";
+		O.VerticalTextEnabled = true;
+	} else {
+		O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
+		O.VerticalTextEnabled = false;
+	};
+	O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
+	document.body.removeChild(Checker);
 
 	O.found();
 	O.open();
 
-}
+};
+
 
 O.found = function() {
 
 	C.weaveCartain();
-	R.Contents = O.Body.insertBefore(sML.create("div", { id: "epub-contents" }), C.Cartain);
 
-}
+	R.Content = O.Body.insertBefore(sML.create("div", { id: "epub-content" }), C.Cartain);
+	R.Content.Main = R.Content.appendChild(sML.create("div", { id: "epub-content-main" }));
+	R.Content.Complementary = R.Content.appendChild(sML.create("div", { id: "epub-content-complementary" }));
+
+	R.Frame = (sML.OS.iOS || sML.OS.Android) ? R.Content : window;
+	//R.Frame = R.Content;
+
+};
+
 
 O.open = function() {
 
 	O.readExtra();
-	L.getBook(X["book"]);
 
-}
+	if(sML.OS.iOS || sML.OS.Android) {
+		setTimeout(function() {
+			L.getBook(X["book"]);
+		}, 1000);
+	} else {
+		L.getBook(X["book"]);
+	}
+
+};
 
 
 
@@ -121,22 +144,22 @@ O.open = function() {
 L.sayLoading = function(Message) {
 	sML.addClass(O.HTML, "wait-please");
 	sML.addClass(C.Cartain, "animate");
-	C.Cartain.Message.note(Message ? Message : 'Loading ...');
-}
+	C.Cartain.Message.note(Message ? Message : 'Loading...');
+};
 
 
 L.shutUpLoading = function(Message) {
 	sML.removeClass(O.HTML, "wait-please");
 	sML.removeClass(C.Cartain, "animate");
 	C.Cartain.Message.note(Message ? Message : '');
-}
+};
 
 
 L.error = function(Message) {
 	sML.removeClass(O.HTML, "wait-please");
 	sML.removeClass(C.Cartain, "animate");
 	O.log(0, Message);
-}
+};
 
 
 L.download = function(URI, MimeType) {
@@ -155,18 +178,17 @@ L.download = function(URI, MimeType) {
 		};
 		XHR.send(null);
 	});
-}
+};
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	var XHR, Document;
 	if(!B.Zipped) {
-		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path)
-			.then(function(ResolvedXHR) {
-				XHR = ResolvedXHR;
-				if(!IsXML) Document = XHR.responseXML;
-				return Document;
-			});
+		var getDocument = L.download(S["bookshelf"] + B.Name + "/" +  Path).then(function(ResolvedXHR) {
+			XHR = ResolvedXHR;
+			if(!IsXML) Document = XHR.responseXML;
+			return Document;
+		});
 	} else {
 		var getDocument = Promise.resolve(Document);
 	}
@@ -182,86 +204,111 @@ L.requestDocument = function(Path) {
 		if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
 		return Document;
 	});
-}
+};
+
+
+L.openDocument = function(Path, Option) {
+	if(!Option || typeof Option != "object" || typeof Option.then != "function") Option = { then: function() { return false; } };
+	L.requestDocument(Path).then(Option.then);
+};
 
 
 L.getBook = function(BookFileName) {
 
 	var loadFile = function(BookFile) {
-		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)) {
+		BookFileName = BookFile.name;
+		if(!BookFile.size || !/\.epub$/i.test(BookFileName)) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
 			X = { book: "", bibi: {}, pipi: {} };
-			L.initialize();
+			L.initialize(BookFileName);
 			L.sayLoading();
-			O.log(2, 'Fetching EPUB...');
-			O.log(3, '"' + BookFile.name + '"');
+			O.log(2, 'Loading EPUB...');
+			O.log(3, BookFileName);
 			sML.edit(new FileReader(), {
 				onerror : function(e) { O.Body.style.opacity = 1.0; C.Cartain.Message.note('Error. Something trouble...'); },
 				onload  : function(e) {
-					O.log(2, 'Fetched.');
-					L.preprocessEPUB(this.result);
-					B.Name = BookFile.name.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-					L.readContainer();
+					O.log(2, 'Loaded.');
+					onloadFile(this.result);
 				}
 			}).readAsArrayBuffer(BookFile);
 		}
-	}
+	};
 
-	// Wait Drop
-	document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
-	document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
-	document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; }, 1);
-	document.body.addEventListener("drop",      function(e) { e.preventDefault(); O.Body.style.opacity = 1.0;
-		loadFile(e.dataTransfer.files[0]);
-	}, 1);
+	var onloadFile = function(EPUBZip) {
+		L.preprocessEPUB(EPUBZip);
+		B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+		L.openDocument(B.Container.Path, { then: L.readContainer });
+	};
+
+	// Wait Drop or Input
+	if(window.File) {
+		C.Cartain.Catcher = C.Cartain.appendChild(
+			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!' }, { display: "none" })
+		);
+		sML.addTouchEventObserver(C.Cartain.Catcher).addTouchEventListener("tap", function() {
+			if(!this.Input) this.Input = this.appendChild(
+				sML.create("input", { type: "file",
+					onchange: function(e) {
+						loadFile(e.target.files[0]);
+						C.Cartain.Catcher.style.opacity = 0;
+					}
+				})
+			);
+			this.Input.click();
+		});
+		if(!sML.OS.iOS && !sML.OS.Android) {
+			document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
+			document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
+			document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
+			document.body.addEventListener("drop",      function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; loadFile(e.dataTransfer.files[0]); }, 1);
+		}
+	}
 
 	if(typeof BookFileName != "string" || !BookFileName || /\//.test(BookFileName)) {
 		// File Open or Stop
 		if(window.File) {
 			// Drag & Drop
-			C.Cartain.createCatcher({ onchange: loadFile });
+			C.Cartain.Catcher.style.display = "block";
 			C.Cartain.Message.note('Drop an EPUB file into this window, or click and select EPUB file.');
 		} else {
 			C.Cartain.Message.note('Tell me EPUB name via URL in address-bar.');
 		}
-	} else if(/\.epub$/i.test(BookFileName)) {
-		// EPUB XHR
-		L.initialize();
-		var fetchEPUB = function() {
-			L.sayLoading();
-			O.log(2, 'Fetching EPUB...');
-			O.log(3, '"' + BookFileName + '"');
-			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
-				var EPUBZip = XHR.responseText;
-				O.log(2, 'Fetched.');
-				L.preprocessEPUB(EPUBZip);
-				B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-				L.readContainer();
-			});
-		}
-		if(! X["pipi"]["wait"]) fetchEPUB();
-		else {
-			C.Cartain.createPlayButton({
-				onplay: function() {
-					fetchEPUB();
-					delete  X["pipi"]["wait"];
-				}
-			});
-			C.Cartain.Message.note('');
-		}
 	} else {
-		// EPUB Folder
-		L.initialize();
-		L.sayLoading();
-		B.Name = BookFileName, B.Format = "EPUB";
-		L.readContainer();
+		L.initialize(BookFileName);
+		if(/\.epub$/i.test(BookFileName)) {
+			// EPUB XHR
+			var fetchEPUB = function() {
+				L.sayLoading();
+				O.log(2, 'Fetching EPUB...');
+				O.log(3, BookFileName);
+				L.download(S["bookshelf"] + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
+					O.log(2, 'Fetched.');
+					onloadFile(XHR.responseText)
+				});
+			}
+			if(!X["pipi"]["wait"]) fetchEPUB();
+			else {
+				C.Cartain.createPlayButton({
+					onplay: function() {
+						fetchEPUB();
+						delete  X["pipi"]["wait"];
+					}
+				});
+				C.Cartain.Message.note('');
+			}
+		} else {
+			// EPUB Folder
+			L.sayLoading();
+			B.Name = BookFileName, B.Format = "EPUB";
+			L.openDocument(B.Container.Path, { then: L.readContainer });
+		}
 	}
 
-}
+};
 
 
-L.initialize = function() {
+L.initialize = function(BookFileName) {
 
 	O.log(2, 'Initializing BiB/i...');
 
@@ -272,20 +319,21 @@ L.initialize = function() {
 		Package: {}
 	}
 
-	R.Contents.innerHTML = "", R.Contents.style.opacity = 0;
-	R.CoverImage = null;
-	R.Navigation = null;
+	R.Content.Main.style.opacity = 0;
+	R.Content.Main.innerHTML = R.Content.Complementary.innerHTML = "";
+	R.CoverImage = {};
+	R.Navigation = {};
 
 	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
-		sML.each(["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"], function() {
-			P[this] = (typeof P[this] != "number" || P[this] < 0) ? 0 : Math.round(P[this]);
+		["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"].forEach(function(Property) {
+			P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
 		});
 		if(P["spread-gap"] % 2) P["spread-gap"]++;
 		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
 		if(X["bibi"]["spread-layout-axis"] && /^(horizontal|vertical)$/.test(      X["bibi"]["spread-layout-axis"])) P["spread-layout-axis"] = X["bibi"]["spread-layout-axis"];
 		if(X["bibi"]["page-size-format"  ] && /^(portrait|landscape|window)$/.test(X["bibi"]["page-size-format"  ])) P["page-size-format"  ] = X["bibi"]["page-size-format"  ];
-		if(P.FileName !== "default.js") O.updateSetting(P);
+		/*if(P.FileName !== "default.js") */O.updateSetting(P);
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
 		P.FileName = "default.js";
@@ -293,14 +341,16 @@ L.initialize = function() {
 	} else if(P.FileName != PresetFileName) {
 		P.loaded = false;
 		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
-		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../presets/" + PresetFileName;
+		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../../bib/presets/" + PresetFileName;
 		P.FileName = PresetFileName;
 	}
 	O.log(3, 'preset: ' + PresetFileName);
+	O.log(3, 'bookshelf: ' + S["bookshelf"]);
+	O.log(3, 'book: ' + BookFileName);
 
 	O.log(2, 'Initialized.');
 
-}
+};
 
 
 L.preprocessEPUB = function(EPUBZip) {
@@ -309,7 +359,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 	A = {
 		Files: {},
-		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0 },
+		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0, Etc:0 },
 		getDataURI: function(FilePath) {
 			for(var ContentType in O.ContentTypeList) {
 				if(O.ContentTypeList[ContentType].test(FilePath)) {
@@ -319,9 +369,9 @@ L.preprocessEPUB = function(EPUBZip) {
 			return "";
 		}
 	}
- 
- 	EPUBZip = (new JSZip()).load(EPUBZip);
- 
+
+	EPUBZip = (new JSZip()).load(EPUBZip);
+
 	for(var FileName in EPUBZip.files) {
 		if(EPUBZip.files[FileName]._data) {
 			A.FileCount.All++;
@@ -333,21 +383,23 @@ L.preprocessEPUB = function(EPUBZip) {
 			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) A.FileCount.Audio++;
 			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) A.FileCount.Video++;
 			else if(             /\.(pdf)$/i.test(FileName)) A.FileCount.PDF++;
+			else                                             A.FileCount.Etc++;
 			A.Files[FileName] = O.isBin(FileName) ? EPUBZip.file(FileName).asBinary() : Base64.btou(EPUBZip.file(FileName).asText());
 		}
 	}
 
 	L.FileDigit = (A.FileCount.All + "").length;
 
-	if(A.FileCount.All)    O.log(3, sML.String.padZero(A.FileCount.All,    L.FileDigit) + ' Files');
-	if(A.FileCount.HTML)   O.log(4, sML.String.padZero(A.FileCount.HTML,   L.FileDigit) + ' HTML');
-	if(A.FileCount.CSS)    O.log(4, sML.String.padZero(A.FileCount.CSS,    L.FileDigit) + ' CSS');
-	if(A.FileCount.SVG)    O.log(4, sML.String.padZero(A.FileCount.SVG,    L.FileDigit) + ' SVG');
-	if(A.FileCount.Bitmap) O.log(4, sML.String.padZero(A.FileCount.Bitmap, L.FileDigit) + ' Bitmap');
-	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font');
-	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio');
-	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video');
-	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF');
+	if(A.FileCount.All)    O.log(3, sML.String.padZero(A.FileCount.All,    L.FileDigit) + ' File'   + (A.FileCount.All    >= 2 ? "s" : ""));
+	if(A.FileCount.HTML)   O.log(4, sML.String.padZero(A.FileCount.HTML,   L.FileDigit) + ' HTML'   + (A.FileCount.HTML   >= 2 ? "s" : ""));
+	if(A.FileCount.CSS)    O.log(4, sML.String.padZero(A.FileCount.CSS,    L.FileDigit) + ' CSS'    + (A.FileCount.CSS    >= 2 ? "s" : ""));
+	if(A.FileCount.SVG)    O.log(4, sML.String.padZero(A.FileCount.SVG,    L.FileDigit) + ' SVG'    + (A.FileCount.SVG    >= 2 ? "s" : ""));
+	if(A.FileCount.Bitmap) O.log(4, sML.String.padZero(A.FileCount.Bitmap, L.FileDigit) + ' Bitmap' + (A.FileCount.Bitmap >= 2 ? "s" : ""));
+	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font'   + (A.FileCount.Font   >= 2 ? "s" : ""));
+	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio'  + (A.FileCount.Audio  >= 2 ? "s" : ""));
+	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video'  + (A.FileCount.Video  >= 2 ? "s" : ""));
+	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF'    + (A.FileCount.PDF    >= 2 ? "s" : ""));
+	if(A.FileCount.Etc)    O.log(4, sML.String.padZero(A.FileCount.Etc,    L.FileDigit) + ' Etc.');
 
 	delete EPUBZip;
 
@@ -364,7 +416,7 @@ L.preprocessEPUB = function(EPUBZip) {
 					var ResPathInSource = this.replace(MatchRE, "$1");
 					var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
 					var ResFnH = ResPath.split("#"), ResFile = ResFnH[0] ? ResFnH[0] : FilePath, ResHash = ResFnH[1] ? ResFnH[1] : "";
-					if(ExtRE.test(ResFile) && A.Files[ResFile]) Source = Source.replace(this, this.replace(ResPathInSource, A.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
+					if(ExtRE.test(ResFile) && typeof A.Files[ResFile] == "string") Source = Source.replace(this, this.replace(ResPathInSource, A.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
 				});
 			}
 		}
@@ -399,7 +451,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		})(FilePath);
 		Preprocessed.CSS++;
 	}
-	if(Preprocessed.CSS) O.log(3, sML.String.padZero(Preprocessed.CSS, L.FileDigit) + ' CSS');
+	if(Preprocessed.CSS) O.log(3, sML.String.padZero(Preprocessed.CSS, L.FileDigit) + ' CSS' + (Preprocessed.CSS >= 2 ? "s" : "") + " Preprocessed.");
 
 	// SVG
 	for(var FilePath in A.Files) {
@@ -411,7 +463,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		});
 		Preprocessed.SVG++;
 	}
-	if(Preprocessed.SVG) O.log(3, sML.String.padZero(Preprocessed.SVG, L.FileDigit) + ' SVG');
+	if(Preprocessed.SVG) O.log(3, sML.String.padZero(Preprocessed.SVG, L.FileDigit) + ' SVG' + (Preprocessed.SVG >= 2 ? "s" : "") + " Preprocessed.");
 
 	// HTML
 	for(var FilePath in A.Files) {
@@ -429,16 +481,14 @@ L.preprocessEPUB = function(EPUBZip) {
 		});
 		Preprocessed.HTML++;
 	}
-	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, L.FileDigit) + ' HTML');
+	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, L.FileDigit) + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : "") + " Preprocessed.");
 
 	O.log(2, 'Preprocessed.');
 
-}
+};
 
 
-L.readContainer = function() {
-
-	L.requestDocument(B.Container.Path).then(function(Document) {
+L.readContainer = function(Document) {
 
 	O.log(2, 'Reading Container XML...');
 
@@ -449,17 +499,11 @@ L.readContainer = function() {
 
 	O.log(2, 'Read.');
 
-	delete Document;
-
-	L.readPackageDocument();
-
-	});
-}
+	L.openDocument(B.Package.Path, { then: L.readPackageDocument });
+};
 
 
-L.readPackageDocument = function() {
-
-	L.requestDocument(B.Package.Path).then(function(Document) {
+L.readPackageDocument = function(Document) {
 
 	O.log(2, 'Reading Package Document...');
 
@@ -546,11 +590,10 @@ L.readPackageDocument = function() {
 			"rendition:spread"      : B.Package.Metadata["rendition:spread"]
 		};
 		SpineItemref["properties"] = SpineItemref["properties"].replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/g, " ").split(" ");
-		sML.each(PropertyREs, function() {
-			var RE = this;
-			sML.each(SpineItemref["properties"], function() {
-				if(RE.test(this)) {
-					SpineItemref[this.replace(RE, "$1")] = this.replace(RE, "$2").replace("rendition:", "");
+		PropertyREs.forEach(function(RE) {
+			SpineItemref["properties"].forEach(function(Property) {
+				if(RE.test(Property)) {
+					SpineItemref[Property.replace(RE, "$1")] = Property.replace(RE, "$2").replace("rendition:", "");
 					return false;
 				}
 			});
@@ -562,16 +605,20 @@ L.readPackageDocument = function() {
 		B.Package.Spine["itemrefs"].push(SpineItemref);
 	});
 
-	var TitleFragments = [];
-	if(B.Package.Metadata["title"])     { TitleFragments.push(B.Package.Metadata["title"]);     O.log(3, "title: "     + B.Package.Metadata["title"]);     }
-	if(B.Package.Metadata["creator"])   { TitleFragments.push(B.Package.Metadata["creator"]);   O.log(3, "creator: "   + B.Package.Metadata["creator"]);   }
-	if(B.Package.Metadata["publisher"]) { TitleFragments.push(B.Package.Metadata["publisher"]); O.log(3, "publisher: " + B.Package.Metadata["publisher"]); }
-	if(TitleFragments.length) {
+	B.IDFragments = [];
+	if(B.Package.Metadata["title"])     { B.IDFragments.push(B.Package.Metadata["title"]);     O.log(3, "title: "     + B.Package.Metadata["title"]);     }
+	if(B.Package.Metadata["creator"])   { B.IDFragments.push(B.Package.Metadata["creator"]);   O.log(3, "creator: "   + B.Package.Metadata["creator"]);   }
+	if(B.Package.Metadata["publisher"]) { B.IDFragments.push(B.Package.Metadata["publisher"]); O.log(3, "publisher: " + B.Package.Metadata["publisher"]); }
+	if(B.IDFragments.length) {
 		O.Title.innerHTML = "";
-		O.Title.appendChild(document.createTextNode("BiB/i | " + TitleFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">")));
+		O.Title.appendChild(document.createTextNode("BiB/i | " + B.IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">")));
 	}
 
 	C.createPanel();
+	C.createPanelMisc();
+	C.createPanelNavigation();
+	C.createPanelMenu();
+
 	C.createSwitches();
 
 	O.log(2, 'Read.');
@@ -582,15 +629,14 @@ L.readPackageDocument = function() {
 
 	L.prepareSpine();
 
-	});
-}
+};
 
 
 L.prepareSpine = function() {
 
 	O.log(2, 'Preparing Spine...');
 
-	R.Contents.innerHTML = "";
+	R.Content.Main.innerHTML = R.Content.Complementary.innerHTML = "";
 
 	R.Spreads = [], R.Items = [], R.Pages = [];
 
@@ -602,7 +648,12 @@ L.prepareSpine = function() {
 	sML.each(B.Package.Spine["itemrefs"], function(i) {
 		var ItemRef = this;
 		// Item: A
-		var Item = sML.create("iframe", { className: "item", id: "item-" + sML.String.padZero(i, L.FileDigit), scrolling: "no", allowtransparency: "true" });
+		var Item = sML.create("iframe", {
+			className: "item",
+			id: "item-" + sML.String.padZero(i, L.FileDigit),
+			scrolling: "no",
+			allowtransparency: "true"
+		});
 		Item.ItemRef = ItemRef;
 		Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
 		Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
@@ -618,7 +669,7 @@ L.prepareSpine = function() {
 		if(Item.Pair) {
 			var Spread = Item.Pair.Spread;
 		} else {
-			var SpreadBox = R.Contents.appendChild(sML.create("div", { className: "spread-box" }));
+			var SpreadBox = R.Content.Main.appendChild(sML.create("div", { className: "spread-box" }));
 			var Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
 			if(ItemRef["rendition:layout"] == "pre-paginated") sML.addClass(SpreadBox, "pre-paginated");
 			Spread.SpreadBox = SpreadBox;
@@ -626,6 +677,11 @@ L.prepareSpine = function() {
 			Spread.Pages = [];
 			Spread.SpreadIndex = R.Spreads.length;
 			R.Spreads.push(Spread);
+			/*
+			sML.addTouchEventObserver(Spread).addTouchEventListener("tap", function(e, E) {
+				R.observeTap(Spread, E);
+			});
+			*/
 		}
 		// ItemBox
 		var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
@@ -642,60 +698,81 @@ L.prepareSpine = function() {
 
 	O.log(2, 'Prepared.');
 
-	L.loadCoverImage();
+	L.createCover();
 
-}
+};
 
 
-L.loadCoverImage = function() {
+L.createCover = function() {
 
-	if(!R.CoverImage) {
-		if(B.Package.Manifest["cover-image"].Path) {
-			R.CoverImage = { Path: B.Package.Manifest["cover-image"].Path };
-		} else {
-			O.log(2, 'No Cover Image.');
-			return L.loadNavigation();
-		}
+	O.log(2, 'Creating Cover...');
+
+	if(B.Package.Manifest["cover-image"].Path) {
+		R.CoverImage.Path = B.Package.Manifest["cover-image"].Path;
 	}
 
-	O.log(2, 'Loading Cover Image...');
+	C.Cartain.Cover.Info = C.Cartain.Cover.appendChild(
+		sML.create("p", { id: "bibi-cartain-cover-info",
+			innerHTML: (function() {
+				var BookID = [];
+				if(B.Package.Metadata["title"])     BookID.push('<strong>' + B.Package.Metadata["title"] + '</strong>');
+				if(B.Package.Metadata["creator"])   BookID.push('<em>' + B.Package.Metadata["creator"] + '</em>');
+				if(B.Package.Metadata["publisher"]) BookID.push('<span>' + B.Package.Metadata["publisher"] + '</span>');
+				return BookID.join(" ");
+			})()
+		})
+	);
 
-	O.log(3, R.CoverImage.Path);
+	if(R.CoverImage.Path) {
+		O.log(3, R.CoverImage.Path);
+		C.Cartain.Cover.className = [C.Cartain.Cover.className, "with-cover-image"].join(" ");
+		sML.create("img", {
+			onload: function() {
+				sML.style(C.Cartain.Cover, {
+					backgroundImage: "url(" + this.src + ")",
+					opacity: 1
+				});
+				O.log(2, 'Created.');
+				L.loadNavigation();
+			}
+		}).src = (function() {
+			if(!B.Zipped) return S["bookshelf"] + B.Name + "/" + R.CoverImage.Path;
+			else          return A.getDataURI(R.CoverImage.Path);
+		})();
+	} else {
+		O.log(3, 'No Cover Image.');
+		C.Cartain.Cover.className = [C.Cartain.Cover.className, "without-cover-image"].join(" ");
+		O.log(2, 'Created.');
+		L.loadNavigation();
+	}
 
-	sML.create("img", {
-		onload: function() {
-			sML.style(C.Cartain.Cover, {
-				backgroundImage: "url(" + this.src + ")",
-				opacity: 1
-			});
-			O.log(2, 'Loaded.');
-			L.loadNavigation();
-		}
-	}).src = (function() {
-		if(!B.Zipped) return "../bookshelf/" + B.Name + "/" + R.CoverImage.Path + "?cover-image";
-		else          return A.getDataURI(R.CoverImage.Path);
-	})();
-
-}
+};
 
 
 L.loadNavigation = function() {
 
 	if(B.Package.Manifest["nav"].Path) {
-		R.Navigation = { Path: B.Package.Manifest["nav"].Path, Type: "NavigationDocument" };
+		R.Navigation.Path = B.Package.Manifest["nav"].Path;
+		R.Navigation.Type = "NavigationDocument";
 	} else {
 		O.log(2, 'No Navigation Document.');
 		if(B.Package.Manifest["toc-ncx"].Path) {
-			R.Navigation = { Path: B.Package.Manifest["toc-ncx"].Path, Type: "TOC-NCX" };
+			R.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
+			R.Navigation.Type = "TOC-NCX";
 		} else {
 			O.log(2, 'No TOC-NCX.');
 			return L.loadItems();
 		}
 	}
 
-	L.requestDocument(R.Navigation.Path).then(function(Document) {
+	L.openDocument(R.Navigation.Path, { then: L.createNavigation });
 
-	O.log(2, 'Loading Navigation...');
+};
+
+
+L.createNavigation = function(Document) {
+
+	O.log(2, 'Making Navigation...');
 
 	O.log(3, '"' + R.Navigation.Path + '"');
 
@@ -724,8 +801,9 @@ L.loadNavigation = function() {
 	}
 
 	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "InBibiNavigation");
+	R.resetNavigation();
 
-	O.log(2, 'Loaded.');
+	O.log(2, 'Made.');
 
 	delete Document;
 
@@ -740,19 +818,17 @@ L.loadNavigation = function() {
 		C.Cartain.Message.note('');
 	}
 
-	});
-}
+};
 
 
 L.loadItems = function() {
 
 	O.log(2, 'Loading Items...');
 
-	sML.style(O.HTML, { backgroundImage: "none" });
+	O.Body.style.backgroundImage = "none";
 	sML.removeClass(O.HTML, "with-poster");
 
 	R.resetStage();
-	R.resetNavigation();
 
 	L.LoadedItems = 0;
 
@@ -760,7 +836,7 @@ L.loadItems = function() {
 	L.listenResizingWhileLoading = function() { R.ToRelayout = true; };
 	window.addEventListener("resize", L.listenResizingWhileLoading);
 
-	sML.each(R.Items, function() { L.loadItem(this); });
+	R.Items.forEach(function(Item) { L.loadItem(Item); });
 
 	// Done?
 	setTimeout(function() {
@@ -771,7 +847,7 @@ L.loadItems = function() {
 		L.start();
 	}, 10);
 
-}
+};
 
 
 L.loadItem = function(Item) {
@@ -783,7 +859,7 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, A.Files[Path]);
 			setTimeout(L.postprocessItem, 10, Item);
 		} else {
-			Item.src = "../bookshelf/" + B.Name + "/" + Path;
+			Item.src = S["bookshelf"] + B.Name + "/" + Path;
 			Item.onload = function() { setTimeout(L.postprocessItem, 10, Item); };
 			Item.ItemBox.appendChild(Item);
 		}
@@ -793,7 +869,7 @@ L.loadItem = function(Item) {
 		if(B.Zipped) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
-			var URI = "../bookshelf/" + B.Name + "/" + Path;
+			var URI = S["bookshelf"] + B.Name + "/" + Path;
 			L.download(URI).then(function(XHR) {
 				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			});
@@ -801,14 +877,14 @@ L.loadItem = function(Item) {
 	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
 		// If Bitmap-in-Spine
 		Item.IsBitmap = true;
-		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : S["bookshelf"] + B.Name + "/" + Path) + '" />');
 	} else if(/\.(pdf)$/i.test(Path)) {
 		// If PDF-in-Spine
 		Item.IsPDF = true;
-		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : S["bookshelf"] + B.Name + "/" + Path) + '" />');
 	}
 	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? Path : '... Not Found.'));
-}
+};
 
 
 L.writeItemHTML = function(Item, HTML, Head, Body) {
@@ -821,7 +897,7 @@ L.writeItemHTML = function(Item, HTML, Head, Body) {
 		'</html>'
 	].join(""));
 	Item.contentDocument.close();
-}
+};
 
 
 L.postprocessItem = function(Item) {
@@ -834,27 +910,11 @@ L.postprocessItem = function(Item) {
 
 	sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
 
-	// Writing Mode for Internet Explorer
-	if(sML.UA.InternetExplorer < 12) {
-		sML.each(Item.contentDocument.styleSheets, function () {
-			for(var L = this.cssRules.length, i = 0; i < L; i++) {
-				var CSSRule = this.cssRules[i];
-				     if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
-				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-				else {
-					     if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-					else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-					else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-				}
-			}
-		});
-	}
-
 	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
 	if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
 
 	Item.StyleSheets = [];
-	sML.CSS.add({ "html" : "-webkit-text-size-adjust: none;" }, Item.contentDocument);
+	sML.CSS.add({ "html" : "-webkit-text-size-adjust: 100%;" }, Item.contentDocument);
 	sML.each(Item.HTML.querySelectorAll("link, style"), function() {
 		if(/^link$/i.test(this.tagName)) {
 			if(!/^(alternate )?stylesheet$/.test(this.rel)) return;
@@ -881,6 +941,18 @@ L.postprocessItem = function(Item) {
 			}
 		}
 	});
+	if(sML.UA.InternetExplorer) {
+		sML.each(Item.Body.getElementsByTagName("svg"), function() {
+			var ChildImages = this.getElementsByTagName("image");
+			if(ChildImages.length == 1) {
+				var ChildImage = ChildImages[0];
+				if(ChildImage.getAttribute("width") && ChildImage.getAttribute("height")) {
+					this.setAttribute("width",  ChildImage.getAttribute("width"));
+					this.setAttribute("height", ChildImage.getAttribute("height"));
+				}
+			}
+		});
+	}
 
 	// Viewport
 	sML.each(Item.Head.getElementsByTagName("meta"), function() { // META Viewport
@@ -918,14 +990,54 @@ L.postprocessItem = function(Item) {
 		}
 	}
 
+	// Writing Mode
+	if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
+		Item.AdditionalStyles = [];
+		var translateWritingMode = sML.UA.Gecko ? function(CSSRule) {
+			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
+			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
+			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
+		} : function(CSSRule) {
+			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+		};
+		sML.each(Item.contentDocument.styleSheets, function () {
+			var StyleSheet = this;
+			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+				var CSSRule = this.cssRules[i];
+				/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+				else                        translateWritingMode(CSSRule);
+			}
+		});
+	}
+	sML.style(Item.HTML, { "writing-mode": getComputedStyle(Item.Body).writingMode });
+	Item.HTML.WritingMode = (function(CS) {
+		var Property = (function() {
+			if(/^(vertical|horizontal)-/.test(CS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
+			if(sML.UA.WebKit) return "-webkit-writing-mode";
+			else return undefined;
+		})();
+		     if(!Property)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
+		else if(/^vertical-/.test(CS[Property]))      return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[Property]) ? "lr" : "rl");
+		else if(/^horizontal-/.test(CS[Property]))    return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[Property]) ? "bt" : "tb");
+		else if(/^(lr|rl|tb|bt)-/.test(CS[Property])) return CS[Property];
+	})(getComputedStyle(Item.HTML));
+	Item.Body.style["margin" + (function() {
+		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
+		if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
+		return "Bottom";
+	})()] = 0;
+
 	// Linkage
 	L.postprocessLinkage(Item.Path, Item.Body);
 
 	setTimeout(function() {
 		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		// Update Background
-		Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background;  Item.HTML.style.background = "";
-		Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background;  Item.Body.style.background = "";
+		if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
+		if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
 		// Layout Inside of the Spread
 		if(!R.ToRelayout) {
 			R.resetItem(Item);
@@ -938,7 +1050,14 @@ L.postprocessItem = function(Item) {
 		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
 	}, 100);
 
-}
+	// Tap Scroller
+	/*
+	sML.addTouchEventObserver(Item.HTML).addTouchEventListener("tap", function(e, E) {
+		R.observeTap(Item, E);
+	});
+	*/
+
+};
 
 
 L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
@@ -947,12 +1066,17 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 	var FileName = FilePath.replace(/^.+?([^\/]+)$/, "$1");
 
 	sML.each(RootElement.getElementsByTagName("a"), function(i) {
-		var A = this;
+		var A = sML.addTouchEventObserver(this);
 		A.NavAIndex = i;
 		var HrefPathInSource = A.getAttribute("href");
 		if(!HrefPathInSource) {
 			if(InBibiNavigation) {
-				A.onclick = function() { return false; };
+				A.addEventListener("click", function(e) { e.preventDefault(); });
+				A.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+				A.addTouchEventListener("tap", function(e) {
+					e.stopPropagation();
+					return false;
+				});
 				sML.addClass(A, "bibi-navigation-inactive-link");
 			}
 			return;
@@ -960,26 +1084,26 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 		if(/^[a-zA-Z]+:/.test(HrefPathInSource)) return A.setAttribute("target", "_blank");
 		var HrefPath = O.getPath(FileDir, (!/^\.*\/+/.test(HrefPathInSource) ? "./" : "") + (/^#/.test(HrefPathInSource) ? FileName : "") + HrefPathInSource);
 		var HrefFnH = HrefPath.split("#"), HrefFile = HrefFnH[0] ? HrefFnH[0] : FilePath, HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
-		sML.each(R.Items, function() {
-			var rItem = this;
+		var Jump = function(e) {
+			e.stopPropagation();
+			if(this.Target) {
+				var This = this;
+				var Go = R.Started ?
+					function() { R.focus(This.Target); } :
+					function() { C.Cartain.PlayButton.play(This.Target, This.NavAIndex); };
+				This.InBibiNavigation ? C.Panel.toggle(Go) : Go();
+			}
+			return false;
+		};
+		R.Items.forEach(function(rItem) {
 			if(HrefFile == rItem.Path) {
 				A.setAttribute("data-bibi-original-href", HrefPathInSource);
 				A.setAttribute("href", "bibi://" + B.Name + "/" + HrefPathInSource);
 				A.InBibiNavigation = InBibiNavigation;
 				A.Target = { Item: rItem, Element: (HrefHash ? "#" + HrefHash : null) };
-				A.onclick = function(e) {
-					if(R.Started) {
-						if(this.InBibiNavigation) {
-							var Target = this.Target;
-							sML.stopPropagation(e);
-							C.Panel.toggle(function() { R.focus(Target); });
-						}
-						else R.focus(this.Target);
-					} else {
-						C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
-					}
-					return false;
-				};
+				A.addEventListener("click", function(e) { e.preventDefault(); });
+				A.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+				A.addTouchEventListener("tap", Jump);
 				return;
 			}
 		});
@@ -988,33 +1112,20 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 			A.setAttribute("href", "bibi://" + B.Name + "/#" + HrefHash);
 			A.InBibiNavigation = InBibiNavigation;
 			A.Target = O.getEPUBCFITarget(HrefHash);
-			A.onclick = function(e) {
-				if(!this.Target) return false;
-				if(R.Started) {
-					if(this.InBibiNavigation) {
-						var Target = this.Target;
-						sML.stopPropagation(e);
-						C.Panel.toggle(function() { R.focus(Target); });
-					}
-					else R.focus(this.Target);
-				} else {
-					C.Cartain.PlayButton.play(this.Target, this.NavAIndex);
-				}
-				return false;
-			};
+			A.addEventListener("click", function(e) { e.preventDefault(); });
+			A.addEventListener("mousedown", function(e) { e.stopPropagation(); });
+			A.addTouchEventListener("tap", Jump);
 		}
-		if(InBibiNavigation && typeof  X["pipi"]["nav"] == "number" && i ==  X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
+		if(InBibiNavigation && typeof X["pipi"]["nav"] == "number" && i == X["pipi"]["nav"] && A.Target) X["bibi"].To = A.Target;
 	});
 
-}
+};
 
 
 L.start = function() {
 
 	C.createArrows();
 	L.shutUpLoading();
-
-	sML.removeClass(O.HTML, "preparing");
 
 	R.layout({
 		Target: (X["bibi"].To ? X["bibi"].To : "head")
@@ -1023,7 +1134,7 @@ L.start = function() {
 	window.removeEventListener("resize", L.listenResizingWhileLoading);
 	delete L.listenResizingWhileLoading;
 
-	sML.style(R.Contents, {
+	sML.style(R.Content.Main, {
 		transition: "opacity 0.75s ease-in-out",
 		opacity: 1
 	});
@@ -1033,10 +1144,10 @@ L.start = function() {
 	sML.style(C.Arrows.Forward, { opacity: 1 });
 	setTimeout(function() {
 		C.Cartain.close(function() {
+			sML.removeClass(O.HTML, "preparing");
 			setTimeout(function() {
-				sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-					sML.style(this, { opacity: "" });
-				});
+				[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) { sML.style(Arrow, { opacity: "" }); });
+				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
 			}, 500);
 		});
 	}, 1);
@@ -1044,13 +1155,14 @@ L.start = function() {
 	L.shutUpLoading();
 
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
+	window.addEventListener("scroll", R.onscroll);
 	window.addEventListener("keydown", C.listenKeys, false);
 
 	R.Started = true;
 
 	O.log(1, 'Enjoy!');
 
-}
+};
 
 
 
@@ -1063,14 +1175,16 @@ L.start = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 R.resetStage = function() {
-	if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S["spread-layout-direction"] == "ttb" ? "100%" : window.innerHeight + "px";
-	R.StageSize = {
-		Breadth: O.Body["client" + S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"]/* - 35*/,
-		Length:  O.Body["client" + S.SIZE.L] - S["spread-gap"] * 2
-	}
-	//R.Contents.style["padding" + S.BASE.B] = R.Contents.style["padding" + S.BASE.A] = S["spread-gap"] + "px";
-	R.Contents.style["padding" + S.BASE.S] = R.Contents.style["padding" + S.BASE.E] = S["spread-margin-start"]/* + 35*/ + "px";
-	R.Contents.style["background"] = S["book-background"];
+	//if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S["spread-layout-direction"] == "ttb" ? "100%" : window.innerHeight + "px";
+	R.StageSize = {};
+	R.StageSize.Width   = O.HTML.clientWidth;
+	R.StageSize.Height  = O.HTML.clientHeight;// - 35 * 2;
+	R.StageSize.Breadth = R.StageSize[S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"];
+	R.StageSize.Length  = R.StageSize[S.SIZE.L] - S["spread-gap"] * 2;
+	//R.Content.Main.style["padding" + S.BASE.B] = R.Content.Main.style["padding" + S.BASE.A] = S["spread-gap"] + "px";
+	R.Content.Main.style.padding = R.Content.Main.style.width = R.Content.Main.style.height = "";
+	R.Content.Main.style["padding" + S.BASE.S] = R.Content.Main.style["padding" + S.BASE.E] = S["spread-margin-start"]/* + 35*/ + "px";
+	R.Content.Main.style["background"] = S["book-background"];
 	/*
 	if(!R.Bar) R.Bar = document.body.appendChild(
 		sML.create("div", {}, {
@@ -1085,21 +1199,21 @@ R.resetStage = function() {
 		})
 	);
 	*/
-}
+};
 
 R.getItemInnerText = function(Item) {
 	var InnerText = "InnerText";
 	/**/ if(typeof Item.Body.innerText   != "undefined") InnerText = Item.Body.innerText;
 	else if(typeof Item.Body.textContent != "undefined") InnerText = Item.Body.textContent;
 	return InnerText.replace(/[\r\n\s\t ]/g, "");
-}
+};
 
 R.resetItem = function(Item) {
 	Item.Reset = false;
 	Item.Reflowable = (Item.ItemRef["rendition:layout"] != "pre-paginated" || !Item.ItemRef["viewport"][S.SIZE.b] || !Item.ItemRef["viewport"][S.SIZE.l]);
 	Item.Reflowable ? R.resetItem_Reflowable(Item) : R.resetItem_PrePagenated(Item);
 	Item.Reset = true;
-}
+};
 
 R.shock = function(Item) {
 	var Z = 0, H = Item.HTML, B = Item.Body;
@@ -1110,25 +1224,28 @@ R.shock = function(Item) {
 		Item.Body.removeChild(this);
 		Item.Body.appendChild(this);
 	});
-}
+};
 
 R.resetItem_Reflowable = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	Item.Pages = [];
 	Item.scrolling = "no";
-	var InnerText = R.getItemInnerText(Item);
-	var IsSingleImageItem = (!InnerText && Item.Body.getElementsByTagName("img"   ).length == 1); // textContent... mmm...
-	var IsSingleFrameItem = (!InnerText && Item.Body.getElementsByTagName("iframe").length == 1); // textContent... mmm...
+	var ItemInnerText = R.getItemInnerText(Item);
+	Item.IsSingleImageItem = (!ItemInnerText && Item.Body.querySelectorAll("img, svg").length - Item.Body.querySelectorAll("svg img").length == 1); // textContent... mmm...
 	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
 	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
 	var PageB  = StageB;
 	var PageL  = StageL;
 	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
-	if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
+	//if(S["page-size-format"] == "portrait" || S["page-size-format"] == "landscape") {
 		var Ratio = 1.414 / 0.96;
 		if((S.SIZE.l == "width" && S["page-size-format"] == "portrait") || (S.SIZE.l == "height" && S["page-size-format"] == "landscape")) Ratio = 1 / Ratio;
 		PageL = Math.min(StageL, Math.floor(PageB * Ratio));
-	}
+		if(!Item.IsSingleImageItem) {
+			var Half = Math.floor((StageL - PageGap) / 2);
+			PageL = (PageL < Half) ? Half : StageL;
+		}
+	//}
 	ItemBox.style[S.SIZE.b] = PageB + ( S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e] ) + "px";
 	Item.style["padding-" + S.BASE.b] = S["item-padding-" + S.BASE.b] + "px";
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
@@ -1136,30 +1253,27 @@ R.resetItem_Reflowable = function(Item) {
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
+	Item.HTML.style[S.SIZE.b] = "";
+	Item.HTML.style[S.SIZE.l] = "";
 	Item.HTML.style[S.SIZE.b] = PageB + "px";
 	Item.HTML.style[S.SIZE.l] = PageL + "px";
 	sML.style(Item.HTML, { "column-width": "", "column-gap": "", "column-rule": "" });
 	Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
-	if(IsSingleFrameItem) {
+	if(!ItemInnerText && Item.Body.getElementsByTagName("iframe").length == 1) { // textContent... mmm...
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
 		IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
 	}
-	if(IsSingleImageItem) {
+	if(Item.IsSingleImageItem) {
 		// Fitting Images
 		if(S["fit-images"]) {
-			sML.style(Item.HTML, {
-				"transform-origin": "",
-				"transformOrigin": "",
-				"transform": ""
-			});
-			if(Item.HTML["scroll" + S.SIZE.B] > PageB || Item.HTML["scroll" + S.SIZE.L] > PageL) {
-				var Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
-				var TranslateX = (S.SIZE.B == "Width" ? PageB - Item.HTML["scroll" + S.SIZE.B] : PageL - Item.HTML["scroll" + S.SIZE.L]) / 2;
+			sML.style(Item.HTML, { "transform-origin": "", "transformOrigin": "", "transform": "" });
+			if(Item.Body["scroll" + S.SIZE.B] > PageB || Item.Body["scroll" + S.SIZE.L] > PageL) {
+				var Scale = Math.floor(Math.min(PageB / Item.Body["scroll" + S.SIZE.B], PageL / Item.Body["scroll" + S.SIZE.L]) * 100) / 100;
+				var TransformOrigin = { "lr-tb": "0 0", "rl-tb": "100% 0", "tb-rl": "100% 0", "bt-rl": "100% 100%", "tb-lr": "0 0", "bt-lr": "0 100%" }[Item.HTML.WritingMode];
 				sML.style(Item.HTML, {
-					"transform-origin": "50% 0",
-					"transformOrigin": "50% 0",
-					"transform": "scale(" + Scale + ") translateX(" + TranslateX + "px)"
+					"transform-origin": TransformOrigin,
+					"transform": "scale(" + Scale + ")"
 				});
 			}
 		}
@@ -1188,14 +1302,16 @@ R.resetItem_Reflowable = function(Item) {
 			});
 		}
 		// Making Columns
-		if(S["book-display-mode"] == "each" || Item.HTML["scroll" + S.SIZE.B] > PageB) {
+		if(S["book-display-mode"] == "each" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
 			Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
 			sML.style(Item.HTML, {
 				"column-width": Item.ColumnLength + "px",
 				"column-gap": Item.ColumnGap + "px",
 				"column-rule": ""
 			});
-			if(Item.HTML["scroll" + S.SIZE.B] > PageB) {
+			// Alternate of column-axis
+			if(Item.Body["scroll" + S.SIZE.B] > PageB) {
+				O.log(3, 'Switch spread-layout-axis automatically among layouting Item-' + Item.ItemIndex + '.');
 				O.updateSetting({ "spread-layout-axis": S["spread-layout-axis"] == "vertical" ? "horizontal" : "vertical" });
 				R.ToRelayout = true;
 				return;
@@ -1214,8 +1330,8 @@ R.resetItem_Reflowable = function(Item) {
 				var E = this, BreakPoint = E["offset" + PBR[0]], Add = 0;
 				while(E.offsetParent) E = E.offsetParent, BreakPoint += E["offset" + PBR[0]];
 				if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
-				sML.log(PBR);
-				sML.log(Item.ItemIndex + ": " + BreakPoint);
+				//sML.log(PBR);
+				//sML.log(Item.ItemIndex + ": " + BreakPoint);
 				if(ComputedStyle.pageBreakBefore == "always") {
 					if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = sML.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
 					Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1223,7 +1339,7 @@ R.resetItem_Reflowable = function(Item) {
 				}
 				if(ComputedStyle.pageBreakAfter == "always") {
 					BreakPoint += Add + this["offset" + PBR[2]];
-				sML.log(Item.ItemIndex + ": " + BreakPoint);
+					//sML.log(Item.ItemIndex + ": " + BreakPoint);
 					this.style["margin-" + PBR[4]] = 0;
 					if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = sML.insertAfter(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this);
 					Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1233,9 +1349,9 @@ R.resetItem_Reflowable = function(Item) {
 		}
 	}
 	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
-	/**/ if(IsSingleImageItem)             var ItemL = PageL;
+	/**/ if(Item.IsSingleImageItem)        var ItemL = PageL;
 	else if(sML.UA.InternetExplorer >= 10) var ItemL = Item.Body["client" + S.SIZE.L];
-	else                                   var ItemL = Item.Body["scroll" + S.SIZE.L];
+	else                                   var ItemL = Item.HTML["scroll" + S.SIZE.L];
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
 	ItemBox.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + "px";
@@ -1254,7 +1370,7 @@ R.resetItem_Reflowable = function(Item) {
 		Item.Pages.push(Page);
 	}
 	return Item;
-}
+};
 
 R.resetItem_PrePagenated = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
@@ -1290,7 +1406,7 @@ R.resetItem_PrePagenated = function(Item) {
 	Page.PageIndexInItem = Item.Pages.length;
 	Item.Pages.push(Page);
 	return Item;
-}
+};
 
 R.resetSpread = function(Spread) {
 	var SpreadBox = Spread.SpreadBox;
@@ -1306,7 +1422,7 @@ R.resetSpread = function(Spread) {
 	}
 	Spread.style["border-radius"] = S["spread-border-radius"];
 	Spread.style["box-shadow"]    = S["spread-box-shadow"];
-}
+};
 
 R.resetPages = function() {
 	R.Pages.forEach(function(Page) {
@@ -1324,59 +1440,80 @@ R.resetPages = function() {
 		});
 	});
 	return R.Pages;
-}
+};
 
 R.resetNavigation = function() {
 	sML.style(C.Panel.Navigation.Item, { float: "" });
-	if(S.SLD == "rtl") {
+	if(S.PPD == "rtl") {
 		var theWidth = C.Panel.Navigation.Item.scrollWidth - window.innerWidth;
 		if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
 		C.Panel.Navigation.ItemBox.scrollLeft = C.Panel.Navigation.ItemBox.scrollWidth - window.innerWidth;
 	}
-}
+};
 
 
 R.layoutSpread = function(Spread, Target) {
 	var SpreadBox = Spread.SpreadBox;
-	var IsHeadSpread = IsFootSpread = false;
+	var IsHeadSpread = false, IsFootSpread = false;/*
 	if(S.BDM == "each") {
 		IsHeadSpread = IsFootSpread = true;
-	} else {
+	} else {*/
 		IsHeadSpread = (Spread.SpreadIndex == 0);
 		IsFootSpread = (Spread.SpreadIndex == R.Spreads.length - 1);
-	}
+	//}
 	SpreadBox.style.padding = "";
-	var PaddingBefore = PaddingAfter = (SpreadBox.offsetHeight < R.StageSize[S.SIZE.H]) ? Math.floor((R.StageSize[S.SIZE.H] - SpreadBox.offsetHeight) / 2) : 0;
+	// Set padding-start + padding-end of SpreadBox
+	var SpreadBoxPaddingStart = 0, SpreadBoxPaddingEnd = 0;
 	if(S.SLA == "vertical") {
-		     if(Spread.Items.length == 1 && Spread.Items[0].ItemRef["page-spread"] == "right") SpreadBox.style.paddingLeft  = Spread.offsetWidth + "px";
-		else if(Spread.Items.length == 1 && Spread.Items[0].ItemRef["page-spread"] == "left")  SpreadBox.style.paddingRight = Spread.offsetWidth + "px";
-		     if(IsHeadSpread)                                           PaddingBefore += S["spread-gap"];
-		else if(B.Package.Metadata["rendition:layout"] == "reflowable") PaddingBefore += S["spread-gap"];
-		else                                                            PaddingBefore += Math.floor( R.StageSize.Length  / 4 - S["spread-gap"]);
-		SpreadBox.style.paddingTop    = PaddingBefore ? PaddingBefore + "px" : "";
-		SpreadBox.style.paddingBottom = PaddingAfter  ? PaddingAfter  + "px" : "";
-	} else {
-		if(IsHeadSpread) {
-			PaddingBefore += Math.floor((R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
-			if(PaddingBefore < S["spread-gap"]) PaddingBefore = S["spread-gap"];
+		// Set padding-left + padding-right of pre-pagenated-single
+		if(Spread.Items.length == 1) {
+			if(Spread.Items[0].ItemRef["page-spread"] == "right") {
+				if(S.PPD == "ltr") SpreadBoxPaddingStart += Spread.offsetWidth;
+				if(S.PPD == "rtl") SpreadBoxPaddingEnd   += Spread.offsetWidth;
+				SpreadBox.style.paddingLeft = Spread.offsetWidth + "px";
+			} else if(Spread.Items[0].ItemRef["page-spread"] == "left") {
+				if(S.PPD == "ltr") SpreadBoxPaddingEnd   += Spread.offsetWidth;
+				if(S.PPD == "rtl") SpreadBoxPaddingStart += Spread.offsetWidth;
+				SpreadBox.style.paddingRight = Spread.offsetWidth + "px";
+			}
 		}
-		else if(B.Package.Metadata["rendition:layout"] == "reflowable") PaddingBefore += S["spread-gap"];
-		else                                                            PaddingBefore += Math.floor(R.StageSize.Breadth / 2/* - S["spread-gap"]*/);
-		if(IsFootSpread) {
-			PaddingAfter  += Math.ceil( (R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
-			if(PaddingAfter  < S["spread-gap"]) PaddingAfter  = S["spread-gap"];
-		}
-		SpreadBox.style["padding" + S.BASE.B] = PaddingBefore ? PaddingBefore + "px" : "";
-		SpreadBox.style["padding" + S.BASE.A] = PaddingAfter  ? PaddingAfter  + "px" : "";
+	} else if(SpreadBox["offset" + S.SIZE.B] < R.StageSize.Breadth) {
+		SpreadBoxPaddingEnd   += Math.floor((R.StageSize.Breadth - SpreadBox["offset" + S.SIZE.B]) / 2);
+		SpreadBoxPaddingStart += R.StageSize.Breadth - SpreadBox["offset" + S.SIZE.B] - SpreadBoxPaddingEnd;
+		if(SpreadBoxPaddingStart) SpreadBox.style["padding" + S.BASE.S] = SpreadBoxPaddingStart + "px";
+		if(SpreadBoxPaddingEnd)   SpreadBox.style["padding" + S.BASE.E] = SpreadBoxPaddingEnd   + "px";
 	}
-}
+	// Set padding-before + padding-after of SpreadBox
+	var SpreadBoxPaddingBefore = 0, SpreadBoxPaddingAfter = 0;
+	if(IsHeadSpread) {
+		SpreadBoxPaddingBefore = Math.floor((R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
+		if(SpreadBoxPaddingBefore < S["spread-gap"]) SpreadBoxPaddingBefore = S["spread-gap"];
+	} else if(B.Package.Metadata["rendition:layout"] == "reflowable") {
+		SpreadBoxPaddingBefore = S["spread-gap"];
+	} else {
+		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Length / 2/* - S["spread-gap"]*/);
+	}
+	if(IsFootSpread) {
+		SpreadBoxPaddingAfter  += Math.ceil( (R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
+		if(SpreadBoxPaddingAfter  < S["spread-gap"]) SpreadBoxPaddingAfter  = S["spread-gap"];
+	}
+	if(SpreadBoxPaddingBefore) SpreadBox.style["padding" + S.BASE.B] = SpreadBoxPaddingBefore + "px";
+	if(SpreadBoxPaddingAfter)  SpreadBox.style["padding" + S.BASE.A] = SpreadBoxPaddingAfter  + "px";
+	// Adjust R.Content.Main (div#epub-content-main)
+	var MainContentLength = 0;
+	R.Spreads.forEach(function(Spread) {
+		MainContentLength += Spread.SpreadBox["offset" + S.SIZE.L];
+	});
+	R.Content.Main.style[S.SIZE.b] = "";
+	R.Content.Main.style[S.SIZE.l] = MainContentLength + "px";
+};
 
 
 /*
 R.layoutStage = function() {
 	for(var L = R.Spreads.length, i = 0, StageLength = 0; i < L; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
-	R.Contents.style[S.SIZE.l] = StageLength + "px";
-}
+	R.Content.Main.style[S.SIZE.l] = StageLength + "px";
+};
 */
 
 
@@ -1394,6 +1531,7 @@ R.layout = function(Param) {
 
 	R.Layouted = true;
 
+	window.removeEventListener("scroll", R.onscroll);
 	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 
 	if(!Param) Param = {};
@@ -1423,33 +1561,49 @@ R.layout = function(Param) {
 		R.resetNavigation();
 	}
 
+	R.Columned = false;
+	for(var i = 0, L = R.Items.length; i < L; i++) {
+		var Style = R.Items[i].HTML.style;
+		if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
+			R.Columned = true;
+			break;
+		}
+	}
+
 	Param.Target = R.getTarget(Param.Target);
 
-	sML.each(R.Spreads, function() {
-		R.layoutSpread(this, Param.Target);
+	R.Spreads.forEach(function(Spread) {
+		R.layoutSpread(Spread, Param.Target);
 	});
 
 	//R.layoutStage();
 
 	R.focus(Param.Target, { Duration: 0, Easing: 0 });
 
-	O.log(3, "book-display-mode: "  + S["book-display-mode"]);
+	O.log(3, "rendition:layout: " + B.Package.Metadata["rendition:layout"]);
+	O.log(3, "page-progression-direction: " + S["page-progression-direction"]);
 	O.log(3, "spread-layout-axis: " + S["spread-layout-axis"]);
-	O.log(3, "page-size-format: "   + S["page-size-format"]);
+	O.log(3, "book-display-mode: " + S["book-display-mode"]);
+//	O.log(3, "page-size-format: "   + S["page-size-format"]);
 	O.log(2, 'Laid Out.');
 
 	if(typeof doAfter == "function") doAfter();
 
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
+	window.addEventListener("scroll", R.onscroll);
 
 	return S;
 
-}
+};
 
 
 R.Relayouting = 0;
 
-R.relayout = function(Setting, Timing) {
+R.relayout = function(Param) {
+	if(!R.Started) {
+		if(Param && Param.Setting) O.updateSetting(Param.Setting);
+		return C.Cartain.PlayButton.play();
+	}
 	if(R.Relayouting) return;
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
@@ -1461,38 +1615,70 @@ R.relayout = function(Setting, Timing) {
 		PageProgressInItem: 0
 	};
 	setTimeout(function() {
-		sML.style(R.Contents, { transition: "opacity 0.4s ease", opacity: 0 });
+		sML.style(R.Content.Main, {
+			transition: "opacity 0.4s ease",
+			opacity: 0
+		});
+		window.removeEventListener("scroll", R.onscroll);
+		window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
+		sML.addClass(O.HTML, "preparing");
 		setTimeout(function() {
 			R.layout({
 				Target: Target,
 				Reset: true,
-				Setting: Setting
+				Setting: Param && Param.Setting ? Param.Setting : undefined
 			});
 			R.Relayouting--;
 			if(!R.Relayouting) setTimeout(function() {
-				sML.style(R.Contents, { transition: "opacity 0.4s ease", opacity: 1 });
+				sML.removeClass(O.HTML, "preparing");
+				window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
+				window.addEventListener("scroll", R.onscroll);
+				sML.style(R.Content.Main, {
+					transition: "opacity 0.4s ease",
+					opacity: 1
+				});
 			}, 100);
 		}, 100);
-	}, (typeof Timing == "number" && Timing >= 0 ? Timing : 100));
-}
+	}, 222);
+};
+
+R.onscroll = function() {
+};
+
+R.onresize = function() {
+	if(R.Timer_onresize) clearTimeout(R.Timer_onresize);
+	R.Timer_onresize = setTimeout(function() {
+		R.relayout();
+	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
+};
 
 
-R.onresize               = function(   ) { R.relayout(null, (sML.OS.iOS || sML.OS.Android) ? 888 : 444); }
-
-R.changeBookDisplayMode  = function(BDM) {
-	if(BDM != S.BDM) {
-		var RelayoutRecipe = { "book-display-mode" : BDM };
-		if(BDM == "each") {
-			R.SpreadLayoutAxisBeforeChangeBookDisplayMode = S["spread-layout-axis"];
-		} else {
-			RelayoutRecipe["spread-layout-axis"] = R.SpreadLayoutAxisBeforeChangeBookDisplayMode || S["spread-layout-axis"];
-			R.SpreadLayoutAxisBeforeChangeBookDisplayMode = null;
+R.changeView = function(View, Value) {
+	if(View == "paged") {
+		if(S.BDM == "all") {
+			var RelayoutRecipe = { Setting: { "book-display-mode" : "each"/*, "page-size-format": "window"*/ } };
+			R.relayout(RelayoutRecipe);
 		}
-		R.relayout(RelayoutRecipe);
+	} else {
+		var Axis = (Value != "vertical") ? "horizontal" : "vertical";
+		if(S.BDM == "each" || Axis != S.SLA) {
+			R.Spreads.forEach(function(Spread) {
+				Spread.style.opacity = 1;
+			});
+			var RelayoutRecipe = { Setting: { "book-display-mode": "all", "spread-layout-axis": Axis, "page-size-format": P["page-size-format"] } };
+			R.relayout(RelayoutRecipe);
+		}
 	}
-}
-R.changeSpreadLayoutAxis = function(SLA) { if(SLA != S.SLA) R.relayout({ "spread-layout-axis" : SLA }); }
-R.changePageSizeFormat   = function(PSF) { if(PSF != S.PSF) R.relayout({ "page-size-format"   : PSF }); }
+};
+
+R.changeBookDisplayMode  = function(BDM) { // for Back Compatibility.
+	if(BDM == "each") R.changeView("paged");
+	else              R.changeView("scroll", "horizontal");
+};
+
+R.changeSpreadLayoutAxis = function(SLA) { // for Back Compatibility.
+	R.changeView("scroll", SLA);
+};
 
 
 R.getTarget = function(Target) {
@@ -1511,6 +1697,7 @@ R.getTarget = function(Target) {
 		if(Target.Edge == "foot") return { Edge: "foot", EdgeTRBL: (S.SLD == "ttb" ? "B" : (S.SLD == "rtl" ? "L" : "R")), Item: R.Items[R.Items.length - 1], Page: R.Pages[R.Pages.length - 1] };
 	}
 	if(!Target.Item && typeof Target.ItemIndex == "number") Target.Item = R.Items[Target.ItemIndex];
+	if(Target.Page && !Target.Page.parentElement) delete Target.Page;
 	if(Target.Element) {
 		if(Target.Element.tagName) { // In-Frame Content
 			Target.Item = Target.Element.ownerDocument.body.Item ? Target.Element.ownerDocument.body.Item : null;
@@ -1532,18 +1719,31 @@ R.getTarget = function(Target) {
 	if(!Target.Item) return null;
 	if(!Target.Page) Target.Page = Target.Item.Pages[0];
 	return Target;
-}
+};
 
 
 R.getCurrentPages = function() {
-	var WindowCoord = sML.getCoord(window);
-	var CurrentPages = [], CenterPage = null, Longest = 0, Nearest = WindowCoord[S.SIZE.l] / 2;
+	var FrameScrollCoord = sML.Coord.getScrollCoord(R.Frame);
+	var FrameClientSize  = sML.Coord.getClientSize(R.Frame);
+	FrameScrollCoord = {
+		Left:   FrameScrollCoord.X,
+		Right:  FrameScrollCoord.X + FrameClientSize.Width,
+		Top:    FrameScrollCoord.Y,
+		Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
+	};
+	var CurrentPages = [], CenterPage = null, Longest = 0, Nearest = FrameClientSize[S.SIZE.L] / 2;
 	for(var L = R.Pages.length, i = 0; i < L; i++) {
 		if(R.Pages[i].style.display == "none") continue;
 		var PageCoord = sML.getCoord(R.Pages[i]);
-		var Length   = Math.min(WindowCoord[S.BASE.a] / R.Scale * S.AXIS.PM, PageCoord[S.BASE.a] * S.AXIS.PM) - Math.max(WindowCoord[S.BASE.b] / R.Scale * S.AXIS.PM, PageCoord[S.BASE.b] * S.AXIS.PM);
-		var Distance = Math.abs((WindowCoord[S.BASE.b] / R.Scale + WindowCoord[S.BASE.a] / R.Scale) - (PageCoord[S.BASE.b] + PageCoord[S.BASE.a]));
-		Length = (Length <= 0 || !PageCoord[S.SIZE.l] || isNaN(Length)) ? -1 : Math.round(Length / PageCoord[S.SIZE.l] * 100);
+		var Length   = Math.min(
+			FrameScrollCoord[S.BASE.A] / R.Scale * S.AXIS.PM,
+			PageCoord[S.BASE.A] * S.AXIS.PM
+		) - Math.max(
+			FrameScrollCoord[S.BASE.B] / R.Scale * S.AXIS.PM,
+			PageCoord[S.BASE.B] * S.AXIS.PM
+		);
+		var Distance = Math.abs((FrameScrollCoord[S.BASE.B] / R.Scale + FrameScrollCoord[S.BASE.A] / R.Scale) - (PageCoord[S.BASE.B] + PageCoord[S.BASE.a]));
+		Length = (Length <= 0 || !PageCoord[S.SIZE.L] || isNaN(Length)) ? -1 : Math.round(Length / PageCoord[S.SIZE.L] * 100);
 		     if(Length <  Longest) { if(!CurrentPages.length) continue; else break; }
 		else if(Length == Longest) CurrentPages.push(R.Pages[i]);
 		else if(Length  > Longest) CurrentPages[0] = R.Pages[i], Longest = Length;
@@ -1555,13 +1755,13 @@ R.getCurrentPages = function() {
 		Center: CenterPage,
 		End:    CurrentPages[CurrentPages.length - 1]
 	};
-}
+};
 
 
 R.getPageGroup = function(Target) {
 	Target = R.getTarget(Target);
 	var Next = (Target.Side == "a") ? -1 : +1;
-	var Pages = [], Length = 0, Space = window["inner" + S.SIZE.L];
+	var Pages = [], Length = 0, Space = document.documentElement["client" + S.SIZE.L];
 	for(var i = Target.Page.PageIndex; 0 <= i && i < R.Pages.length; i += Next) {
 		if((Target.Item.IsPrePaginated && R.Pages[i].Spread != Target.Page.Spread)) break;
 		if(Space - R.Pages[i]["offset" + S.SIZE.L] < 0) break;
@@ -1583,18 +1783,18 @@ R.getPageGroup = function(Target) {
 		MarginBeforeGroup: MarginBeforeGroup,
 		MarginBeforePage:  MarginBeforePage
 	};
-}
+};
 
 
 R.focus = function(Target, ScrollOption) {
 	var FocusTarget = R.getTarget(Target); if(typeof FocusTarget != "object" || !FocusTarget) return false;
 	if(FocusTarget.Edge) {
-		var FocusPoint = /^[TL]$/.test(FocusTarget.EdgeTRBL) ? 0 : O.Body["scroll" + S.SIZE.L] - O.Body["client" + S.SIZE.L];
-		sML.scrollTo((S.SLD == "ttb" ? { Y: FocusPoint * R.Scale } : { X: FocusPoint * R.Scale }), ScrollOption);
+		var FocusPoint = /^[TL]$/.test(FocusTarget.EdgeTRBL) ? 0 : R.Content.Main["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Frame)[S.SIZE.L];
+		sML.scrollTo(R.Frame, (S.SLD == "ttb" ? { Y: FocusPoint * R.Scale } : { X: FocusPoint * R.Scale }), ScrollOption);
 		return false;
 	}
 	var Top_or_Left = (S.SLD == "ttb") ? ["Top", "Left"] : ["Left", "Top"];
-	var E, FocusPoint, TextLocationTarget = { Element: FocusTarget.Element, TextNodeIndex: FocusTarget.TextNodeIndex, TermStep: FocusTarget.TermStep };
+	var E, FocusPoint, FocusSpread, TextLocationTarget = { Element: FocusTarget.Element, TextNodeIndex: FocusTarget.TextNodeIndex, TermStep: FocusTarget.TermStep };
 	if(FocusTarget.Element) {
 		E = FocusTarget.Item.Pages[0];
 		var ElementPoint = E["offset" + Top_or_Left[0]];
@@ -1616,29 +1816,46 @@ R.focus = function(Target, ScrollOption) {
 		}
 		ElementPoint += S["item-padding-" + Top_or_Left[0].toLowerCase()] + OffsetInItem;
 		// Find Nearest Page
-		sML.each(FocusTarget.Item.Pages, function() {
-			var PageBefore = sML.getCoord(this)[S.BASE.b];
+		FocusTarget.Item.Pages.forEach(function(Page) {
+			var PageBefore = sML.getCoord(Page)[S.BASE.b];
 			if((ElementPoint + 8) * S.AXIS.PM < PageBefore * S.AXIS.PM) return false;
 			FocusPoint = PageBefore;
 		});
 		if(S.SLD == "rtl") FocusPoint += S["spread-gap"];
 		else               FocusPoint -= S["spread-gap"];
 		if(typeof TextLocationTarget.TextNodeIndex == "number") R.pointTextLocation(TextLocationTarget); // Colorize Target with Selection
+		FocusSpread = FocusTarget.Item.Spread;
 	} else {
 		var FocusTargetPageGroup = R.getPageGroup(FocusTarget);
 		E = FocusTargetPageGroup.Pages[0];
 		FocusPoint = E["offset" + Top_or_Left[0]];
+		//if(FocusTargetPageGroup.length == 1) FocusPoint += Math.ceil(E["offset" + S.SIZE.L] / 2);
 		while(E.offsetParent) E = E.offsetParent, FocusPoint += E["offset" + Top_or_Left[0]];
 		if(S.SLD == "rtl") FocusPoint += Math.floor(FocusTargetPageGroup.Pages[0]["offset" + S.SIZE.L]);
 		if(window["inner" + S.SIZE.L] > FocusTargetPageGroup.Pages[0]["offset" + S.SIZE.L]) {
 			var PageMargin = Math.floor((window["inner" + S.SIZE.L] - FocusTargetPageGroup.Length) / 2);
 			if(PageMargin > 0) FocusPoint -= PageMargin * S.AXIS.PM;
 		}
+		FocusSpread = FocusTargetPageGroup.Pages[0].Spread;
 	}
 	if(S.SLD == "rtl") FocusPoint = FocusPoint - window["inner" + S.SIZE.L];
-	sML.scrollTo((S.SLD == "ttb" ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale }), ScrollOption);
+	sML.scrollTo(
+		R.Frame,
+		(S.SLD == "ttb") ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale },
+		ScrollOption,
+		(S.BDM == "each") ? {
+			end: function() {
+				R.Spreads.forEach(function(Spread) {
+					if(Spread == FocusSpread) Spread.style.opacity = 1;
+					//else                      Spread.style.opacity = 0;
+				});
+				sML.removeClass(O.HTML, "flipping-ltr");
+				sML.removeClass(O.HTML, "flipping-rtl");
+			}
+		} : undefined
+	);
 	return false;
-}
+};
 
 
 R.pointTextLocation = function(Target) {
@@ -1663,7 +1880,7 @@ R.pointTextLocation = function(Target) {
 		}
 	}
 	return sML.select(Sides);
-}
+};
 
 
 R.page = function(Distance) {
@@ -1680,55 +1897,88 @@ R.page = function(Distance) {
 		if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
 		if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
 	}
-	var wCoord = sML.getCoord(window);
 	/*
 	if(S.BDM == "each" && TargetPage.Spread != CurrentPage.Spread) {
 		return R.focus(TargetPage, { p:1, t:1 });
 	}
 	*/
-	return R.focus({ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") });
-}
+	var focus = function() {
+		R.focus(
+			{ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") },
+			(S["book-display-mode"] == "each") ? { Duration: 1 } : undefined
+		);
+	};
+	if(S["book-display-mode"] == "each") {
+		sML.style(R.Content, {
+			transition: "ease-out 0.05s"
+		});
+		sML.addClass(O.HTML, "flipping-" + (Distance * (S["page-progression-direction"] == "rtl" ? 1 : -1) > 0 ? "rtl" : "ltr"));
+		setTimeout(function() {
+			sML.style(R.Content, {
+				transition: "none"
+			});
+			focus();
+		}, 50);
+	} else {
+		focus();
+	}
+};
 
 
 R.scroll = function(Distance) {
 	if(Distance != -1) Distance = +1;
-	var WindowCoord = sML.getCoord(window), ScrollTo = {};
-	switch(S.SLD) {
-		case "ttb": ScrollTo = { Y: WindowCoord.top  + (R.StageSize.Length + S["spread-gap"]) * Distance      }; break;
-		case "ltr": ScrollTo = { X: WindowCoord.left + (R.StageSize.Length + S["spread-gap"]) * Distance      }; break;
-		case "rtl": ScrollTo = { X: WindowCoord.left + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 }; break;
-	}
-	return sML.scrollTo(ScrollTo);
-}
+	return sML.scrollTo(
+		R.Frame,
+		(function(ScrollCoord) {
+			switch(S.SLD) {
+				case "ttb": return { Y: ScrollCoord.Y + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+				case "ltr": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+				case "rtl": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 };
+			}
+		})(sML.Coord.getScrollCoord(R.Frame))
+	);
+};
 
 
 R.to = function(BibitoString) {
 	return R.focus(O.getBibitoTarget(BibitoString));
-}
-
+};
 
 R.Scale = 1;
 
 R.zoom = function(Scale) {
 	if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-	sML.style(R.Contents, {
-		"transition": "0.25s ease",
-		"transformOrigin":  S.SLD == "rtl" ? "100% 0" : "0 0",
-		"transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0"
-	});
+	var CurrentStartPage = R.getCurrentPages().Start;
+	sML.style(R.Content.Main, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
 	if(Scale == 1) {
 		O.HTML.style.overflow = "";
-		sML.style(R.Contents, {
-			"transform": ""
-		});
+		sML.style(R.Content.Main, { transform: "" });
 	} else {
-		sML.style(R.Contents, {
-			transform: "scale(" + Scale + ")"
-		});
+		sML.style(R.Content.Main, { transform: "scale(" + Scale + ")" });
 		O.HTML.style.overflow = "auto";
 	}
+	setTimeout(function() {
+		R.focus(CurrentStartPage, { Duration: 1 });
+	}, 0);
 	R.Scale = Scale;
-}
+};
+
+/*
+R.observeTap = function(Layer, E) {
+	var L = "", Point = { X: E.center.x, Y: E.center.y };
+	if(typeof Layer.SpreadIndex != "undefined") {
+		L = "Spread";
+	} else {
+		L = "Item";
+		var FrameScrollCoord = sML.Coord.getScrollCoord(R.Frame);
+		var ElementCoord = sML.Coord.getElementCoord(Layer);
+		Point.X = ElementCoord.X + parseInt(R.Items[0].style.paddingLeft) + Point.X - FrameScrollCoord.X;
+		Point.Y = ElementCoord.Y + parseInt(R.Items[0].style.paddingTop)  + Point.Y - FrameScrollCoord.Y;
+	}
+	sML.log(E);
+	sML.log(L + ": { X: " + Point.X + ", Y: " + Point.Y + " }");
+};
+*/
 
 
 
@@ -1793,8 +2043,10 @@ C.weaveCartain = function() {
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	C.Cartain.createPlayButton = function(Param) {
+		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
 		C.Cartain.PlayButton = C.Cartain.appendChild(
-			sML.create("p", { id: "bibi-cartain-playbutton", title: (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open',
+			sML.create("p", { id: "bibi-cartain-playbutton", title: Title,
+				innerHTML: '<span class="non-visual">' + Title + ' to Open</span>',
 				play: function(To, NavAIndex) {
 					if(O.SmartPhone) {
 						var URI = location.href.replace(/&wait=[^&]+/g, "");
@@ -1803,43 +2055,27 @@ C.weaveCartain = function() {
 					}
 					if(To) X["bibi"].To = To;
 					L.sayLoading();
-					this.onclick = function() { return false; };
-					sML.style(this, { opacity: 0, cursor: "default" });
+					this.removeTouchEventListener("tap");
+					sML.style(this, {
+						opacity: 0,
+						cursor: "default"
+					});
 					Param.onplay();
-				},
-				onclick: function(e) {
-					this.play();
-					sML.stopPropagation(e);
 				}
 			})
 		);
-		C.Cartain.PlayButton.innerHTML = '<span class="non-visual">' + C.Cartain.PlayButton.title + ' to Open</span>';
-	}
-
-	C.Cartain.createCatcher = function(Param) {
-		C.Cartain.Catcher = C.Cartain.appendChild(
-			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!',
-				onclick: function() {
-					if(!this.Input) this.Input = this.appendChild(
-						sML.create("input", { type: "file",
-							onchange: function(e) {
-								Param.onchange(e.target.files[0]);
-								C.Cartain.Catcher.style.opacity = 0;
-							}
-						})
-					);
-					this.Input.click();
-				}
-			})
-		);
-	}
+		sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
+			this.play();
+			sML.stopPropagation(e);
+		});
+	};
 
 	C.Cartain.Message.note = function(Note) {
 		C.Cartain.Message.innerHTML = Note;
 		return Note;
-	}
+	};
 
-}
+};
 
 
 C.createPanel = function() {
@@ -1852,8 +2088,6 @@ C.createPanel = function() {
 				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
 				this.State = 1;
 				C.Switches.Panel.toggleState(this.State);
-				sML.style(C.Panel, { transition: "0.2s ease-in" });
-				sML.style(R.Contents, { transition: "0.2s ease-in" });
 				sML.addClass(O.HTML, "panel-opened");
 				setTimeout(Cb, 250);
 				return this.State;
@@ -1862,8 +2096,6 @@ C.createPanel = function() {
 				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
 				this.State = 0;
 				C.Switches.Panel.toggleState(this.State);
-				sML.style(C.Panel, { transition: "0.2s ease-out" });
-				sML.style(R.Contents, { transition: "0.2s ease-out" });
 				sML.removeClass(O.HTML, "panel-opened");
 				setTimeout(Cb, 250);
 				return this.State;
@@ -1874,81 +2106,94 @@ C.createPanel = function() {
 		})
 	);
 
+};
+
+
+C.createPanelMisc = function() {
+
 	C.Panel.Misc = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-misc", innerHTML: O.getLogo({ Linkify: true }) }));
 
-	C.Panel.Navigation         = C.Panel.appendChild(                   sML.create("div", { id: "bibi-panel-navigation" }));
-	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(        sML.create("div", { id: "bibi-panel-navigation-item-box", onclick: function() { C.Panel.toggle(); } }));
-	C.Panel.Navigation.Item    = C.Panel.Navigation.ItemBox.appendChild(sML.create("div", { id: "bibi-panel-navigation-item" }));
+};
 
-	C.Panel.Menu = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu" }));
 
-	////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////
-	if(sML.UA.InternetExplorer < 12 || sML.UA.Opera < 15) return;
-	if(sML.UA.Gecko) return;
-	////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////
+C.createPanelNavigation = function() {
+
+	C.Panel.Navigation = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation" })
+	);
+	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item-box" })
+	);
+	C.Panel.Navigation.Item = C.Panel.Navigation.ItemBox.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item" })
+	);
+	if(!sML.OS.iOS && !sML.OS.Android) {
+		sML.addTouchEventObserver(C.Panel.Navigation.ItemBox).addTouchEventListener("tap", function(e) {
+			C.Panel.toggle();
+		});
+	}
+
+};
+
+
+C.createPanelMenu = function() {
+
+	C.Panel.Menu = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-menu" })
+	);
 
 	var Shape = {};
 	Shape.Item     = '<span class="bibi-shape bibi-shape-item"></span>';
 	Shape.Spread   = '<span class="bibi-shape bibi-shape-spread">' + Shape.Item + Shape.Item + '</span>';
-	Shape.Spreads  = '<span class="bibi-shape bibi-shape-spreads">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
-	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
-	Shape.SpreadsH = '<span class="bibi-shape bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
+	Shape.SpreadsS = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-single">' + Shape.Spread + '</span>';
+	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
+	Shape.SpreadsH = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 
-	C.Panel.Menu["book-display-mode"] = C.Panel.Menu.appendChild(sML.create("ul", { id: "book-display-mode" }));
-	C.Panel.Menu["book-display-mode"].Buttons = {
-		"all": C.Panel.Menu["book-display-mode"].appendChild(
-			sML.create("li", { className: "display-all", innerHTML: '<span class="bibi-icon bibi-icon-all" title="Display All">' + Shape.Spreads + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeBookDisplayMode("all");
-					});
-				}
-			})
+	C.Panel.Menu["view"] = C.Panel.Menu.appendChild(
+		sML.create("ul", { id: "bibi-panel-menu-view" })
+	);
+	C.Panel.Menu["view"].Buttons = {
+		"display-each": C.Panel.Menu["view"].appendChild(
+			sML.create("li", { className: "display-each",      innerHTML: '<span class="bibi-icon bibi-icon-each"       title="Paged View">'               + Shape.SpreadsS + '</span>' })
 		),
-		"each": C.Panel.Menu["book-display-mode"].appendChild(
-			sML.create("li", { className: "display-each", innerHTML: '<span class="bibi-icon bibi-icon-each" title="Display Each">' + Shape.Spread + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeBookDisplayMode("each");
-					});
-				}
-			})
-		)
-	}
-
-	C.Panel.Menu["spread-layout-axis"] = C.Panel.Menu.appendChild(sML.create("ul", { id: "spread-layout-axis" }));
-	C.Panel.Menu["spread-layout-axis"].Buttons = {
-		"vertical": C.Panel.Menu["spread-layout-axis"].appendChild(
-			sML.create("li", { className: "layout-vertical", innerHTML: '<span class="bibi-icon bibi-icon-vertical" title="Layout Vertically">' + Shape.SpreadsV + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeSpreadLayoutAxis("vertical");
-					});
-				}
-			})
+		"layout-horizontal": C.Panel.Menu["view"].appendChild(
+			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Scroll View (Horizontal)">' + Shape.SpreadsH + '</span>' })
 		),
-		"horizontal": C.Panel.Menu["spread-layout-axis"].appendChild(
-			sML.create("li", { className: "layout-horizontal", innerHTML: '<span class="bibi-icon bibi-icon-horizontal" title="Layout Horizontally">' + Shape.SpreadsH + '</span>',
-				onclick: function() {
-					C.Panel.toggle(function() {
-						R.changeSpreadLayoutAxis("horizontal");
-					});
-				}
-			})
+		"layout-vertical": C.Panel.Menu["view"].appendChild(
+			sML.create("li", { className: "layout-vertical",   innerHTML: '<span class="bibi-icon bibi-icon-vertical"   title="Scroll View (Vertical)">'   + Shape.SpreadsV + '</span>' })
 		)
-	}
+	};
+	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["display-each"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeView("paged");
+		});
+	});
+	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["layout-horizontal"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeView("scroll", "horizontal");
+		});
+	});
+	sML.addTouchEventObserver(C.Panel.Menu["view"].Buttons["layout-vertical"]).addTouchEventListener("tap", function() {
+		C.Panel.toggle(function() {
+			R.changeView("scroll", "vertical");
+		});
+	});
 
-	sML.each(C.Panel.Menu.getElementsByClassName("bibi-icon"), function() { this.innerHTML = '<span class="non-visual">' + this.title + '</span>' + this.innerHTML; });
+	sML.each(C.Panel.Menu.getElementsByClassName("bibi-icon"), function() {
+		this.innerHTML = '<span class="non-visual">' + this.title + '</span>' + this.innerHTML;
+	});
 
-}
+};
 
 
 C.createSwitches = function() {
 
 	if(C.Switches) C.Switches.innerHTML = "";
-	else           C.Switches = O.Body.appendChild(sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" }));
+	else {
+		C.Switches = O.Body.appendChild(
+			sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
+		);
+	}
 
 	var toggleState = function(State) {
 		this.State = typeof State == "number" ? State : Math.abs(this.State - 1);
@@ -1960,16 +2205,18 @@ C.createSwitches = function() {
 	}
 
 	C.Switches.Panel = C.Switches.appendChild(
-		sML.create("span", { className: "bibi-switch bibi-switch-panel",
+		sML.create("span", { className: "bibi-icon bibi-switch bibi-switch-panel",
 			State: 0,
 			Labels: [
 				{ ja: 'メニューを開く',   en: 'Open Menu'  },
 				{ ja: 'メニューを閉じる', en: 'Close Menu' }
 			],
-			toggleState: toggleState,
-			onclick: function() { return C.Panel.toggle(); }
+			toggleState: toggleState
 		})
 	);
+	sML.addTouchEventObserver(C.Switches.Panel).addTouchEventListener("tap", function() {
+		return C.Panel.toggle();
+	});
 
 	if((function() {
 		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
@@ -1979,77 +2226,92 @@ C.createSwitches = function() {
 		return false;
 	})()) {
 		sML.addClass(O.HTML, "fullscreen-enabled");
-		if(!O.WindowEmbeded) C.Switches.Fullscreen = C.Switches.appendChild(
-			sML.create("span", { className: "bibi-switch bibi-switch-fullscreen",
-				State: 0,
-				Labels: [
-					{ ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
-					{ ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
-				],
-				toggleState: toggleState,
-				enter: function() {
-					sML.requestFullscreen(O.HTML);
-					this.toggleState(1);
-				},
-				exit: function() {
-					sML.exitFullscreen();
-					this.toggleState(0);　　
-				},
-				toggle: function() {
-					return (!sML.getFullscreenElement() ? this.enter() : this.exit());
-				},
-				onclick: function() {
-					return this.toggle();
-				}
-			})
-		);
+		if(!O.WindowEmbedded) {
+			C.Switches.Fullscreen = C.Switches.appendChild(
+				sML.create("span", { className: "bibi-icon bibi-switch bibi-switch-fullscreen",
+					State: 0,
+					Labels: [
+						{ ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
+						{ ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
+					],
+					toggleState: toggleState,
+					enter: function() {
+						sML.requestFullscreen(O.HTML);
+						this.toggleState(1);
+					},
+					exit: function() {
+						sML.exitFullscreen();
+						this.toggleState(0);
+					},
+					toggle: function() {
+						return (!sML.getFullscreenElement() ? this.enter() : this.exit());
+					}
+				})
+			);
+			sML.addTouchEventObserver(C.Switches.Fullscreen).addTouchEventListener("tap", function() {
+				return this.toggle();
+			});
+		}
 	} else {
 		sML.addClass(O.HTML, "fullscreen-not-enabled");
 	}
 
 	sML.each(C.Switches.getElementsByClassName("bibi-switch"), function() { this.toggleState(0); });
 
-}
+};
 
 
 C.createArrows = function() {
 
 	if(C.Arrows) C.Arrows.innerHTML = "";
-	else C.Arrows = O.Body.appendChild(
-		sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
+	else {
+		C.Arrows = R.Content.appendChild(
+			sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
+		);
+	}
+
+	C.Arrows.Back = C.Arrows.appendChild(
+		sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",    DistanceToMove: -1 })
+	);
+	C.Arrows.Forward = C.Arrows.appendChild(
+		sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", DistanceToMove: +1 })
 	);
 
-	C.Arrows.Back    =   C.Arrows.appendChild(sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",    onclick: function() { R.page(-1); } }));
-	C.Arrows.Forward =   C.Arrows.appendChild(sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward", onclick: function() { R.page(+1); } }));
-
-	sML.each([C.Arrows.Back, C.Arrows.Forward], function() {
-		this.addEventListener("mouseover", function() { if(this.clickedTimer) clearTimeout(this.clickedTimer); sML.addClass(this, "shown"); });
-		this.addEventListener("mouseout",  function() { sML.removeClass(this, "shown"); });
-		this.addEventListener("click", function() {
-			sML.addClass(this, "shown");
-			var This = this;
-			if(this.clickedTimer) clearTimeout(this.clickedTimer);
-			this.clickedTimer = setTimeout(function() { sML.removeClass(This, "shown"); }, 500);
+	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
+		Arrow.addEventListener("mouseover", function() {
+			if(Arrow.Timer_tap) clearTimeout(Arrow.Timer_tap);
+			sML.addClass(Arrow, "shown");
+		});
+		Arrow.addEventListener("mouseout", function() {
+			sML.removeClass(Arrow, "shown");
+		});
+		sML.addTouchEventObserver(Arrow);
+		Arrow.addTouchEventListener("tap", function() {
+			((R.Columned || B.Package.Metadata["rendition:layout"] == "pre-paginated") ? R.page : R.scroll)(Arrow.DistanceToMove);
+		});
+		Arrow.addTouchEventListener("tap", function() {
+			var This = Arrow;
+			sML.addClass(This, "shown");
+			if(This.Timer_tap) clearTimeout(This.Timer_tap);
+			This.Timer_tap = setTimeout(function() {
+				sML.removeClass(This, "shown");
+			}, 500);
 		});
 	});
 
-}
+};
 
 
 C.listenKeys = function(e) {
 	if(!R.Started) return;
+	e.preventDefault();
 	var Window = (parent != window && parent.Bibi) ? parent : window;
 	Window.C.KeyCode = e.keyCode;
-	var Dir = null; //                                                        W                          N                          E                          S
-	/**/ if(S["spread-layout-direction"] == "ttb") switch(e.keyCode) {  case 37: Dir =  0; break;  case 38: Dir = -1; break;  case 39: Dir =  0; break;  case 40: Dir = +1; break;  }
-	else if(S["spread-layout-direction"] == "ltr") switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir =  0; break;  case 39: Dir = +1; break;  case 40: Dir =  0; break;  }
-	else if(S["spread-layout-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir =  0; break;  case 39: Dir = -1; break;  case 40: Dir =  0; break;  }
-	switch(Dir) {
-		case -1: return Window.R.page(-1);
-		case +1: return Window.R.page(+1);
-		case  0: return Window.C.Panel.toggle();
-	}
-}
+	var Dir = null; //                                                   W                          N                          E                          S
+	if(S["page-progression-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir = -1; break;  case 39: Dir = -1; break;  case 40: Dir = +1; break;  }
+	else                                         switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir = -1; break;  case 39: Dir = +1; break;  case 40: Dir = +1; break;  }
+	if(Dir) return Window.R.page(Dir);
+};
 
 
 
@@ -2077,23 +2339,15 @@ O.updateSetting = function(Setting) {
 		delete Setting.Reset;
 	}
 	for(var Property in Setting) S[Property] = Setting[Property];
+	if(!/^https?:\/\//.test(S["bookshelf"])) S["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + S["bookshelf"]);
 
-	// BackCompat
-	if(sML.UA.InternetExplorer < 11 || sML.UA.Opera < 15) {
-		S["book-display-mode"] = "all";
-		S["spread-layout-axis"] = "vertical";
-		S["page-size-format"] = "window";
-	}
-	if(sML.UA.Gecko) {
-		S["book-display-mode"] = "all";
-		S["spread-layout-axis"] = "vertical";
-		S["page-size-format"] = "window";
-	}
+	// Page Progression Direction
+	if(S["page-progression-direction"] == "rtl" && !O.VerticalTextEnabled && B.Package.Metadata["rendition:layout"] != "pre-paginated") S["page-progression-direction"] = "ltr";
 
 	// Spread Layout Axis
-	if(S["spread-layout-axis"] == "auto")       S["spread-layout-axis"]      = B.Package.Spine["page-progression-direction"];
-	if(S["spread-layout-axis"] == "default")    S["spread-layout-axis"]      = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
-	if(S["spread-layout-axis"] != "vertical")   S["spread-layout-axis"]      = "horizontal";
+	if(S["spread-layout-axis"] == "auto")     S["spread-layout-axis"] = B.Package.Spine["page-progression-direction"];
+	if(S["spread-layout-axis"] == "default")  S["spread-layout-axis"] = (B.Package.Metadata["rendition:layout"] == "pre-paginated") ? S["page-progression-direction"] : "vertical";
+	if(S["spread-layout-axis"] != "vertical") S["spread-layout-axis"] = "horizontal";
 
 	// Spread Layout Direction
 	if(S["spread-layout-axis"] == "vertical")   S["spread-layout-direction"] = "ttb";
@@ -2135,7 +2389,7 @@ O.updateSetting = function(Setting) {
 
 	return S;
 
-}
+};
 
 
 //==============================================================================================================================================
@@ -2163,8 +2417,8 @@ O.readExtra = function() {
 		X["bibi"] = {};
 	} else {
 		X["bibi"] = { Data: X["bibi"] };
-		sML.each(X["bibi"].Data.replace(" ", "").split(","), function() {
-			var KnV = this.split(":"); if(!KnV[0]) return;
+		X["bibi"].Data.replace(" ", "").split(",").forEach(function(XBibiData) {
+			var KnV = XBibiData.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
 					case "all": case "each":                          KnV[1] = KnV[0], KnV[0] = "book-display-mode";  break;
@@ -2187,8 +2441,8 @@ O.readExtra = function() {
 		X["pipi"] = {};
 	} else {
 		X["pipi"] = { Data: X["pipi"] };
-		sML.each(X["pipi"].Data.replace(" ", "").split(","), function() {
-			var KnV = this.split(":"); if(!KnV[0]) return;
+		X["pipi"].Data.replace(" ", "").split(",").forEach(function(XPipiData) {
+			var KnV = XPipiData.split(":"); if(!KnV[0]) return;
 			if(!KnV[1]) {
 				switch(KnV[0]) {
 					case "wait":      KnV[1] = true, KnV[0] = "wait";      break;
@@ -2210,12 +2464,12 @@ O.readExtra = function() {
 
 	if(X["pipi"]["poster"]) {
 		sML.addClass(O.HTML, "with-poster");
-		O.HTML.style.backgroundImage = "url(" + X["pipi"]["poster"] + ")";
+		O.Body.style.backgroundImage = "url(" + X["pipi"]["poster"] + ")";
 	}
 
 	if(!X["bibi"].To && X["epubcfi"]) X["bibi"].To = O.getEPUBCFITarget(X["epubcfi"]);
 
-}
+};
 
 
 O.parseHash = function() {
@@ -2237,20 +2491,20 @@ O.parseHash = function() {
 		}
 	})();
 	return Fragments;
-}
+};
 
 
 O.getBibitoTarget = function(BibitoString) {
 	if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
 	if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
 	var ElementSelector = "", InE = BibitoString.split("-"), ItemIndex = parseInt(InE[0]), ElementIndex = InE[1] ? InE[1] : null;
-	if(ElementIndex) sML.each(ElementIndex.split("."), function() { ElementSelector += ">*:nth-child(" + this + ")"; });
+	if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
 	return {
 		BibitoString: BibitoString,
 		ItemIndex: ItemIndex - 1,
 		Element: (ElementSelector ? "body" + ElementSelector : null)
 	};
-}
+};
 
 
 O.getEPUBCFITarget = function(CFIString) {
@@ -2259,14 +2513,14 @@ O.getEPUBCFITarget = function(CFIString) {
 	var ItemIndex = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
 	if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
 		ElementSelector = "";
-		sML.each(CFI.Path.Steps[2].Steps, function(i) {
-			if(this.Type == "IndirectPath") { IndirectPath = this; return false; }
-			if(this.Type == "TermStep")     { TermStep     = this; return false; }
-			if(this.Index % 2 == 1) {
-				TextNodeIndex = this.Index - 1;
+		CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
+			if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
+			if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
+			if(Step.Index % 2 == 1) {
+				TextNodeIndex = Step.Index - 1;
 				if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
 			}
-			if(TextNodeIndex === null) ElementSelector = this.ID ? "#" + this.ID : ElementSelector + ">*:nth-child(" + (this.Index / 2) + ")";
+			if(TextNodeIndex === null) ElementSelector = Step.ID ? "#" + Step.ID : ElementSelector + ">*:nth-child(" + (Step.Index / 2) + ")";
 		});
 		if(ElementSelector && /^>/.test(ElementSelector)) ElementSelector = "html" + ElementSelector;
 		if(!ElementSelector) ElementSelector = null;
@@ -2280,7 +2534,7 @@ O.getEPUBCFITarget = function(CFIString) {
 		TermStep: TermStep,
 		IndirectPath: IndirectPath
 	};
-}
+};
 
 
 //==============================================================================================================================================
@@ -2292,16 +2546,19 @@ O.getEPUBCFITarget = function(CFIString) {
 
 
 O.getLogo = function(Setting) {
+	var Logo = sML.UA.InternetExplorer < 9 ? [
+		'<span class="bibi-type-B">B</span>',
+		'<span class="bibi-type-i">i</span>',
+		'<span class="bibi-type-B">B</span>',
+		'<span class="bibi-type-slash">/</span>',
+		'<span class="bibi-type-i">i</span>'
+	].join("") : '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo.png" />';
 	return [
 		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
-			'<span class="bibi-type-B">B</span>',
-			'<span class="bibi-type-i">i</span>',
-			'<span class="bibi-type-B">B</span>',
-			'<span class="bibi-type-slash">/</span>',
-			'<span class="bibi-type-i">i</span>',
+		Logo,
 		'</', (Setting.Linkify ? 'a' : 'span') , '>'
 	].join("");
-}
+};
 
 
 O.Log = ((!parent || parent == window) && console && console.log);
@@ -2310,42 +2567,44 @@ O.Log = ((!parent || parent == window) && console && console.log);
 O.log = function(Lv, Message) {
 	if(!O.Log || !Message || typeof Message != "string") return;
 	O.showStatus(Message);
-	// if(Lv == 2) C.Cartain.Message.note(Message);
-	     if(Lv == 0) Message = "[ERROR] " + Message;
-	else if(Lv == 1) Message = "---------------- " + Message + " ----------------";
-	else if(Lv == 2) Message = Message;
-	else if(Lv == 3) Message = " - " + Message;
-	else if(Lv == 4) Message = "   . " + Message;
+	switch(Lv) {
+		case 0: Message = "[ERROR] " + Message; break;
+		case 1: Message = "---------------- " + Message + " ----------------"; break;
+		case 2: Message = Message; break;
+		case 3: Message = " - " + Message; break;
+		case 4: Message = "   . " + Message; break;
+	}
 	console.log('BiB/i: ' + Message);
-}
+};
 
 
 O.showStatus = function(Message) {
 	window.status = 'BiB/i: ' + Message;
+	if(C.Cartain && C.Cartain.Message) C.Cartain.Message.note(Message);
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
-}
+};
 
 
 O.isBin = function(T) {
 	return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(T);
-}
+};
 
 
 O.getPath = function() {
-	return (function(Arguments) {
-		for(var Path = Arguments[0], L = Arguments.length, i = 1; i < L; i++) Path += "/" + Arguments[i];
-		return Path;
-	})(arguments).replace(
-		/\/\.\//g, "/"
-	).replace(
+	var Path = arguments[0]; for(var L = arguments.length, i = 1; i < L; i++) Path += "/" + arguments[i];
+	while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(
 		/[^\/]+\/\.\.\//g, ""
-	).replace(
-		/\/\//g, "/"
+	);
+	while(/\/\.\//.test(Path)) Path = Path.replace(
+		/\/\.\//g, "/"
+	);
+	return Path.replace(
+		/\/+/g, "/"
 	).replace(
 		/^\//, ""
 	);
-}
+};
 
 
 O.toBibiXML = function(XML) {
@@ -2358,7 +2617,7 @@ O.toBibiXML = function(XML) {
 	).replace(
 		/<([\w\d_]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	);
-}
+};
 
 
 O.ContentTypeList = {
@@ -2391,6 +2650,3 @@ O.ContentTypeList = {
 
 
 sML.ready(O.welcome);
-
-
-

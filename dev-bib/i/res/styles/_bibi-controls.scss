@@ -1,0 +1,683 @@
+// ================================================================================
+// + Controls
+// --------------------------------------------------------------------------------
+
+
+// - Cartain
+// --------------------------------------------------------------------------------
+
+div#bibi-cartain {
+	@include box-sizing(border-box);
+	overflow: hidden;
+	display: block;
+	position: fixed;
+	z-index: 2000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	font-size: 15px;
+	color: white;
+	//background: rgb(216,214,212);
+	//background: rgb(248,248,244);
+	opacity: 1;/*
+	p#bibi-cartain-message {
+		padding-top: 30%;
+		line-height: 40px;
+		font-size: 24px;
+		text-align: center;
+		font-weight: bold;
+		color: rgb(96,96,96);
+		//text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
+	}*/
+	html.panel-opened & {
+		@include transition(.2s ease-in);
+		@include filter(blur(4px));
+		opacity: 0.75;
+	}
+	html.panel-opened.InternetExplorer & {
+		opacity: 0.25;
+	}
+}
+
+
+// - Cartain > H1, UL
+// --------------------------------------------------------------------------------
+
+div#bibi-cartain h1,
+div#bibi-cartain ul {
+	overflow: hidden;
+	width: 0;
+	height: 0;
+}
+
+
+// - Cartain > Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-cartain-cover {
+	overflow: hidden;
+	position: absolute;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	@include box-sizing(border-box);
+	border: solid transparent;
+	border-width: 16px 8px 32px;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	@include transition(opacity 0.5s linear);
+	background: transparent no-repeat center center;
+	@include background-size(contain);
+//	html.page-ltr & { background-position: 40% center; }
+//	html.page-rtl & { background-position: 60% center; }
+	p {
+		opacity: 0;
+	}
+	&.without-cover-image{
+		opacity: 1;
+		p, &:after {
+			display: block;
+			position: absolute;
+			margin: auto;
+			left: -100%;
+			top: -100%;
+			right: -100%;
+			bottom: -100%;
+		}
+		p {
+			z-index: 2;
+			width: 100%;
+			height: 1.2em;
+			line-height: 1.2;
+			font-weight: bold;
+			color: white;
+			text-align: center;
+			text-shadow: 0 0 4px rgb(128,128,128);
+			opacity: 1;
+			strong, em, span {
+				display: block;
+			}
+			strong {
+				margin-top: -1em;
+				font-size: 20px;
+			}
+			em {
+				margin-top: .75em;
+				font-size: 16px;
+			}
+			span {
+				margin-top: .75em;
+				font-size: 12px;
+			}
+		}
+		&:after {
+			@include font-icon("ElegantIcons");
+			content: $ElegantIcons_icon_book;
+			z-index: 1;
+			width: 128px;
+			height: 128px;
+			line-height: 1;
+			font-size: 128px;
+			text-align: center;
+			vertical-align: middle;
+			color: rgba(255,255,255,0.25);
+		}
+	}
+}
+
+
+// - Cartain > Catcher, PlayButton
+// --------------------------------------------------------------------------------
+
+p#bibi-cartain-catcher,
+p#bibi-cartain-playbutton {
+	@include box-sizing(border-box);
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	margin: auto;
+	width: 100%;
+	height: 100%;
+	@include transition(0.2s linear);
+	&:before, &:after {
+		@include box-sizing(border-box);
+		display: block;
+		position: absolute;
+		left: -100%;
+		top: -100%;
+		right: -100%;
+		bottom: -100%;
+		margin: auto;
+		vertical-align: middle;
+		text-align: center;
+		color: rgb(128,128,128);
+		@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
+		@include font-icon("ElegantIcons");
+		//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
+		//text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
+	}
+}
+
+p#bibi-cartain-catcher {
+	cursor: pointer;
+	&:before, &:after {
+		color: rgba(255,255,255,0.5);
+	}
+	&:before {
+		content: "";
+		border: dashed 10px;
+		border-radius: 30px;
+		width: 88%;
+		height: 80%;
+	}
+	&:after {
+	 	$size: 140px;
+		content: $ElegantIcons_icon_book;
+		width: $size;
+		height: $size;
+		line-height: $size;
+		font-size: $size;
+	}
+	html.dragenter &,
+	&:active {
+		&:before, &:after {
+			color: white;
+		}
+		&:after {
+			@include transform(scale(1.1));
+		}
+	}
+	input {
+		visibility: hidden;
+	}
+}
+
+p#bibi-cartain-playbutton {
+	cursor: pointer;
+	&:after {
+	 	$size: 69px;
+		content: $ElegantIcons_arrow_triangle-right_alt2;
+		z-index: 2;
+		width: $size;
+		height: $size;
+		line-height: $size;
+		font-size: $size;
+		color: rgb(128,128,128);
+		//@include text-stroke(4px white);
+	}
+	$after: 8px;
+	html.page-ttb &:after {
+		content: $ElegantIcons_arrow_triangle-down_alt2;
+		left: auto;
+		top: auto;
+		bottom: $after;
+		margin-top: 0;
+		@include transform-origin_(50% 100%);
+	}
+	html.page-rtl &:after {
+		content: $ElegantIcons_arrow_triangle-left_alt2;
+		left: $after;
+		margin-left: 0;
+		@include transform-origin_(0 50%);
+	}
+	html.page-ltr &:after {
+		content: $ElegantIcons_arrow_triangle-right_alt2;
+		left: auto;
+		right: $after;
+		margin-left: 0;
+		@include transform-origin_(100% 50%);
+	}
+	&:hover {
+		&:after {
+			color: white;
+			@include transform(scale(1.5));
+		}
+	}
+}
+
+
+// - Cartain > Mark
+// --------------------------------------------------------------------------------
+
+div#bibi-cartain-mark {
+	position: absolute;
+	display: none;
+	z-index: 100;
+	left: 50%;
+	top: 50%;
+	margin: -36px -36px 0;
+	width: 72px;
+	height: 72px;
+	font-size: 20px;
+	//color: rgba(255,255,255,0.64);
+	//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
+	//text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
+	span {
+		display: block;
+		position: absolute;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		//box-shadow: 0 0 2px black;
+		$background-color: rgb(255,255,255);
+		//box-shadow: 0 0 2px rgba(0,0,0,0.25);
+		&.dot1 { left: 32px; top:  0px; background: darken($background-color, 100% * 0/4); }
+		&.dot2 { left: 54px; top:  8px; background: darken($background-color, 100% * 0/4); }
+		&.dot3 { left: 64px; top: 32px; background: darken($background-color, 100% * 1/4); }
+		&.dot4 { left: 54px; top: 54px; background: darken($background-color, 100% * 3/4); }
+		&.dot5 { left: 32px; top: 64px; background: darken($background-color, 100% * 3/4); }
+		&.dot6 { left:  8px; top: 54px; background: darken($background-color, 100% * 1/4); }
+		&.dot7 { left:  0px; top: 32px; background: darken($background-color, 100% * 0/4); }
+		&.dot8 { left:  8px; top:  8px; background: darken($background-color, 100% * 0/4); }
+		& { background: rgba(0,0,0,0.5) !important; }
+	}
+	div#bibi-cartain.animate & {
+		display: block;
+		@include animation(loading 1.5s ease-in-out 0s infinite normal);
+	}
+}
+@include keyframes(loading) {
+	  0% { @include transform(rotate(  0deg) scale(0.50)); @include filter(blur(0px)); }
+	 25% { @include transform(rotate(180deg) scale(1.00)); @include filter(blur(0px)); }
+	 50% { @include transform(rotate(360deg) scale(0.50)); @include filter(blur(0px)); }
+	 75% { @include transform(rotate(540deg) scale(1.00)); @include filter(blur(0px)); }
+	100% { @include transform(rotate(720deg) scale(0.50)); @include filter(blur(0px)); }
+}
+
+
+// - Cartain > Powered, Message
+// --------------------------------------------------------------------------------
+
+p#bibi-cartain-powered,
+p#bibi-cartain-message {
+	@include box-sizing(border-box);
+	position: absolute;
+	bottom: 0;
+	padding: 0 8px;
+	width: 100%;
+	height: 24px;
+	line-height: 32px;
+	color: rgb(96,96,96);
+	small {
+		font-size: 0.75em;
+	}
+	a {
+		//font-weight: bold;
+		color: inherit;
+		text-decoration: none;
+		@include transition(0.25s linear);
+		&:hover {
+			color: rgb(160,160,160);
+		}
+	}
+}
+p#bibi-cartain-powered {
+	z-index: 999;
+	padding-top: 2px;
+	text-align: center;
+	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
+	a.bibi-logo {
+		display: inline-block;
+		position: relative;
+		color: black;
+		opacity: 0.48;
+		img {
+			width: auto;
+			height: 16px;
+			vertical-align: top;
+		}
+		&:after {
+			content: "";
+			position: absolute;
+			top: 16px;
+			left: 50%;
+			margin-left: -24px;
+			display: block;
+			width: 48px;
+			height: 1px;
+			background: #84807c;
+		}
+		&:hover {
+			color: white;
+			opacity: 1;
+		}
+		div#bibi-cartain.animate & {
+			opacity: 0;
+		}
+	}
+}
+p#bibi-cartain-message {
+	z-index: 1000;
+	padding-top: 0px;
+	text-align: center;
+	display: none;
+	font-size: 12px;
+	font-weight: bold;
+	text-indent: .5em;
+	text-transform: uppercase;
+	opacity: 0;
+	@include transition(opacity .15s linear);
+	html.wait-please & {
+		display: block;
+		opacity: 1;
+	}
+	div#bibi-cartain.animate & {
+		opacity: 1;
+		@include animation(fade .2s linear 0 infinite normal);
+	}
+}
+@include keyframes(fade) {
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
+}
+
+
+// - Arrows (div#bibi-arrows)
+// --------------------------------------------------------------------------------
+
+div#bibi-arrows {
+	div.bibi-arrow {
+		overflow: hidden;
+		position: fixed;
+		z-index: 1000;
+		$start: 10%;
+		$breadth: 80%;
+		$length: 50px;
+		line-height: 1;
+		opacity: 0; &.shown { opacity: 0.8; }
+		@include transition(opacity 0.2s linear);
+		html.display-all.spread-vertical &                        { left: $start; width: $breadth; height: $length; }
+		html.display-all.spread-horizontal &, html.display-each & { top:  $start; width: $length;  height: $breadth; }
+		&:before {
+			display: block;
+			position: absolute;
+			$start: 50%;
+			$margin-start: -.5em;
+			width: 1em;
+			height: 1em;
+			font-size: 80px;
+			text-align: center;
+			vertical-align: middle;
+			line-height: 1em;
+			color: rgba(96,96,96,0.75);
+			$transform_scaleB: 1.5;
+			$transform_scaleL: 1.0;
+			@include font-icon("ElegantIcons");
+			html.display-all.spread-vertical &                        { left: $start; margin-left: $margin-start; @include transform(scale($transform_scaleB, $transform_scaleL)); }
+			html.display-all.spread-horizontal &, html.display-each & { top:  $start; margin-top:  $margin-start; @include transform(scale($transform_scaleL, $transform_scaleB)); }
+		}
+		&#bibi-arrow-back {
+			$before: 0;
+			html.display-all.spread-ttb &                               { top:    $before; cursor: n-resize; }
+			html.display-all.spread-btt &                               { bottom: $before; cursor: s-resize; }
+			html.display-all.spread-ltr &, html.display-each.page-ltr & { left:   $before; cursor: w-resize; }
+			html.display-all.spread-rtl &, html.display-each.page-rtl & { right:  $before; cursor: e-resize; }
+			&:before {
+				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
+				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
+				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
+				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
+			}
+		}
+		&#bibi-arrow-forward {
+			$after: 0;
+			html.display-all.spread-ttb &                               { bottom: $after; cursor: s-resize; }
+			html.display-all.spread-btt &                               { top:    $after; cursor: n-resize; }
+			html.display-all.spread-ltr &, html.display-each.page-ltr & { right:  $after; cursor: e-resize; }
+			html.display-all.spread-rtl &, html.display-each.page-rtl & { left:   $after; cursor: w-resize; }
+			&:before {
+				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
+				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
+				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
+				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
+			}
+		}
+	}
+}
+
+
+// - Switches (div#bibi-switches)
+// --------------------------------------------------------------------------------
+
+div#bibi-switches {
+	html.wait-please & {
+		display: none;
+	}
+	.bibi-icon {
+		position: fixed;
+		z-index: 4000;
+		top: 4px;
+		&.bibi-switch-panel {
+			left: 4px;
+		}
+		&.bibi-switch-fullscreen {
+			right: 4px;
+		}
+	}
+}
+
+
+
+// - Panel (div#bibi-panel)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel {
+	@include box-sizing(border-box);
+	overflow: hidden;
+	z-index: 3000;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	//background: rgba(240,238,236,0.8);
+	//background: rgba(254,252,250,0.9);
+	background: rgba(248,246,244,0.9);
+	opacity: 0;
+	@include transition(0.2s ease-out);
+	@include transform(translateY(-100%));
+	html.panel-opened & { @include transform(none !important); @include transition(0.2s ease-in); opacity: 1 !important; }
+}
+
+
+// - Panel > Menu (div#bibi-panel-menu)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-menu {
+	@include box-sizing(border-box);
+	position: absolute;
+	z-index: 10;
+	top: 0;
+	left: 0;
+	padding-left: 35px;
+	border-bottom: solid 1px rgba(255,255,255,0.25);
+	width: 100%;
+	height: 36px;
+	color: white;
+	background: rgba(255,255,255,0.75);
+	ul {
+		padding: 4px;
+		height: 27px;
+		//html.preparing & { display: none; }
+		li {
+			position: relative;
+			float: left;
+			margin-left: 5px;
+			opacity: 1; //&.disabled { opacity: 0.5; }
+			&:first-child { margin-left: 0; }
+		}
+	}/*
+	ul#spread-layout-axis {
+		html.spread-vertical & li.layout-vertical,
+		html.spread-horizontal & li.layout-horizontal,
+		html.display-each & li {
+			display: none;
+		}
+	}*/
+}
+
+
+// - Panel > Misc (div#bibi-panel-misc)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-misc {
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 100;
+	top: 0;
+	padding: 4px;
+	border: solid 0 rgba(255,255,255,0.1);
+	width: 36px;
+	height: 36px;
+	line-height: 30px;
+	text-align: right;
+	font-size: 14px;
+	color: white;
+	html.window-not-embedded.fullscreen-not-enabled & {
+		right: 4px;
+	}
+	html.window-not-embedded.fullscreen-enabled &,
+	html.window-embedded.fullscreen-not-enabled & {
+		right: 35px;
+	}
+	html.window-embedded.fullscreen-enabled & {
+		right: 66px;
+	}
+	a {
+		display: inline-block;
+		text-decoration: none;
+		color: black;
+		opacity: 0.64;
+		@include transition(.15s linear);
+		img {
+			margin-top: 10px;
+			width: auto;
+			height: 15px;
+			vertical-align: top;
+		}
+		&:hover {
+			color: white;
+			opacity: 1;
+		}
+	}
+}
+
+
+// - Panel > Navigation (div#bibi-panel-navigation)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-navigation {
+	@include box-sizing(border-box);
+}
+	div#bibi-panel-navigation-item-box {
+		@include box-sizing(border-box);
+		position: absolute;
+		padding: 52px 35px;
+		width: 100%;
+		height: 100%;
+		-webkit-overflow-scrolling: touch;
+		html.page-ltr & { overflow-x: hidden; overflow-y: scroll; }
+		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; }
+		&::-webkit-scrollbar { width: 8px; height: 8px; }
+		&::-webkit-scrollbar-track { background: transparent; }
+		&::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.75); border-radius: 3px; }
+	}
+		div#bibi-panel-navigation-item {
+			@include box-sizing(border-box);
+			color: rgb(128,128,128);
+//			html.display-all.spread-ltr &, html.display-each.page-ltr & { @include column-width(240px); @include column-gap(20px); }
+			html.page-rtl & { @include writing-mode(vertical-rl); }
+			>*:first-child,
+			>*:first-child >*:first-child,
+			>*:first-child >*:first-child >*:first-child {
+				html.page-ltr & { margin-top: 0 !important; }
+				html.page-rtl & { margin-right: 0 !important; }
+			}
+			nav {
+				$margin-before: 2em;
+				$margin-after: 1em;
+				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+				h1, h2, h3, h4, h5, h6 {
+					$margin-before: 1em;
+					$margin-after: .5em;
+					line-height: 1.4;
+					font-size: 18px;
+					font-weight: bold;
+					color: rgb(144,144,144);
+					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+				}
+				ul, ol {
+					$margin-before: .5em;
+					$margin-after: .75em;
+					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+					li {
+						$margin-before: .25em;
+						$margin-after: .25em;
+						line-height: 1.2;
+						font-size: 16px;
+						color: rgb(160,160,160);
+						html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+						html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+						ul, ol {
+							position: relative;
+							$margin-before: .25em;
+							$margin-after: .55em;
+							html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+							html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+							&:before {
+								content: "";
+								display: block;
+								position: absolute;
+								$start: .175em;
+								$before: 0;
+								$breadth: 4px;
+								$length: 100%;
+								background: white;
+								html.page-ltr & { left: $start; top: $before; width: $breadth; height: $length; }
+								html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
+							}
+							li {
+								$margin-before: .125em;
+								$margin-after: .25em;
+								$margin-start: 1em;
+								font-size: 14px;
+								html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
+								html.page-rtl & { margin: $margin-start $margin-before 0 $margin-after; }
+							}
+						}
+					}
+				}
+				a {
+					border-style: solid ;
+					border-color: transparent;
+					$border-width: 1px;
+					color: rgb(64,64,64);
+					text-decoration: none;
+					@include transition(linear .1s);
+					html.page-ltr & { border-bottom-width: $border-width; }
+					html.page-rtl & { border-right-width: $border-width; }
+					&:hover {
+						border-color: navy;
+						color: steelblue;
+						@include transition(linear .05s);
+					}
+					&.bibi-navigation-inactive-link {
+						color: inherit !important;
+						border: none 0 !important;
+						cursor: default !important;
+						&:hover {
+							color: inherit !important;
+						}
+					}
+				}
+			}
+		}

@@ -6,6 +6,7 @@ EPUB Reader on your website.
 1. How to setup & read/publish EPUB books (for users)
 2. How to arrange development environment (for developers)
 3. License
+4. Special Thanks
 
 
 
@@ -56,7 +57,7 @@ You may also read EPUB books as unzipped archives, or by page-by-page access, by
 This is recommended because it accelarates reading experience of your readers.
 
 1. Unzip an EPUB book,
-    1. Change the file extension from `.epub` to `.zip`(`my-book.epub` -> `my-book.zip`) and then
+    1. Change the file extension from `.epub` to `.zip` (`my-book.epub` -> `my-book.zip`) and then
     2. unzip the file with some tool.
 2. Upload it to `bib/bookshelf` directory, and
 3. Visit `http://your.web.site/bib/i/?book=my-book` (note that it has *No Extension*) or embed code for it.
@@ -76,7 +77,7 @@ This is recommended because it accelarates reading experience of your readers.
 
 1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
 2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
-3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system && gem install bundler`
+3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system` and `$ gem install bundler`
 4. [Grunt](http://gruntjs.com/) - how to install: `$ npm install -g grunt-cli` ... (“[Getting Started](http://gruntjs.com/getting-started)”)
 
 
@@ -84,19 +85,25 @@ This is recommended because it accelarates reading experience of your readers.
 
 1. Clone this repository. (https://github.com/satorumurmur/bibi/)
 2. `$ cd <the repository>`
-3. `$ bundle install --path=vendor/bundle` then `vendor/bundle` directory including RubyGems(Compass and dependent gems) will be installed.
-4. `$ npm install` then `npm-modules` directory including modules will be installed.
+3. `$ bundle install --path=vendor/bundle` -> `vendor/bundle` directory including RubyGems (Compass and dependent gems) is installed.
+4. `$ npm install` -> `npm-modules` directory including modules is installed.
 
 
 ### Development
 
-1. `$ grunt` and start watching changes of files, and make these files:
-    * `bib/i/res/scripts/bibi.js` ... JSZip.js + base64.js + easing.js + sML.js + npo.src.js + bibi.core.js + bibi.epubcfi.js
+1. `$grunt build` and renew these files. Or `$ grunt` and start watching changes of files for development, and renew these files:
+    * `bib/i/res/scripts/bibi.js`
     * `bib/i/res/styles/bibi.css`
-    * `bib/i/res/styles/pipi.css` ... (formerly `bib/i.css`, for embedding BiB/i to webpage)
+    * `bib/i.js`
+    * `bib/i.css`
 2. Edit files.
-    * JavaScript sources of the `bib/i/res/scripts/bibi.js` are in `bibi-dev/res/scripts/lib/` and `bibi-dev/res/scripts/src/`.
-    * SCSS sources of the `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `bibi-dev/res/styles/src/`.
+    * SCSS source files of `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `dev-bib/i/res/styles/`.
+    * JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
+    * JavaScript source file of `bib/i.js` is `dev-bib/i/res/scripts/pipi.js`.
+3. Run web server for dynamic-compiling.
+    * `$ bundle exec rackup`
+    * A server starts listening port 9292 by default.
+    * The server returns compiled CSS of dev-bib/styles/*.scss to request.
 
 Following files are not watched or processed by Grunt tasks:
 
@@ -117,18 +124,25 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 ### BiB/i
 
-* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/
+* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
 * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
-### BiB/i is including these softwares
+### BiB/i is including and powered by these open source softwares:
 
 * [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
 * [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
+* [Hammer.js](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
 * [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
-* [Font Awesome](http://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy (Licensed under SIL Open Font License.)
-* [Foundation Icons](http://zurb.com/playground/foundation-icon-fonts-3) ... &copy; ZURB (Licensed under the MIT license.)
+* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and the MIT license.)
 
 
+
+
+4. Special Thanks
+--------------------------------------------------------------------------------------------------------------------------------
+
+* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
+* Shunsuke Ito ... [@shunito](https://github.com/shunito)
