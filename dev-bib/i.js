@@ -39,7 +39,7 @@
 			for(var Attribute in Properties) Element[Attribute] = Properties[Attribute];
 			return Element;
 		};
-		var BibiPath = As[0].href.replace(/^(.+?bib\/i)\/.+$/, "$1");
+		var BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
 		var FullScreenEnabled = (function(B) {
 			if(B.requestFullscreen       || B.requestFullScreen)       return true;
 			if(B.webkitRequestFullscreen || B.webkitRequestFullScreen) return true;
@@ -78,7 +78,7 @@
 			};
 		}
 		document.getElementsByTagName("head")[0].appendChild(
-			create("link", { rel: "stylesheet", id: "bibi-css", href: BibiPath + "/res/styles/pipi.css" })
+			create("link", { rel: "stylesheet", id: "bibi-css", href: BibiPath + ".css" })
 		);
 		window["bibi-pipi"].Holders = [];
 		for(var L = As.length, i = 0; i < L; i++) {

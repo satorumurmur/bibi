@@ -12,12 +12,12 @@ map '/dev-bib/i/res/styles' do
 end
 
 map '/dev-bib/i/res/images' do
-  environment.append_path 'bib/i/res/fonts'
+  environment.append_path 'bib/i/res/images'
   run environment
 end
 
 map '/dev-bib/i/res/fonts' do
-  environment.append_path 'bib/i/res/images'
+  environment.append_path 'bib/i/res/fonts'
   run environment
 end
 

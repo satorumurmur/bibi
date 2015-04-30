@@ -195,25 +195,26 @@
 
 .bibi-icon {
 	$color_label: rgb(132,128,124);
-	border-color: rgba(66,64,62,.5);
-	background: rgba(255,255,255,0.8);
+	border-color: rgba(66,64,62,.5) !important;
+	background: rgba(255,255,255,0.8) !important;
 //	opacity: .64;
+	@include transition(0.15s linear);
 	html.panel-opened & {
-//		opacity: 1;
+//		opacity: 1 !important;
 	}
 	&:before, &:after {
-		color: $color_label;
+		color: $color_label !important;
 	}
 	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
 		border-bottom-color: lighten($color_label, 20%) !important;
 		background: $color_label !important;
 	}
 	span.bibi-shape-spreads {
-		opacity: 0.8;
+		opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(164,160,156);
-				background: white;
+				border-color: rgb(164,160,156) !important;
+				background: white !important;
 			}
 		}
 	}
@@ -221,21 +222,21 @@
 
 .bibi-icon:hover {
 	$color_label: white;
-	background: rgba(132,128,124,.75);
-	opacity: 1;
+	background: rgba(132,128,124,.75) !important;
+	opacity: 1 !important;
 	&:before, &:after {
-		color: $color_label;
+		color: $color_label !important;
 	}
 	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
 		border-bottom-color: darken($color_label, 20%) !important;
 		background: $color_label !important;
 	}
 	span.bibi-shape-spreads {
-		opacity: 1;
+		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: white;
-				background: rgb(164,160,156);
+				border-color: white !important;
+				background: rgb(164,160,156) !important;
 			}
 		}
 	}
@@ -245,15 +246,15 @@ html.display-each .bibi-icon-each,
 html.display-all.spread-horizontal .bibi-icon-horizontal,
 html.display-all.spread-vertical .bibi-icon-vertical {
 	// ON
-	cursor: default;
-	background: rgba(132,128,124,.33);
-	opacity: 1;
+	cursor: default !important;
+	background: rgba(132,128,124,.33) !important;
+	opacity: 1 !important;
 	span.bibi-shape-spreads {
-		opacity: 1;
+		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(164,160,156);
-				background: white;
+				border-color: rgb(164,160,156) !important;
+				background: white !important;
 			}
 		}
 	}

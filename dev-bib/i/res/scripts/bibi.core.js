@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu April 16 22:07:00 2015 +0900 */ Bibi = { Version: "0.998.0-pb", Build: 20150416.0 };
+ * - Fri May 1 00:43:00 2015 +0900 */ Bibi = { Version: "0.998.0-pb2", Build: 20150501.0 };
 
 
 
@@ -69,18 +69,18 @@ O.welcome = function() {
 	}
 
 	if(parent == window) {
-		O.HTML.className = O.HTML.className + " window-not-embeded";
-		O.WindowEmbeded = 0;
+		O.HTML.className = O.HTML.className + " window-not-embedded";
+		O.WindowEmbedded = 0;
 	} else {
-		O.HTML.className = O.HTML.className + " window-embeded";
+		O.HTML.className = O.HTML.className + " window-embedded";
 		try {
 			if(location.host == parent.location.host) {
-				O.WindowEmbeded = 1;
-				O.HTML.className = O.HTML.className + " window-embeded-sameorigin";
+				O.WindowEmbedded = 1;
+				O.HTML.className = O.HTML.className + " window-embedded-sameorigin";
 			}
 		} catch(e) {
-			O.WindowEmbeded = -1;
-			O.HTML.className = O.HTML.className + " window-embeded-crossorigin";
+			O.WindowEmbedded = -1;
+			O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
 		}
 	}
 
@@ -184,7 +184,7 @@ L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	var XHR, Document;
 	if(!B.Zipped) {
-		var getDocument = L.download("../bookshelf/" + B.Name + "/" +  Path).then(function(ResolvedXHR) {
+		var getDocument = L.download(S["bookshelf"] + B.Name + "/" +  Path).then(function(ResolvedXHR) {
 			XHR = ResolvedXHR;
 			if(!IsXML) Document = XHR.responseXML;
 			return Document;
@@ -216,80 +216,99 @@ L.openDocument = function(Path, Option) {
 L.getBook = function(BookFileName) {
 
 	var loadFile = function(BookFile) {
-		if(!BookFile.size || !/\.epub$/i.test(BookFile.name)) {
+		BookFileName = BookFile.name;
+		if(!BookFile.size || !/\.epub$/i.test(BookFileName)) {
 			C.Cartain.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>. Drop into this window.');
 		} else {
 			X = { book: "", bibi: {}, pipi: {} };
-			L.initialize();
+			L.initialize(BookFileName);
 			L.sayLoading();
-			O.log(2, 'Fetching EPUB...');
-			O.log(3, '"' + BookFile.name + '"');
+			O.log(2, 'Loading EPUB...');
+			O.log(3, BookFileName);
 			sML.edit(new FileReader(), {
 				onerror : function(e) { O.Body.style.opacity = 1.0; C.Cartain.Message.note('Error. Something trouble...'); },
 				onload  : function(e) {
-					O.log(2, 'Fetched.');
-					L.preprocessEPUB(this.result);
-					B.Name = BookFile.name.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-					L.openDocument(B.Container.Path, { then: L.readContainer });
+					O.log(2, 'Loaded.');
+					onloadFile(this.result);
 				}
 			}).readAsArrayBuffer(BookFile);
 		}
-	}
+	};
 
-	// Wait Drop
-	if(!sML.OS.iOS && !sML.OS.Android) {
-		document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
-		document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
-		document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
-		document.body.addEventListener("drop",      function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; loadFile(e.dataTransfer.files[0]); }, 1);
+	var onloadFile = function(EPUBZip) {
+		L.preprocessEPUB(EPUBZip);
+		B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+		L.openDocument(B.Container.Path, { then: L.readContainer });
+	};
+
+	// Wait Drop or Input
+	if(window.File) {
+		C.Cartain.Catcher = C.Cartain.appendChild(
+			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!' }, { display: "none" })
+		);
+		sML.addTouchEventObserver(C.Cartain.Catcher).addTouchEventListener("tap", function() {
+			if(!this.Input) this.Input = this.appendChild(
+				sML.create("input", { type: "file",
+					onchange: function(e) {
+						loadFile(e.target.files[0]);
+						C.Cartain.Catcher.style.opacity = 0;
+					}
+				})
+			);
+			this.Input.click();
+		});
+		if(!sML.OS.iOS && !sML.OS.Android) {
+			document.body.addEventListener("dragenter", function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
+			document.body.addEventListener("dragover",  function(e) { e.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
+			document.body.addEventListener("dragleave", function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
+			document.body.addEventListener("drop",      function(e) { e.preventDefault(); O.Body.style.opacity = 1.0; loadFile(e.dataTransfer.files[0]); }, 1);
+		}
 	}
 
 	if(typeof BookFileName != "string" || !BookFileName || /\//.test(BookFileName)) {
 		// File Open or Stop
 		if(window.File) {
 			// Drag & Drop
-			C.Cartain.createCatcher({ onchange: loadFile });
+			C.Cartain.Catcher.style.display = "block";
 			C.Cartain.Message.note('Drop an EPUB file into this window, or click and select EPUB file.');
 		} else {
 			C.Cartain.Message.note('Tell me EPUB name via URL in address-bar.');
 		}
-	} else if(/\.epub$/i.test(BookFileName)) {
-		// EPUB XHR
-		L.initialize();
-		var fetchEPUB = function() {
-			L.sayLoading();
-			O.log(2, 'Fetching EPUB...');
-			O.log(3, '"' + BookFileName + '"');
-			L.download("../bookshelf/" + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
-				var EPUBZip = XHR.responseText;
-				O.log(2, 'Fetched.');
-				L.preprocessEPUB(EPUBZip);
-				B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-				L.openDocument(B.Container.Path, { then: L.readContainer });
-			});
-		}
-		if(!X["pipi"]["wait"]) fetchEPUB();
-		else {
-			C.Cartain.createPlayButton({
-				onplay: function() {
-					fetchEPUB();
-					delete  X["pipi"]["wait"];
-				}
-			});
-			C.Cartain.Message.note('');
-		}
 	} else {
-		// EPUB Folder
-		L.initialize();
-		L.sayLoading();
-		B.Name = BookFileName, B.Format = "EPUB";
-		L.openDocument(B.Container.Path, { then: L.readContainer });
+		L.initialize(BookFileName);
+		if(/\.epub$/i.test(BookFileName)) {
+			// EPUB XHR
+			var fetchEPUB = function() {
+				L.sayLoading();
+				O.log(2, 'Fetching EPUB...');
+				O.log(3, BookFileName);
+				L.download(S["bookshelf"] + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
+					O.log(2, 'Fetched.');
+					onloadFile(XHR.responseText)
+				});
+			}
+			if(!X["pipi"]["wait"]) fetchEPUB();
+			else {
+				C.Cartain.createPlayButton({
+					onplay: function() {
+						fetchEPUB();
+						delete  X["pipi"]["wait"];
+					}
+				});
+				C.Cartain.Message.note('');
+			}
+		} else {
+			// EPUB Folder
+			L.sayLoading();
+			B.Name = BookFileName, B.Format = "EPUB";
+			L.openDocument(B.Container.Path, { then: L.readContainer });
+		}
 	}
 
 };
 
 
-L.initialize = function() {
+L.initialize = function(BookFileName) {
 
 	O.log(2, 'Initializing BiB/i...');
 
@@ -302,8 +321,8 @@ L.initialize = function() {
 
 	R.Content.Main.style.opacity = 0;
 	R.Content.Main.innerHTML = R.Content.Complementary.innerHTML = "";
-	R.CoverImage = null;
-	R.Navigation = null;
+	R.CoverImage = {};
+	R.Navigation = {};
 
 	var PresetFileName = (typeof X["bibi"]["preset"] == "string" && X["bibi"]["preset"] && !/\//.test(X["bibi"]["preset"])) ? X["bibi"]["preset"].replace(/(\.js)?$/, ".js") : "default.js";
 	var applyPreset = function() {
@@ -314,7 +333,7 @@ L.initialize = function() {
 		if(X["bibi"]["book-display-mode" ] && /^(all|each)$/.test(                 X["bibi"]["book-display-mode" ])) P["book-display-mode" ] = X["bibi"]["book-display-mode" ];
 		if(X["bibi"]["spread-layout-axis"] && /^(horizontal|vertical)$/.test(      X["bibi"]["spread-layout-axis"])) P["spread-layout-axis"] = X["bibi"]["spread-layout-axis"];
 		if(X["bibi"]["page-size-format"  ] && /^(portrait|landscape|window)$/.test(X["bibi"]["page-size-format"  ])) P["page-size-format"  ] = X["bibi"]["page-size-format"  ];
-		if(P.FileName !== "default.js") O.updateSetting(P);
+		/*if(P.FileName !== "default.js") */O.updateSetting(P);
 	}
 	if(!P.FileName && PresetFileName == "default.js") {
 		P.FileName = "default.js";
@@ -322,10 +341,12 @@ L.initialize = function() {
 	} else if(P.FileName != PresetFileName) {
 		P.loaded = false;
 		if(document.getElementById("bibi-preset")) sML.removeElement(document.getElementById("bibi-preset"));
-		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../presets/" + PresetFileName;
+		sML.insertAfter(sML.create("script", { id: "bibi-preset", onload: applyPreset }), document.getElementById("bibi-script")).src = "../../bib/presets/" + PresetFileName;
 		P.FileName = PresetFileName;
 	}
 	O.log(3, 'preset: ' + PresetFileName);
+	O.log(3, 'bookshelf: ' + S["bookshelf"]);
+	O.log(3, 'book: ' + BookFileName);
 
 	O.log(2, 'Initialized.');
 
@@ -338,7 +359,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 	A = {
 		Files: {},
-		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0 },
+		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0, Etc:0 },
 		getDataURI: function(FilePath) {
 			for(var ContentType in O.ContentTypeList) {
 				if(O.ContentTypeList[ContentType].test(FilePath)) {
@@ -362,21 +383,23 @@ L.preprocessEPUB = function(EPUBZip) {
 			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) A.FileCount.Audio++;
 			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) A.FileCount.Video++;
 			else if(             /\.(pdf)$/i.test(FileName)) A.FileCount.PDF++;
+			else                                             A.FileCount.Etc++;
 			A.Files[FileName] = O.isBin(FileName) ? EPUBZip.file(FileName).asBinary() : Base64.btou(EPUBZip.file(FileName).asText());
 		}
 	}
 
 	L.FileDigit = (A.FileCount.All + "").length;
 
-	if(A.FileCount.All)    O.log(3, sML.String.padZero(A.FileCount.All,    L.FileDigit) + ' Files');
-	if(A.FileCount.HTML)   O.log(4, sML.String.padZero(A.FileCount.HTML,   L.FileDigit) + ' HTML');
-	if(A.FileCount.CSS)    O.log(4, sML.String.padZero(A.FileCount.CSS,    L.FileDigit) + ' CSS');
-	if(A.FileCount.SVG)    O.log(4, sML.String.padZero(A.FileCount.SVG,    L.FileDigit) + ' SVG');
-	if(A.FileCount.Bitmap) O.log(4, sML.String.padZero(A.FileCount.Bitmap, L.FileDigit) + ' Bitmap');
-	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font');
-	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio');
-	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video');
-	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF');
+	if(A.FileCount.All)    O.log(3, sML.String.padZero(A.FileCount.All,    L.FileDigit) + ' File'   + (A.FileCount.All    >= 2 ? "s" : ""));
+	if(A.FileCount.HTML)   O.log(4, sML.String.padZero(A.FileCount.HTML,   L.FileDigit) + ' HTML'   + (A.FileCount.HTML   >= 2 ? "s" : ""));
+	if(A.FileCount.CSS)    O.log(4, sML.String.padZero(A.FileCount.CSS,    L.FileDigit) + ' CSS'    + (A.FileCount.CSS    >= 2 ? "s" : ""));
+	if(A.FileCount.SVG)    O.log(4, sML.String.padZero(A.FileCount.SVG,    L.FileDigit) + ' SVG'    + (A.FileCount.SVG    >= 2 ? "s" : ""));
+	if(A.FileCount.Bitmap) O.log(4, sML.String.padZero(A.FileCount.Bitmap, L.FileDigit) + ' Bitmap' + (A.FileCount.Bitmap >= 2 ? "s" : ""));
+	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font'   + (A.FileCount.Font   >= 2 ? "s" : ""));
+	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio'  + (A.FileCount.Audio  >= 2 ? "s" : ""));
+	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video'  + (A.FileCount.Video  >= 2 ? "s" : ""));
+	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF'    + (A.FileCount.PDF    >= 2 ? "s" : ""));
+	if(A.FileCount.Etc)    O.log(4, sML.String.padZero(A.FileCount.Etc,    L.FileDigit) + ' Etc.');
 
 	delete EPUBZip;
 
@@ -428,7 +451,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		})(FilePath);
 		Preprocessed.CSS++;
 	}
-	if(Preprocessed.CSS) O.log(3, sML.String.padZero(Preprocessed.CSS, L.FileDigit) + ' CSS');
+	if(Preprocessed.CSS) O.log(3, sML.String.padZero(Preprocessed.CSS, L.FileDigit) + ' CSS' + (Preprocessed.CSS >= 2 ? "s" : "") + " Preprocessed.");
 
 	// SVG
 	for(var FilePath in A.Files) {
@@ -440,7 +463,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		});
 		Preprocessed.SVG++;
 	}
-	if(Preprocessed.SVG) O.log(3, sML.String.padZero(Preprocessed.SVG, L.FileDigit) + ' SVG');
+	if(Preprocessed.SVG) O.log(3, sML.String.padZero(Preprocessed.SVG, L.FileDigit) + ' SVG' + (Preprocessed.SVG >= 2 ? "s" : "") + " Preprocessed.");
 
 	// HTML
 	for(var FilePath in A.Files) {
@@ -458,7 +481,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		});
 		Preprocessed.HTML++;
 	}
-	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, L.FileDigit) + ' HTML');
+	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, L.FileDigit) + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : "") + " Preprocessed.");
 
 	O.log(2, 'Preprocessed.');
 
@@ -582,13 +605,13 @@ L.readPackageDocument = function(Document) {
 		B.Package.Spine["itemrefs"].push(SpineItemref);
 	});
 
-	var TitleFragments = [];
-	if(B.Package.Metadata["title"])     { TitleFragments.push(B.Package.Metadata["title"]);     O.log(3, "title: "     + B.Package.Metadata["title"]);     }
-	if(B.Package.Metadata["creator"])   { TitleFragments.push(B.Package.Metadata["creator"]);   O.log(3, "creator: "   + B.Package.Metadata["creator"]);   }
-	if(B.Package.Metadata["publisher"]) { TitleFragments.push(B.Package.Metadata["publisher"]); O.log(3, "publisher: " + B.Package.Metadata["publisher"]); }
-	if(TitleFragments.length) {
+	B.IDFragments = [];
+	if(B.Package.Metadata["title"])     { B.IDFragments.push(B.Package.Metadata["title"]);     O.log(3, "title: "     + B.Package.Metadata["title"]);     }
+	if(B.Package.Metadata["creator"])   { B.IDFragments.push(B.Package.Metadata["creator"]);   O.log(3, "creator: "   + B.Package.Metadata["creator"]);   }
+	if(B.Package.Metadata["publisher"]) { B.IDFragments.push(B.Package.Metadata["publisher"]); O.log(3, "publisher: " + B.Package.Metadata["publisher"]); }
+	if(B.IDFragments.length) {
 		O.Title.innerHTML = "";
-		O.Title.appendChild(document.createTextNode("BiB/i | " + TitleFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">")));
+		O.Title.appendChild(document.createTextNode("BiB/i | " + B.IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">")));
 	}
 
 	C.createPanel();
@@ -675,45 +698,53 @@ L.prepareSpine = function() {
 
 	O.log(2, 'Prepared.');
 
-	L.loadCoverImage();
+	L.createCover();
 
 };
 
 
-L.loadCoverImage = function() {
+L.createCover = function() {
 
-	if(!R.CoverImage) {
-		if(B.Package.Manifest["cover-image"].Path) {
-			R.CoverImage = { Path: B.Package.Manifest["cover-image"].Path };
-		} else {
-			O.log(2, 'No Cover Image.');
-			return L.loadNavigation();
-		}
+	O.log(2, 'Creating Cover...');
+
+	if(B.Package.Manifest["cover-image"].Path) {
+		R.CoverImage.Path = B.Package.Manifest["cover-image"].Path;
 	}
 
-	O.log(2, 'Loading Cover Image...');
+	C.Cartain.Cover.Info = C.Cartain.Cover.appendChild(
+		sML.create("p", { id: "bibi-cartain-cover-info",
+			innerHTML: (function() {
+				var BookID = [];
+				if(B.Package.Metadata["title"])     BookID.push('<strong>' + B.Package.Metadata["title"] + '</strong>');
+				if(B.Package.Metadata["creator"])   BookID.push('<em>' + B.Package.Metadata["creator"] + '</em>');
+				if(B.Package.Metadata["publisher"]) BookID.push('<span>' + B.Package.Metadata["publisher"] + '</span>');
+				return BookID.join(" ");
+			})()
+		})
+	);
 
-	O.log(3, R.CoverImage.Path);
-
-	C.Cartain.Cover.appendChild(
+	if(R.CoverImage.Path) {
+		O.log(3, R.CoverImage.Path);
+		C.Cartain.Cover.className = [C.Cartain.Cover.className, "with-cover-image"].join(" ");
 		sML.create("img", {
 			onload: function() {
-				var ImgW = this.offsetWidth * Math.min((C.Cartain.Cover.offsetWidth - 8) / this.offsetWidth, (C.Cartain.Cover.offsetHeight - 24 * 2) / this.offsetHeight);
-				sML.style(this, {
-					marginLeft: ImgW / -2 + "px",
-					width:      ImgW + "px"
-				});
 				sML.style(C.Cartain.Cover, {
+					backgroundImage: "url(" + this.src + ")",
 					opacity: 1
 				});
-				O.log(2, 'Loaded.');
+				O.log(2, 'Created.');
 				L.loadNavigation();
 			}
-		})
-	).src = (function() {
-		if(!B.Zipped) return "../bookshelf/" + B.Name + "/" + R.CoverImage.Path/* + "?cover-image"*/;
-		else          return A.getDataURI(R.CoverImage.Path);
-	})();
+		}).src = (function() {
+			if(!B.Zipped) return S["bookshelf"] + B.Name + "/" + R.CoverImage.Path;
+			else          return A.getDataURI(R.CoverImage.Path);
+		})();
+	} else {
+		O.log(3, 'No Cover Image.');
+		C.Cartain.Cover.className = [C.Cartain.Cover.className, "without-cover-image"].join(" ");
+		O.log(2, 'Created.');
+		L.loadNavigation();
+	}
 
 };
 
@@ -721,11 +752,13 @@ L.loadCoverImage = function() {
 L.loadNavigation = function() {
 
 	if(B.Package.Manifest["nav"].Path) {
-		R.Navigation = { Path: B.Package.Manifest["nav"].Path, Type: "NavigationDocument" };
+		R.Navigation.Path = B.Package.Manifest["nav"].Path;
+		R.Navigation.Type = "NavigationDocument";
 	} else {
 		O.log(2, 'No Navigation Document.');
 		if(B.Package.Manifest["toc-ncx"].Path) {
-			R.Navigation = { Path: B.Package.Manifest["toc-ncx"].Path, Type: "TOC-NCX" };
+			R.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
+			R.Navigation.Type = "TOC-NCX";
 		} else {
 			O.log(2, 'No TOC-NCX.');
 			return L.loadItems();
@@ -826,7 +859,7 @@ L.loadItem = function(Item) {
 			L.writeItemHTML(Item, A.Files[Path]);
 			setTimeout(L.postprocessItem, 10, Item);
 		} else {
-			Item.src = "../bookshelf/" + B.Name + "/" + Path;
+			Item.src = S["bookshelf"] + B.Name + "/" + Path;
 			Item.onload = function() { setTimeout(L.postprocessItem, 10, Item); };
 			Item.ItemBox.appendChild(Item);
 		}
@@ -836,7 +869,7 @@ L.loadItem = function(Item) {
 		if(B.Zipped) {
 			L.writeItemHTML(Item, false, '', A.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 		} else {
-			var URI = "../bookshelf/" + B.Name + "/" + Path;
+			var URI = S["bookshelf"] + B.Name + "/" + Path;
 			L.download(URI).then(function(XHR) {
 				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
 			});
@@ -844,11 +877,11 @@ L.loadItem = function(Item) {
 	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
 		// If Bitmap-in-Spine
 		Item.IsBitmap = true;
-		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? A.getDataURI(Path) : S["bookshelf"] + B.Name + "/" + Path) + '" />');
 	} else if(/\.(pdf)$/i.test(Path)) {
 		// If PDF-in-Spine
 		Item.IsPDF = true;
-		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : "../bookshelf/" + B.Name + "/" + Path) + '" />');
+		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? A.getDataURI(Path) : S["bookshelf"] + B.Name + "/" + Path) + '" />');
 	}
 	O.log(3, sML.String.padZero(Item.ItemIndex + 1, L.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, L.FileDigit) + ' ' + (Path ? Path : '... Not Found.'));
 };
@@ -1444,8 +1477,7 @@ R.layoutSpread = function(Spread, Target) {
 				SpreadBox.style.paddingRight = Spread.offsetWidth + "px";
 			}
 		}
-	}
-	if(SpreadBox["offset" + S.SIZE.B] < R.StageSize.Breadth) {
+	} else if(SpreadBox["offset" + S.SIZE.B] < R.StageSize.Breadth) {
 		SpreadBoxPaddingEnd   += Math.floor((R.StageSize.Breadth - SpreadBox["offset" + S.SIZE.B]) / 2);
 		SpreadBoxPaddingStart += R.StageSize.Breadth - SpreadBox["offset" + S.SIZE.B] - SpreadBoxPaddingEnd;
 		if(SpreadBoxPaddingStart) SpreadBox.style["padding" + S.BASE.S] = SpreadBoxPaddingStart + "px";
@@ -1459,7 +1491,7 @@ R.layoutSpread = function(Spread, Target) {
 	} else if(B.Package.Metadata["rendition:layout"] == "reflowable") {
 		SpreadBoxPaddingBefore = S["spread-gap"];
 	} else {
-		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Breadth / 2/* - S["spread-gap"]*/);
+		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Length / 2/* - S["spread-gap"]*/);
 	}
 	if(IsFootSpread) {
 		SpreadBoxPaddingAfter  += Math.ceil( (R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
@@ -1807,9 +1839,6 @@ R.focus = function(Target, ScrollOption) {
 		FocusSpread = FocusTargetPageGroup.Pages[0].Spread;
 	}
 	if(S.SLD == "rtl") FocusPoint = FocusPoint - window["inner" + S.SIZE.L];
-	if(S.BDM == "each") R.Spreads.forEach(function(Spread) {
-		if(Spread == FocusSpread) Spread.style.opacity = 1;
-	});
 	sML.scrollTo(
 		R.Frame,
 		(S.SLD == "ttb") ? { Y:FocusPoint * R.Scale } : { X:FocusPoint * R.Scale },
@@ -1817,13 +1846,11 @@ R.focus = function(Target, ScrollOption) {
 		(S.BDM == "each") ? {
 			end: function() {
 				R.Spreads.forEach(function(Spread) {
-					if(Spread != FocusSpread) Spread.style.opacity = 0;
+					if(Spread == FocusSpread) Spread.style.opacity = 1;
+					//else                      Spread.style.opacity = 0;
 				});
-				sML.style(R.Content, {
-					"transition": "ease-in 0.05s",
-					"transform": "",
-					"opacity": ""
-				});
+				sML.removeClass(O.HTML, "flipping-ltr");
+				sML.removeClass(O.HTML, "flipping-rtl");
 			}
 		} : undefined
 	);
@@ -1876,27 +1903,24 @@ R.page = function(Distance) {
 	}
 	*/
 	var focus = function() {
-		return R.focus(
+		R.focus(
 			{ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") },
 			(S["book-display-mode"] == "each") ? { Duration: 1 } : undefined
 		);
 	};
 	if(S["book-display-mode"] == "each") {
-		var TranslatePx = 10 * Distance * S.AXIS.PM;
 		sML.style(R.Content, {
-			"transition": "ease-out 0.05s",
-			"transform": "translateX(" + TranslatePx + "px)",
-			"opacity": 0
+			transition: "ease-out 0.05s"
 		});
+		sML.addClass(O.HTML, "flipping-" + (Distance * (S["page-progression-direction"] == "rtl" ? 1 : -1) > 0 ? "rtl" : "ltr"));
 		setTimeout(function() {
 			sML.style(R.Content, {
-				"transition": "none",
-				"transform": "translateX(" + TranslatePx * -0.5 + "px)",
+				transition: "none"
 			});
-			return focus();
-		}, 55);
+			focus();
+		}, 50);
 	} else {
-		return focus();
+		focus();
 	}
 };
 
@@ -2044,23 +2068,6 @@ C.weaveCartain = function() {
 			this.play();
 			sML.stopPropagation(e);
 		});
-	};
-
-	C.Cartain.createCatcher = function(Param) {
-		C.Cartain.Catcher = C.Cartain.appendChild(
-			sML.create("p", { id: "bibi-cartain-catcher", title: 'Drop me an EPUB! or Click me!' })
-		);
-		sML.addTouchEventObserver(C.Cartain.Catcher).addTouchEventListener("tap", function() {
-			if(!this.Input) this.Input = this.appendChild(
-				sML.create("input", { type: "file",
-					onchange: function(e) {
-						Param.onchange(e.target.files[0]);
-						C.Cartain.Catcher.style.opacity = 0;
-					}
-				})
-			);
-			this.Input.click();
-		})
 	};
 
 	C.Cartain.Message.note = function(Note) {
@@ -2219,7 +2226,7 @@ C.createSwitches = function() {
 		return false;
 	})()) {
 		sML.addClass(O.HTML, "fullscreen-enabled");
-		if(!O.WindowEmbeded) {
+		if(!O.WindowEmbedded) {
 			C.Switches.Fullscreen = C.Switches.appendChild(
 				sML.create("span", { className: "bibi-icon bibi-switch bibi-switch-fullscreen",
 					State: 0,
@@ -2280,8 +2287,7 @@ C.createArrows = function() {
 		});
 		sML.addTouchEventObserver(Arrow);
 		Arrow.addTouchEventListener("tap", function() {
-			if(R.Columned) R.page(Arrow.DistanceToMove);
-			else         R.scroll(Arrow.DistanceToMove);
+			((R.Columned || B.Package.Metadata["rendition:layout"] == "pre-paginated") ? R.page : R.scroll)(Arrow.DistanceToMove);
 		});
 		Arrow.addTouchEventListener("tap", function() {
 			var This = Arrow;
@@ -2333,6 +2339,7 @@ O.updateSetting = function(Setting) {
 		delete Setting.Reset;
 	}
 	for(var Property in Setting) S[Property] = Setting[Property];
+	if(!/^https?:\/\//.test(S["bookshelf"])) S["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + S["bookshelf"]);
 
 	// Page Progression Direction
 	if(S["page-progression-direction"] == "rtl" && !O.VerticalTextEnabled && B.Package.Metadata["rendition:layout"] != "pre-paginated") S["page-progression-direction"] = "ltr";
@@ -2545,7 +2552,7 @@ O.getLogo = function(Setting) {
 		'<span class="bibi-type-B">B</span>',
 		'<span class="bibi-type-slash">/</span>',
 		'<span class="bibi-type-i">i</span>'
-	].join("") : '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo.svg" />';
+	].join("") : '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo.png" />';
 	return [
 		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
 		Logo,
@@ -2585,15 +2592,15 @@ O.isBin = function(T) {
 
 
 O.getPath = function() {
-	return (function(Arguments) {
-		for(var Path = Arguments[0], L = Arguments.length, i = 1; i < L; i++) Path += "/" + Arguments[i];
-		return Path;
-	})(arguments).replace(
-		/\/\.\//g, "/"
-	).replace(
+	var Path = arguments[0]; for(var L = arguments.length, i = 1; i < L; i++) Path += "/" + arguments[i];
+	while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(
 		/[^\/]+\/\.\.\//g, ""
-	).replace(
-		/\/\//g, "/"
+	);
+	while(/\/\.\//.test(Path)) Path = Path.replace(
+		/\/\.\//g, "/"
+	);
+	return Path.replace(
+		/\/+/g, "/"
 	).replace(
 		/^\//, ""
 	);

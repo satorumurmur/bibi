@@ -83,7 +83,7 @@ div#epub-content {
 	-webkit-overflow-scrolling: touch;
 	@include box-sizing(border-box);
 	//padding: 35px 0;
-	@include transition(.2s ease-out);
+	//@include transition(.2s ease-out);
 	html.iOS                   & { position: fixed; }
 	html.iOS.spread-horizontal & { width: 100%; height: auto; overflow-x: scroll; overflow-y: hidden; }
 	html.iOS.spread-vertical   & { width: auto; height: 100%; overflow-x: hidden; overflow-y: scroll; }
@@ -95,6 +95,17 @@ div#epub-content {
 	}
 	html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
+	}
+	html.flipping & {
+		//@include transition(ease-out 0.1s);
+	}
+	html.flipping-rtl & {
+		@include transform(translateX(100px));
+		opacity: 0;
+	}
+	html.flipping-ltr & {
+		@include transform(translateX(-100px));
+		opacity: 0;
 	}
 }
 

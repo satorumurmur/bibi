@@ -62,6 +62,8 @@ div#bibi-cartain-cover {
 	left: 0;
 	top: 0;
 	@include box-sizing(border-box);
+	border: solid transparent;
+	border-width: 16px 8px 32px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
@@ -70,13 +72,58 @@ div#bibi-cartain-cover {
 	@include background-size(contain);
 //	html.page-ltr & { background-position: 40% center; }
 //	html.page-rtl & { background-position: 60% center; }
-	img {
-		display: block;
-		position: absolute;
-		left: 50%;
-		top: 35px; top: 16px;
-		height: auto;
-		box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	p {
+		opacity: 0;
+	}
+	&.without-cover-image{
+		opacity: 1;
+		p, &:after {
+			display: block;
+			position: absolute;
+			margin: auto;
+			left: -100%;
+			top: -100%;
+			right: -100%;
+			bottom: -100%;
+		}
+		p {
+			z-index: 2;
+			width: 100%;
+			height: 1.2em;
+			line-height: 1.2;
+			font-weight: bold;
+			color: white;
+			text-align: center;
+			text-shadow: 0 0 4px rgb(128,128,128);
+			opacity: 1;
+			strong, em, span {
+				display: block;
+			}
+			strong {
+				margin-top: -1em;
+				font-size: 20px;
+			}
+			em {
+				margin-top: .75em;
+				font-size: 16px;
+			}
+			span {
+				margin-top: .75em;
+				font-size: 12px;
+			}
+		}
+		&:after {
+			@include font-icon("ElegantIcons");
+			content: $ElegantIcons_icon_book;
+			z-index: 1;
+			width: 128px;
+			height: 128px;
+			line-height: 1;
+			font-size: 128px;
+			text-align: center;
+			vertical-align: middle;
+			color: rgba(255,255,255,0.25);
+		}
 	}
 }
 
@@ -90,7 +137,10 @@ p#bibi-cartain-playbutton {
 	position: absolute;
 	z-index: 10;
 	left: 0;
-	top: 36px;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	margin: auto;
 	width: 100%;
 	height: 100%;
 	@include transition(0.2s linear);
@@ -98,8 +148,11 @@ p#bibi-cartain-playbutton {
 		@include box-sizing(border-box);
 		display: block;
 		position: absolute;
-		left: 50%;
-		top: 50%;
+		left: -100%;
+		top: -100%;
+		right: -100%;
+		bottom: -100%;
+		margin: auto;
 		vertical-align: middle;
 		text-align: center;
 		color: rgb(128,128,128);
@@ -117,8 +170,6 @@ p#bibi-cartain-catcher {
 	}
 	&:before {
 		content: "";
-		top: 10%;
-		margin-left: -44%;
 		border: dashed 10px;
 		border-radius: 30px;
 		width: 88%;
@@ -127,8 +178,6 @@ p#bibi-cartain-catcher {
 	&:after {
 	 	$size: 140px;
 		content: $ElegantIcons_icon_book;
-		margin-left: $size * -0.5;
-		margin-top: $size * -0.5 + 15px;
 		width: $size;
 		height: $size;
 		line-height: $size;
@@ -150,19 +199,15 @@ p#bibi-cartain-catcher {
 
 p#bibi-cartain-playbutton {
 	cursor: pointer;
-	&:before, &:after {
-		color: rgb(128,128,128);
-	}
 	&:after {
-	 	$size: 40px;
+	 	$size: 69px;
 		content: $ElegantIcons_arrow_triangle-right_alt2;
 		z-index: 2;
-		margin-left: $size * -0.5;
-		margin-top: $size * -1;
 		width: $size;
 		height: $size;
 		line-height: $size;
 		font-size: $size;
+		color: rgb(128,128,128);
 		//@include text-stroke(4px white);
 	}
 	$after: 8px;
@@ -188,10 +233,8 @@ p#bibi-cartain-playbutton {
 		@include transform-origin_(100% 50%);
 	}
 	&:hover {
-		&:before, &:after {
-			color: white;
-		}
 		&:after {
+			color: white;
 			@include transform(scale(1.5));
 		}
 	}
@@ -275,7 +318,7 @@ p#bibi-cartain-message {
 }
 p#bibi-cartain-powered {
 	z-index: 999;
-	padding-top: 0px;
+	padding-top: 2px;
 	text-align: center;
 	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
 	a.bibi-logo {
@@ -410,7 +453,6 @@ div#bibi-switches {
 		position: fixed;
 		z-index: 4000;
 		top: 4px;
-		@include transition(0.15s linear);
 		&.bibi-switch-panel {
 			left: 4px;
 		}
@@ -434,8 +476,9 @@ div#bibi-panel {
 	top: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(240,238,236,0.8);
-	background: rgba(254,252,250,0.8);
+	//background: rgba(240,238,236,0.8);
+	//background: rgba(254,252,250,0.9);
+	background: rgba(248,246,244,0.9);
 	opacity: 0;
 	@include transition(0.2s ease-out);
 	@include transform(translateY(-100%));
@@ -496,14 +539,14 @@ div#bibi-panel-misc {
 	text-align: right;
 	font-size: 14px;
 	color: white;
-	html.window-not-embeded.fullscreen-not-enabled & {
+	html.window-not-embedded.fullscreen-not-enabled & {
 		right: 4px;
 	}
-	html.window-not-embeded.fullscreen-enabled &,
-	html.window-embeded.fullscreen-not-enabled & {
+	html.window-not-embedded.fullscreen-enabled &,
+	html.window-embedded.fullscreen-not-enabled & {
 		right: 35px;
 	}
-	html.window-embeded.fullscreen-enabled & {
+	html.window-embedded.fullscreen-enabled & {
 		right: 66px;
 	}
 	a {
@@ -594,9 +637,9 @@ div#bibi-panel-navigation {
 								content: "";
 								display: block;
 								position: absolute;
-								$start: .25em;
+								$start: .175em;
 								$before: 0;
-								$breadth: 2px;
+								$breadth: 4px;
 								$length: 100%;
 								background: white;
 								html.page-ltr & { left: $start; top: $before; width: $breadth; height: $length; }
@@ -623,8 +666,9 @@ div#bibi-panel-navigation {
 					html.page-ltr & { border-bottom-width: $border-width; }
 					html.page-rtl & { border-right-width: $border-width; }
 					&:hover {
-						border-color: steelblue;
+						border-color: navy;
 						color: steelblue;
+						@include transition(linear .05s);
 					}
 					&.bibi-navigation-inactive-link {
 						color: inherit !important;

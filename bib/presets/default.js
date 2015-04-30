@@ -3,6 +3,8 @@ P = {
 	"name"                              : "BiB/i Default",   // "Name of this preset. As you like."
 	"description"                       : "Default Preset.", // "Description of this preset. As you like."
 
+	"bookshelf"                         : "../../bib/bookshelf/",
+
 	"book-display-mode"                 : "all",             // "all" or "each"
 	"page-progression-direction"        : "ltr",             // "ltr" or "rtl" ("ltr" is recommended.)
 	"spread-layout-axis"                : "horizontal",            // "auto" or "vertical" or "horizontal"

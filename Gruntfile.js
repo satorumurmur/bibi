@@ -25,7 +25,7 @@ module.exports = function(grunt){
 				'bib/i/res/styles/bibi.css'
 			],
 			pipi_css: [
-				'bib/i/res/styles/pipi.css'
+				'bib/i.css'
 			],
 			bibi_js: [
 				'bib/i/res/scripts/bibi.js'
@@ -67,8 +67,8 @@ module.exports = function(grunt){
 			},
 			pipi: {
 				files: {
-					'bib/i/res/styles/': [
-						'bib/i/res/styles/pipi.css'
+					'bib/': [
+						'bib/i.css'
 					]
 				}
 			}
@@ -87,11 +87,11 @@ module.exports = function(grunt){
 			},
 			pipi: {
 				expand: true,
-				cwd: 'bib/i/res/styles/',
+				cwd: 'bib/',
 				src: [
-					'pipi.css'
+					'i.css'
 				],
-				dest: 'bib/i/res/styles/',
+				dest: 'bib/',
 				ext: '.css'
 			}
 		},
@@ -112,7 +112,7 @@ module.exports = function(grunt){
 			},
 			pipi: {
 				src: [
-					'dev-bib/i/res/scripts/pipi.js'
+					'dev-bib/i.js'
 				],
 				dest: 'bib/i.js'
 			}
@@ -187,7 +187,7 @@ module.exports = function(grunt){
 				files: [
 					'dev-bib/i/res/styles/_common-icons.scss',
 					'dev-bib/i/res/styles/_pipi-style.scss',
-					'dev-bib/i/res/styles/pipi.scss'
+					'dev-bib/i.scss'
 				],
 				tasks: [
 					'build_pipi_css',
@@ -213,7 +213,7 @@ module.exports = function(grunt){
 					livereload: false
 				},
 				files: [
-					'dev-bib/i/res/scripts/pipi.js'
+					'dev-bib/i.js'
 				],
 				tasks: [
 					'build_pipi_js',
