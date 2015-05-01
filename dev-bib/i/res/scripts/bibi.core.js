@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Fri May 1 09:47:00 2015 +0900 */ Bibi = { Version: "0.998.0", Build: 20150501.0 };
+ * - Fri May 1 13:11:00 2015 +0900 */ Bibi = { Version: "0.998.0", Build: 20150501.0 };
 
 
 
@@ -2603,19 +2603,16 @@ O.isBin = function(T) {
 };
 
 
-O.getPath = function() {
-	var Path = arguments[0]; for(var L = arguments.length, i = 1; i < L; i++) Path += "/" + arguments[i];
-	while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(
-		/[^\/]+\/\.\.\//g, ""
-	);
-	while(/\/\.\//.test(Path)) Path = Path.replace(
-		/\/\.\//g, "/"
-	);
-	return Path.replace(
-		/\/+/g, "/"
-	).replace(
-		/^\//, ""
-	);
+
+
+O.getPath = function(Path) {
+	for(var i = 1; i < arguments.length; i++) arguments[0] += "/" + arguments[i];
+	arguments[0].replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Path = [arguments[1], arguments[2]] });
+	while(/([^:\/])\/{2,}/.test(Path[1])) Path[1] = Path[1].replace(/([^:\/])\/{2,}/g, "$1/");
+	while(        /\/\.\//.test(Path[1])) Path[1] = Path[1].replace(        /\/\.\//g, "/");
+	while(/[^\/]+\/\.\.\//.test(Path[1])) Path[1] = Path[1].replace(/[^\/]+\/\.\.\//g, "");
+	                                      Path[1] = Path[1].replace(     /^(\.*\/)+/g, "");
+	return Path.join("/");
 };
 
 
