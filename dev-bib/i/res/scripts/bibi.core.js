@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Fri May 1 01:00:00 2015 +0900 */ Bibi = { Version: "0.998.0-rc", Build: 20150501.0 };
+ * - Fri May 1 09:47:00 2015 +0900 */ Bibi = { Version: "0.998.0", Build: 20150501.0 };
 
 
 
@@ -1157,6 +1157,7 @@ L.start = function() {
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	window.addEventListener("scroll", R.onscroll);
 	window.addEventListener("keydown", C.listenKeys, false);
+	if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
 
 	R.Started = true;
 
@@ -2302,15 +2303,24 @@ C.createArrows = function() {
 };
 
 
-C.listenKeys = function(e) {
+C.listenKeys = function(E) {
 	if(!R.Started) return;
-	e.preventDefault();
+	E.preventDefault();
 	var Window = (parent != window && parent.Bibi) ? parent : window;
-	Window.C.KeyCode = e.keyCode;
+	Window.C.KeyCode = E.keyCode;
 	var Dir = null; //                                                   W                          N                          E                          S
-	if(S["page-progression-direction"] == "rtl") switch(e.keyCode) {  case 37: Dir = +1; break;  case 38: Dir = -1; break;  case 39: Dir = -1; break;  case 40: Dir = +1; break;  }
-	else                                         switch(e.keyCode) {  case 37: Dir = -1; break;  case 38: Dir = -1; break;  case 39: Dir = +1; break;  case 40: Dir = +1; break;  }
+	if(S["page-progression-direction"] == "rtl") switch(E.keyCode) {  case 37: Dir = +1; break;  case 38: Dir = -1; break;  case 39: Dir = -1; break;  case 40: Dir = +1; break;  }
+	else                                         switch(E.keyCode) {  case 37: Dir = -1; break;  case 38: Dir = -1; break;  case 39: Dir = +1; break;  case 40: Dir = +1; break;  }
 	if(Dir) return Window.R.page(Dir);
+};
+
+
+C.listenMessage = function(E) {
+	switch(E.data) {
+		case "forward": R.page(+1); break;
+		case "back":    R.page(-1); break;
+		case "menu":    C.Panel.toggle(); break;
+	}
 };
 
 
