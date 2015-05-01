@@ -346,7 +346,7 @@ L.initialize = function(BookFileName) {
 	}
 	O.log(3, 'preset: ' + PresetFileName);
 	O.log(3, 'bookshelf: ' + S["bookshelf"]);
-	O.log(3, 'book: ' + BookFileName);
+	O.log(3, 'book: ' + BookFileName + (/\.epub$/i.test(BookFileName) ? "" : " (Unzipped)"));
 
 	O.log(2, 'Initialized.');
 
@@ -359,7 +359,7 @@ L.preprocessEPUB = function(EPUBZip) {
 
 	A = {
 		Files: {},
-		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0, Etc:0 },
+		FileCount: { All:0, HTML:0, CSS:0, SVG:0, Bitmap:0, Font:0, Audio:0, Video:0, PDF:0, Etcetra:0 },
 		getDataURI: function(FilePath) {
 			for(var ContentType in O.ContentTypeList) {
 				if(O.ContentTypeList[ContentType].test(FilePath)) {
@@ -383,23 +383,23 @@ L.preprocessEPUB = function(EPUBZip) {
 			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) A.FileCount.Audio++;
 			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) A.FileCount.Video++;
 			else if(             /\.(pdf)$/i.test(FileName)) A.FileCount.PDF++;
-			else                                             A.FileCount.Etc++;
+			else                                             A.FileCount.Etcetra++;
 			A.Files[FileName] = O.isBin(FileName) ? EPUBZip.file(FileName).asBinary() : Base64.btou(EPUBZip.file(FileName).asText());
 		}
 	}
 
 	L.FileDigit = (A.FileCount.All + "").length;
 
-	if(A.FileCount.All)    O.log(3, sML.String.padZero(A.FileCount.All,    L.FileDigit) + ' File'   + (A.FileCount.All    >= 2 ? "s" : ""));
-	if(A.FileCount.HTML)   O.log(4, sML.String.padZero(A.FileCount.HTML,   L.FileDigit) + ' HTML'   + (A.FileCount.HTML   >= 2 ? "s" : ""));
-	if(A.FileCount.CSS)    O.log(4, sML.String.padZero(A.FileCount.CSS,    L.FileDigit) + ' CSS'    + (A.FileCount.CSS    >= 2 ? "s" : ""));
-	if(A.FileCount.SVG)    O.log(4, sML.String.padZero(A.FileCount.SVG,    L.FileDigit) + ' SVG'    + (A.FileCount.SVG    >= 2 ? "s" : ""));
-	if(A.FileCount.Bitmap) O.log(4, sML.String.padZero(A.FileCount.Bitmap, L.FileDigit) + ' Bitmap' + (A.FileCount.Bitmap >= 2 ? "s" : ""));
-	if(A.FileCount.Font)   O.log(4, sML.String.padZero(A.FileCount.Font,   L.FileDigit) + ' Font'   + (A.FileCount.Font   >= 2 ? "s" : ""));
-	if(A.FileCount.Audio)  O.log(4, sML.String.padZero(A.FileCount.Audio,  L.FileDigit) + ' Audio'  + (A.FileCount.Audio  >= 2 ? "s" : ""));
-	if(A.FileCount.Video)  O.log(4, sML.String.padZero(A.FileCount.Video,  L.FileDigit) + ' Video'  + (A.FileCount.Video  >= 2 ? "s" : ""));
-	if(A.FileCount.PDF)    O.log(4, sML.String.padZero(A.FileCount.PDF,    L.FileDigit) + ' PDF'    + (A.FileCount.PDF    >= 2 ? "s" : ""));
-	if(A.FileCount.Etc)    O.log(4, sML.String.padZero(A.FileCount.Etc,    L.FileDigit) + ' Etc.');
+	if(A.FileCount.All)     O.log(3, sML.String.padZero(A.FileCount.All,     L.FileDigit) + ' File'   + (A.FileCount.All    >= 2 ? "s" : ""));
+	if(A.FileCount.HTML)    O.log(4, sML.String.padZero(A.FileCount.HTML,    L.FileDigit) + ' HTML'   + (A.FileCount.HTML   >= 2 ? "s" : ""));
+	if(A.FileCount.CSS)     O.log(4, sML.String.padZero(A.FileCount.CSS,     L.FileDigit) + ' CSS'    + (A.FileCount.CSS    >= 2 ? "s" : ""));
+	if(A.FileCount.SVG)     O.log(4, sML.String.padZero(A.FileCount.SVG,     L.FileDigit) + ' SVG'    + (A.FileCount.SVG    >= 2 ? "s" : ""));
+	if(A.FileCount.Bitmap)  O.log(4, sML.String.padZero(A.FileCount.Bitmap,  L.FileDigit) + ' Bitmap' + (A.FileCount.Bitmap >= 2 ? "s" : ""));
+	if(A.FileCount.Font)    O.log(4, sML.String.padZero(A.FileCount.Font,    L.FileDigit) + ' Font'   + (A.FileCount.Font   >= 2 ? "s" : ""));
+	if(A.FileCount.Audio)   O.log(4, sML.String.padZero(A.FileCount.Audio,   L.FileDigit) + ' Audio'  + (A.FileCount.Audio  >= 2 ? "s" : ""));
+	if(A.FileCount.Video)   O.log(4, sML.String.padZero(A.FileCount.Video,   L.FileDigit) + ' Video'  + (A.FileCount.Video  >= 2 ? "s" : ""));
+	if(A.FileCount.PDF)     O.log(4, sML.String.padZero(A.FileCount.PDF,     L.FileDigit) + ' PDF'    + (A.FileCount.PDF    >= 2 ? "s" : ""));
+	if(A.FileCount.Etcetra) O.log(4, sML.String.padZero(A.FileCount.Etcetra, L.FileDigit) + ' etc.');
 
 	delete EPUBZip;
 
@@ -774,7 +774,7 @@ L.createNavigation = function(Document) {
 
 	O.log(2, 'Making Navigation...');
 
-	O.log(3, '"' + R.Navigation.Path + '"');
+	O.log(3, R.Navigation.Path);
 
 	if(R.Navigation.Type == "NavigationDocument") {
 		sML.each(Document.querySelectorAll("nav"), function() { sML.each(this.querySelectorAll("*"), function() { this.removeAttribute("style"); }); C.Panel.Navigation.Item.appendChild(this); });
