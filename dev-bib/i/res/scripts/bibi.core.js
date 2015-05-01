@@ -1941,9 +1941,15 @@ R.scroll = function(Distance) {
 };
 
 
+R.move = function(Distance) {
+	((R.Columned || B.Package.Metadata["rendition:layout"] == "pre-paginated") ? R.page : R.scroll)(Distance);
+};
+
+
 R.to = function(BibitoString) {
 	return R.focus(O.getBibitoTarget(BibitoString));
 };
+
 
 R.Scale = 1;
 
@@ -2286,16 +2292,12 @@ C.createArrows = function() {
 		Arrow.addEventListener("mouseout", function() {
 			sML.removeClass(Arrow, "shown");
 		});
-		sML.addTouchEventObserver(Arrow);
-		Arrow.addTouchEventListener("tap", function() {
-			((R.Columned || B.Package.Metadata["rendition:layout"] == "pre-paginated") ? R.page : R.scroll)(Arrow.DistanceToMove);
-		});
-		Arrow.addTouchEventListener("tap", function() {
-			var This = Arrow;
-			sML.addClass(This, "shown");
-			if(This.Timer_tap) clearTimeout(This.Timer_tap);
-			This.Timer_tap = setTimeout(function() {
-				sML.removeClass(This, "shown");
+		sML.addTouchEventObserver(Arrow).addTouchEventListener("tap", function() {
+			R.move(Arrow.DistanceToMove)
+			sML.addClass(Arrow, "shown");
+			if(Arrow.Timer_tap) clearTimeout(Arrow.Timer_tap);
+			Arrow.Timer_tap = setTimeout(function() {
+				sML.removeClass(Arrow, "shown");
 			}, 500);
 		});
 	});
@@ -2317,8 +2319,8 @@ C.listenKeys = function(E) {
 
 C.listenMessage = function(E) {
 	switch(E.data) {
-		case "forward": R.page(+1); break;
-		case "back":    R.page(-1); break;
+		case "forward": R.move(+1); break;
+		case "back":    R.move(-1); break;
 		case "menu":    C.Panel.toggle(); break;
 	}
 };
