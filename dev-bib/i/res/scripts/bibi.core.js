@@ -918,7 +918,7 @@ L.postprocessItem = function(Item) {
 	sML.each(Item.HTML.querySelectorAll("link, style"), function() {
 		if(/^link$/i.test(this.tagName)) {
 			if(!/^(alternate )?stylesheet$/.test(this.rel)) return;
-			if(sML.UA.Safari && this.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
+			if((sML.UA.Safari || sML.OS.iOS) && this.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
 		}
 		Item.StyleSheets.push(this);
 	});
