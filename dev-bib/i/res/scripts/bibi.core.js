@@ -1161,6 +1161,8 @@ L.start = function() {
 
 	R.Started = true;
 
+	if (O.WindowEmbedded) window.parent.postMessage("bibi:canplaythrough", "*");
+
 	O.log(1, 'Enjoy!');
 
 };
