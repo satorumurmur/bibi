@@ -2318,11 +2318,7 @@ C.listenKeys = function(E) {
 
 
 C.listenMessage = function(E) {
-	switch(E.data) {
-		case "forward": R.move(+1); break;
-		case "back":    R.move(-1); break;
-		case "menu":    C.Panel.toggle(); break;
-	}
+	return false;
 };
 
 
