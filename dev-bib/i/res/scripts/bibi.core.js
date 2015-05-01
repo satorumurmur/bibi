@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sat May 2 00:21:00 2015 +0900 */ Bibi = { Version: "0.998.0", Build: 20150502.0 };
+ * - Sat May 2 02:24:00 2015 +0900 */ Bibi = { Version: "0.998.1", Build: 20150502.0 };
 
 
 
@@ -1156,7 +1156,7 @@ L.start = function() {
 
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	window.addEventListener("scroll", R.onscroll);
-	window.addEventListener("keydown", C.listenKeys, false);
+	if(!O.SmartPhone) window.addEventListener("keydown", C.listenKeys, false);
 	if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
 
 	R.Started = true;
@@ -2575,6 +2575,7 @@ O.Log = ((!parent || parent == window) && console && console.log);
 O.log = function(Lv, Message) {
 	if(!O.Log || !Message || typeof Message != "string") return;
 	O.showStatus(Message);
+	if(O.SmartPhone) return;
 	switch(Lv) {
 		case 0: Message = "[ERROR] " + Message; break;
 		case 1: Message = "---------------- " + Message + " ----------------"; break;
@@ -2587,9 +2588,10 @@ O.log = function(Lv, Message) {
 
 
 O.showStatus = function(Message) {
-	window.status = 'BiB/i: ' + Message;
 	if(C.Cartain && C.Cartain.Message) C.Cartain.Message.note(Message);
+	if(O.SmartPhone) return;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
+	window.status = 'BiB/i: ' + Message;
 	O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
 };
 
