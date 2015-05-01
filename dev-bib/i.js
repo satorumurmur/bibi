@@ -6,7 +6,7 @@
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Thu April 2 14:38:00 2014 +0900 */ Pipi = { Version: "0.998.0", Build: 20150402.0 };
+ *  - Sat May 2 00:19:00 2015 +0900 */ Pipi = { Version: "0.998.0", Build: 20150502.0 };
 
 (function(embedBibi) {
 	if(window["bibi-pipi"]) return;
