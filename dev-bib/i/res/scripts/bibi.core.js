@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sat May 2 15:06:00 2015 +0900 */ Bibi = { Version: "0.998.2", Build: 20150502.2 };
+ * - Sat May 2 18:15:00 2015 +0900 */ Bibi = { Version: "0.998.3", Build: 20150502.3 };
 
 
 
@@ -981,59 +981,60 @@ L.postprocessItem = function(Item) {
 		}
 	}
 
-	// Writing Mode
-	if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
-		Item.AdditionalStyles = [];
-		var translateWritingMode = sML.UA.Gecko ? function(CSSRule) {
-			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
-			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
-			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
-		} : function(CSSRule) {
-			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-		};
-		sML.each(Item.contentDocument.styleSheets, function () {
-			var StyleSheet = this;
-			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
-				var CSSRule = this.cssRules[i];
-				/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
-				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-				else                        translateWritingMode(CSSRule);
-			}
-		});
-	}
-	(function() {
-		var HTMLCS = getComputedStyle(Item.HTML);
-		var Property = (function() {
-			if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
-			if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
-			else return undefined;
-		})();
-		sML.style(Item.HTML, {
-			"writing-mode": getComputedStyle(Item.Body)[Property]
-		});
-		Item.HTML.WritingMode = (function() {
-				 if(!Property)                                return (HTMLCS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
-			else if(     /^vertical-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(HTMLCS[Property]) ? "lr" : "rl");
-			else if(   /^horizontal-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(HTMLCS[Property]) ? "bt" : "tb");
-			else if(/^(lr|rl|tb|bt)-/.test(HTMLCS[Property])) return  HTMLCS[Property];
-		})();
-	})();
-	Item.Body.style["margin" + (function() {
-		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
-		if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
-		return "Bottom";
-	})()] = 0;
-
 	// Linkage
 	L.postprocessLinkage(Item.Path, Item.Body);
 
+	/*
 	setTimeout(function() {
 		if(!Item.Loaded) Item.LongWaited = true;
-	}, 3000);
+	}, 1000 * 10);
+	*/
 	setTimeout(function() {
-		if(!Item.LongWaited && Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
+		if(/*!Item.LongWaited &&*/ Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
+		// Writing Mode
+		if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
+			Item.AdditionalStyles = [];
+			var translateWritingMode = sML.UA.Gecko ? function(CSSRule) {
+				/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
+				else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
+				else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
+			} : function(CSSRule) {
+				/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+				else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+				else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+			};
+			sML.each(Item.contentDocument.styleSheets, function () {
+				var StyleSheet = this;
+				for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+					var CSSRule = this.cssRules[i];
+					/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+					else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+					else                        translateWritingMode(CSSRule);
+				}
+			});
+		}
+		(function() {
+			var HTMLCS = getComputedStyle(Item.HTML);
+			var Property = (function() {
+				if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
+				if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
+				else return undefined;
+			})();
+			sML.style(Item.HTML, {
+				"writing-mode": getComputedStyle(Item.Body)[Property]
+			});
+			Item.HTML.WritingMode = (function() {
+					 if(!Property)                                return (HTMLCS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
+				else if(     /^vertical-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(HTMLCS[Property]) ? "lr" : "rl");
+				else if(   /^horizontal-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(HTMLCS[Property]) ? "bt" : "tb");
+				else if(/^(lr|rl|tb|bt)-/.test(HTMLCS[Property])) return  HTMLCS[Property];
+			})();
+		})();
+		Item.Body.style["margin" + (function() {
+			if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
+			if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
+			return "Bottom";
+		})()] = 0;
 		// Update Background
 		if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
 		if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
@@ -1044,7 +1045,7 @@ L.postprocessItem = function(Item) {
 		}
 		// Keys
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
-		if(!Item.LongWaited) Item.Loaded = true;
+		/*if(!Item.LongWaited)*/ Item.Loaded = true;
 		L.LoadedItems++;
 		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
 	}, 100);
