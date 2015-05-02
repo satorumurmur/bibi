@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sat May 2 02:24:00 2015 +0900 */ Bibi = { Version: "0.998.1", Build: 20150502.0 };
+ * - Sat May 2 15:06:00 2015 +0900 */ Bibi = { Version: "0.998.2", Build: 20150502.2 };
 
 
 
@@ -120,13 +120,7 @@ O.open = function() {
 
 	O.readExtra();
 
-	if(sML.OS.iOS || sML.OS.Android) {
-		setTimeout(function() {
-			L.getBook(X["book"]);
-		}, 1000);
-	} else {
-		L.getBook(X["book"]);
-	}
+	setTimeout(function() { L.getBook(X["book"]); }, (sML.OS.iOS || sML.OS.Android ? 1000 : 1));
 
 };
 
@@ -183,15 +177,11 @@ L.download = function(URI, MimeType) {
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
 	var XHR, Document;
-	if(!B.Zipped) {
-		var getDocument = L.download(S["bookshelf"] + B.Name + "/" +  Path).then(function(ResolvedXHR) {
-			XHR = ResolvedXHR;
-			if(!IsXML) Document = XHR.responseXML;
-			return Document;
-		});
-	} else {
-		var getDocument = Promise.resolve(Document);
-	}
+	var getDocument = !B.Zipped ? L.download(S["bookshelf"] + B.Name + "/" +  Path).then(function(ResolvedXHR) {
+		XHR = ResolvedXHR;
+		if(!IsXML) Document = XHR.responseXML;
+		return Document;
+	}) : Promise.resolve(Document);
 	return getDocument.then(function(Document) {
 		if(Document) return Document;
 		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
@@ -853,6 +843,7 @@ L.loadItems = function() {
 L.loadItem = function(Item) {
 	var Path = Item.Path;
 	Item.Loaded = false;
+	Item.LongWaited = false;
 	if(/\.(x?html?)$/i.test(Path)) {
 		// If HTML or Others
 		if(B.Zipped) {
@@ -1012,18 +1003,23 @@ L.postprocessItem = function(Item) {
 			}
 		});
 	}
-	sML.style(Item.HTML, { "writing-mode": getComputedStyle(Item.Body).writingMode });
-	Item.HTML.WritingMode = (function(CS) {
+	(function() {
+		var HTMLCS = getComputedStyle(Item.HTML);
 		var Property = (function() {
-			if(/^(vertical|horizontal)-/.test(CS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
-			if(sML.UA.WebKit) return "-webkit-writing-mode";
+			if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
+			if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
 			else return undefined;
 		})();
-		     if(!Property)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
-		else if(/^vertical-/.test(CS[Property]))      return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[Property]) ? "lr" : "rl");
-		else if(/^horizontal-/.test(CS[Property]))    return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[Property]) ? "bt" : "tb");
-		else if(/^(lr|rl|tb|bt)-/.test(CS[Property])) return CS[Property];
-	})(getComputedStyle(Item.HTML));
+		sML.style(Item.HTML, {
+			"writing-mode": getComputedStyle(Item.Body)[Property]
+		});
+		Item.HTML.WritingMode = (function() {
+				 if(!Property)                                return (HTMLCS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
+			else if(     /^vertical-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(HTMLCS[Property]) ? "lr" : "rl");
+			else if(   /^horizontal-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(HTMLCS[Property]) ? "bt" : "tb");
+			else if(/^(lr|rl|tb|bt)-/.test(HTMLCS[Property])) return  HTMLCS[Property];
+		})();
+	})();
 	Item.Body.style["margin" + (function() {
 		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
 		if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
@@ -1034,7 +1030,10 @@ L.postprocessItem = function(Item) {
 	L.postprocessLinkage(Item.Path, Item.Body);
 
 	setTimeout(function() {
-		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
+		if(!Item.Loaded) Item.LongWaited = true;
+	}, 3000);
+	setTimeout(function() {
+		if(!Item.LongWaited && Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		// Update Background
 		if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
 		if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
@@ -1045,7 +1044,7 @@ L.postprocessItem = function(Item) {
 		}
 		// Keys
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
-		Item.Loaded = true;
+		if(!Item.LongWaited) Item.Loaded = true;
 		L.LoadedItems++;
 		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
 	}, 100);
@@ -1310,13 +1309,6 @@ R.resetItem_Reflowable = function(Item) {
 				"column-gap": Item.ColumnGap + "px",
 				"column-rule": ""
 			});
-			// Alternate of column-axis
-			if(Item.Body["scroll" + S.SIZE.B] > PageB) {
-				O.log(3, 'Switch spread-layout-axis automatically among layouting Item-' + Item.ItemIndex + '.');
-				O.updateSetting({ "spread-layout-axis": S["spread-layout-axis"] == "vertical" ? "horizontal" : "vertical" });
-				R.ToRelayout = true;
-				return;
-			}
 		}
 		// Breaking Pages
 		if(S["page-breaking"]) {
@@ -1554,7 +1546,6 @@ R.layout = function(Param) {
 			O.showStatus("Rendering... ( " + (SI + 1) + "/" + SL + " Spreads )");
 			for(var IL = R.Spreads[SI].Items.length, II = 0; II < IL; II++) {
 				R.resetItem(R.Spreads[SI].Items[II]);
-				if(R.ToRelayout) return R.layout(Param);
 			}
 			R.resetSpread(R.Spreads[SI]);
 		}
@@ -1650,15 +1641,20 @@ R.onresize = function() {
 	if(R.Timer_onresize) clearTimeout(R.Timer_onresize);
 	R.Timer_onresize = setTimeout(function() {
 		R.relayout();
-	}, (sML.OS.iOS || sML.OS.Android) ? 888 : 444);
+	}, 888);
 };
 
 
 R.changeView = function(View, Value) {
 	if(View == "paged") {
 		if(S.BDM == "all") {
-			var RelayoutRecipe = { Setting: { "book-display-mode" : "each"/*, "page-size-format": "window"*/ } };
-			R.relayout(RelayoutRecipe);
+			R.relayout({
+				Setting: {
+					"book-display-mode" : "each",
+					"spread-layout-axis" : (B.Package.Spine["page-progression-direction"] == "rtl" || B.Package.Metadata["rendition:layout"] == "pre-paginated") ? "vertical" : "horizontal"/*,
+					"page-size-format": "window"*/
+				}
+			});
 		}
 	} else {
 		var Axis = (Value != "vertical") ? "horizontal" : "vertical";
@@ -1666,8 +1662,13 @@ R.changeView = function(View, Value) {
 			R.Spreads.forEach(function(Spread) {
 				Spread.style.opacity = 1;
 			});
-			var RelayoutRecipe = { Setting: { "book-display-mode": "all", "spread-layout-axis": Axis, "page-size-format": P["page-size-format"] } };
-			R.relayout(RelayoutRecipe);
+			R.relayout({
+				Setting: {
+					"book-display-mode": "all",
+					"spread-layout-axis": Axis,
+					"page-size-format": P["page-size-format"]
+				}
+			});
 		}
 	}
 };
