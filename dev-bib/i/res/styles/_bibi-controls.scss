@@ -359,7 +359,7 @@ p#bibi-cartain-message {
 	font-size: 12px;
 	font-weight: bold;
 	text-indent: .5em;
-	text-transform: uppercase;
+	//text-transform: uppercase;
 	opacity: 0;
 	@include transition(opacity .15s linear);
 	html.wait-please & {

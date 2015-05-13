@@ -213,12 +213,12 @@ L.getBook = function(BookFileName) {
 			X = { book: "", bibi: {}, pipi: {} };
 			L.initialize(BookFileName);
 			L.sayLoading();
-			O.log(2, 'Loading EPUB...');
+			O.log(2, 'Loading EPUB...', "Show");
 			O.log(3, BookFileName);
 			sML.edit(new FileReader(), {
 				onerror : function(e) { O.Body.style.opacity = 1.0; C.Cartain.Message.note('Error. Something trouble...'); },
 				onload  : function(e) {
-					O.log(2, 'Loaded.');
+					O.log(2, 'EPUB Loaded.', "Show");
 					onloadFile(this.result);
 				}
 			}).readAsArrayBuffer(BookFile);
@@ -270,10 +270,10 @@ L.getBook = function(BookFileName) {
 			// EPUB XHR
 			var fetchEPUB = function() {
 				L.sayLoading();
-				O.log(2, 'Fetching EPUB...');
+				O.log(2, 'Fetching EPUB...', "Show");
 				O.log(3, BookFileName);
 				L.download(S["bookshelf"] + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
-					O.log(2, 'Fetched.');
+					O.log(2, 'EPUB Fetched.', "Show");
 					onloadFile(XHR.responseText)
 				});
 			}
@@ -300,7 +300,7 @@ L.getBook = function(BookFileName) {
 
 L.initialize = function(BookFileName) {
 
-	O.log(2, 'Initializing BiB/i...');
+	O.log(2, 'Initializing BiB/i...', "Show");
 
 	L.FileDigit = 3;
 
@@ -338,14 +338,14 @@ L.initialize = function(BookFileName) {
 	O.log(3, 'bookshelf: ' + S["bookshelf"]);
 	O.log(3, 'book: ' + BookFileName + (/\.epub$/i.test(BookFileName) ? "" : " (Unzipped)"));
 
-	O.log(2, 'Initialized.');
+	O.log(2, 'BiB/i Initialized.', "Show");
 
 };
 
 
 L.preprocessEPUB = function(EPUBZip) {
 
-	O.log(2, 'Preprocessing EPUB...');
+	O.log(2, 'Preprocessing EPUB...', "Show");
 
 	A = {
 		Files: {},
@@ -473,21 +473,21 @@ L.preprocessEPUB = function(EPUBZip) {
 	}
 	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, L.FileDigit) + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : "") + " Preprocessed.");
 
-	O.log(2, 'Preprocessed.');
+	O.log(2, 'EPUB Preprocessed.', "Show");
 
 };
 
 
 L.readContainer = function(Document) {
 
-	O.log(2, 'Reading Container XML...');
+	O.log(2, 'Reading Container XML...', "Show");
 
 	O.log(3, B.Container.Path);
 
 	B.Package.Path = Document.getElementsByTagName("rootfile")[0].getAttribute("full-path");
 	B.Package.Dir  = B.Package.Path.replace(/\/?[^\/]+$/, "");
 
-	O.log(2, 'Read.');
+	O.log(2, 'Container XML Read.', "Show");
 
 	L.openDocument(B.Package.Path, { then: L.readPackageDocument });
 };
@@ -495,7 +495,7 @@ L.readContainer = function(Document) {
 
 L.readPackageDocument = function(Document) {
 
-	O.log(2, 'Reading Package Document...');
+	O.log(2, 'Reading Package Document...', "Show");
 
 	O.log(3, B.Package.Path);
 
@@ -611,7 +611,7 @@ L.readPackageDocument = function(Document) {
 
 	C.createSwitches();
 
-	O.log(2, 'Read.');
+	O.log(2, 'Package Document Read.', "Show");
 
 	delete Document;
 
@@ -624,7 +624,7 @@ L.readPackageDocument = function(Document) {
 
 L.prepareSpine = function() {
 
-	O.log(2, 'Preparing Spine...');
+	O.log(2, 'Preparing Spine...', "Show");
 
 	R.Content.Main.innerHTML = R.Content.Complementary.innerHTML = "";
 
@@ -686,7 +686,7 @@ L.prepareSpine = function() {
 
 	O.log(3, sML.String.padZero(R.Items.length, L.FileDigit) + ' Items');
 
-	O.log(2, 'Prepared.');
+	O.log(2, 'Spine Prepared.', "Show");
 
 	L.createCover();
 
@@ -695,7 +695,7 @@ L.prepareSpine = function() {
 
 L.createCover = function() {
 
-	O.log(2, 'Creating Cover...');
+	O.log(2, 'Creating Cover...', "Show");
 
 	if(B.Package.Manifest["cover-image"].Path) {
 		R.CoverImage.Path = B.Package.Manifest["cover-image"].Path;
@@ -722,7 +722,7 @@ L.createCover = function() {
 					backgroundImage: "url(" + this.src + ")",
 					opacity: 1
 				});
-				O.log(2, 'Created.');
+				O.log(2, 'Cover Created.', "Show");
 				L.loadNavigation();
 			}
 		}).src = (function() {
@@ -732,7 +732,7 @@ L.createCover = function() {
 	} else {
 		O.log(3, 'No Cover Image.');
 		C.Cartain.Cover.className = [C.Cartain.Cover.className, "without-cover-image"].join(" ");
-		O.log(2, 'Created.');
+		O.log(2, 'Cover Created.', "Show");
 		L.loadNavigation();
 	}
 
@@ -762,7 +762,7 @@ L.loadNavigation = function() {
 
 L.createNavigation = function(Document) {
 
-	O.log(2, 'Making Navigation...');
+	O.log(2, 'Making Navigation...', "Show");
 
 	O.log(3, R.Navigation.Path);
 
@@ -793,7 +793,7 @@ L.createNavigation = function(Document) {
 	L.postprocessLinkage(R.Navigation.Path, C.Panel.Navigation.Item, "InBibiNavigation");
 	R.resetNavigation();
 
-	O.log(2, 'Made.');
+	O.log(2, 'Navigation Made.', "Show");
 
 	delete Document;
 
@@ -813,7 +813,7 @@ L.createNavigation = function(Document) {
 
 L.loadItems = function() {
 
-	O.log(2, 'Loading Items...');
+	O.log(2, 'Loading Items...', "Show");
 
 	O.Body.style.backgroundImage = "none";
 	sML.removeClass(O.HTML, "with-poster");
@@ -833,7 +833,7 @@ L.loadItems = function() {
 		if(L.LoadedItems < R.Items.length) return setTimeout(arguments.callee, 400);
 		document.body.style.display = "";
 		R.resetPages();
-		O.log(2, 'Loaded.');
+		O.log(2, 'Items Loaded.', "Show");
 		L.start();
 	}, 10);
 
@@ -1047,7 +1047,7 @@ L.postprocessItem = function(Item) {
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
 		/*if(!Item.LongWaited)*/ Item.Loaded = true;
 		L.LoadedItems++;
-		O.showStatus("Loaded... ( " + (L.LoadedItems) + "/" + R.Items.length + " Items )");
+		O.showStatus("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
 	}, 100);
 
 	// Tap Scroller
@@ -2574,9 +2574,9 @@ O.getLogo = function(Setting) {
 O.Log = ((!parent || parent == window) && console && console.log);
 
 
-O.log = function(Lv, Message) {
+O.log = function(Lv, Message, ShowStatus) {
 	if(!O.Log || !Message || typeof Message != "string") return;
-	O.showStatus(Message);
+	if(ShowStatus) O.showStatus(Message);
 	if(O.SmartPhone) return;
 	switch(Lv) {
 		case 0: Message = "[ERROR] " + Message; break;
