@@ -1431,8 +1431,8 @@ R.resetItem_PrePagenated = function(Item) {
 		PageB = PageB / 2;
 	}
 	var Scale = Math.min(
-		Math.min(ItemRef["viewport"][S.SIZE.b], PageB) / ItemRef["viewport"][S.SIZE.b],
-		Math.min(ItemRef["viewport"][S.SIZE.l], PageL) / ItemRef["viewport"][S.SIZE.l]
+		PageB / ItemRef["viewport"][S.SIZE.b],
+		PageL / ItemRef["viewport"][S.SIZE.l]
 	);
 	PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
 	PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
