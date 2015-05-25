@@ -2,98 +2,117 @@
  *
  *  # Pipi: BiB/i Putter
  *
- *  - "Putting EPUBs in Web Page with BiB/i."
+ *  - "Putting EPUBs in a Web Page with BiB/i."
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Sat May 2 00:19:00 2015 +0900 */ Pipi = { Version: "0.998.0", Build: 20150502.0 };
+ *  - Fri May 15 19:13:00 2015 +0900
+ */
+ 
+Pipi = { Version: "0.999.0", Build: 20150515.0 };
 
 (function(embedBibi) {
-	if(window["bibi-pipi"]) return;
-	window["bibi-pipi"] = { Status: "waiting" };
-	if(typeof window.CustomEvent === "undefined") {
-		window.CustomEvent = function(EventName, Arguments) {
-			Arguments = Arguments || {
-				bubbles:    false,
-				cancelable: false,
-				detail:     undefined
-			};
-			var Event = document.createEvent("CustomEvent");
-			Event.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
-			return Event;
-		};
-		window.CustomEvent.prototype = window.Event.prototype;
-	}
+	if(window["bibi:pipi"]) return;
+	window["bibi:pipi"] = { Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
+	document.addEventListener("bibi:started",   function(E) { console.log("BiB/i: Started."); }, false);
+	document.addEventListener("bibi:ended",     function(E) { console.log("BiB/i: Ended."); }, false);
+	document.addEventListener("bibi:readied",   function(E) { console.log("BiB/i: Readied. - "   + E.detail.Bibis.length + " Bibi(s)."); }, false);
+	document.addEventListener("bibi:loaded",    function(E) { console.log("BiB/i: Loaded. - "    + E.detail.Bibis.length + " Bibi(s)."); }, false);
+	document.addEventListener("bibi:timeouted", function(E) { console.log("BiB/i: Timeouted. - " + E.detail.Bibis.length + " Bibi(s)."); }, false);
 	document.addEventListener("DOMContentLoaded", embedBibi, false);
 	  window.addEventListener("load",             embedBibi, false);
 })(function() {
-	if(window["bibi-pipi"].Status != "waiting") return;
-	window["bibi-pipi"].Status = "processing";
-	var As = document.querySelectorAll ? document.querySelectorAll('a[data-bibi]') : (function(_As, As) {
-		for(var L = _As.length, i = 0; i < L; i++) if(_As[i].getAttribute("data-bibi")) As.push(_As[i]);
-		return As;
-	})(document.body.getElementsByTagName("a"), []);
-	if(As.length) {
+	if(window["bibi:pipi"].Status) return;
+	window["bibi:pipi"].Status = "started";
+	document.dispatchEvent(new CustomEvent("bibi:started", { detail: window["bibi:pipi"] }));
+	var As = document.body.querySelectorAll('a[data-bibi]');
+	for(var L = As.length, i = 0; i < L; i++) if(As[i].getAttribute("href")) window["bibi:pipi"].Anchors.push(As[i]);
+	if(!window["bibi:pipi"].Anchors.length) {
+		window["bibi:pipi"].Status = "ended";
+		document.dispatchEvent(new CustomEvent("bibi:ended", { detail: window["bibi:pipi"] }));
+	} else {
 		var create = function(TagName, Properties) {
 			var Element = document.createElement(TagName);
 			for(var Attribute in Properties) Element[Attribute] = Properties[Attribute];
 			return Element;
 		};
-		var BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
-		var FullScreenEnabled = (function(B) {
-			if(B.requestFullscreen       || B.requestFullScreen)       return true;
-			if(B.webkitRequestFullscreen || B.webkitRequestFullScreen) return true;
-			if(B.mozRequestFullscreen    || B.mozRequestFullScreen)    return true;
-			if(B.msRequestFullscreen)                                  return true;
-			return false;
-		})(document.body);
-		if(FullScreenEnabled) {
-			window["bibi-pipi"].requestFullscreen = function(E) {
-				if(E.requestFullscreen)       return E.requestFullscreen();
-				if(E.requestFullScreen)       return E.requestFullScreen();
-				if(E.webkitRequestFullscreen) return E.webkitRequestFullscreen();
-				if(E.webkitRequestFullScreen) return E.webkitRequestFullScreen();
-				if(E.mozRequestFullscreen)    return E.mozRequestFullscreen();
-				if(E.mozRequestFullScreen)    return E.mozRequestFullScreen();
-				if(E.msRequestFullscreen)     return E.msRequestFullscreen();
+		if(typeof window.CustomEvent === "undefined") {
+			window.CustomEvent = function(EventName, Arguments) {
+				Arguments = Arguments || {
+					bubbles:    false,
+					cancelable: false,
+					detail:     undefined
+				};
+				var Event = document.createEvent("CustomEvent");
+				Event.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
+				return Event;
 			};
-			window["bibi-pipi"].exitFullscreen = function(D) {
-				if(D.exitFullscreen)          return D.exitFullscreen();
-				if(D.cencelFullScreen)        return D.cancelFullScreen();
-				if(D.webkitExitFullscreen)    return D.webkitExitFullscreen();
-				if(D.webkitCancelFullScreen)  return D.webkitCancelFullScreen();
-				if(D.mozExitFullscreen)       return D.mozExitFullscreen();
-				if(D.mozCancelFullScreen)     return D.mozCancelFullScreen();
-				if(D.msExitFullscreen)        return D.msExitFullscreen();
-			};
-			window["bibi-pipi"].getFullscreenElement = function(D) {
-				if(D.fullscreenElement)       return D.fullscreenElement;
-				if(D.fullScreenElement)       return D.fullScreenElement;
-				if(D.webkitFullscreenElement) return D.webkitFullscreenElement;
-				if(D.webkitFullScreenElement) return D.webkitFullScreenElement;
-				if(D.mozFullscreenElement)    return D.mozFullscreenElement;
-				if(D.mozFullScreenElement)    return D.mozFullScreenElement;
-				if(D.msFullscreenElement)     return D.msFullscreenElement;
-				return null;
-			};
+			window.CustomEvent.prototype = window.Event.prototype;
 		}
+		if(
+				  document.body.requestFullscreen ||       document.body.requestFullScreen ||
+			document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen ||
+			   document.body.mozRequestFullscreen ||    document.body.mozRequestFullScreen ||
+				document.body.msRequestFullscreen
+		) {
+			window["bibi:pipi"].FullscreenEnabled = true;
+			var requestFullscreen = (function(E) {
+				var getFunction = function(M) { return function(O) { if(!O) O = E; return O[M](); } };
+				if(E.requestFullscreen)                             return getFunction("requestFullscreen");
+				if(E.requestFullScreen)                             return getFunction("requestFullScreen");
+				if(E.webkitRequestFullscreen)                       return getFunction("webkitRequestFullscreen");
+				if(E.webkitRequestFullScreen)                       return getFunction("webkitRequestFullScreen");
+				if(E.mozRequestFullscreen)                          return getFunction("mozRequestFullscreen");
+				if(E.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+				if(E.msRequestFullscreen)                           return getFunction("msRequestFullscreen");
+				return function() { return false; };
+			})(document.documentElement);
+			var exitFullscreen = (function(D) {
+				var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M](); } };
+				if(D.exitFullscreen)                                return getFunction("exitFullscreen");
+				if(D.cencelFullScreen)                              return getFunction("cencelFullScreen");
+				if(D.webkitExitFullscreen)                          return getFunction("webkitExitFullscreen");
+				if(D.webkitCancelFullScreen)                        return getFunction("webkitCancelFullScreen");
+				if(D.mozExitFullscreen)                             return getFunction("mozExitFullscreen");
+				if(D.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+				if(D.msExitFullscreen)                              return getFunction("msExitFullscreen");
+				return function() { return false; };
+			})(document);
+			var getFullscreenElement = (function(D) {
+				var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M]; } };
+				if(typeof D.fullscreenElement       != "undefined") return getFunction("fullscreenElement");
+				if(typeof D.fullScreenElement       != "undefined") return getFunction("fullScreenElement");
+				if(typeof D.webkitFullscreenElement != "undefined") return getFunction("webkitFullscreenElement");
+				if(typeof D.webkitFullScreenElement != "undefined") return getFunction("webkitFullScreenElement");
+				if(typeof D.mozFullscreenElement    != "undefined") return getFunction("mozFullscreenElement");
+				if(typeof D.mozFullScreenElement    != "undefined") return getFunction("mozFullScreenElement");
+				if(typeof D.msFullscreenElement     != "undefined") return getFunction("msFullscreenElement");
+				return function() { return null; };
+			})(document);
+		};
+		// Embed
+		window["bibi:pipi"].BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
 		document.getElementsByTagName("head")[0].appendChild(
-			create("link", { rel: "stylesheet", id: "bibi-css", href: BibiPath + ".css" })
+			create("link", { rel: "stylesheet", id: "bibi-css", href: window["bibi:pipi"].BibiPath + ".css" })
 		);
-		window["bibi-pipi"].Holders = [];
-		for(var L = As.length, i = 0; i < L; i++) {
-			if(!As[i].getAttribute("href")) continue;
-			var Holder = create("span", {
-				className: "bibi-holder " + (FullScreenEnabled ? "bibi-fullscreen-enabled" : "bibi-fullscreen-not-enabled"),
-				title: (As[i].innerText ? As[i].innerText + " " : "") + "(powered by BiB/i)"
+		for(var L = window["bibi:pipi"].Anchors.length, i = 0; i < L; i++) {
+			// Bibi Object
+			var Bibi = { Index: i, Number: i + 1 };
+			// Anchor
+			var Anchor = Bibi.Anchor = window["bibi:pipi"].Anchors[i];
+			if(!/ bibi-anchor /.test(" " + Anchor.className + " ")) Anchor.className = "bibi-anchor" + (Anchor.className ? " " + Anchor.className : "");
+			// Holder
+			var Holder = Bibi.Holder = create("span", {
+				className: "bibi-holder",
+				title: (Anchor.innerText ? Anchor.innerText + " " : "") + "(powered by BiB/i)"
 			});
-			var Href      = As[i].getAttribute("href");
+			var Href      = Anchor.getAttribute("href");
 			var Src       = Href;
-			var Class     = As[i].getAttribute("data-bibi-class");
-			var ID        = As[i].getAttribute("data-bibi-id");
-			var Style     = As[i].getAttribute("data-bibi-style");
-			var Poster    = As[i].getAttribute("data-bibi-poster");
-			var Autostart = As[i].getAttribute("data-bibi-autostart");
+			var Class     = Anchor.getAttribute("data-bibi-class");
+			var ID        = Anchor.getAttribute("data-bibi-id");
+			var Style     = Anchor.getAttribute("data-bibi-style");
+			var Poster    = Anchor.getAttribute("data-bibi-poster");
+			var Autostart = Anchor.getAttribute("data-bibi-autostart");
 			if(Class) Holder.className += " " + Class;
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
@@ -105,9 +124,9 @@
 				delete PosterLink;
 				Src += (/#/.test(Src) ? "," : "#") + "pipi(poster:" + encodeURIComponent(Poster).replace("(", "_BibiKakkoOpen_").replace(")", "_BibiKakkoClose_") + ")";
 			}
-			As[i].style.display = "none";
-			As[i].parentNode.insertBefore(Holder, As[i]);
-			Holder.appendChild(
+			window["bibi:pipi"].Holders.push(Holder);
+			// Frame
+			var Frame = Bibi.Frame = Holder.appendChild(
 				create("iframe", {
 					className: "bibi-frame",
 					frameborder: "0",
@@ -118,7 +137,9 @@
 					src: Src
 				})
 			);
-			Holder.SwitchNewWindow = Holder.appendChild(
+			window["bibi:pipi"].Frames.push(Frame);
+			// Buttons
+			var SwitchNewWindow = Bibi.SwitchNewWindow = Holder.appendChild(
 				create("a", {
 					className: "bibi-icon bibi-switch-newwindow",
 					title: "Open in New Window",
@@ -126,34 +147,51 @@
 					href: Href
 				})
 			);
-			if(FullScreenEnabled) {
+			if(window["bibi:pipi"].FullscreenEnabled) {
 				Holder.className += " bibi-fullscreen-enabled";
-				Holder.SwitchFullscreen = Holder.appendChild(
+				var SwitchFullscreen = Bibi.SwitchFullscreen = Holder.appendChild(
 					create("span", {
 						className: "bibi-icon bibi-switch-fullscreen",
 						title: "Enter Fullscreen",
 						Holder: Holder,
 						onclick: function() {
-							if(!window["bibi-pipi"].getFullscreenElement(document)) {
-								window["bibi-pipi"].requestFullscreen(this.Holder);
+							if(!getFullscreenElement(document)) {
+								requestFullscreen(this.Holder);
 								this.title = "Exit Fullscreen";
 							} else {
-								window["bibi-pipi"].exitFullscreen(document);
+								exitFullscreen(document);
 								this.title = "Enter Fullscreen";
 							}
 						}
 					})
 				);
+			} else {
+				Holder.className += " bibi-fullscreen-not-enabled";
 			}
-			window["bibi-pipi"].Holders.push(Holder);
-			As[i].dispatchEvent(
-				new CustomEvent("bibi:holderadded", {
-					bubbles:    true,
-					cancelable: true,
-					detail:     { holder: Holder }
-				})
-			);
+			// Add & Load
+			window["bibi:pipi"].Bibis.push(Bibi);
+			Frame.Bibi = Holder.Bibi = Anchor.Bibi = Bibi;
+			Frame.addEventListener("load", function() {
+				window["bibi:pipi"].Loaded++;
+				this.Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:loaded", { detail: this.Bibi }));
+				if(window["bibi:pipi"].Status != "timeouted" && window["bibi:pipi"].Loaded == window["bibi:pipi"].Anchors.length) {
+					window["bibi:pipi"].Status = "loaded";
+					document.dispatchEvent(new CustomEvent("bibi:loaded", { detail: window["bibi:pipi"] }));
+				}
+			}, false);
+		//	Anchor.addEventListener("bibi:readied", function(E) { console.log("BiB/i: Readied - " + E.detail.Index + ": " + E.detail.Anchor.href); }, false);
+			Anchor.addEventListener("bibi:loaded",  function(E) { console.log("BiB/i: Loaded. - " + E.detail.Index + ": " + E.detail.Anchor.href); }, false);
+			Anchor.style.display = "none";
+			Anchor.parentNode.insertBefore(Holder, Anchor);
+			Anchor.dispatchEvent(new CustomEvent("bibi:readied", { detail: Bibi }));
+			Anchor.dispatchEvent(new CustomEvent("bibi:holderadded", { detail: { holder: Holder }, bubbles: true, cancelable: true })); // for back compatibility
 		}
+		setTimeout(function() {
+			if(window["bibi:pipi"].Status == "loaded") return;
+			window["bibi:pipi"].Status = "timeouted";
+			document.dispatchEvent(new CustomEvent("bibi:timeouted", { detail: window["bibi:pipi"] }));
+		}, 12000);
+		window["bibi:pipi"].Status = "readied";
+		document.dispatchEvent(new CustomEvent("bibi:readied", { detail: window["bibi:pipi"] }));
 	}
-	window["bibi-pipi"].Status = "processed";
 });
