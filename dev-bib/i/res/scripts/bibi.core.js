@@ -208,6 +208,12 @@ L.openDocument = function(Path, Option) {
 
 L.getBook = function(BookFileName) {
 
+	var onloadFile = function(EPUBZip) {
+		L.preprocessEPUB(EPUBZip);
+		B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
+		L.openDocument(B.Container.Path, { then: L.readContainer });
+	};
+
 	var loadFile = function(BookFile) {
 		BookFileName = BookFile.name;
 		if(!BookFile.size || !/\.epub$/i.test(BookFileName)) {
@@ -226,12 +232,6 @@ L.getBook = function(BookFileName) {
 				}
 			}).readAsArrayBuffer(BookFile);
 		}
-	};
-
-	var onloadFile = function(EPUBZip) {
-		L.preprocessEPUB(EPUBZip);
-		B.Name = BookFileName.replace(/\.epub$/i, ""), B.Format = "EPUB", B.Zipped = true;
-		L.openDocument(B.Container.Path, { then: L.readContainer });
 	};
 
 	// Wait Drop or Input
@@ -310,7 +310,7 @@ L.initialize = function(BookFileName) {
 	B = {
 		Container: { Path: "META-INF/container.xml" },
 		Package: {}
-	}
+	};
 
 	R.Content.Main.style.opacity = 0;
 	R.Content.Main.innerHTML = R.Content.Complementary.innerHTML = "";
@@ -361,7 +361,7 @@ L.preprocessEPUB = function(EPUBZip) {
 			}
 			return "";
 		}
-	}
+	};
 
 	EPUBZip = (new JSZip()).load(EPUBZip);
 
@@ -418,7 +418,7 @@ L.preprocessEPUB = function(EPUBZip) {
 		Source = Source.replace(/<bibi:lf \/>/g, "\n");
 		*/
 		return Source;
-	}
+	};
 
 	var Preprocessed = { CSS:0, SVG:0, HTML:0 };
 
@@ -493,6 +493,7 @@ L.readContainer = function(Document) {
 	O.log(2, 'Container XML Read.', "Show");
 
 	L.openDocument(B.Package.Path, { then: L.readPackageDocument });
+
 };
 
 
@@ -2047,11 +2048,12 @@ C.weaveCartain = function() {
 		}
 	});
 
-	C.Cartain.Powered = C.Cartain.appendChild(sML.create("p", { id: "bibi-cartain-powered", innerHTML: O.getLogo({ Linkify: true }) }));
 
-	C.Cartain.Cover   = C.Cartain.insertBefore(sML.create("div", { id: "bibi-cartain-cover" }), C.Cartain.Powered);
-	C.Cartain.Mark    = C.Cartain.insertBefore(sML.create("div", { id: "bibi-cartain-mark",    className: "animate" }), C.Cartain.Powered);
-	C.Cartain.Message = C.Cartain.insertBefore(sML.create("p",   { id: "bibi-cartain-message", className: "animate" }), C.Cartain.Powered);
+	C.Cartain.Cover   = C.Cartain.appendChild(sML.create("div", {                       id: "bibi-cartain-cover"   }));
+	C.Cartain.Mark    = C.Cartain.appendChild(sML.create("div", { className: "animate", id: "bibi-cartain-mark"    }));
+	C.Cartain.Message = C.Cartain.appendChild(sML.create("p",   { className: "animate", id: "bibi-cartain-message", note: function(Note) { C.Cartain.Message.innerHTML = Note; return Note; } }));
+	C.Cartain.Powered = C.Cartain.appendChild(sML.create("p",   {                       id: "bibi-cartain-powered", innerHTML: O.getLogo({ Linkify: true }) }));
+
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
 	C.Cartain.createPlayButton = function(Param) {
@@ -2082,10 +2084,6 @@ C.weaveCartain = function() {
 		});
 	};
 
-	C.Cartain.Message.note = function(Note) {
-		C.Cartain.Message.innerHTML = Note;
-		return Note;
-	};
 
 };
 
