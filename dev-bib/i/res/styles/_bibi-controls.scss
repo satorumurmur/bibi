@@ -232,10 +232,19 @@ p#bibi-cartain-playbutton {
 		margin-left: 0;
 		@include transform-origin_(100% 50%);
 	}
-	&:hover {
+	html.Mac &:hover,
+	html.PC &:hover,
+	html.Touch &:active {
 		&:after {
 			color: white;
 			@include transform(scale(1.5));
+		}
+	}
+	html.Mac &:active,
+	html.PC &:active {
+		&:after {
+			color: white;
+			@include transform(scale(1.25));
 		}
 	}
 }
