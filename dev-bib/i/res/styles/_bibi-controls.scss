@@ -592,12 +592,23 @@ div#bibi-panel-navigation {
 			@include box-sizing(border-box);
 			color: rgb(128,128,128);
 //			html.display-all.spread-ltr &, html.display-each.page-ltr & { @include column-width(240px); @include column-gap(20px); }
-			html.page-rtl & { @include writing-mode(vertical-rl); }
-			>*:first-child,
-			>*:first-child >*:first-child,
-			>*:first-child >*:first-child >*:first-child {
-				html.page-ltr & { margin-top: 0 !important; }
-				html.page-rtl & { margin-right: 0 !important; }
+			html.page-rtl & {
+				@include writing-mode(vertical-rl);
+				>*:first-child,
+				>*:first-child >*:first-child,
+				>*:first-child >*:first-child >*:first-child {
+					margin-right: 0 !important;
+				}
+				span.tcy {
+					@include writing-mode(horizontal-tb);
+				}
+			}
+			html.page-ltr & {
+				>*:first-child,
+				>*:first-child >*:first-child,
+				>*:first-child >*:first-child >*:first-child {
+					margin-top: 0 !important;
+				}
 			}
 			nav {
 				$margin-before: 2em;
