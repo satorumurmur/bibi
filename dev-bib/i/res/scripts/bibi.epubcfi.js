@@ -11,7 +11,9 @@
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  * - Wed February 4 23:15:00 2015 +0900
- */ BibiEPUBCFI = { Version: "0.32.2", Build: 20150204.1,
+ */
+ 
+BibiEPUBCFI = { Version: "0.32.2", Build: 20150204.1,
 
 /* -----------------------------------------------------------------------------------------------------------------
 
