@@ -24,6 +24,8 @@ B = {}; // Bibi.Book
 
 C = {}; // Bibi.Controls
 
+E = {}; // Bibi.Events
+
 L = {}; // Bibi.Loader
 
 O = {}; // Bibi.Operator
@@ -99,6 +101,20 @@ O.welcome = function() {
 	O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
 	document.body.removeChild(Checker);
 
+	if(typeof window.CustomEvent === "undefined") {
+		window.CustomEvent = function(EventName, Arguments) {
+			Arguments = Arguments || {
+				bubbles:    false,
+				cancelable: false,
+				detail:     undefined
+			};
+			var Event = document.createEvent("CustomEvent");
+			Event.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
+			return Event;
+		};
+		window.CustomEvent.prototype = window.Event.prototype;
+	}
+
 	O.found();
 	O.open();
 
@@ -133,28 +149,46 @@ O.open = function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+//-- Events
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+E.on = function(Name, Listener) {
+	document.addEventListener(Name, function(E) {
+		Listener(E.detail);
+	});
+};
+
+E.dispatch = function(Name, Detail) {
+	document.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
+};
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 //-- Loading
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-L.sayLoading = function(Message) {
+L.startLoading = function() {
 	sML.addClass(O.HTML, "wait-please");
-	sML.addClass(C.Cartain, "animate");
-	C.Cartain.Message.note(Message ? Message : 'Loading...');
+	E.dispatch("bibi:startLoading");
 };
 
 
-L.shutUpLoading = function(Message) {
+L.stopLoading = function() {
 	sML.removeClass(O.HTML, "wait-please");
-	sML.removeClass(C.Cartain, "animate");
-	C.Cartain.Message.note(Message ? Message : '');
+	E.dispatch("bibi:stopLoading");
 };
 
 
 L.error = function(Message) {
-	sML.removeClass(O.HTML, "wait-please");
-	sML.removeClass(C.Cartain, "animate");
+	L.stopLoading();
+	E.dispatch("bibi:error");
 	O.log(0, Message);
 };
 
@@ -221,7 +255,7 @@ L.getBook = function(BookFileName) {
 		} else {
 			X = { book: "", bibi: {}, pipi: {} };
 			L.initialize(BookFileName);
-			L.sayLoading();
+			L.startLoading();
 			O.log(2, 'Loading EPUB...', "Show");
 			O.log(3, BookFileName);
 			sML.edit(new FileReader(), {
@@ -272,7 +306,7 @@ L.getBook = function(BookFileName) {
 		if(/\.epub$/i.test(BookFileName)) {
 			// EPUB XHR
 			var fetchEPUB = function() {
-				L.sayLoading();
+				L.startLoading();
 				O.log(2, 'Fetching EPUB...', "Show");
 				O.log(3, BookFileName);
 				L.download(S["bookshelf"] + BookFileName, "text/plain;charset=x-user-defined").then(function(XHR) {
@@ -280,19 +314,19 @@ L.getBook = function(BookFileName) {
 					onloadFile(XHR.responseText)
 				});
 			}
-			if(!X["pipi"]["wait"]) fetchEPUB();
-			else {
-				C.Cartain.createPlayButton({
-					onplay: function() {
-						fetchEPUB();
-						delete  X["pipi"]["wait"];
-					}
+			if(!X["pipi"]["wait"]) {
+				fetchEPUB();
+			} else {
+				E.dispatch("bibi:wait");
+				E.on("bibi:play", function() {
+					fetchEPUB();
+					delete  X["pipi"]["wait"];
 				});
 				C.Cartain.Message.note('');
 			}
 		} else {
 			// EPUB Folder
-			L.sayLoading();
+			L.startLoading();
 			B.Name = BookFileName, B.Format = "EPUB";
 			L.openDocument(B.Container.Path, { then: L.readContainer });
 		}
@@ -621,6 +655,8 @@ L.readPackageDocument = function(Document) {
 
 	O.updateSetting({ Reset: true });
 
+	E.dispatch("bibi:loadpackagedocument");
+
 	L.prepareSpine();
 
 };
@@ -691,6 +727,8 @@ L.prepareSpine = function() {
 	O.log(3, sML.String.padZero(R.Items.length, L.FileDigit) + ' Items');
 
 	O.log(2, 'Spine Prepared.', "Show");
+
+	E.dispatch("bibi:preparespine");
 
 	L.createCover();
 
@@ -801,17 +839,31 @@ L.createNavigation = function(Document) {
 
 	delete Document;
 
-	if(!X["pipi"]["wait"]) L.loadItems();
-	else {
-		L.shutUpLoading();
-		C.Cartain.createPlayButton({
-			onplay: function() {
-				L.loadItems();
-			}
+	if(!X["pipi"]["wait"]) {
+		L.loadItems();
+	} else {
+		L.stopLoading();
+		E.dispatch("bibi:wait");
+		E.on("bibi:play", function() {
+			L.loadItems();
 		});
 		C.Cartain.Message.note('');
 	}
 
+};
+
+
+L.play = function(Param) {
+	if(typeof Param != "object" || !Param) Param = {};
+	if(O.SmartPhone) {
+		var URI = location.href.replace(/&wait=[^&]+/g, "");
+		if(typeof Param.NavAIndex == "number") URI = [URI, 'pipi(nav:' + Param.NavAIndex + ')'].join(/#/.test(URI) ? "," : "#");
+		return window.open(URI);
+	} else {
+		if(Param.To) X["bibi"].To = Param.To;
+		L.startLoading();
+		E.dispatch("bibi:play");
+	}
 };
 
 
@@ -1094,7 +1146,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 				var This = this;
 				var Go = R.Started ?
 					function() { R.focus(This.Target); } :
-					function() { C.Cartain.PlayButton.play(This.Target, This.NavAIndex); };
+					function() { L.play({ To: This.Target, NavAIndex: This.NavAIndex }); };
 				This.InBibiNavigation ? C.Panel.toggle(Go) : Go();
 			}
 			return false;
@@ -1129,7 +1181,7 @@ L.postprocessLinkage = function(FilePath, RootElement, InBibiNavigation) {
 L.start = function() {
 
 	C.createArrows();
-	L.shutUpLoading();
+	L.stopLoading();
 
 	R.layout({
 		Target: (X["bibi"].To ? X["bibi"].To : "head")
@@ -1155,8 +1207,6 @@ L.start = function() {
 			}, 500);
 		});
 	}, 1);
-
-	L.shutUpLoading();
 
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	window.addEventListener("scroll", R.onscroll);
@@ -1599,7 +1649,7 @@ R.Relayouting = 0;
 R.relayout = function(Param) {
 	if(!R.Started) {
 		if(Param && Param.Setting) O.updateSetting(Param.Setting);
-		return C.Cartain.PlayButton.play();
+		return L.play();
 	}
 	if(R.Relayouting) return;
 	R.Relayouting++;
@@ -2056,34 +2106,41 @@ C.weaveCartain = function() {
 
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
-	C.Cartain.createPlayButton = function(Param) {
+	E.on("bibi:startLoading", function() {
+		sML.addClass(C.Cartain, "animate");
+		C.Cartain.Message.note('Loading...');
+	});
+	E.on("bibi:stopLoading", function() {
+		sML.removeClass(C.Cartain, "animate");
+		C.Cartain.Message.note('');
+	});
+	E.on("bibi:showStatus", function(Detail) {
+		C.Cartain.Message.note(Detail.Message);
+	});
+	E.on("bibi:wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
 		C.Cartain.PlayButton = C.Cartain.appendChild(
 			sML.create("p", { id: "bibi-cartain-playbutton", title: Title,
-				innerHTML: '<span class="non-visual">' + Title + ' to Open</span>',
-				play: function(To, NavAIndex) {
-					if(O.SmartPhone) {
-						var URI = location.href.replace(/&wait=[^&]+/g, "");
-						if(typeof NavAIndex == "number") URI = [URI, 'pipi(nav:' + NavAIndex + ')'].join(/#/.test(URI) ? "," : "#");
-						return window.open(URI);
-					}
-					if(To) X["bibi"].To = To;
-					L.sayLoading();
-					this.removeTouchEventListener("tap");
+				innerHTML: '<span class="non-visual">' + Title + '</span>',
+				hide: function() {
+					//C.Cartain.PlayButton.removeTouchEventListener("tap");
+					this.removeEventListener("click");
 					sML.style(this, {
 						opacity: 0,
 						cursor: "default"
 					});
-					Param.onplay();
 				}
 			})
 		);
-		sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
-			this.play();
+		C.Cartain.PlayButton.addEventListener("click", function(e) {
+			L.play();
 			sML.stopPropagation(e);
 		});
-	};
-
+		E.on("bibi:play", function() {
+			C.Cartain.PlayButton.hide()
+		});
+		//sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
+	});
 
 };
 
@@ -2591,7 +2648,7 @@ O.log = function(Lv, Message, ShowStatus) {
 
 
 O.showStatus = function(Message) {
-	if(C.Cartain && C.Cartain.Message) C.Cartain.Message.note(Message);
+	E.dispatch("bibi:showStatus", { Message: Message });
 	if(O.SmartPhone) return;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	window.status = 'BiB/i: ' + Message;
