@@ -6,8 +6,13 @@ require 'compass'
 
 environment = Sprockets::Environment.new
 
-map '/dev-bib/i/res/styles' do
-  environment.append_path 'dev-bib/i/res/styles'
+map '/dev-bib' do
+  environment.append_path 'dev-bib'
+  run environment
+end
+
+map '/dev-bib/i/res' do
+  environment.append_path 'dev-bib/i/res'
   run environment
 end
 
