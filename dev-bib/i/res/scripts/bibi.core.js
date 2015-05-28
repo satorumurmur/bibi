@@ -153,14 +153,21 @@ O.open = function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-E.on = function(Name, Listener) {
-	document.addEventListener(Name, function(E) {
-		Listener(E.detail);
-	});
+E.add = function(Name, Listener, UseCapture) {
+	if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
+	if(!Listener.bibiEventListener) Listener.bibiEventListener = function(E) { return Listener.call(document, E.detail); };
+	document.addEventListener(Name, Listener.bibiEventListener, UseCapture);
+	return E;
+};
+
+E.remove = function(Name, Listener) {
+	if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function" || typeof Listener.bibiEventListener != "function") return false;
+	document.removeEventListener(Name, Listener.bibiEventListener);
+	return E;
 };
 
 E.dispatch = function(Name, Detail) {
-	document.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
+	return document.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
 };
 
 
@@ -318,7 +325,7 @@ L.getBook = function(BookFileName) {
 				fetchEPUB();
 			} else {
 				E.dispatch("bibi:wait");
-				E.on("bibi:play", function() {
+				E.add("bibi:play", function() {
 					fetchEPUB();
 					delete  X["pipi"]["wait"];
 				});
@@ -844,7 +851,7 @@ L.createNavigation = function(Document) {
 	} else {
 		L.stopLoading();
 		E.dispatch("bibi:wait");
-		E.on("bibi:play", function() {
+		E.add("bibi:play", function() {
 			L.loadItems();
 		});
 		C.Cartain.Message.note('');
@@ -2106,18 +2113,18 @@ C.weaveCartain = function() {
 
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
-	E.on("bibi:startLoading", function() {
+	E.add("bibi:startLoading", function() {
 		sML.addClass(C.Cartain, "animate");
 		C.Cartain.Message.note('Loading...');
 	});
-	E.on("bibi:stopLoading", function() {
+	E.add("bibi:stopLoading", function() {
 		sML.removeClass(C.Cartain, "animate");
 		C.Cartain.Message.note('');
 	});
-	E.on("bibi:showStatus", function(Detail) {
-		C.Cartain.Message.note(Detail.Message);
+	E.add("bibi:showStatus", function(Message) {
+		if(typeof Message == "string") C.Cartain.Message.note(Message);
 	});
-	E.on("bibi:wait", function() {
+	E.add("bibi:wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
 		C.Cartain.PlayButton = C.Cartain.appendChild(
 			sML.create("p", { id: "bibi-cartain-playbutton", title: Title,
@@ -2136,7 +2143,7 @@ C.weaveCartain = function() {
 			L.play();
 			sML.stopPropagation(e);
 		});
-		E.on("bibi:play", function() {
+		E.add("bibi:play", function() {
 			C.Cartain.PlayButton.hide()
 		});
 		//sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
@@ -2648,7 +2655,7 @@ O.log = function(Lv, Message, ShowStatus) {
 
 
 O.showStatus = function(Message) {
-	E.dispatch("bibi:showStatus", { Message: Message });
+	E.dispatch("bibi:showStatus", Message);
 	if(O.SmartPhone) return;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	window.status = 'BiB/i: ' + Message;
