@@ -213,23 +213,23 @@ L.download = function(URI, MimeType) {
 
 L.requestDocument = function(Path) {
 	var IsXML = /\.(xml|opf|ncx)$/i.test(Path);
-	var XHR, Document;
+	var XHR, D;
 	var getDocument = !B.Zipped ? L.download(S["bookshelf"] + B.Name + "/" +  Path).then(function(ResolvedXHR) {
 		XHR = ResolvedXHR;
-		if(!IsXML) Document = XHR.responseXML;
-		return Document;
-	}) : Promise.resolve(Document);
-	return getDocument.then(function(Document) {
-		if(Document) return Document;
+		if(!IsXML) D = XHR.responseXML;
+		return D;
+	}) : Promise.resolve(D);
+	return getDocument.then(function(D) {
+		if(D) return D;
 		var DocumentText = !B.Zipped ? XHR.responseText : A.Files[Path];
-		var Document = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
-		if(IsXML) sML.each([Document].concat(sML.toArray(Document.getElementsByTagName("*"))), function() {
+		D = sML.create("object", { innerHTML: IsXML ? O.toBibiXML(DocumentText) : DocumentText });
+		if(IsXML) sML.each([D].concat(sML.toArray(D.getElementsByTagName("*"))), function() {
 			this.getElementsByTagName = function(TagName) {
 				return this.querySelectorAll("bibi_" + TagName.replace(/:/g, "_"));
 			}
 		});
-		if(!Document || !Document.childNodes || !Document.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
-		return Document;
+		if(!D || !D.childNodes || !D.childNodes.length) return L.error('Invalid Content. - "' + Path + '"');
+		return D;
 	});
 };
 
