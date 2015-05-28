@@ -10,10 +10,10 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sat May 2 18:15:00 2015 +0900
+ * - Thu May 28 12:22:00 2015 +0900
  */
 
-Bibi = { Version: "0.998.3", Build: 20150502.3 };
+Bibi = { Version: "0.999.0", Build: 20150528.0 };
 
 
 
@@ -183,19 +183,19 @@ E.dispatch = function(Name, Detail) {
 
 L.startLoading = function() {
 	sML.addClass(O.HTML, "wait-please");
-	E.dispatch("bibi:startLoading");
+	E.dispatch("bibi:LoadingStarted");
 };
 
 
 L.stopLoading = function() {
 	sML.removeClass(O.HTML, "wait-please");
-	E.dispatch("bibi:stopLoading");
+	E.dispatch("bibi:LoadingStopped");
 };
 
 
 L.error = function(Message) {
 	L.stopLoading();
-	E.dispatch("bibi:error");
+	E.dispatch("bibi:Error");
 	O.log(0, Message);
 };
 
@@ -324,8 +324,8 @@ L.getBook = function(BookFileName) {
 			if(!X["pipi"]["wait"]) {
 				fetchEPUB();
 			} else {
-				E.dispatch("bibi:wait");
-				E.add("bibi:play", function() {
+				E.dispatch("bibi:Wait");
+				E.add("bibi:Play", function() {
 					fetchEPUB();
 					delete  X["pipi"]["wait"];
 				});
@@ -662,7 +662,7 @@ L.readPackageDocument = function(Document) {
 
 	O.updateSetting({ Reset: true });
 
-	E.dispatch("bibi:loadpackagedocument");
+	E.dispatch("bibi:PackageDocumentRead");
 
 	L.prepareSpine();
 
@@ -735,7 +735,7 @@ L.prepareSpine = function() {
 
 	O.log(2, 'Spine Prepared.', "Show");
 
-	E.dispatch("bibi:preparespine");
+	E.dispatch("bibi:SpinePrepared");
 
 	L.createCover();
 
@@ -850,8 +850,8 @@ L.createNavigation = function(Document) {
 		L.loadItems();
 	} else {
 		L.stopLoading();
-		E.dispatch("bibi:wait");
-		E.add("bibi:play", function() {
+		E.dispatch("bibi:Wait");
+		E.add("bibi:Play", function() {
 			L.loadItems();
 		});
 		C.Cartain.Message.note('');
@@ -869,7 +869,7 @@ L.play = function(Param) {
 	} else {
 		if(Param.To) X["bibi"].To = Param.To;
 		L.startLoading();
-		E.dispatch("bibi:play");
+		E.dispatch("bibi:Play");
 	}
 };
 
@@ -1110,7 +1110,7 @@ L.postprocessItem = function(Item) {
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
 		/*if(!Item.LongWaited)*/ Item.Loaded = true;
 		L.LoadedItems++;
-		O.showStatus("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
+		O.updateStatus("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
 	}, 100);
 
 	// Tap Scroller
@@ -1605,7 +1605,7 @@ R.layout = function(Param) {
 		R.ToRelayout = false;
 		R.resetStage();
 		for(var SL = R.Spreads.length, SI = 0; SI < SL; SI++) {
-			O.showStatus("Rendering... ( " + (SI + 1) + "/" + SL + " Spreads )");
+			O.updateStatus("Rendering... ( " + (SI + 1) + "/" + SL + " Spreads )");
 			for(var IL = R.Spreads[SI].Items.length, II = 0; II < IL; II++) {
 				R.resetItem(R.Spreads[SI].Items[II]);
 			}
@@ -2113,18 +2113,18 @@ C.weaveCartain = function() {
 
 	for(var i = 1; i <= 8; i++) C.Cartain.Mark.appendChild(sML.create("span", { className: "dot" + i }));
 
-	E.add("bibi:startLoading", function() {
+	E.add("bibi:LoadingStarted", function() {
 		sML.addClass(C.Cartain, "animate");
 		C.Cartain.Message.note('Loading...');
 	});
-	E.add("bibi:stopLoading", function() {
+	E.add("bibi:LoadingStopped", function() {
 		sML.removeClass(C.Cartain, "animate");
 		C.Cartain.Message.note('');
 	});
-	E.add("bibi:showStatus", function(Message) {
+	E.add("bibi:StatusUpdated", function(Message) {
 		if(typeof Message == "string") C.Cartain.Message.note(Message);
 	});
-	E.add("bibi:wait", function() {
+	E.add("bibi:Wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
 		C.Cartain.PlayButton = C.Cartain.appendChild(
 			sML.create("p", { id: "bibi-cartain-playbutton", title: Title,
@@ -2143,7 +2143,7 @@ C.weaveCartain = function() {
 			L.play();
 			sML.stopPropagation(e);
 		});
-		E.add("bibi:play", function() {
+		E.add("bibi:Play", function() {
 			C.Cartain.PlayButton.hide()
 		});
 		//sML.addTouchEventObserver(C.Cartain.PlayButton).addTouchEventListener("tap", function(e) {
@@ -2641,7 +2641,7 @@ O.Log = ((!parent || parent == window) && console && console.log);
 
 O.log = function(Lv, Message, ShowStatus) {
 	if(!O.Log || !Message || typeof Message != "string") return;
-	if(ShowStatus) O.showStatus(Message);
+	if(ShowStatus) O.updateStatus(Message);
 	if(O.SmartPhone) return;
 	switch(Lv) {
 		case 0: Message = "[ERROR] " + Message; break;
@@ -2654,8 +2654,8 @@ O.log = function(Lv, Message, ShowStatus) {
 };
 
 
-O.showStatus = function(Message) {
-	E.dispatch("bibi:showStatus", Message);
+O.updateStatus = function(Message) {
+	E.dispatch("bibi:StatusUpdated", Message);
 	if(O.SmartPhone) return;
 	if(O.statusClearer) clearTimeout(O.statusClearer);
 	window.status = 'BiB/i: ' + Message;
