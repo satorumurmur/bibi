@@ -2250,7 +2250,7 @@ C.createArrows = function() {
 	if(C.Arrows) C.Arrows.innerHTML = "";
 	else {
 		C.Arrows = R.Content.appendChild(
-			sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0 })
+			sML.create("div", { id: "bibi-arrows" }, { transition: "opacity 0.75s linear", opacity: 0, display: S["arrows"] == "hidden" ? "none" : "" })
 		);
 	}
 
@@ -2366,6 +2366,7 @@ X.initialize = function() { // formerly O.readExtras
 					case "to":                 PnV[1] = X.getBibitoTarget(PnV[1]); break;
 					case "nav":                PnV[1] = PnV[1] * 1; break;
 					case "view":               PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
+					case "arrows":             PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
 					case "preset":             break;
 					default: PnV[0] = undefined;
 				}

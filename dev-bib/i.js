@@ -32,6 +32,7 @@
 		//	var SLA        = Anchor.getAttribute("data-bibi-spread-layout-axis");
 			var To         = Anchor.getAttribute("data-bibi-to");
 			var View       = Anchor.getAttribute("data-bibi-view");
+			var Arrows     = Anchor.getAttribute("data-bibi-arrows");
 			Anchor.addEventListener("bibi:load",              function(Eve) { console.log("BiB/i: Loaded. - #"               + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
 			Anchor.addEventListener("bibi:openInNewWindow",   function(Eve) { console.log("BiB/i: Opened in New Window. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
 			Anchor.addEventListener("bibi:requestFullscreen", function(Eve) { console.log("BiB/i: Entered Fullscreen. - #"   + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
@@ -63,6 +64,9 @@
 			}
 			if(View && /^fixed$/.test(View)) {
 				PipiFragments.push("view:" + View);
+			}
+			if(Arrows && /^hidden$/.test(Arrows)) {
+				PipiFragments.push("arrows:" + Arrows);
 			}
 			if(PipiFragments.length) Src += (/#/.test(Src) ? "," : "#") + "pipi(" + PipiFragments.join(",") + ")"
 			Pipi.Holders.push(Holder);
