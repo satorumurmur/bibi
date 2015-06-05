@@ -6,14 +6,14 @@
  *
  * # BiB/i EPUBCFI Utilities
  *
- * - "EPUBCFI Utilities (for BiB/i, or Others)"
+ * - "EPUBCFI Utilities for BiB/i"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed February 4 23:15:00 2015 +0900
+ * - Thu May 28 20:28:00 2015 +0900
  */
  
-BibiEPUBCFI = { Version: "0.32.2", Build: 20150204.1,
+Bibi.EPUBCFI = { Version: "0.32.3", Build: 20150528.0,
 
 /* -----------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ BibiEPUBCFI = { Version: "0.32.2", Build: 20150204.1,
 
 ----------------------------------------------------------------------------------------------------------------- */
 
-	CFIString: "", Current: 0, // Log: true, LogCorrection: true, LogCancelation: true,
+	CFIString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
 	parse: function(CFIString, Scope) {
 		if(!CFIString || typeof CFIString != "string") return null;
