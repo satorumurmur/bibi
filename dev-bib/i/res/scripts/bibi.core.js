@@ -90,6 +90,7 @@ Bibi.welcome = function() {
 			O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
 		}
 	}
+	P["autostart"] = !O.WindowEmbedded;
 
 	var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
 	Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
@@ -2313,7 +2314,7 @@ P.initialize = function(Preset) {
 		P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
 	});
 	if(P["spread-gap"] % 2) P["spread-gap"]++;
-	if(typeof P["autostart"] == "undefined") P["autostart"] = !O.WindowEmbedded;
+	if(typeof P["autostart"] == "undefined") P["autostart"] = false;
 	if(!/^https?:\/\//.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
 	if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
 	if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
