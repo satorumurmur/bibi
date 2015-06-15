@@ -1,10 +1,6 @@
-
-
-
-
 /*!
  *
- * # BiB/i EPUBCFI Utilities
+ * # BiB/i Extention: EPUBCFI Utilities
  *
  * - "EPUBCFI Utilities for BiB/i"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
@@ -12,14 +8,20 @@
  *
  * - Thu May 28 20:28:00 2015 +0900
  */
- 
-Bibi.EPUBCFI = { Version: "0.32.3", Build: 20150528.0,
 
 /* -----------------------------------------------------------------------------------------------------------------
 
-    - An Example is Bottom of This Document.
+    // An Example is Bottom of This Document.
 
 ----------------------------------------------------------------------------------------------------------------- */
+ 
+Bibi.x({
+
+	name: 'EPUBCFI',
+	description: "EPUBCFI Utilities for BiB/i",
+	author: "Satoru MATSUSHIMA (@satorumurmur)",
+	version: Bibi["version"],
+	build: Bibi["build"],
 
 	CFIString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
@@ -139,13 +141,13 @@ Bibi.EPUBCFI = { Version: "0.32.3", Build: 20150528.0,
 		console.log('BiB/i EPUB-CFI: ' + Message);
 	}
 
-}
+});
 
 /* -----------------------------------------------------------------------------------------------------------------
 
-   EXAMPLE:
+   // EXAMPLE:
 
-   - BibiEPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
+   BibiEPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
 
 --------------------------------------------------------------------------------------------------------------------
 

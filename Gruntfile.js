@@ -30,6 +30,12 @@ module.exports = function(grunt){
 			bibi_js: [
 				'bib/i/res/scripts/bibi.js'
 			],
+			bibi_extention_cplus_js: [
+				'bib/extentions/cplus/cplus.js'
+			],
+			bibi_extention_epubcfi_js: [
+				'bib/extentions/epubcfi/epubcfi.js'
+			],
 			pipi_js: [
 				'bib/i.js'
 			]
@@ -58,14 +64,14 @@ module.exports = function(grunt){
 			options: {
 				log: true
 			},
-			bibi: {
+			bibi_css: {
 				files: {
 					'bib/i/res/styles/': [
 						'bib/i/res/styles/bibi.css'
 					]
 				}
 			},
-			pipi: {
+			pipi_css: {
 				files: {
 					'bib/': [
 						'bib/i.css'
@@ -76,7 +82,7 @@ module.exports = function(grunt){
 
 		// Minify StyleSheets
 		cssmin: {
-			bibi: {
+			bibi_css: {
 				expand: true,
 				cwd: 'bib/i/res/styles/',
 				src: [
@@ -85,7 +91,7 @@ module.exports = function(grunt){
 				dest: 'bib/i/res/styles/',
 				ext: '.css'
 			},
-			pipi: {
+			pipi_css: {
 				expand: true,
 				cwd: 'bib/',
 				src: [
@@ -98,7 +104,7 @@ module.exports = function(grunt){
 
 		// Concat Scripts
 		concat: {
-			bibi: {
+			bibi_js: {
 				src: [
 					'dev-bib/i/res/scripts/__lib/jszip.min.js',
 					'dev-bib/i/res/scripts/__lib/base64.js',
@@ -106,12 +112,27 @@ module.exports = function(grunt){
 					'dev-bib/i/res/scripts/__lib/hammer.min.js',
 					'dev-bib/i/res/scripts/__lib/easing.js',
 					'dev-bib/i/res/scripts/__lib/sML.js',
-					'dev-bib/i/res/scripts/bibi.core.js',
-					'dev-bib/i/res/scripts/bibi.epubcfi.js'
+					'dev-bib/i/res/scripts/bibi.core.js'
 				],
 				dest: 'bib/i/res/scripts/bibi.js'
 			},
-			pipi: {
+			bibi_extention_cplus_js: {
+				src: [
+					'dev-bib/i/extentions/cplus/cplus.viewmenu.js',
+					'dev-bib/i/extentions/cplus/cplus.fullscreen.js',
+					'dev-bib/i/extentions/cplus/cplus.arrows.js',
+					'dev-bib/i/extentions/cplus/cplus.keys.js',
+					'dev-bib/i/extentions/cplus/cplus.messages.js'
+				],
+				dest: 'bib/i/extentions/cplus/cplus.js'
+			},
+			bibi_extention_epubcfi_js: {
+				src: [
+					'dev-bib/i/extentions/epubcfi/epubcfi.js'
+				],
+				dest: 'bib/i/extentions/epubcfi/epubcfi.js'
+			},
+			pipi_js: {
 				src: [
 					'dev-bib/i.js'
 				],
@@ -121,44 +142,75 @@ module.exports = function(grunt){
 
 		// Minify Scripts
 		uglify: {
-			bibi: {
+			bibi_js: {
 				options: {
 					preserveComments: 'some',
 					banner: [
 						'/*!',
 						' *',
-						' * # BiB/i - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
+						' * # BiB/i | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.',
 						' *',
-						' * ## Open Source Libraries:',
-						' * 1. dev-bib/i/res/scripts/__lib/jszip.min.js  - JSZip - http://stuartk.com/jszip - Copyright (c) Stuart Knightley - Dual licensed under the MIT license or GPLv3.',
-						' * 2. dev-bib/i/res/scripts/__lib/base64.js     - base64.js - https://github.com/dankogai/js-base64 - Copyright (c) dankogai - Licensed under the MIT license.',
-						' * 3. dev-bib/i/res/scripts/__lib/npo.src.js    - Native Promise Only - https://github.com/getify/native-promise-only - Copyright (c) Kyle Simpson - Licensed under the MIT license.',
-						' * 4. dev-bib/i/res/scripts/__lib/hammer.min.js - Hammer.js - http://hammerjs.github.io/ - Copyright (c) Jorik Tangelder - Licensed under the MIT license.',
-						' * 5. dev-bib/i/res/scripts/__lib/easing.js     - easing.js - https://github.com/danro/easing-js - Copyright (c) Dan Rogers - Licensed under the MIT license.',
-						' * 6. dev-bib/i/res/scripts/__lib/sML.js        - sML - https://github.com/satorumurmur/sML - Copyright (c) Satoru MATSUSHIMA - Licensed under the MIT license.',
-						' *',
-						' * ## BiB/i Components:',
-						' * 1. dev-bib/i/res/scripts/bibi.core.js        - BiB/i Core',
-						' * 2. dev-bib/i/res/scripts/bibi.epubcfi.js     - BiB/i EPUBCFI Utilities',
+						' * ## Including:',
+						' * 1. dev-bib/i/res/scripts/__lib/jszip.min.js  - JSZip | Copyright (c) Stuart Knightley - http://stuartk.com/jszip | Dual licensed under the MIT license or GPLv3.',
+						' * 2. dev-bib/i/res/scripts/__lib/base64.js     - base64.js | Copyright (c) dankogai - https://github.com/dankogai/js-base64 | Licensed under the MIT license.',
+						' * 3. dev-bib/i/res/scripts/__lib/npo.src.js    - Native Promise Only | Copyright (c) Kyle Simpson - https://github.com/getify/native-promise-only | Licensed under the MIT license.',
+						' * 4. dev-bib/i/res/scripts/__lib/hammer.min.js - Hammer.js | Copyright (c) Jorik Tangelder - http://hammerjs.github.io/ | Licensed under the MIT license.',
+						' * 5. dev-bib/i/res/scripts/__lib/easing.js     - easing.js | Copyright (c) Dan Rogers - https://github.com/danro/easing-js | Licensed under the MIT license.',
+						' * 6. dev-bib/i/res/scripts/__lib/sML.js        - sML | Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML | Licensed under the MIT license.',
+						' * 7. dev-bib/i/res/scripts/bibi.core.js        - BiB/i Core',
 						' *',
 						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
 						' */'
 					].join('\n') + '\n'
 				},
 				src: [
-					'<%= concat.bibi.dest%>'
+					'<%= concat.bibi_js.dest%>'
 				],
-				dest: '<%= concat.bibi.dest%>'
+				dest: '<%= concat.bibi_js.dest%>'
 			},
-			pipi: {
+			bibi_extention_cplus_js: {
+				options: {
+					preserveComments: 'some',
+					banner: [
+						'/*!',
+						' *',
+						' * # BiB/i Extention: C+ Pack | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.',
+						' *',
+						' * ## Including:',
+						' * 1. dev-bib/i/extentions/cplus/cplus.viewmenu.js   - C+ViewMenu',
+						' * 2. dev-bib/i/extentions/cplus/cplus.fullscreen.js - C+Fullscreen',
+						' * 3. dev-bib/i/extentions/cplus/cplus.arrow.js      - C+Arrows',
+						' * 4. dev-bib/i/extentions/cplus/cplus.keys.js       - C+Keys',
+						' * 5. dev-bib/i/extentions/cplus/cplus.messages.js   - C+Messages',
+						' *',
+						//' * - <%= grunt.template.today("yyyy/mm/dd") %>',
+						' */'
+					].join('\n') + '\n'
+				},
+				src: [
+					'<%= concat.bibi_extention_cplus_js.dest%>'
+				],
+				dest: '<%= concat.bibi_extention_cplus_js.dest%>'
+			},
+			bibi_extention_epubcfi_js: {
 				options: {
 					preserveComments: 'some',
 					banner: ''
 				},
 				src: [
-					'<%= concat.pipi.dest%>'
+					'<%= concat.bibi_extention_epubcfi_js.dest%>'
 				],
-				dest: '<%= concat.pipi.dest%>'
+				dest: '<%= concat.bibi_extention_epubcfi_js.dest%>'
+			},
+			pipi_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.pipi_js.dest%>'
+				],
+				dest: '<%= concat.pipi_js.dest%>'
 			}
 		},
 
@@ -199,11 +251,34 @@ module.exports = function(grunt){
 				},
 				files: [
 					'dev-bib/i/res/scripts/__lib/*.js',
-					'dev-bib/i/res/scripts/bibi.core.js',
-					'dev-bib/i/res/scripts/bibi.epubcfi.js'
+					'dev-bib/i/res/scripts/*.js'
 				],
 				tasks: [
 					'build_bibi_js',
+					''
+				]
+			},
+			bibi_extention_cplus_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extentions/cplus/*.js'
+				],
+				tasks: [
+					'build_bibi_extention_cplus_js',
+					''
+				]
+			},
+			bibi_extention_epubcfi_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extentions/epubcfi/*.js'
+				],
+				tasks: [
+					'build_bibi_extention_epubcfi_js',
 					''
 				]
 			},
@@ -232,16 +307,16 @@ module.exports = function(grunt){
 	grunt.registerTask('build_bibi_css', [
 		'clean:bibi_css',
 		'compass:prod',
-		'cmq:bibi',
-		'cssmin:bibi',
+		'cmq:bibi_css',
+		'cssmin:bibi_css',
 		''
 	]);
 
 	grunt.registerTask('build_pipi_css', [
 		'clean:pipi_css',
 		'compass:prod',
-		'cmq:pipi',
-		'cssmin:pipi',
+		'cmq:pipi_css',
+		'cssmin:pipi_css',
 		''
 	]);
 
@@ -253,20 +328,36 @@ module.exports = function(grunt){
 
 	grunt.registerTask('build_bibi_js', [
 		'clean:bibi_js',
-		'concat:bibi',
-		'uglify:bibi',
+		'concat:bibi_js',
+		'uglify:bibi_js',
+		''
+	]);
+
+	grunt.registerTask('build_bibi_extention_cplus_js', [
+		'clean:bibi_extention_cplus_js',
+		'concat:bibi_extention_cplus_js',
+		'uglify:bibi_extention_cplus_js',
+		''
+	]);
+
+	grunt.registerTask('build_bibi_extention_epubcfi_js', [
+		'clean:bibi_extention_epubcfi_js',
+		'concat:bibi_extention_epubcfi_js',
+		'uglify:bibi_extention_epubcfi_js',
 		''
 	]);
 
 	grunt.registerTask('build_pipi_js', [
 		'clean:pipi_js',
-		'concat:pipi',
-		'uglify:pipi',
+		'concat:pipi_js',
+		'uglify:pipi_js',
 		''
 	]);
 
 	grunt.registerTask('build_scripts', [
 		'build_bibi_js',
+		'build_bibi_extention_cplus_js',
+		'build_bibi_extention_epubcfi_js',
 		'build_pipi_js',
 		''
 	]);

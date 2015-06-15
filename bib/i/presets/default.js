@@ -34,6 +34,9 @@ P.initialize({
 "epub-additional-stylesheet"        : "",
 "epub-additional-script"            : "",
 
+"service-name"                      : "fracoco.co",
+"service-url"                       : "http://fracoco.co/",
+
 // ----------------------------------------------------------------------------------------------------
 
 Initialized: true });

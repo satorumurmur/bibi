@@ -108,20 +108,20 @@
 // - Write
 // --------------------------------------------------------------------------------
 /*
-.bibi-icon.bibi-switch-panel {
+.bibi-icon.bibi-switch-cartain {
 	&:before {
 		content: $ElegantIcons_icon_menu;
 		line-height: 27px;
 		font-size: 24px;
 	}
-	html.panel-opened &:before {
+	html.cartain-opened &:before {
 		content: $ElegantIcons_icon_close;
 		line-height: 24px;
 		text-indent: -1px;
 	}
 }*/
 
-.bibi-icon.bibi-switch-panel {
+.bibi-icon.bibi-switch-cartain {
 	&:before, span, &:after {
 		left: 4px !important;
 		border-bottom: solid 1px !important;
@@ -144,7 +144,7 @@
 	&:after {
 		top: 16px;
 	}
-	html.panel-opened & {
+	html.cartain-opened & {
 		&:before {
 			@include transform(translateY( 5px) rotate(-225deg));
 		}
@@ -197,15 +197,17 @@
 	$color_label: rgb(132,128,124);
 	border-color: rgba(66,64,62,.5) !important;
 	background: rgba(255,255,255,0.8) !important;
+	border-color: rgba(192,192,192,0.5) !important;
+	background: rgba(255,255,255,0.75) !important;
 //	opacity: .64;
 	@include transition(0.15s linear);
-	html.panel-opened & {
+	html.cartain-opened & {
 //		opacity: 1 !important;
 	}
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
 		border-bottom-color: lighten($color_label, 20%) !important;
 		background: $color_label !important;
 	}
@@ -227,7 +229,7 @@
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
 		border-bottom-color: darken($color_label, 20%) !important;
 		background: $color_label !important;
 	}

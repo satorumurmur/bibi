@@ -92,28 +92,27 @@
 			}, false);
 			Pipi.Frames.push(Frame);
 			// Buttons
-			var SwitchNewWindow = Bibi.SwitchNewWindow = Holder.appendChild(
-				Pipi.create("a", {
-					className: "bibi-icon bibi-switch-newwindow",
-					title: "Open in New Window",
-					target: "_blank",
-					href: Href
-				})
-			);
+			var SwitchNewWindow = Bibi.SwitchNewWindow = Pipi.create("a", {
+				className: "bibi-icon bibi-switch-newwindow",
+				title: "Open in New Window",
+				target: "_blank",
+				href: Href
+			});
 			SwitchNewWindow.addEventListener("click", function(Eve) {
 				Eve.stopPropagation();
 				Anchor.dispatchEvent(new CustomEvent("bibi:openInNewWindow", { detail: this.Bibi }));
 				return true;
 			});
+			SwitchNewWindow.style.display = "none";
+			Anchor.addEventListener("bibi:load", function() { this.Bibi.SwitchNewWindow.style.display = ""; });
+			Holder.appendChild(SwitchNewWindow);
 			if(Pipi.FullscreenEnabled) {
 				Holder.className += " bibi-fullscreen-enabled";
-				var SwitchFullscreen = Bibi.SwitchFullscreen = Holder.appendChild(
-					Pipi.create("span", {
-						className: "bibi-icon bibi-switch-fullscreen",
-						title: "Enter Fullscreen",
-						Holder: Holder
-					})
-				);
+				var SwitchFullscreen = Bibi.SwitchFullscreen = Pipi.create("span", {
+					className: "bibi-icon bibi-switch-fullscreen",
+					title: "Enter Fullscreen",
+					Holder: Holder
+				});
 				SwitchFullscreen.addEventListener("click", function(Eve) {
 					Eve.preventDefault();
 					Eve.stopPropagation();
@@ -128,6 +127,9 @@
 					}
 					return true;
 				});
+				SwitchFullscreen.style.display = "none";
+				Anchor.addEventListener("bibi:load", function() { this.Bibi.SwitchFullscreen.style.display = ""; });
+				Holder.appendChild(SwitchFullscreen);
 			} else {
 				Holder.className += " bibi-fullscreen-not-enabled";
 				var SwitchFullscreen = {};
