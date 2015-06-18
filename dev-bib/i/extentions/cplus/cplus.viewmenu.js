@@ -32,12 +32,13 @@ Bibi.x({
 		Labels: [
 			{ ja: 'ページ表示', en: 'Paged View' }
 		],
-		IconHTML: '<span class="bibi-icon bibi-icon-each">' + Shape.SpreadsS + '</span>'
+		IconHTML: '<span class="bibi-icon bibi-icon-paged">' + Shape.SpreadsS + '</span>'
 	}, function() {
 		C.Cartain.toggle(function() {
-			R.changeView({ View: "paged" });
+			R.changeView("paged");
 		});
 	});
+
 	C.addButton({
 		Category: "menu",
 		Group: "view",
@@ -47,9 +48,10 @@ Bibi.x({
 		IconHTML: '<span class="bibi-icon bibi-icon-horizontal">' + Shape.SpreadsH + '</span>'
 	}, function() {
 		C.Cartain.toggle(function() {
-			R.changeView({ View: "scroll", Axis: "horizontal" });
+			R.changeView("horizontal");
 		});
 	});
+
 	C.addButton({
 		Category: "menu",
 		Group: "view",
@@ -59,7 +61,7 @@ Bibi.x({
 		IconHTML: '<span class="bibi-icon bibi-icon-vertical">' + Shape.SpreadsV + '</span>'
 	}, function() {
 		C.Cartain.toggle(function() {
-			R.changeView({ View: "scroll", Axis: "vertical" });
+			R.changeView("vertical");
 		});
 	});
 

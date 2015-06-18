@@ -244,9 +244,9 @@
 	}
 }
 
-html.display-each .bibi-icon-each,
-html.display-all.spread-horizontal .bibi-icon-horizontal,
-html.display-all.spread-vertical .bibi-icon-vertical {
+html.view-paged .bibi-icon-paged,
+html.view-horizontal .bibi-icon-horizontal,
+html.view-vertical .bibi-icon-vertical {
 	// ON
 	cursor: default !important;
 	background: rgba(132,128,124,.33) !important;
@@ -260,12 +260,4 @@ html.display-all.spread-vertical .bibi-icon-vertical {
 			}
 		}
 	}
-}
-
-html.display-all .bibi-icon-each,
-html.display-all.spread-vertical .bibi-icon-horizontal,
-html.display-all.spread-horizontal .bibi-icon-vertical,
-html.display-each .bibi-icon-horizontal,
-html.display-each .bibi-icon-vertical {
-	// OFF
 }

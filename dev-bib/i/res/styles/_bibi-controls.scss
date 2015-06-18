@@ -405,8 +405,8 @@ div#bibi-arrows {
 		line-height: 1;
 		opacity: 0; &.shown { opacity: 0.8; }
 		@include transition(opacity 0.2s linear);
-		html.display-all.spread-vertical &                        { left: $start; width: $breadth; height: $length; }
-		html.display-all.spread-horizontal &, html.display-each & { top:  $start; width: $length;  height: $breadth; }
+		html.view-vertical &                      { left: $start; width: $breadth; height: $length; }
+		html.view-horizontal &, html.view-paged & { top:  $start; width: $length;  height: $breadth; }
 		&:before {
 			display: block;
 			position: absolute;
@@ -418,37 +418,37 @@ div#bibi-arrows {
 			text-align: center;
 			vertical-align: middle;
 			line-height: 1em;
-			color: rgba(96,96,96,0.75);
+			color: rgba(128,128,128,0.75);
 			$transform_scaleB: 1.5;
 			$transform_scaleL: 1.0;
 			@include font-icon("ElegantIcons");
-			html.display-all.spread-vertical &                        { left: $start; margin-left: $margin-start; @include transform(scale($transform_scaleB, $transform_scaleL)); }
-			html.display-all.spread-horizontal &, html.display-each & { top:  $start; margin-top:  $margin-start; @include transform(scale($transform_scaleL, $transform_scaleB)); }
+			html.view-vertical &                      { left: $start; margin-left: $margin-start; @include transform(scale($transform_scaleB, $transform_scaleL)); }
+			html.view-horizontal &, html.view-paged & { top:  $start; margin-top:  $margin-start; @include transform(scale($transform_scaleL, $transform_scaleB)); }
 		}
 		&#bibi-arrow-back {
 			$before: 0;
-			html.display-all.spread-ttb &                               { top:    $before; cursor: n-resize; }
-			html.display-all.spread-btt &                               { bottom: $before; cursor: s-resize; }
-			html.display-all.spread-ltr &, html.display-each.page-ltr & { left:   $before; cursor: w-resize; }
-			html.display-all.spread-rtl &, html.display-each.page-rtl & { right:  $before; cursor: e-resize; }
+			html.view-vertical.spread-ttb &                               { top:    $before; cursor: n-resize; }
+			html.view-vertical.spread-btt &                               { bottom: $before; cursor: s-resize; }
+			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { left:   $before; cursor: w-resize; }
+			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { right:  $before; cursor: e-resize; }
 			&:before {
-				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
-				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
+				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
+				html.view-vertical.spread-btt &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
+				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
+				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
 			}
 		}
 		&#bibi-arrow-forward {
 			$after: 0;
-			html.display-all.spread-ttb &                               { bottom: $after; cursor: s-resize; }
-			html.display-all.spread-btt &                               { top:    $after; cursor: n-resize; }
-			html.display-all.spread-ltr &, html.display-each.page-ltr & { right:  $after; cursor: e-resize; }
-			html.display-all.spread-rtl &, html.display-each.page-rtl & { left:   $after; cursor: w-resize; }
+			html.view-vertical.spread-ttb &                               { bottom: $after; cursor: s-resize; }
+			html.view-vertical.spread-btt &                               { top:    $after; cursor: n-resize; }
+			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { right:  $after; cursor: e-resize; }
+			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { left:   $after; cursor: w-resize; }
 			&:before {
-				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
-				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
+				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
+				html.view-vertical.spread-btt &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
+				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
+				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
 			}
 		}
 	}
@@ -541,7 +541,7 @@ div#bibi-menus {
 	ul#spread-layout-axis {
 		html.spread-vertical & li.layout-vertical,
 		html.spread-horizontal & li.layout-horizontal,
-		html.display-each & li {
+		html.view-paged & li {
 			display: none;
 		}
 	}*/
@@ -613,7 +613,7 @@ div#bibi-cartain-navigation {
 	}
 		div#bibi-cartain-navigation-item {
 			@include box-sizing(border-box);
-//			html.display-all.spread-ltr &, html.display-each.page-ltr & { @include column-width(240px); @include column-gap(20px); }
+//			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { @include column-width(240px); @include column-gap(20px); }
 			html.page-rtl & {
 				@include writing-mode(vertical-rl);
 				>*:first-child,

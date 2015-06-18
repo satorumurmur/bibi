@@ -28,7 +28,7 @@ Bibi.x({
 		if(Dir) Window.R.page(Dir);
 	};
 
-	E.add("bibi:postprocessItem", function(Item) {
+	E.add("bibi:loadItem", function(Item) {
 		Item.contentWindow.addEventListener("keydown", C.listenKeys, false);
 	});
 

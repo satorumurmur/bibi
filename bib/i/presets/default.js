@@ -7,9 +7,7 @@ P.initialize({
 
 "bookshelf"                         : "../../bib/bookshelf/",
 
-"book-display-mode"                 : "all",             // "all" or "each"
-"spread-layout-axis"                : "horizontal",            // "auto" or "vertical" or "horizontal"
-"page-size-format"                  : "portrait",            // "portrait" or "landscape" or "window" or "auto" !!!! changed from "spread-orientation" !!!!
+"reader-view-mode"                  : "horizontal",    // "vertical" or "horizontal" or "paged"
 
 "book-background"                   : "transparent",   // CSS value or ""
 
