@@ -7,10 +7,6 @@
 // --------------------------------------------------------------------------------
 
 html {
-	//$background-color: rgb(218,216,214);
-	//$background-color: rgb(132,128,124);
-	//$background-color: rgb(196,192,188);
-	$background-color: rgb(96,96,96);
 	font-family: "Helvetica", "Trebuchet MS", sans-serif;
 	width: 100%;
 	height: 100%;
@@ -19,11 +15,19 @@ html {
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "メイリオ", "Meiryo", sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
+	//$background-color: rgb(218,216,214);
+	//$background-color: rgb(132,128,124);
+	//$background-color: rgb(196,192,188);
+	$background-color: rgb(64,64,64);
+	/*
+	$background-color: rgb(96,96,96);
 	@include background-image_linear-gradient(
 		to top,
 		lighten($background-color, 8%),
 		 darken($background-color, 24%)
 	);
+	*/
+	background: $background-color;
 	&.spread-vertical {
 		width: 100%;
 		background: $background-color;

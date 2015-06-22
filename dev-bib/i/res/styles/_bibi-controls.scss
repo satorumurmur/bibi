@@ -20,6 +20,7 @@ div#bibi-veil {
 	color: white;
 	//background: rgb(216,214,212);
 	//background: rgb(248,248,244);
+	background: rgb(64,64,64);
 	opacity: 1;/*
 	p#bibi-veil-message {
 		padding-top: 30%;
@@ -210,40 +211,38 @@ p#bibi-veil-playbutton {
 		color: rgb(160,160,160);
 		//@include text-stroke(4px white);
 	}
-	$after: 8px;
-	html.page-ttb &:after {
+	html.view-vertical &:after {
 		content: $ElegantIcons_arrow_triangle-down_alt2;
-		left: auto;
 		top: auto;
-		bottom: $after;
-		margin-top: 0;
+		bottom: 40px;
 		@include transform-origin_(50% 100%);
 	}
-	html.page-rtl &:after {
+	html.view-horizontal.page-rtl &:after,
+	html.view-paged.page-rtl &:after {
 		content: $ElegantIcons_arrow_triangle-left_alt2;
-		left: $after;
-		margin-left: 0;
+		left: 8px;
+		right: auto;
 		@include transform-origin_(0 50%);
 	}
-	html.page-ltr &:after {
+	html.view-horizontal.page-ltr &:after,
+	html.view-paged.page-ltr &:after {
 		content: $ElegantIcons_arrow_triangle-right_alt2;
 		left: auto;
-		right: $after;
-		margin-left: 0;
+		right: 8px;
 		@include transform-origin_(100% 50%);
 	}
 	html.Mac &:hover,
 	html.PC &:hover,
 	html.Touch &:active {
 		&:after {
-			color: white;
+			color: rgba(232,232,232,0.8);
 			@include transform(scale(1.5));
 		}
 	}
 	html.Mac &:active,
 	html.PC &:active {
 		&:after {
-			color: white;
+			color: rgba(232,232,232,0.8);
 			@include transform(scale(1.25));
 		}
 	}

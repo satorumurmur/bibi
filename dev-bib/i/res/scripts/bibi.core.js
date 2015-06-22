@@ -10,10 +10,10 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Fri June 5 15:48:00 2015 +0900
+ * - Tue June 23 00:46:00 2015 +0900
  */
 
-Bibi = { "version": "0.999.0", "build": 20150605.0 };
+Bibi = { "version": "0.999.0", "build": 20150622.0 };
 
 
 
@@ -150,6 +150,13 @@ Bibi.welcome = function() {
 	C.createVeil();
 	C.createCartain();
 
+	E.add("bibi:command:move", function(Distance) { R.move(Distance); });
+	E.add("bibi:command:focus", function(Target) { R.focus(Target); });
+	E.add("bibi:command:changeView", function(BDM) { R.changeView(BDM); });
+	E.add("bibi:command:toggleCartain", function(BDM) { C.Cartain.toggle(); });
+	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
+	window.addEventListener("scroll", R.onscroll);
+
 	E.dispatch("bibi:welcome");
 	window.addEventListener("message", M.gate, false);
 	M.post("bibi:welcome");
@@ -164,17 +171,11 @@ Bibi.welcome = function() {
 				C.Veil.Message.note('');
 			}
 		} else {
-			if(O.WindowEmbedded) {
-				if(window.File && !O.StartPhone) {
-					C.Veil.Catcher.style.display = "block";
-					C.Veil.Message.note('Drop an EPUB file into this window. Or click and select EPUB file.');
-				} else {
-					C.Veil.Message.note('Tell me EPUB name via embedding tag.');
-				}
+			if(X["Unzipper"] && window.File && !O.SmartPhone) {
+				B.dropOrClick();
 			} else {
-				if(window.File && !O.StartPhone) {
-					C.Veil.Catcher.style.display = "block";
-					C.Veil.Message.note('Drop an EPUB file into this window. Or click and select EPUB file.');
+				if(O.WindowEmbedded) {
+					C.Veil.Message.note('Tell me EPUB name via embedding tag.');
 				} else {
 					C.Veil.Message.note('Tell me EPUB name via URI.');
 				}
@@ -243,29 +244,10 @@ B.load = function() {
 		// EPUB Folder (Online)
 		O.log(2, 'EPUB: ' + B.Path + " (Online Folder)", "Show");
 		B.open();
+	} else if(X["Unzipper"]) {
+		B.loadZippedEPUB();
 	} else {
-		// EPUB Zip
-		O.log(2, 'Loading EPUB...', "Show");
-		var onload = function(Loaded) {
-			B.File = Loaded;
-			B.unzip();
-			O.log(2, 'EPUB Loaded.', "Show");
-			B.open();
-		};
-		if(!B.Local) {
-			// EPUB Zip (Online)
-			O.log(3, B.Path);
-			O.download(B.Path, "text/plain;charset=x-user-defined").then(function(XHR) { onload(XHR); });
-		} else {
-			// EPUB Zip (Local)
-			O.log(2, 'Loading EPUB...', "Show");
-			O.log(3, "[Local] " + B.Path);
-			sML.edit(new FileReader(), {
-				onerror : function() { O.Body.style.opacity = 1; C.Veil.Message.note('Error. Something trouble...'); },
-				onload  : function() { onload(this.result); }
-			}).readAsArrayBuffer(B.File);
-			C.Veil.Catcher.style.opacity = 0;
-		}
+		// ERROR
 	}
 };
 
@@ -273,136 +255,6 @@ B.load = function() {
 B.open = function() {
 	E.dispatch("bibi:open");
 	O.openDocument(B.Container.Path, { then: L.readContainer });
-};
-
-
-B.unzip = function() {
-
-	B.Files = {};
-	var FileCount = { All: 0, HTML: 0, CSS: 0, SVG: 0, Bitmap: 0, Font: 0, Audio: 0, Video: 0, PDF: 0, Etcetra: 0 };
-
-	B.File = (new JSZip()).load(B.File);
-	for(var FileName in B.File.files) {
-		if(B.File.files[FileName]._data) {
-			FileCount.All++;
-			     if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTML++;
-			else if(             /\.(css)$/i.test(FileName)) FileCount.CSS++;
-			else if(             /\.(svg)$/i.test(FileName)) FileCount.SVG++;
-			else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Bitmap++;
-			else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Font++;
-			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audio++;
-			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Video++;
-			else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDF++;
-			else                                             FileCount.Etcetra++;
-			B.Files[FileName] = O.isBin(FileName) ? B.File.file(FileName).asBinary() : Base64.btou(B.File.file(FileName).asText());
-		}
-	}
-	delete B.File;
-
-	B.FileDigit = (FileCount.All + "").length;
-
-	if(FileCount.All)     O.log(3, sML.String.padZero(FileCount.All,     B.FileDigit) + ' File'   + (FileCount.All    >= 2 ? "s" : ""));
-	if(FileCount.HTML)    O.log(4, sML.String.padZero(FileCount.HTML,    B.FileDigit) + ' HTML'   + (FileCount.HTML   >= 2 ? "s" : ""));
-	if(FileCount.CSS)     O.log(4, sML.String.padZero(FileCount.CSS,     B.FileDigit) + ' CSS'    + (FileCount.CSS    >= 2 ? "s" : ""));
-	if(FileCount.SVG)     O.log(4, sML.String.padZero(FileCount.SVG,     B.FileDigit) + ' SVG'    + (FileCount.SVG    >= 2 ? "s" : ""));
-	if(FileCount.Bitmap)  O.log(4, sML.String.padZero(FileCount.Bitmap,  B.FileDigit) + ' Bitmap' + (FileCount.Bitmap >= 2 ? "s" : ""));
-	if(FileCount.Font)    O.log(4, sML.String.padZero(FileCount.Font,    B.FileDigit) + ' Font'   + (FileCount.Font   >= 2 ? "s" : ""));
-	if(FileCount.Audio)   O.log(4, sML.String.padZero(FileCount.Audio,   B.FileDigit) + ' Audio'  + (FileCount.Audio  >= 2 ? "s" : ""));
-	if(FileCount.Video)   O.log(4, sML.String.padZero(FileCount.Video,   B.FileDigit) + ' Video'  + (FileCount.Video  >= 2 ? "s" : ""));
-	if(FileCount.PDF)     O.log(4, sML.String.padZero(FileCount.PDF,     B.FileDigit) + ' PDF'    + (FileCount.PDF    >= 2 ? "s" : ""));
-	if(FileCount.Etcetra) O.log(4, sML.String.padZero(FileCount.Etcetra, B.FileDigit) + ' etc.');
-
-	var Preprocessed = { CSS: 0, SVG: 0, HTML: 0 };
-
-	// CSS
-	for(var FilePath in B.Files) {
-		if(!/\.css$/.test(FilePath)) continue;
-		B.Files[FilePath] = (function(FilePath) { var getImportedCSS = arguments.callee;
-			if(!B.Files[FilePath]) return "";
-			var RE = /@import[ \t]*(?:url\()?["']?(?!(?:https?|data):)(.+?)['"]?(?:\))?[ \t]*;/g;
-			var Imports = B.Files[FilePath].match(RE);
-			if(Imports) {
-				sML.each(Imports, function() {
-					var ImportPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), this.replace(RE, "$1"));
-					if(B.Files[ImportPath]) B.Files[FilePath] = B.Files[FilePath].replace(this, getImportedCSS(ImportPath));
-				});
-			}
-			B.Files[FilePath] = B.replaceResourceRefferences(FilePath, {
-				"url" : "gif|png|jpe?g|svg|ttf|otf|woff"
-			}, function() {
-				return /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g;
-			});
-			return B.Files[FilePath];
-		})(FilePath);
-		Preprocessed.CSS++;
-	}
-	if(Preprocessed.CSS) O.log(3, sML.String.padZero(Preprocessed.CSS, B.FileDigit) + ' CSS' + (Preprocessed.CSS >= 2 ? "s" : "") + " Preprocessed.");
-
-	// SVG
-	for(var FilePath in B.Files) {
-		if(!/\.svg$/.test(FilePath)) continue;
-		B.Files[FilePath] = B.replaceResourceRefferences(FilePath, {
-			"href"       : "css",
-			"src"        : "gif|png|jpe?g|svg|js",
-			"xlink:href" : "gif|png|jpe?g"
-		});
-		Preprocessed.SVG++;
-	}
-	if(Preprocessed.SVG) O.log(3, sML.String.padZero(Preprocessed.SVG, B.FileDigit) + ' SVG' + (Preprocessed.SVG >= 2 ? "s" : "") + " Preprocessed.");
-
-	// HTML
-	for(var FilePath in B.Files) {
-		if(!/\.x?html?$/.test(FilePath)) continue;
-		B.Files[FilePath] = B.replaceResourceRefferences(FilePath, {
-			"href"       : "css",
-			"src"        : "gif|png|jpe?g|svg|js|mp[34]|m4[av]|webm",
-			"xlink:href" : "gif|png|jpe?g"
-		});
-	}
-	for(var FilePath in B.Files) {
-		if(!/\.x?html?$/.test(FilePath)) continue;
-		B.Files[FilePath] = B.replaceResourceRefferences(FilePath, {
-			"src" : "x?html?"
-		});
-		Preprocessed.HTML++;
-	}
-	if(Preprocessed.HTML) O.log(3, sML.String.padZero(Preprocessed.HTML, B.FileDigit) + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : "") + " Preprocessed.");
-
-};
-
-
-B.getDataURI = function(FilePath) {
-	for(var ContentType in O.ContentTypeList) {
-		if(O.ContentTypeList[ContentType].test(FilePath)) {
-			return "data:" + ContentType + ";base64," + (O.isBin(FilePath) ? btoa(B.Files[FilePath]) : Base64.encode(B.Files[FilePath]));
-		}
-	}
-	return "";
-};
-
-
-B.replaceResourceRefferences = function(FilePath, ExtLists, getMatchRE) {
-	if(typeof getMatchRE != "function") getMatchRE = function(At) { return (new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g")); };
-	var Source = B.Files[FilePath].replace(/[\r\n]/g, "\n").replace(/\r/g, "\n");
-	var FileDir = FilePath.replace(/\/?[^\/]+$/, "");
-	for(var Attribute in ExtLists) {
-		var MatchRE = getMatchRE(Attribute);
-		var Matches = Source.match(MatchRE);
-		if(Matches) {
-			var ExtRE = new RegExp('\.' + ExtLists[Attribute] + '$', "i");
-			sML.each(Matches, function() {
-				var ResPathInSource = this.replace(MatchRE, "$1");
-				var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
-				var ResFnH = ResPath.split("#"), ResFile = ResFnH[0] ? ResFnH[0] : FilePath, ResHash = ResFnH[1] ? ResFnH[1] : "";
-				if(ExtRE.test(ResFile) && typeof B.Files[ResFile] == "string") Source = Source.replace(this, this.replace(ResPathInSource, B.getDataURI(ResFile) + (ResHash ? "#" + ResHash : "")));
-			});
-		}
-	}
-	/*
-	if(Shelter.length) for(var i = 0, L = Shelter.length; i < L; i++) Source = Source.replace('<bibi:ignored number="' + i + '" />', Shelter[i]);
-	Source = Source.replace(/<bibi:lf \/>/g, "\n");
-	*/
-	return Source;
 };
 
 
@@ -577,7 +429,6 @@ L.prepareSpine = function() {
 		// Item: A
 		var Item = sML.create("iframe", {
 			className: "item",
-			id: "item-" + sML.String.padZero(i, B.FileDigit),
 			scrolling: "no",
 			allowtransparency: "true"
 		});
@@ -603,6 +454,7 @@ L.prepareSpine = function() {
 			Spread.Items = [];
 			Spread.Pages = [];
 			Spread.SpreadIndex = R.Spreads.length;
+			Spread.id = "spread-" + sML.String.padZero(Spread.SpreadIndex, B.FileDigit);
 			R.Spreads.push(Spread);
 			/*
 			sML.addTouchEventObserver(Spread).addTouchEventListener("tap", function(Eve, HEve) {
@@ -617,8 +469,11 @@ L.prepareSpine = function() {
 		Item.Spread = Spread;
 		Item.ItemBox = ItemBox;
 		Item.Pages = [];
-		Item.ItemIndexInSpread = Spread.Items.length; Spread.Items.push(Item);
-		Item.ItemIndex         =      R.Items.length;      R.Items.push(Item);
+		Item.ItemIndexInSpread = Spread.Items.length;
+		Item.ItemIndex         =      R.Items.length;
+		Item.id = "item-" + sML.String.padZero(Item.ItemIndex, B.FileDigit);
+		Spread.Items.push(Item);
+		R.Items.push(Item);
 	});
 
 	O.log(3, sML.String.padZero(R.Items.length, B.FileDigit) + ' Items');
@@ -989,7 +844,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 	var RootElement = Item.Body;
 	sML.each(RootElement.getElementsByTagName("a"), function(i) {
 		var A = this;
-		A.NavAIndex = i;
+		A.NavANumber = i + 1;
 		var HrefPathInSource = A.getAttribute("href");
 		if(!HrefPathInSource) {
 			if(InNav) {
@@ -1013,7 +868,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 				} : function() {
 					if(O.SmartPhone) {
 						var URI = location.href;
-						if(typeof This.NavAIndex == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavAIndex + ')';
+						if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
 						return window.open(URI);
 					}
 					S["to"] = This.Target;
@@ -1028,7 +883,10 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 				A.setAttribute("data-bibi-original-href", HrefPathInSource);
 				A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + "/" + HrefPathInSource);
 				A.InNav = InNav;
-				A.Target = { Item: rItem, Element: (HrefHash ? "#" + HrefHash : null) };
+				A.Target = {
+					Item: rItem,
+					ElementSelector: (HrefHash ? "#" + HrefHash : undefined)
+				};
 				A.addEventListener("click", Jump);
 				return;
 			}
@@ -1040,7 +898,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 			A.Target = U.getEPUBCFITarget(HrefHash);
 			A.addEventListener("click", Jump);
 		}
-		if(InNav && typeof S["nav"] == "number" && i == S["nav"] && A.Target) S["to"] = A.Target;
+		if(InNav && typeof S["nav"] == (i + 1) && A.Target) S["to"] = A.Target;
 	});
 };
 
@@ -1120,13 +978,10 @@ L.start = function() {
 				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
 			}, 500);
 		});
-		window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
-		window.addEventListener("scroll", R.onscroll);
-		E.add("bibi:command:move", function(Distance) { R.move(Distance); });
 		R.Started = true;
 		E.dispatch("bibi:start");
 		M.post("bibi:start");
-		O.log(1, 'Enjoy!');
+		O.log(1, 'Enjoy Readings!');
 	}, 1);
 
 };
@@ -1287,8 +1142,8 @@ R.resetItem.asReflowableItem = function(Item) {
 				if(ComputedStyle.pageBreakBefore != "always" && ComputedStyle.pageBreakAfter != "always") return;
 				if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PBR[3]] = "";
 				if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PBR[3]] = "";
-				var El = this,                               BreakPoint  = El["offset" + PBR[0]], Add = 0;
-				while(El.offsetParent) El = El.offsetParent, BreakPoint += El["offset" + PBR[0]];
+				var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
+				while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
 				if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
 				//sML.log(PBR);
 				//sML.log(Item.ItemIndex + ": " + BreakPoint);
@@ -1411,6 +1266,7 @@ R.resetPages = function() {
 			Item.Pages.forEach(function(Page) {
 				Page.PageIndexInSpread = Spread.Pages.length; Spread.Pages.push(Page);
 				Page.PageIndex         =      R.Pages.length;      R.Pages.push(Page);
+				Page.id = "page-" + sML.String.padZero(Page.PageIndex, B.FileDigit);
 			});
 		});
 	});
@@ -1452,13 +1308,13 @@ R.layoutSpread = function(Spread) {
 		}*/
 	}
 	if(Spread.SpreadIndex == 0) {
-		SpreadBoxPaddingBefore = Math.floor((R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
-		if(SpreadBoxPaddingBefore < S["spread-gap"]) SpreadBoxPaddingBefore = S["spread-gap"];
+		SpreadBoxPaddingBefore = Math.floor((window["inner" + S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
 	} else if(S.BRL == "reflowable") {
 		SpreadBoxPaddingBefore = S["spread-gap"];
 	} else {
-		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Length / 2/* - S["spread-gap"]*/);
+		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Length / 4);
 	}
+	if(SpreadBoxPaddingBefore < S["spread-gap"]) SpreadBoxPaddingBefore = S["spread-gap"];
 	if(Spread.SpreadIndex == R.Spreads.length - 1) {
 		SpreadBoxPaddingAfter  += Math.ceil( (R.StageSize.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
 		if(SpreadBoxPaddingAfter  < S["spread-gap"]) SpreadBoxPaddingAfter  = S["spread-gap"];
@@ -1503,7 +1359,7 @@ R.layout = function(Option) {
 	if(!Option) Option = {};
 
 	if(!Option.Target) {
-		var CurrentPage = R.getCurrentPages().Start;
+		var CurrentPage = R.getCurrentPages().StartPage;
 		Option.Target = {
 			ItemIndex: CurrentPage.Item.ItemIndex,
 			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
@@ -1518,9 +1374,14 @@ R.layout = function(Option) {
 		R.Spreads.forEach(function(Spread, i) {
 			O.updateStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
 			R.resetSpread(Spread);
+			R.layoutSpread(Spread);
 		});
 		R.resetPages();
 		R.resetNavigation();
+	} else {
+		R.Spreads.forEach(function(Spread) {
+			R.layoutSpread(Spread);
+		});
 	}
 
 	R.Columned = false;
@@ -1531,13 +1392,6 @@ R.layout = function(Option) {
 			break;
 		}
 	}
-
-	Option.Target = R.getTarget(Option.Target);
-
-	R.Spreads.forEach(function(Spread) {
-		R.layoutSpread(Spread);
-		//if(S.RVM == "paged" && Spread != Option.Target.Page.Spread) Spread.style.opacity = 0;
-	});
 
 	//R.layoutStage();
 
@@ -1567,9 +1421,9 @@ R.relayout = function(Option) {
 	if(R.Relayouting) return;
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
-	var Target = CurrentPages.Start ? {
-		ItemIndex: CurrentPages.Start.Item.ItemIndex,
-		PageProgressInItem: CurrentPages.Start.PageIndexInItem / CurrentPages.Start.Item.Pages.length
+	var Target = CurrentPages.StartPage ? {
+		ItemIndex: CurrentPages.StartPage.Item.ItemIndex,
+		PageProgressInItem: CurrentPages.StartPage.PageIndexInItem / CurrentPages.StartPage.Item.Pages.length
 	} : {
 		ItemIndex: 0,
 		PageProgressInItem: 0
@@ -1604,9 +1458,11 @@ R.relayout = function(Option) {
 };
 
 R.onscroll = function() {
+	if(!R.Started) return;
 };
 
 R.onresize = function() {
+	if(!R.Started) return;
 	if(R.Timer_onresize) clearTimeout(R.Timer_onresize);
 	R.Timer_onresize = setTimeout(function() {
 		R.relayout();
@@ -1636,47 +1492,6 @@ R.changeView = function(BDM) {
 };
 
 
-R.getTarget = function(Target) {
-	     if(typeof Target == "string") Target = { Edge: Target };
-	else if(typeof Target == "number") Target = { Item: R.Items[Target] };
-	if(typeof Target != "object" || !Target) return null;
-	if(Target.tagName) {
-		TargetElement = Target, Target = {};
-		     if(typeof TargetElement.SpreadIndex == "number") Target.Item    = TargetElement.Items[0];
-		else if(typeof TargetElement.ItemIndex   == "number") Target.Item    = TargetElement;
-		else if(typeof TargetElement.PageIndex   == "number") Target.Page    = TargetElement;
-		else                                                  Target.Element = TargetElement;
-	}
-	if(typeof Target.Edge == "string") {
-		if(Target.Edge == "head") return { Edge: "head", EdgeTRBL: (S.SLD == "ttb" ? "T" : (S.SLD == "rtl" ? "R" : "L")), Item: R.Items[0],                  Page: R.Pages[0] };
-		if(Target.Edge == "foot") return { Edge: "foot", EdgeTRBL: (S.SLD == "ttb" ? "B" : (S.SLD == "rtl" ? "L" : "R")), Item: R.Items[R.Items.length - 1], Page: R.Pages[R.Pages.length - 1] };
-	}
-	if(!Target.Item && typeof Target.ItemIndex == "number") Target.Item = R.Items[Target.ItemIndex];
-	if(Target.Page && !Target.Page.parentElement) delete Target.Page;
-	if(Target.Element) {
-		if(Target.Element.tagName) { // In-Frame Content
-			Target.Item = Target.Element.ownerDocument.body.Item ? Target.Element.ownerDocument.body.Item : null;
-		} else if(typeof Target.Element == "string" && Target.Item) { // Selector
-			Target.Element = Target.Item.contentDocument.querySelector(Target.Element);
-			if(!Target.Element) delete Target.Element;
-		}
-		Target.Page = Target.Item.Pages[0];
-	} else if(Target.Page) {
-		Target.Item = Target.Page.Item;
-	} else if(typeof Target.PageIndexInItem == "number" && Target.Item) {
-		Target.Page = Target.Item.Pages[Target.PageIndexInItem];
-	} else if(typeof Target.PageProgressInItem == "number" && Target.Item) {
-		Target.Page = Target.Item.Pages[Math.floor(Target.Item.Pages.length * Target.PageProgressInItem)];
-	} else if(typeof Target.PageIndex == "number") {
-		Target.Page = R.Pages[Target.PageIndex];
-		Target.Item = Target.Page.Item;
-	}
-	if(!Target.Item) return null;
-	if(!Target.Page) Target.Page = Target.Item.Pages[0];
-	return Target;
-};
-
-
 R.getCurrentPages = function() {
 	var FrameScrollCoord = sML.Coord.getScrollCoord(R.Frame);
 	var FrameClientSize  = sML.Coord.getClientSize(R.Frame);
@@ -1686,53 +1501,62 @@ R.getCurrentPages = function() {
 		Top:    FrameScrollCoord.Y,
 		Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
 	};
-	var CurrentPages = [], CenterPage = null, Longest = 0, Nearest = FrameClientSize[S.SIZE.L] / 2;
-	for(var L = R.Pages.length, i = 0; i < L; i++) {
-		if(R.Pages[i].style.display == "none") continue;
+	var FrameScrollCoordBefore = FrameScrollCoord[S.BASE.B] / R.Scale * S.AXIS.PM;
+	var FrameScrollCoordAfter  = FrameScrollCoord[S.BASE.A] / R.Scale * S.AXIS.PM;
+	var Pages = [], Ratio = [], Status = [], BiggestRatio = 0;
+	for(var i = 0, L = R.Pages.length; i < L; i++) {
 		var PageCoord = sML.getCoord(R.Pages[i]);
-		var Length   = Math.min(
-			FrameScrollCoord[S.BASE.A] / R.Scale * S.AXIS.PM,
-			PageCoord[S.BASE.A] * S.AXIS.PM
-		) - Math.max(
-			FrameScrollCoord[S.BASE.B] / R.Scale * S.AXIS.PM,
-			PageCoord[S.BASE.B] * S.AXIS.PM
-		);
-		var Distance = Math.abs((FrameScrollCoord[S.BASE.B] / R.Scale + FrameScrollCoord[S.BASE.A] / R.Scale) - (PageCoord[S.BASE.B] + PageCoord[S.BASE.a]));
-		Length = (Length <= 0 || !PageCoord[S.SIZE.L] || isNaN(Length)) ? -1 : Math.round(Length / PageCoord[S.SIZE.L] * 100);
-		     if(Length <  Longest) { if(!CurrentPages.length) continue; else break; }
-		else if(Length == Longest) CurrentPages.push(R.Pages[i]);
-		else if(Length  > Longest) CurrentPages[0] = R.Pages[i], Longest = Length;
-		if(Distance < Nearest) CenterPage = R.Pages[i], Nearest = Distance;
+		var PageCoordBefore = PageCoord[S.BASE.B] * S.AXIS.PM;
+		var PageCoordAfter  = PageCoord[S.BASE.A] * S.AXIS.PM;
+		var LengthInside = Math.min(FrameScrollCoordAfter, PageCoordAfter) - Math.max(FrameScrollCoordBefore, PageCoordBefore);
+		var PageRatio = (LengthInside <= 0 || !PageCoord[S.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.SIZE.L] * 100);
+		if(PageRatio <= 0) {
+			if(!Pages.length) continue;
+			else break;
+		} else if(PageRatio == BiggestRatio) {
+			Pages.push(R.Pages[i]);
+			Ratio.push(PageRatio);
+			Status.push(R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore));
+		} else if(PageRatio > BiggestRatio) {
+			Pages[0] = R.Pages[i];
+			Ratio[0] = PageRatio;
+			Status[0] = R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore);
+			BiggestRatio = PageRatio;
+		}
 	}
 	return {
-		All:    CurrentPages,
-		Start:  CurrentPages[0],
-		Center: CenterPage,
-		End:    CurrentPages[CurrentPages.length - 1]
+		Pages: Pages,                     Ratio: Ratio,                          Status: Status,
+		StartPage: Pages[0],              StartPageRatio: Ratio[0],              StartPageStatus: Status[0],
+		EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
 	};
 };
 
+R.getCurrentPages.getStatus = function(RatioInside, FrameScrollCoordBefore, PageCoordBefore) {
+	if(RatioInside == 100) return "shown";
+	if(FrameScrollCoordBefore <  PageCoordBefore) return "yet";
+	if(FrameScrollCoordBefore  > PageCoordBefore) return "over";
+	return "shown";
+};
 
-R.getPageGroup = function(Target) {
-	Target = R.getTarget(Target);
-	var Next = (Target.Side == "a") ? -1 : +1;
+
+R.getPageGroup = function(TargetPage, Side) {
+	var Next = (Side == "a") ? -1 : +1;
 	var Pages = [], Length = 0, Space = document.documentElement["client" + S.SIZE.L];
-	for(var i = Target.Page.PageIndex; 0 <= i && i < R.Pages.length; i += Next) {
-		if((Target.Item.IsPrePaginated && R.Pages[i].Spread != Target.Page.Spread)) break;
+	for(var i = TargetPage.PageIndex; 0 <= i && i < R.Pages.length; i += Next) {
+		if((TargetPage.Item.IsPrePaginated && R.Pages[i].Spread != TargetPage.Spread)) break;
 		if(Space - R.Pages[i]["offset" + S.SIZE.L] < 0) break;
 		Pages.push(R.Pages[i]);
-		if(S.SLA == "vertical" && R.Pages[i].Item.Pair && R.Pages[i].Item.Pair == Target.Page.Item) continue;
+		if(S.SLA == "vertical" && R.Pages[i].Item.Pair && R.Pages[i].Item.Pair == TargetPage.Item) continue;
 		var PageGap = (i < 0 ? S["spread-gap"] : 0);
 		Space  -= R.Pages[i]["offset" + S.SIZE.L] + PageGap;
 		Length += R.Pages[i]["offset" + S.SIZE.L] + PageGap;
 	}
 	var MarginBeforeGroup = Math.floor(Space / 2), MarginBeforePage = MarginBeforeGroup;
-	if(Target.Side == "a") {
+	if(Side == "a") {
 		Pages.reverse();
-		MarginBeforePage += (Length - Target.Page["offset" + S.SIZE.L]);
+		MarginBeforePage += (Length - TargetPage["offset" + S.SIZE.L]);
 	}
 	return {
-		Page:              Target.Page,
 		Pages:             Pages,
 		Length:            Length,
 		MarginBeforeGroup: MarginBeforeGroup,
@@ -1741,57 +1565,68 @@ R.getPageGroup = function(Target) {
 };
 
 
-R.focus = function(Target, ScrollOption) {
-	var FocusTarget = R.getTarget(Target); if(typeof FocusTarget != "object" || !FocusTarget) return false;
-	if(FocusTarget.Edge) {
-		var FocusPoint = /^[TL]$/.test(FocusTarget.EdgeTRBL) ? 0 : R.Content.Main["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Frame)[S.SIZE.L];
-		sML.scrollTo(R.Frame, (S.SLA == "vertical" ? { Y: FocusPoint * R.Scale } : { X: FocusPoint * R.Scale }), ScrollOption);
-		return false;
-	}
-	var Top_or_Left = (S.SLA == "vertical") ? ["Top", "Left"] : ["Left", "Top"];
-	var TextLocationTarget = { Element: FocusTarget.Element, TextNodeIndex: FocusTarget.TextNodeIndex, TermStep: FocusTarget.TermStep };
-	if(FocusTarget.Element) {
-		var ElementOffsetInItem = R.focus.getOffset(FocusTarget.Element);
-		if(FocusTarget.Item.Columned) {
-			if(S.PPD == "rtl" && S.SLA == "vertical") {
-				var NoColumnedItemBreadth = FocusTarget.Item.Body["offset" + S.SIZE.B];
-				if(FocusTarget.Item.Body.offsetParent) {
-					var ItemHTMLComputedStyle = getComputedStyle(FocusTarget.Item.HTML);
-					var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
-					NoColumnedItemBreadth += ItemHTMLPaddingBreadth;
-				}
-				ElementOffsetInItem[S.AXIS.B] = NoColumnedItemBreadth - ElementOffsetInItem[S.AXIS.B] + FocusTarget.Element["offset" + S.SIZE.B];
+R.getElementScrollBefore = function(Ele) {
+};
+
+
+R.getNearestPageOfElement = function(Ele) {
+	var Item = Ele.ownerDocument.body.Item;
+	if(!Item) return R.Pages[0];
+	if(Item.Columned) {
+		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
+		if(S.PPD == "rtl" && S.SLA == "vertical") {
+			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];
+			if(Item.Body.offsetParent) {
+				var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+				var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
+				NoColumnedItemBreadth += ItemHTMLPaddingBreadth;
 			}
-			var TargetPage = FocusTarget.Item.Pages[Math.floor(ElementOffsetInItem[S.AXIS.B] / FocusTarget.Item.ColumnBreadth)];
-		} else {
-			ElementOffsetInItem = ElementOffsetInItem[S.AXIS.L];
-			if(S.SLD == "rtl" && S.SLA == "horizontal") {
-				ElementOffsetInItem = FocusTarget.Item.HTML.offsetWidth - ElementOffsetInItem - FocusTarget.Element.offsetWidth;
-			}
-			var TargetPage = FocusTarget.Item.Pages[0];
-			for(var i = 0, L = FocusTarget.Item.Pages.length; i < L; i++) {
-				ElementOffsetInItem -= FocusTarget.Item.Pages[i]["offset" + S.SIZE.L];
-				if(ElementOffsetInItem <= 0) {
-					TargetPage = FocusTarget.Item.Pages[i];
-					break;
-				}
+			ElementCoordInItem = NoColumnedItemBreadth - ElementCoordInItem + Ele["offset" + S.SIZE.B];
+		}
+		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
+	} else {
+		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
+		if(S.SLD == "rtl" && S.SLA == "horizontal") {
+			ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
+		}
+		var NearestPage = Item.Pages[0];
+		for(var i = 0, L = Item.Pages.length; i < L; i++) {
+			ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
+			if(ElementCoordInItem <= 0) {
+				NearestPage = Item.Pages[i];
+				break;
 			}
 		}
-		var TargetPageGroup = R.getPageGroup(TargetPage);
-		if(typeof TextLocationTarget.TextNodeIndex == "number") R.selectTextLocation(TextLocationTarget); // Colorize Target with Selection
-	} else {
-		var TargetPageGroup = R.getPageGroup(FocusTarget);
-		var TargetPage = TargetPageGroup.Pages[0];
 	}
-	var FocusPoint = R.focus.getOffset(TargetPage)[S.AXIS.L];
-	if(S.SLD == "rtl") FocusPoint += TargetPage.offsetWidth - window.innerWidth;
-	if(S["book-rendition-layout"] == "pre-paginated") {
-		sML.log(TargetPageGroup);
-		if(window["inner" + S.SIZE.L] > TargetPageGroup.Length) FocusPoint -= TargetPageGroup.MarginBeforeGroup * S.AXIS.PM;
+	return NearestPage;
+};
+
+
+R.focus = function(Target, ScrollOption) {
+	Target = R.focus.hatchTarget(Target);
+	if(!Target) return false;
+	if(Target.Page.PageIndex == 0) {
+		var FocusPoint = (S.SLD != "rtl") ? 0 : R.Content.Main["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Frame)[S.SIZE.L];
+	} else if(Target.Page.PageIndex == R.Pages.length - 1) {
+		var FocusPoint = (S.SLD == "rtl") ? 0 : R.Content.Main["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Frame)[S.SIZE.L];
 	} else {
-		FocusPoint -= S["spread-gap"] / 2 * S.AXIS.PM;
+		if(S["book-rendition-layout"] == "pre-paginated") {
+			if(window["inner" + S.SIZE.L] > Target.Page.Spread["offset" + S.SIZE.L]) {
+				var FocusPoint = O.getElementCoord(Target.Page.Spread)[S.AXIS.L];
+				FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Target.Page.Spread["offset" + S.SIZE.L]) / 2);
+			} else {
+				var FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
+				if(window["inner" + S.SIZE.L] > Target.Page["offset" + S.SIZE.L]) FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Target.Page["offset" + S.SIZE.L]) / 2);
+			}
+		} else {
+			var FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
+			FocusPoint -= S["spread-gap"] / 2 * S.AXIS.PM;
+			if(S.SLD == "rtl") FocusPoint += Target.Page.offsetWidth - window.innerWidth;
+		}
+		if(typeof Target.TextNodeIndex == "number") R.selectTextLocation(Target); // Colorize Target with Selection
 	}
-	var ScrollTo = {}; ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
+	var ScrollTo = { X: 0, Y: 0 }; 
+	ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
 	if(S.RVM == "paged") {
 		sML.style(R.Content, {
 			transition: "ease-out 0.05s"
@@ -1806,13 +1641,13 @@ R.focus = function(Target, ScrollOption) {
 				end: function() {
 					if(S.RVM == "paged") {
 						R.Spreads.forEach(function(Spread) {
-							if(Spread == FocusTarget.Item.Spread) Spread.style.opacity = 1;
+							if(Spread == Target.Item.Spread) Spread.style.opacity = 1;
 							//else                      Spread.style.opacity = 0;
 						});
 						sML.removeClass(O.HTML, "flipping-ahead");
 						sML.removeClass(O.HTML, "flipping-astern");
 					}
-					E.dispatch("bibi:focus", FocusTarget);
+					E.dispatch("bibi:focus", Target);
 				}
 			});
 		}, 50);
@@ -1822,10 +1657,52 @@ R.focus = function(Target, ScrollOption) {
 	return false;
 };
 
-R.focus.getOffset = function(El) {
-	var Offset = { X: El["offsetLeft"], Y: El["offsetTop"] };
-	while(El.offsetParent) El = El.offsetParent, Offset.X += El["offsetLeft"], Offset.Y += El["offsetTop"];
-	return Offset;
+
+R.focus.hatchTarget = function(Target) { // from Page, Element, or Edge
+	if(!Target) return null;
+	if(typeof Target == "number" || (typeof Target == "string" && /^\d+$/.test(Target))) {
+		Target = U.getBibiToTarget(Target);
+	} else if(typeof Target == "string") {
+		Target = (Target == "head" || Target == "foot") ? { Edge: Target } : U.getEPUBCFITarget(Target);
+	} else if(Target.tagName) {
+		     if(typeof Target.PageIndex   == "number") Target = { Page: Target };
+		else if(typeof Target.ItemIndex   == "number") Target = { Item: Target };
+		else if(typeof Target.SpreadIndex == "number") Target = { Spread: Target }; 
+		else Target = { Element: Target };
+	}
+	if(Target.Page    && !Target.Page.parentElement)    delete Target.Page;
+	if(Target.Item    && !Target.Item.parentElement)    delete Target.Item;
+	if(Target.Spread  && !Target.Spread.parentElement)  delete Target.Spread;
+	if(Target.Element && !Target.Element.parentElement) delete Target.Element;
+	if(typeof Target.Edge == "string") {
+		if(Target.Edge == "head") Target.Page = R.Pages[0];
+		else                      Target.Page = R.Pages[R.Pages.length - 1], Target.Edge = "foot";
+	} else {
+		if(!Target.Element) {
+			if(!Target.Item) {
+				if(typeof Target.ItemIndex == "number") Target.Item = R.Items[Target.ItemIndex];
+				else {
+					if(!Target.Spread && typeof Target.SpreadIndex == "number") Target.Spread = R.Spreads[Target.SpreadIndex];
+					if(Target.Spread) {
+							 if(typeof Target.PageIndexInSpread == "number") Target.Page = Target.Spread.Pages[Target.PageIndexInSpread];
+						else if(typeof Target.ItemIndexInSpread == "number") Target.Item = Target.Spread.Items[Target.ItemIndexInSpread];
+						else                                                 Target.Item = Target.Spread.Items[0];
+					}
+				}
+			}
+			if(Target.Item && typeof Target.ElementSelector == "string") Target.Element = Target.Item.contentDocument.querySelector(Target.ElementSelector);
+		}
+		if(Target.Element) Target.Page = R.getNearestPageOfElement(Target.Element);
+		else if(!Target.Page){
+			     if(typeof Target.PageIndexInItem    == "number") Target.Page = Target.Item.Pages[Target.PageIndex];
+			else if(typeof Target.PageProgressInItem == "number") Target.Page = Target.Item.Pages[Math.floor(Target.Item.Pages.length * Target.PageProgressInItem)];
+			else                                                  Target.Page = Target.Item.Pages[0];
+		}
+	}
+	if(!Target.Page) return null;
+	Target.Item = Target.Page.Item;
+	Target.Spread = Target.Page.Spread;
+	return Target;
 };
 
 
@@ -1856,24 +1733,23 @@ R.selectTextLocation = function(Target) {
 
 R.page = function(Distance) {
 	if(Distance != -1) Distance = +1;
-	var CurrentPages = R.getCurrentPages(), CurrentPage = Distance < 0 ? CurrentPages.Start : CurrentPages.End;
-	var TargetPageIndex = CurrentPage.PageIndex + Distance;
-	if(TargetPageIndex <                  0) return R.focus({ Edge: "head" });
-	if(TargetPageIndex > R.Pages.length - 1) return R.focus({ Edge: "foot" });
+	var CurrentEdge = Distance < 0 ? "StartPage" : "EndPage";
+	var CurrentPages = R.getCurrentPages();
+	var TargetPageIndex = (function() {
+		if(Distance < 0 && CurrentPages[CurrentEdge + "Status"] == "over") return CurrentPages[CurrentEdge].PageIndex;
+		if(Distance > 0 && CurrentPages[CurrentEdge + "Status"] == "yet")  return CurrentPages[CurrentEdge].PageIndex;
+		return CurrentPages[CurrentEdge].PageIndex + Distance;
+	})();
+	if(TargetPageIndex <                  0) TargetPageIndex = 0;
+	if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
 	var TargetPage = R.Pages[TargetPageIndex];
-	if(S.SLA == "vertical" && TargetPage.Item.Pair) {
-		if(CurrentPage.Item.Pair == TargetPage.Item) TargetPageIndex += (Distance > 0 ? +1 : -1);
+	if(S.BRL == "pre-paginated" && TargetPage.Item.Pair) {
+		if(S.SLA == "horizontal" && window["inner" + S.SIZE.L] > TargetPage.Spread["offset" + S.SIZE.L]) {
+			if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
+			if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
+		}
 	}
-	if(S.SLA == "horizontal" && TargetPage.Item.Pair && window["inner" + S.SIZE.L] > TargetPage.Item[S.SIZE.L] * 2) {
-		if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
-		if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
-	}
-	/*
-	if(S.RVM == "paged" && TargetPage.Spread != CurrentPage.Spread) {
-		return R.focus(TargetPage, { p:1, t:1 });
-	}
-	*/
-	R.focus({ Page: TargetPage, Side: (Distance > 0 ? "b" : "a") });
+	R.focus({ Page: TargetPage });
 };
 
 
@@ -1893,13 +1769,15 @@ R.scroll = function(Distance) {
 
 
 R.move = function(Distance) {
+	if(!R.Started) return;
+	if(typeof Distance != "number" && !(typeof Distance == "string" && /^\d+$/.test(Distance))) return;
 	((R.Columned || S.BRL == "pre-paginated") ? R.page : R.scroll)(Distance);
 	E.dispatch("bibi:move", Distance);
 };
 
 
 R.to = function(BibitoString) {
-	return R.focus(U.getBibitoTarget(BibitoString));
+	return R.focus(U.getBibiToTarget(BibitoString));
 };
 
 
@@ -1907,7 +1785,7 @@ R.Scale = 1;
 
 R.zoom = function(Scale) {
 	if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-	var CurrentStartPage = R.getCurrentPages().Start;
+	var CurrentStartPage = R.getCurrentPages().StartPage;
 	sML.style(R.Content.Main, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
 	if(Scale == 1) {
 		O.HTML.style.overflow = "";
@@ -1917,7 +1795,7 @@ R.zoom = function(Scale) {
 		O.HTML.style.overflow = "auto";
 	}
 	setTimeout(function() {
-		R.focus(CurrentStartPage, { Duration: 1 });
+		R.focus({ Page: CurrentStartPage }, { Duration: 0, Easing: 0 });
 	}, 0);
 	R.Scale = Scale;
 };
@@ -1975,7 +1853,7 @@ C.createVeil = function() {
 			this.style.zIndex = 100;
 			sML.style(this, {
 				transition: "0.5s ease-out",
-				transform: "translate" + S.AXIS.L + "(0)",
+				transform: "",
 				opacity: 0.75
 			}, function() {
 				if(typeof Cb == "function") Cb();
@@ -1986,14 +1864,19 @@ C.createVeil = function() {
 			if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
 			this.State = 0;
 			this.Message.style.opacity = 0;
+			var getTranslate = function(Percent) {
+				if(S.RVM != "vertical") var Axis = "X", PM = (S.PPD == "ltr") ? -1 : 1;
+				else                    var Axis = "Y", PM = -1;
+				return "translate" + Axis + "(" + (Percent * PM) + "%)";
+			};
 			sML.style(this, {
 				transition: "0.5s ease-in",
-				transform: "translate" + S.AXIS.L + "(" + (S.AXIS.PM * -1 * 240) + "%)",
+				transform: getTranslate(240),
 				opacity: 0
 			}, function() {
 				sML.style(this, {
 					transition: "none",
-					transform: "translate" + S.AXIS.L + "(" + (S.AXIS.PM * 240) + "%)"
+					transform: getTranslate(-240)
 				});
 				this.style.zIndex = 1;
 				this.style.display = "none";
@@ -2010,33 +1893,6 @@ C.createVeil = function() {
 	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { className: "animate", id: "bibi-veil-mark"    }));
 	C.Veil.Message = C.Veil.appendChild(sML.create("p",   { className: "animate", id: "bibi-veil-message", note: function(Note) { C.Veil.Message.innerHTML = Note; return Note; } }));
 	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   {                       id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
-
-	// Wait Drop or Input
-	if(window.File) {
-		C.Veil.Catcher = C.Veil.appendChild(
-			sML.create("p", { id: "bibi-veil-catcher", title: 'Drop me an EPUB! or Click me!' }, { display: "none" })
-		);
-		C.Veil.Catcher.addEventListener("click", function() {
-			if(!this.Input) this.Input = this.appendChild(
-				sML.create("input", { type: "file",
-					onchange: function(Eve) {
-						B.initialize({ File: Eve.target.files[0] });
-						B.load();
-					}
-				})
-			);
-			this.Input.click();
-		});
-		if(!sML.OS.iOS && !sML.OS.Android) {
-			document.body.addEventListener("dragenter", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
-			document.body.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
-			document.body.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
-			document.body.addEventListener("drop",      function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0;
-				B.initialize({ File: Eve.dataTransfer.files[0] });
-				B.load();
-			}, 1);
-		}
-	}
 
 	for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span", { className: "dot dot-" + (i % 2 ? "odd" : "even") + " dot-" + i }));
 
@@ -2250,15 +2106,15 @@ U.initialize = function() { // formerly O.readExtras
 				}
 			} else {
 				switch(PnV[0]) {
+					case "parent-origin":     PnV[1] = U.decode(PnV[1]); break;
+					case "poster":            PnV[1] = U.decode(PnV[1]); break;
+					case "autostart":         PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
 					case "reader-view-mode":  PnV[1] = /^(horizontal|vertical|paged)$/.test(PnV[1]) ? PnV[1] : undefined; break;
-					case "autostart":          PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
-					case "poster":             PnV[1] = U.decode(PnV[1]); break;
-					case "parent-origin":      PnV[1] = U.decode(PnV[1]); break;
-					case "to":                 PnV[1] = U.getBibitoTarget(PnV[1]); break;
-					case "nav":                PnV[1] = PnV[1] * 1; break;
-					case "view":               PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
-					case "arrows":             PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
-					case "preset":             break;
+					case "to":                PnV[1] = U.getBibiToTarget(PnV[1]); break;
+					case "nav":               PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined; break;
+					case "view":              PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
+					case "arrows":            PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
+					case "preset":            break;
 					default: PnV[0] = undefined;
 				}
 			}
@@ -2337,7 +2193,7 @@ U.parseHash = function(H) {
 };
 
 
-U.getBibitoTarget = function(BibitoString) {
+U.getBibiToTarget = function(BibitoString) {
 	if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
 	if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
 	var ElementSelector = "", InE = BibitoString.split("-"), ItemIndex = parseInt(InE[0]), ElementIndex = InE[1] ? InE[1] : null;
@@ -2345,7 +2201,7 @@ U.getBibitoTarget = function(BibitoString) {
 	return {
 		BibitoString: BibitoString,
 		ItemIndex: ItemIndex - 1,
-		Element: (ElementSelector ? "body" + ElementSelector : null)
+		ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
 	};
 };
 
@@ -2373,7 +2229,7 @@ U.getEPUBCFITarget = function(CFIString) {
 		CFI: CFI,
 		CFIString: CFIString,
 		ItemIndex: ItemIndex,
-		Element: ElementSelector,
+		ElementSelector: ElementSelector,
 		TextNodeIndex: TextNodeIndex,
 		TermStep: TermStep,
 		IndirectPath: IndirectPath
@@ -2586,6 +2442,13 @@ O.openDocument = function(Path, Option) {
 };
 
 
+O.getElementCoord = function(El) {
+	var Coord = { X: El["offsetLeft"], Y: El["offsetTop"] };
+	while(El.offsetParent) El = El.offsetParent, Coord.X += El["offsetLeft"], Coord.Y += El["offsetTop"];
+	return Coord;
+};
+
+
 O.getLogo = function(Setting) {
 	var Logo = sML.UA.InternetExplorer < 9 ? [
 		'<span class="bibi-type-B">B</span>',
@@ -2622,32 +2485,6 @@ O.toBibiXML = function(XML) {
 	).replace(
 		/<([\w\d_]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	);
-};
-
-
-O.isBin = function(T) {
-	return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(T);
-};
-
-
-O.ContentTypeList = {
-	"image/gif"             :   /\.gif$/i,
-	"image/png"             :   /\.png$/i,
-	"image/jpeg"            : /\.jpe?g$/i,
-	"image/svg+xml"         :   /\.svg$/i,
-	"video/mp4"             :   /\.mp4$/i,
-	"video/webm"            :  /\.webm$/i,
-	"audio/mpeg"            :   /\.mp3$/i,
-	"audio/mp4"             :   /\.mp4$/i,
-	"font/truetype"         :   /\.ttf$/i,
-	"font/opentype"         :   /\.otf$/i,
-	"font/woff"             :  /\.woff$/i,
-	"text/css"              :   /\.css$/i,
-	"text/javascript"       :    /\.js$/i,
-	"text/html"             : /\.html?$/i,
-	"application/xhtml+xml" : /\.xhtml$/i,
-	"application/xml"       :   /\.xml$/i,
-	"application/pdf"       :   /\.pdf$/i
 };
 
 
