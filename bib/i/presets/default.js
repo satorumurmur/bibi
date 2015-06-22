@@ -15,8 +15,8 @@ P.initialize({
 "spread-margin-start"               : 2,                 // px
 "spread-margin-end"                 : 2,                 // px
 
-"spread-border-radius"              : "1px",             // CSS value or ""
-"spread-box-shadow"                 : "0px 1px 2px rgba(0,0,0,0.25)",            // CSS value or ""
+"spread-border-radius"              : "2px",             // CSS value or ""
+"spread-box-shadow"                 : "",            // CSS value or ""
 
 "item-padding-left"                 : 16,                // px
 "item-padding-right"                : 16,                // px
