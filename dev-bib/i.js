@@ -28,9 +28,9 @@
 			var Style      = Anchor.getAttribute("data-bibi-style");
 			var Poster     = Anchor.getAttribute("data-bibi-poster");
 			var Autostart  = Anchor.getAttribute("data-bibi-autostart");
-		//	var BDM        = Anchor.getAttribute("data-bibi-book-display-mode");
-		//	var SLA        = Anchor.getAttribute("data-bibi-spread-layout-axis");
+			var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
 			var To         = Anchor.getAttribute("data-bibi-to");
+			var Nav        = Anchor.getAttribute("data-bibi-nav");
 			var View       = Anchor.getAttribute("data-bibi-view");
 			var Arrows     = Anchor.getAttribute("data-bibi-arrows");
 			Anchor.addEventListener("bibi:load",              function(Eve) { console.log("BiB/i: Loaded. - #"               + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
@@ -47,27 +47,19 @@
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
 			var PipiFragments = [];
-			if(typeof Autostart == "string" && /^(undefined|autostart|yes|true)?$/.test(Autostart)) {
-				PipiFragments.push("autostart");
-			}
+			if(location.origin != Anchor.origin) PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
 			if(Poster) {
 				var PosterLink = Pipi.create("link", { href: Poster });
 				Poster = PosterLink.href;
 				delete PosterLink;
 				PipiFragments.push("poster:" + Pipi.encode(Poster));
 			}
-			if(location.origin != Anchor.origin) {
-				PipiFragments.push("parent-origin:" + Pipi.encode(location.origin))
-			}
-			if(To && /^\d[\d\-\.]+$/.test(To)) {
-				PipiFragments.push("to:" + To);
-			}
-			if(View && /^fixed$/.test(View)) {
-				PipiFragments.push("view:" + View);
-			}
-			if(Arrows && /^hidden$/.test(Arrows)) {
-				PipiFragments.push("arrows:" + Arrows);
-			}
+			if(Autostart && /^(undefined|autostart|yes|true)?$/.test(Autostart)) PipiFragments.push("autostart");
+			if(RVM && /^(horizontal|vertical|paged)?$/.test(RVM)) PipiFragments.push("reader-view-mode:" + RVM);
+			if(To && /^[1-9][\d\-\.]*$/.test(To)) PipiFragments.push("to:" + To);
+			if(Nav && /^[1-9]\d*$/.test(Nav)) PipiFragments.push("nav:" + Nav);
+			if(View && /^fixed$/.test(View)) PipiFragments.push("view:" + View);
+			if(Arrows && /^hidden$/.test(Arrows)) PipiFragments.push("arrows:" + Arrows);
 			if(PipiFragments.length) Src += (/#/.test(Src) ? "," : "#") + "pipi(" + PipiFragments.join(",") + ")"
 			Pipi.Holders.push(Holder);
 			// Frame
@@ -91,31 +83,32 @@
 				}
 			}, false);
 			Pipi.Frames.push(Frame);
-			// Buttons
+			// SwitchNewWindow
 			var SwitchNewWindow = Bibi.SwitchNewWindow = Pipi.create("a", {
 				className: "bibi-icon bibi-switch-newwindow",
 				title: "Open in New Window",
 				target: "_blank",
-				href: Href
+				href: Href,
+				openInNewWindow: function() {
+					window.open(this.href, this.target);
+					Anchor.dispatchEvent(new CustomEvent("bibi:openInNewWindow", { detail: this.Bibi }));
+				}
 			});
 			SwitchNewWindow.addEventListener("click", function(Eve) {
+				Eve.preventDefault();
 				Eve.stopPropagation();
-				Anchor.dispatchEvent(new CustomEvent("bibi:openInNewWindow", { detail: this.Bibi }));
-				return true;
+				this.openInNewWindow();
+				return false;
 			});
 			SwitchNewWindow.style.display = "none";
 			Anchor.addEventListener("bibi:load", function() { this.Bibi.SwitchNewWindow.style.display = ""; });
 			Holder.appendChild(SwitchNewWindow);
-			if(Pipi.FullscreenEnabled) {
-				Holder.className += " bibi-fullscreen-enabled";
-				var SwitchFullscreen = Bibi.SwitchFullscreen = Pipi.create("span", {
-					className: "bibi-icon bibi-switch-fullscreen",
-					title: "Enter Fullscreen",
-					Holder: Holder
-				});
-				SwitchFullscreen.addEventListener("click", function(Eve) {
-					Eve.preventDefault();
-					Eve.stopPropagation();
+			// SwitchFullscreen
+			var SwitchFullscreen = Bibi.SwitchFullscreen = Pipi.create("span", {
+				className: "bibi-icon bibi-switch-fullscreen",
+				title: "Enter Fullscreen",
+				Holder: Holder,
+				toggleFullscreen: function() {
 					if(!Pipi.getFullscreenElement(document)) {
 						Pipi.requestFullscreen(this.Holder);
 						this.title = "Exit Fullscreen";
@@ -125,14 +118,21 @@
 						this.title = "Enter Fullscreen";
 						Anchor.dispatchEvent(new CustomEvent("bibi:exitFullscreen", { detail: this.Bibi }));
 					}
-					return true;
-				});
-				SwitchFullscreen.style.display = "none";
+				}
+			});
+			SwitchFullscreen.addEventListener("click", function(Eve) {
+				Eve.preventDefault();
+				Eve.stopPropagation();
+				this.toggleFullscreen();
+				return false;
+			});
+			SwitchFullscreen.style.display = "none";
+			Holder.appendChild(SwitchFullscreen);
+			if(Pipi.FullscreenEnabled) {
+				Holder.className += " bibi-fullscreen-enabled";
 				Anchor.addEventListener("bibi:load", function() { this.Bibi.SwitchFullscreen.style.display = ""; });
-				Holder.appendChild(SwitchFullscreen);
 			} else {
 				Holder.className += " bibi-fullscreen-not-enabled";
-				var SwitchFullscreen = {};
 			}
 			// Add & Load
 			Pipi.Bibis.push(Bibi);
@@ -141,6 +141,27 @@
 		for(var i = 0, L = Pipi.Bibis.length; i < L; i++) {
 			if(Pipi.Bibis[i].Embedded) continue;
 			var Bibi = Pipi.Bibis[i];
+			Bibi.move = function(Distance) {
+				if(typeof Target != "number") return;
+				this.Frame.contentWindow.postMessage('{"bibi:command:move":"' + Distance + '"}', this.Anchor.origin);
+			};
+			Bibi.focus = function(Target) {
+				if(typeof Target != "string" && typeof Target != "number") return;
+				this.Frame.contentWindow.postMessage('{"bibi:command:focus":"' + Target + '"}', this.Anchor.origin);
+			};
+			Bibi.changeView = function(BDM) {
+				if(typeof Target != "string") return;
+				this.Frame.contentWindow.postMessage('{"bibi:command:changeView":"' + BDM + '"}', this.Anchor.origin);
+			};
+			Bibi.toggleCartain = function() {
+				this.Frame.contentWindow.postMessage('{"bibi:command:toggleCartain":""}', this.Anchor.origin);
+			};
+			Bibi.openInNewWindow = function() {
+				this.SwitchNewWindow.click();
+			};
+			Bibi.toggleFullscreen = function() {
+				this.SwitchFullscreen.click();
+			};
 			Bibi.Anchor.style.display = "none";
 			Bibi.Anchor.parentNode.insertBefore(Bibi.Holder, Bibi.Anchor);
 			Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:ready",       { detail: Bibi }));
