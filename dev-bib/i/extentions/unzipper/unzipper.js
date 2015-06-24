@@ -6,6 +6,8 @@
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 
+// requires: JSZip & base64.js
+
 Bibi.x({
 
 	name: "Unzipper",
@@ -15,6 +17,8 @@ Bibi.x({
 	build: Bibi["build"]
 
 })(function() {
+
+	O.ZippedEPUBEnabled = true;
 
 	if(!window.File) return;
 
