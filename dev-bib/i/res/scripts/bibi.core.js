@@ -1045,7 +1045,7 @@ R.resetStage = function() {
 	*/
 };
 
-R.DefaultPageRatio = { X: 0.96, Y: 1.414 };
+R.DefaultPageRatio = { X: 103, Y: 148 };//{ X: 1, Y: Math.sqrt(2) };
 
 R.resetItem = function(Item) {
 	Item.Reset = false;
@@ -1068,23 +1068,24 @@ R.resetItem = function(Item) {
 R.resetItem.asReflowableItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
-	var PageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
-	var PageL = (function() {
-		var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
-		var DefaultPageL = Math.min(StageL, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
-		if(!Item.IsImageContent) {
-			var StageHalfL = Math.floor((StageL - PageGap) / 2);
-			if(DefaultPageL < StageHalfL) return StageHalfL;
-			else                          return StageL;
-		}
-		return DefaultPageL;
-	})();
+	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
+	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
+	var PageB = StageB;
+	var PageL = Math.min(StageL, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
 	Item.style["padding-" + S.BASE.b] = S["item-padding-" + S.BASE.b] + "px";
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
 	Item.style["padding-" + S.BASE.s] = S["item-padding-" + S.BASE.s] + "px";
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
+	if(Item.Body["scroll"+ S.SIZE.B] > PageB) {
+		if(!Item.IsImageContent) {
+			var StageHalfL = Math.floor((StageL - PageGap) / 2);
+			if(PageL < StageHalfL) PageL = StageHalfL;
+			else                   PageL = StageL;
+			Item.style[S.SIZE.l] = PageL + "px";
+		}
+	}
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
 	if(Item.IsFrameContent) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
@@ -1198,18 +1199,13 @@ R.resetItem.asReflowableItem = function(Item) {
 R.resetItem.asReflowableImageItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	//Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
-	var PageB  = R.StageSize.Breadth;
-	var PageL = (function() {
-		var StageL = R.StageSize.Length;
-		var DefaultPageL = Math.min(StageL, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
-		if(!Item.IsImageContent) {
-			var StageHalfL = Math.floor((StageL - PageGap) / 2);
-			if(DefaultPageL < StageHalfL) return StageHalfL;
-			else                          return StageL;
-		}
-		return DefaultPageL;
-	})();
 	Item.style.padding = 0;
+	var PageB = R.StageSize.Breadth;
+	if(S.RVM != "paged") {
+		var PageL = Math.min(R.StageSize.Length, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
+	} else {
+		var PageL = R.StageSize.Length;
+	}
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
 	if(Item.Body["scroll" + S.SIZE.B] > PageB || Item.Body["scroll" + S.SIZE.L] > PageL) {
@@ -1225,11 +1221,7 @@ R.resetItem.asReflowableImageItem = function(Item) {
 			"transform-origin": TransformOrigin,
 			"transform": "scale(" + Scale + ")"
 		});
-		var ItemBodyComputedStyle = getComputedStyle(Item.Body);
-		PageL = Math.ceil(Item.Body["offset" + S.SIZE.L] + parseFloat(ItemBodyComputedStyle["margin-" + S.BASE.b]) * 2);
-	} else {
-		var ItemBodyComputedStyle = getComputedStyle(Item.Body);
-		PageL = Math.ceil(Item.Body["offset" + S.SIZE.L] + parseFloat(ItemBodyComputedStyle["margin-" + S.BASE.b]) * 2);
+		PageL = Math.ceil(Item.Body["scroll" + S.SIZE.L] * Scale);
 	}
 	ItemBox.style[S.SIZE.l] = Item.style[S.SIZE.l] = PageL + "px";
 	ItemBox.style[S.SIZE.b] = Item.style[S.SIZE.b] = PageB + "px";
