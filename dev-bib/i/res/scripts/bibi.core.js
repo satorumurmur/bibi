@@ -755,7 +755,7 @@ L.postprocessItem = function(Item) {
 		else if(/^img$/i.test(Item.Body.firstElementChild.tagName)) Item.IsSingleIMGOnly = true;
 		if(!O.getElementInnerText(Item.Body)) {
 			Item.IsOutSourcing = true;
-				 if(Item.Body.querySelectorAll("svg, img").length - Item.Body.querySelectorAll("svg img").length == 1) Item.IsImageContent = true;
+				 if(Item.Body.querySelectorAll("img, svg, video, audio").length - Item.Body.querySelectorAll("svg img, video img, audio img").length == 1) Item.IsImageContent = true;
 			else if(Item.Body.getElementsByTagName("iframe").length == 1) Item.IsFrameContent = true;
 			else Item.IsOutSourcing = false;
 		}
@@ -1051,6 +1051,7 @@ R.resetItem = function(Item) {
 	Item.Reset = false;
 	Item.Pages = [];
 	Item.scrolling = "no";
+	Item.HalfPaged = false;
 	Item.HTML.style[S.SIZE.b] = "";
 	Item.HTML.style[S.SIZE.l] = "";
 	sML.style(Item.HTML, { "transform-origin": "", "transformOrigin": "", "transform": "", "column-width": "", "column-gap": "", "column-rule": "" });
@@ -1071,13 +1072,22 @@ R.resetItem.asReflowableItem = function(Item) {
 	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
 	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
 	var PageB = StageB;
-	var PageL = Math.min(StageL, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
+	var PageL = StageL;
+	if(!Item.IsImageContent) {
+		var StageHalfL = Math.floor((StageL - PageGap) / 2);
+		var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
+		if(StageHalfL > BunkoL) {
+			Item.HalfPaged = true;
+			PageL = StageHalfL;
+		}
+	}
 	Item.style["padding-" + S.BASE.b] = S["item-padding-" + S.BASE.b] + "px";
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
 	Item.style["padding-" + S.BASE.s] = S["item-padding-" + S.BASE.s] + "px";
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
+	/*
 	if(Item.Body["scroll"+ S.SIZE.B] > PageB) {
 		if(!Item.IsImageContent) {
 			var StageHalfL = Math.floor((StageL - PageGap) / 2);
@@ -1085,7 +1095,7 @@ R.resetItem.asReflowableItem = function(Item) {
 			else                   PageL = StageL;
 			Item.style[S.SIZE.l] = PageL + "px";
 		}
-	}
+	}*/
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
 	if(Item.IsFrameContent) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
@@ -1178,8 +1188,8 @@ R.resetItem.asReflowableItem = function(Item) {
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
 	Item.style[S.SIZE.l] = ItemL + "px";
-	ItemBox.style[S.SIZE.b] = PageB + (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e] ) + "px";
-	ItemBox.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + "px";
+	ItemBox.style[S.SIZE.b] = PageB + (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]) + "px";
+	ItemBox.style[S.SIZE.l] = ItemL + (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]) + ((S.RVM == "paged" && Item.HalfPaged && Pages % 2) ? (PageGap + PageL) : 0) + "px";
 	for(var i = 0; i < Pages; i++) {
 		var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
 		Page.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + "px";//S["spread-gap"] / 2 + "px";
@@ -1200,31 +1210,43 @@ R.resetItem.asReflowableImageItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	//Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
 	Item.style.padding = 0;
-	var PageB = R.StageSize.Breadth;
+	var StageB = R.StageSize.Breadth;
+	var StageL = R.StageSize.Length;
+	var PageB = StageB;
+	var PageL = StageL;
 	if(S.RVM != "paged") {
-		var PageL = Math.min(R.StageSize.Length, Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]));
-	} else {
-		var PageL = R.StageSize.Length;
+		var StageHalfL = Math.floor((StageL - S["spread-gap"]) / 2);
+		var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
+		if(StageHalfL > BunkoL) {
+			Item.HalfPaged = true;
+			PageL = StageHalfL;
+		}
 	}
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
 	if(Item.Body["scroll" + S.SIZE.B] > PageB || Item.Body["scroll" + S.SIZE.L] > PageL) {
-		PageL = Item.Body["scroll" + S.SIZE.L];
-		Item.style[S.SIZE.l] = PageL + "px";
+//		if(S.RVM != "paged") {
+//			PageL = Item.Body["scroll" + S.SIZE.L];
+			//Item.HTML.style[S.SIZE.l] = 0;
+			//Item.HTML.style[S.SIZE.l] = Item.Body["scroll" + S.SIZE.L] + "px";
+//			Item.HTML.style["margin-" + S.BASE.b] = Math.floor((PageL - Item.Body["scroll" + S.SIZE.L]) / 2) + "px";
+//		}
 		//var TransformOrigin = { "lr-tb": "0 0", "rl-tb": "100% 0", "tb-rl": "100% 0", "bt-rl": "100% 100%", "tb-lr": "0 0", "bt-lr": "0 100%" }[Item.HTML.WritingMode];
 		var TransformOrigin;
-			 if(S.SLD == "ttb") TransformOrigin =  "50% 0";
-		else if(S.SLD == "ltr") TransformOrigin =    "0 0";
-		else if(S.SLD == "rtl") TransformOrigin = "100% 0";
+		     if(S.SLD == "ttb" || (S.SLA == "horizontal" && Item.Body["scroll" + S.SIZE.B] > PageB)) TransformOrigin =  "50% 0";
+		else if(S.SLD == "ltr")                                                                      TransformOrigin =    "0 0";
+		else if(S.SLD == "rtl")                                                                      TransformOrigin = "100% 0";
 		var Scale = Math.floor(Math.min(PageB / Item.Body["scroll" + S.SIZE.B], PageL / Item.Body["scroll" + S.SIZE.L]) * 100) / 100;
+//		Item.style[S.SIZE.l] = Math.floor(PageL / Scale) + "px";
+//		Item.style[S.SIZE.b] = Math.floor(PageB / Scale) + "px";
 		sML.style(Item.HTML, {
 			"transform-origin": TransformOrigin,
 			"transform": "scale(" + Scale + ")"
 		});
-		PageL = Math.ceil(Item.Body["scroll" + S.SIZE.L] * Scale);
+		//PageL = Math.ceil(Item.Body["scroll" + S.SIZE.L] * Scale);
 	}
-	ItemBox.style[S.SIZE.l] = Item.style[S.SIZE.l] = PageL + "px";
-	ItemBox.style[S.SIZE.b] = Item.style[S.SIZE.b] = PageB + "px";
+	ItemBox.style[S.SIZE.l] = PageL + "px";
+	ItemBox.style[S.SIZE.b] = PageB + "px";
 	var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
 	Page.style[S.SIZE.b] = PageB + "px";
 	Page.style[S.SIZE.l] = PageL + "px";

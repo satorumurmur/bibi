@@ -25,8 +25,6 @@ P.initialize({
 
 "item-column-rule"                  : "",                // CSS value or ""
 
-"fit-images"                        : true,              // true or false, or "in-single-image-only-item" (only one image, without text)
-
 "page-breaking"                     : true,              // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet"        : "",
