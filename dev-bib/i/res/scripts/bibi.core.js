@@ -171,7 +171,7 @@ Bibi.welcome = function() {
 				C.Veil.Message.note('');
 			}
 		} else {
-			if(X["Unzipper"] && window.File && !O.SmartPhone) {
+			if(O.ZippedEPUBEnabled && window.File && !O.SmartPhone) {
 				B.dropOrClick();
 			} else {
 				if(O.WindowEmbedded) {
@@ -244,7 +244,7 @@ B.load = function() {
 		// EPUB Folder (Online)
 		O.log(2, 'EPUB: ' + B.Path + " (Online Folder)", "Show");
 		B.open();
-	} else if(X["Unzipper"]) {
+	} else if(O.ZippedEPUBEnabled) {
 		B.loadZippedEPUB();
 	} else {
 		// ERROR
@@ -858,26 +858,6 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 		var HrefFnH = HrefPath.split("#");
 		var HrefFile = HrefFnH[0] ? HrefFnH[0] : Path;
 		var HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
-		var Jump = function(Eve) {
-			Eve.preventDefault(); 
-			Eve.stopPropagation();
-			if(this.Target) {
-				var This = this;
-				var Go = R.Started ? function() {
-					R.focus(This.Target);
-				} : function() {
-					if(O.SmartPhone) {
-						var URI = location.href;
-						if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
-						return window.open(URI);
-					}
-					S["to"] = This.Target;
-					L.play();
-				};
-				This.InNav ? C.Cartain.toggle(Go) : Go();
-			}
-			return false;
-		};
 		R.Items.forEach(function(rItem) {
 			if(HrefFile == rItem.Path) {
 				A.setAttribute("data-bibi-original-href", HrefPathInSource);
@@ -887,7 +867,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 					Item: rItem,
 					ElementSelector: (HrefHash ? "#" + HrefHash : undefined)
 				};
-				A.addEventListener("click", Jump);
+				A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
 				return;
 			}
 		});
@@ -896,10 +876,31 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 			A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + "/#" + HrefHash);
 			A.InNav = InNav;
 			A.Target = U.getEPUBCFITarget(HrefHash);
-			A.addEventListener("click", Jump);
+			A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
 		}
 		if(InNav && typeof S["nav"] == (i + 1) && A.Target) S["to"] = A.Target;
 	});
+};
+
+L.postprocessItem.coordinateLinkages.jump = function(Eve) {
+	Eve.preventDefault(); 
+	Eve.stopPropagation();
+	if(this.Target) {
+		var This = this;
+		var Go = R.Started ? function() {
+			R.focus(This.Target);
+		} : function() {
+			if(O.SmartPhone) {
+				var URI = location.href;
+				if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
+				return window.open(URI);
+			}
+			S["to"] = This.Target;
+			L.play();
+		};
+		This.InNav ? C.Cartain.toggle(Go) : Go();
+	}
+	return false;
 };
 
 
@@ -1511,17 +1512,16 @@ R.getCurrentPages = function() {
 		var LengthInside = Math.min(FrameScrollCoordAfter, PageCoordAfter) - Math.max(FrameScrollCoordBefore, PageCoordBefore);
 		var PageRatio = (LengthInside <= 0 || !PageCoord[S.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.SIZE.L] * 100);
 		if(PageRatio <= 0) {
-			if(!Pages.length) continue;
-			else break;
-		} else if(PageRatio == BiggestRatio) {
-			Pages.push(R.Pages[i]);
-			Ratio.push(PageRatio);
-			Status.push(R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore));
+			if(!Pages.length) continue; else break;
 		} else if(PageRatio > BiggestRatio) {
 			Pages[0] = R.Pages[i];
 			Ratio[0] = PageRatio;
 			Status[0] = R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore);
 			BiggestRatio = PageRatio;
+		} else if(PageRatio == BiggestRatio) {
+			Pages.push(R.Pages[i]);
+			Ratio.push(PageRatio);
+			Status.push(R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore));
 		}
 	}
 	return {
@@ -1536,69 +1536,6 @@ R.getCurrentPages.getStatus = function(RatioInside, FrameScrollCoordBefore, Page
 	if(FrameScrollCoordBefore <  PageCoordBefore) return "yet";
 	if(FrameScrollCoordBefore  > PageCoordBefore) return "over";
 	return "shown";
-};
-
-
-R.getPageGroup = function(TargetPage, Side) {
-	var Next = (Side == "a") ? -1 : +1;
-	var Pages = [], Length = 0, Space = document.documentElement["client" + S.SIZE.L];
-	for(var i = TargetPage.PageIndex; 0 <= i && i < R.Pages.length; i += Next) {
-		if((TargetPage.Item.IsPrePaginated && R.Pages[i].Spread != TargetPage.Spread)) break;
-		if(Space - R.Pages[i]["offset" + S.SIZE.L] < 0) break;
-		Pages.push(R.Pages[i]);
-		if(S.SLA == "vertical" && R.Pages[i].Item.Pair && R.Pages[i].Item.Pair == TargetPage.Item) continue;
-		var PageGap = (i < 0 ? S["spread-gap"] : 0);
-		Space  -= R.Pages[i]["offset" + S.SIZE.L] + PageGap;
-		Length += R.Pages[i]["offset" + S.SIZE.L] + PageGap;
-	}
-	var MarginBeforeGroup = Math.floor(Space / 2), MarginBeforePage = MarginBeforeGroup;
-	if(Side == "a") {
-		Pages.reverse();
-		MarginBeforePage += (Length - TargetPage["offset" + S.SIZE.L]);
-	}
-	return {
-		Pages:             Pages,
-		Length:            Length,
-		MarginBeforeGroup: MarginBeforeGroup,
-		MarginBeforePage:  MarginBeforePage
-	};
-};
-
-
-R.getElementScrollBefore = function(Ele) {
-};
-
-
-R.getNearestPageOfElement = function(Ele) {
-	var Item = Ele.ownerDocument.body.Item;
-	if(!Item) return R.Pages[0];
-	if(Item.Columned) {
-		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
-		if(S.PPD == "rtl" && S.SLA == "vertical") {
-			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];
-			if(Item.Body.offsetParent) {
-				var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
-				var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
-				NoColumnedItemBreadth += ItemHTMLPaddingBreadth;
-			}
-			ElementCoordInItem = NoColumnedItemBreadth - ElementCoordInItem + Ele["offset" + S.SIZE.B];
-		}
-		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
-	} else {
-		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
-		if(S.SLD == "rtl" && S.SLA == "horizontal") {
-			ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
-		}
-		var NearestPage = Item.Pages[0];
-		for(var i = 0, L = Item.Pages.length; i < L; i++) {
-			ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
-			if(ElementCoordInItem <= 0) {
-				NearestPage = Item.Pages[i];
-				break;
-			}
-		}
-	}
-	return NearestPage;
 };
 
 
@@ -1692,7 +1629,7 @@ R.focus.hatchTarget = function(Target) { // from Page, Element, or Edge
 			}
 			if(Target.Item && typeof Target.ElementSelector == "string") Target.Element = Target.Item.contentDocument.querySelector(Target.ElementSelector);
 		}
-		if(Target.Element) Target.Page = R.getNearestPageOfElement(Target.Element);
+		if(Target.Element) Target.Page = R.focus.getNearestPageOfElement(Target.Element);
 		else if(!Target.Page){
 			     if(typeof Target.PageIndexInItem    == "number") Target.Page = Target.Item.Pages[Target.PageIndex];
 			else if(typeof Target.PageProgressInItem == "number") Target.Page = Target.Item.Pages[Math.floor(Target.Item.Pages.length * Target.PageProgressInItem)];
@@ -1703,6 +1640,38 @@ R.focus.hatchTarget = function(Target) { // from Page, Element, or Edge
 	Target.Item = Target.Page.Item;
 	Target.Spread = Target.Page.Spread;
 	return Target;
+};
+
+R.focus.getNearestPageOfElement = function(Ele) {
+	var Item = Ele.ownerDocument.body.Item;
+	if(!Item) return R.Pages[0];
+	if(Item.Columned) {
+		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
+		if(S.PPD == "rtl" && S.SLA == "vertical") {
+			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];
+			if(Item.Body.offsetParent) {
+				var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+				var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
+				NoColumnedItemBreadth += ItemHTMLPaddingBreadth;
+			}
+			ElementCoordInItem = NoColumnedItemBreadth - ElementCoordInItem + Ele["offset" + S.SIZE.B];
+		}
+		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
+	} else {
+		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
+		if(S.SLD == "rtl" && S.SLA == "horizontal") {
+			ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
+		}
+		var NearestPage = Item.Pages[0];
+		for(var i = 0, L = Item.Pages.length; i < L; i++) {
+			ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
+			if(ElementCoordInItem <= 0) {
+				NearestPage = Item.Pages[i];
+				break;
+			}
+		}
+	}
+	return NearestPage;
 };
 
 
