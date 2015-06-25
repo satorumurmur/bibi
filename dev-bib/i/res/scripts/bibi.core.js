@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu June 25 23:13:00 2015 +0900
+ * - Thu June 25 23:２６:00 2015 +0900
  */
 
 Bibi = { "version": "0.999.0", "build": 20150625.0 };
@@ -957,6 +957,7 @@ L.postprocessItem.forRubys = function(Item) {
 			RubyParent.WritingMode = O.getWritingMode(RubyParent);
 			RubyParent.LiningLength = (/^tb/.test(RubyParent.WritingMode) ? "Width" : "Height");
 			RubyParent.LiningBefore = (/tb$/.test(RubyParent.WritingMode) ? "Top" : (/rl$/.test(RubyParent.WritingMode) ? "Right" : "Left"));
+			RubyParent.DefaultFontSize = parseFloat(getComputedStyle(RubyParent).fontSize);
 			RubyParent.OriginalCSSText = RubyParent.style.cssText;
 		}
 	});
@@ -1096,7 +1097,7 @@ R.resetItem.asReflowableItem = function(Item) {
 		var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
 		Item.RubyParents.forEach(function(RubyParent, i) {
 			var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
-			if(Gap > 0) {
+			if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
 				var RubyParentComputedStyle = getComputedStyle(RubyParent);
 				RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
 			}
