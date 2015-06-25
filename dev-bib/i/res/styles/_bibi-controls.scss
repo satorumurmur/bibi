@@ -608,6 +608,7 @@ div#bibi-cartain-misc {
 
 div#bibi-cartain-navigation {
 	@include box-sizing(border-box);
+	font-family: sans-serif;
 }
 	div#bibi-cartain-navigation-item-box {
 		@include box-sizing(border-box);
