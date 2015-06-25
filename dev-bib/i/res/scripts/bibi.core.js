@@ -107,6 +107,13 @@ Bibi.welcome = function() {
 		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
 	}
 
+	var HTMLCS = getComputedStyle(O.HTML);
+	O.WritingModeProperty = (function() {
+		if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
+		if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
+		else return undefined;
+	})();
+
 	var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
 	Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
 	if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
@@ -913,43 +920,20 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 
 L.postprocessItem.patchWritingModeStyle = function(Item) {
 	if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
-		Item.AdditionalStyles = [];
-		var translateWritingMode = sML.UA.Gecko ? function(CSSRule) {
-			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
-			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
-			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
-		} : function(CSSRule) {
-			/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-			else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-			else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-		};
 		sML.each(Item.contentDocument.styleSheets, function () {
 			var StyleSheet = this;
 			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
 				var CSSRule = this.cssRules[i];
 				/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
 				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-				else                        translateWritingMode(CSSRule);
+				else                        O.translateWritingMode(CSSRule);
 			}
 		});
 	}
-	(function() {
-		var HTMLCS = getComputedStyle(Item.HTML);
-		var Property = (function() {
-			if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
-			if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
-			else return undefined;
-		})();
-		sML.style(Item.HTML, {
-			"writing-mode": getComputedStyle(Item.Body)[Property]
-		});
-		Item.HTML.WritingMode = (function() {
-				 if(!Property)                                return (HTMLCS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
-			else if(     /^vertical-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(HTMLCS[Property]) ? "lr" : "rl");
-			else if(   /^horizontal-/.test(HTMLCS[Property])) return (HTMLCS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(HTMLCS[Property]) ? "bt" : "tb");
-			else if(/^(lr|rl|tb|bt)-/.test(HTMLCS[Property])) return  HTMLCS[Property];
-		})();
-	})();
+	sML.style(Item.HTML, {
+		"writing-mode": getComputedStyle(Item.Body)[O.WritingModeProperty]
+	});
+	Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
 	/*
 	Item.Body.style["margin" + (function() {
 		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
@@ -970,6 +954,9 @@ L.postprocessItem.forRubys = function(Item) {
 		var RubyParent = this.parentNode;
 		if(Item.RubyParents[Item.RubyParents.length - 1] != RubyParent) {
 			Item.RubyParents.push(RubyParent);
+			RubyParent.WritingMode = O.getWritingMode(RubyParent);
+			RubyParent.LiningLength = (/^tb/.test(RubyParent.WritingMode) ? "Width" : "Height");
+			RubyParent.LiningBefore = (/tb$/.test(RubyParent.WritingMode) ? "Top" : (/rl$/.test(RubyParent.WritingMode) ? "Right" : "Left"));
 			RubyParent.OriginalCSSText = RubyParent.style.cssText;
 		}
 	});
@@ -1103,15 +1090,14 @@ R.resetItem.asReflowableItem = function(Item) {
 	var RubyParentsLengthWithRubys = [];
 	Item.RubyParents.forEach(function(RubyParent) {
 		RubyParent.style.cssText = RubyParent.OriginalCSSText;
-		RubyParentsLengthWithRubys.push(RubyParent["offset" + S.SIZE.L]);
+		RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
 	});
 	var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
 	Item.RubyParents.forEach(function(RubyParent, i) {
-		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + S.SIZE.L];
+		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
 		if(Gap > 0) {
 			var RubyParentComputedStyle = getComputedStyle(RubyParent);
-			RubyParent.style["margin" + S.BASE.B] = parseFloat(RubyParentComputedStyle["margin" + S.BASE.B]) - Gap + "px";
-			//RubyParent.style["margin" + S.BASE.A] = parseFloat(RubyParentComputedStyle["margin" + S.BASE.A]) - Gap + "px";
+			RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
 		}
 	});
 	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
@@ -2469,6 +2455,28 @@ O.requestDocument = function(Path) {
 O.openDocument = function(Path, Option) {
 	if(!Option || typeof Option != "object" || typeof Option.then != "function") Option = { then: function() { return false; } };
 	O.requestDocument(Path).then(Option.then);
+};
+
+
+O.translateWritingMode = function(CSSRule) {
+	if(sML.UA.Gecko) {
+		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
+		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
+		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
+	} else if(sML.UA.InternetExplorer < 12) {
+		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+	}
+};
+
+
+O.getWritingMode = function(Ele) {
+	var CS = getComputedStyle(Ele);
+		 if(!O.WritingModeProperty)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
+	else if(     /^vertical-/.test(CS[O.WritingModeProperty])) return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[O.WritingModeProperty]) ? "lr" : "rl");
+	else if(   /^horizontal-/.test(CS[O.WritingModeProperty])) return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[O.WritingModeProperty]) ? "bt" : "tb");
+	else if(/^(lr|rl|tb|bt)-/.test(CS[O.WritingModeProperty])) return CS[O.WritingModeProperty];
 };
 
 
