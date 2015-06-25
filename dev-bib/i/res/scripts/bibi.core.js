@@ -767,6 +767,7 @@ L.postprocessItem = function(Item) {
 	setTimeout(function() {
 		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		L.postprocessItem.patchWritingModeStyle(Item);
+		L.postprocessItem.forRubys(Item);
 		L.postprocessItem.applyBackgroundStyle(Item);
 		E.dispatch("bibi:postprocessItem", Item);
 	}, 100);
@@ -963,6 +964,18 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 };
 
 
+L.postprocessItem.forRubys = function(Item) {
+	Item.RubyParents = [];
+	sML.each(Item.Body.querySelectorAll("ruby"), function() {
+		var RubyParent = this.parentNode;
+		if(Item.RubyParents[Item.RubyParents.length - 1] != RubyParent) {
+			Item.RubyParents.push(RubyParent);
+			RubyParent.OriginalCSSText = RubyParent.style.cssText;
+		}
+	});
+};
+
+
 L.postprocessItem.applyBackgroundStyle = function(Item) {
 	if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
 	if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
@@ -1086,6 +1099,23 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
+	// Rubys
+	var RubyParentsLengthWithRubys = [];
+	Item.RubyParents.forEach(function(RubyParent) {
+		RubyParent.style.cssText = RubyParent.OriginalCSSText;
+		RubyParentsLengthWithRubys.push(RubyParent["offset" + S.SIZE.L]);
+	});
+	var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
+	Item.RubyParents.forEach(function(RubyParent, i) {
+		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + S.SIZE.L];
+		if(Gap > 0) {
+			var RubyParentComputedStyle = getComputedStyle(RubyParent);
+			RubyParent.style["margin" + S.BASE.B] = parseFloat(RubyParentComputedStyle["margin" + S.BASE.B]) - Gap + "px";
+			//RubyParent.style["margin" + S.BASE.A] = parseFloat(RubyParentComputedStyle["margin" + S.BASE.A]) - Gap + "px";
+		}
+	});
+	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+	////
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
 	// Fitting Images
 	sML.each(Item.Body.getElementsByTagName("img"), function() {
