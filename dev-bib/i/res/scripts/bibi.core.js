@@ -949,11 +949,17 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 			else if(/^(lr|rl|tb|bt)-/.test(HTMLCS[Property])) return  HTMLCS[Property];
 		})();
 	})();
+	/*
 	Item.Body.style["margin" + (function() {
 		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
 		if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
 		return "Bottom";
 	})()] = 0;
+	*/
+	var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+	     if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
+	else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
+	else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
 };
 
 
@@ -1194,6 +1200,9 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 				"transform-origin": TransformOrigin,
 				"transform": "scale(" + Scale + ")"
 			});
+		} else {
+			var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+			Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px"
 		}
 	} else if(Item.IsFrameItem) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
