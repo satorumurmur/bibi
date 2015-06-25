@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu June 25 22:55:00 2015 +0900
+ * - Thu June 25 23:13:00 2015 +0900
  */
 
 Bibi = { "version": "0.999.0", "build": 20150625.0 };
@@ -1087,20 +1087,22 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
 	// Rubys
-	var RubyParentsLengthWithRubys = [];
-	Item.RubyParents.forEach(function(RubyParent) {
-		RubyParent.style.cssText = RubyParent.OriginalCSSText;
-		RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
-	});
-	var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
-	Item.RubyParents.forEach(function(RubyParent, i) {
-		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
-		if(Gap > 0) {
-			var RubyParentComputedStyle = getComputedStyle(RubyParent);
-			RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
-		}
-	});
-	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+	if(sML.UA.Safari || sML.UA.Chrome) {
+		var RubyParentsLengthWithRubys = [];
+		Item.RubyParents.forEach(function(RubyParent) {
+			RubyParent.style.cssText = RubyParent.OriginalCSSText;
+			RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
+		});
+		var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
+		Item.RubyParents.forEach(function(RubyParent, i) {
+			var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
+			if(Gap > 0) {
+				var RubyParentComputedStyle = getComputedStyle(RubyParent);
+				RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
+			}
+		});
+		sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+	}
 	////
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
 	// Fitting Images
@@ -2292,27 +2294,27 @@ S.update = function(Settings) { // formerly O.updateSetting
 	}
 
 	S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
-	S.BWM = S["book-writing-mode"] = (/^tb/.test(S["book-writing-mode"]) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
+	S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
 
 	// Layout Settings
 	S.RVM = S["reader-view-mode"];
 	if(S.BRL == "reflowable") {
 		if(S.BWM == "tb-rl") {
 			S.PPD = S["page-progression-direction"] = "rtl";
-			S.SLA = S["spread-layout-axis"] = (S["reader-view-mode"] == "paged") ? "vertical"   : S["reader-view-mode"];
+			S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM;
 		} else if(S.BWM == "tb-lr") {
 			S.PPD = S["page-progression-direction"] = "ltr";
-			S.SLA = S["spread-layout-axis"] = (S["reader-view-mode"] == "paged") ? "vertical"   : S["reader-view-mode"];
+			S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM;
 		} else if(S.BWM == "rl-tb") {
 			S.PPD = S["page-progression-direction"] = "rtl";
-			S.SLA = S["spread-layout-axis"] = (S["reader-view-mode"] == "paged") ? "horizontal" : S["reader-view-mode"];
+			S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 		} else {
 			S.PPD = S["page-progression-direction"] = "ltr";
-			S.SLA = S["spread-layout-axis"] = (S["reader-view-mode"] == "paged") ? "horizontal" : S["reader-view-mode"];
+			S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 		}
 	} else {
 		S.PPD = S["page-progression-direction"] = (B.Package.Spine["page-progression-direction"] == "rtl") ? "rtl" : "ltr";
-		S.SLA = S["spread-layout-axis"] = (S["reader-view-mode"] == "paged") ? "horizontal" : S["reader-view-mode"];
+		S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 	}
 	S.SLD = S["spread-layout-direction"] = (S["spread-layout-axis"] == "vertical") ? "ttb" : S["page-progression-direction"];
 
