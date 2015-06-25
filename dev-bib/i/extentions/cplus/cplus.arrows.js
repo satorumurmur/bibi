@@ -27,29 +27,31 @@ Bibi.x({
 	);
 
 	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
+		sML.addTouchEventObserver(Arrow);
 		Arrow.addEventListener("mouseover", function() {
-			if(Arrow.Timer_tap) clearTimeout(Arrow.Timer_tap);
-			sML.addClass(Arrow, "shown");
+			sML.addClass(Arrow, "flickering");
 		});
 		Arrow.addEventListener("mouseout", function() {
-			sML.removeClass(Arrow, "shown");
+			sML.removeClass(Arrow, "flickering");
 		});
-		sML.addTouchEventObserver(Arrow).addTouchEventListener("tap", function() {
-			E.dispatch("bibi:command:move", Arrow.DistanceToMove)
-			sML.addClass(Arrow, "shown");
-			if(Arrow.Timer_tap) clearTimeout(Arrow.Timer_tap);
-			Arrow.Timer_tap = setTimeout(function() {
-				sML.removeClass(Arrow, "shown");
-			}, 500);
+		Arrow.addTouchEventListener("tap", function() {
+			E.dispatch("bibi:command:move", Arrow.DistanceToMove);
+			sML.addClass(Arrow, "firing");
+			if(Arrow.Timer) clearTimeout(Arrow.Timer);
+			Arrow.Timer = setTimeout(function() {
+				Arrow.className = "bibi-arrow";
+			}, 200);
 		});
 	});
 
 	E.add("bibi:start", function() {
-		if(S.To) sML.style(C.Arrows.Back, { opacity: 1 });
-		sML.style(C.Arrows.Forward, { opacity: 1 });
 		setTimeout(function() {
-			[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) { sML.style(Arrow, { opacity: "" }); });
-		}, 500);
+			if(S.To) sML.addClass(C.Arrows.Back, "glowing");
+			sML.addClass(C.Arrows.Forward, "glowing");
+			setTimeout(function() {
+				[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) { sML.removeClass(Arrow, "glowing"); });
+			}, 800);
+		}, 400);
 	});
 
 	E.dispatch("bibi:createArrows");

@@ -395,60 +395,72 @@ p#bibi-veil-message {
 
 div#bibi-arrows {
 	div.bibi-arrow {
-		overflow: hidden;
 		position: fixed;
 		z-index: 1000;
-		$start: 10%;
-		$breadth: 80%;
-		$length: 50px;
+		left: -100%;
+		right: -100%;
+		top: -100%;
+		bottom: -100%;
+		margin: auto;
+		$breadth: 70%;
+		$length: 2em;
+		font-size: 24px;
 		line-height: 1;
-		opacity: 0; &.shown { opacity: 0.8; }
 		@include transition(opacity 0.2s linear);
-		html.view-vertical &                      { left: $start; width: $breadth; height: $length; }
-		html.view-horizontal &, html.view-paged & { top:  $start; width: $length;  height: $breadth; }
-		&:before {
+		html.view-vertical &                      { width: $breadth; height: $length; }
+		html.view-horizontal &, html.view-paged & { width: $length;  height: $breadth; }
+		&:after {
 			display: block;
 			position: absolute;
-			$start: 50%;
-			$margin-start: -.5em;
+			z-index: 2;
+			left: -100%;
+			right: -100%;
+			top: -100%;
+			bottom: -100%;
+			margin: auto;
 			width: 1em;
 			height: 1em;
-			font-size: 80px;
 			text-align: center;
 			vertical-align: middle;
 			line-height: 1em;
-			color: rgba(128,128,128,0.75);
-			$transform_scaleB: 1.5;
-			$transform_scaleL: 1.0;
+			color: rgb(128,128,128);
+			@include text-stroke(1px rgba(255,255,255,0.25));
+			opacity: 0;
+			//$transform_scaleB: 1.5;
+			//$transform_scaleL: 1.0;
 			@include font-icon("ElegantIcons");
-			html.view-vertical &                      { left: $start; margin-left: $margin-start; @include transform(scale($transform_scaleB, $transform_scaleL)); }
-			html.view-horizontal &, html.view-paged & { top:  $start; margin-top:  $margin-start; @include transform(scale($transform_scaleL, $transform_scaleB)); }
+			@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
 		}
+		$icon-offset: 4px;
 		&#bibi-arrow-back {
-			$before: 0;
-			html.view-vertical.spread-ttb &                               { top:    $before; cursor: n-resize; }
-			html.view-vertical.spread-btt &                               { bottom: $before; cursor: s-resize; }
-			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { left:   $before; cursor: w-resize; }
-			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { right:  $before; cursor: e-resize; }
-			&:before {
-				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.view-vertical.spread-btt &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
-				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
+			html.view-vertical.spread-ttb &                               { top:    0; bottom: auto; cursor: n-resize; }
+			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { left:   0; right:  auto; cursor: w-resize; }
+			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { right:  0; left:   auto; cursor: e-resize; }
+			&:after {
+				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_triangle-up_alt;    top: $icon-offset; bottom: auto; @include transform-origin_( 50%   0 ); }
+				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_triangle-left_alt;  left: $icon-offset; right: auto; @include transform-origin_(  0   50%); }
+				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_triangle-right_alt; right: $icon-offset; left: auto; @include transform-origin_(100%  50%); }
 			}
 		}
 		&#bibi-arrow-forward {
-			$after: 0;
-			html.view-vertical.spread-ttb &                               { bottom: $after; cursor: s-resize; }
-			html.view-vertical.spread-btt &                               { top:    $after; cursor: n-resize; }
-			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { right:  $after; cursor: e-resize; }
-			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { left:   $after; cursor: w-resize; }
-			&:before {
-				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.view-vertical.spread-btt &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
-				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
+			html.view-vertical.spread-ttb &                               { bottom: 0; top:    auto; cursor: s-resize; }
+			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { right:  0; left:   auto; cursor: e-resize; }
+			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { left:   0; right:  auto; cursor: w-resize; }
+			&:after {
+				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_triangle-down_alt;  bottom: $icon-offset; top: auto; @include transform-origin_( 50% 100%); }
+				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_triangle-right_alt; right: $icon-offset; left: auto; @include transform-origin_(100%  50%); }
+				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_triangle-left_alt;  left: $icon-offset; right: auto; @include transform-origin_(  0   50%); }
 			}
+		}
+		&.glowing:after {
+			opacity: 0.75 !important;
+			@include transform(scale(1.5) !important);
+		}
+		&.flickering:after {
+			opacity: 0.75 !important;
+		}
+		&.firing:after {
+			opacity: 1.00 !important;
 		}
 	}
 }
