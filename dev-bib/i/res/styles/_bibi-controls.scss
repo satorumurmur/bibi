@@ -504,7 +504,7 @@ div#bibi-cartain {
 	height: 100%;
 	//background: rgba(240,238,236,0.8);
 	//background: rgba(254,252,250,0.9);
-	background: rgba(248,246,244,0.9);
+	background: rgba(248,246,244,0.96);
 	opacity: 0;
 	@include transition(0.2s ease-out);
 	@include transform(translateY(-100%));
@@ -608,12 +608,11 @@ div#bibi-cartain-misc {
 
 div#bibi-cartain-navigation {
 	@include box-sizing(border-box);
-	font-family: sans-serif;
+	//font-family: sans-serif;
 }
 	div#bibi-cartain-navigation-item-box {
 		@include box-sizing(border-box);
 		position: absolute;
-		padding: 65px 35px;
 		width: 100%;
 		height: 100%;
 		-webkit-overflow-scrolling: touch;
@@ -625,6 +624,9 @@ div#bibi-cartain-navigation {
 	}
 		div#bibi-cartain-navigation-item {
 			@include box-sizing(border-box);
+			padding: 65px 35px 35px;
+			min-width: 100%;
+			min-height: 100%;
 //			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { @include column-width(240px); @include column-gap(20px); }
 			html.page-rtl & {
 				@include writing-mode(vertical-rl);
@@ -634,7 +636,7 @@ div#bibi-cartain-navigation {
 					margin-right: 0 !important;
 				}
 				span.tcy {
-					@include writing-mode(horizontal-tb);
+					@include text-combine-upright_all();
 				}
 			}
 			html.page-ltr & {
@@ -657,6 +659,14 @@ div#bibi-cartain-navigation {
 					font-weight: bold;
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+				}
+				small {
+					font-size: .8em;
+				}
+				br +small {
+					$margin-start: 2em;
+					html.page-ltr & { margin: 0 0 0 $margin-start; }
+					html.page-rtl & { margin: $margin-start 0 0 0; }
 				}
 				ul, ol {
 					$margin-before: .5em;

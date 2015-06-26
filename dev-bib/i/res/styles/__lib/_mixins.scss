@@ -52,6 +52,8 @@
 @mixin column-break-after($V) { @include prefix(column-break-after, $V); }
 @mixin column-break-inside($V) { @include prefix(column-break-inside, $V); }
 
+@mixin text-combine-upright_all() { -webkit-text-combine: horizontal; text-combine: horizontal; -ms-text-combine-horizontal: all; text-combine-horizontal: all; text-combine-upright: all; }
+
 @mixin text-stroke($V) { @include prefix(text-stroke, $V); }
 
 @mixin transform-origin_($V) { @include prefix(transform-origin, $V); }
