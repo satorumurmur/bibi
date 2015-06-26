@@ -10,10 +10,10 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu June 25 23:２６:00 2015 +0900
+ * - Fri June 26 17:00:00 2015 +0900
  */
 
-Bibi = { "version": "0.999.0", "build": 20150625.0 };
+Bibi = { "version": "0.999.0", "build": 20150626.0 };
 
 
 
@@ -934,6 +934,7 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 		"writing-mode": getComputedStyle(Item.Body)[O.WritingModeProperty]
 	});
 	Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
+	sML.addClass(Item.HTML, "writing-mode-" + Item.HTML.WritingMode);
 	/*
 	Item.Body.style["margin" + (function() {
 		if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
