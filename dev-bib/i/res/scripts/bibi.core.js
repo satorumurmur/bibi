@@ -930,9 +930,13 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 			}
 		});
 	}
-	sML.style(Item.HTML, {
-		"writing-mode": getComputedStyle(Item.Body)[O.WritingModeProperty]
-	});
+	var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+	var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+	if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) {
+		sML.style(Item.HTML, {
+			"writing-mode": ItemBodyComputedStyle[O.WritingModeProperty]
+		});
+	}
 	Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
 	sML.addClass(Item.HTML, "writing-mode-" + Item.HTML.WritingMode);
 	/*
@@ -942,7 +946,6 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 		return "Bottom";
 	})()] = 0;
 	*/
-	var ItemBodyComputedStyle = getComputedStyle(Item.Body);
 	     if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
 	else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
 	else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
