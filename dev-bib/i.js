@@ -223,7 +223,7 @@
 			return function() { return null; };
 		})(document);
 	}
-	if(typeof window.CustomEvent === "undefined") {
+	if((typeof window.CustomEvent !== "function") && (this.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
 		window.CustomEvent = function(EventName, Arguments) {
 			Arguments = Arguments || { bubbles: false, cancelable: false, detail: undefined };
 			var Eve = document.createEvent("CustomEvent");
