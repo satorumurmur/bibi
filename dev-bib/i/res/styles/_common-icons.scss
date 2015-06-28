@@ -43,6 +43,7 @@
 .bibi-icon * {
 	@include box-sizing(border-box);
 	display: block;
+	position: relative;
 	margin: 0;
 	padding: 0;
 	border-style: none;
@@ -157,33 +158,67 @@
 	}
 }
 
-.bibi-icon.bibi-switch-newwindow {
+.bibi-icon.bibi-switch-newwindow,
+.bibi-icon.bibi-switch-fullscreen {
 	&:before {
-		content: $ElegantIcons_arrow_right-up;
-		line-height: 25px;
+		content: "";
+		left: 2px;
+		top: 2px;
+		width: 21px;
+		height: 21px;
 		font-size: 18px;
+		background: no-repeat center center; background-size: contain;
+	}
+}
+
+.bibi-icon.bibi-switch-newwindow {
+	text-decoration: none !important;
+	&:before {
+		//content: $ElegantIcons_arrow_right-up;
+		line-height: 25px;
+		background-image: url(#{$path-res}/images/icon_open-newwindow_black.png); /* The Elegant Icon Font */
+	}
+	&:hover:before {
+		background-image: url(#{$path-res}/images/icon_open-newwindow_white.png); /* The Elegant Icon Font */
 	}
 }
 
 .bibi-icon.bibi-switch-fullscreen {
 	&:before {
-		content: $ElegantIcons_arrow_expand;
+		//content: $ElegantIcons_arrow_expand;
 		line-height: 25.5px;
-		font-size: 18px;
-		html:fullscreen                      & { content: $ElegantIcons_arrow_condense; }
-		html:full-screen                     & { content: $ElegantIcons_arrow_condense; }
-		html:-webkit-fullscreen              & { content: $ElegantIcons_arrow_condense; }
-		html:-webkit-full-screen             & { content: $ElegantIcons_arrow_condense; }
-		html:-moz-fullscreen                 & { content: $ElegantIcons_arrow_condense; }
-		html:-moz-full-screen                & { content: $ElegantIcons_arrow_condense; }
-		html:-ms-fullscreen                  & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:fullscreen          & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:full-screen         & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-webkit-fullscreen  & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-webkit-full-screen & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-moz-fullscreen     & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-moz-full-screen    & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-ms-fullscreen      & { content: $ElegantIcons_arrow_condense; }
+		background-image: url(#{$path-res}/images/icon_enter-fullscreen_black.png); /* The Elegant Icon Font */
+		html:fullscreen                      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:full-screen                     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:-webkit-fullscreen              & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:-webkit-full-screen             & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:-moz-fullscreen                 & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:-moz-full-screen                & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		html:-ms-fullscreen                  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:fullscreen          & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:full-screen         & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-webkit-full-screen & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-moz-fullscreen     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-moz-full-screen    & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-ms-fullscreen      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+	}
+	&:hover:before {
+		background-image: url(#{$path-res}/images/icon_enter-fullscreen_white.png); /* The Elegant Icon Font */
+		html:fullscreen                      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:full-screen                     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:-webkit-fullscreen              & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:-webkit-full-screen             & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:-moz-fullscreen                 & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:-moz-full-screen                & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		html:-ms-fullscreen                  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:fullscreen          & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:full-screen         & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-webkit-full-screen & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-moz-fullscreen     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-moz-full-screen    & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		span.bibi-holder:-ms-fullscreen      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
 	}
 }
 
@@ -194,11 +229,11 @@
 //.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
 
 .bibi-icon {
-	$color_label: rgb(132,128,124);
-	border-color: rgba(66,64,62,.5) !important;
-	background: rgba(255,255,255,0.8) !important;
+	$color_label: rgba(0,0,0,0.34);
+//	border-color: rgba(66,64,62,.5) !important;
+//	background-color: rgba(255,255,255,0.8) !important;
 	border-color: rgba(192,192,192,0.5) !important;
-	background: rgba(255,255,255,0.75) !important;
+	background-color: rgba(255,255,255,0.75) !important;
 //	opacity: .64;
 	@include transition(0.15s linear);
 	html.cartain-opened & {
@@ -208,37 +243,49 @@
 		color: $color_label !important;
 	}
 	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
-		border-bottom-color: lighten($color_label, 20%) !important;
-		background: $color_label !important;
+		border-bottom-color: lighten($color_label, 25%) !important;
+		background-color: lighten($color_label, 12.5%) !important;
+	}
+	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+		opacity: 0.34 !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
 				border-color: rgb(164,160,156) !important;
-				background: white !important;
+				background-color: white !important;
 			}
 		}
 	}
 }
 
+/*html.view-paged*/ .bibi-icon-paged,
+/*html.view-horizontal*/ .bibi-icon-horizontal,
+/*html.view-vertical*/ .bibi-icon-vertical {
+	background-color: rgba(132,128,124,.11) !important;
+}
+
 .bibi-icon:hover {
 	$color_label: white;
-	background: rgba(132,128,124,.75) !important;
+	background-color: rgba(132,128,124,.88) !important;
 	opacity: 1 !important;
 	&:before, &:after {
 		color: $color_label !important;
 	}
 	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
-		border-bottom-color: darken($color_label, 20%) !important;
-		background: $color_label !important;
+		border-bottom-color: darken($color_label, 25%) !important;
+		background-color: $color_label !important;
+	}
+	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+		opacity: 1 !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
 				border-color: white !important;
-				background: rgb(164,160,156) !important;
+				background-color: rgb(192,188,184) !important;
 			}
 		}
 	}
@@ -248,15 +295,15 @@ html.view-paged .bibi-icon-paged,
 html.view-horizontal .bibi-icon-horizontal,
 html.view-vertical .bibi-icon-vertical {
 	// ON
+	background-color: rgba(132,128,124,.44) !important;
 	cursor: default !important;
-	background: rgba(132,128,124,.33) !important;
 	opacity: 1 !important;
 	span.bibi-shape-spreads {
 		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
 				border-color: rgb(164,160,156) !important;
-				background: white !important;
+				background-color: white !important;
 			}
 		}
 	}
