@@ -10,10 +10,10 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Sat June 27 02:34:00 2015 +0900
+ * - Mone June 29 07:18:00 2015 +0900
  */
 
-Bibi = { "version": "0.999.0", "build": 20150626.0 };
+Bibi = { "version": "0.999.0", "build": 20150629.0 };
 
 
 
@@ -55,7 +55,7 @@ X = {}; // Bibi.Extentions
 
 Bibi.welcome = function() {
 
-	O.log(1, 'Welcome to BiB/i v' + Bibi.Version + ' - http://bibi.epub.link/');
+	O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
 
 	O.HTML  = document.getElementsByTagName("html" )[0]; O.HTML.className = "preparing " + sML.Environments.join(" ");
 	O.Head  = document.getElementsByTagName("head" )[0];
@@ -426,7 +426,7 @@ L.prepareSpine = function() {
 
 	O.log(2, 'Preparing Spine...', "Show");
 
-	// For Paring of Pre-Pagenated
+	// For Paring of Pre-Paginated
 	if(S.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
 	else               var PairBefore = "left",  PairAfter = "right";
 
@@ -443,19 +443,20 @@ L.prepareSpine = function() {
 		Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
 		Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
 		// SpreadBox & Spread
-		if(ItemRef["rendition:layout"] == "pre-paginated" && i) {
+		sML.log(i, ItemRef["page-spread"], "== " + PairAfter);
+		if(i && ItemRef["page-spread"] == PairAfter) {
 			var PrevItem = R.Items[i - 1];
-			if(PrevItem.ItemRef["rendition:layout"] == "pre-paginated" && PrevItem.ItemRef["page-spread"] == PairBefore && ItemRef["page-spread"] == PairAfter) {
+			if(PrevItem.ItemRef["page-spread"] == PairBefore) {
 				Item.Pair = PrevItem;
 				PrevItem.Pair = Item;
 			}
 		}
 		if(Item.Pair) {
 			var Spread = Item.Pair.Spread;
+			var SpreadBox = Spread.SpreadBox;
 		} else {
 			var SpreadBox = R.Content.Main.appendChild(sML.create("div", { className: "spread-box" }));
 			var Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
-			if(ItemRef["rendition:layout"] == "pre-paginated") sML.addClass(SpreadBox, "pre-paginated");
 			Spread.SpreadBox = SpreadBox;
 			Spread.Items = [];
 			Spread.Pages = [];
@@ -470,7 +471,9 @@ L.prepareSpine = function() {
 		}
 		// ItemBox
 		var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
-		if(ItemRef["page-spread"]) sML.addClass(ItemBox, "page-spread-" + ItemRef["page-spread"]);
+		if(ItemRef["page-spread"]) {
+			sML.addClass(ItemBox, "page-spread-" + ItemRef["page-spread"]);
+		}
 		// Item: B
 		Item.Spread = Spread;
 		Item.ItemBox = ItemBox;
@@ -479,6 +482,11 @@ L.prepareSpine = function() {
 		Item.ItemIndex         =      R.Items.length;
 		Item.id = "item-" + sML.String.padZero(Item.ItemIndex, B.FileDigit);
 		Spread.Items.push(Item);
+		[SpreadBox, Spread, ItemBox, Item].forEach(function(Ele) {
+			Ele.RenditionLayout = ItemRef["rendition:layout"];
+			Ele.PrePaginated = (Ele.RenditionLayout == "pre-paginated");
+			sML.addClass(Ele, ItemRef["rendition:layout"]);
+		});
 		R.Items.push(Item);
 	});
 
@@ -769,7 +777,7 @@ L.postprocessItem = function(Item) {
 	L.postprocessItem.defineViewport(Item);
 	L.postprocessItem.coordinateLinkages(Item);
 
-	Item.PrePaginated = ((Item.ItemRef["rendition:layout"] == "pre-paginated") && Item.ItemRef["viewport"]["width"] && Item.ItemRef["viewport"]["height"]);
+	//Item.RenditionLayout = ((Item.ItemRef["rendition:layout"] == "pre-paginated") && Item.ItemRef["viewport"]["width"] && Item.ItemRef["viewport"]["height"]) ? "pre-paginated" : "reflowable";
 
 	setTimeout(function() {
 		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
@@ -1066,7 +1074,7 @@ R.resetItem = function(Item) {
 	Item.HTML.style[S.SIZE.l] = "";
 	sML.style(Item.HTML, { "transform-origin": "", "transformOrigin": "", "transform": "", "column-width": "", "column-gap": "", "column-rule": "" });
 	Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
-	     if(Item.PrePaginated) R.resetItem.asPrePagenatedItem(Item);
+	     if(Item.PrePaginated) R.resetItem.asPrePaginatedItem(Item);
 	else if(Item.Outsourcing)  R.resetItem.asReflowableOutsourcingItem(Item);
 	else                       R.resetItem.asReflowableItem(Item)
 	Item.Reset = true;
@@ -1241,7 +1249,7 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 	return Item;
 };
 
-R.resetItem.asPrePagenatedItem = function(Item) {
+R.resetItem.asPrePaginatedItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
 	var StageB = R.StageSize.Breadth;
@@ -1266,11 +1274,12 @@ R.resetItem.asPrePagenatedItem = function(Item) {
 	PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
 	ItemBox.style[S.SIZE.l] = Item.style[S.SIZE.l] = PageL + "px";
 	ItemBox.style[S.SIZE.b] = Item.style[S.SIZE.b] = PageB + "px";
+	var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
 	sML.style(Item.HTML, {
 		"width": ItemRef["viewport"].width + "px",
 		"height": ItemRef["viewport"].height + "px",
-		"transform-origin": "0 0",
-		"transformOrigin": "0 0",
+		"transform-origin": TransformOrigin,
+		"transformOrigin": TransformOrigin,
 		"transform": "scale(" + Scale + ")"
 	});
 	var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
@@ -1350,21 +1359,16 @@ R.layoutSpread = function(Spread) {
 			SpreadBox.style.paddingTop    = SpreadBoxPaddingTop + "px";
 			SpreadBox.style.paddingBottom = SpreadBoxPaddingBottom + "px";
 		}
-		// Set padding-left + padding-right of pre-pagenated-single
-		/*
-		if(Spread.Items.length == 1) {
-			if(Spread.Items[0].ItemRef["page-spread"] == "right") {
-				if(S.SLD == "ltr") SpreadBoxPaddingBefore += Spread.offsetWidth;
-				else               SpreadBoxPaddingAfter  += Spread.offsetWidth;
-			} else if(Spread.Items[0].ItemRef["page-spread"] == "left") {
-				if(S.SLD == "ltr") SpreadBoxPaddingAfter  += Spread.offsetWidth;
-				else               SpreadBoxPaddingBefore += Spread.offsetWidth;
-			}
-		}*/
 	}
 	if(Spread.SpreadIndex == 0) {
 		SpreadBoxPaddingBefore = Math.floor((window["inner" + S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
-	} else if(S.BRL == "reflowable") {
+	} else /*if(!Spread.PrePaginated) {
+		if(R.Spreads[Spread.SpreadIndex - 1].PrePaginated) {
+			SpreadBoxPaddingBefore = Math.ceil((window["inner" + S.SIZE.L] - R.Spreads[Spread.SpreadIndex - 1]["offset" + S.SIZE.L]) / 2);
+		} else {
+			SpreadBoxPaddingBefore = S["spread-gap"];
+		}
+	} */if(S.BRL == "reflowable") {
 		SpreadBoxPaddingBefore = S["spread-gap"];
 	} else {
 		SpreadBoxPaddingBefore = Math.floor(R.StageSize.Length / 4);
@@ -1754,49 +1758,44 @@ R.selectTextLocation = function(Target) {
 };
 
 
-R.page = function(Distance) {
+R.move = function(Distance) {
+	if(!R.Started || isNaN(Distance)) return;
+	Distance *= 1;
 	if(Distance != -1) Distance = +1;
 	var CurrentEdge = Distance < 0 ? "StartPage" : "EndPage";
 	var CurrentPages = R.getCurrentPages();
-	var TargetPageIndex = (function() {
-		if(Distance < 0 && CurrentPages[CurrentEdge + "Status"] == "over") return CurrentPages[CurrentEdge].PageIndex;
-		if(Distance > 0 && CurrentPages[CurrentEdge + "Status"] == "yet")  return CurrentPages[CurrentEdge].PageIndex;
-		return CurrentPages[CurrentEdge].PageIndex + Distance;
-	})();
-	if(TargetPageIndex <                  0) TargetPageIndex = 0;
-	if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
-	var TargetPage = R.Pages[TargetPageIndex];
-	if(S.BRL == "pre-paginated" && TargetPage.Item.Pair) {
-		if(S.SLA == "horizontal" && window["inner" + S.SIZE.L] > TargetPage.Spread["offset" + S.SIZE.L]) {
-			if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
-			if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
-		}
-	}
-	R.focus({ Page: TargetPage });
-};
-
-
-R.scroll = function(Distance) {
-	if(Distance != -1) Distance = +1;
-	return sML.scrollTo(
-		R.Frame,
-		(function(ScrollCoord) {
-			switch(S.SLD) {
-				case "ttb": return { Y: ScrollCoord.Y + (R.StageSize.Length + S["spread-gap"]) * Distance      };
-				case "ltr": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance      };
-				case "rtl": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 };
+	var CurrentPage = CurrentPages[CurrentEdge];
+	if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
+		var CurrentPageStatus = CurrentPages[CurrentEdge + "Status"];
+			 if(Distance < 0 && CurrentPageStatus == "over") Distance = 0;
+		else if(Distance > 0 && CurrentPageStatus == "yet")  Distance = 0;
+		var TargetPageIndex = CurrentPage.PageIndex + Distance;
+			 if(TargetPageIndex <                  0) TargetPageIndex = 0;
+		else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
+		var TargetPage = R.Pages[TargetPageIndex];
+		if(S.BRL == "pre-paginated" && TargetPage.Item.Pair) {
+			if(S.SLA == "horizontal" && window["inner" + S.SIZE.L] > TargetPage.Spread["offset" + S.SIZE.L]) {
+				if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
+				if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
 			}
-		})(sML.Coord.getScrollCoord(R.Frame))
-	);
-};
-
-
-R.move = function(Distance) {
-	if(!R.Started) return;
-	if(typeof Distance != "number" && !(typeof Distance == "string" && /^\d+$/.test(Distance))) return;
-	((R.Columned || S.BRL == "pre-paginated") ? R.page : R.scroll)(Distance);
+		}
+		R.focus({ Page: TargetPage });
+	} else {
+		sML.scrollTo(
+			R.Frame,
+			(function(ScrollCoord) {
+				switch(S.SLD) {
+					case "ttb": return { Y: ScrollCoord.Y + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+					case "ltr": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance      };
+					case "rtl": return { X: ScrollCoord.X + (R.StageSize.Length + S["spread-gap"]) * Distance * -1 };
+				}
+			})(sML.Coord.getScrollCoord(R.Frame))
+		);
+	}
 	E.dispatch("bibi:move", Distance);
 };
+
+R.page = R.scroll = R.move;
 
 
 R.to = function(BibitoString) {
