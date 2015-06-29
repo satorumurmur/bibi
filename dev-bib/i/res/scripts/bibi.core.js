@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Mone June 29 07:18:00 2015 +0900
+ * - Mon June 29 21:21:21 2015 +0900
  */
 
 Bibi = { "version": "0.999.0", "build": 20150629.0 };
@@ -110,22 +110,26 @@ Bibi.welcome = function() {
 	var HTMLCS = getComputedStyle(O.HTML);
 	O.WritingModeProperty = (function() {
 		if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
-		if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 11) return "writing-mode";
+		if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 10) return "writing-mode";
 		else return undefined;
 	})();
 
-	var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
-	Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
-	if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
-		O.HTML.className = O.HTML.className + " vertical-text-enabled";
-		O.VerticalTextEnabled = true;
-	} else {
-		O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
+	if(sML.UA.InternetExplorer < 10) {
 		O.VerticalTextEnabled = false;
-	};
-	O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
-	document.body.removeChild(Checker);
-	delete Checker;
+	} else {
+		var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
+		Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
+		if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
+			O.HTML.className = O.HTML.className + " vertical-text-enabled";
+			O.VerticalTextEnabled = true;
+		} else {
+			O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
+			O.VerticalTextEnabled = false;
+		};
+		O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
+		document.body.removeChild(Checker);
+		delete Checker;
+	}
 
 	if((typeof window.CustomEvent !== "function") && (this.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
 		window.CustomEvent = function(EventName, Option) {
@@ -137,7 +141,7 @@ Bibi.welcome = function() {
 		window.CustomEvent.prototype = window.Event.prototype;
 	}
 
-	R.Content = O.Body.insertBefore(sML.create("div", { id: "epub-content" }), C.Veil);
+	R.Content = O.Body.insertBefore(sML.create("div", { id: "epub-content" }), O.Body.firstElementChild);
 	R.Content.Main = R.Content.appendChild(sML.create("div", { id: "epub-content-main" }));
 	R.Content.Complementary = R.Content.appendChild(sML.create("div", { id: "epub-content-complementary" }));
 	R.Frame = (sML.OS.iOS || sML.OS.Android) ? R.Content : window;
@@ -443,7 +447,6 @@ L.prepareSpine = function() {
 		Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
 		Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
 		// SpreadBox & Spread
-		sML.log(i, ItemRef["page-spread"], "== " + PairAfter);
 		if(i && ItemRef["page-spread"] == PairAfter) {
 			var PrevItem = R.Items[i - 1];
 			if(PrevItem.ItemRef["page-spread"] == PairBefore) {
@@ -761,6 +764,14 @@ L.postprocessItem = function(Item) {
 		}
 		Item.StyleSheets.push(this);
 	});
+
+	Item.BibiProperties = Item.HTML.getAttribute("data-bibi-properties");
+	if(Item.BibiProperties) {
+		Item.BibiProperties = Item.BibiProperties.split(" ");
+		Item.BibiProperties.forEach(function(ItemBibiProperty) {
+			if(ItemBibiProperty == "overspread") Item.Overspread = true;
+		});
+	}
 
 	if(Item.contentDocument.querySelectorAll("body>*").length == 1) {
 			 if(/^svg$/i.test(Item.Body.firstElementChild.tagName)) Item.IsSingleSVGOnlyItem = true;
@@ -1082,16 +1093,22 @@ R.resetItem = function(Item) {
 
 R.resetItem.asReflowableItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
-	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
 	var StageB = R.StageSize.Breadth - (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
 	var StageL = R.StageSize.Length  - (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
+	var PageGap = S["item-padding-" + S.BASE.a] + S["spread-gap"] + S["item-padding-" + S.BASE.b];
 	var PageB = StageB;
 	var PageL = StageL;
-	var StageHalfL = Math.floor((StageL - PageGap) / 2);
-	var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-	if(StageHalfL > BunkoL) {
-		Item.HalfPaged = true;
-		PageL = StageHalfL;
+	if(S.SLA == "horizontal" && !Item.Overspread) {
+		var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
+		//if(/^tb/.test(S.BWM)) {
+		//	PageL = BunkoL;
+		//} else {
+			var StageHalfL = Math.floor((StageL - PageGap) / 2);
+			if(StageHalfL > BunkoL) {
+				Item.HalfPaged = true;
+				PageL = StageHalfL;
+			}
+		//}
 	}
 	Item.style["padding-" + S.BASE.b] = S["item-padding-" + S.BASE.b] + "px";
 	Item.style["padding-" + S.BASE.a] = S["item-padding-" + S.BASE.a] + "px";
@@ -1208,32 +1225,38 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 	Item.style.padding = 0;
 	var StageB = R.StageSize.Breadth;
 	var StageL = R.StageSize.Length;
+	var PageGap = S["spread-gap"];
 	var PageB = StageB;
 	var PageL = StageL;
-	if(S.RVM != "paged") {
-		var StageHalfL = Math.floor((StageL - S["spread-gap"]) / 2);
+	if(S.SLA == "horizontal" && !Item.Overspread) {
 		var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-		if(StageHalfL > BunkoL) {
-			Item.HalfPaged = true;
-			PageL = StageHalfL;
-		}
+		//if(/^tb/.test(S.BWM)) {
+		//	PageL = BunkoL;
+		//} else {
+			var StageHalfL = Math.floor((StageL - PageGap) / 2);
+			if(StageHalfL > BunkoL) {
+				Item.HalfPaged = true;
+				PageL = StageHalfL;
+			}
+		//}
 	}
 	Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
 	if(Item.IsImageItem) {
-		if(Item.Body["scroll" + S.SIZE.B] > PageB || Item.Body["scroll" + S.SIZE.L] > PageL) {
-			var TransformOrigin;
-				 if(S.SLD == "ttb" || (S.SLA == "horizontal" && Item.Body["scroll" + S.SIZE.B] > PageB)) TransformOrigin =  "50% 0";
-			else if(S.SLD == "ltr")                                                                      TransformOrigin =    "0 0";
-			else if(S.SLD == "rtl")                                                                      TransformOrigin = "100% 0";
+		if(Item.Body["scroll" + S.SIZE.B] <= PageB && Item.Body["scroll" + S.SIZE.L] <= PageL) {
+			var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+			Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px";
+		} else {
+			if((S.SLD == "ttb" && Item.Body["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.Body["scroll" + S.SIZE.L] > PageL)) {
+				var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
+			} else {
+				var TransformOrigin =  "50% 0";
+			}
 			var Scale = Math.floor(Math.min(PageB / Item.Body["scroll" + S.SIZE.B], PageL / Item.Body["scroll" + S.SIZE.L]) * 100) / 100;
 			sML.style(Item.HTML, {
 				"transform-origin": TransformOrigin,
 				"transform": "scale(" + Scale + ")"
 			});
-		} else {
-			var ItemBodyComputedStyle = getComputedStyle(Item.Body);
-			Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px"
 		}
 	} else if(Item.IsFrameItem) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
@@ -2488,8 +2511,14 @@ O.getWritingMode = function(Ele) {
 
 O.getElementInnerText = function(Ele) {
 	var InnerText = "InnerText";
-	/**/ if(typeof Ele.innerText   != "undefined") InnerText = Ele.innerText;
-	else if(typeof Ele.textContent != "undefined") InnerText = Ele.textContent;
+	var Copy = document.createElement("div");
+	Copy.innerHTML = Ele.innerHTML;
+	sML.each(Copy.querySelectorAll("svg"),   function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("video"), function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("audio"), function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("img"),   function() { this.parentNode.removeChild(this); });
+	/**/ if(typeof Copy.innerText   != "undefined") InnerText = Copy.innerText;
+	else if(typeof Copy.textContent != "undefined") InnerText = Copy.textContent;
 	return InnerText.replace(/[\r\n\s\t ]/g, "");
 };
 
