@@ -6,12 +6,12 @@
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Sat June 27 02:34:00 2015 +0900
+ *  - Mon June 29 13:22:00 2015 +0900
  */
 
 (function() {
 	if(window["bibi:pipi"]) return;
-	var Pipi = window["bibi:pipi"] = { Version: "0.999.0", Build: 20150528.0, Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
+	var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20150629.0, Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
 	Pipi.BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
 	Pipi.embed = function() {
 		Pipi.Status = "Started";
@@ -110,10 +110,13 @@
 				Holder: Holder,
 				toggleFullscreen: function() {
 					if(!Pipi.getFullscreenElement(document)) {
+						this.Holder.DefaultStyle = this.Holder.style.cssText + "";
+						this.Holder.style.cssText = "margin: 0; border: none 0; padding: 0; width: 100%; height: 100%; max-width: none; max-height: none; min-width: none; min-height: none;";
 						Pipi.requestFullscreen(this.Holder);
 						this.title = "Exit Fullscreen";
 						Anchor.dispatchEvent(new CustomEvent("bibi:requestFullscreen", { detail: this.Bibi }));
 					} else {
+						this.Holder.style.cssText = this.Holder.DefaultStyle;
 						Pipi.exitFullscreen(document);
 						this.title = "Enter Fullscreen";
 						Anchor.dispatchEvent(new CustomEvent("bibi:exitFullscreen", { detail: this.Bibi }));
