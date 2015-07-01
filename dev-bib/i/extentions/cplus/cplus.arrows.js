@@ -40,7 +40,7 @@ Bibi.x({
 			if(Arrow.Timer) clearTimeout(Arrow.Timer);
 			Arrow.Timer = setTimeout(function() {
 				Arrow.className = "bibi-arrow";
-			}, 200);
+			}, 400);
 		});
 	});
 
