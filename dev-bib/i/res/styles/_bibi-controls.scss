@@ -33,10 +33,10 @@ div#bibi-veil {
 	}*/
 	html.cartain-opened & {
 		@include transition(.2s ease-in);
-		@include filter(blur(4px));
-		opacity: 0.75;
-	}
-	html.cartain-opened.InternetExplorer & {
+		//@include filter(blur(4px));
+		//opacity: 0.75;
+	//}
+	//html.cartain-opened.InternetExplorer & {
 		opacity: 0.25;
 	}
 }
