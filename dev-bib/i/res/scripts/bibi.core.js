@@ -1727,9 +1727,10 @@ R.focus.getNearestPageOfElement = function(Ele) {
 	var Item = Ele.ownerDocument.body.Item;
 	if(!Item) return R.Pages[0];
 	if(Item.Columned) {
+		sML.style(Item.HTML, { "column-width": "" });
 		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
 		if(S.PPD == "rtl" && S.SLA == "vertical") {
-			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];
+			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];//parseFloat(Item.Pages[0].style[S.SIZE.b]) * Item.Pages.length;
 			if(Item.Body.offsetParent) {
 				var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
 				var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
@@ -1737,6 +1738,7 @@ R.focus.getNearestPageOfElement = function(Ele) {
 			}
 			ElementCoordInItem = NoColumnedItemBreadth - ElementCoordInItem + Ele["offset" + S.SIZE.B];
 		}
+		sML.style(Item.HTML, { "column-width": Item.ColumnLength + "px" });
 		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
 	} else {
 		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
