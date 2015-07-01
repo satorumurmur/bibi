@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed February 25 22:22:00 2015 +0900
- */ sML = (function() { var Version = "0.999.14", Build = 20150225.0;
+ * - Wed July 1 23:22:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.15", Build = 20150701.0;
 
 
 
@@ -1397,41 +1397,57 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.Fullscreen = {
-	request: (function(E) {
-		var getFunction = function(M) { return function(O) { if(!O) O = E; return O[M](); } };
-		if(E.requestFullscreen)                             return getFunction("requestFullscreen");
-		if(E.requestFullScreen)                             return getFunction("requestFullScreen");
-		if(E.webkitRequestFullscreen)                       return getFunction("webkitRequestFullscreen");
-		if(E.webkitRequestFullScreen)                       return getFunction("webkitRequestFullScreen");
-		if(E.mozRequestFullscreen)                          return getFunction("mozRequestFullscreen");
-		if(E.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
-		if(E.msRequestFullscreen)                           return getFunction("msRequestFullscreen");
+	Enabled: (function(D) {
+	                                                        return (
+	                                                        	D.fullscreenEnabled || // Standard
+	                                                        	D.fullScreenEnabled ||
+	                                                        	D.webkitFullscreenEnabled ||
+	                                                        	D.webkitFullScreenEnabled ||
+	                                                        	D.mozFullscreenEnabled ||
+	                                                        	D.mozFullScreenEnabled ||
+	                                                        	D.msFullscreenEnabled ||
+	                                                        	D.msFullScreenEnabled
+	                                                        );
+	})(document),
+	request: (function(Ele) {
+		var getFunction = function(M) { return function(O) { if(!O) O = Ele; return O[M](); } };
+		if(Ele.requestFullscreen)                             return getFunction("requestFullscreen"); // Standard
+		if(Ele.requestFullScreen)                             return getFunction("requestFullScreen");
+		if(Ele.webkitRequestFullscreen)                       return getFunction("webkitRequestFullscreen");
+		if(Ele.webkitRequestFullScreen)                       return getFunction("webkitRequestFullScreen");
+		if(Ele.mozRequestFullscreen)                          return getFunction("mozRequestFullscreen");
+		if(Ele.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+		if(Ele.msRequestFullscreen)                           return getFunction("msRequestFullscreen");
+		if(Ele.msRequestFullScreen)                           return getFunction("msRequestFullScreen");
 		return function() { return false; };
 	})(document.documentElement),
-	exit: (function(D) {
-		var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M](); } };
-		if(D.exitFullscreen)                                return getFunction("exitFullscreen");
-		if(D.cencelFullScreen)                              return getFunction("cencelFullScreen");
-		if(D.webkitExitFullscreen)                          return getFunction("webkitExitFullscreen");
-		if(D.webkitCancelFullScreen)                        return getFunction("webkitCancelFullScreen");
-		if(D.mozExitFullscreen)                             return getFunction("mozExitFullscreen");
-		if(D.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
-		if(D.msExitFullscreen)                              return getFunction("msExitFullscreen");
+	exit: (function(Doc) {
+		var getFunction = function(M) { return function(O) { if(!O) O = Doc; return O[M](); } };
+		if(Doc.exitFullscreen)                                return getFunction("exitFullscreen"); // Standard
+		if(Doc.cencelFullScreen)                              return getFunction("cencelFullScreen");
+		if(Doc.webkitExitFullscreen)                          return getFunction("webkitExitFullscreen");
+		if(Doc.webkitCancelFullScreen)                        return getFunction("webkitCancelFullScreen");
+		if(Doc.mozExitFullscreen)                             return getFunction("mozExitFullscreen");
+		if(Doc.mozCancelFullScreen)                           return getFunction("mozCancelFullScreen");
+		if(Doc.msExitFullscreen)                              return getFunction("msExitFullscreen");
+		if(Doc.msCancelFullScreen)                            return getFunction("msCancelFullScreen");
 		return function() { return false; };
 	})(document),
-	getElement: (function(D) {
-		var getFunction = function(M) { return function(O) { if(!O) O = D; return O[M]; } };
-		if(typeof D.fullscreenElement       != "undefined") return getFunction("fullscreenElement");
-		if(typeof D.fullScreenElement       != "undefined") return getFunction("fullScreenElement");
-		if(typeof D.webkitFullscreenElement != "undefined") return getFunction("webkitFullscreenElement");
-		if(typeof D.webkitFullScreenElement != "undefined") return getFunction("webkitFullScreenElement");
-		if(typeof D.mozFullscreenElement    != "undefined") return getFunction("mozFullscreenElement");
-		if(typeof D.mozFullScreenElement    != "undefined") return getFunction("mozFullScreenElement");
-		if(typeof D.msFullscreenElement     != "undefined") return getFunction("msFullscreenElement");
+	getElement: (function(Doc) {
+		var getFunction = function(M) { return function(O) { if(!O) O = Doc; return O[M]; } };
+		if(typeof Doc.fullscreenElement       != "undefined") return getFunction("fullscreenElement"); // Starndard
+		if(typeof Doc.fullScreenElement       != "undefined") return getFunction("fullScreenElement");
+		if(typeof Doc.webkitFullscreenElement != "undefined") return getFunction("webkitFullscreenElement");
+		if(typeof Doc.webkitFullScreenElement != "undefined") return getFunction("webkitFullScreenElement");
+		if(typeof Doc.mozFullscreenElement    != "undefined") return getFunction("mozFullscreenElement");
+		if(typeof Doc.mozFullScreenElement    != "undefined") return getFunction("mozFullScreenElement");
+		if(typeof Doc.msFullscreenElement     != "undefined") return getFunction("msFullscreenElement");
+		if(typeof Doc.msFullScreenElement     != "undefined") return getFunction("msFullScreenElement");
 		return function() { return null; };
 	})(document)
 };
 
+sML.FullscreenEnabled    = sML.Fullscreen.Enbabled;
 sML.requestFullscreen    = sML.Fullscreen.request;
 sML.exitFullscreen       = sML.Fullscreen.exit;
 sML.getFullscreenElement = sML.Fullscreen.getElement;

@@ -6,12 +6,12 @@
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- *  - Mon June 29 13:22:00 2015 +0900
+ * - Wed July 1 23:22:00 2015 +0900
  */
 
 (function() {
 	if(window["bibi:pipi"]) return;
-	var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20150629.0, Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
+	var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20150701.0, Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
 	Pipi.BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
 	Pipi.embed = function() {
 		Pipi.Status = "Started";
@@ -186,10 +186,10 @@
 		return Ele;
 	};
 	if(
-			  document.body.requestFullscreen ||       document.body.requestFullScreen ||
-		document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen ||
-		   document.body.mozRequestFullscreen ||    document.body.mozRequestFullScreen ||
-			document.body.msRequestFullscreen
+		      document.fullscreenEnabled ||       document.fullScreenEnabled ||
+		document.webkitFullscreenEnabled || document.webkitFullScreenEnabled ||
+		   document.mozFullscreenEnabled ||    document.mozFullScreenEnabled ||
+		    document.msFullscreenEnabled ||     document.msFullScreenEnabled
 	) {
 		Pipi.FullscreenEnabled = true;
 		Pipi.requestFullscreen = (function(Ele) {
@@ -201,6 +201,7 @@
 			if(Ele.mozRequestFullscreen)                          return getFunction("mozRequestFullscreen");
 			if(Ele.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
 			if(Ele.msRequestFullscreen)                           return getFunction("msRequestFullscreen");
+			if(Ele.msRequestFullScreen)                           return getFunction("msRequestFullScreen");
 			return function() { return false; };
 		})(document.documentElement);
 		Pipi.exitFullscreen = (function(Doc) {
@@ -210,8 +211,9 @@
 			if(Doc.webkitExitFullscreen)                          return getFunction("webkitExitFullscreen");
 			if(Doc.webkitCancelFullScreen)                        return getFunction("webkitCancelFullScreen");
 			if(Doc.mozExitFullscreen)                             return getFunction("mozExitFullscreen");
-			if(Doc.mozRequestFullScreen)                          return getFunction("mozRequestFullScreen");
+			if(Doc.mozCancelFullScreen)                           return getFunction("mozCancelFullScreen");
 			if(Doc.msExitFullscreen)                              return getFunction("msExitFullscreen");
+			if(Doc.msCancelFullScreen)                            return getFunction("msCancelFullScreen");
 			return function() { return false; };
 		})(document);
 		Pipi.getFullscreenElement = (function(Doc) {
@@ -223,6 +225,7 @@
 			if(typeof Doc.mozFullscreenElement    != "undefined") return getFunction("mozFullscreenElement");
 			if(typeof Doc.mozFullScreenElement    != "undefined") return getFunction("mozFullScreenElement");
 			if(typeof Doc.msFullscreenElement     != "undefined") return getFunction("msFullscreenElement");
+			if(typeof Doc.msFullScreenElement     != "undefined") return getFunction("msFullScreenElement");
 			return function() { return null; };
 		})(document);
 	}
