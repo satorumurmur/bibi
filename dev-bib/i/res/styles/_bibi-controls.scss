@@ -324,24 +324,21 @@ div#bibi-veil-mark {
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		//box-shadow: 0 0 2px black;
-		$background-color: rgb(255,255,255);
-		//box-shadow: 0 0 2px rgba(0,0,0,0.25);
-		&.dot-1    { left: 32px; top:  0px; background: darken($background-color, 100% * 0/4); }
-		&.dot-2    { left: 54px; top:  8px; background: darken($background-color, 100% * 0/4); }
-		&.dot-3    { left: 64px; top: 32px; background: darken($background-color, 100% * 1/4); }
-		&.dot-4    { left: 54px; top: 54px; background: darken($background-color, 100% * 3/4); }
-		&.dot-5    { left: 32px; top: 64px; background: darken($background-color, 100% * 3/4); }
-		&.dot-6    { left:  8px; top: 54px; background: darken($background-color, 100% * 1/4); }
-		&.dot-7    { left:  0px; top: 32px; background: darken($background-color, 100% * 0/4); }
-		&.dot-8    { left:  8px; top:  8px; background: darken($background-color, 100% * 0/4); }
-		&.dot      {                        background: rgba(0,0,0,0.5); }
-		&.dot-odd  {                        background: rgba(192,192,192,0.5); }
-		&.dot-even {                        background: rgba(64,64,64,0.5); }
+		background: rgba(0,0,0,0.5);
+		&:nth-child(odd)  { background: rgba(192,192,192,0.75); }
+		&:nth-child(even) { background: rgba(128,128,128,0.75); }
+		&:nth-child(1)    { left: 32px; top:  0px; }
+		&:nth-child(2)    { left: 54px; top:  8px; }
+		&:nth-child(3)    { left: 64px; top: 32px; }
+		&:nth-child(4)    { left: 54px; top: 54px; }
+		&:nth-child(5)    { left: 32px; top: 64px; }
+		&:nth-child(6)    { left:  8px; top: 54px; }
+		&:nth-child(7)    { left:  0px; top: 32px; }
+		&:nth-child(8)    { left:  8px; top:  8px; }
 	}
 	div#bibi-veil.animate & {
 		display: block;
-		@include animation(loading 2s ease 0s infinite normal);
+		@include animation(loading 2s linear 0s infinite normal);
 	}
 }
 @include keyframes(loading) {

@@ -1963,7 +1963,7 @@ C.createVeil = function() {
 	C.Veil.Message = C.Veil.appendChild(sML.create("p",   { className: "animate", id: "bibi-veil-message", note: function(Note) { C.Veil.Message.innerHTML = Note; return Note; } }));
 	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   {                       id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
 
-	for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span", { className: "dot dot-" + (i % 2 ? "odd" : "even") + " dot-" + i }));
+	for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span"));
 
 	E.add("bibi:startLoading", function() {
 		sML.addClass(C.Veil, "animate");
