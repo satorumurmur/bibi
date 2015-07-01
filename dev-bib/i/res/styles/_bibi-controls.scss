@@ -53,6 +53,59 @@ div#bibi-veil ul {
 }
 
 
+// - Veil > Bye Bye
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-byebye {
+	position: absolute;
+	z-index: 100;
+	left: 0;
+	right: 0;
+	top: 69px;
+	margin: auto;
+	line-height: 1.75;
+	text-align: center;
+	text-indent: .1em;
+	letter-spacing: .1em;
+	font-size: 12px;
+	font-weight: bold;
+	text-shadow: 0 1px 2px black, 0 0 4px rgb(176,176,176);
+	color: rgb(160,160,160);
+	a {
+		color: inherit;
+		@include transition(.2s linear);
+		&:hover {
+			color: rgb(216,216,216);
+			@include transition(.1s linear);
+		}
+	}
+	span {
+		display: block;
+		position: relative;
+	}
+	span[lang="en"] {
+	}
+	span[lang="ja"] {
+		margin-top: 1.5em;
+		padding-top: 1.5em;
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			margin: auto;
+			border-style: solid;
+			border-width: 1px 0;
+			border-color: rgb(128,128,128) transparent black;
+			width: 2em;
+			height: 0;
+		}
+	}
+}
+
+
 // - Veil > Cover
 // --------------------------------------------------------------------------------
 

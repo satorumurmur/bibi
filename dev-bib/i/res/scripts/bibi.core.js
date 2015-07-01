@@ -161,6 +161,8 @@ Bibi.welcome = function() {
 	C.createVeil();
 	C.createCartain();
 
+	if(sML.UA.InternetExplorer < 10) return Bibi.byebye();
+
 	E.add("bibi:command:move", function(Distance) { R.move(Distance); });
 	E.add("bibi:command:focus", function(Target) { R.focus(Target); });
 	E.add("bibi:command:changeView", function(BDM) { R.changeView(BDM); });
@@ -193,6 +195,26 @@ Bibi.welcome = function() {
 			}
 		}
 	}, (sML.OS.iOS || sML.OS.Android ? 1000 : 1));
+
+};
+
+Bibi.byebye = function() {
+
+	var Message = {
+		En: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
+		Ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
+	};
+
+	C.Veil.ByeBye = C.Veil.appendChild(
+		sML.createElement("p", { id: "bibi-veil-byebye",
+			innerHTML: [
+				'<span lang="en">', Message.En, '</span>',
+				'<span lang="ja">', Message.Ja, '</span>',
+			].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
+		})
+	);
+
+	O.log(1, Message.En.replace(/<[^>]*>/g, ""));
 
 };
 
