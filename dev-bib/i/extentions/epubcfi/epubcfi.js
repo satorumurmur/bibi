@@ -6,7 +6,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu May 28 20:28:00 2015 +0900
+ * - Fri July 3 13:41:00 2015 +0900
  */
 
 /* -----------------------------------------------------------------------------------------------------------------
@@ -18,10 +18,10 @@
 Bibi.x({
 
 	name: 'EPUBCFI',
-	description: "EPUBCFI Utilities for BiB/i",
+	description: "EPUBCFI Utilities",
 	author: "Satoru MATSUSHIMA (@satorumurmur)",
-	version: Bibi["version"],
-	build: Bibi["build"],
+	version: "0.1.0",
+	build: 20150703.0,
 
 	CFIString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
@@ -31,7 +31,7 @@ Bibi.x({
 		if(!Scope || typeof Scope != "string" || typeof this["parse" + Scope] != "function") Scope = "Fragment";
 		if(Scope == "Fragment") CFIString = CFIString.replace(/^(epubcfi\()?/, "epubcfi(").replace(/(\))?$/, ")");
 		this.CFIString = CFIString, this.Current = 0;
-		if(this.Log && this.LogCancelation) {
+		if(this.Log) {
 			this.log(1, "BiB/i EPUB-CFI");
 			this.log(2, "parse");
 			this.log(3, "CFIString: " + this.CFIString);
@@ -107,15 +107,17 @@ Bibi.x({
 		return Step;
 	},
 	parseString: function(S) {
-		var Correction = null;
+		var Correction = null, Matched = false;
 		if(S instanceof RegExp) {
 			var CFIString = this.CFIString.substr(this.Current, this.CFIString.length - this.Current);
 			if(S.test(CFIString)) {
+				Matched = true;
 				S = CFIString.match(S)[0];
-				this.Current += S.length;
-				Correction = S;
 			}
 		} else if(this.CFIString.substr(this.Current, S.length) === S) {
+			Matched = true;
+		}
+		if(Matched) {
 			this.Current += S.length;
 			Correction = S;
 		}
@@ -138,7 +140,7 @@ Bibi.x({
 		else if(Lv == 2) Message = Message;
 		else if(Lv == 3) Message = " - " + Message;
 		else if(Lv == 4) Message = "   . " + Message;
-		console.log('BiB/i EPUB-CFI: ' + Message);
+		console.log('BiB/i EPUBCFI: ' + Message);
 	}
 
 });
@@ -147,7 +149,7 @@ Bibi.x({
 
    // EXAMPLE:
 
-   BibiEPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
+   X.EPUBCFI.parse("epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,Love;s=a])"); // returns following object.
 
 --------------------------------------------------------------------------------------------------------------------
 
