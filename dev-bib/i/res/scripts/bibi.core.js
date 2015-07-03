@@ -680,8 +680,8 @@ L.loadSpreads = function() {
 	L.listenResizingWhileLoading = function() { R.ToRelayout = true; };
 	window.addEventListener("resize", L.listenResizingWhileLoading);
 
-	E.remove("bibi:postprocessItem", L.onloadItem);
-	E.add(   "bibi:postprocessItem", L.onloadItem);
+	E.remove("bibi:postprocessItem", L.onLoadItem);
+	E.add(   "bibi:postprocessItem", L.onLoadItem);
 
 	R.Spreads.forEach(function(Spread) {
 		Spread.Loaded = false;
@@ -696,27 +696,20 @@ L.loadSpreads = function() {
 };
 
 
-L.onloadItem = function(Item) {
-	Item.Loaded = true;
-	R.LoadedItems++;
-	E.dispatch("bibi:loadItem", Item);
-	var Spread = Item.Spread;
-	Spread.LoadedItems++;
-	if(Spread.LoadedItems == Spread.Items.length) {
-		R.LoadedSpreads++;
-		E.dispatch("bibi:loadSpread", Spread);
-		if(!R.ToRelayout) R.resetSpread(Spread);
-		if(R.LoadedSpreads == R.Spreads.length) {
-			delete B.Files;
-			document.body.style.display = "";
-			R.resetPages();
-			E.dispatch("bibi:loadSpreads");
-			O.log(2, 'Spreads Loaded.', "Show");
-			L.start();
-			E.remove("bibi:postprocessItem", L.onloadItem);
-		}
+L.onLoadSpread = function(Spread) {
+	R.LoadedSpreads++;
+	E.dispatch("bibi:loadSpread", Spread);
+	if(!R.ToRelayout) R.resetSpread(Spread);
+	if(R.LoadedSpreads == R.Spreads.length) {
+		delete B.Files;
+		document.body.style.display = "";
+		R.resetPages();
+		E.dispatch("bibi:loadSpreads");
+		O.log(2, 'Spreads Loaded.', "Show");
+		O.logNow("Spreads Loaded");
+		L.start();
+		E.remove("bibi:postprocessItem", L.onLoadItem);
 	}
-	O.updateStatus("Loading... (" + (R.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
 };
 
 
@@ -754,6 +747,18 @@ L.loadItem = function(Item) {
 		Item.IsPDF = true;
 		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? B.getDataURI(Path) : B.Path + "/" + Path) + '" />');
 	}
+};
+
+
+L.onLoadItem = function(Item) {
+	Item.Loaded = true;
+	R.LoadedItems++;
+	E.dispatch("bibi:loadItem", Item);
+	Item.logNow("Loaded");
+	var Spread = Item.Spread;
+	Spread.LoadedItems++;
+	if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
+	O.updateStatus("Loading... (" + (R.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
 };
 
 
