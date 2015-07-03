@@ -24,14 +24,17 @@ module.exports = function(grunt){
 			bibi_js: [
 				'bib/i/res/scripts/bibi.js'
 			],
-			bibi_extention_unzipper_js: [
-				'bib/extentions/unzipper/unzipper.js'
-			],
 			bibi_extention_cplus_js: [
 				'bib/extentions/cplus/cplus.js'
 			],
+			bibi_extention_unzipper_js: [
+				'bib/extentions/unzipper/unzipper.js'
+			],
 			bibi_extention_epubcfi_js: [
 				'bib/extentions/epubcfi/epubcfi.js'
+			],
+			bibi_extention_jatex_js: [
+				'bib/extentions/jatex/jatex.js'
 			],
 			pipi_js: [
 				'bib/i.js'
@@ -56,14 +59,6 @@ module.exports = function(grunt){
 				],
 				dest: 'bib/i/res/scripts/bibi.js'
 			},
-			bibi_extention_unzipper_js: {
-				src: [
-					'dev-bib/i/extentions/unzipper/unzipper.js',
-					'dev-bib/i/extentions/unzipper/__lib/jszip.min.js',
-					'dev-bib/i/extentions/unzipper/__lib/base64.js'
-				],
-				dest: 'bib/i/extentions/unzipper/unzipper.js'
-			},
 			bibi_extention_cplus_js: {
 				src: [
 					'dev-bib/i/extentions/cplus/cplus.viewmenu.js',
@@ -74,11 +69,25 @@ module.exports = function(grunt){
 				],
 				dest: 'bib/i/extentions/cplus/cplus.js'
 			},
+			bibi_extention_unzipper_js: {
+				src: [
+					'dev-bib/i/extentions/unzipper/unzipper.js',
+					'dev-bib/i/extentions/unzipper/__lib/jszip.min.js',
+					'dev-bib/i/extentions/unzipper/__lib/base64.js'
+				],
+				dest: 'bib/i/extentions/unzipper/unzipper.js'
+			},
 			bibi_extention_epubcfi_js: {
 				src: [
 					'dev-bib/i/extentions/epubcfi/epubcfi.js'
 				],
 				dest: 'bib/i/extentions/epubcfi/epubcfi.js'
+			},
+			bibi_extention_jatex_js: {
+				src: [
+					'dev-bib/i/extentions/jatex/jatex.js'
+				],
+				dest: 'bib/i/extentions/jatex/jatex.js'
 			},
 			pipi_js: {
 				src: [
@@ -112,26 +121,6 @@ module.exports = function(grunt){
 				],
 				dest: '<%= concat.bibi_js.dest%>'
 			},
-			bibi_extention_unzipper_js: {
-				options: {
-					preserveComments: 'some',
-					banner: [
-						'/*!',
-						' *',
-						' * # BiB/i Extention: Unzipper | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.',
-						' *',
-						' * ## Including:',
-						' * 1. dev-bib/i/extentions/unzipper/unzipper.js        - Unzipper',
-						' * 2. dev-bib/i/extentions/unzipper/__lib/jszip.min.js - JSZip | Copyright (c) Stuart Knightley - http://stuartk.com/jszip | Dual licensed under the MIT license or GPLv3.',
-						' * 3. dev-bib/i/extentions/unzipper/__lib/base64.js    - base64.js | Copyright (c) dankogai - https://github.com/dankogai/js-base64 | Licensed under the MIT license.',
-						' */'
-					].join('\n') + '\n'
-				},
-				src: [
-					'<%= concat.bibi_extention_unzipper_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extention_unzipper_js.dest%>'
-			},
 			bibi_extention_cplus_js: {
 				options: {
 					preserveComments: 'some',
@@ -154,6 +143,26 @@ module.exports = function(grunt){
 				],
 				dest: '<%= concat.bibi_extention_cplus_js.dest%>'
 			},
+			bibi_extention_unzipper_js: {
+				options: {
+					preserveComments: 'some',
+					banner: [
+						'/*!',
+						' *',
+						' * # BiB/i Extention: Unzipper | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.',
+						' *',
+						' * ## Including:',
+						' * 1. dev-bib/i/extentions/unzipper/unzipper.js        - Unzipper',
+						' * 2. dev-bib/i/extentions/unzipper/__lib/jszip.min.js - JSZip | Copyright (c) Stuart Knightley - http://stuartk.com/jszip | Dual licensed under the MIT license or GPLv3.',
+						' * 3. dev-bib/i/extentions/unzipper/__lib/base64.js    - base64.js | Copyright (c) dankogai - https://github.com/dankogai/js-base64 | Licensed under the MIT license.',
+						' */'
+					].join('\n') + '\n'
+				},
+				src: [
+					'<%= concat.bibi_extention_unzipper_js.dest%>'
+				],
+				dest: '<%= concat.bibi_extention_unzipper_js.dest%>'
+			},
 			bibi_extention_epubcfi_js: {
 				options: {
 					preserveComments: 'some',
@@ -163,6 +172,16 @@ module.exports = function(grunt){
 					'<%= concat.bibi_extention_epubcfi_js.dest%>'
 				],
 				dest: '<%= concat.bibi_extention_epubcfi_js.dest%>'
+			},
+			bibi_extention_jatex_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.bibi_extention_jatex_js.dest%>'
+				],
+				dest: '<%= concat.bibi_extention_jatex_js.dest%>'
 			},
 			pipi_js: {
 				options: {
@@ -252,18 +271,6 @@ module.exports = function(grunt){
 					''
 				]
 			},
-			bibi_extention_unzipper_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extentions/unzipper/*.js'
-				],
-				tasks: [
-					'build_bibi_extention_unzipper_js',
-					''
-				]
-			},
 			bibi_extention_cplus_js: {
 				options: {
 					livereload: false
@@ -276,6 +283,18 @@ module.exports = function(grunt){
 					''
 				]
 			},
+			bibi_extention_unzipper_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extentions/unzipper/*.js'
+				],
+				tasks: [
+					'build_bibi_extention_unzipper_js',
+					''
+				]
+			},
 			bibi_extention_epubcfi_js: {
 				options: {
 					livereload: false
@@ -285,6 +304,18 @@ module.exports = function(grunt){
 				],
 				tasks: [
 					'build_bibi_extention_epubcfi_js',
+					''
+				]
+			},
+			bibi_extention_jatex_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extentions/jatex/*.js'
+				],
+				tasks: [
+					'build_bibi_extention_jatex_js',
 					''
 				]
 			},
@@ -346,13 +377,6 @@ module.exports = function(grunt){
 		''
 	]);
 
-	grunt.registerTask('build_bibi_extention_unzipper_js', [
-		'clean:bibi_extention_unzipper_js',
-		'concat:bibi_extention_unzipper_js',
-		'uglify:bibi_extention_unzipper_js',
-		''
-	]);
-
 	grunt.registerTask('build_bibi_extention_cplus_js', [
 		'clean:bibi_extention_cplus_js',
 		'concat:bibi_extention_cplus_js',
@@ -360,10 +384,24 @@ module.exports = function(grunt){
 		''
 	]);
 
+	grunt.registerTask('build_bibi_extention_unzipper_js', [
+		'clean:bibi_extention_unzipper_js',
+		'concat:bibi_extention_unzipper_js',
+		'uglify:bibi_extention_unzipper_js',
+		''
+	]);
+
 	grunt.registerTask('build_bibi_extention_epubcfi_js', [
 		'clean:bibi_extention_epubcfi_js',
 		'concat:bibi_extention_epubcfi_js',
 		'uglify:bibi_extention_epubcfi_js',
+		''
+	]);
+
+	grunt.registerTask('build_bibi_extention_jatex_js', [
+		'clean:bibi_extention_jatex_js',
+		'concat:bibi_extention_jatex_js',
+		'uglify:bibi_extention_jatex_js',
 		''
 	]);
 
@@ -376,9 +414,10 @@ module.exports = function(grunt){
 
 	grunt.registerTask('build_scripts', [
 		'build_bibi_js',
-		'build_bibi_extention_unzipper_js',
 		'build_bibi_extention_cplus_js',
+		'build_bibi_extention_unzipper_js',
 		'build_bibi_extention_epubcfi_js',
+		'build_bibi_extention_jatex_js',
 		'build_pipi_js',
 		''
 	]);
