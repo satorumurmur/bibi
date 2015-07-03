@@ -56,6 +56,7 @@ X = {}; // Bibi.Extentions
 Bibi.welcome = function() {
 
 	O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
+	O.logNow("Welcome");
 
 	O.HTML  = document.getElementsByTagName("html" )[0]; O.HTML.className = "preparing " + sML.Environments.join(" ");
 	O.Head  = document.getElementsByTagName("head" )[0];
@@ -665,6 +666,7 @@ L.play = function() {
 L.loadSpreads = function() {
 
 	O.log(2, 'Loading ' + R.Items.length + ' Items in ' + R.Spreads.length + ' Spreads...', "Show");
+	O.logNow("Load Spreads");
 
 	O.Body.style.backgroundImage = "none";
 	sML.removeClass(O.HTML, "with-poster");
@@ -720,6 +722,8 @@ L.onloadItem = function(Item) {
 
 L.loadItem = function(Item) { 
 	var Path = Item.Path;
+	Item.TimeCard = { 0: Date.now() };
+	Item.logNow = function(What) { this.TimeCard[Date.now() - this.TimeCard[0]] = What; };
 	if(/\.(x?html?)$/i.test(Path)) {
 		// If HTML or Others
 		if(B.Zipped) {
@@ -767,6 +771,8 @@ L.writeItemHTML = function(Item, HTML, Head, Body) {
 
 
 L.postprocessItem = function(Item) {
+
+	Item.logNow("Postprocess");
 
 	Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
 	Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
@@ -1041,6 +1047,7 @@ L.start = function() {
 		E.dispatch("bibi:start");
 		M.post("bibi:start");
 		O.log(1, 'Enjoy Readings!');
+		O.logNow("Enjoy");
 	}, 1);
 
 };
@@ -2591,6 +2598,10 @@ O.toBibiXML = function(XML) {
 		/<([\w\d_]+) ([^>]+?)\/>/g, "<$1 $2></$1>"
 	);
 };
+
+
+O.TimeCard = { 0: Date.now() };
+O.logNow = function(What) { O.TimeCard[Date.now() - O.TimeCard[0]] = What; };
 
 
 
