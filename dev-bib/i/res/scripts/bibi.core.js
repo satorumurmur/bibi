@@ -819,12 +819,12 @@ L.postprocessItem = function(Item) {
 	//Item.RenditionLayout = ((Item.ItemRef["rendition:layout"] == "pre-paginated") && Item.ItemRef["viewport"]["width"] && Item.ItemRef["viewport"]["height"]) ? "pre-paginated" : "reflowable";
 
 	setTimeout(function() {
-		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
+		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 80);
 		L.postprocessItem.patchWritingModeStyle(Item);
 		L.postprocessItem.forRubys(Item);
 		L.postprocessItem.applyBackgroundStyle(Item);
 		E.dispatch("bibi:postprocessItem", Item);
-	}, 100);
+	}, 80);
 
 	// Tap Scroller
 	// sML.addTouchEventObserver(Item.HTML).addTouchEventListener("tap", function(Eve, HEve) { R.observeTap(Item, HEve); });
@@ -2432,7 +2432,6 @@ O.log = function(Lv, Message, ShowStatus) {
 	console.log('BiB/i: ' + Message);
 };
 
-
 O.updateStatus = function(Message) {
 	if(!O.SmartPhone) {
 		if(O.statusClearer) clearTimeout(O.statusClearer);
@@ -2543,7 +2542,7 @@ O.getWritingMode = function(Ele) {
 O.getElementInnerText = function(Ele) {
 	var InnerText = "InnerText";
 	var Copy = document.createElement("div");
-	Copy.innerHTML = Ele.innerHTML;
+	Copy.innerHTML = Ele.innerHTML.replace(/ (src|srcset|source|href)=/g, " data-$1=");
 	sML.each(Copy.querySelectorAll("svg"),   function() { this.parentNode.removeChild(this); });
 	sML.each(Copy.querySelectorAll("video"), function() { this.parentNode.removeChild(this); });
 	sML.each(Copy.querySelectorAll("audio"), function() { this.parentNode.removeChild(this); });
