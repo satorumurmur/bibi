@@ -709,7 +709,7 @@ L.onLoadSpread = function(Spread) {
 L.loadItem = function(Item) { 
 	var Path = Item.Path;
 	Item.TimeCard = { 0: Date.now() };
-	Item.logNow = function(What) { this.TimeCard[Date.now() - this.TimeCard[0]] = What; };
+	Item.logNow = function(What) { O.logNow(What, Item.TimeCard); };
 	if(/\.(x?html?)$/i.test(Path)) {
 		// If HTML or Others
 		if(B.Zipped) {
@@ -2594,7 +2594,12 @@ O.toBibiXML = function(XML) {
 
 
 O.TimeCard = { 0: Date.now() };
-O.logNow = function(What) { O.TimeCard[Date.now() - O.TimeCard[0]] = What; };
+O.logNow = function(What, TimeCard) {
+	if(!TimeCard) TimeCard = O.TimeCard;
+	var Time = Date.now() - TimeCard[0];
+	if(TimeCard[Time]) What = TimeCard[Time] + " -&- " + What;
+	TimeCard[Time] = What;
+};
 
 
 
