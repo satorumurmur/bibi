@@ -27,6 +27,8 @@ P.initialize({
 
 "page-breaking"                     : true,              // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
+"japanese-typesetting-extra"        : false,             // true or false (if true, extra typesetting features for Japanese text will work)
+
 "epub-additional-stylesheet"        : "",
 "epub-additional-script"            : "",
 
