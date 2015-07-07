@@ -1,5 +1,67 @@
 // ================================================================================
-// + Controls
+// + Notifier
+// --------------------------------------------------------------------------------
+
+
+// - Notifier
+// --------------------------------------------------------------------------------
+
+div#bibi-notifier {
+}
+
+
+// - Notifier > Board
+// --------------------------------------------------------------------------------
+
+div#bibi-notifier-board {
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 10000;
+	bottom: 0;
+	padding: 0 8px;
+	width: 100%;
+	height: 24px;
+	line-height: 24px;
+	text-indent: .5em;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	color: rgb(216,216,216);
+	background: rgba(64,64,64,0.75);
+	@include transition(.15s linear);/*
+	html.wait-please & {
+		display: block;
+		opacity: 1;
+	}
+	html.loading & {
+		opacity: 1;
+		@include animation(fade .2s linear 0 infinite normal);
+	}*/
+	small {
+		font-size: 0.75em;
+	}
+	&.shown {
+		opacity: 1;
+		@include transform(none);
+		@include transition(.15s linear);
+	}
+	&.hidden {
+		opacity: 0;
+		@include transform(translateY(24px));
+		@include transition(.15s linear);
+	}
+}
+@include keyframes(fade) {
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
+}
+
+
+
+
+// ================================================================================
+// + Veil
 // --------------------------------------------------------------------------------
 
 
@@ -117,7 +179,7 @@ div#bibi-veil-cover {
 	top: 0;
 	@include box-sizing(border-box);
 	border: solid transparent;
-	border-width: 16px 8px 32px;
+	border-width: 32px 8px 32px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
@@ -336,7 +398,7 @@ div#bibi-veil-mark {
 		&:nth-child(7)    { left:  0px; top: 32px; }
 		&:nth-child(8)    { left:  8px; top:  8px; }
 	}
-	div#bibi-veil.animate & {
+	html.loading & {
 		display: block;
 		@include animation(loading 2s linear 0s infinite normal);
 	}
@@ -350,38 +412,25 @@ div#bibi-veil-mark {
 }
 
 
-// - Veil > Powered, Message
+// - Veil > Powered
 // --------------------------------------------------------------------------------
 
-p#bibi-veil-powered,
-p#bibi-veil-message {
+p#bibi-veil-powered {
 	@include box-sizing(border-box);
 	position: absolute;
+	z-index: 999;
 	bottom: 0;
-	padding: 0 8px;
+	padding: 2px 8px 0;
 	width: 100%;
 	height: 24px;
 	line-height: 24px;
+	text-align: center;
 	color: rgb(216,216,216);
+	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
 	small {
 		font-size: 0.75em;
 	}
-	a {
-		//font-weight: bold;
-		color: inherit;
-		text-decoration: none;
-		@include transition(0.25s linear);
-		&:hover {
-			color: rgb(160,160,160);
-		}
-	}
-}
-p#bibi-veil-powered {
-	z-index: 999;
-	padding-top: 2px;
-	text-align: center;
-	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
-	a.bibi-logo {
+	a, span {
 		display: inline-block;
 		position: relative;
 		color: white;
@@ -391,6 +440,15 @@ p#bibi-veil-powered {
 			height: 16px;
 			vertical-align: top;
 		}
+		html.loading & {
+			opacity: 0;
+		}
+	}
+	a {
+		//font-weight: bold;
+		color: inherit;
+		text-decoration: none;
+		@include transition(0.25s linear);
 		&:after {
 			content: "";
 			position: absolute;
@@ -404,40 +462,20 @@ p#bibi-veil-powered {
 		}
 		&:hover {
 			opacity: 1;
+			color: rgb(160,160,160);
 			&:after {
 				background: rgb(255,255,255);
 			}
 		}
-		div#bibi-veil.animate & {
-			opacity: 0;
-		}
 	}
 }
-p#bibi-veil-message {
-	z-index: 1000;
-	padding-top: 0px;
-	text-align: center;
-	display: none;
-	font-size: 12px;
-	font-weight: bold;
-	text-indent: .5em;
-	//text-transform: uppercase;
-	opacity: 0;
-	@include transition(opacity .15s linear);
-	html.wait-please & {
-		display: block;
-		opacity: 1;
-	}
-	div#bibi-veil.animate & {
-		opacity: 1;
-		@include animation(fade .2s linear 0 infinite normal);
-	}
-}
-@include keyframes(fade) {
-	  0% { opacity: 1.00; }
-	 50% { opacity: 0.75; }
-	100% { opacity: 1.00; }
-}
+
+
+
+
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
 
 
 // - Arrows (div#bibi-arrows)
@@ -516,6 +554,13 @@ div#bibi-arrows {
 }
 
 
+
+
+// ================================================================================
+// + Switches
+// --------------------------------------------------------------------------------
+
+
 // - Switches
 // --------------------------------------------------------------------------------
 
@@ -538,6 +583,12 @@ div#bibi-switches {
 	}
 }
 
+
+
+
+// ================================================================================
+// + Cartain
+// --------------------------------------------------------------------------------
 
 
 // - Cartain (div#bibi-cartain)
@@ -584,7 +635,6 @@ div#bibi-menus {
 	top: 0;
 	left: 0;
 	padding-left: 35px;
-	width: 100%;
 	height: 36px;
 	color: white;
 	ul {
@@ -609,45 +659,46 @@ div#bibi-menus {
 }
 
 
-// - Cartain > Misc (div#bibi-cartain-misc)
+// - Cartain > Powered (div#bibi-cartain-powered)
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain-misc {
+div#bibi-cartain-powered {
 	@include box-sizing(border-box);
 	position: fixed;
-	z-index: 100;
+	z-index: 10;
 	top: 0;
 	padding: 4px;
 	border: solid 0 rgba(255,255,255,0.1);
-	width: 36px;
+	width: 100%;
 	height: 36px;
 	line-height: 30px;
-	text-align: right;
+	text-align: center;
 	font-size: 14px;
-	color: white;
-	right: 4px;
+	right: 4px;/*
 	html.window-not-embedded.fullscreen-enabled &,
 	html.window-embedded.fullscreen-not-enabled & {
 		right: 35px;
 	}
 	html.window-embedded.fullscreen-enabled & {
 		right: 66px;
-	}
-	a {
+	}*/
+	a, span {
 		display: inline-block;
 		text-decoration: none;
 		color: black;
-		opacity: 0.64;
-		@include transition(.15s linear);
+		opacity: 0.48;
 		img {
 			margin-top: 8px;
 			width: auto;
-			height: 15px;
+			height: 16px;
 			vertical-align: top;
 		}
+	}
+	a {
+		@include transition(.15s linear);
 		&:hover {
-			color: white;
 			opacity: 1;
+			@include transition(.075s linear);
 		}
 	}
 }
