@@ -78,7 +78,7 @@ Bibi.welcome = function() {
 		}
 	}
 
-	if(parent == window) {
+	if(window.parent == window) {
 		O.WindowEmbedded = false;
 		O.HTML.className = O.HTML.className + " window-not-embedded";
 	} else {
@@ -188,6 +188,7 @@ Bibi.welcome = function() {
 	}, (sML.OS.iOS || sML.OS.Android ? 1000 : 1));
 
 };
+
 
 Bibi.byebye = function() {
 
@@ -2558,13 +2559,7 @@ O.getElementCoord = function(El) {
 
 
 O.getLogo = function(Setting) {
-	var Logo = sML.UA.InternetExplorer < 9 ? [
-		'<span class="bibi-type-B">B</span>',
-		'<span class="bibi-type-i">i</span>',
-		'<span class="bibi-type-B">B</span>',
-		'<span class="bibi-type-slash">/</span>',
-		'<span class="bibi-type-i">i</span>'
-	].join("") : '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo_' + Setting.Color + '.png" />';
+	var Logo = '<img alt="BiB/i" src="../../bib/i/res/images/bibi-logo_' + Setting.Color + '.png" />';
 	return [
 		'<', (Setting.Linkify ? 'a' : 'span'), ' class="bibi-logo"', (Setting.Linkify ? ' href="http://bibi.epub.link/" target="_blank" title="BiB/i | Web Site"' : ''), '>',
 		Logo,
