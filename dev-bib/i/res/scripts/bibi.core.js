@@ -819,12 +819,12 @@ L.postprocessItem = function(Item) {
 	//Item.RenditionLayout = ((Item.ItemRef["rendition:layout"] == "pre-paginated") && Item.ItemRef["viewport"]["width"] && Item.ItemRef["viewport"]["height"]) ? "pre-paginated" : "reflowable";
 
 	setTimeout(function() {
-		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 80);
+		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 20);
 		L.postprocessItem.patchWritingModeStyle(Item);
 		L.postprocessItem.forRubys(Item);
 		L.postprocessItem.applyBackgroundStyle(Item);
 		E.dispatch("bibi:postprocessItem", Item);
-	}, 80);
+	}, 20);
 
 	// Tap Scroller
 	// sML.addTouchEventObserver(Item.HTML).addTouchEventListener("tap", function(Eve, HEve) { R.observeTap(Item, HEve); });
