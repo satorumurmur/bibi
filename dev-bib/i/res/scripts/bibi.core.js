@@ -152,7 +152,9 @@ Bibi.welcome = function() {
 	C.createVeil();
 	C.createCartain();
 
-	if(sML.UA.InternetExplorer < 10) return Bibi.byebye();
+	if(sML.UA.InternetExplorer < 10) {
+		return Bibi.byebye();
+	}
 
 	E.add("bibi:command:move", function(Distance) { R.move(Distance); });
 	E.add("bibi:command:focus", function(Target) { R.focus(Target); });
