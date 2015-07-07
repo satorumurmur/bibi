@@ -1148,88 +1148,12 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
-	// Rubys
-	if(sML.UA.Safari || sML.UA.Chrome) {
-		var RubyParentsLengthWithRubys = [];
-		Item.RubyParents.forEach(function(RubyParent) {
-			RubyParent.style.cssText = RubyParent.OriginalCSSText;
-			RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
-		});
-		var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
-		Item.RubyParents.forEach(function(RubyParent, i) {
-			var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
-			if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
-				var RubyParentComputedStyle = getComputedStyle(RubyParent);
-				RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
-			}
-		});
-		sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
-	}
-	////
-	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument);
-	// Fitting Images
-	sML.each(Item.Body.getElementsByTagName("img"), function() {
-		this.style.display       = this.Bibi.DefaultStyle["display"];
-		this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
-		this.style.width         = this.Bibi.DefaultStyle["width"];
-		this.style.height        = this.Bibi.DefaultStyle["height"];
-		var MaxB = Math.floor(Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.b]), PageB));
-		var MaxL = Math.floor(Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.l]), PageL));
-		if(parseInt(getComputedStyle(this)[S.SIZE.b]) >= MaxB || parseInt(getComputedStyle(this)[S.SIZE.l]) >= MaxL) {
-			if(getComputedStyle(this).display == "inline") this.style.display = "inline-block";
-			this.style.verticalAlign = "top";
-			if(parseInt(getComputedStyle(this)[S.SIZE.b]) >= MaxB) {
-				this.style[S.SIZE.b] = MaxB + "px";
-				this.style[S.SIZE.l] = "auto";
-			}
-			if(parseInt(getComputedStyle(this)[S.SIZE.l]) >= MaxL) {
-				this.style[S.SIZE.l] = MaxL + "px";
-				this.style[S.SIZE.b] = "auto";
-			}
-		}
-	});
-	// Making Columns
-	if(S.RVM == "paged" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
-		R.Columned = Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
-		Item.HTML.style[S.SIZE.b] = PageB + "px";
-		Item.HTML.style[S.SIZE.l] = PageL + "px";
-		sML.style(Item.HTML, {
-			"column-width": Item.ColumnLength + "px",
-			"column-gap": Item.ColumnGap + "px",
-			"column-rule": ""
-		});
-	}
-	// Breaking Pages
-	if(S["page-breaking"]) {
-		var PBR; // PageBreakerRulers
-		if(Item.Body["offset" + S.SIZE.B] <= PageB) PBR = [(S.SLA == "vertical" ? "Top" : "Left"), window["inner" + S.SIZE.L]/*PageL*/, S.SIZE.L, S.SIZE.l, S.BASE.a];
-		else                                        PBR = [(S.SLA == "vertical" ? "Left" : "Top"), /*window["inner" + S.SIZE.B]*/PageB, S.SIZE.B, S.SIZE.b, S.BASE.e];
-		sML.each(Item.contentDocument.querySelectorAll("html>body *"), function() {
-			var ComputedStyle = getComputedStyle(this);
-			if(ComputedStyle.pageBreakBefore != "always" && ComputedStyle.pageBreakAfter != "always") return;
-			if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PBR[3]] = "";
-			if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PBR[3]] = "";
-			var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
-			while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
-			if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
-			//sML.log(PBR);
-			//sML.log(Item.ItemIndex + ": " + BreakPoint);
-			if(ComputedStyle.pageBreakBefore == "always") {
-				if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = sML.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
-				Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
-				this.BibiPageBreakerBefore.style[PBR[3]] = Add + "px";
-			}
-			if(ComputedStyle.pageBreakAfter == "always") {
-				BreakPoint += Add + this["offset" + PBR[2]];
-				//sML.log(Item.ItemIndex + ": " + BreakPoint);
-				this.style["margin-" + PBR[4]] = 0;
-				if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = sML.insertAfter(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this);
-				Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
-				this.BibiPageBreakerAfter.style[PBR[3]] = Add + "px";
-			}
-		});
-	}
-	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument);
+	if(sML.UA.Safari || sML.UA.Chrome) R.resetItem.asReflowableItem.careRubies(Item);
+	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument); ////
+	R.resetItem.asReflowableItem.fitImages(Item);
+	R.resetItem.asReflowableItem.columify(Item, PageB, PageL, PageGap);
+	if(S["page-breaking"]) R.resetItem.asReflowableItem.breakPages(Item, PageB);
+	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
 	var ItemL = (sML.UA.InternetExplorer >= 10) ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
@@ -1250,6 +1174,85 @@ R.resetItem.asReflowableItem = function(Item) {
 		Item.Pages.push(Page);
 	}
 	return Item;
+};
+R.resetItem.asReflowableItem.careRubies = function(Item) {
+	var RubyParentsLengthWithRubys = [];
+	Item.RubyParents.forEach(function(RubyParent) {
+		RubyParent.style.cssText = RubyParent.OriginalCSSText;
+		RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
+	});
+	var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
+	Item.RubyParents.forEach(function(RubyParent, i) {
+		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
+		if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
+			var RubyParentComputedStyle = getComputedStyle(RubyParent);
+			RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
+		}
+	});
+	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+};
+R.resetItem.asReflowableItem.fitImages = function(Item) {
+	sML.each(Item.Body.getElementsByTagName("img"), function() {
+		this.style.display       = this.Bibi.DefaultStyle["display"];
+		this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
+		this.style.width         = this.Bibi.DefaultStyle["width"];
+		this.style.height        = this.Bibi.DefaultStyle["height"];
+		var MaxB = Math.floor(Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.b]), PageB));
+		var MaxL = Math.floor(Math.min(parseInt(getComputedStyle(Item.Body)[S.SIZE.l]), PageL));
+		if(parseInt(getComputedStyle(this)[S.SIZE.b]) >= MaxB || parseInt(getComputedStyle(this)[S.SIZE.l]) >= MaxL) {
+			if(getComputedStyle(this).display == "inline") this.style.display = "inline-block";
+			this.style.verticalAlign = "top";
+			if(parseInt(getComputedStyle(this)[S.SIZE.b]) >= MaxB) {
+				this.style[S.SIZE.b] = MaxB + "px";
+				this.style[S.SIZE.l] = "auto";
+			}
+			if(parseInt(getComputedStyle(this)[S.SIZE.l]) >= MaxL) {
+				this.style[S.SIZE.l] = MaxL + "px";
+				this.style[S.SIZE.b] = "auto";
+			}
+		}
+	});
+};
+R.resetItem.asReflowableItem.columify = function(Item, PageB, PageL, PageGap) {
+	if(S.RVM == "paged" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
+		R.Columned = Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
+		Item.HTML.style[S.SIZE.b] = PageB + "px";
+		Item.HTML.style[S.SIZE.l] = PageL + "px";
+		sML.style(Item.HTML, {
+			"column-width": Item.ColumnLength + "px",
+			"column-gap": Item.ColumnGap + "px",
+			"column-rule": ""
+		});
+	}
+};
+R.resetItem.asReflowableItem.breakPages = function(Item, PageB) {
+	var PBR; // PageBreakerRulers
+	if(Item.Body["offset" + S.SIZE.B] <= PageB) PBR = [(S.SLA == "vertical" ? "Top" : "Left"), window["inner" + S.SIZE.L]/*PageL*/, S.SIZE.L, S.SIZE.l, S.BASE.a];
+	else                                        PBR = [(S.SLA == "vertical" ? "Left" : "Top"), /*window["inner" + S.SIZE.B]*/PageB, S.SIZE.B, S.SIZE.b, S.BASE.e];
+	sML.each(Item.contentDocument.querySelectorAll("html>body *"), function() {
+		var ComputedStyle = getComputedStyle(this);
+		if(ComputedStyle.pageBreakBefore != "always" && ComputedStyle.pageBreakAfter != "always") return;
+		if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PBR[3]] = "";
+		if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PBR[3]] = "";
+		var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
+		while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
+		if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
+		//sML.log(PBR);
+		//sML.log(Item.ItemIndex + ": " + BreakPoint);
+		if(ComputedStyle.pageBreakBefore == "always") {
+			if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = sML.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
+			Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
+			this.BibiPageBreakerBefore.style[PBR[3]] = Add + "px";
+		}
+		if(ComputedStyle.pageBreakAfter == "always") {
+			BreakPoint += Add + this["offset" + PBR[2]];
+			//sML.log(Item.ItemIndex + ": " + BreakPoint);
+			this.style["margin-" + PBR[4]] = 0;
+			if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = sML.insertAfter(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this);
+			Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
+			this.BibiPageBreakerAfter.style[PBR[3]] = Add + "px";
+		}
+	});
 };
 
 R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
