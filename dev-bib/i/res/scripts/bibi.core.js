@@ -2060,7 +2060,7 @@ C.createCartain = function() {
 		})
 	);
 
-	C.Cartain.Misc = C.Cartain.appendChild(sML.create("div", { id: "bibi-cartain-misc", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
+	C.Cartain.Powered = C.Cartain.appendChild(sML.create("div", { id: "bibi-cartain-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
 	C.Cartain.Navigation = C.Cartain.appendChild(
 		sML.create("div", { id: "bibi-cartain-navigation" })
