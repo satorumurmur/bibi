@@ -102,19 +102,29 @@ Bibi.x({
 		else if(Lv == 3) Message = " - " + Message;
 		else if(Lv == 4) Message = "   . " + Message;
 		console.log('BiB/i JaTEx: ' + Message);
-	}
+	},
+
+	haveTo: function(Item) {
+		if(!P["japanese-typesetting-extra"] && !Item.HTML.getAttribute("data-bibi-jatex")) return false;
+		if(!sML.UA.WebKit || sML.UA.Android) return false;
+		if(B.Language != "ja" || B.WritingMode != "tb-rl" || S.BWM != "tb-rl") return false;
+		return true;
+	},
+
+	Selector: "p, li" // "h1, h2, h3, h4, h5, h6, p, li, dt, dd"
 
 })(function() {
 
-	E.bind("bibi:postprocessItem", function(Item) {
-		if(!Item.HTML.getAttribute("data-bibi-jatex")) return;
-		Item.logNow("JaTEx Started");
-		sML.each(Item.Body.querySelectorAll("h1, h2, h3, h4, h5, h6, p, li, dt, dd"), function() {
-			var Parts = X.JaTEx.parse(this.innerHTML);
+	E.bind("bibi:before:postprocessItem", function(Item) {
+		if(!X.JaTEx.haveTo(Item)) return;
+		Item.logNow("JaTEx Preprocess");
+		sML.each(Item.Body.querySelectorAll(X.JaTEx.Selector), function() {
+			var Block = this;
+			var Parts = X.JaTEx.parse(Block.innerHTML);
 			if(!Parts || !Parts.length) return;
-			var NewInnerHTML = ""; IgnoringRuby = 0, IgnoringSpan = 0;
-			for(var i = 0, L = Parts.length; i < L; i++) {
-				var Part = Parts[i];
+			var NewInnerHTML = "", IgnoringRuby = 0, IgnoringSpan = 0;
+			sML.each(Parts, function() {
+				var Part = this;
 				if(Part.Type == "Comment") {
 					// do nothing
 				} else if(Part.Type == "Tag") {
@@ -125,69 +135,109 @@ Bibi.x({
 					else if(Part.Detail ==  "span:close") if(IgnoringRuby || IgnoringSpan) IgnoringSpan--;
 				} else if(!IgnoringRuby && !IgnoringSpan) {
 					Part.Content = Part.Content
-						.replace(/(（[^）]）)/g, '<span class="parenthesized">$1</span>')
-						.replace(/(、)/g, '<span class="ideographic-comma">$1</span>')
-						.replace(/(。)/g, '<span class="ideographic-full-stop">$1</span>')
-						.replace(/(・)/g, '<span class="katakana-middle-dot">$1</span>')
-						.replace(/(（)/g, '<span class="fullwidth-left-parenthesis">$1</span>')
-						.replace(/(）)/g, '<span class="fullwidth-right-parenthesis">$1</span>')
-						.replace(/(「)/g, '<span class="left-corner-bracket">$1</span>')
-						.replace(/(」)/g, '<span class="right-corner-bracket">$1</span>')
-						.replace(/(『)/g, '<span class="left-white-corner-bracket">$1</span>')
-						.replace(/(』)/g, '<span class="right-white-corner-bracket">$1</span>')
-						.replace(/(〈)/g, '<span class="left-angle-bracket">$1</span>')
-						.replace(/(〉)/g, '<span class="right-angle-bracket">$1</span>')
-						.replace(/(《)/g, '<span class="left-double-angle-bracket">$1</span>')
-						.replace(/(》)/g, '<span class="right-double-angle-bracket">$1</span>')
-						.replace(/(｛)/g, '<span class="fullwidth-left-curly-bracket">$1</span>')
-						.replace(/(｝)/g, '<span class="fullwidth-right-curly-bracket">$1</span>')
-						.replace(/(［)/g, '<span class="fullwidth-left-square-bracket">$1</span>')
-						.replace(/(］)/g, '<span class="fullwidth-right-square-bracket">$1</span>')
-						.replace(/(【)/g, '<span class="left-black-lenticular-bracket">$1</span>')
-						.replace(/(】)/g, '<span class="right-black-lenticular-bracket">$1</span>')
-						.replace(/(…{3,})/g, '<span class="repeating-horizontal-ellipsis">$1</span>')
-						.replace(/(……)/g, '<span class="double-horizontal-ellipsis">$1</span>')
-						.replace(/(…)/g, '<span class="horizontal-ellipsis">$1</span>')
-						.replace(/(⋯{3,})/g, '<span class="repeating-midline-horizontal-ellipsis">$1</span>')
-						.replace(/(⋯⋯)/g, '<span class="double-midline-horizontal-ellipsis">$1</span>')
-						.replace(/(⋯)/g, '<span class="midline-horizontal-ellipsis">$1</span>')
-						.replace(/(—{3,})/g, '<span class="repeating-em-dash">$1</span>')
-						.replace(/(——)/g, '<span class="double-em-dash">$1</span>')
-						.replace(/(—)/g, '<span class="em-dash">$1</span>')
-						.replace(/(！{3,})/g, '<span class="repeating-exclamation-mark">$1</span>')
-						.replace(/(？{3,})/g, '<span class="repeating-question-mark">$1</span>')
-						.replace(/(！！)/g, '<span class="double-exclamation-mark">$1</span>')
-						.replace(/(？？)/g, '<span class="double-question-mark">$1</span>')
-						.replace(/(！？)/g, '<span class="exclamation-question-mark">$1</span>')
-						.replace(/(？！)/g, '<span class="question-exclamation-mark">$1</span>')
-						.replace(/(！)/g, '<span class="exclamation-mark">$1</span>')
-						.replace(/(？)/g, '<span class="question-mark">$1</span>');
+					//	.replace(/([\w\d\,\.!\?\-+=@#$%&*:;]+)/g, '</span><span class="alphanumeric-string">$1</span><span>')
+					//	.replace(/([ａ-ｚＡ-Ｚ０−９]+)/g, '</span><span class="fullwidth-alphanumeric-string">$1</span><span>')
+						.replace(/(（([^（）]+)）)/g, '</span><span class="parenthesized with-fullwidth-parentheses">（<span>$2</span>）</span><span>')
+						.replace(/(\(([^\(\)]+)\))/g, '</span><span class="parenthesized with-parentheses">(<span>$2</span>)</span><span>')
+					//	.replace(/(「([^「」]+)」)/g, '</span><span class="bracketed with-corner-brackets">「<span>$2</span>」</span><span>')
+					//	.replace(/(『([^『』]+)』)/g, '</span><span class="bracketed with-double-corner-brackets">『<span>$2</span>』</span><span>')
+					//	.replace(/(〈([^〈〉]+)〉)/g, '</span><span class="bracketed with-anble-brackets">〈<span>$2</span>〉</span><span>')
+					//	.replace(/(《([^《》]+)》)/g, '</span><span class="bracketed with-double-anble-brackets">《<span>$2</span>》</span><span>')
+					//	.replace(/(｛([^｛｝]+)｝)/g, '</span><span class="bracketed with-fullwidth-curly-brackets">｛<span>$2</span>｝</span><span>')
+					//	.replace(/(［([^［］]+)］)/g, '</span><span class="bracketed with-fullwidth-square-brackets">［<span>$2</span>］</span><span>')
+					//	.replace(/(【([^【】]+)】)/g, '</span><span class="bracketed with-black-lenticular-brackets">【<span>$2</span>】</span><span>')
+					//	.replace(/(“([^“”]+)”)/g, '</span><span class="quoted with-double-quotation-marks">“<span>$2</span>”</span><span>')
+					//	.replace(/(‘([^‘’]+)’)/g, '</span><span class="quoted with-single-quotation-marks">‘<span>$2</span>’</span><span>')
+					//	.replace(/(（)/g, '</span><span class="fullwidth-left-parenthesis">$1</span><span>')
+					//	.replace(/(）)/g, '</span><span class="fullwidth-right-parenthesis">$1</span><span>')
+					//	.replace(/(「)/g, '</span><span class="left-corner-bracket">$1</span><span>')
+					//	.replace(/(」)/g, '</span><span class="right-corner-bracket">$1</span><span>')
+					//	.replace(/(『)/g, '</span><span class="left-white-corner-bracket">$1</span><span>')
+					//	.replace(/(』)/g, '</span><span class="right-white-corner-bracket">$1</span><span>')
+					//	.replace(/(〈)/g, '</span><span class="left-angle-bracket">$1</span><span>')
+					//	.replace(/(〉)/g, '</span><span class="right-angle-bracket">$1</span><span>')
+					//	.replace(/(《)/g, '</span><span class="left-double-angle-bracket">$1</span><span>')
+					//	.replace(/(》)/g, '</span><span class="right-double-angle-bracket">$1</span><span>')
+					//	.replace(/(｛)/g, '</span><span class="fullwidth-left-curly-bracket">$1</span><span>')
+					//	.replace(/(｝)/g, '</span><span class="fullwidth-right-curly-bracket">$1</span><span>')
+					//	.replace(/(［)/g, '</span><span class="fullwidth-left-square-bracket">$1</span><span>')
+					//	.replace(/(］)/g, '</span><span class="fullwidth-right-square-bracket">$1</span><span>')
+					//	.replace(/(【)/g, '</span><span class="left-black-lenticular-bracket">$1</span><span>')
+					//	.replace(/(】)/g, '</span><span class="right-black-lenticular-bracket">$1</span><span>')
+					//	.replace(/(“)/g, '</span><span class="left-double-quotation-mark">$1</span><span>')
+					//	.replace(/(”)/g, '</span><span class="right-double-quotation-mark">$1</span><span>')
+					//	.replace(/(‘)/g, '</span><span class="left-single-quotation-mark">$1</span><span>')
+					//	.replace(/(’)/g, '</span><span class="right-single-quotation-mark">$1</span><span>')
+						.replace(/(　)/g, '</span><span class="ideographic-space">$1</span><span>')
+						.replace(/(、)/g, '</span><span class="ideographic-comma">$1</span><span>')
+						.replace(/(。)/g, '</span><span class="ideographic-full-stop">$1</span><span>')
+					//	.replace(/(・{7,})/g, '</span><span class="repeated katakana-middle-dots"><span>$1</span></span><span>')
+					//	.replace(/(・・・・・・)/g, '</span><span class="repeated as-doublewidth-horizontal-ellipsis"><span>$1</span></span><span>')
+					//	.replace(/(・{4,5})/g, '</span><span class="repeated katakana-middle-dots"><span>$1</span></span><span>')
+					//	.replace(/(・・・)/g, '</span><span class="repeated as-horizontal-ellipsis"><span>$1</span></span><span>')
+					//	.replace(/(・)/g, '</span><span class="katakana-middle-dot">$1</span><span>')
+						.replace(/⋯/g, '…') // midline-horizontal-ellipses -> horizontal-ellipses
+						.replace(/(…{3,})/g, '</span><span class="repeated horizontal-ellipses"><span>$1</span>/span><span>')
+						.replace(/(……)/g, '</span><span class="repeated as-doublewidth-horizontal-ellipsis"><span>$1</span></span><span>')
+						.replace(/(…)/g, '</span><span class="horizontal-ellipsis">$1</span><span>')
+					//	.replace(/(⋯{3,})/g, '</span><span class="repeated midline-horizontal-ellipses"><span>$1</span></span><span>')
+					//	.replace(/(⋯⋯)/g, '</span><span class="repeated as-doublewidth-midline-horizontal-ellipsis"><span>$1</span></span><span>')
+					//	.replace(/(⋯)/g, '</span><span class="midline-horizontal-ellipsis">$1</span><span>')
+						.replace(/―/g, '—') // horizontal-bar -> em-dash
+						.replace(/(—{3,})/g, '</span><span class="repeated em-dashes"><span>$1</span></span><span>')
+						.replace(/(——)/g, '</span><span class="repeated as-doublewidth-em-dash"><span>$1</span></span><span>')
+						.replace(/(—)/g, '</span><span class="em-dash">$1</span><span>')
+					//	.replace(/(―{3,})/g, '</span><span class="repeated horizontal-bars"><span>$1</span>/span><span>')
+					//	.replace(/(――)/g, '</span><span class="repeated as-doublewidth-horizontal-bar"><span>$1</span></span><span>')
+					//	.replace(/(―)/g, '</span><span class="horizontal-bar">$1</span><span>')
+						.replace(/(！{3,})/g, '</span><span class="repeated fullwidth-exclamation-marks"><span>$1</span></span><span>')
+						.replace(/(？{3,})/g, '</span><span class="repeated fullwidth-question-marks"><span>$1</span></span><span>')
+						.replace(/(！！)/g, '</span><span class="coupled as-double-exclamation-mark"><span>$1</span></span><span>')
+						.replace(/(？？)/g, '</span><span class="coupled as-double-question-mark"><span>$1</span></span><span>')
+						.replace(/(！？)/g, '</span><span class="coupled as-exclamation-question-mark"><span>$1</span></span><span>')
+						.replace(/(？！)/g, '</span><span class="coupled as-question-exclamation-mark"><span>$1</span></span><span>')
+					//	.replace(/(！)/g, '</span><span class="fullwidth-exclamation-mark">$1</span><span>')
+					//	.replace(/(？)/g, '</span><span class="fullwidth-question-mark">$1</span><span>');
+					Part.Content = '<span>' + Part.Content + '</span>';
 				}
 				NewInnerHTML += Part.Content;
-			}
-			this.innerHTML = NewInnerHTML;
-			sML.each(this.querySelectorAll([
-				".repeating-horizontal-ellipsis",
-				".repeating-midline-horizontal-ellipsis",
-				".repeating-em-dash",
-				".repeating-exclamation-mark",
-				".repeating-question-mark"
-			].join(",")), function() {
+			});
+			Block.innerHTML = NewInnerHTML.replace(/<span><\/span>/g, "");
+			sML.each(Block.querySelectorAll(".repeated"), function() {
 				this.innerHTML = this.innerHTML.replace(/<[^>]+>/g, "");
 			});
-			sML.each(this.querySelectorAll([
-				".double-horizontal-ellipsis",
-				".double-midline-horizontal-ellipsis",
-				".double-em-dash",
-				".double-exclamation-mark",
-				".double-question-mark",
-				".exclamation-question-mark",
-				".question-exclamation-mark"
-			].join(",")), function() {
+			sML.each(Block.querySelectorAll(".coupled"), function() {
 				this.innerHTML = this.innerHTML.replace(/<[^>]+>/g, "");
 			});
 		});
-		Item.logNow("JaTEx Processed");
+		Item.logNow("JaTEx Preprocessed");
+	});
+
+	E.bind("bibi:resetItem", function(Item) {
+		if(!X.JaTEx.haveTo(Item)) return;
+		Item.logNow("JaTEx Layout");
+		var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);
+		sML.each(Item.Body.querySelectorAll(".ideographic-space, .ideographic-comma, .ideographic-full-stop"), function() {
+			sML.style(this, { display: "", margin: "", textIndent: "", transform: "" });
+		});
+		sML.each(Item.Body.querySelectorAll(X.JaTEx.Selector), function() {
+			var Checker = this.appendChild(sML.create("span", {}, { display: "block" }));
+			var StartPoint = Checker.appendChild(sML.create("span", {}, { display: "block", textAlign: "left"  })).appendChild(sML.create("span"))["offset" + S.BASE.S];
+			var   EndPoint = Checker.appendChild(sML.create("span", {}, { display: "block", textAlign: "right" })).appendChild(sML.create("span"))["offset" + S.BASE.S];
+			this.removeChild(Checker);
+			sML.each(this.querySelectorAll(".ideographic-space, .ideographic-comma, .ideographic-full-stop"), function() {
+				this.style.display = "inline-block";
+				this.style.textIndent = "0";
+				if(this["offset" + S.BASE.S] == StartPoint) {
+					this.style["margin" + S.BASE.S] = "-1em";
+					sML.style(this, { transform: "translate" + (VerticalWritingMode ? "Y" : "X") + "(1em)" });
+				} else {
+					this.style.display = "";
+					this.style.textIndent = "";
+				}
+			});
+		});
+		Item.logNow("JaTEx Layouted");
 	});
 
 });

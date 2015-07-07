@@ -817,6 +817,8 @@ L.postprocessItem = function(Item) {
 		}
 	}
 
+	E.dispatch("bibi:before:postprocessItem", Item);
+
 	L.postprocessItem.processImages(Item);
 	L.postprocessItem.defineViewport(Item);
 	L.postprocessItem.coordinateLinkages(Item);
