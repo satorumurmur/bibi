@@ -156,8 +156,8 @@
 				if(typeof Target != "string") return;
 				this.Frame.contentWindow.postMessage('{"bibi:command:changeView":"' + BDM + '"}', this.Anchor.origin);
 			};
-			Bibi.toggleCartain = function() {
-				this.Frame.contentWindow.postMessage('{"bibi:command:toggleCartain":""}', this.Anchor.origin);
+			Bibi.togglePanel = function() {
+				this.Frame.contentWindow.postMessage('{"bibi:command:togglePanel":""}', this.Anchor.origin);
 			};
 			Bibi.openInNewWindow = function() {
 				this.SwitchNewWindow.click();

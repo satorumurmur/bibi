@@ -33,7 +33,7 @@ Bibi.x({
 		],
 		IconHTML: '<span class="bibi-icon bibi-icon-paged">' + Shape.SpreadsS + '</span>'
 	}, function() {
-		C.Cartain.toggle(function() {
+		C.Panel.toggle(function() {
 			R.changeView("paged");
 		});
 	});
@@ -46,7 +46,7 @@ Bibi.x({
 		],
 		IconHTML: '<span class="bibi-icon bibi-icon-horizontal">' + Shape.SpreadsH + '</span>'
 	}, function() {
-		C.Cartain.toggle(function() {
+		C.Panel.toggle(function() {
 			R.changeView("horizontal");
 		});
 	});
@@ -59,7 +59,7 @@ Bibi.x({
 		],
 		IconHTML: '<span class="bibi-icon bibi-icon-vertical">' + Shape.SpreadsV + '</span>'
 	}, function() {
-		C.Cartain.toggle(function() {
+		C.Panel.toggle(function() {
 			R.changeView("vertical");
 		});
 	});

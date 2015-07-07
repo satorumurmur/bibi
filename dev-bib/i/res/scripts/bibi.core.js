@@ -152,7 +152,7 @@ Bibi.welcome = function() {
 	N.createBoard();
 
 	C.createVeil();
-	C.createCartain();
+	C.createPanel();
 
 	if(sML.UA.InternetExplorer < 10) {
 		return Bibi.byebye();
@@ -161,7 +161,7 @@ Bibi.welcome = function() {
 	E.add("bibi:command:move", function(Distance) { R.move(Distance); });
 	E.add("bibi:command:focus", function(Target) { R.focus(Target); });
 	E.add("bibi:command:changeView", function(BDM) { R.changeView(BDM); });
-	E.add("bibi:command:toggleCartain", function(BDM) { C.Cartain.toggle(); });
+	E.add("bibi:command:togglePanel", function(BDM) { C.Panel.toggle(); });
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	window.addEventListener("scroll", R.onscroll);
 
@@ -575,13 +575,13 @@ L.createNavigation = function(Doc) {
 	if(!Doc) {
 		O.log(2, 'Creating Navigation...', "Show");
 		if(B.Package.Manifest["nav"].Path) {
-			C.Cartain.Navigation.Item.Path = B.Package.Manifest["nav"].Path;
-			C.Cartain.Navigation.Item.Type = "NavigationDocument";
+			C.Panel.Navigation.Item.Path = B.Package.Manifest["nav"].Path;
+			C.Panel.Navigation.Item.Type = "NavigationDocument";
 		} else {
 			O.log(2, 'No Navigation Document.');
 			if(B.Package.Manifest["toc-ncx"].Path) {
-				C.Cartain.Navigation.Item.Path = B.Package.Manifest["toc-ncx"].Path;
-				C.Cartain.Navigation.Item.Type = "TOC-NCX";
+				C.Panel.Navigation.Item.Path = B.Package.Manifest["toc-ncx"].Path;
+				C.Panel.Navigation.Item.Type = "TOC-NCX";
 			} else {
 				O.log(2, 'No TOC-NCX.');
 				E.dispatch("bibi:createNavigation", "");
@@ -589,13 +589,13 @@ L.createNavigation = function(Doc) {
 				return L.loadSpreads();
 			}
 		}
-		O.log(3, B.Path + B.PathDelimiter + C.Cartain.Navigation.Item.Path);
-		return O.openDocument(C.Cartain.Navigation.Item.Path, { then: L.createNavigation });
+		O.log(3, B.Path + B.PathDelimiter + C.Panel.Navigation.Item.Path);
+		return O.openDocument(C.Panel.Navigation.Item.Path, { then: L.createNavigation });
 	}
 
-	C.Cartain.Navigation.Item.innerHTML = "";
+	C.Panel.Navigation.Item.innerHTML = "";
 	var NavContent = document.createDocumentFragment();
-	if(C.Cartain.Navigation.Item.Type == "NavigationDocument") {
+	if(C.Panel.Navigation.Item.Type == "NavigationDocument") {
 		sML.each(Doc.querySelectorAll("nav"), function() {
 			switch(this.getAttribute("epub:type")) {
 				case "toc":       sML.addClass(this, "bibi-nav-toc"); break;
@@ -626,16 +626,16 @@ L.createNavigation = function(Doc) {
 		});
 		NavContent.appendChild(document.createElement("nav")).innerHTML = TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "");
 	}
-	C.Cartain.Navigation.Item.appendChild(NavContent);
-	C.Cartain.Navigation.Item.Body = C.Cartain.Navigation.Item;
+	C.Panel.Navigation.Item.appendChild(NavContent);
+	C.Panel.Navigation.Item.Body = C.Panel.Navigation.Item;
 	delete NavContent;
 
 	delete Doc;
 
-	L.postprocessItem.coordinateLinkages(C.Cartain.Navigation.Item, "InNav");
+	L.postprocessItem.coordinateLinkages(C.Panel.Navigation.Item, "InNav");
 	R.resetNavigation();
 
-	E.dispatch("bibi:createNavigation", C.Cartain.Navigation.Item.Path);
+	E.dispatch("bibi:createNavigation", C.Panel.Navigation.Item.Path);
 
 	O.log(2, 'Navigation Created.', "Show");
 
@@ -961,7 +961,7 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 			S["to"] = This.Target;
 			L.play();
 		};
-		This.InNav ? C.Cartain.toggle(Go) : Go();
+		This.InNav ? C.Panel.toggle(Go) : Go();
 	}
 	return false;
 };
@@ -1396,11 +1396,11 @@ R.resetPages = function() {
 };
 
 R.resetNavigation = function() {
-	sML.style(C.Cartain.Navigation.Item, { float: "" });
+	sML.style(C.Panel.Navigation.Item, { float: "" });
 	if(S.PPD == "rtl") {
-		var theWidth = C.Cartain.Navigation.Item.scrollWidth - window.innerWidth;
-		if(C.Cartain.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Cartain.Navigation.Item, { float: "right" });
-		C.Cartain.Navigation.ItemBox.scrollLeft = C.Cartain.Navigation.ItemBox.scrollWidth - window.innerWidth;
+		var theWidth = C.Panel.Navigation.Item.scrollWidth - window.innerWidth;
+		if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
+		C.Panel.Navigation.ItemBox.scrollLeft = C.Panel.Navigation.ItemBox.scrollWidth - window.innerWidth;
 	}
 };
 
@@ -2036,73 +2036,73 @@ C.createVeil = function() {
 };
 
 
-C.createCartain = function() {
+C.createPanel = function() {
 
-	C.Cartain = O.Body.appendChild(
-		sML.create("div", { id: "bibi-cartain",
+	C.Panel = O.Body.appendChild(
+		sML.create("div", { id: "bibi-panel",
 			State: 0,
 			open: function(Cb) {
 				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
 				this.State = 1;
-				sML.addClass(O.HTML, "cartain-opened");
+				sML.addClass(O.HTML, "panel-opened");
 				setTimeout(Cb, 250);
 				return this.State;
 			},
 			close: function(Cb) {
 				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
 				this.State = 0;
-				sML.removeClass(O.HTML, "cartain-opened");
+				sML.removeClass(O.HTML, "panel-opened");
 				setTimeout(Cb, 250);
 				return this.State;
 			},
 			toggle: function(Cb) {
 				var State = (this.State == 0 ? this.open(Cb) : this.close(Cb));
-				E.dispatch("bibi:toggleCartain", State);
+				E.dispatch("bibi:togglePanel", State);
 				return State;
 			}
 		})
 	);
 
-	C.Cartain.Powered = C.Cartain.appendChild(sML.create("div", { id: "bibi-cartain-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
+	C.Panel.Powered = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
-	C.Cartain.Navigation = C.Cartain.appendChild(
-		sML.create("div", { id: "bibi-cartain-navigation" })
+	C.Panel.Navigation = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation" })
 	);
-	C.Cartain.Navigation.ItemBox = C.Cartain.Navigation.appendChild(
-		sML.create("div", { id: "bibi-cartain-navigation-item-box" })
+	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item-box" })
 	);
-	C.Cartain.Navigation.Item = C.Cartain.Navigation.ItemBox.appendChild(
-		sML.create("div", { id: "bibi-cartain-navigation-item", ItemBox: C.Cartain.Navigation.ItemBox })
+	C.Panel.Navigation.Item = C.Panel.Navigation.ItemBox.appendChild(
+		sML.create("div", { id: "bibi-panel-navigation-item", ItemBox: C.Panel.Navigation.ItemBox })
 	);
-	C.Cartain.Navigation.ItemBox.addEventListener("click", function() {
-		C.Cartain.toggle();
+	C.Panel.Navigation.ItemBox.addEventListener("click", function() {
+		C.Panel.toggle();
 	});
 
-	C["menu"] = C.Cartain.appendChild(
-		sML.create("div", { id: "bibi-menus" })
+	C["menu"] = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-menus" })
 	);
 
 	C["switch"] = O.Body.appendChild(
 		sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
 	);
-	C["switch"].Cartain = C.addButton({
-		id: "bibi-switch-cartain",
+	C["switch"].Panel = C.addButton({
+		id: "bibi-switch-panel",
 		Category: "switch",
-		Group: "cartain",
+		Group: "panel",
 		Labels: [
 			{ ja: 'メニューを開く',   en: 'Open Menu'  },
 			{ ja: 'メニューを閉じる', en: 'Close Menu' }
 		],
-		IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-cartain"></span>'
+		IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-panel"></span>'
 	}, function() {
-		C.Cartain.toggle();
-		C.setLabel(C["switch"].Cartain, C.Cartain.State);
+		C.Panel.toggle();
+		C.setLabel(C["switch"].Panel, C.Panel.State);
 	});
 	E.add("bibi:start", function() {
-		sML.style(C["switch"].Cartain, { display: "block" });
+		sML.style(C["switch"].Panel, { display: "block" });
 	});
 
-	E.dispatch("bibi:createCartain");
+	E.dispatch("bibi:createPanel");
 
 };
 
@@ -2757,6 +2757,25 @@ Bibi.x = X.add;
 
 
 sML.ready(Bibi.welcome);
+
+
+Bibi.x({
+
+	name: "Pan",
+	description: "Extention for Pan",
+	version: "0.1.0",
+	build: 20150706.0
+
+})(function() {
+
+	var Logo = 'パン';
+	var LinkifiedLogo = '<a class="pan-logo" href="https://pan.press">' + Logo + '</a>';
+	var Delimiter = '<span class="delimiter">×</span>';
+
+	C.Veil.Powered.innerHTML = [LinkifiedLogo, Delimiter, C.Veil.Powered.innerHTML].join(" ");
+	C.Panel.Powered.innerHTML = [LinkifiedLogo, Delimiter, C.Panel.Powered.innerHTML].join(" ");
+
+});
 
 
 

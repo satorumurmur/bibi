@@ -109,20 +109,20 @@
 // - Write
 // --------------------------------------------------------------------------------
 /*
-.bibi-icon.bibi-switch-cartain {
+.bibi-icon.bibi-switch-panel {
 	&:before {
 		content: $ElegantIcons_icon_menu;
 		line-height: 27px;
 		font-size: 24px;
 	}
-	html.cartain-opened &:before {
+	html.panel-opened &:before {
 		content: $ElegantIcons_icon_close;
 		line-height: 24px;
 		text-indent: -1px;
 	}
 }*/
 
-.bibi-icon.bibi-switch-cartain {
+.bibi-icon.bibi-switch-panel {
 	&:before, span, &:after {
 		left: 4px !important;
 		border-bottom: solid 1px !important;
@@ -145,7 +145,7 @@
 	&:after {
 		top: 16px;
 	}
-	html.cartain-opened & {
+	html.panel-opened & {
 		&:before {
 			@include transform(translateY( 5px) rotate(-225deg));
 		}
@@ -236,13 +236,13 @@
 	background-color: rgba(255,255,255,0.75) !important;
 //	opacity: .64;
 	@include transition(0.15s linear);
-	html.cartain-opened & {
+	html.panel-opened & {
 //		opacity: 1 !important;
 	}
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
 		border-bottom-color: lighten($color_label, 25%) !important;
 		background-color: lighten($color_label, 12.5%) !important;
 	}
@@ -273,7 +273,7 @@
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-cartain:before, &.bibi-switch-cartain span, &.bibi-switch-cartain:after {
+	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
 		border-bottom-color: darken($color_label, 25%) !important;
 		background-color: $color_label !important;
 	}

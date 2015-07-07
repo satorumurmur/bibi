@@ -93,12 +93,12 @@ div#bibi-veil {
 		color: rgb(96,96,96);
 		//text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
 	}*/
-	html.cartain-opened & {
+	html.panel-opened & {
 		@include transition(.2s ease-in);
 		//@include filter(blur(4px));
 		//opacity: 0.75;
 	//}
-	//html.cartain-opened.InternetExplorer & {
+	//html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
 	}
 }
@@ -573,7 +573,7 @@ div#bibi-switches {
 			position: fixed;
 			z-index: 4000;
 			top: 4px;
-			&#bibi-switch-cartain {
+			&#bibi-switch-panel {
 				left: 4px;
 			}
 			&#bibi-switch-fullscreen {
@@ -587,14 +587,14 @@ div#bibi-switches {
 
 
 // ================================================================================
-// + Cartain
+// + Panel
 // --------------------------------------------------------------------------------
 
 
-// - Cartain (div#bibi-cartain)
+// - Panel (div#bibi-panel)
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain {
+div#bibi-panel {
 	@include box-sizing(border-box);
 	overflow: hidden;
 	z-index: 3000;
@@ -609,7 +609,7 @@ div#bibi-cartain {
 	opacity: 0;
 	@include transition(0.2s ease-out);
 	@include transform(translateY(-100%));
-	html.cartain-opened & { @include transform(none !important); @include transition(0.2s ease-in); opacity: 1 !important; }
+	html.panel-opened & { @include transform(none !important); @include transition(0.2s ease-in); opacity: 1 !important; }
 	&:before {
 		content: "";
 		display: block;
@@ -625,10 +625,10 @@ div#bibi-cartain {
 }
 
 
-// - Cartain > Menu (div#bibi-menus)
+// - Panel > Menu (div#bibi-panel-menus)
 // --------------------------------------------------------------------------------
 
-div#bibi-menus {
+div#bibi-panel-menus {
 	@include box-sizing(border-box);
 	position: absolute;
 	z-index: 10;
@@ -659,10 +659,10 @@ div#bibi-menus {
 }
 
 
-// - Cartain > Powered (div#bibi-cartain-powered)
+// - Panel > Powered (div#bibi-panel-powered)
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain-powered {
+div#bibi-panel-powered {
 	@include box-sizing(border-box);
 	position: fixed;
 	z-index: 10;
@@ -704,14 +704,14 @@ div#bibi-cartain-powered {
 }
 
 
-// - Cartain > Navigation (div#bibi-cartain-navigation)
+// - Panel > Navigation (div#bibi-panel-navigation)
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain-navigation {
+div#bibi-panel-navigation {
 	@include box-sizing(border-box);
 	//font-family: sans-serif;
 }
-	div#bibi-cartain-navigation-item-box {
+	div#bibi-panel-navigation-item-box {
 		@include box-sizing(border-box);
 		position: absolute;
 		width: 100%;
@@ -723,7 +723,7 @@ div#bibi-cartain-navigation {
 		&::-webkit-scrollbar-track { background: transparent; }
 		&::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.75); border-radius: 3px; }
 	}
-		div#bibi-cartain-navigation-item {
+		div#bibi-panel-navigation-item {
 			@include box-sizing(border-box);
 			padding: 65px 35px 35px;
 			min-width: 100%;
