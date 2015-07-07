@@ -1118,6 +1118,7 @@ R.resetItem = function(Item) {
 	else if(Item.Outsourcing)  R.resetItem.asReflowableOutsourcingItem(Item);
 	else                       R.resetItem.asReflowableItem(Item)
 	Item.Reset = true;
+	E.dispatch("bibi:resetItem", Item);
 };
 
 R.resetItem.asReflowableItem = function(Item) {
