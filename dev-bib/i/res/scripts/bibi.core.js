@@ -149,6 +149,8 @@ Bibi.welcome = function() {
 	for(var Property in X) if(X[Property] && typeof X[Property] == "object" && X[Property]["name"]) ExtentionNames.push(X[Property]["name"]);
 	if(ExtentionNames.length) O.log(2, "Extention" + (ExtentionNames.length >= 2 ? "s" : "") + ": " + ExtentionNames.join(", "));
 
+	N.createBoard();
+
 	C.createVeil();
 	C.createCartain();
 
@@ -174,16 +176,16 @@ Bibi.welcome = function() {
 				B.load();
 			} else {
 				E.dispatch("bibi:wait");
-				C.Veil.Message.note('');
+				N.note('');
 			}
 		} else {
 			if(O.ZippedEPUBEnabled && window.File && !O.SmartPhone) {
 				B.dropOrClick();
 			} else {
 				if(O.WindowEmbedded) {
-					C.Veil.Message.note('Tell me EPUB name via embedding tag.');
+					N.note('Tell me EPUB name via embedding tag.');
 				} else {
-					C.Veil.Message.note('Tell me EPUB name via URI.');
+					N.note('Tell me EPUB name via URI.');
 				}
 			}
 		}
@@ -250,7 +252,7 @@ B.initialize = function(Book) {
 		if(/\.epub$/i.test(Book.Name)) B.Zipped = true;
 	} else if(typeof Book.File == "object" && Book.File) {
 		if(!Book.File.size || typeof Book.File.name != "string" || !/\.epub$/i.test(Book.File.name)) {
-			C.Veil.Message.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>.');
+			N.note('Give me <span style="color:rgb(128,128,128);">EPUB</span>.');
 			return false;
 		}
 		B["name"] = B.Path = Book.File.name;
@@ -642,7 +644,7 @@ L.createNavigation = function(Doc) {
 	} else {
 		O.stopLoading();
 		E.dispatch("bibi:wait");
-		C.Veil.Message.note('');
+		N.note('');
 	}
 
 };
@@ -1484,7 +1486,7 @@ R.layout = function(Option) {
 		R.ToRelayout = false;
 		R.resetStage();
 		R.Spreads.forEach(function(Spread, i) {
-			O.updateStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
+		//	O.updateStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
 			R.resetSpread(Spread);
 			R.layoutSpread(Spread);
 		});
@@ -1531,6 +1533,7 @@ R.Relayouting = 0;
 
 R.relayout = function(Option) {
 	if(R.Relayouting) return;
+	O.updateStatus("Relayouting...");
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
 	var Target = CurrentPages.StartPage ? {
@@ -1904,7 +1907,31 @@ R.observeTap = function(Layer, HEve) {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-N.found = function() {};
+N.createBoard = function() {
+
+	N.Board = O.Body.appendChild(sML.create("div", { className: "dissapeared", id: "bibi-notifier-board" }));
+
+};
+
+N.note = function(Note, Time) {
+	N.Board.innerHTML = '<p>' + Note + '</p>';
+	clearTimeout(N.hide_Timer);
+	N.Board.style.display = "block";
+	setTimeout(function() {
+		N.Board.className = "";
+		setTimeout(function() {
+			N.Board.style.opacity = 1;
+			if(typeof Time != "string") {
+				N.hide_Timer = setTimeout(function() {
+					N.Board.className = "hidden";
+					setTimeout(function() {
+						N.Board.style.display = "none"
+					}, 200);
+				}, (Time ? Time : 1000));
+			}
+		}, 0);
+	}, 0);
+};
 
 
 
@@ -1940,7 +1967,6 @@ C.createVeil = function() {
 		close: function(Cb) {
 			if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
 			this.State = 0;
-			this.Message.style.opacity = 0;
 			var getTranslate = function(Percent) {
 				if(S.RVM != "vertical") var Axis = "X", PM = (S.PPD == "ltr") ? -1 : 1;
 				else                    var Axis = "Y", PM = -1;
@@ -1966,23 +1992,17 @@ C.createVeil = function() {
 		}
 	});
 
-	C.Veil.Cover   = C.Veil.appendChild(sML.create("div", {                       id: "bibi-veil-cover"   }));
-	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { className: "animate", id: "bibi-veil-mark"    }));
-	C.Veil.Message = C.Veil.appendChild(sML.create("p",   { className: "animate", id: "bibi-veil-message", note: function(Note) { C.Veil.Message.innerHTML = Note; return Note; } }));
-	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   {                       id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
-
-	for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span"));
+	C.Veil.Cover   = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
+	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-mark" })); for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span"));
+	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   { id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
 
 	E.add("bibi:startLoading", function() {
-		sML.addClass(C.Veil, "animate");
-		C.Veil.Message.note('Loading...');
+		sML.addClass(O.HTML, "loading");
+		N.note('Loading...');
 	});
 	E.add("bibi:stopLoading", function() {
-		sML.removeClass(C.Veil, "animate");
-		C.Veil.Message.note('');
-	});
-	E.add("bibi:updateStatus", function(Message) {
-		if(typeof Message == "string") C.Veil.Message.note(Message);
+		sML.removeClass(O.HTML, "loading");
+		N.note('');
 	});
 	E.add("bibi:wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
@@ -2439,7 +2459,7 @@ O.updateStatus = function(Message) {
 		window.status = 'BiB/i: ' + Message;
 		O.statusClearer = setTimeout(function() { window.status = ""; }, 3210);
 	}
-	E.dispatch("bibi:updateStatus", Message);
+	N.note(Message);
 };
 
 
