@@ -132,16 +132,6 @@ Bibi.welcome = function() {
 		delete Checker;
 	}
 
-	if((typeof window.CustomEvent !== "function") && (this.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
-		window.CustomEvent = function(EventName, Option) {
-			Option = Option || { bubbles: false, cancelable: false, detail: undefined };
-			var Eve = document.createEvent("CustomEvent");
-			Eve.initCustomEvent(EventName, Option.bubbles, Option.cancelable, Option.detail);
-			return Eve;
-		};
-		window.CustomEvent.prototype = window.Event.prototype;
-	}
-
 	R.Content = O.Body.insertBefore(sML.create("div", { id: "epub-content" }), O.Body.firstElementChild);
 	R.Content.Main = R.Content.appendChild(sML.create("div", { id: "epub-content-main" }));
 	R.Content.Complementary = R.Content.appendChild(sML.create("div", { id: "epub-content-complementary" }));

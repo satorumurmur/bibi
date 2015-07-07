@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Wed July 1 23:22:00 2015 +0900
- */ sML = (function() { var Version = "0.999.15", Build = 20150701.0;
+ * - Mon July 6 11:18:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.20", Build = 20150706.0;
 
 
 
@@ -198,6 +198,16 @@ if(sML.UA.InternetExplorer <= 9) {
 sML.extendElements = sML.Fill.extendElements;
 
 window.requestAnimationFrame = sML.Fill.carePrefix(window, "requestAnimationFrame") || function(F) { setTimeout(F, 1000/60); };
+
+if(!window.CustomEvent || (typeof window.CustomEvent !== "function") && (window.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
+	window.CustomEvent = function(EventName, Option) {
+		Option = Option || { bubbles: false, cancelable: false, detail: undefined };
+		var Eve = document.createEvent("CustomEvent");
+		Eve.initCustomEvent(EventName, Option.bubbles, Option.cancelable, Option.detail);
+		return Eve;
+	};
+	window.CustomEvent.prototype = window.Event.prototype;
+}
 
 
 
