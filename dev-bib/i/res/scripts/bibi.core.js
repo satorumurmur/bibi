@@ -705,7 +705,7 @@ L.onLoadSpread = function(Spread) {
 
 L.loadItem = function(Item) { 
 	var Path = Item.Path;
-	Item.TimeCard = { 0: Date.now() };
+	Item.TimeCard = {};
 	Item.logNow = function(What) { O.logNow(What, Item.TimeCard); };
 	if(/\.(x?html?)$/i.test(Path)) {
 		// If HTML or Others
@@ -2611,10 +2611,11 @@ O.toBibiXML = function(XML) {
 };
 
 
-O.TimeCard = { 0: Date.now() };
+O.TimeCard = { Origin: Date.now() };
+
 O.logNow = function(What, TimeCard) {
 	if(!TimeCard) TimeCard = O.TimeCard;
-	var Time = Date.now() - TimeCard[0];
+	var Time = Date.now() - O.TimeCard.Origin;
 	if(TimeCard[Time]) What = TimeCard[Time] + " -&- " + What;
 	TimeCard[Time] = What;
 };
