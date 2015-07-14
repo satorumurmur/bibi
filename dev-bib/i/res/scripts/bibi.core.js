@@ -484,11 +484,6 @@ L.prepareSpine = function() {
 			Spread.SpreadIndex = R.Spreads.length;
 			Spread.id = "spread-" + sML.String.padZero(Spread.SpreadIndex, B.FileDigit);
 			R.Spreads.push(Spread);
-			/*
-			sML.addTouchEventObserver(Spread).addTouchEventListener("tap", function(Eve, HEve) {
-				R.observeTap(Spread, HEve);
-			});
-			*/
 		}
 		// ItemBox
 		var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
@@ -829,7 +824,7 @@ L.postprocessItem = function(Item) {
 	}, 20);
 
 	// Tap Scroller
-	// sML.addTouchEventObserver(Item.HTML).addTouchEventListener("tap", function(Eve, HEve) { R.observeTap(Item, HEve); });
+	// Item.HTML.addEventListener("click", function(Eve, HEve) { R.observeTap(Item, HEve); });
 
 };
 
@@ -2013,7 +2008,6 @@ C.createVeil = function() {
 			sML.create("p", { id: "bibi-veil-playbutton", title: Title,
 				innerHTML: '<span class="non-visual">' + Title + '</span>',
 				hide: function() {
-					//C.Veil.PlayButton.removeTouchEventListener("tap");
 					this.removeEventListener("click");
 					sML.style(this, {
 						opacity: 0,
@@ -2757,25 +2751,6 @@ Bibi.x = X.add;
 
 
 sML.ready(Bibi.welcome);
-
-
-Bibi.x({
-
-	name: "Pan",
-	description: "Extention for Pan",
-	version: "0.1.0",
-	build: 20150706.0
-
-})(function() {
-
-	var Logo = 'パン';
-	var LinkifiedLogo = '<a class="pan-logo" href="https://pan.press">' + Logo + '</a>';
-	var Delimiter = '<span class="delimiter">×</span>';
-
-	C.Veil.Powered.innerHTML = [LinkifiedLogo, Delimiter, C.Veil.Powered.innerHTML].join(" ");
-	C.Panel.Powered.innerHTML = [LinkifiedLogo, Delimiter, C.Panel.Powered.innerHTML].join(" ");
-
-});
 
 
 
