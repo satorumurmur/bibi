@@ -27,14 +27,13 @@ Bibi.x({
 	);
 
 	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-		sML.addTouchEventObserver(Arrow);
 		Arrow.addEventListener("mouseover", function() {
 			sML.addClass(Arrow, "flickering");
 		});
 		Arrow.addEventListener("mouseout", function() {
 			sML.removeClass(Arrow, "flickering");
 		});
-		Arrow.addTouchEventListener("tap", function() {
+		Arrow.addEventListener("click", function() {
 			E.dispatch("bibi:command:move", Arrow.DistanceToMove);
 			sML.addClass(Arrow, "firing");
 			if(Arrow.Timer) clearTimeout(Arrow.Timer);

@@ -52,7 +52,6 @@ module.exports = function(grunt){
 			bibi_js: {
 				src: [
 					'dev-bib/i/res/scripts/__lib/npo.src.js',
-					'dev-bib/i/res/scripts/__lib/hammer.min.js',
 					'dev-bib/i/res/scripts/__lib/easing.js',
 					'dev-bib/i/res/scripts/__lib/sML.js',
 					'dev-bib/i/res/scripts/bibi.core.js'
@@ -109,10 +108,9 @@ module.exports = function(grunt){
 						' *',
 						' * ## Including:',
 						' * 1. dev-bib/i/res/scripts/__lib/npo.src.js    - Native Promise Only | Copyright (c) Kyle Simpson - https://github.com/getify/native-promise-only | Licensed under the MIT license.',
-						' * 2. dev-bib/i/res/scripts/__lib/hammer.min.js - Hammer.js | Copyright (c) Jorik Tangelder - http://hammerjs.github.io/ | Licensed under the MIT license.',
-						' * 3. dev-bib/i/res/scripts/__lib/easing.js     - easing.js | Copyright (c) Dan Rogers - https://github.com/danro/easing-js | Licensed under the MIT license.',
-						' * 4. dev-bib/i/res/scripts/__lib/sML.js        - sML | Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML | Licensed under the MIT license.',
-						' * 5. dev-bib/i/res/scripts/bibi.core.js        - BiB/i Core',
+						' * 2. dev-bib/i/res/scripts/__lib/easing.js     - easing.js | Copyright (c) Dan Rogers - https://github.com/danro/easing-js | Licensed under the MIT license.',
+						' * 3. dev-bib/i/res/scripts/__lib/sML.js        - sML | Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML | Licensed under the MIT license.',
+						' * 4. dev-bib/i/res/scripts/bibi.core.js        - BiB/i Core',
 						' */'
 					].join('\n') + '\n'
 				},

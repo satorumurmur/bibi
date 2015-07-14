@@ -2151,7 +2151,7 @@ C.addButton = function(Param, Fn) {
 	);
 	if(typeof Param.id == "string" || /^[a-zA-Z_][a-zA-Z0-9_\-]*$/.test(Param.id)) Button.id = Param.id;
 	Button.Label = Button.querySelector(".bibi-icon").appendChild(sML.create("span", { className: "non-visual" }));
-	sML.addTouchEventObserver(Button).addTouchEventListener("tap", function(){ Fn(); });
+	Button.addEventListener("click", function(){ Fn(); });
 	C[Param.Category][Param.Group].style.display = "block";
 	try { C.setLabel(Button, 0); } catch(Err) { E.add("bibi:readPackageDocument", function() { C.setLabel(Button, 0); }); }
 	return Button;
