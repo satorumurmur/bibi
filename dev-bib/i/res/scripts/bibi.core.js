@@ -1014,8 +1014,18 @@ L.postprocessItem.forRubys = function(Item) {
 
 
 L.postprocessItem.applyBackgroundStyle = function(Item) {
-	if(Item.HTML.style) { Item.ItemBox.style.background = Item.contentDocument.defaultView.getComputedStyle(Item.HTML).background; Item.HTML.style.background = ""; }
-	if(Item.Body.style) { Item.style.background         = Item.contentDocument.defaultView.getComputedStyle(Item.Body).background; Item.Body.style.background = ""; }
+	if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
+	if(Item.Body.style) { sML.style(Item,         L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
+};
+L.postprocessItem.applyBackgroundStyle.getBackgroundStyle = function(Ele) {
+    var ComputedStyle = getComputedStyle(Ele);
+    return {
+        backgroundColor: ComputedStyle.backgroundColor,
+        backgroundImage: ComputedStyle.backgroundImage,
+        backgroundRepeat: ComputedStyle.backgroundRepeat,
+        backgroundPosition: ComputedStyle.backgroundPosition,
+        backgroundSize: ComputedStyle.backgroundSize
+    };
 };
 
 
