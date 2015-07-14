@@ -1114,6 +1114,8 @@ R.resetStage = function() {
 R.DefaultPageRatio = { X: 103, Y: 148 };//{ X: 1, Y: Math.sqrt(2) };
 
 R.resetItem = function(Item) {
+    O.logNow("Reset Item " + Item.ItemIndex + " Start");
+    O.logNow("Reset Start", Item.TimeCard);
 	Item.Reset = false;
 	Item.Pages = [];
 	Item.scrolling = "no";
@@ -1127,6 +1129,8 @@ R.resetItem = function(Item) {
 	else                       R.resetItem.asReflowableItem(Item)
 	Item.Reset = true;
 	E.dispatch("bibi:resetItem", Item);
+    O.logNow("Reset End", Item.TimeCard);
+    O.logNow("Reset Item " + Item.ItemIndex + " End");
 };
 
 R.resetItem.asReflowableItem = function(Item) {
@@ -1412,6 +1416,7 @@ R.resetNavigation = function() {
 
 
 R.layoutSpread = function(Spread) {
+    O.logNow("Layout Spread " + Spread.SpreadIndex + " Start");
 	var SpreadBox = Spread.SpreadBox;
 	SpreadBox.style.padding = "";
 	var SpreadBoxPaddingBefore = 0, SpreadBoxPaddingAfter = 0;
@@ -1451,6 +1456,7 @@ R.layoutSpread = function(Spread) {
 	});
 	R.Content.Main.style[S.SIZE.b] = "";
 	R.Content.Main.style[S.SIZE.l] = MainContentLength + "px";
+    O.logNow("Layout Spread " + Spread.SpreadIndex + " End");
 };
 
 
@@ -1473,6 +1479,8 @@ R.layout = function(Option) {
 	*/
 
 	if(!R.Layouted || !R.ToRelayout) O.log(2, 'Laying Out...');
+
+    O.logNow("Layout Start");
 
 	R.Layouted = true;
 
@@ -1531,6 +1539,8 @@ R.layout = function(Option) {
 
 	E.dispatch("bibi:layout");
 
+    O.logNow("Layout End");
+
 	O.log(2, 'Laid Out.');
 
 	return S;
@@ -1542,7 +1552,8 @@ R.Relayouting = 0;
 
 R.relayout = function(Option) {
 	if(R.Relayouting) return;
-	O.updateStatus("Relayouting...");
+	O.updateStatus("Relaying Out...");
+    O.logNow("Relayout Start");
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
 	var Target = CurrentPages.StartPage ? {
@@ -1576,6 +1587,7 @@ R.relayout = function(Option) {
 					opacity: 1
 				});
 				if(Option && typeof Option.callback == "function") Option.callback();
+                O.logNow("Relayout End");
 			}, 100);
 		}, 100);
 	}, 222);
@@ -2449,7 +2461,7 @@ O.Log = ((!parent || parent == window) && console && console.log);
 O.log = function(Lv, Message, ShowStatus) {
 	if(!O.Log || !Message || typeof Message != "string") return;
 	if(ShowStatus) O.updateStatus(Message);
-	if(O.SmartPhone) return;
+	//if(O.SmartPhone) return;
 	switch(Lv) {
 		case 0: Message = "[ERROR] " + Message; break;
 		case 1: Message = "-------- " + Message + " --------"; break;
