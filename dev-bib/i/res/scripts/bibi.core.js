@@ -2418,7 +2418,7 @@ S.update = function(Settings) { // formerly O.updateSetting
 			S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 		}
 	} else {
-		S.PPD = S["page-progression-direction"] = (B.Package.Spine["page-progression-direction"] == "rtl") ? "rtl" : "ltr";
+		S.PPD = S["page-progression-direction"] = (B.PPD == "rtl") ? "rtl" : "ltr";
 		S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 	}
 	S.SLD = S["spread-layout-direction"] = (S["spread-layout-axis"] == "vertical") ? "ttb" : S["page-progression-direction"];
