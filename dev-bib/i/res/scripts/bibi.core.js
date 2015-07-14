@@ -640,7 +640,7 @@ L.createNavigation = function(Doc) {
 	} else {
 		O.stopLoading();
 		E.dispatch("bibi:wait");
-		N.note('');
+		//N.note('');
 	}
 
 };
@@ -1918,7 +1918,7 @@ R.observeTap = function(Layer, HEve) {
 
 N.createBoard = function() {
 
-	N.Board = O.Body.appendChild(sML.create("div", { className: "dissapeared", id: "bibi-notifier-board" }));
+	N.Board = O.Body.appendChild(sML.create("div", { className: "hidden", id: "bibi-notifier-board" }));
 
 };
 
@@ -1929,7 +1929,6 @@ N.note = function(Note, Time) {
 	setTimeout(function() {
 		N.Board.className = "";
 		setTimeout(function() {
-			N.Board.style.opacity = 1;
 			if(typeof Time != "string") {
 				N.hide_Timer = setTimeout(function() {
 					N.Board.className = "hidden";
@@ -2011,7 +2010,7 @@ C.createVeil = function() {
 	});
 	E.add("bibi:stopLoading", function() {
 		sML.removeClass(O.HTML, "loading");
-		N.note('');
+		//N.note('');
 	});
 	E.add("bibi:wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
