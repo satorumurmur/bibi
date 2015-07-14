@@ -376,7 +376,8 @@ L.readPackageDocument = function(Doc) {
 
 	// SPINE
 	B.Package.Spine["page-progression-direction"] = Spine.getAttribute("page-progression-direction");
-	if(!B.Package.Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(B.Package.Spine["page-progression-direction"])) B.Package.Spine["page-progression-direction"] = "default";
+	if(!B.Package.Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(B.Package.Spine["page-progression-direction"])) B.Package.Spine["page-progression-direction"] = "ltr";//"default";
+    B.PPD = B.Package.Spine["page-progression-direction"];
 	var PropertyREs = [
 		/(rendition:layout)-(.+)/,
 		/(rendition:orientation)-(.+)/,
@@ -415,7 +416,7 @@ L.readPackageDocument = function(Doc) {
 	B.Publisher = B.Package.Metadata["publishers"].join(", ");
 	B.Language  = B.Package.Metadata["languages"][0].split("-")[0];
 	if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
-		B.WritingMode = (B.Package.Spine["page-progression-direction"] == "rtl") ? "tb-rl" : "lr-tb";
+		B.WritingMode = (B.PPD == "rtl") ? "tb-rl" : "lr-tb";
 	} else if(/^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language)) {
 		B.WritingMode = "rl-tb";
 	} else if(/^(mo?n)$/.test(B.Language)) {
@@ -449,7 +450,7 @@ L.prepareSpine = function() {
 	O.log(2, 'Preparing Spine...', "Show");
 
 	// For Paring of Pre-Paginated
-	if(S.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
+	if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
 	else               var PairBefore = "left",  PairAfter = "right";
 
 	// Spreads, Boxes, and Items
