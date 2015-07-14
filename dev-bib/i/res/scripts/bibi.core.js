@@ -1145,7 +1145,7 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style[S.SIZE.l] = PageL + "px";
 	if(sML.UA.Safari || sML.UA.Chrome) R.resetItem.asReflowableItem.careRubies(Item);
 	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument); ////
-	R.resetItem.asReflowableItem.fitImages(Item);
+	R.resetItem.asReflowableItem.fitImages(Item, PageB, PageL);
 	R.resetItem.asReflowableItem.columify(Item, PageB, PageL, PageGap);
 	if(S["page-breaking"]) R.resetItem.asReflowableItem.breakPages(Item, PageB);
 	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
@@ -1186,7 +1186,7 @@ R.resetItem.asReflowableItem.careRubies = function(Item) {
 	});
 	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
 };
-R.resetItem.asReflowableItem.fitImages = function(Item) {
+R.resetItem.asReflowableItem.fitImages = function(Item, PageB, PageL) {
 	sML.each(Item.Body.getElementsByTagName("img"), function() {
 		this.style.display       = this.Bibi.DefaultStyle["display"];
 		this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
@@ -2560,7 +2560,7 @@ O.getWritingMode = function(Ele) {
 O.getElementInnerText = function(Ele) {
 	var InnerText = "InnerText";
 	var Copy = document.createElement("div");
-	Copy.innerHTML = Ele.innerHTML.replace(/ (src|srcset|source|href)=/g, " data-$1=");
+	Copy.innerHTML = Ele.innerHTML.replace(/ (src(set)?|source|(xlink:)?href)=/g, " data-$1=");
 	sML.each(Copy.querySelectorAll("svg"),   function() { this.parentNode.removeChild(this); });
 	sML.each(Copy.querySelectorAll("video"), function() { this.parentNode.removeChild(this); });
 	sML.each(Copy.querySelectorAll("audio"), function() { this.parentNode.removeChild(this); });
@@ -2681,7 +2681,7 @@ E.unbind = function(Param) { // or E.unbined(Name, Fn);
 E.dispatch = function(Name, Detail) {
 	if(E.Binded[Name] instanceof Array) {
 		for(var i = 0, L = E.Binded[Name].length; i < L; i++) {
-			if(typeof E.Binded[Name][i] == "function") E.Binded[Name][i].call(bibi, Detail);
+			if(typeof E.Binded[Name][i] == "function") E.Binded[Name][i].call(Bibi, Detail);
 		}
 	}
 	return document.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
