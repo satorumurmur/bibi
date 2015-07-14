@@ -289,7 +289,7 @@ Bibi.x({
         Item.logNow("JaTEx Reset End");
     });
 
-    E.bind("bibi:resetItem", function(Item) 
+    E.bind("bibi:resetItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
         Item.logNow("JaTEx Layout Start");
         var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);
