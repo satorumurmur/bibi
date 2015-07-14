@@ -137,10 +137,10 @@ Bibi.x({
     defineMode: function(Item) {
         Item.JaTEx = { Markup: false, Layout: false };
         if(B.Language == "ja") {
-            var Setting = Item.HTML.getAttribute("data-bibi-jatex");
-            if(!Setting) Setting = P["japanese-typesetting-extra"];
-            if( Item.JaTEx) {
-                switch(Item.JaTEx) {
+            var JaTExSetting = Item.HTML.getAttribute("data-bibi-jatex");
+            if(!JaTExSetting) JaTExSetting = P["japanese-typesetting-extra"];
+            if( JaTExSetting) {
+                switch(JaTExSetting) {
                     case "markup": Item.JaTEx.Markup = true; break;
                     case "layout": Item.JaTEx.Layout = true; break;
                     default      : Item.JaTEx.Markup = true;
