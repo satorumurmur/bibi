@@ -7,12 +7,12 @@
 // --------------------------------------------------------------------------------
 
 html {
-	font-family: "Helvetica", "Trebuchet MS", sans-serif;
+	font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", sans-serif;
 	width: 100%;
 	height: 100%;
-	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "メイリオ", "Meiryo", sans-serif; }
+	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
+	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
+	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
 	//$background-color: rgb(218,216,214);
