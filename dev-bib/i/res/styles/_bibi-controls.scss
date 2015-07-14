@@ -385,12 +385,13 @@ div#bibi-veil-mark {
 	span {
 		display: block;
 		position: absolute;
-		width: 8px;
-		height: 8px;
+		width: 10px;
+		height: 10px;
 		border-radius: 50%;
-		background: rgba(0,0,0,0.5);
-		&:nth-child(odd)  { background: rgba(192,192,192,0.75); }
-		&:nth-child(even) { background: rgba(128,128,128,0.75); }
+		border: solid 1px;
+		//background: rgba(0,0,0,0.5);
+		&:nth-child(odd)  { background: rgb(192,192,192); border-color: rgba(128,128,128,.5); }
+		&:nth-child(even) { background: rgb(64,64,64); border-color: rgba(128,128,128,.5); }
 		&:nth-child(1)    { left: 32px; top:  0px; }
 		&:nth-child(2)    { left: 54px; top:  8px; }
 		&:nth-child(3)    { left: 64px; top: 32px; }
@@ -406,11 +407,11 @@ div#bibi-veil-mark {
 	}
 }
 @include keyframes(loading) {
-	  0% { @include transform(rotate(  0deg) scale(0.75)); @include filter(blur(0px)); }
-	 25% { @include transform(rotate(180deg) scale(1.00)); @include filter(blur(0px)); }
-	 50% { @include transform(rotate(360deg) scale(0.75)); @include filter(blur(0px)); }
-	 75% { @include transform(rotate(540deg) scale(1.00)); @include filter(blur(0px)); }
-	100% { @include transform(rotate(720deg) scale(0.75)); @include filter(blur(0px)); }
+	  0% { @include transform(rotate(  0deg) scale(1.00)); @include filter(blur(0px)); }
+	 25% { @include transform(rotate(180deg) scale(0.50)); @include filter(blur(0px)); }
+	 50% { @include transform(rotate(360deg) scale(1.00)); @include filter(blur(0px)); }
+	 75% { @include transform(rotate(540deg) scale(0.50)); @include filter(blur(0px)); }
+	100% { @include transform(rotate(720deg) scale(1.00)); @include filter(blur(0px)); }
 }
 
 
