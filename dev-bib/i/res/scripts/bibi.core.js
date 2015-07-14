@@ -1336,6 +1336,7 @@ R.resetItem.asPrePaginatedItem = function(Item) {
 			PageB / SpreadViewPort[S.SIZE.b],
 			PageL / SpreadViewPort[S.SIZE.l]
 		);
+        if(SpreadViewPort[S.SIZE.b] * Scale < PageB) Scale = PageB / SpreadViewPort[S.SIZE.b];
 		if(Item.Pair) Item.Pair.Scale = Scale;
 	}
 	PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
