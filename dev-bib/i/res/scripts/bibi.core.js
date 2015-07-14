@@ -1147,6 +1147,7 @@ R.DefaultPageRatio = { X: 103, Y: 148 };//{ X: 1, Y: Math.sqrt(2) };
 R.resetItem = function(Item) {
     O.logNow("Reset Item " + Item.ItemIndex + " Start");
     O.logNow("Reset Start", Item.TimeCard);
+	E.dispatch("bibi:before:resetItem", Item);
 	Item.Reset = false;
 	Item.Pages = [];
 	Item.scrolling = "no";
