@@ -89,10 +89,10 @@ div#epub-content {
 	@include box-sizing(border-box);
 	//padding: 35px 0;
 	//@include transition(.2s ease-out);
-	html.iOS                   & { position: fixed; }
-	html.iOS.spread-horizontal & { width: 100%; height: auto; overflow-x: scroll; overflow-y: hidden; }
-	html.iOS.spread-vertical   & { width: auto; height: 100%; overflow-x: hidden; overflow-y: scroll; }
-	html.iOS.view-paged     & { width: 100%; height: 100%; overflow-x: hidden; overflow-y: hidden; }
+	html.iOS                   &, html.Android                   & { position: fixed; }
+	html.iOS.spread-horizontal &, html.Android.spread-horizontal & { width: 100%; height: auto; overflow-x: scroll; overflow-y: hidden; }
+	html.iOS.spread-vertical   &, html.Android.spread-vertical   & { width: auto; height: 100%; overflow-x: hidden; overflow-y: scroll; }
+	html.iOS.view-paged        &, html.Android.view-paged        & { width: 100%; height: 100%; overflow-x: hidden; overflow-y: hidden; }
 	html.panel-opened & {
 		@include transition(.2s ease-in);
 		//@include filter(blur(4px));
