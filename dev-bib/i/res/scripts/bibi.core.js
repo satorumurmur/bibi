@@ -1502,8 +1502,7 @@ R.layout = function(Option) {
 	if(Option.Reset || R.ToRelayout) {
 		R.ToRelayout = false;
 		R.resetStage();
-		R.Spreads.forEach(function(Spread, i) {
-		//	O.updateStatus("Rendering... ( " + (i + 1) + "/" + R.Spreads.length + " Spreads )");
+		R.Spreads.forEach(function(Spread) {
 			R.resetSpread(Spread);
 			R.layoutSpread(Spread);
 		});
