@@ -1111,6 +1111,37 @@ R.resetStage = function() {
 	*/
 };
 
+R.resetSpread = function(Spread) {
+    O.logNow("Reset Spread " + Spread.SpreadIndex + " Start");
+	Spread.Items.forEach(function(Item) {
+		R.resetItem(Item);
+	});
+	var SpreadBox = Spread.SpreadBox;
+	SpreadBox.style["margin" + S.BASE.B] = SpreadBox.style["margin" + S.BASE.A] = "";
+	SpreadBox.style["margin" + S.BASE.E] = SpreadBox.style["margin" + S.BASE.S] = "auto";
+	SpreadBox.style.padding = SpreadBox.style.width = SpreadBox.style.height = "";
+	if(Spread.RenditionLayout == "reflowable") {
+		SpreadBox.style.width  = Spread.Items[0].ItemBox.style.width;
+		SpreadBox.style.height = Spread.Items[0].ItemBox.style.height;
+	} else {
+		if(Spread.Items.length == 2) {
+			var Width  = Math.ceil(         Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth        );
+			var Height = Math.ceil(Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight));
+		} else {
+			var Width  = Math.ceil(parseFloat(Spread.Items[0].ItemBox.style.width) * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1));
+			var Height = parseFloat(Spread.Items[0].ItemBox.style.height);
+		}
+        if(S.RVM == "paged") {
+            Height = Math.max(R.StageSize.Length, Height);
+        }
+        SpreadBox.style.width  = Width + "px";
+        SpreadBox.style.height = Height + "px";
+	}
+	Spread.style["border-radius"] = S["spread-border-radius"];
+	Spread.style["box-shadow"]    = S["spread-box-shadow"];
+    O.logNow("Reset Spread " + Spread.SpreadIndex + " End");
+};
+
 R.DefaultPageRatio = { X: 103, Y: 148 };//{ X: 1, Y: Math.sqrt(2) };
 
 R.resetItem = function(Item) {
@@ -1361,30 +1392,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
 	Page.PageIndexInItem = Item.Pages.length;
 	Item.Pages.push(Page);
 	return Item;
-};
-
-R.resetSpread = function(Spread) {
-	Spread.Items.forEach(function(Item) {
-		R.resetItem(Item);
-	});
-	var SpreadBox = Spread.SpreadBox;
-	SpreadBox.style["margin" + S.BASE.B] = SpreadBox.style["margin" + S.BASE.A] = "";
-	SpreadBox.style["margin" + S.BASE.E] = SpreadBox.style["margin" + S.BASE.S] = "auto";
-	SpreadBox.style.padding = "";
-	if(S["book-rendition-layout"] == "reflowable") {
-		SpreadBox.style.width  = Spread.Items[0].ItemBox.style.width;
-		SpreadBox.style.height = Spread.Items[0].ItemBox.style.height;
-	} else {
-		if(Spread.Items.length == 2) {
-			SpreadBox.style.width  = Math.ceil(         Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth        ) + "px";
-			SpreadBox.style.height = Math.ceil(Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight)) + "px";
-		} else {
-			SpreadBox.style.width  = Math.ceil(parseFloat(Spread.Items[0].ItemBox.style.width) * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1)) + "px";
-			SpreadBox.style.height = Spread.Items[0].ItemBox.style.height;
-		}
-	}
-	Spread.style["border-radius"] = S["spread-border-radius"];
-	Spread.style["box-shadow"]    = S["spread-box-shadow"];
 };
 
 R.resetPages = function() {
