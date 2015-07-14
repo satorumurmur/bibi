@@ -1493,8 +1493,8 @@ R.layout = function(Option) {
 	if(!Option.Target) {
 		var CurrentPage = R.getCurrentPages().StartPage;
 		Option.Target = {
-			ItemIndex: CurrentPage.Item.ItemIndex,
-			PageProgressInItem: CurrentPage.PageIndexInItem / CurrentPage.Item.Pages.length
+			SpreadIndex: CurrentPage.Spread.SpreadIndex,
+			PageProgressInSpread: CurrentPage.PageIndexInSpread / CurrentPage.Spread.Pages.length
 		}
 	}
 
@@ -1557,11 +1557,11 @@ R.relayout = function(Option) {
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
 	var Target = CurrentPages.StartPage ? {
-		ItemIndex: CurrentPages.StartPage.Item.ItemIndex,
-		PageProgressInItem: CurrentPages.StartPage.PageIndexInItem / CurrentPages.StartPage.Item.Pages.length
+		SpreadIndex: CurrentPages.StartPage.Spread.SpreadIndex,
+		PageProgressInSpread: CurrentPages.StartPage.PageIndexInSpread / CurrentPages.StartPage.Spread.Pages.length
 	} : {
-		ItemIndex: 0,
-		PageProgressInItem: 0
+		SpreadIndex: 0,
+		PageProgressInSpread: 0
 	};
 	setTimeout(function() {
 		sML.style(R.Content.Main, {
@@ -1766,9 +1766,9 @@ R.focus.hatchTarget = function(Target) { // from Page, Element, or Edge
 		}
 		if(Target.Element) Target.Page = R.focus.getNearestPageOfElement(Target.Element);
 		else if(!Target.Page){
-			     if(typeof Target.PageIndexInItem    == "number") Target.Page = Target.Item.Pages[Target.PageIndex];
-			else if(typeof Target.PageProgressInItem == "number") Target.Page = Target.Item.Pages[Math.floor(Target.Item.Pages.length * Target.PageProgressInItem)];
-			else                                                  Target.Page = Target.Item.Pages[0];
+			     if(typeof Target.PageIndexInSpread    == "number") Target.Page = Target.Spread.Pages[Target.PageIndexInSpread];
+			else if(typeof Target.PageProgressInSpread == "number") Target.Page = Target.Spread.Pages[Math.floor(Target.Spread.Pages.length * Target.PageProgressInSpread)];
+			else                                                    Target.Page = Target.Item.Pages[0];
 		}
 	}
 	if(!Target.Page) return null;
