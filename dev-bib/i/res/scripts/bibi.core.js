@@ -1645,40 +1645,46 @@ R.getCurrentPages = function() {
 		Top:    FrameScrollCoord.Y,
 		Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
 	};
-	var FrameScrollCoordBefore = FrameScrollCoord[S.BASE.B] / R.Scale * S.AXIS.PM;
-	var FrameScrollCoordAfter  = FrameScrollCoord[S.BASE.A] / R.Scale * S.AXIS.PM;
+	FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B] / R.Scale;
+	FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A] / R.Scale;
 	var Pages = [], Ratio = [], Status = [], BiggestRatio = 0;
 	for(var i = 0, L = R.Pages.length; i < L; i++) {
 		var PageCoord = sML.getCoord(R.Pages[i]);
-		var PageCoordBefore = PageCoord[S.BASE.B] * S.AXIS.PM;
-		var PageCoordAfter  = PageCoord[S.BASE.A] * S.AXIS.PM;
-		var LengthInside = Math.min(FrameScrollCoordAfter, PageCoordAfter) - Math.max(FrameScrollCoordBefore, PageCoordBefore);
+		PageCoord.Before = PageCoord[S.BASE.B];
+		PageCoord.After  = PageCoord[S.BASE.A];
+		var LengthInside = Math.min(FrameScrollCoord.After * S.AXIS.PM, PageCoord.After * S.AXIS.PM) - Math.max(FrameScrollCoord.Before * S.AXIS.PM, PageCoord.Before * S.AXIS.PM);
 		var PageRatio = (LengthInside <= 0 || !PageCoord[S.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.SIZE.L] * 100);
 		if(PageRatio <= 0) {
 			if(!Pages.length) continue; else break;
 		} else if(PageRatio > BiggestRatio) {
 			Pages[0] = R.Pages[i];
 			Ratio[0] = PageRatio;
-			Status[0] = R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore);
+			Status[0] = R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord);
 			BiggestRatio = PageRatio;
 		} else if(PageRatio == BiggestRatio) {
 			Pages.push(R.Pages[i]);
 			Ratio.push(PageRatio);
-			Status.push(R.getCurrentPages.getStatus(PageRatio, FrameScrollCoordBefore, PageCoordBefore));
+			Status.push(R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord));
 		}
 	}
 	return {
-		Pages: Pages,                     Ratio: Ratio,                          Status: Status,
+		     Pages: Pages,                         Ratio: Ratio,                          Status: Status,
 		StartPage: Pages[0],              StartPageRatio: Ratio[0],              StartPageStatus: Status[0],
-		EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
+		  EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
 	};
 };
 
-R.getCurrentPages.getStatus = function(RatioInside, FrameScrollCoordBefore, PageCoordBefore) {
-	if(RatioInside == 100) return "shown";
-	if(FrameScrollCoordBefore <  PageCoordBefore) return "yet";
-	if(FrameScrollCoordBefore  > PageCoordBefore) return "over";
-	return "shown";
+R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
+	if(PageRatio >= 100) return "including";
+    var Status = [];
+    if(window["inner" + S.SIZE.L] < PageCoord[S.SIZE.L]) Status.push("oversize");
+    var FrameBefore = FrameScrollCoord.Before - S["spread-gap"] / 2;
+    var FrameAfter  = FrameScrollCoord.After  + S["spread-gap"] / 2;
+	if(FrameBefore * S.AXIS.PM <  PageCoord.Before * S.AXIS.PM) Status.push("entering");
+	if(FrameBefore * S.AXIS.PM == PageCoord.Before * S.AXIS.PM) Status.push("entered");
+	if(FrameAfter  * S.AXIS.PM == PageCoord.After  * S.AXIS.PM) Status.push("passsing");
+	if(FrameAfter  * S.AXIS.PM  > PageCoord.After  * S.AXIS.PM) Status.push("passed");
+	return Status.join(" ");
 };
 
 
@@ -1700,7 +1706,8 @@ R.focus = function(Target, ScrollOption) {
 			}
 		} else {
 			var FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
-			FocusPoint -= S["spread-gap"] / 2 * S.AXIS.PM;
+            if(Target.Side == "after") FocusPoint += (Target.Page["offset" + S.SIZE.L] + S["spread-gap"] / 2 - window["inner" + S.SIZE.L]) * S.AXIS.PM;
+			else                       FocusPoint -= S["spread-gap"] / 2 * S.AXIS.PM;
 			if(S.SLD == "rtl") FocusPoint += Target.Page.offsetWidth - window.innerWidth;
 		}
 		if(typeof Target.TextNodeIndex == "number") R.selectTextLocation(Target); // Colorize Target with Selection
@@ -1708,11 +1715,16 @@ R.focus = function(Target, ScrollOption) {
 	var ScrollTo = { X: 0, Y: 0 }; 
 	ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
 	if(S.RVM == "paged") {
+        var GoAhead = (function() {
+            CurrentScrollLength = (R.Frame == window) ? window["scroll" + S.AXIS.L] : R.Frame["scroll" + (S.SLA == "horizontal" ? "Left" : "Top")];
+            if(S.SLD == "rtl") return (FocusPoint < CurrentScrollLength);
+            else               return (FocusPoint > CurrentScrollLength);
+        })();
+        var FlippingDuration = 50;
 		sML.style(R.Content, {
-			transition: "ease-out 0.05s"
+			transition: "ease-out " + (FlippingDuration / 1000) + "s"
 		});
-		var CurrentScrollLength = (R.Frame == window) ? window["scroll" + S.AXIS.L] : R.Frame["scroll" + (S.SLA == "horizontal" ? "Left" : "Top")];
-		sML.addClass(O.HTML, "flipping-" + (FocusPoint > CurrentScrollLength ? "ahead" : "astern"));
+		sML.addClass(O.HTML, "flipping-" + (GoAhead ? "ahead" : "astern"));
 		setTimeout(function() {
 			sML.style(R.Content, {
 				transition: "none"
@@ -1730,7 +1742,7 @@ R.focus = function(Target, ScrollOption) {
 					E.dispatch("bibi:focus", Target);
 				}
 			});
-		}, 50);
+		}, FlippingDuration);
 	} else {
 		sML.scrollTo(R.Frame, ScrollTo, ScrollOption);
 	}
@@ -1854,8 +1866,25 @@ R.move = function(Distance) {
 	var CurrentPage = CurrentPages[CurrentEdge];
 	if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
 		var CurrentPageStatus = CurrentPages[CurrentEdge + "Status"];
-			 if(Distance < 0 && CurrentPageStatus == "over") Distance = 0;
-		else if(Distance > 0 && CurrentPageStatus == "yet")  Distance = 0;
+        var CurrentPageRatio  = CurrentPages[CurrentEdge + "Ratio"];
+        var Side = "before";
+        if(/(oversize)/.test(CurrentPageStatus)) {
+            if(Distance > 0) {
+                     if(CurrentPageRatio >= 90)             Distance =  1, Side = "before";
+                else if(/entering/.test(CurrentPageStatus)) Distance =  0, Side = "before";
+                else if( /entered/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+            } else {
+                if(CurrentPageRatio >= 90)                  Distance = -1, Side = "after";
+                else if( /passing/.test(CurrentPageStatus)) Distance =  0, Side = "before";
+                else if(  /passed/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+            }
+        } else {
+            if(Distance > 0) {
+                     if(   /enter/.test(CurrentPageStatus)) Distance =  0, Side = "before";
+            } else {
+                     if(    /pass/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+            }
+        }
 		var TargetPageIndex = CurrentPage.PageIndex + Distance;
 			 if(TargetPageIndex <                  0) TargetPageIndex = 0;
 		else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
@@ -1866,7 +1895,7 @@ R.move = function(Distance) {
 				if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
 			}
 		}
-		R.focus({ Page: TargetPage });
+		R.focus({ Page: TargetPage, Side: Side });
 	} else {
 		sML.scrollTo(
 			R.Frame,
