@@ -1086,8 +1086,8 @@ R.initialize = function() {
 R.resetStage = function() {
 	//if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S.SLA == "vertical" ? "100%" : window.innerHeight + "px";
 	R.StageSize = {};
-	R.StageSize.Width   = O.HTML.clientWidth;
-	R.StageSize.Height  = O.HTML.clientHeight;// - 35 * 2;
+	R.StageSize.Width   = Math.min(window.innerWidth,  O.HTML.clientWidth);
+	R.StageSize.Height  = Math.min(window.innerHeight, O.HTML.clientHeight);// - 35 * 2;
 	R.StageSize.Breadth = R.StageSize[S.SIZE.B] - S["spread-margin-start"] - S["spread-margin-end"];
 	R.StageSize.Length  = R.StageSize[S.SIZE.L] - S["spread-gap"] * 2;
 	//R.Content.Main.style["padding" + S.BASE.B] = R.Content.Main.style["padding" + S.BASE.A] = S["spread-gap"] + "px";
