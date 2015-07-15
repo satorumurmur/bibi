@@ -114,7 +114,7 @@ div#epub-content {
 }
 
 	div#epub-content-main {
-		html.preparing         & { opacity: 0; }
+		html.preparing & { opacity: 0; }
 		@include box-sizing(border-box);
 		//overflow: hidden;
 		position: relative;
