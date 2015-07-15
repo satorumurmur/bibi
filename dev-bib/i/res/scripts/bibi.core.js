@@ -10,10 +10,10 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Mon June 29 21:21:21 2015 +0900
+ * - Wed July 15 15:08:00 2015 +0900
  */
 
-Bibi = { "version": "0.999.0", "build": 20150629.0 };
+Bibi = { "version": "0.999.0", "build": 20150715.0 };
 
 
 
