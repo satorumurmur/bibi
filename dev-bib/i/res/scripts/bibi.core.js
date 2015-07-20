@@ -263,6 +263,7 @@ B.initialize = function(Book) {
 		return false;
 	}
 	B.PathDelimiter = !B.Zipped ? "/" : " > ";
+    E.dispatch("bibi:B.initialize");
 };
 
 
