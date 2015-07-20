@@ -165,14 +165,14 @@ Bibi.x({
                 [  '（'   ,  '）'   ,  "parenthesized with-fullwidth-parentheses"  ],
                 [  '「'   ,  '」'   ,  "bracketed with-corner-brackets"  ],
                 [  '『'   ,  '』'   ,  "bracketed with-double-corner-brackets"  ],
-                [  '〈'   ,  '〉'   ,  "bracketed with-anble-brackets"  ],
-                [  '《'   ,  '》'   ,  "bracketed with-double-anble-brackets"  ],
-                [  '｛'   ,  '｝'   ,  "bracketed with-fullwidth-curly-brackets"  ],
-                [  '［'   ,  '］'   ,  "bracketed with-fullwidth-square-brackets"  ],
-                [  '【'   ,  '】'   ,  "bracketed bracketed with-black-lenticular-brackets"  ],
+            //    [  '〈'   ,  '〉'   ,  "bracketed with-anble-brackets"  ],
+            //    [  '《'   ,  '》'   ,  "bracketed with-double-anble-brackets"  ],
+            //    [  '｛'   ,  '｝'   ,  "bracketed with-fullwidth-curly-brackets"  ],
+            //    [  '［'   ,  '］'   ,  "bracketed with-fullwidth-square-brackets"  ],
+            //    [  '【'   ,  '】'   ,  "bracketed bracketed with-black-lenticular-brackets"  ],
                 [  '“'   ,  '”'   ,  "quoted with-double-quotation-marks"  ],
                 [  '〝'   ,  '〟'   ,  "quoted with-double-prime-quotation-marks"  ],
-                [  '‘'   ,  '’'   ,  "quoted with-single-quotation-marks"  ],
+            //    [  '‘'   ,  '’'   ,  "quoted with-single-quotation-marks"  ],
             null ]);
             Block.innerHTML = EnclosedHTML;
             var Parts = X.JaTEx.parse(Block.innerHTML);
