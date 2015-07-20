@@ -2500,7 +2500,7 @@ O.Log = ((!parent || parent == window) && console && console.log);
 O.log = function(Lv, Message, ShowStatus) {
 	if(!O.Log || !Message || typeof Message != "string") return;
 	if(ShowStatus) O.updateStatus(Message);
-	//if(O.SmartPhone) return;
+	if(O.SmartPhone) return;
 	switch(Lv) {
 		case 0: Message = "[ERROR] " + Message; break;
 		case 1: Message = "-------- " + Message + " --------"; break;
