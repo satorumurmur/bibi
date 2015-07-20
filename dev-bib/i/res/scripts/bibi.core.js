@@ -647,6 +647,7 @@ L.createNavigation = function(Doc) {
 
 
 L.play = function() {
+    if(O.SmartPhone) return window.open(location.href.replace(/&wait=[^&]+/g, "")); // WIP
 	O.startLoading();
 	if(B["name"]) L.loadSpreads();
 	else          B.load({ Name: U["book"] });
