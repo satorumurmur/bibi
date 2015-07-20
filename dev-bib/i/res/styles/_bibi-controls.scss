@@ -485,8 +485,8 @@ p#bibi-veil-powered {
 // --------------------------------------------------------------------------------
 
 div#bibi-arrows {
-	$icon-offset: 8px;
-	$icon-size: 48px;
+	$icon-offset: 4px;
+	$icon-size: 32px;
 	div.bibi-arrow {
 		position: fixed;
 		z-index: 1000;
@@ -495,7 +495,8 @@ div#bibi-arrows {
 		top: -100%;
 		bottom: -100%;
 		margin: auto;
-		$breadth: 33%;
+		//$breadth: $icon-size + $icon-offset * 2;
+		$breadth: 50%;
 		$length: $icon-size + $icon-offset * 2;
 		font-size: $icon-size;
 		line-height: 1;
