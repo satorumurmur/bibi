@@ -267,6 +267,22 @@ Bibi.x({
     });
 
     E.bind("bibi:postprocessItem", function(Item) {
+        Item.RubyParents = [];
+        sML.each(Item.Body.querySelectorAll("ruby"), function() {
+            var RubyParent = this.parentNode;
+            while(getComputedStyle(RubyParent).display != "block" && RubyParent != Item.Body) RubyParent = RubyParent.parentNode;
+            if(RubyParent != Item.Body && Item.RubyParents[Item.RubyParents.length - 1] != RubyParent) {
+                Item.RubyParents.push(RubyParent);
+                RubyParent.WritingMode = O.getWritingMode(RubyParent);
+                RubyParent.LiningLength = (/^tb/.test(RubyParent.WritingMode) ? "Width" : "Height");
+                RubyParent.LiningBefore = (/tb$/.test(RubyParent.WritingMode) ? "Top" : (/rl$/.test(RubyParent.WritingMode) ? "Right" : "Left"));
+                RubyParent.DefaultFontSize = parseFloat(getComputedStyle(RubyParent).fontSize);
+                RubyParent.OriginalCSSText = RubyParent.style.cssText;
+            }
+        });
+    });
+
+    E.bind("bibi:postprocessItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
         sML.CSS.addRule(".jatex-checker", "display: block;", Item.contentDocument);
         sML.CSS.addRule(".jatex-checker >span", "display: block;", Item.contentDocument);
@@ -276,6 +292,24 @@ Bibi.x({
         sML.CSS.addRule(".jatex-test", "display: inline-block; text-indent: 0;", Item.contentDocument);
         sML.CSS.addRule(".jatex-burasage-tate", "display: inline-block; position: relative; margin-top: -1em; top: 1em;", Item.contentDocument);
         sML.CSS.addRule(".jatex-burasage-yoko", "display: inline-block; position: relative; margin-left: -1em; left: 1em;", Item.contentDocument);
+    });
+
+    E.bind("bibi:before:resetItem.asReflowableItem.adjustContent", function(Item) {
+        if(!sML.UA.Safari && !sML.UA.Chrome) return;
+        var RubyParentsLengthWithRubys = [];
+        Item.RubyParents.forEach(function(RubyParent) {
+            RubyParent.style.cssText = RubyParent.OriginalCSSText;
+            RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
+        });
+        var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
+        Item.RubyParents.forEach(function(RubyParent, i) {
+            var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
+            if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
+                var RubyParentComputedStyle = getComputedStyle(RubyParent);
+                RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
+            }
+        });
+        sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
     });
 
     E.bind("bibi:before:resetItem", function(Item) {

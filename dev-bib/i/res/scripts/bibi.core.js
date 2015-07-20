@@ -821,7 +821,6 @@ L.postprocessItem = function(Item) {
 	setTimeout(function() {
 		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		L.postprocessItem.patchWritingModeStyle(Item);
-		L.postprocessItem.forRubys(Item);
 		L.postprocessItem.applyBackgroundStyle(Item);
 		E.dispatch("bibi:postprocessItem", Item);
 	}, 100);
@@ -996,22 +995,6 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
 	     if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
 	else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
 	else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
-};
-
-
-L.postprocessItem.forRubys = function(Item) {
-	Item.RubyParents = [];
-	sML.each(Item.Body.querySelectorAll("ruby"), function() {
-		var RubyParent = this.parentNode;
-		if(Item.RubyParents[Item.RubyParents.length - 1] != RubyParent) {
-			Item.RubyParents.push(RubyParent);
-			RubyParent.WritingMode = O.getWritingMode(RubyParent);
-			RubyParent.LiningLength = (/^tb/.test(RubyParent.WritingMode) ? "Width" : "Height");
-			RubyParent.LiningBefore = (/tb$/.test(RubyParent.WritingMode) ? "Top" : (/rl$/.test(RubyParent.WritingMode) ? "Right" : "Left"));
-			RubyParent.DefaultFontSize = parseFloat(getComputedStyle(RubyParent).fontSize);
-			RubyParent.OriginalCSSText = RubyParent.style.cssText;
-		}
-	});
 };
 
 
@@ -1192,12 +1175,7 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
-	if(sML.UA.Safari || sML.UA.Chrome) R.resetItem.asReflowableItem.careRubies(Item);
-	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument); ////
-	R.resetItem.asReflowableItem.fitImages(Item, PageB, PageL);
-	R.resetItem.asReflowableItem.columify(Item, PageB, PageL, PageGap);
-	if(S["page-breaking"]) R.resetItem.asReflowableItem.breakPages(Item, PageB);
-	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
+    R.resetItem.asReflowableItem.adjustContent(Item, PageB, PageL, PageGap);
 	var ItemL = (sML.UA.InternetExplorer >= 10) ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
@@ -1219,23 +1197,15 @@ R.resetItem.asReflowableItem = function(Item) {
 	}
 	return Item;
 };
-R.resetItem.asReflowableItem.careRubies = function(Item) {
-	var RubyParentsLengthWithRubys = [];
-	Item.RubyParents.forEach(function(RubyParent) {
-		RubyParent.style.cssText = RubyParent.OriginalCSSText;
-		RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
-	});
-	var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
-	Item.RubyParents.forEach(function(RubyParent, i) {
-		var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
-		if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
-			var RubyParentComputedStyle = getComputedStyle(RubyParent);
-			RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
-		}
-	});
-	sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+R.resetItem.asReflowableItem.adjustContent = function(Item, PageB, PageL, PageGap) {
+	E.dispatch("bibi:before:resetItem.asReflowableItem.adjustContent", Item);
+	var WordWrappingStyleSheetIndex = sML.CSS.addRule("*", "word-wrap: break-word;", Item.contentDocument); ////
+	R.resetItem.asReflowableItem.adjustContent.fitImages(Item, PageB, PageL);
+	R.resetItem.asReflowableItem.adjustContent.columify(Item, PageB, PageL, PageGap);
+	if(S["page-breaking"]) R.resetItem.asReflowableItem.adjustContent.breakPages(Item, PageB);
+	sML.CSS.removeRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
 };
-R.resetItem.asReflowableItem.fitImages = function(Item, PageB, PageL) {
+R.resetItem.asReflowableItem.adjustContent.fitImages = function(Item, PageB, PageL) {
 	sML.each(Item.Body.getElementsByTagName("img"), function() {
 		this.style.display       = this.Bibi.DefaultStyle["display"];
 		this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
@@ -1257,7 +1227,7 @@ R.resetItem.asReflowableItem.fitImages = function(Item, PageB, PageL) {
 		}
 	});
 };
-R.resetItem.asReflowableItem.columify = function(Item, PageB, PageL, PageGap) {
+R.resetItem.asReflowableItem.adjustContent.columify = function(Item, PageB, PageL, PageGap) {
 	if(S.RVM == "paged" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
 		R.Columned = Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
 		Item.HTML.style[S.SIZE.b] = PageB + "px";
@@ -1269,7 +1239,7 @@ R.resetItem.asReflowableItem.columify = function(Item, PageB, PageL, PageGap) {
 		});
 	}
 };
-R.resetItem.asReflowableItem.breakPages = function(Item, PageB) {
+R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
 	var PBR; // PageBreakerRulers
 	if(Item.Body["offset" + S.SIZE.B] <= PageB) PBR = [(S.SLA == "vertical" ? "Top" : "Left"), window["inner" + S.SIZE.L]/*PageL*/, S.SIZE.L, S.SIZE.l, S.BASE.a];
 	else                                        PBR = [(S.SLA == "vertical" ? "Left" : "Top"), /*window["inner" + S.SIZE.B]*/PageB, S.SIZE.B, S.SIZE.b, S.BASE.e];
