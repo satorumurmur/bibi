@@ -189,7 +189,7 @@ Bibi.welcome = function() {
 				}
 			}
 		}
-	}, (sML.OS.iOS || sML.OS.Android ? 1000 : 1));
+	}, (sML.OS.iOS || sML.OS.Android ? 999 : 1));
 
 };
 
@@ -714,10 +714,10 @@ L.loadItem = function(Item) {
 		// If HTML or Others
 		if(B.Zipped) {
 			L.writeItemHTML(Item, B.Files[Path]);
-			setTimeout(L.postprocessItem, 10, Item);
+			setTimeout(L.postprocessItem, 0, Item);
 		} else {
 			Item.src = B.Path + "/" + Path;
-			Item.onload = function() { setTimeout(L.postprocessItem, 10, Item); };
+			Item.onload = function() { setTimeout(L.postprocessItem, 0, Item); };
 			Item.ItemBox.appendChild(Item);
 		}
 	} else if(/\.(svg)$/i.test(Path)) {
@@ -819,12 +819,12 @@ L.postprocessItem = function(Item) {
 	//Item.RenditionLayout = ((Item.ItemRef["rendition:layout"] == "pre-paginated") && Item.ItemRef["viewport"]["width"] && Item.ItemRef["viewport"]["height"]) ? "pre-paginated" : "reflowable";
 
 	setTimeout(function() {
-		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 20);
+		if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
 		L.postprocessItem.patchWritingModeStyle(Item);
 		L.postprocessItem.forRubys(Item);
 		L.postprocessItem.applyBackgroundStyle(Item);
 		E.dispatch("bibi:postprocessItem", Item);
-	}, 20);
+	}, 100);
 
 	// Tap Scroller
 	// Item.HTML.addEventListener("click", function(Eve, HEve) { R.observeTap(Item, HEve); });
