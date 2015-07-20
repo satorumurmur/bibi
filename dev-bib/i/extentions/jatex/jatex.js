@@ -6,7 +6,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Thu July 2 14:36:00 2015 +0900
+ * - Mon July 20 18:59:00 2015 +0900
  */
 
 Bibi.x({
@@ -14,7 +14,7 @@ Bibi.x({
     name: "JaTEx",
     description: "Japanese Typesetting Extra",
     version: "0.1.0",
-    build: 20150702.0,
+    build: 20150720.0,
 
     HTMLString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
@@ -154,6 +154,7 @@ Bibi.x({
 
 })(function() {
 
+    // Markup
     E.bind("bibi:before:postprocessItem", function(Item) {
         X.JaTEx.defineMode(Item);
         if(!Item.JaTEx.Markup) return;
@@ -266,6 +267,7 @@ Bibi.x({
         Item.logNow("JaTEx Preprocess End");
     });
 
+    // Ruby
     E.bind("bibi:postprocessItem", function(Item) {
         Item.RubyParents = [];
         sML.each(Item.Body.querySelectorAll("ruby"), function() {
@@ -282,6 +284,7 @@ Bibi.x({
         });
     });
 
+    // Layout
     E.bind("bibi:postprocessItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
         sML.CSS.addRule(".jatex-checker", "display: block;", Item.contentDocument);
@@ -294,6 +297,7 @@ Bibi.x({
         sML.CSS.addRule(".jatex-burasage-yoko", "display: inline-block; position: relative; margin-left: -1em; left: 1em;", Item.contentDocument);
     });
 
+    // Ruby
     E.bind("bibi:before:resetItem.asReflowableItem.adjustContent", function(Item) {
         if(!sML.UA.Safari && !sML.UA.Chrome) return;
         var RubyParentsLengthWithRubys = [];
@@ -312,6 +316,7 @@ Bibi.x({
         sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
     });
 
+    // Layout
     E.bind("bibi:before:resetItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
         Item.logNow("JaTEx Reset Start");
@@ -323,6 +328,7 @@ Bibi.x({
         Item.logNow("JaTEx Reset End");
     });
 
+    // Layout
     E.bind("bibi:resetItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
         Item.logNow("JaTEx Layout Start");
