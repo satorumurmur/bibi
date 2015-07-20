@@ -679,14 +679,17 @@ div#bibi-panel-powered {
 	line-height: 30px;
 	text-align: center;
 	font-size: 14px;
-	right: 4px;/*
-	html.window-not-embedded.fullscreen-enabled &,
-	html.window-embedded.fullscreen-not-enabled & {
-		right: 35px;
+	right: 4px;
+	@media screen and (max-width: 400px) {
+		text-align: right;
+		html.window-not-embedded.fullscreen-enabled &,
+		html.window-embedded.fullscreen-not-enabled & {
+			right: 35px;
+		}
+		html.window-embedded.fullscreen-enabled & {
+			right: 66px;
+		}
 	}
-	html.window-embedded.fullscreen-enabled & {
-		right: 66px;
-	}*/
 	a, span {
 		display: inline-block;
 		text-decoration: none;
