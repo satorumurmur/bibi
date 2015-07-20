@@ -2764,13 +2764,18 @@ M.post = function(Message, TargetOrigin) {
 };
 
 M.receive = function(Data) {
-	Data = JSON.parse(Data);
-	if(typeof Data != "object" || !Data) return false;
-	for(var EventName in Data) E.dispatch((!/^bibi:command:[\w\d]+$/.test(EventName) ? "bibi:command:" : "") + EventName, Data[EventName]);
-	return true;
+	try {
+        Data = JSON.parse(Data);
+        if(typeof Data != "object" || !Data) return false;
+        for(var EventName in Data) E.dispatch((!/^bibi:command:[\w\d]+$/.test(EventName) ? "bibi:command:" : "") + EventName, Data[EventName]);
+        return true;
+    } catch(Err) {
+        return false;
+    }
 };
 
 M.gate = function(Eve) {
+    if(!Eve || !Eve.data) return;
 	for(var i = 0, L = S["trustworthy-origins"].length; i < L; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
 };
 
