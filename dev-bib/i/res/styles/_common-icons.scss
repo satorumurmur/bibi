@@ -126,8 +126,10 @@ $shape-spread-height: $shape-item-height;
 	$bar-width: 19px;
 	$bar-height: 2px;
 	$bar-isolation: 4px;
+	$bar-block-height: $bar-height + $bar-isolation;
 	$bars-width: $bar-width;
 	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
+	$bars-top: ($icon-height - $bars-height) / 2 - 1px;
 	&:before, span, &:after {
 		left: 0 !important;
 		right: 0 !important;
@@ -144,14 +146,14 @@ $shape-spread-height: $shape-item-height;
 		position: absolute;
 	}
 	&:before {
-		top: ($icon-height - $bars-height) / 2 - 1px !important;
+		top: $bars-top !important;
 	}
 	span {
-		top: ($icon-height - $bars-height) / 2 - 1px + $bar-height + $bar-isolation !important;
+		top: $bars-top + $bar-block-height !important;
 		color: transparent !important;
 	}
 	&:after {
-		top: ($icon-height - $bars-height) / 2 - 1px + $bar-height + $bar-isolation + $bar-height + $bar-isolation !important;
+		top: $bars-top + $bar-block-height * 2 !important;
 	}
 	html.panel-opened & {
 		&:before {
@@ -237,7 +239,7 @@ $shape-spread-height: $shape-item-height;
 //.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
 
 .bibi-icon {
-	$color_label: rgba(0,0,0,0.34);
+	$color_label: rgba(0,0,0,0.5);
 //	border-color: rgba(66,64,62,.5) !important;
 //	background-color: rgba(255,255,255,0.8) !important;
 	border-color: rgba(192,192,192,0.5) !important;
@@ -251,8 +253,7 @@ $shape-spread-height: $shape-item-height;
 		color: $color_label !important;
 	}
 	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
-		border-bottom-color: lighten($color_label, 25%) !important;
-		background-color: lighten($color_label, 12.5%) !important;
+		background-color: lighten($color_label, 5%) !important;
 	}
 	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
 		opacity: 0.34 !important;

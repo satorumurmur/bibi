@@ -59,7 +59,7 @@ span.bibi-holder {
 
 span.bibi-holder.bibi-fullscreen-enabled {
 	.bibi-icon.bibi-switch-newwindow {
-		right: 35px;
+		right: $icon-width + 4px * 2;
 	}
 	.bibi-icon.bibi-switch-fullscreen {
 		right: 4px;

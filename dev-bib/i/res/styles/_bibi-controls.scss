@@ -266,10 +266,10 @@ p#bibi-veil-playbutton {
 		@include box-sizing(border-box);
 		display: block;
 		position: absolute;
-		left: -100%;
-		top: -100%;
-		right: -100%;
-		bottom: -100%;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
 		margin: auto;
 		vertical-align: middle;
 		text-align: center;
@@ -318,49 +318,74 @@ p#bibi-veil-catcher {
 p#bibi-veil-playbutton {
 	cursor: pointer;
 	&:after {
-	 	$size: 69px;
-		content: $ElegantIcons_arrow_triangle-right_alt2;
+	 	$size: 81px;
+		content: $ElegantIcons_arrow_triangle-right_alt;
 		z-index: 2;
 		width: $size;
 		height: $size;
 		line-height: $size;
 		font-size: $size;
-		color: rgb(160,160,160);
+		color: rgba(216,216,216,.75);
 		//@include text-stroke(4px white);
 	}
-	html.view-vertical &:after {
-		content: $ElegantIcons_arrow_triangle-down_alt2;
-		top: auto;
-		bottom: 40px;
-		@include transform-origin_(50% 100%);
+	html.view-vertical & {
+		&:after {
+			content: $ElegantIcons_arrow_triangle-down_alt;
+			top: auto;
+			bottom: 40px;
+			@include transform-origin_(50% 100%);
+		}
+		&:hover:after {
+			bottom: 64px;
+		}
+		&:active:after {
+			bottom: 40px;
+		}
 	}
-	html.view-horizontal.page-rtl &:after,
-	html.view-paged.page-rtl &:after {
-		content: $ElegantIcons_arrow_triangle-left_alt2;
-		left: 8px;
-		right: auto;
-		@include transform-origin_(0 50%);
+	html.view-horizontal.page-rtl &,
+	html.view-paged.page-rtl & {
+		&:after {
+			content: $ElegantIcons_arrow_triangle-left_alt;
+			left: 8px;
+			right: auto;
+			@include transform-origin_(0 50%);
+		}
+		&:hover:after {
+			left: 32px;
+		}
+		&:active:after {
+			left: 8px;
+		}
 	}
-	html.view-horizontal.page-ltr &:after,
-	html.view-paged.page-ltr &:after {
-		content: $ElegantIcons_arrow_triangle-right_alt2;
-		left: auto;
-		right: 8px;
-		@include transform-origin_(100% 50%);
+	html.view-horizontal.page-ltr &,
+	html.view-paged.page-ltr & {
+		&:after {
+			content: $ElegantIcons_arrow_triangle-right_alt;
+			left: auto;
+			right: 8px;
+			@include transform-origin_(100% 50%);
+		}
+		&:hover:after {
+			right: 32px;
+		}
+		&:active:after {
+			right: 8px;
+		}
 	}
 	html.Mac &:hover,
 	html.PC &:hover,
 	html.Touch &:active {
+		background: rgba(0,0,0,0.5);
 		&:after {
-			color: rgba(232,232,232,0.8);
-			@include transform(scale(1.5));
+			color: white;
+			@include transform(scale(1.25));
 		}
 	}
 	html.Mac &:active,
 	html.PC &:active {
+		background: rgba(0,0,0,0.25);
 		&:after {
-			color: rgba(232,232,232,0.8);
-			@include transform(scale(1.25));
+			@include transform(scale(1.125));
 		}
 	}
 }
@@ -672,14 +697,16 @@ div#bibi-panel-powered {
 	@include box-sizing(border-box);
 	position: fixed;
 	z-index: 10;
-	right: 4px;
+	left: 0;
+	right: 0;
 	bottom: 0;
-	padding: 4px;
+	margin: 0 auto;
+	padding: 4px 16px;
 	border-top: solid 1px rgba(255,255,255,0.5);
 	width: 100%;
 	height: 36px;
 	line-height: 30px;
-	text-align: center;
+	text-align: left;
 	font-size: 14px;
 	background: rgba(255,255,255,0.25);
 	/*
@@ -767,8 +794,8 @@ div#bibi-panel-navigation {
 				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 				h1, h2, h3, h4, h5, h6 {
-					$margin-before: 1em;
-					$margin-after: 0;
+					$margin-before: 0;
+					$margin-after: 1em;
 					font-weight: bold;
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
@@ -782,13 +809,13 @@ div#bibi-panel-navigation {
 					html.page-rtl & { margin: $margin-start 0 0 0; }
 				}
 				ul, ol {
-					$margin-before: .5em;
-					$margin-after: 0;
+					$margin-before: 0;
+					$margin-after: 1em;
 					font-size: .9em;
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 					li {
-						$margin-before: .25em;
+						$margin-before: .75em;
 						$margin-after: 0;
 						html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 						html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
@@ -821,7 +848,7 @@ div#bibi-panel-navigation {
 					}
 				}
 				a {
-					border-style: dotted;
+					border-style: solid;
 					border-color: rgb(128,128,128);
 					$border-width: 1px;
 					color: rgb(64,64,64);
@@ -848,6 +875,12 @@ div#bibi-panel-navigation {
 			nav.bibi-nav-landmarks,
 			nav.bibi-nav-page-list {
 				font-size: 16px;
+				h1, h2, h3, h4, h5, h6 {
+					$margin-before: 0;
+					$margin-after: .25em;
+					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+				}
 				ul, ol {
 					overflow: hidden;
 					$padding-after: .25em;
