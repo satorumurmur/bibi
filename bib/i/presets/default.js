@@ -20,8 +20,8 @@ P.initialize({
 
 "item-padding-left"                 : 16,                // px
 "item-padding-right"                : 16,                // px
-"item-padding-top"                  : 32,                // px
-"item-padding-bottom"               : 20,                // px
+"item-padding-top"                  : 36,                // px
+"item-padding-bottom"               : 12,                // px
 
 "item-column-rule"                  : "",                // CSS value or ""
 
