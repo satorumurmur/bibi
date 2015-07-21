@@ -1777,13 +1777,7 @@ R.focus.getNearestPageOfElement = function(Ele) {
 		sML.style(Item.HTML, { "column-width": "" });
 		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
 		if(S.PPD == "rtl" && S.SLA == "vertical") {
-			var NoColumnedItemBreadth = Item.Body["offset" + S.SIZE.B];//parseFloat(Item.Pages[0].style[S.SIZE.b]) * Item.Pages.length;
-			if(Item.Body.offsetParent) {
-				var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
-				var ItemHTMLPaddingBreadth = Math.ceil(parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.B]) + parseFloat(ItemHTMLComputedStyle["padding" + S.BASE.A]))
-				NoColumnedItemBreadth += ItemHTMLPaddingBreadth;
-			}
-			ElementCoordInItem = NoColumnedItemBreadth - ElementCoordInItem + Ele["offset" + S.SIZE.B];
+			ElementCoordInItem = Item.offsetWidth - (S["item-padding-left"] + S["item-padding-right"]) - ElementCoordInItem - Ele.offsetWidth;
 		}
 		sML.style(Item.HTML, { "column-width": Item.ColumnLength + "px" });
 		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
