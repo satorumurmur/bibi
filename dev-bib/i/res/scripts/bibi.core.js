@@ -776,6 +776,7 @@ L.postprocessItem = function(Item) {
 	Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
 	Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
 
+    sML.addClass(Item.HTML, sML.Environments.join(" "));
 	sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
 
 	if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
