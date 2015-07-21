@@ -2,6 +2,18 @@
 // + Icons
 // --------------------------------------------------------------------------------
 
+// - Vars
+// --------------------------------------------------------------------------------
+
+$icon-size: 33px;
+$icon-width: $icon-size;
+$icon-height: $icon-size;
+
+$shape-item-width: 11px;
+$shape-item-height: 17px;
+$shape-spread-width: $shape-item-width * 2 - 1px;
+$shape-spread-height: $shape-item-height;
+
 
 // - BiB/i Logo
 // --------------------------------------------------------------------------------
@@ -59,8 +71,8 @@
 	position: relative;
 	border: solid 1px;
 	border-radius: 2px;
-	width: 27px;
-	height: 27px;
+	width: $icon-width;
+	height: $icon-height;
 	cursor: pointer;
 	&:before, &:after {
 		@include font-icon("ElegantIcons");
@@ -69,13 +81,14 @@
 	* {
 		position: absolute;
 	}
-	>span.bibi-shape {
-		left: 4px;
-		top: 5px;
-	}
 	span.bibi-shape-spreads {
-		width: 17px;
-		height: 15px;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;
+		width: $shape-spread-width;
+		height: $shape-spread-height;
 		span.bibi-shape-spread {
 			left: 0;
 			top: 0;
@@ -83,24 +96,24 @@
 			height: 100%;
 			span.bibi-shape-item {
 				top: 0;
-				&:first-child { left: 0; }
-				&:last-child  { left: 8px; }
 				border: solid 1px;
-				width: 9px;
-				height: 15px;
+				width: $shape-item-width;
+				height: $shape-item-height;
+				&:first-child { left: 0; }
+				&:last-child  { left: ($shape-item-width - 1px); }
 			}
 		}
 	}
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
-			&:first-child { top: -17px; }
-			&:last-child  { top: 17px; }
+			&:first-child { top: ($shape-spread-height + 2px) * -1; }
+			&:last-child  { top: ($shape-spread-height + 2px); }
 		}
 	}
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
-			&:first-child { left: -18px; }
-			&:last-child  { left: 18px; }
+			&:first-child { left: ($shape-spread-width + 1px) * -1; }
+			&:last-child  { left: ($shape-spread-width + 1px); }
 		}
 	}
 }
@@ -108,28 +121,22 @@
 
 // - Write
 // --------------------------------------------------------------------------------
-/*
-.bibi-icon.bibi-switch-panel {
-	&:before {
-		content: $ElegantIcons_icon_menu;
-		line-height: 27px;
-		font-size: 24px;
-	}
-	html.panel-opened &:before {
-		content: $ElegantIcons_icon_close;
-		line-height: 24px;
-		text-indent: -1px;
-	}
-}*/
 
 .bibi-icon.bibi-switch-panel {
+	$bar-width: 19px;
+	$bar-height: 2px;
+	$bar-isolation: 4px;
+	$bars-width: $bar-width;
+	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
 	&:before, span, &:after {
-		left: 4px !important;
-		border-bottom: solid 1px !important;
-		width: 17px !important;
-		height: 2px !important;
+		left: 0 !important;
+		right: 0 !important;
+		margin: auto !important;
+		//border-bottom: solid 1px !important;
+		width: $bar-width !important;
+		height: $bar-height !important;
 		border-radius: 1px;
-		@include transition(.2s linear !important);
+		@include transition(.125s linear !important);
 	}
 	&:before, &:after {
 		content: "";
@@ -137,23 +144,24 @@
 		position: absolute;
 	}
 	&:before {
-		top: 6px;
+		top: ($icon-height - $bars-height) / 2 - 1px !important;
 	}
 	span {
-		top: 11px !important;
+		top: ($icon-height - $bars-height) / 2 - 1px + $bar-height + $bar-isolation !important;
+		color: transparent !important;
 	}
 	&:after {
-		top: 16px;
+		top: ($icon-height - $bars-height) / 2 - 1px + $bar-height + $bar-isolation + $bar-height + $bar-isolation !important;
 	}
 	html.panel-opened & {
 		&:before {
-			@include transform(translateY( 5px) rotate(-225deg));
+			@include transform(translateY(($bar-isolation + $bar-height) *  1) rotate(135deg));
 		}
 		span {
 			opacity: 0;
 		}
 		&:after {
-			@include transform(translateY(-5px) rotate( 225deg));
+			@include transform(translateY(($bar-isolation + $bar-height) * -1) rotate(225deg));
 		}
 	}
 }
@@ -162,11 +170,15 @@
 .bibi-icon.bibi-switch-fullscreen {
 	&:before {
 		content: "";
-		left: 2px;
-		top: 2px;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;
 		width: 21px;
 		height: 21px;
-		font-size: 18px;
+		@include transform(translateY(-1px));
 		background: no-repeat center center; background-size: contain;
 	}
 }
@@ -174,8 +186,6 @@
 .bibi-icon.bibi-switch-newwindow {
 	text-decoration: none !important;
 	&:before {
-		//content: $ElegantIcons_arrow_right-up;
-		line-height: 25px;
 		background-image: url(#{$path-res}/images/icon_open-newwindow_black.png); /* The Elegant Icon Font */
 	}
 	&:hover:before {
@@ -185,8 +195,6 @@
 
 .bibi-icon.bibi-switch-fullscreen {
 	&:before {
-		//content: $ElegantIcons_arrow_expand;
-		line-height: 25.5px;
 		background-image: url(#{$path-res}/images/icon_enter-fullscreen_black.png); /* The Elegant Icon Font */
 		html:fullscreen                      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
 		html:full-screen                     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
