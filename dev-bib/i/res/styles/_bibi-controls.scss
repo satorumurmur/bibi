@@ -316,9 +316,10 @@ p#bibi-veil-catcher {
 }
 
 p#bibi-veil-playbutton {
+	$size: 69px;
+	$hover-move: 8px;
 	cursor: pointer;
 	&:after {
-	 	$size: 81px;
 		content: $ElegantIcons_arrow_triangle-right_alt;
 		z-index: 2;
 		width: $size;
@@ -328,64 +329,64 @@ p#bibi-veil-playbutton {
 		color: rgba(216,216,216,.75);
 		//@include text-stroke(4px white);
 	}
-	html.view-vertical & {
-		&:after {
-			content: $ElegantIcons_arrow_triangle-down_alt;
-			top: auto;
-			bottom: 40px;
-			@include transform-origin_(50% 100%);
-		}
-		&:hover:after {
-			bottom: 64px;
-		}
-		&:active:after {
-			bottom: 40px;
-		}
-	}
-	html.view-horizontal.page-rtl &,
-	html.view-paged.page-rtl & {
-		&:after {
-			content: $ElegantIcons_arrow_triangle-left_alt;
-			left: 8px;
-			right: auto;
-			@include transform-origin_(0 50%);
-		}
-		&:hover:after {
-			left: 32px;
-		}
-		&:active:after {
-			left: 8px;
-		}
-	}
-	html.view-horizontal.page-ltr &,
-	html.view-paged.page-ltr & {
-		&:after {
-			content: $ElegantIcons_arrow_triangle-right_alt;
-			left: auto;
-			right: 8px;
-			@include transform-origin_(100% 50%);
-		}
-		&:hover:after {
-			right: 32px;
-		}
-		&:active:after {
-			right: 8px;
-		}
-	}
-	html.Mac &:hover,
-	html.PC &:hover,
-	html.Touch &:active {
+	&:hover {
 		background: rgba(0,0,0,0.5);
 		&:after {
 			color: white;
 			@include transform(scale(1.25));
 		}
 	}
-	html.Mac &:active,
-	html.PC &:active {
+	&:active {
 		background: rgba(0,0,0,0.25);
 		&:after {
 			@include transform(scale(1.125));
+		}
+	}
+	html.view-vertical & {
+		$offset: 40px;
+		&:after {
+			content: $ElegantIcons_arrow_triangle-down_alt;
+			top: auto;
+			bottom: $offset;
+			@include transform-origin_(50% 100%);
+		}
+		&:hover:after {
+			bottom: $offset + $hover-move;
+		}
+		&:active:after {
+			bottom: 0;
+		}
+	}
+	html.view-horizontal.page-rtl &,
+	html.view-paged.page-rtl & {
+		$offset: 8px;
+		&:after {
+			content: $ElegantIcons_arrow_triangle-left_alt;
+			left: $offset;
+			right: auto;
+			@include transform-origin_(0 50%);
+		}
+		&:hover:after {
+			left: $offset + $hover-move;
+		}
+		&:active:after {
+			left: 0;
+		}
+	}
+	html.view-horizontal.page-ltr &,
+	html.view-paged.page-ltr & {
+		$offset: 8px;
+		&:after {
+			content: $ElegantIcons_arrow_triangle-right_alt;
+			left: auto;
+			right: $offset;
+			@include transform-origin_(100% 50%);
+		}
+		&:hover:after {
+			right: $offset + $hover-move;
+		}
+		&:active:after {
+			right: 0;
 		}
 	}
 }
@@ -413,10 +414,10 @@ div#bibi-veil-mark {
 		width: 10px;
 		height: 10px;
 		border-radius: 50%;
-		border: solid 1px;
+		//border: solid 1px;
 		//background: rgba(0,0,0,0.5);
-		&:nth-child(odd)  { background: rgb(192,192,192); border-color: rgba(128,128,128,.5); }
-		&:nth-child(even) { background: rgb(64,64,64); border-color: rgba(128,128,128,.5); }
+		&:nth-child(odd)  { background: rgb(216,216,216); }
+		&:nth-child(even) { background: rgb(32,32,32); }
 		&:nth-child(1)    { left: 32px; top:  0px; }
 		&:nth-child(2)    { left: 54px; top:  8px; }
 		&:nth-child(3)    { left: 64px; top: 32px; }
