@@ -1,38 +1,38 @@
 /*!
  *
- * # BiB/i Extention: C+ Pack | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.
+ * # BiB/i Extension: C+ Pack | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.
  *
  * ## Including:
- * 1. dev-bib/i/extentions/cplus/cplus.viewmenu.js   - C+ViewMenu
- * 2. dev-bib/i/extentions/cplus/cplus.fullscreen.js - C+Fullscreen
- * 3. dev-bib/i/extentions/cplus/cplus.arrow.js      - C+Arrows
- * 4. dev-bib/i/extentions/cplus/cplus.keys.js       - C+Keys
- * 5. dev-bib/i/extentions/cplus/cplus.messages.js   - C+Messages
+ * 1. dev-bib/i/extensions/cplus/cplus.viewmenu.js   - C+ViewMenu
+ * 2. dev-bib/i/extensions/cplus/cplus.fullscreen.js - C+Fullscreen
+ * 3. dev-bib/i/extensions/cplus/cplus.arrow.js      - C+Arrows
+ * 4. dev-bib/i/extensions/cplus/cplus.keys.js       - C+Keys
+ * 5. dev-bib/i/extensions/cplus/cplus.messages.js   - C+Messages
  */
 /*!
  *
- * # BiB/i Extention: C+ViewMenu
+ * # BiB/i Extension: C+ViewMenu
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 Bibi.x({name:"C+ViewMenu",description:"Menu Buttons to Change View Mode.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){if("fixed"!=S.view){var a={};a.Item='<span class="bibi-shape bibi-shape-item"></span>',a.Spread='<span class="bibi-shape bibi-shape-spread">'+a.Item+a.Item+"</span>",a.SpreadsS='<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-single">'+a.Spread+"</span>",a.SpreadsV='<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">'+a.Spread+a.Spread+a.Spread+"</span>",a.SpreadsH='<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">'+a.Spread+a.Spread+a.Spread+"</span>",C.addButton({Category:"menu",Group:"view",Labels:[{ja:"ページ表示",en:"Paged View"}],IconHTML:'<span class="bibi-icon bibi-icon-paged">'+a.SpreadsS+"</span>"},function(){C.Panel.toggle(function(){R.changeView("paged")})}),C.addButton({Category:"menu",Group:"view",Labels:[{ja:"横スクロール表示",en:"Scroll View (Horizontal)"}],IconHTML:'<span class="bibi-icon bibi-icon-horizontal">'+a.SpreadsH+"</span>"},function(){C.Panel.toggle(function(){R.changeView("horizontal")})}),C.addButton({Category:"menu",Group:"view",Labels:[{ja:"縦スクロール表示",en:"Scroll View (Vertical)"}],IconHTML:'<span class="bibi-icon bibi-icon-vertical">'+a.SpreadsV+"</span>"},function(){C.Panel.toggle(function(){R.changeView("vertical")})}),E.dispatch("bibi:createViewMenu")}}),/*!
  *
- * # BiB/i Extention: C+Fullscreen
+ * # BiB/i Extension: C+Fullscreen
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 Bibi.x({name:"C+Fullscreen",description:"Floating Button for Switching Fullscreen.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){!O.WindowEmbedded&&O.FullscreenEnabled&&(C["switch"].Fullscreen=C.addButton({id:"bibi-switch-fullscreen",Category:"switch",Group:"fullscreen",Labels:[{ja:"フルスクリーンモードを開始",en:"Enter Fullscreen"},{ja:"フルスクリーンモードを終了",en:"Exit Fullscreen"}],IconHTML:'<span class="bibi-icon bibi-switch bibi-switch-fullscreen"></span>'},function(){sML.getFullscreenElement()?(sML.exitFullscreen(),C.setLabel(C["switch"].Fullscreen,0)):(sML.requestFullscreen(O.HTML),C.setLabel(C["switch"].Fullscreen,1))}),E.dispatch("bibi:createFullscreenSwitch"))}),/*!
  *
- * # BiB/i Extention: C+Arrows
+ * # BiB/i Extension: C+Arrows
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 Bibi.x({name:"C+Arrows",description:"Floating Buttons for Scrolling and Page Flipping",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.Arrows=R.Content.appendChild(sML.create("div",{id:"bibi-arrows"},{display:"hidden"==S.arrows?"none":""})),C.Arrows.Back=C.Arrows.appendChild(sML.create("div",{title:"Back",className:"bibi-arrow",id:"bibi-arrow-back",DistanceToMove:-1})),C.Arrows.Forward=C.Arrows.appendChild(sML.create("div",{title:"Forward",className:"bibi-arrow",id:"bibi-arrow-forward",DistanceToMove:1})),[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){a.addEventListener("mouseover",function(){sML.addClass(a,"flickering")}),a.addEventListener("mouseout",function(){sML.removeClass(a,"flickering")}),a.addEventListener("click",function(){E.dispatch("bibi:command:move",a.DistanceToMove),sML.addClass(a,"firing"),a.Timer&&clearTimeout(a.Timer),a.Timer=setTimeout(function(){a.className="bibi-arrow"},400)})}),E.add("bibi:start",function(){setTimeout(function(){S.To&&sML.addClass(C.Arrows.Back,"glowing"),sML.addClass(C.Arrows.Forward,"glowing"),setTimeout(function(){[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){sML.removeClass(a,"glowing")})},800)},400)}),E.dispatch("bibi:createArrows")}),/*!
  *
- * # BiB/i Extention: C+Keys
+ * # BiB/i Extension: C+Keys
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php

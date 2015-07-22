@@ -135,7 +135,7 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 * [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 * [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and the MIT license.)
 
-#### BiB/i Extention: Unzipper is including and powered by these open source softwares:
+#### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
 * [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)

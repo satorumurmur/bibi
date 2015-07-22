@@ -1,15 +1,15 @@
 /*!
  *
- * # BiB/i Extention: Unzipper | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.
+ * # BiB/i Extension: Unzipper | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.
  *
  * ## Including:
- * 1. dev-bib/i/extentions/unzipper/unzipper.js        - Unzipper
- * 2. dev-bib/i/extentions/unzipper/__lib/jszip.min.js - JSZip | Copyright (c) Stuart Knightley - http://stuartk.com/jszip | Dual licensed under the MIT license or GPLv3.
- * 3. dev-bib/i/extentions/unzipper/__lib/base64.js    - base64.js | Copyright (c) dankogai - https://github.com/dankogai/js-base64 | Licensed under the MIT license.
+ * 1. dev-bib/i/extensions/unzipper/unzipper.js        - Unzipper
+ * 2. dev-bib/i/extensions/unzipper/__lib/jszip.min.js - JSZip | Copyright (c) Stuart Knightley - http://stuartk.com/jszip | Dual licensed under the MIT license or GPLv3.
+ * 3. dev-bib/i/extensions/unzipper/__lib/base64.js    - base64.js | Copyright (c) dankogai - https://github.com/dankogai/js-base64 | Licensed under the MIT license.
  */
 /*!
  *
- * # BiB/i Extention: Unzipper
+ * # BiB/i Extension: Unzipper
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php

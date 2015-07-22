@@ -1,12 +1,12 @@
 /*!
  *
- * # BiB/i Extention: JaTEx
+ * # BiB/i Extension: JaTEx
  *
  * - "Japanes Typesetting Extra"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Mon July 20 18:59:00 2015 +0900
+ * - Wed July 22 14:24:00 2015 +0900
  */
 
 Bibi.x({
@@ -14,7 +14,7 @@ Bibi.x({
     name: "JaTEx",
     description: "Japanese Typesetting Extra",
     version: "0.1.0",
-    build: 20150720.0,
+    build: 20150722.0,
 
     HTMLString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
@@ -138,13 +138,20 @@ Bibi.x({
         Item.JaTEx = { Markup: false, Layout: false };
         if(B.Language == "ja") {
             var JaTExSetting = Item.HTML.getAttribute("data-bibi-jatex");
-            if(!JaTExSetting) JaTExSetting = P["japanese-typesetting-extra"];
-            if( JaTExSetting) {
+            if(JaTExSetting) {
+                JaTExSetting = JaTExSetting.replace(/[ \s\t\n\r]+/g, "");
                 switch(JaTExSetting) {
-                    case "markup": Item.JaTEx.Markup = true; break;
-                    case "layout": Item.JaTEx.Layout = true; break;
-                    default      : Item.JaTEx.Markup = true;
-                                   Item.JaTEx.Layout = true;
+                    case "markup":
+                        Item.JaTEx.Markup = true;
+                        break;
+                    case "layout":
+                        Item.JaTEx.Layout = true;
+                        break;
+                    case "markup,layout" :
+                    case "layout,markup" :
+                        Item.JaTEx.Markup = true;
+                        Item.JaTEx.Layout = true;
+                        break;
                 }
             }
         }

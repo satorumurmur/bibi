@@ -1,6 +1,6 @@
 /*!
  *
- * # BiB/i Extention: EPUBCFI Utilities
+ * # BiB/i Extension: EPUBCFI Utilities
  *
  * - "EPUBCFI Utilities for BiB/i"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
