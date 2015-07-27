@@ -25,7 +25,7 @@ P.initialize({
 
 "item-column-rule"           : "", // CSS column-rule value or ""
 
-"page-breaking"              : true, // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
+"page-breaking"              : false, // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
 "epub-additional-script"     : "", // path from spine-item or http:// URI or ""
