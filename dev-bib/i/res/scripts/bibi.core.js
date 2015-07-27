@@ -1208,6 +1208,7 @@ R.resetItem.asReflowableItem.adjustContent = function(Item, PageB, PageL, PageGa
 };
 R.resetItem.asReflowableItem.adjustContent.fitImages = function(Item, PageB, PageL) {
 	sML.each(Item.Body.getElementsByTagName("img"), function() {
+        if(!this.Bibi || !this.Bibi.DefaultStyle) return;
 		this.style.display       = this.Bibi.DefaultStyle["display"];
 		this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
 		this.style.width         = this.Bibi.DefaultStyle["width"];
