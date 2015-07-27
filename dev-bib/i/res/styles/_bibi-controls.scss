@@ -317,10 +317,12 @@ p#bibi-veil-catcher {
 
 p#bibi-veil-playbutton {
 	$size: 69px;
-	$hover-move: 8px;
+	$hover-move: 0;
 	cursor: pointer;
+	&:hover  { background: rgba(0,0,0,0.5); }
+	&:active { background: rgba(0,0,0,0.25); }
 	&:after {
-		content: $ElegantIcons_arrow_triangle-right_alt;
+		content: $ElegantIcons_arrow_carrot-right_alt;
 		z-index: 2;
 		width: $size;
 		height: $size;
@@ -329,65 +331,42 @@ p#bibi-veil-playbutton {
 		color: rgba(216,216,216,.75);
 		//@include text-stroke(4px white);
 	}
-	&:hover {
-		background: rgba(0,0,0,0.5);
-		&:after {
-			color: white;
-			@include transform(scale(1.25));
-		}
-	}
-	&:active {
-		background: rgba(0,0,0,0.25);
-		&:after {
-			@include transform(scale(1.125));
-		}
-	}
+	&:hover:after  { @include transform(scale(1.250)); color: white; }
+	&:active:after { @include transform(scale(1.125)); }
 	html.view-vertical & {
 		$offset: 40px;
 		&:after {
-			content: $ElegantIcons_arrow_triangle-down_alt;
+			content: $ElegantIcons_arrow_carrot-down_alt;
 			top: auto;
 			bottom: $offset;
 			@include transform-origin_(50% 100%);
 		}
-		&:hover:after {
-			bottom: $offset + $hover-move;
-		}
-		&:active:after {
-			bottom: 0;
-		}
+		&:hover:after  { bottom: $offset + $hover-move; }
+		&:active:after { bottom: $size * -1/3; }
 	}
 	html.view-horizontal.page-rtl &,
 	html.view-paged.page-rtl & {
 		$offset: 8px;
 		&:after {
-			content: $ElegantIcons_arrow_triangle-left_alt;
+			content: $ElegantIcons_arrow_carrot-left_alt;
 			left: $offset;
 			right: auto;
 			@include transform-origin_(0 50%);
 		}
-		&:hover:after {
-			left: $offset + $hover-move;
-		}
-		&:active:after {
-			left: 0;
-		}
+		&:hover:after  { left: $offset + $hover-move; }
+		&:active:after { left: $size * -1/3; }
 	}
 	html.view-horizontal.page-ltr &,
 	html.view-paged.page-ltr & {
 		$offset: 8px;
 		&:after {
-			content: $ElegantIcons_arrow_triangle-right_alt;
+			content: $ElegantIcons_arrow_carrot-right_alt;
 			left: auto;
 			right: $offset;
 			@include transform-origin_(100% 50%);
 		}
-		&:hover:after {
-			right: $offset + $hover-move;
-		}
-		&:active:after {
-			right: 0;
-		}
+		&:hover:after  { right: $offset + $hover-move; }
+		&:active:after { right: $size * -1/3; }
 	}
 }
 
@@ -512,7 +491,7 @@ p#bibi-veil-powered {
 
 div#bibi-arrows {
 	$arrow-offset: 4px;
-	$arrow-size: 32px;
+	$arrow-size: 40px;
 	div.bibi-arrow {
 		position: fixed;
 		z-index: 1000;
@@ -551,25 +530,19 @@ div#bibi-arrows {
 			@include font-icon("ElegantIcons");
 			@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
 		}
-		&#bibi-arrow-back {
-			html.view-vertical.spread-ttb &                               { top:    0; bottom: auto; cursor: n-resize; }
-			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { left:   0; right:  auto; cursor: w-resize; }
-			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { right:  0; left:   auto; cursor: e-resize; }
-			&:after {
-				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_triangle-up_alt;    top: $arrow-offset; bottom: auto; @include transform-origin_( 50%   0 ); }
-				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_triangle-left_alt;  left: $arrow-offset; right: auto; @include transform-origin_(  0   50%); }
-				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_triangle-right_alt; right: $arrow-offset; left: auto; @include transform-origin_(100%  50%); }
-			}
+		html.view-vertical.spread-ttb &#bibi-arrow-back {
+			top: 0; bottom: auto; cursor: n-resize; &:after { content: $ElegantIcons_arrow_carrot-up_alt;    top: $arrow-offset; bottom: auto; text-align: center; @include transform-origin_( 50%   0 ); }
 		}
-		&#bibi-arrow-forward {
-			html.view-vertical.spread-ttb &                               { bottom: 0; top:    auto; cursor: s-resize; }
-			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { right:  0; left:   auto; cursor: e-resize; }
-			html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { left:   0; right:  auto; cursor: w-resize; }
-			&:after {
-				html.view-vertical.spread-ttb &                               { content: $ElegantIcons_arrow_triangle-down_alt;  bottom: $arrow-offset; top: auto; @include transform-origin_( 50% 100%); }
-				html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { content: $ElegantIcons_arrow_triangle-right_alt; right: $arrow-offset; left: auto; @include transform-origin_(100%  50%); }
-				html.view-horizontal.spread-rtl &, html.view-paged.page-rtl & { content: $ElegantIcons_arrow_triangle-left_alt;  left: $arrow-offset; right: auto; @include transform-origin_(  0   50%); }
-			}
+		html.view-vertical.spread-ttb &#bibi-arrow-forward {
+			bottom: 0; top: auto; cursor: s-resize; &:after { content: $ElegantIcons_arrow_carrot-down_alt;  bottom: $arrow-offset; top: auto; text-align: center; @include transform-origin_( 50% 100%); }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
+		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
+			left: 0; right: auto; cursor: w-resize; &:after { content: $ElegantIcons_arrow_carrot-left_alt;  left: $arrow-offset; right: auto; text-align: left;   @include transform-origin_(  0   50%); }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
+		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
+			right: 0; left: auto; cursor: e-resize; &:after { content: $ElegantIcons_arrow_carrot-right_alt; right: $arrow-offset; left: auto; text-align: right;  @include transform-origin_(100%  50%); }
 		}
 		&.glowing:after {
 			opacity: 1.00 !important;
