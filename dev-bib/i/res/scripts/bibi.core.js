@@ -2614,13 +2614,17 @@ O.getLogo = function(Setting) {
 	].join("");
 };
 
-O.getPath = function(Path) {
-	for(var i = 1; i < arguments.length; i++) arguments[0] += "/" + arguments[i];
-	arguments[0].replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Path = [arguments[1], arguments[2]] });
+O.getPath = function() {
+    var Path;
+    if(arguments.length == 2 && /^https?:\/\//.test(arguments[1])) arguments[0] = arguments[1], arguments[1] == "";
+    else for(var i = 1; i < arguments.length; i++) arguments[0] += "/" + arguments[i];
+    arguments[0].replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() {
+        Path = [arguments[1], arguments[2]]
+    });
 	while(/([^:\/])\/{2,}/.test(Path[1])) Path[1] = Path[1].replace(/([^:\/])\/{2,}/g, "$1/");
 	while(        /\/\.\//.test(Path[1])) Path[1] = Path[1].replace(        /\/\.\//g, "/");
 	while(/[^\/]+\/\.\.\//.test(Path[1])) Path[1] = Path[1].replace(/[^\/]+\/\.\.\//g, "");
-	                                      Path[1] = Path[1].replace(     /^(\.*\/)+/g, "");
+	                                      Path[1] = Path[1].replace(      /^(\.\/)+/g, "");
 	return Path[0] ? Path.join("/") : Path[1];
 };
 
