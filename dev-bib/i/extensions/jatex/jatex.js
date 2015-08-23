@@ -137,9 +137,8 @@ Bibi.x({
     defineMode: function(Item) {
         Item.JaTEx = { Markup: false, Layout: false };
         if(B.Language == "ja") {
-            var JaTExSetting = Item.HTML.getAttribute("data-bibi-jatex");
+            var JaTExSetting = Item.HTML.getAttribute("data-bibi-jatex") || Item.ItemRef["bibi:jatex"];
             if(JaTExSetting) {
-                JaTExSetting = JaTExSetting.replace(/[ \s\t\n\r]+/g, "");
                 switch(JaTExSetting) {
                     case "markup":
                         Item.JaTEx.Markup = true;
@@ -147,8 +146,8 @@ Bibi.x({
                     case "layout":
                         Item.JaTEx.Layout = true;
                         break;
-                    case "markup,layout" :
-                    case "layout,markup" :
+                    case "markup-layout" :
+                    case "layout-markup" :
                         Item.JaTEx.Markup = true;
                         Item.JaTEx.Layout = true;
                         break;
