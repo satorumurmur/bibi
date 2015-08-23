@@ -84,7 +84,8 @@ div#bibi-veil {
 	color: white;
 	//background: rgb(216,214,212);
 	//background: rgb(248,248,244);
-	background: rgb(64,64,64);
+	//background: rgb(64,64,64);
+	background: rgb(128,128,128);
 	opacity: 1;/*
 	p#bibi-veil-message {
 		padding-top: 30%;
@@ -328,7 +329,7 @@ p#bibi-veil-playbutton {
 		height: $size;
 		line-height: $size;
 		font-size: $size;
-		color: rgba(216,216,216,.75);
+		color: rgb(216,216,216);
 		//@include text-stroke(4px white);
 	}
 	&:hover:after  { @include transform(scale(1.250)); color: white; }
@@ -396,7 +397,7 @@ div#bibi-veil-mark {
 		//border: solid 1px;
 		//background: rgba(0,0,0,0.5);
 		&:nth-child(odd)  { background: rgb(216,216,216); }
-		&:nth-child(even) { background: rgb(32,32,32); }
+		&:nth-child(even) { background: rgb(192,192,192); }
 		&:nth-child(1)    { left: 32px; top:  0px; }
 		&:nth-child(2)    { left: 54px; top:  8px; }
 		&:nth-child(3)    { left: 64px; top: 32px; }
@@ -491,7 +492,7 @@ p#bibi-veil-powered {
 
 div#bibi-arrows {
 	$arrow-offset: 4px;
-	$arrow-size: 40px;
+	$arrow-size: 48px;
 	div.bibi-arrow {
 		position: fixed;
 		z-index: 1000;
@@ -522,7 +523,16 @@ div#bibi-arrows {
 			text-align: center;
 			vertical-align: middle;
 			line-height: 1em;
-			color: rgb(128,128,128);
+			color: rgb(96,96,96); $text-shadow-color: rgb(240,240,240);
+			text-shadow:
+				 0px -2px 1px $text-shadow-color,
+				 2px  0px 1px $text-shadow-color,
+				 0px  2px 1px $text-shadow-color,
+				-2px  0px 1px $text-shadow-color/*,
+				-1px -1px 0 $text-shadow-color,
+				 1px -1px 0 $text-shadow-color,
+				 1px  1px 0 $text-shadow-color,
+				-1px  1px 0 $text-shadow-color*/;
 			//@include text-stroke(1px rgba(255,255,255,0.25));
 			opacity: 0;
 			//$transform_scaleB: 1.5;
@@ -549,7 +559,7 @@ div#bibi-arrows {
 			@include transform(scale(1.50) !important);
 		}
 		&.flickering:after {
-			opacity: 0.75 !important;
+			opacity: 1.00 !important;
 		}
 		&.firing:after {
 			opacity: 1.00 !important;
@@ -625,7 +635,7 @@ div#bibi-panel {
 		border-bottom: solid 1px white;
 		width: 100%;
 		height: $icon-height + 4px * 2;
-		background: rgba(255,255,255,0.75);
+		background: rgba(255,255,255,0.88);
 	}
 }
 
@@ -680,9 +690,9 @@ div#bibi-panel-powered {
 	width: 100%;
 	height: 36px;
 	line-height: 30px;
-	text-align: left;
+	text-align: right;
 	font-size: 14px;
-	background: rgba(255,255,255,0.25);
+	background: rgba(248,248,248,0.88);
 	/*
 	@media screen and (max-width: 400px) {
 		text-align: right;

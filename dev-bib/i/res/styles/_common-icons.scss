@@ -272,7 +272,7 @@ $shape-spread-height: $shape-item-height;
 /*html.view-paged*/ .bibi-icon-paged,
 /*html.view-horizontal*/ .bibi-icon-horizontal,
 /*html.view-vertical*/ .bibi-icon-vertical {
-	background-color: rgba(132,128,124,.11) !important;
+	background-color: rgb(236,232,228) !important;
 }
 
 .bibi-icon:hover {
@@ -304,7 +304,7 @@ html.view-paged .bibi-icon-paged,
 html.view-horizontal .bibi-icon-horizontal,
 html.view-vertical .bibi-icon-vertical {
 	// ON
-	background-color: rgba(132,128,124,.44) !important;
+	background-color: rgb(196,192,188) !important;
 	cursor: default !important;
 	opacity: 1 !important;
 	span.bibi-shape-spreads {

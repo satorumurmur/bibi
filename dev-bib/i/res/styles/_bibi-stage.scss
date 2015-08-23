@@ -16,9 +16,10 @@ html {
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
 	//$background-color: rgb(218,216,214);
-	//$background-color: rgb(132,128,124);
 	//$background-color: rgb(196,192,188);
-	$background-color: rgb(64,64,64);
+	//$background-color: rgb(132,128,124);
+	//$background-color: rgb(100,96,92);
+	$background-color: rgb(81,81,81);
 	/*
 	$background-color: rgb(96,96,96);
 	@include background-image_linear-gradient(
@@ -30,7 +31,6 @@ html {
 	background: $background-color;
 	&.spread-vertical {
 		width: 100%;
-		background: $background-color;
 		&.preparing {
 			overflow-x: hidden;
 			overflow-y: scroll;
@@ -135,6 +135,9 @@ div#epub-content {
 				width: 100%;
 				height: 100%;
 				background: white;
+				&.pre-paginated {
+					background: transparent;
+				}
 				html.view-paged & {
 					box-shadow: none !important;
 				}
@@ -154,12 +157,11 @@ div#epub-content {
 					iframe.item {
 						position: relative;
 						z-index: 2;
-						margin: auto;
+						margin: 0;
 						padding: 0;
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
-						background: white;
 						html.page-ltr & { @include transform-origin(0 0); }
 						html.page-rtl & { @include transform-origin(100% 0); }
 					}
