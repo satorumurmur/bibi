@@ -832,19 +832,19 @@ div#bibi-panel-navigation {
 					}
 				}
 				a {
-					border-style: solid;
-					border-color: rgb(128,128,128);
-					$border-width: 1px;
+					//border-style: solid;
+					//border-color: rgb(128,128,128);
+					//$border-width: 1px;
 					color: rgb(64,64,64);
 					text-decoration: none;
-					@include transition(linear .05s);
-					html.page-ltr & { border-bottom-width: $border-width; }
-					html.page-rtl & { border-right-width: $border-width; padding-right: 2px; }
+					@include transition(linear .1s);
+					//html.page-ltr & { border-bottom-width: $border-width; }
+					//html.page-rtl & { border-right-width: $border-width; padding-right: 2px; }
 					&:hover {
-						border-style: solid;
-						border-color: cornflowerblue;
-						color: steelblue;
-						@include transition(linear .025s);
+						//border-style: solid;
+						//border-color: cornflowerblue;
+						color: navy;
+						@include transition(linear .05s);
 					}
 					&.bibi-navigation-inactive-link {
 						color: inherit !important;
