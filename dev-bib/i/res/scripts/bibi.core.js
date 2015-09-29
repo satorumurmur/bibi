@@ -2464,6 +2464,10 @@ S.update = function(Settings) { // formerly O.updateSetting
 	S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
 	S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
 
+    // Font Family
+    if(S.FontFamilyStyleIndex) sML.CSS.removeRule(S.FontFamilyStyleIndex);
+    if(S["ui-font-family"]) S.FontFamilyStyleIndex = sML.CSS.addRule("html", "font-family: " + S["ui-font-family"] + " !important;");
+
 	// Layout Settings
 	S.RVM = S["reader-view-mode"];
 	if(S.BRL == "reflowable") {
