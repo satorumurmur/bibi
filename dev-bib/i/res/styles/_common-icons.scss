@@ -75,7 +75,6 @@ $shape-spread-height: $shape-item-height;
 	height: $icon-height;
 	cursor: pointer;
 	&:before, &:after {
-		@include font-icon("ElegantIcons");
 		content: "";
 	}
 	* {
@@ -141,7 +140,6 @@ $shape-spread-height: $shape-item-height;
 		@include transition(.125s linear !important);
 	}
 	&:before, &:after {
-		content: "";
 		display: block;
 		position: absolute;
 	}
@@ -170,65 +168,71 @@ $shape-spread-height: $shape-item-height;
 
 .bibi-icon.bibi-switch-newwindow,
 .bibi-icon.bibi-switch-fullscreen {
-	&:before {
-		content: "";
+	&:before {/*
 		position: absolute;
 		left: 0;
 		right: 0;
 		top: 0;
 		bottom: 0;
-		margin: auto;
-		width: 21px;
-		height: 21px;
-		@include transform(translateY(-1px));
-		background: no-repeat center center; background-size: contain;
+		margin: auto;*/
+		//@include transform(translateY(-1px));
+		background: no-repeat center center;
+		background-size: contain;
 	}
 }
 
 .bibi-icon.bibi-switch-newwindow {
 	text-decoration: none !important;
 	&:before {
-		background-image: url(#{$path-res}/images/icon_open-newwindow_black.png); /* The Elegant Icon Font */
+		margin: 3.5px auto 0;
+		width: 24px;
+		height: 24px;
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_black_48dp.png); /* The Material Icons */
 	}
 	&:hover:before {
-		background-image: url(#{$path-res}/images/icon_open-newwindow_white.png); /* The Elegant Icon Font */
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_white_48dp.png); /* The Material Icons */
 	}
 }
 
 .bibi-icon.bibi-switch-fullscreen {
 	&:before {
-		background-image: url(#{$path-res}/images/icon_enter-fullscreen_black.png); /* The Elegant Icon Font */
-		html:fullscreen                      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:full-screen                     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:-webkit-fullscreen              & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:-webkit-full-screen             & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:-moz-fullscreen                 & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:-moz-full-screen                & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		html:-ms-fullscreen                  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:fullscreen          & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:full-screen         & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-webkit-fullscreen  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-webkit-full-screen & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-moz-fullscreen     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-moz-full-screen    & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-ms-fullscreen      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_black.png); /* The Elegant Icon Font */ }
+		margin: 1.5px auto 0;
+		width: 28px;
+		height: 28px;
+		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png);      /* The Material Icons */
+		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
+		html:fullscreen                      & { background-image: $background-image_fullscreen; }
+		html:full-screen                     & { background-image: $background-image_fullscreen; }
+		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen; }
+		html:-webkit-full-screen             & { background-image: $background-image_fullscreen; }
+		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen; }
+		html:-moz-full-screen                & { background-image: $background-image_fullscreen; }
+		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen; }
 	}
 	&:hover:before {
-		background-image: url(#{$path-res}/images/icon_enter-fullscreen_white.png); /* The Elegant Icon Font */
-		html:fullscreen                      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:full-screen                     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:-webkit-fullscreen              & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:-webkit-full-screen             & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:-moz-fullscreen                 & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:-moz-full-screen                & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		html:-ms-fullscreen                  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:fullscreen          & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:full-screen         & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-webkit-fullscreen  & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-webkit-full-screen & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-moz-fullscreen     & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-moz-full-screen    & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
-		span.bibi-holder:-ms-fullscreen      & { background-image: url(#{$path-res}/images/icon_exit-fullscreen_white.png); /* The Elegant Icon Font */ }
+		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png);      /* The Material Icons */
+		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
+		html:fullscreen                      & { background-image: $background-image_fullscreen }
+		html:full-screen                     & { background-image: $background-image_fullscreen }
+		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen }
+		html:-webkit-full-screen             & { background-image: $background-image_fullscreen }
+		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen }
+		html:-moz-full-screen                & { background-image: $background-image_fullscreen }
+		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen }
+		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen }
+		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen }
 	}
 }
 
@@ -239,11 +243,11 @@ $shape-spread-height: $shape-item-height;
 //.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
 
 .bibi-icon {
-	$color_label: rgba(0,0,0,0.5);
+	$color_label: rgb(128,128,128);
 //	border-color: rgba(66,64,62,.5) !important;
 //	background-color: rgba(255,255,255,0.8) !important;
 	border-color: rgba(192,192,192,0.5) !important;
-	background-color: rgba(255,255,255,0.75) !important;
+	background-color: rgba(255,255,255,0.8) !important;
 //	opacity: .64;
 	@include transition(0.15s linear);
 	html.panel-opened & {
@@ -256,13 +260,13 @@ $shape-spread-height: $shape-item-height;
 		background-color: lighten($color_label, 5%) !important;
 	}
 	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
-		opacity: 0.34 !important;
+		opacity: 0.4 !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(164,160,156) !important;
+				border-color: rgb(128,128,128) !important;
 				background-color: white !important;
 			}
 		}

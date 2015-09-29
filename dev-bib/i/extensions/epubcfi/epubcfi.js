@@ -5,15 +5,9 @@
  * - "EPUBCFI Utilities for BiB/i"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- *
- * - Fri July 3 13:41:00 2015 +0900
  */
 
-/* -----------------------------------------------------------------------------------------------------------------
-
-    // An Example is Bottom of This Document.
-
------------------------------------------------------------------------------------------------------------------ */
+// An Example is at the End of This Document.
  
 Bibi.x({
 
@@ -21,7 +15,7 @@ Bibi.x({
 	description: "EPUBCFI Utilities",
 	author: "Satoru MATSUSHIMA (@satorumurmur)",
 	version: "0.1.0",
-	build: 20150703.0,
+	build: 20150703.1341,
 
 	CFIString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 

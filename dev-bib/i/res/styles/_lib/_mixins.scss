@@ -71,14 +71,13 @@
 // - Fonts
 // --------------------------------------------------------------------------------
 
-@mixin at-font-face($FamilyName, $FilePath, $SVGName: "") {
+@mixin at-font-face($FamilyName, $FilePath) {
 	@font-face {
 		font-family: $FamilyName;
 		src: url("#{$FilePath}.eot");
-		src: url("#{$FilePath}.eot?#iefix")     format("embedded-opentype"),
-			 url("#{$FilePath}.woff")           format("woff"),
-			 url("#{$FilePath}.ttf")            format("truetype"),
-			 url("#{$FilePath}.svg#{$SVGName}") format("svg");
+		src: url("#{$FilePath}.eot?#iefix") format("embedded-opentype"),
+			 url("#{$FilePath}.woff")       format("woff"),
+			 url("#{$FilePath}.ttf")        format("truetype");
 		font-weight: normal;
 		font-style: normal;
 	}

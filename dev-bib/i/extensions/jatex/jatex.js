@@ -5,8 +5,6 @@
  * - "Japanes Typesetting Extra"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- *
- * - Wed July 22 14:24:00 2015 +0900
  */
 
 Bibi.x({
@@ -14,7 +12,7 @@ Bibi.x({
     name: "JaTEx",
     description: "Japanese Typesetting Extra",
     version: "0.1.0",
-    build: 20150722.0,
+    build: 20150722.1424,
 
     HTMLString: "", Current: 0, Log: false, LogCorrection: false, LogCancelation: false,
 
@@ -164,7 +162,7 @@ Bibi.x({
     E.bind("bibi:before:postprocessItem", function(Item) {
         X.JaTEx.defineMode(Item);
         if(!Item.JaTEx.Markup) return;
-        Item.logNow("JaTEx Preprocess Start");
+        Item.stamp("JaTEx Preprocess Start");
         sML.each(Item.Body.querySelectorAll(X.JaTEx.Selector), function() {
             var Block = this;
             var EnclosedHTML = X.JaTEx.markupEnclosure(Block.innerHTML, [
@@ -270,7 +268,7 @@ Bibi.x({
                 this.innerHTML = this.innerHTML.replace(/<[^>]+>/g, "");
             });
         });
-        Item.logNow("JaTEx Preprocess End");
+        Item.stamp("JaTEx Preprocess End");
     });
 
     // Ruby
@@ -325,19 +323,19 @@ Bibi.x({
     // Layout
     E.bind("bibi:before:resetItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
-        Item.logNow("JaTEx Reset Start");
+        Item.stamp("JaTEx Reset Start");
         var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);
         var Start = VerticalWritingMode ? "Top" : "Left";
         sML.each(Item.Body.querySelectorAll(".ideographic-space, .ideographic-comma, .ideographic-full-stop"), function() {
             this.className = this.className.replace(/ *jatex[^ ]+/g, "");
         });
-        Item.logNow("JaTEx Reset End");
+        Item.stamp("JaTEx Reset End");
     });
 
     // Layout
     E.bind("bibi:resetItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
-        Item.logNow("JaTEx Layout Start");
+        Item.stamp("JaTEx Layout Start");
         var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);
         var Start = VerticalWritingMode ? "Top" : "Left";
         sML.each(Item.Body.querySelectorAll(X.JaTEx.Selector), function() {
@@ -354,7 +352,7 @@ Bibi.x({
                 sML.removeClass(this, "jatex-test");
             });
         });
-        Item.logNow("JaTEx Layout End");
+        Item.stamp("JaTEx Layout End");
     });
 
 });

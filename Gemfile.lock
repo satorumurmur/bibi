@@ -39,3 +39,6 @@ DEPENDENCIES
   compass
   sprockets
   sprockets-sass
+
+BUNDLED WITH
+   1.10.3

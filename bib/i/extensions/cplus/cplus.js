@@ -1,13 +1,17 @@
 /*!
  *
- * # BiB/i Extension: C+ Pack | Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi | Licensed under the MIT license.
+ * # BiB/i Extension: C+ Pack
  *
- * ## Including:
- * 1. dev-bib/i/extensions/cplus/cplus.viewmenu.js   - C+ViewMenu
- * 2. dev-bib/i/extensions/cplus/cplus.fullscreen.js - C+Fullscreen
- * 3. dev-bib/i/extensions/cplus/cplus.arrow.js      - C+Arrows
- * 4. dev-bib/i/extensions/cplus/cplus.keys.js       - C+Keys
- * 5. dev-bib/i/extensions/cplus/cplus.messages.js   - C+Messages
+ * - "Package of Additional Controls for BiB/i"
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *
+ * ## Components:
+ * 1. BiB/i Extension: C+ViewMenu
+ * 2. BiB/i Extension: C+Fullscreen
+ * 3. BiB/i Extension: C+Arrows
+ * 4. BiB/i Extension: C+Keys
+ * 5. BiB/i Extension: C+Messages
  */
 /*!
  *
@@ -30,7 +34,7 @@ Bibi.x({name:"C+Fullscreen",description:"Floating Button for Switching Fullscree
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
-Bibi.x({name:"C+Arrows",description:"Floating Buttons for Scrolling and Page Flipping",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.Arrows=R.Content.appendChild(sML.create("div",{id:"bibi-arrows"},{display:"hidden"==S.arrows?"none":""})),C.Arrows.Back=C.Arrows.appendChild(sML.create("div",{title:"Back",className:"bibi-arrow",id:"bibi-arrow-back",DistanceToMove:-1})),C.Arrows.Forward=C.Arrows.appendChild(sML.create("div",{title:"Forward",className:"bibi-arrow",id:"bibi-arrow-forward",DistanceToMove:1})),[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){a.addEventListener("mouseover",function(){sML.addClass(a,"flickering")}),a.addEventListener("mouseout",function(){sML.removeClass(a,"flickering")}),a.addEventListener("click",function(){E.dispatch("bibi:command:move",a.DistanceToMove),sML.addClass(a,"firing"),a.Timer&&clearTimeout(a.Timer),a.Timer=setTimeout(function(){a.className="bibi-arrow"},400)})}),E.add("bibi:start",function(){setTimeout(function(){S.To&&sML.addClass(C.Arrows.Back,"glowing"),sML.addClass(C.Arrows.Forward,"glowing"),setTimeout(function(){[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){sML.removeClass(a,"glowing")})},800)},400)}),E.dispatch("bibi:createArrows")}),/*!
+Bibi.x({name:"C+Arrows",description:"Floating Buttons for Scrolling and Page-Flipping",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.Arrows=O.Body.appendChild(sML.create("div",{id:"bibi-arrows"},{display:"hidden"==S.arrows?"none":""})),C.Arrows.Back=C.Arrows.appendChild(sML.create("div",{title:"Back",className:"bibi-arrow",id:"bibi-arrow-back",DistanceToMove:-1,isActive:function(){return R.CurrentPages.StartPage!=R.Pages[0]||100!=R.CurrentPages.StartPageRatio}})),C.Arrows.Forward=C.Arrows.appendChild(sML.create("div",{title:"Forward",className:"bibi-arrow",id:"bibi-arrow-forward",DistanceToMove:1,isActive:function(){return R.CurrentPages.EndPage!=R.Pages[R.Pages.length-1]||100!=R.CurrentPages.EndPageRatio}})),[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){a.addEventListener("mouseover",function(){a.isActive()&&sML.addClass(a,"flickering")}),a.addEventListener("mouseout",function(){sML.removeClass(a,"flickering")}),a.addEventListener("click",function(){return a.isActive()?(E.dispatch("bibi:command:move",a.DistanceToMove),sML.addClass(a,"firing"),a.Timer&&clearTimeout(a.Timer),void(a.Timer=setTimeout(function(){sML.removeClass(a,"firing")},400))):!1})}),C.Arrows.navigate=function(){setTimeout(function(){R.CurrentPages=R.getCurrentPages(),[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){a.isActive()&&sML.addClass(a,"glowing")}),setTimeout(function(){[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){sML.removeClass(a,"glowing")})},1234)},420)},C.Arrows.check=function(){[C.Arrows.Back,C.Arrows.Forward].forEach(function(a){a.isActive()?sML.removeClass(a,"inactive"):sML.addClass(a,"inactive")})},E.add("bibi:start",C.Arrows.navigate),E.add("bibi:relayout",C.Arrows.navigate),E.add("bibi:scrolled",C.Arrows.check),E.dispatch("bibi:createArrows")}),/*!
  *
  * # BiB/i Extension: C+Keys
  *

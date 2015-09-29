@@ -5,13 +5,18 @@
  *  - "Putting EPUBs in a Web Page with BiB/i."
  *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- *
- * - Wed July 1 23:22:00 2015 +0900
  */
 
 (function() {
 	if(window["bibi:pipi"]) return;
-	var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20150701.0, Status: "", Bibis: [], Anchors: [], Holders: [], Frames: [], Loaded: 0 };
+	var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20150929.1551,
+        Status: "",
+        Bibis: [],
+        Anchors: [],
+        Holders: [],
+        Frames: [],
+        Loaded: 0
+    };
 	Pipi.BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
 	Pipi.embed = function() {
 		Pipi.Status = "Started";

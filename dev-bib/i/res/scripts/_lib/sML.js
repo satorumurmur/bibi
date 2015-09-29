@@ -10,8 +10,8 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Mon July 6 11:18:00 2015 +0900
- */ sML = (function() { var Version = "0.999.20", Build = 20150706.0;
+ * - Mon September 7 23:13:00 2015 +0900
+ */ sML = (function() { var Version = "0.999.21", Build = 20150907.0;
 
 
 
@@ -222,10 +222,11 @@ if(!window.CustomEvent || (typeof window.CustomEvent !== "function") && (window.
 sML.Event = {
 	OnRead: { Done: false, Functions: [] },
 	OnLoad: { Done: false, Functions: [] },
-	add:    function(E, EN, EL, UC) { E.addEventListener(   EN, EL, (UC ? true : false)); return E; },
-	remove: function(E, EN, EL, UC) { E.removeEventListener(EN, EL, (UC ? true : false)); return E; },
+	add:    function(O, EN, EL, UC) { O.addEventListener(   EN, EL, (UC ? true : false)); return O; },
+	remove: function(O, EN, EL, UC) { O.removeEventListener(EN, EL, (UC ? true : false)); return O; },
 	stopPropagation: function() { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return arguments[0].stopPropagation(); },
-	preventDefault:  function() { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return arguments[0].preventDefault(); }
+	preventDefault:  function() { /*@cc_on @if (@_jscript_version<9) arguments[0]=event; @end @*/ return arguments[0].preventDefault(); },
+    set: function(O, E) { for(var EN in E) O.addEventListener(EN, E[EN], false); }
 };
 
 sML.addEventListener    = sML.Event.add;
@@ -409,7 +410,7 @@ sML.cloneObject = function(O) {
 	return new F();
 };
 
-sML.set = sML.edit = sML.setProperties = sML.setMembers = function(O, P, S) {
+sML.set = sML.edit = sML.setProperties = sML.setMembers = function(O, P, S, E) {
 	if(P) {
 		if(P["ObserveTouch"]) {
 			sML.addTouchEventObserver(O);
@@ -421,11 +422,12 @@ sML.set = sML.edit = sML.setProperties = sML.setMembers = function(O, P, S) {
 		}
 	}
 	if(S) sML.CSS.set(O, S);
+    if(E) sML.Event.set(O, E);
 	/*@cc_on @if (@_jscript_version<9) sML.Fill.extendElements(arguments[0]); @end @*/ return O;
 };
 
-sML.create = sML.createElement = function(TagName, M, S) {
-	return sML.set(document.createElement(TagName), M, S);
+sML.create = sML.createElement = function(TagName, M, S, E) {
+	return sML.set(document.createElement(TagName), M, S, E);
 };
 
 sML.changeClass = sML.changeClassName = function(E, CN) {

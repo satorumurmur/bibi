@@ -1,7 +1,8 @@
 /*!
  *
- * # BiB/i Extension: Unzipper
+ * # BiB/i Extension: Unzipper (core)
  *
+ * - "EPUB-Zip Utility for BiB/i (core)"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
@@ -11,7 +12,7 @@
 Bibi.x({
 
 	name: "Unzipper",
-	description: "Enables Zipped EPUBs.",
+	description: "EPUB-Zip Unarchiver for BiB/i",
 	author: "Satoru MATSUSHIMA (@satorumurmur)",
 	version: Bibi["version"],
 	build: Bibi["build"]
@@ -89,21 +90,21 @@ B.loadZippedEPUB = function() {
 B.unzip = function() {
 
 	B.Files = {};
-	var FileCount = { All: 0, HTML: 0, CSS: 0, SVG: 0, Bitmap: 0, Font: 0, Audio: 0, Video: 0, PDF: 0, Etcetra: 0 };
+	var FileCount = { All: 0, HTMLs: 0, CSSs: 0, SVGs: 0, Images: 0, Fonts: 0, Audios: 0, Videos: 0, PDFs: 0, Etc: 0 };
 
 	B.File = (new JSZip()).load(B.File);
 	for(var FileName in B.File.files) {
 		if(B.File.files[FileName]._data) {
 			FileCount.All++;
-			     if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTML++;
-			else if(             /\.(css)$/i.test(FileName)) FileCount.CSS++;
-			else if(             /\.(svg)$/i.test(FileName)) FileCount.SVG++;
-			else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Bitmap++;
-			else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Font++;
-			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audio++;
-			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Video++;
-			else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDF++;
-			else                                             FileCount.Etcetra++;
+			     if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTMLs++;
+			else if(             /\.(css)$/i.test(FileName)) FileCount.CSSs++;
+			else if(             /\.(svg)$/i.test(FileName)) FileCount.SVGs++;
+			else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Images++;
+			else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Fonts++;
+			else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audios++;
+			else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Videos++;
+			else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDFs++;
+			else                                             FileCount.Etc++;
 			B.Files[FileName] = B.isBin(FileName) ? B.File.file(FileName).asBinary() : Base64.btou(B.File.file(FileName).asText());
 		}
 	}
@@ -111,16 +112,16 @@ B.unzip = function() {
 
 	B.FileDigit = (FileCount.All + "").length;
 
-	if(FileCount.All)     O.log(3, sML.String.padZero(FileCount.All,     B.FileDigit) + ' File'   + (FileCount.All    >= 2 ? "s" : ""));
-	if(FileCount.HTML)    O.log(4, sML.String.padZero(FileCount.HTML,    B.FileDigit) + ' HTML'   + (FileCount.HTML   >= 2 ? "s" : ""));
-	if(FileCount.CSS)     O.log(4, sML.String.padZero(FileCount.CSS,     B.FileDigit) + ' CSS'    + (FileCount.CSS    >= 2 ? "s" : ""));
-	if(FileCount.SVG)     O.log(4, sML.String.padZero(FileCount.SVG,     B.FileDigit) + ' SVG'    + (FileCount.SVG    >= 2 ? "s" : ""));
-	if(FileCount.Bitmap)  O.log(4, sML.String.padZero(FileCount.Bitmap,  B.FileDigit) + ' Bitmap' + (FileCount.Bitmap >= 2 ? "s" : ""));
-	if(FileCount.Font)    O.log(4, sML.String.padZero(FileCount.Font,    B.FileDigit) + ' Font'   + (FileCount.Font   >= 2 ? "s" : ""));
-	if(FileCount.Audio)   O.log(4, sML.String.padZero(FileCount.Audio,   B.FileDigit) + ' Audio'  + (FileCount.Audio  >= 2 ? "s" : ""));
-	if(FileCount.Video)   O.log(4, sML.String.padZero(FileCount.Video,   B.FileDigit) + ' Video'  + (FileCount.Video  >= 2 ? "s" : ""));
-	if(FileCount.PDF)     O.log(4, sML.String.padZero(FileCount.PDF,     B.FileDigit) + ' PDF'    + (FileCount.PDF    >= 2 ? "s" : ""));
-	if(FileCount.Etcetra) O.log(4, sML.String.padZero(FileCount.Etcetra, B.FileDigit) + ' etc.');
+	if(FileCount.All)    O.log(3, sML.String.padZero(FileCount.All,    B.FileDigit) + ' File'  + (FileCount.All    >= 2 ? "s" : ""));
+	if(FileCount.HTMLs)  O.log(4, sML.String.padZero(FileCount.HTMLs,  B.FileDigit) + ' HTML'  + (FileCount.HTMLs  >= 2 ? "s" : ""));
+	if(FileCount.CSSs)   O.log(4, sML.String.padZero(FileCount.CSSs,   B.FileDigit) + ' CSS'   + (FileCount.CSSs   >= 2 ? "s" : ""));
+	if(FileCount.SVGs)   O.log(4, sML.String.padZero(FileCount.SVGs,   B.FileDigit) + ' SVG'   + (FileCount.SVGs   >= 2 ? "s" : ""));
+	if(FileCount.Images) O.log(4, sML.String.padZero(FileCount.Images, B.FileDigit) + ' Image' + (FileCount.Images >= 2 ? "s" : ""));
+	if(FileCount.Fonts)  O.log(4, sML.String.padZero(FileCount.Fonts,  B.FileDigit) + ' Font'  + (FileCount.Fonts  >= 2 ? "s" : ""));
+	if(FileCount.Audios) O.log(4, sML.String.padZero(FileCount.Audios, B.FileDigit) + ' Audio' + (FileCount.Audios >= 2 ? "s" : ""));
+	if(FileCount.Videos) O.log(4, sML.String.padZero(FileCount.Videos, B.FileDigit) + ' Video' + (FileCount.Videos >= 2 ? "s" : ""));
+	if(FileCount.PDFs)   O.log(4, sML.String.padZero(FileCount.PDFs,   B.FileDigit) + ' PDF'   + (FileCount.PDFs   >= 2 ? "s" : ""));
+	if(FileCount.Etc)    O.log(4, sML.String.padZero(FileCount.Etc,    B.FileDigit) + ' etc.');
 
 	var Preprocessed = { CSS: 0, SVG: 0, HTML: 0 };
 
