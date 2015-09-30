@@ -7,13 +7,20 @@
 // --------------------------------------------------------------------------------
 
 @mixin scrollbar() {
-	$scrollbar-size: 10px;
+	$scrollbar-size: 12px;
 	&::-webkit-scrollbar {
 		height: $scrollbar-size;
 		width: $scrollbar-size;
 	}
 	&::-webkit-scrollbar-track {
-		background: rgb(232,232,232);
+		background: rgb(240,240,240);
+		border: solid 0 rgb(192,192,192);
+		&:horizontal {
+			border-top-width: 1px;
+		}
+		&:vertical {
+			border-left-width: 1px;
+		}
 	}
 	&::-webkit-scrollbar-thumb {
 		border: solid 1px rgb(176,176,176);
@@ -23,7 +30,7 @@
 }
 
 html {
-	font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", sans-serif;
+	font-family: sans-serif;
 	width: 100%;
 	height: 100%;
 	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
@@ -31,20 +38,7 @@ html {
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	//$background-color: rgb(218,216,214);
-	//$background-color: rgb(196,192,188);
-	//$background-color: rgb(132,128,124);
-	//$background-color: rgb(100,96,92);
-	$background-color: rgb(81,81,81);
-	/*
-	$background-color: rgb(96,96,96);
-	@include background-image_linear-gradient(
-		to top,
-		lighten($background-color, 8%),
-		 darken($background-color, 24%)
-	);
-	*/
-	background: $background-color;
+	background-color: rgb(69,69,69);
 	&.spread-vertical {
 		width: 100%;
 		&.preparing {

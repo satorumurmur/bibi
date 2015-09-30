@@ -9,11 +9,11 @@ P.initialize({
 
 'reader-view-mode'           : 'horizontal', // 'vertical' or 'horizontal' or 'paged'
 
-'book-background'            : 'transparent', // CSS background value or ''
+'book-background'            : '', // CSS background value or ''
 
 'spread-gap'                 : 2, // px (if you set odd-number, it will be added 1.)
-'spread-margin-start'        : 2, // px
-'spread-margin-end'          : 2, // px
+'spread-margin-start'        : 0, // px
+'spread-margin-end'          : 0, // px
 
 'spread-border-radius'       : '', // CSS border-radius value or ''
 'spread-box-shadow'          : '', // CSS box-shadow value or ''

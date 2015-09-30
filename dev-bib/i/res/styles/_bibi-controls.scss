@@ -84,26 +84,10 @@ div#bibi-veil {
 	height: 100%;
 	font-size: 15px;
 	color: white;
-	//background: rgb(216,214,212);
-	//background: rgb(248,248,244);
-	//background: rgb(64,64,64);
 	background: rgb(81,81,81);
-	opacity: 1;/*
-	p#bibi-veil-message {
-		padding-top: 30%;
-		line-height: 40px;
-		font-size: 24px;
-		text-align: center;
-		font-weight: bold;
-		color: rgb(96,96,96);
-		//text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
-	}*/
+	opacity: 1;
 	html.panel-opened & {
 		@include transition(.2s ease-in);
-		//@include filter(blur(4px));
-		//opacity: 0.75;
-	//}
-	//html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
 	}
 }
@@ -531,7 +515,7 @@ div#bibi-arrows {
 				 2px  0px 1px $text-shadow-color,
 				 0px  2px 1px $text-shadow-color,
 				-2px  0px 1px $text-shadow-color;
-			opacity: 0.2;
+			opacity: 0.33;
 			@include font-icon("ElegantIcons");
 			@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
 		}
@@ -698,14 +682,15 @@ div#bibi-panel {
 	top: 0;
 	width: 100%;
 	height: 100%;
-	//background: rgba(240,238,236,0.8);
-	//background: rgba(254,252,250,0.9);
-	//background: rgba(248,246,244,0.96);
 	background: rgb(246,246,246);
 	opacity: 0;
 	@include transition(0.15s ease-out);
 	@include transform(translateY(-100%));
-	html.panel-opened & { @include transform(none !important); @include transition(0.15s ease-in); opacity: 1 !important; }
+	html.panel-opened & {
+		@include transform(none !important);
+		@include transition(0.15s ease-in);
+		opacity: 1 !important;
+	}
 	&:before {
 		content: "";
 		display: block;
@@ -917,19 +902,14 @@ div#bibi-panel-navigation {
 					}
 				}
 				a {
-					//border-style: solid;
-					//border-color: rgb(128,128,128);
-					//$border-width: 1px;
 					color: rgb(64,64,64);
 					text-decoration: none;
-					@include transition(linear .1s);
-					//html.page-ltr & { border-bottom-width: $border-width; }
-					//html.page-rtl & { border-right-width: $border-width; padding-right: 2px; }
+					@include transition(linear .15s);
 					&:hover {
-						//border-style: solid;
-						//border-color: cornflowerblue;
-						color: deeppink;
-						@include transition(linear .05s);
+						color: steelblue;
+						@include transition(none);
+						html.page-ltr & { text-decoration: underline; }
+						html.page-rtl & { text-decoration: overline; }
 					}
 					&.bibi-navigation-inactive-link {
 						color: inherit !important;
