@@ -24,23 +24,23 @@ module.exports = function(grunt){
 			bibi_js: [
 				'bib/i/res/scripts/bibi.js'
 			],
-			bibi_extension_cplus_js: [
-				'bib/i/extensions/cplus/cplus.js'
-			],
-			bibi_extension_unzipper_js: [
-				'bib/i/extensions/unzipper/unzipper.js'
-			],
-			bibi_extension_epubcfi_js: [
-				'bib/i/extensions/epubcfi/epubcfi.js'
-			],
-			bibi_extension_jatex_js: [
-				'bib/i/extensions/jatex/jatex.js'
-			],
-			bibi_extension_overreflow_js: [
-				'bib/i/extensions/overreflow/overreflow.js'
-			],
 			pipi_js: [
 				'bib/i.js'
+			],
+			extension_cplus_js: [
+				'bib/i/extensions/cplus/cplus.js'
+			],
+			extension_unzipper_js: [
+				'bib/i/extensions/unzipper/unzipper.js'
+			],
+			extension_epubcfi_js: [
+				'bib/i/extensions/epubcfi/epubcfi.js'
+			],
+			extension_jatex_js: [
+				'bib/i/extensions/jatex/jatex.js'
+			],
+			extension_overreflow_js: [
+				'bib/i/extensions/overreflow/overreflow.js'
 			],
 			bibi_css: [
 				'bib/i/res/styles/bibi.css'
@@ -62,7 +62,13 @@ module.exports = function(grunt){
 				],
 				dest: 'bib/i/res/scripts/bibi.js'
 			},
-			bibi_extension_cplus_js: {
+			pipi_js: {
+				src: [
+					'dev-bib/i.js'
+				],
+				dest: 'bib/i.js'
+			},
+			extension_cplus_js: {
 				src: [
 					'dev-bib/i/extensions/cplus/_banner.js',
 					'dev-bib/i/extensions/cplus/cplus.viewmenu.js',
@@ -73,7 +79,7 @@ module.exports = function(grunt){
 				],
 				dest: 'bib/i/extensions/cplus/cplus.js'
 			},
-			bibi_extension_unzipper_js: {
+			extension_unzipper_js: {
 				src: [
 					'dev-bib/i/extensions/unzipper/_banner.js',
 					'dev-bib/i/extensions/unzipper/unzipper.js',
@@ -82,29 +88,23 @@ module.exports = function(grunt){
 				],
 				dest: 'bib/i/extensions/unzipper/unzipper.js'
 			},
-			bibi_extension_epubcfi_js: {
+			extension_epubcfi_js: {
 				src: [
 					'dev-bib/i/extensions/epubcfi/epubcfi.js'
 				],
 				dest: 'bib/i/extensions/epubcfi/epubcfi.js'
 			},
-			bibi_extension_jatex_js: {
+			extension_jatex_js: {
 				src: [
 					'dev-bib/i/extensions/jatex/jatex.js'
 				],
 				dest: 'bib/i/extensions/jatex/jatex.js'
 			},
-			bibi_extension_overreflow_js: {
+			extension_overreflow_js: {
 				src: [
 					'dev-bib/i/extensions/overreflow/overreflow.js'
 				],
 				dest: 'bib/i/extensions/overreflow/overreflow.js'
-			},
-			pipi_js: {
-				src: [
-					'dev-bib/i.js'
-				],
-				dest: 'bib/i.js'
 			}
 		},
 
@@ -120,56 +120,6 @@ module.exports = function(grunt){
 				],
 				dest: '<%= concat.bibi_js.dest%>'
 			},
-			bibi_extension_cplus_js: {
-				options: {
-					preserveComments: 'some',
-					banner: ''
-				},
-				src: [
-					'<%= concat.bibi_extension_cplus_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extension_cplus_js.dest%>'
-			},
-			bibi_extension_unzipper_js: {
-				options: {
-					preserveComments: 'some',
-					banner: ''
-				},
-				src: [
-					'<%= concat.bibi_extension_unzipper_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extension_unzipper_js.dest%>'
-			},
-			bibi_extension_epubcfi_js: {
-				options: {
-					preserveComments: 'some',
-					banner: ''
-				},
-				src: [
-					'<%= concat.bibi_extension_epubcfi_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extension_epubcfi_js.dest%>'
-			},
-			bibi_extension_jatex_js: {
-				options: {
-					preserveComments: 'some',
-					banner: ''
-				},
-				src: [
-					'<%= concat.bibi_extension_jatex_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extension_jatex_js.dest%>'
-			},
-			bibi_extension_overreflow_js: {
-				options: {
-					preserveComments: 'some',
-					banner: ''
-				},
-				src: [
-					'<%= concat.bibi_extension_overreflow_js.dest%>'
-				],
-				dest: '<%= concat.bibi_extension_overreflow_js.dest%>'
-			},
 			pipi_js: {
 				options: {
 					preserveComments: 'some',
@@ -179,6 +129,56 @@ module.exports = function(grunt){
 					'<%= concat.pipi_js.dest%>'
 				],
 				dest: '<%= concat.pipi_js.dest%>'
+			},
+			extension_cplus_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.extension_cplus_js.dest%>'
+				],
+				dest: '<%= concat.extension_cplus_js.dest%>'
+			},
+			extension_unzipper_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.extension_unzipper_js.dest%>'
+				],
+				dest: '<%= concat.extension_unzipper_js.dest%>'
+			},
+			extension_epubcfi_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.extension_epubcfi_js.dest%>'
+				],
+				dest: '<%= concat.extension_epubcfi_js.dest%>'
+			},
+			extension_jatex_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.extension_jatex_js.dest%>'
+				],
+				dest: '<%= concat.extension_jatex_js.dest%>'
+			},
+			extension_overreflow_js: {
+				options: {
+					preserveComments: 'some',
+					banner: ''
+				},
+				src: [
+					'<%= concat.extension_overreflow_js.dest%>'
+				],
+				dest: '<%= concat.extension_overreflow_js.dest%>'
 			}
 		},
 
@@ -258,66 +258,6 @@ module.exports = function(grunt){
 					''
 				]
 			},
-			bibi_extension_cplus_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extensions/cplus/*.js'
-				],
-				tasks: [
-					'build_bibi_extension_cplus_js',
-					''
-				]
-			},
-			bibi_extension_unzipper_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extensions/unzipper/*.js'
-				],
-				tasks: [
-					'build_bibi_extension_unzipper_js',
-					''
-				]
-			},
-			bibi_extension_epubcfi_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extensions/epubcfi/*.js'
-				],
-				tasks: [
-					'build_bibi_extension_epubcfi_js',
-					''
-				]
-			},
-			bibi_extension_jatex_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extensions/jatex/*.js'
-				],
-				tasks: [
-					'build_bibi_extension_jatex_js',
-					''
-				]
-			},
-			bibi_extension_overreflow_js: {
-				options: {
-					livereload: false
-				},
-				files: [
-					'dev-bib/extensions/overreflow/*.js'
-				],
-				tasks: [
-					'build_bibi_extension_overreflow_js',
-					''
-				]
-			},
 			pipi_js: {
 				options: {
 					livereload: false
@@ -327,6 +267,66 @@ module.exports = function(grunt){
 				],
 				tasks: [
 					'build_pipi_js',
+					''
+				]
+			},
+			extension_cplus_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extensions/cplus/*.js'
+				],
+				tasks: [
+					'build_extension_cplus_js',
+					''
+				]
+			},
+			extension_unzipper_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extensions/unzipper/*.js'
+				],
+				tasks: [
+					'build_extension_unzipper_js',
+					''
+				]
+			},
+			extension_epubcfi_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extensions/epubcfi/*.js'
+				],
+				tasks: [
+					'build_extension_epubcfi_js',
+					''
+				]
+			},
+			extension_jatex_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extensions/jatex/*.js'
+				],
+				tasks: [
+					'build_extension_jatex_js',
+					''
+				]
+			},
+			extension_overreflow_js: {
+				options: {
+					livereload: false
+				},
+				files: [
+					'dev-bib/extensions/overreflow/*.js'
+				],
+				tasks: [
+					'build_extension_overreflow_js',
 					''
 				]
 			},
@@ -376,41 +376,6 @@ module.exports = function(grunt){
 		''
 	]);
 
-	grunt.registerTask('build_bibi_extension_cplus_js', [
-		'clean:bibi_extension_cplus_js',
-		'concat:bibi_extension_cplus_js',
-		'uglify:bibi_extension_cplus_js',
-		''
-	]);
-
-	grunt.registerTask('build_bibi_extension_unzipper_js', [
-		'clean:bibi_extension_unzipper_js',
-		'concat:bibi_extension_unzipper_js',
-		'uglify:bibi_extension_unzipper_js',
-		''
-	]);
-
-	grunt.registerTask('build_bibi_extension_epubcfi_js', [
-		'clean:bibi_extension_epubcfi_js',
-		'concat:bibi_extension_epubcfi_js',
-		'uglify:bibi_extension_epubcfi_js',
-		''
-	]);
-
-	grunt.registerTask('build_bibi_extension_jatex_js', [
-		'clean:bibi_extension_jatex_js',
-		'concat:bibi_extension_jatex_js',
-		'uglify:bibi_extension_jatex_js',
-		''
-	]);
-
-	grunt.registerTask('build_bibi_extension_overreflow_js', [
-		'clean:bibi_extension_overreflow_js',
-		'concat:bibi_extension_overreflow_js',
-		'uglify:bibi_extension_overreflow_js',
-		''
-	]);
-
 	grunt.registerTask('build_pipi_js', [
 		'clean:pipi_js',
 		'concat:pipi_js',
@@ -418,14 +383,38 @@ module.exports = function(grunt){
 		''
 	]);
 
-	grunt.registerTask('build_scripts', [
-		'build_bibi_js',
-		'build_bibi_extension_cplus_js',
-		'build_bibi_extension_unzipper_js',
-		'build_bibi_extension_epubcfi_js',
-		'build_bibi_extension_jatex_js',
-		'build_bibi_extension_overreflow_js',
-		'build_pipi_js',
+	grunt.registerTask('build_extension_cplus_js', [
+		'clean:extension_cplus_js',
+		'concat:extension_cplus_js',
+		'uglify:extension_cplus_js',
+		''
+	]);
+
+	grunt.registerTask('build_extension_unzipper_js', [
+		'clean:extension_unzipper_js',
+		'concat:extension_unzipper_js',
+		'uglify:extension_unzipper_js',
+		''
+	]);
+
+	grunt.registerTask('build_extension_epubcfi_js', [
+		'clean:extension_epubcfi_js',
+		'concat:extension_epubcfi_js',
+		'uglify:extension_epubcfi_js',
+		''
+	]);
+
+	grunt.registerTask('build_extension_jatex_js', [
+		'clean:extension_jatex_js',
+		'concat:extension_jatex_js',
+		'uglify:extension_jatex_js',
+		''
+	]);
+
+	grunt.registerTask('build_extension_overreflow_js', [
+		'clean:extension_overreflow_js',
+		'concat:extension_overreflow_js',
+		'uglify:extension_overreflow_js',
 		''
 	]);
 
@@ -445,15 +434,31 @@ module.exports = function(grunt){
 		''
 	]);
 
-	grunt.registerTask('build_styles', [
+	grunt.registerTask('build_bibi', [
+		'build_bibi_js',
 		'build_bibi_css',
+		''
+	]);
+
+	grunt.registerTask('build_pipi', [
+		'build_pipi_js',
 		'build_pipi_css',
 		''
 	]);
 
+	grunt.registerTask('build_extensions', [
+		'build_extension_cplus_js',
+		'build_extension_unzipper_js',
+		'build_extension_epubcfi_js',
+		'build_extension_jatex_js',
+		'build_extension_overreflow_js',
+		''
+	]);
+
 	grunt.registerTask('build', [
-		'build_scripts',
-		'build_styles',
+		'build_bibi',
+		'build_pipi',
+		'build_extensions',
 		''
 	]);
 
