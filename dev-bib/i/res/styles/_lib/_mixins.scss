@@ -52,6 +52,8 @@
 @mixin column-break-after($V) { @include prefix(column-break-after, $V); }
 @mixin column-break-inside($V) { @include prefix(column-break-inside, $V); }
 
+@mixin text-combine-upright_all() { -webkit-text-combine: horizontal; text-combine: horizontal; -ms-text-combine-horizontal: all; text-combine-horizontal: all; text-combine-upright: all; }
+
 @mixin text-stroke($V) { @include prefix(text-stroke, $V); }
 
 @mixin transform-origin_($V) { @include prefix(transform-origin, $V); }
@@ -69,14 +71,13 @@
 // - Fonts
 // --------------------------------------------------------------------------------
 
-@mixin at-font-face($FamilyName, $FilePath, $SVGName: "") {
+@mixin at-font-face($FamilyName, $FilePath) {
 	@font-face {
 		font-family: $FamilyName;
 		src: url("#{$FilePath}.eot");
-		src: url("#{$FilePath}.eot?#iefix")     format("embedded-opentype"),
-			 url("#{$FilePath}.woff")           format("woff"),
-			 url("#{$FilePath}.ttf")            format("truetype"),
-			 url("#{$FilePath}.svg#{$SVGName}") format("svg");
+		src: url("#{$FilePath}.eot?#iefix") format("embedded-opentype"),
+			 url("#{$FilePath}.woff")       format("woff"),
+			 url("#{$FilePath}.ttf")        format("truetype");
 		font-weight: normal;
 		font-style: normal;
 	}

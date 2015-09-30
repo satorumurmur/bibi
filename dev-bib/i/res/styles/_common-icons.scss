@@ -2,6 +2,18 @@
 // + Icons
 // --------------------------------------------------------------------------------
 
+// - Vars
+// --------------------------------------------------------------------------------
+
+$icon-size: 33px;
+$icon-width: $icon-size;
+$icon-height: $icon-size;
+
+$shape-item-width: 11px;
+$shape-item-height: 17px;
+$shape-spread-width: $shape-item-width * 2 - 1px;
+$shape-spread-height: $shape-item-height;
+
 
 // - BiB/i Logo
 // --------------------------------------------------------------------------------
@@ -43,6 +55,7 @@
 .bibi-icon * {
 	@include box-sizing(border-box);
 	display: block;
+	position: relative;
 	margin: 0;
 	padding: 0;
 	border-style: none;
@@ -58,23 +71,23 @@
 	position: relative;
 	border: solid 1px;
 	border-radius: 2px;
-	width: 27px;
-	height: 27px;
+	width: $icon-width;
+	height: $icon-height;
 	cursor: pointer;
 	&:before, &:after {
-		@include font-icon("ElegantIcons");
 		content: "";
 	}
 	* {
 		position: absolute;
 	}
-	>span.bibi-shape {
-		left: 4px;
-		top: 5px;
-	}
 	span.bibi-shape-spreads {
-		width: 17px;
-		height: 15px;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;
+		width: $shape-spread-width;
+		height: $shape-spread-height;
 		span.bibi-shape-spread {
 			left: 0;
 			top: 0;
@@ -82,24 +95,24 @@
 			height: 100%;
 			span.bibi-shape-item {
 				top: 0;
-				&:first-child { left: 0; }
-				&:last-child  { left: 8px; }
 				border: solid 1px;
-				width: 9px;
-				height: 15px;
+				width: $shape-item-width;
+				height: $shape-item-height;
+				&:first-child { left: 0; }
+				&:last-child  { left: ($shape-item-width - 1px); }
 			}
 		}
 	}
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
-			&:first-child { top: -17px; }
-			&:last-child  { top: 17px; }
+			&:first-child { top: ($shape-spread-height + 2px) * -1; }
+			&:last-child  { top: ($shape-spread-height + 2px); }
 		}
 	}
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
-			&:first-child { left: -18px; }
-			&:last-child  { left: 18px; }
+			&:first-child { left: ($shape-spread-width + 1px) * -1; }
+			&:last-child  { left: ($shape-spread-width + 1px); }
 		}
 	}
 }
@@ -107,83 +120,119 @@
 
 // - Write
 // --------------------------------------------------------------------------------
-/*
-.bibi-icon.bibi-switch-panel {
-	&:before {
-		content: $ElegantIcons_icon_menu;
-		line-height: 27px;
-		font-size: 24px;
-	}
-	html.panel-opened &:before {
-		content: $ElegantIcons_icon_close;
-		line-height: 24px;
-		text-indent: -1px;
-	}
-}*/
 
 .bibi-icon.bibi-switch-panel {
+	$bar-width: 19px;
+	$bar-height: 2px;
+	$bar-isolation: 4px;
+	$bar-block-height: $bar-height + $bar-isolation;
+	$bars-width: $bar-width;
+	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
+	$bars-top: ($icon-height - $bars-height) / 2 - 1px;
 	&:before, span, &:after {
-		left: 4px !important;
-		border-bottom: solid 1px !important;
-		width: 17px !important;
-		height: 2px !important;
+		left: 0 !important;
+		right: 0 !important;
+		margin: auto !important;
+		//border-bottom: solid 1px !important;
+		width: $bar-width !important;
+		height: $bar-height !important;
 		border-radius: 1px;
-		@include transition(.2s linear !important);
+		@include transition(.125s linear !important);
 	}
 	&:before, &:after {
-		content: "";
 		display: block;
 		position: absolute;
 	}
 	&:before {
-		top: 6px;
+		top: $bars-top !important;
 	}
 	span {
-		top: 11px !important;
+		top: $bars-top + $bar-block-height !important;
+		color: transparent !important;
 	}
 	&:after {
-		top: 16px;
+		top: $bars-top + $bar-block-height * 2 !important;
 	}
 	html.panel-opened & {
 		&:before {
-			@include transform(translateY( 5px) rotate(-225deg));
+			@include transform(translateY(($bar-isolation + $bar-height) *  1) rotate(135deg));
 		}
 		span {
 			opacity: 0;
 		}
 		&:after {
-			@include transform(translateY(-5px) rotate( 225deg));
+			@include transform(translateY(($bar-isolation + $bar-height) * -1) rotate(225deg));
 		}
 	}
 }
 
+.bibi-icon.bibi-switch-newwindow,
+.bibi-icon.bibi-switch-fullscreen {
+	&:before {/*
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;*/
+		//@include transform(translateY(-1px));
+		background: no-repeat center center;
+		background-size: contain;
+	}
+}
+
 .bibi-icon.bibi-switch-newwindow {
+	text-decoration: none !important;
 	&:before {
-		content: $ElegantIcons_arrow_right-up;
-		line-height: 25px;
-		font-size: 18px;
+		margin: 3.5px auto 0;
+		width: 24px;
+		height: 24px;
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_black_48dp.png); /* The Material Icons */
+	}
+	&:hover:before {
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_white_48dp.png); /* The Material Icons */
 	}
 }
 
 .bibi-icon.bibi-switch-fullscreen {
 	&:before {
-		content: $ElegantIcons_arrow_expand;
-		line-height: 25.5px;
-		font-size: 18px;
-		html:fullscreen                      & { content: $ElegantIcons_arrow_condense; }
-		html:full-screen                     & { content: $ElegantIcons_arrow_condense; }
-		html:-webkit-fullscreen              & { content: $ElegantIcons_arrow_condense; }
-		html:-webkit-full-screen             & { content: $ElegantIcons_arrow_condense; }
-		html:-moz-fullscreen                 & { content: $ElegantIcons_arrow_condense; }
-		html:-moz-full-screen                & { content: $ElegantIcons_arrow_condense; }
-		html:-ms-fullscreen                  & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:fullscreen          & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:full-screen         & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-webkit-fullscreen  & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-webkit-full-screen & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-moz-fullscreen     & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-moz-full-screen    & { content: $ElegantIcons_arrow_condense; }
-		span.bibi-holder:-ms-fullscreen      & { content: $ElegantIcons_arrow_condense; }
+		margin: 1.5px auto 0;
+		width: 28px;
+		height: 28px;
+		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png);      /* The Material Icons */
+		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
+		html:fullscreen                      & { background-image: $background-image_fullscreen; }
+		html:full-screen                     & { background-image: $background-image_fullscreen; }
+		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen; }
+		html:-webkit-full-screen             & { background-image: $background-image_fullscreen; }
+		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen; }
+		html:-moz-full-screen                & { background-image: $background-image_fullscreen; }
+		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen; }
+		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen; }
+	}
+	&:hover:before {
+		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png);      /* The Material Icons */
+		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
+		html:fullscreen                      & { background-image: $background-image_fullscreen }
+		html:full-screen                     & { background-image: $background-image_fullscreen }
+		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen }
+		html:-webkit-full-screen             & { background-image: $background-image_fullscreen }
+		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen }
+		html:-moz-full-screen                & { background-image: $background-image_fullscreen }
+		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen }
+		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen }
+		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen }
+		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen }
 	}
 }
 
@@ -194,9 +243,11 @@
 //.bibi-icon { &, &:before, &:after, & * { @include transition(0.15s linear); } }
 
 .bibi-icon {
-	$color_label: rgb(132,128,124);
-	border-color: rgba(66,64,62,.5) !important;
-	background: rgba(255,255,255,0.8) !important;
+	$color_label: rgb(128,128,128);
+//	border-color: rgba(66,64,62,.5) !important;
+//	background-color: rgba(255,255,255,0.8) !important;
+	border-color: rgba(192,192,192,0.5) !important;
+	background-color: rgba(255,255,255,0.8) !important;
 //	opacity: .64;
 	@include transition(0.15s linear);
 	html.panel-opened & {
@@ -206,64 +257,67 @@
 		color: $color_label !important;
 	}
 	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
-		border-bottom-color: lighten($color_label, 20%) !important;
-		background: $color_label !important;
+		background-color: lighten($color_label, 5%) !important;
+	}
+	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+		opacity: 0.4 !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(164,160,156) !important;
-				background: white !important;
+				border-color: rgb(128,128,128) !important;
+				background-color: white !important;
 			}
 		}
 	}
 }
 
+/*html.view-paged*/ .bibi-icon-paged,
+/*html.view-horizontal*/ .bibi-icon-horizontal,
+/*html.view-vertical*/ .bibi-icon-vertical {
+	background-color: rgb(236,232,228) !important;
+}
+
 .bibi-icon:hover {
 	$color_label: white;
-	background: rgba(132,128,124,.75) !important;
+	background-color: rgba(132,128,124,.88) !important;
 	opacity: 1 !important;
 	&:before, &:after {
 		color: $color_label !important;
 	}
 	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
-		border-bottom-color: darken($color_label, 20%) !important;
-		background: $color_label !important;
+		border-bottom-color: darken($color_label, 25%) !important;
+		background-color: $color_label !important;
+	}
+	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+		opacity: 1 !important;
 	}
 	span.bibi-shape-spreads {
 		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
 				border-color: white !important;
-				background: rgb(164,160,156) !important;
+				background-color: rgb(192,188,184) !important;
 			}
 		}
 	}
 }
 
-html.display-each .bibi-icon-each,
-html.display-all.spread-horizontal .bibi-icon-horizontal,
-html.display-all.spread-vertical .bibi-icon-vertical {
+html.view-paged .bibi-icon-paged,
+html.view-horizontal .bibi-icon-horizontal,
+html.view-vertical .bibi-icon-vertical {
 	// ON
+	background-color: rgb(196,192,188) !important;
 	cursor: default !important;
-	background: rgba(132,128,124,.33) !important;
 	opacity: 1 !important;
 	span.bibi-shape-spreads {
 		opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
 				border-color: rgb(164,160,156) !important;
-				background: white !important;
+				background-color: white !important;
 			}
 		}
 	}
-}
-
-html.display-all .bibi-icon-each,
-html.display-all.spread-vertical .bibi-icon-horizontal,
-html.display-all.spread-horizontal .bibi-icon-vertical,
-html.display-each .bibi-icon-horizontal,
-html.display-each .bibi-icon-vertical {
-	// OFF
 }

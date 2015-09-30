@@ -6,26 +6,41 @@
 // - HTML / Body
 // --------------------------------------------------------------------------------
 
+@mixin scrollbar() {
+	$scrollbar-size: 12px;
+	&::-webkit-scrollbar {
+		height: $scrollbar-size;
+		width: $scrollbar-size;
+	}
+	&::-webkit-scrollbar-track {
+		background: rgb(240,240,240);
+		border: solid 0 rgb(192,192,192);
+		&:horizontal {
+			border-top-width: 1px;
+		}
+		&:vertical {
+			border-left-width: 1px;
+		}
+	}
+	&::-webkit-scrollbar-thumb {
+		border: solid 1px rgb(176,176,176);
+		border-radius: $scrollbar-size / 2;
+		background: rgb(192,192,192);
+	}
+}
+
 html {
-	$background-color: rgb(218,216,214);
-	$background-color: rgb(132,128,124);
-	$background-color: rgb(196,192,188);
-	font-family: "Helvetica", "Trebuchet MS", sans-serif;
+	font-family: sans-serif;
 	width: 100%;
 	height: 100%;
-	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "YuGothic", "メイリオ", "Meiryo", sans-serif; }
+	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
+	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
+	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	@include background-image_linear-gradient(
-		to top,
-		lighten($background-color, 8%),
-		 darken($background-color, 24%)
-	);
+	background-color: rgb(69,69,69);
 	&.spread-vertical {
 		width: 100%;
-		background: $background-color;
 		&.preparing {
 			overflow-x: hidden;
 			overflow-y: scroll;
@@ -38,16 +53,17 @@ html {
 			overflow-y: hidden;
 		}
 	}
-	&.display-each,
+	&.view-paged,
 	&.with-poster {
 		overflow-x: hidden !important;
 		overflow-y: hidden !important;
 		width: 100%;
 		height: 100%;
 	}
-	&.display-each {
-		background: white !important;
+	&.view-paged {
+		//background: white !important;
 	}
+	@include scrollbar();
 }
 
 body {
@@ -79,40 +95,44 @@ div#epub-metafiles * {
 // - EPUB-Content
 // --------------------------------------------------------------------------------
 
-div#epub-content {
+div#main {
 	-webkit-overflow-scrolling: touch;
 	@include box-sizing(border-box);
 	//padding: 35px 0;
 	//@include transition(.2s ease-out);
-	html.iOS                   & { position: fixed; }
-	html.iOS.spread-horizontal & { width: 100%; height: auto; overflow-x: scroll; overflow-y: hidden; }
-	html.iOS.spread-vertical   & { width: auto; height: 100%; overflow-x: hidden; overflow-y: scroll; }
-	html.iOS.display-each      & { width: 100%; height: 100%; overflow-x: hidden; overflow-y: hidden; }
+	position: fixed; width: 100%; height: 100%;
+	html.spread-horizontal & { overflow-x: scroll; overflow-y: hidden; }
+	html.spread-vertical   & { overflow-x: hidden; overflow-y: scroll; }
+	html.view-paged        & { overflow-x: hidden; overflow-y: hidden; }/*
+	html.iOS                   &, html.Android                   & { position: fixed; width: 100%; height: 100%; }
+	html.iOS.spread-horizontal &, html.Android.spread-horizontal & { overflow-x: scroll; overflow-y: hidden; }
+	html.iOS.spread-vertical   &, html.Android.spread-vertical   & { overflow-x: hidden; overflow-y: scroll; }
+	html.iOS.view-paged        &, html.Android.view-paged        & { overflow-x: hidden; overflow-y: hidden; }*/
+	@include scrollbar();
 	html.panel-opened & {
 		@include transition(.2s ease-in);
-		@include filter(blur(4px));
+		//@include filter(blur(4px));
 		opacity: 0.75;
 	}
 	html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
 	}
-	html.flipping & {
-		//@include transition(ease-out 0.1s);
-	}
-	html.flipping-rtl & {
-		@include transform(translateX(100px));
+	html.page-ltr.flipping-ahead &,
+	html.page-rtl.flipping-astern & {
+		@include transform(translateX(-100px));
 		opacity: 0;
 	}
-	html.flipping-ltr & {
-		@include transform(translateX(-100px));
+	html.page-ltr.flipping-astern &,
+	html.page-rtl.flipping-ahead & {
+		@include transform(translateX(100px));
 		opacity: 0;
 	}
 }
 
-	div#epub-content-main {
-		html.preparing         & { opacity: 0; }
+	div#book {
+		html.preparing & { opacity: 0; }
 		@include box-sizing(border-box);
-		overflow: hidden;
+		//overflow: hidden;
 		position: relative;
 		z-index: 10;
 		@include transition(0.75s ease-in-out);
@@ -127,9 +147,15 @@ div#epub-content {
 		}
 
 			div.spread {
+				position: relative;
 				overflow: hidden;
+				width: 100%;
+				height: 100%;
 				background: white;
-				html.display-each & {
+				&.pre-paginated {
+					background: transparent;
+				}
+				html.view-paged & {
 					box-shadow: none !important;
 				}
 			}
@@ -137,13 +163,25 @@ div#epub-content {
 				div.item-box {
 					display: block;
 					position: relative;
+					z-index: 1;
 					overflow: hidden;
 					div.spread-box.pre-paginated &.page-spread-left  { float: left;  }
 					div.spread-box.pre-paginated &.page-spread-right { float: right; }
+					&:before {
+						content: "";
+						position: absolute;
+						z-index: 1;
+						left: 0;
+						top: 0;
+						width: 100%;
+						height: 100%;
+						background: white;
+					}
 				}
 
 					iframe.item, span.page {
 						display: block;
+						z-index: 10;
 					}
 					iframe.item {
 						position: relative;
@@ -153,7 +191,6 @@ div#epub-content {
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
-						background: white;
 						html.page-ltr & { @include transform-origin(0 0); }
 						html.page-rtl & { @include transform-origin(100% 0); }
 					}
@@ -164,23 +201,171 @@ div#epub-content {
 						html.spread-vertical   & { left: 0; }
 						html.spread-vertical div.spread-box.pre-paginated & { left: auto; top: 0; }
 					}
+					span.overreflow-opener {
+						display: block;
+						z-index: 100;
+						position: absolute;
+						left: 0;
+						right: 0;
+						top: 0;
+						bottom: 0;
+						margin: auto;
+						width: 100%; width: calc(100% - 30px);
+						height: 100%; height: calc(100% - 30px);
+						background: transparent;
+						cursor: pointer;
+						opacity: 0;
+						@include transition(.1s linear);
+						&:hover {
+							opacity: 1;
+							background: rgba(0,0,0,0.2);
+							@include transition(.2s linear);
+						}
+						&:active {
+							background: rgba(0,0,0,0.4);
+							@include transition(.05s linear);
+						}
+						a, &:before, &:after {
+							position: absolute;
+							display: block;
+						}
+						a {
+							z-index: 1;
+							opacity: 0;
+							overflow: hidden;
+							width: 0;
+							height: 0;
+						}
+						&:before, &:after {
+							left: 0;
+							right: 0;
+							top: auto;
+							bottom: 25%;
+							margin: auto;
+							width: 50px;
+							height: 50px;
+						}
+						&:before {
+							content: "";
+							z-index: 10;
+							border-radius: 8px;
+							background: rgba(255,255,255,0.69);
+						}
+						&:after {
+							content: $mif_open-in-browser;
+							@include font-icon("MaterialIcons");
+							z-index: 100;
+							line-height: 50px;
+							text-align: center;
+							font-size: 48px;
+							color: rgba(0,0,0,0.69);
+						}
+					}
 
-		div#epub-asides {
-			@include box-sizing(border-box);
-			position: absolute;
-			z-index: 100;
-			padding: 8px;
-			border: solid 0 rgba(255,255,255,0.1);
-			width: 44px;
-			height: 44px;
-			line-height: 30px;
-			font-size: 14px;
-			text-align: left;
-			color: white;
-			html.spread-ltr & { right: 0; bottom: 0; }
-			html.spread-rtl & { left:  0; bottom: 0; }
-			html.spread-ttb & { right: 0; bottom: 0; }
+div#sub {
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 100000;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	display: none;
+	div.overreflow-layer {
+		@include box-sizing(border-box);
+		-webkit-overflow-scrolling: touch;
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(255,255,255,0.96);
+		@include transform-origin_(50% 100%);
+		@include transition(.125s ease-out);
+		.iOS & {
+			overflow: scroll;
+			height: calc(100% - 41px);
 		}
+		&.hidden {
+			opacity: 0;
+			@include transform(scale(0, 0.88));
+			//@include transition(.2s ease-in);
+		}
+		iframe.overreflow-frame {
+			@include box-sizing(border-box);
+			display: block;
+			position: absolute;
+			z-index: 1;
+			left: 0;
+			bottom: 0;
+			padding-top: 41px;
+			width: 100%;
+			height: 100%;
+			.iOS & {
+				padding-top: 0;
+			}
+		}
+	}
+	div.overreflow-bar {
+		@include box-sizing(border-box);
+		display: block;
+		overflow: hidden;
+		position: absolute;
+		z-index: 10;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 41px;
+		@include transform-origin_(50% 0);
+		@include transition(.250s ease-out);
+		box-shadow: 0 2px 4px rgba(0,0,0,0.125);
+		&.hidden {
+			opacity: 0;
+			@include transform(scale(1.0, 0));
+			//@include transition(.2s ease-in);
+		}
+		span.overreflow-closer {
+			@include box-sizing(border-box);
+			display: block;
+			border-bottom: solid 1px rgba(255,255,255,0.34);
+			width: 100%;
+			height: 100%;
+			text-align: center;
+			line-height: 44px;
+			font-size: 18px;
+			text-indent: 24px;
+			cursor: pointer;
+			color: rgb(64,64,64);
+			background: rgb(248,248,248);
+			@include transition(0.15s linear);
+			&:hover, &:active {
+				color: white;
+				//border-bottom-color: rgba(69,69,69,0.34);
+				background: rgb(128,128,128);
+			}
+			&:before {
+				content: $mif_highlight-off;
+				@include font-icon("MaterialIcons");
+				display: inline-block;
+				position: absolute;
+				top: 12px;
+				left: 50%;
+				margin-left: -3.25em * 18/20;
+				width: 20px;
+				height: 20px;
+				line-height: 20px;
+				font-size: 20px;
+				vertical-align: top;
+				
+			}
+		}
+	}
+}
 
 
 // - Factory

@@ -1,12 +1,78 @@
 // ================================================================================
-// + Controls
+// + Notifier
 // --------------------------------------------------------------------------------
 
 
-// - Cartain
+// - Notifier
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain {
+div#bibi-notifier {
+}
+
+
+// - Notifier > Board
+// --------------------------------------------------------------------------------
+
+div#bibi-notifier-board {
+	$height: 41px;
+	@include box-sizing(border-box);
+	position: fixed;
+	z-index: 10000;
+	top: 0;
+	padding: 0 8px;
+	width: 100%;
+	height: $height;
+	line-height: $height * 1.05;
+	text-indent: .5em;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	color: rgb(69,69,69);
+	background: rgba(252,252,252,0.96);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.125);
+	@include transition(.15s linear);
+	@include transform-origin_(50% 0);/*
+	html.wait-please & {
+		display: block;
+		opacity: 1;
+	}
+	html.loading & {
+		opacity: 1;
+		@include animation(fade .2s linear 0 infinite normal);
+	}*/
+	small {
+		font-size: 0.75em;
+	}
+	&.shown {
+		opacity: 1;
+		@include transform(none);
+		@include transition(.15s linear);
+	}
+	&.hidden {
+		opacity: 0;
+		//@include transform(translateY($height));
+		@include transform(scaleY(0));
+		@include transition(.2s linear);
+	}
+}/*
+@include keyframes(fade) {
+	  0% { opacity: 1.00; }
+	 50% { opacity: 0.75; }
+	100% { opacity: 1.00; }
+}*/
+
+
+
+
+// ================================================================================
+// + Veil
+// --------------------------------------------------------------------------------
+
+
+// - Veil
+// --------------------------------------------------------------------------------
+
+div#bibi-veil {
 	@include box-sizing(border-box);
 	overflow: hidden;
 	display: block;
@@ -18,44 +84,83 @@ div#bibi-cartain {
 	height: 100%;
 	font-size: 15px;
 	color: white;
-	//background: rgb(216,214,212);
-	//background: rgb(248,248,244);
-	opacity: 1;/*
-	p#bibi-cartain-message {
-		padding-top: 30%;
-		line-height: 40px;
-		font-size: 24px;
-		text-align: center;
-		font-weight: bold;
-		color: rgb(96,96,96);
-		//text-shadow: -1px -1px 0px rgb(48,48,48), 1px 1px 0px rgb(72,72,72);
-	}*/
+	background: rgb(81,81,81);
+	opacity: 1;
 	html.panel-opened & {
 		@include transition(.2s ease-in);
-		@include filter(blur(4px));
-		opacity: 0.75;
-	}
-	html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
 	}
 }
 
 
-// - Cartain > H1, UL
+// - Veil > H1, UL
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain h1,
-div#bibi-cartain ul {
+div#bibi-veil h1,
+div#bibi-veil ul {
 	overflow: hidden;
 	width: 0;
 	height: 0;
 }
 
 
-// - Cartain > Cover
+// - Veil > Bye Bye
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain-cover {
+p#bibi-veil-byebye {
+	position: absolute;
+	z-index: 100;
+	left: 0;
+	right: 0;
+	top: 69px;
+	margin: auto;
+	line-height: 1.75;
+	text-align: center;
+	text-indent: .1em;
+	letter-spacing: .1em;
+	font-size: 12px;
+	font-weight: bold;
+	text-shadow: 0 1px 2px black, 0 0 4px rgb(176,176,176);
+	color: rgb(160,160,160);
+	a {
+		color: inherit;
+		@include transition(.2s linear);
+		&:hover {
+			color: rgb(216,216,216);
+			@include transition(.1s linear);
+		}
+	}
+	span {
+		display: block;
+		position: relative;
+	}
+	span[lang="en"] {
+	}
+	span[lang="ja"] {
+		margin-top: 1.5em;
+		padding-top: 1.5em;
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			margin: auto;
+			border-style: solid;
+			border-width: 1px 0;
+			border-color: rgb(128,128,128) transparent black;
+			width: 2em;
+			height: 0;
+		}
+	}
+}
+
+
+// - Veil > Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-veil-cover {
 	overflow: hidden;
 	position: absolute;
 	z-index: 1;
@@ -63,7 +168,7 @@ div#bibi-cartain-cover {
 	top: 0;
 	@include box-sizing(border-box);
 	border: solid transparent;
-	border-width: 16px 8px 32px;
+	border-width: 41px 8px 2px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
@@ -128,11 +233,11 @@ div#bibi-cartain-cover {
 }
 
 
-// - Cartain > Catcher, PlayButton
+// - Veil > Catcher, PlayButton
 // --------------------------------------------------------------------------------
 
-p#bibi-cartain-catcher,
-p#bibi-cartain-playbutton {
+p#bibi-veil-catcher,
+p#bibi-veil-playbutton {
 	@include box-sizing(border-box);
 	position: absolute;
 	z-index: 10;
@@ -148,10 +253,10 @@ p#bibi-cartain-playbutton {
 		@include box-sizing(border-box);
 		display: block;
 		position: absolute;
-		left: -100%;
-		top: -100%;
-		right: -100%;
-		bottom: -100%;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
 		margin: auto;
 		vertical-align: middle;
 		text-align: center;
@@ -163,7 +268,7 @@ p#bibi-cartain-playbutton {
 	}
 }
 
-p#bibi-cartain-catcher {
+p#bibi-veil-catcher {
 	cursor: pointer;
 	&:before, &:after {
 		color: rgba(255,255,255,0.5);
@@ -197,54 +302,66 @@ p#bibi-cartain-catcher {
 	}
 }
 
-p#bibi-cartain-playbutton {
+p#bibi-veil-playbutton {
+	$size: 69px;
+	$hover-move: 0;
 	cursor: pointer;
+	&:hover  { background: rgba(0,0,0,0.5); }
+	&:active { background: rgba(0,0,0,0.25); }
 	&:after {
-	 	$size: 69px;
-		content: $ElegantIcons_arrow_triangle-right_alt2;
+		content: $ElegantIcons_arrow_carrot-right_alt;
 		z-index: 2;
 		width: $size;
 		height: $size;
 		line-height: $size;
 		font-size: $size;
-		color: rgb(128,128,128);
+		color: rgb(216,216,216);
 		//@include text-stroke(4px white);
 	}
-	$after: 8px;
-	html.page-ttb &:after {
-		content: $ElegantIcons_arrow_triangle-down_alt2;
-		left: auto;
-		top: auto;
-		bottom: $after;
-		margin-top: 0;
-		@include transform-origin_(50% 100%);
-	}
-	html.page-rtl &:after {
-		content: $ElegantIcons_arrow_triangle-left_alt2;
-		left: $after;
-		margin-left: 0;
-		@include transform-origin_(0 50%);
-	}
-	html.page-ltr &:after {
-		content: $ElegantIcons_arrow_triangle-right_alt2;
-		left: auto;
-		right: $after;
-		margin-left: 0;
-		@include transform-origin_(100% 50%);
-	}
-	&:hover {
+	&:hover:after  { @include transform(scale(1.250)); color: white; }
+	&:active:after { @include transform(scale(1.125)); }
+	html.view-vertical & {
+		$offset: 40px;
 		&:after {
-			color: white;
-			@include transform(scale(1.5));
+			content: $ElegantIcons_arrow_carrot-down_alt;
+			top: auto;
+			bottom: $offset;
+			@include transform-origin_(50% 100%);
 		}
+		&:hover:after  { bottom: $offset + $hover-move; }
+		&:active:after { bottom: $size * -1/3; }
+	}
+	html.view-horizontal.page-rtl &,
+	html.view-paged.page-rtl & {
+		$offset: 8px;
+		&:after {
+			content: $ElegantIcons_arrow_carrot-left_alt;
+			left: $offset;
+			right: auto;
+			@include transform-origin_(0 50%);
+		}
+		&:hover:after  { left: $offset + $hover-move; }
+		&:active:after { left: $size * -1/3; }
+	}
+	html.view-horizontal.page-ltr &,
+	html.view-paged.page-ltr & {
+		$offset: 8px;
+		&:after {
+			content: $ElegantIcons_arrow_carrot-right_alt;
+			left: auto;
+			right: $offset;
+			@include transform-origin_(100% 50%);
+		}
+		&:hover:after  { right: $offset + $hover-move; }
+		&:active:after { right: $size * -1/3; }
 	}
 }
 
 
-// - Cartain > Mark
+// - Veil > Mark
 // --------------------------------------------------------------------------------
 
-div#bibi-cartain-mark {
+div#bibi-veil-mark {
 	position: absolute;
 	display: none;
 	z-index: 100;
@@ -260,77 +377,76 @@ div#bibi-cartain-mark {
 	span {
 		display: block;
 		position: absolute;
-		width: 8px;
-		height: 8px;
+		width: 10px;
+		height: 10px;
 		border-radius: 50%;
-		//box-shadow: 0 0 2px black;
-		$background-color: rgb(255,255,255);
-		//box-shadow: 0 0 2px rgba(0,0,0,0.25);
-		&.dot1 { left: 32px; top:  0px; background: darken($background-color, 100% * 0/4); }
-		&.dot2 { left: 54px; top:  8px; background: darken($background-color, 100% * 0/4); }
-		&.dot3 { left: 64px; top: 32px; background: darken($background-color, 100% * 1/4); }
-		&.dot4 { left: 54px; top: 54px; background: darken($background-color, 100% * 3/4); }
-		&.dot5 { left: 32px; top: 64px; background: darken($background-color, 100% * 3/4); }
-		&.dot6 { left:  8px; top: 54px; background: darken($background-color, 100% * 1/4); }
-		&.dot7 { left:  0px; top: 32px; background: darken($background-color, 100% * 0/4); }
-		&.dot8 { left:  8px; top:  8px; background: darken($background-color, 100% * 0/4); }
-		& { background: rgba(0,0,0,0.5) !important; }
+		//border: solid 1px;
+		//background: rgba(0,0,0,0.5);
+		&:nth-child(odd)  { background: rgb(216,216,216); }
+		&:nth-child(even) { background: rgb(192,192,192); }
+		&:nth-child(1)    { left: 32px; top:  0px; }
+		&:nth-child(2)    { left: 54px; top:  8px; }
+		&:nth-child(3)    { left: 64px; top: 32px; }
+		&:nth-child(4)    { left: 54px; top: 54px; }
+		&:nth-child(5)    { left: 32px; top: 64px; }
+		&:nth-child(6)    { left:  8px; top: 54px; }
+		&:nth-child(7)    { left:  0px; top: 32px; }
+		&:nth-child(8)    { left:  8px; top:  8px; }
 	}
-	div#bibi-cartain.animate & {
+	html.loading & {
 		display: block;
-		@include animation(loading 1.5s ease-in-out 0s infinite normal);
+		@include animation(loading 2s linear 0s infinite normal);
 	}
 }
 @include keyframes(loading) {
-	  0% { @include transform(rotate(  0deg) scale(0.50)); @include filter(blur(0px)); }
-	 25% { @include transform(rotate(180deg) scale(1.00)); @include filter(blur(0px)); }
-	 50% { @include transform(rotate(360deg) scale(0.50)); @include filter(blur(0px)); }
-	 75% { @include transform(rotate(540deg) scale(1.00)); @include filter(blur(0px)); }
-	100% { @include transform(rotate(720deg) scale(0.50)); @include filter(blur(0px)); }
+	  0% { @include transform(rotate(  0deg) scale(1.00)); @include filter(blur(0px)); }
+	 25% { @include transform(rotate(180deg) scale(0.50)); @include filter(blur(0px)); }
+	 50% { @include transform(rotate(360deg) scale(1.00)); @include filter(blur(0px)); }
+	 75% { @include transform(rotate(540deg) scale(0.50)); @include filter(blur(0px)); }
+	100% { @include transform(rotate(720deg) scale(1.00)); @include filter(blur(0px)); }
 }
 
 
-// - Cartain > Powered, Message
+// - Veil > Powered
 // --------------------------------------------------------------------------------
 
-p#bibi-cartain-powered,
-p#bibi-cartain-message {
+p#bibi-veil-powered {
 	@include box-sizing(border-box);
 	position: absolute;
-	bottom: 0;
-	padding: 0 8px;
+	z-index: 999;
+	top: 0;
 	width: 100%;
-	height: 24px;
-	line-height: 32px;
-	color: rgb(96,96,96);
+	height: 41px;
+	line-height: 41px;
+	text-align: center;
+	color: rgb(216,216,216);
+	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
 	small {
 		font-size: 0.75em;
+	}
+	a, span {
+		display: inline-block;
+		position: relative;
+		color: white;
+		opacity: 0.69;
+		img {
+			display: inline-block;
+			position: relative;
+			top: 4px;
+			width: auto;
+			height: 16px;
+			vertical-align: baseline;
+		}
+		html.loading & {
+			opacity: 0;
+		}
 	}
 	a {
 		//font-weight: bold;
 		color: inherit;
 		text-decoration: none;
 		@include transition(0.25s linear);
-		&:hover {
-			color: rgb(160,160,160);
-		}
-	}
-}
-p#bibi-cartain-powered {
-	z-index: 999;
-	padding-top: 2px;
-	text-align: center;
-	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
-	a.bibi-logo {
-		display: inline-block;
-		position: relative;
-		color: black;
-		opacity: 0.48;
-		img {
-			width: auto;
-			height: 16px;
-			vertical-align: top;
-		}
+		/*
 		&:after {
 			content: "";
 			position: absolute;
@@ -340,128 +456,218 @@ p#bibi-cartain-powered {
 			display: block;
 			width: 48px;
 			height: 1px;
-			background: #84807c;
+			background: rgb(160,160,160);
 		}
+		*/
 		&:hover {
-			color: white;
 			opacity: 1;
+			color: rgb(160,160,160);
+			/*
+			&:after {
+				background: rgb(255,255,255);
+			}
+			*/
 		}
-		div#bibi-cartain.animate & {
-			opacity: 0;
-		}
 	}
 }
-p#bibi-cartain-message {
-	z-index: 1000;
-	padding-top: 0px;
-	text-align: center;
-	display: none;
-	font-size: 12px;
-	font-weight: bold;
-	text-indent: .5em;
-	text-transform: uppercase;
-	opacity: 0;
-	@include transition(opacity .15s linear);
-	html.wait-please & {
-		display: block;
-		opacity: 1;
-	}
-	div#bibi-cartain.animate & {
-		opacity: 1;
-		@include animation(fade .2s linear 0 infinite normal);
-	}
-}
-@include keyframes(fade) {
-	  0% { opacity: 1.00; }
-	 50% { opacity: 0.75; }
-	100% { opacity: 1.00; }
-}
+
+
+
+
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
 
 
 // - Arrows (div#bibi-arrows)
 // --------------------------------------------------------------------------------
 
 div#bibi-arrows {
+	$arrow-offset: 4px;
+	$arrow-size: 33px;
+	$panel-breadth: 50;
 	div.bibi-arrow {
-		overflow: hidden;
 		position: fixed;
 		z-index: 1000;
-		$start: 10%;
-		$breadth: 80%;
-		$length: 50px;
+		font-size: $arrow-size;
 		line-height: 1;
-		opacity: 0; &.shown { opacity: 0.8; }
 		@include transition(opacity 0.2s linear);
-		html.display-all.spread-vertical &                        { left: $start; width: $breadth; height: $length; }
-		html.display-all.spread-horizontal &, html.display-each & { top:  $start; width: $length;  height: $breadth; }
-		&:before {
+		$length: $arrow-size + $arrow-offset * 2;
+		html.view-vertical &                      { width: 50%; width: 50vw; height: $length; }
+		html.view-horizontal &, html.view-paged & { width: $length; height: 50%; height: 50vh; }
+		&:after {
 			display: block;
 			position: absolute;
-			$start: 50%;
-			$margin-start: -.5em;
+			z-index: 2;
+			left: -100%;
+			right: -100%;
+			top: -100%;
+			bottom: -100%;
+			margin: auto;
 			width: 1em;
 			height: 1em;
-			font-size: 80px;
 			text-align: center;
 			vertical-align: middle;
 			line-height: 1em;
-			color: rgba(96,96,96,0.75);
-			$transform_scaleB: 1.5;
-			$transform_scaleL: 1.0;
+			color: rgb(96,96,96); $text-shadow-color: rgb(240,240,240);
+			text-shadow:
+				 0px -2px 1px $text-shadow-color,
+				 2px  0px 1px $text-shadow-color,
+				 0px  2px 1px $text-shadow-color,
+				-2px  0px 1px $text-shadow-color;
+			opacity: 0.33;
 			@include font-icon("ElegantIcons");
-			html.display-all.spread-vertical &                        { left: $start; margin-left: $margin-start; @include transform(scale($transform_scaleB, $transform_scaleL)); }
-			html.display-all.spread-horizontal &, html.display-each & { top:  $start; margin-top:  $margin-start; @include transform(scale($transform_scaleL, $transform_scaleB)); }
+			@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
 		}
-		&#bibi-arrow-back {
-			$before: 0;
-			html.display-all.spread-ttb &                               { top:    $before; cursor: n-resize; }
-			html.display-all.spread-btt &                               { bottom: $before; cursor: s-resize; }
-			html.display-all.spread-ltr &, html.display-each.page-ltr & { left:   $before; cursor: w-resize; }
-			html.display-all.spread-rtl &, html.display-each.page-rtl & { right:  $before; cursor: e-resize; }
-			&:before {
-				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
-				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
-			}
+		html.view-vertical.spread-ttb &#bibi-arrow-back {
+			top: 0; left: 50%; left: 50vw; margin-left: -25%; margin-left: -25vw; &.flickering { cursor: n-resize; }
+			&:after { content: $ElegantIcons_arrow_carrot-up_alt;    top: $arrow-offset; bottom: auto; text-align: center; @include transform-origin_( 50%   0 ); }
 		}
-		&#bibi-arrow-forward {
-			$after: 0;
-			html.display-all.spread-ttb &                               { bottom: $after; cursor: s-resize; }
-			html.display-all.spread-btt &                               { top:    $after; cursor: n-resize; }
-			html.display-all.spread-ltr &, html.display-each.page-ltr & { right:  $after; cursor: e-resize; }
-			html.display-all.spread-rtl &, html.display-each.page-rtl & { left:   $after; cursor: w-resize; }
-			&:before {
-				html.display-all.spread-ttb &                               { content: $ElegantIcons_arrow_carrot-down;  bottom: -.25em; vertical-align: bottom; }
-				html.display-all.spread-btt &                               { content: $ElegantIcons_arrow_carrot-up;    top:    -.25em; vertical-align: top; }
-				html.display-all.spread-ltr &, html.display-each.page-ltr & { content: $ElegantIcons_arrow_carrot-right; right: -.225em; text-align:     right; }
-				html.display-all.spread-rtl &, html.display-each.page-rtl & { content: $ElegantIcons_arrow_carrot-left;  left:  -.275em; text-align:     left; }
-			}
+		html.view-vertical.spread-ttb &#bibi-arrow-forward {
+			bottom: 0; left: 50%; left: 50vw; margin-left: -25%; margin-left: -25vw; &.flickering { cursor: s-resize; }
+			&:after { content: $ElegantIcons_arrow_carrot-down_alt;  bottom: $arrow-offset + 2px; top: auto; text-align: center; @include transform-origin_( 50% 100%); }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
+		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
+			left: 0; top: 50%; top: 50vh; margin-top: 25%; margin-top: -25vh; &.flickering { cursor: w-resize; }
+			&:after { content: $ElegantIcons_arrow_carrot-left_alt;  left: $arrow-offset; right: auto; text-align: left;   @include transform-origin_(  0   50%); }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
+		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
+			right: 0; top: 50%; top: 50vh; margin-top: 25%; margin-top: -25vh; &.flickering { cursor: e-resize; }
+			&:after { content: $ElegantIcons_arrow_carrot-right_alt; right: $arrow-offset + 2px; left: auto; text-align: right;  @include transform-origin_(100%  50%); }
+		}
+		&.flickering:after {
+			opacity: 1.00 !important;
+			@include transform(scale(1.2) !important);
+		}
+		&.firing:after {
+			opacity: 1.00 !important;
+			@include transform(scale(1.2 * 1.2) !important);
+		}
+		&.glowing:after {
+			opacity: 1.00 !important;
+			@include transform(scale(1.2 * 1.2 * 1.2) !important);
+		}
+		&.inactive:after {
+			opacity: 0 !important;
 		}
 	}
 }
 
+div#bibi-arrows { // Material Icons
+	/*
+	$arrow-offset: 4px;
+	$arrow-size: 48px;
+	div.bibi-arrow {
+		position: fixed;
+		z-index: 1000;
+		left: -100%;
+		right: -100%;
+		top: -100%;
+		bottom: -100%;
+		margin: auto;
+		$breadth: 50%;
+		$length: $arrow-size + $arrow-offset * 2;
+		font-size: $arrow-size;
+		line-height: 1;
+		opacity: 0;
+		@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
+		html.view-vertical &                      { width: $breadth; height: $length; }
+		html.view-horizontal &, html.view-paged & { width: $length;  height: $breadth; }
+		&:before, &:after {
+			display: block;
+			position: absolute;
+			left: -100%;
+			right: -100%;
+			top: -100%;
+			bottom: -100%;
+			margin: auto;
+		}
+		&:before {
+			content: "";
+			z-index: 1;
+			width: $arrow-size;
+			height: $arrow-size;
+			border: solid 1px white;
+			border-radius: 50%;
+			background: rgb(96,96,96);
+		}
+		&:after {
+			z-index: 2;
+			width: 1em;
+			height: 1em;
+			text-align: center;
+			vertical-align: middle;
+			line-height: 1em;
+			color: white;
+			@include font-icon("MaterialIcons");
+		}
+		html.view-vertical.spread-ttb &#bibi-arrow-back {
+			top: 0; bottom: auto; cursor: n-resize; @include transform-origin_( 50%   0 ); &:after { content: $mif_keyboard-arrow-up; }
+		}
+		html.view-vertical.spread-ttb &#bibi-arrow-forward {
+			bottom: 0; top: auto; cursor: s-resize; @include transform-origin_( 50% 100%); &:after { content: $mif_keyboard-arrow-down; }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
+		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
+			left: 0; right: auto; cursor: w-resize; @include transform-origin_(  0   50%); &:after { content: $mif_keyboard-arrow-left; }
+		}
+		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
+		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
+			right: 0; left: auto; cursor: e-resize; @include transform-origin_(100%  50%); &:after { content: $mif_keyboard-arrow-right; }
+		}
+		&.glowing {
+			opacity: 1.00 !important;
+			@include transform(scale(1.50) !important);
+		}
+		&.flickering {
+			opacity: 1.00 !important;
+		}
+		&.firing {
+			opacity: 1.00 !important;
+			@include transform(scale(1.25) !important);
+		}
+	}
+	*/
+}
 
-// - Switches (div#bibi-switches)
+
+
+
+// ================================================================================
+// + Switches
+// --------------------------------------------------------------------------------
+
+
+// - Switches
 // --------------------------------------------------------------------------------
 
 div#bibi-switches {
 	html.wait-please & {
 		display: none;
 	}
-	.bibi-icon {
-		position: fixed;
-		z-index: 4000;
-		top: 4px;
-		&.bibi-switch-panel {
-			left: 4px;
-		}
-		&.bibi-switch-fullscreen {
-			right: 4px;
+	ul {
+		li {
+			position: fixed;
+			z-index: 4000;
+			top: 4px;
+			&#bibi-switch-panel {
+				left: 4px;
+			}
+			&#bibi-switch-fullscreen {
+				right: 4px;
+			}
 		}
 	}
 }
 
+
+
+
+// ================================================================================
+// + Panel
+// --------------------------------------------------------------------------------
 
 
 // - Panel (div#bibi-panel)
@@ -476,39 +682,52 @@ div#bibi-panel {
 	top: 0;
 	width: 100%;
 	height: 100%;
-	//background: rgba(240,238,236,0.8);
-	//background: rgba(254,252,250,0.9);
-	background: rgba(248,246,244,0.9);
+	background: rgb(246,246,246);
 	opacity: 0;
-	@include transition(0.2s ease-out);
+	@include transition(0.15s ease-out);
 	@include transform(translateY(-100%));
-	html.panel-opened & { @include transform(none !important); @include transition(0.2s ease-in); opacity: 1 !important; }
+	html.panel-opened & {
+		@include transform(none !important);
+		@include transition(0.15s ease-in);
+		opacity: 1 !important;
+	}
+	&:before {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: 1;
+		top: 0;
+		left: 0;
+		border-bottom: solid 1px rgb(242,242,242);
+		width: 100%;
+		height: $icon-height + 4px * 2;
+		//background: rgba(255,255,255,0.88);
+		//background: white;
+		background: rgba(255,255,255,0.9);
+	}
 }
 
 
-// - Panel > Menu (div#bibi-panel-menu)
+// - Panel > Menu (div#bibi-panel-menus)
 // --------------------------------------------------------------------------------
 
-div#bibi-panel-menu {
+div#bibi-panel-menus {
 	@include box-sizing(border-box);
 	position: absolute;
 	z-index: 10;
 	top: 0;
 	left: 0;
-	padding-left: 35px;
-	border-bottom: solid 1px rgba(255,255,255,0.25);
-	width: 100%;
-	height: 36px;
+	padding-left: $icon-width + 4px * 2;
+	height: $icon-height + 4px * 2;
 	color: white;
-	background: rgba(255,255,255,0.75);
 	ul {
 		padding: 4px;
-		height: 27px;
+		height: $icon-height;
 		//html.preparing & { display: none; }
 		li {
 			position: relative;
 			float: left;
-			margin-left: 5px;
+			margin-left: 4px;
 			opacity: 1; //&.disabled { opacity: 0.5; }
 			&:first-child { margin-left: 0; }
 		}
@@ -516,54 +735,63 @@ div#bibi-panel-menu {
 	ul#spread-layout-axis {
 		html.spread-vertical & li.layout-vertical,
 		html.spread-horizontal & li.layout-horizontal,
-		html.display-each & li {
+		html.view-paged & li {
 			display: none;
 		}
 	}*/
 }
 
 
-// - Panel > Misc (div#bibi-panel-misc)
+// - Panel > Powered (div#bibi-panel-powered)
 // --------------------------------------------------------------------------------
 
-div#bibi-panel-misc {
+div#bibi-panel-powered {
 	@include box-sizing(border-box);
-	position: fixed;
-	z-index: 100;
-	top: 0;
-	padding: 4px;
-	border: solid 0 rgba(255,255,255,0.1);
-	width: 36px;
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	margin: 0 auto;
+	padding: 4px 16px;
+	border-top: solid 1px rgb(236,236,236);
+	width: 100%;
 	height: 36px;
 	line-height: 30px;
 	text-align: right;
 	font-size: 14px;
-	color: white;
-	html.window-not-embedded.fullscreen-not-enabled & {
-		right: 4px;
+	//background: rgba(248,248,248,0.88);
+	//background: rgb(240,240,240);
+	background: rgba(240,240,240,0.9);
+	/*
+	@media screen and (max-width: 400px) {
+		text-align: right;
+		html.window-not-embedded.fullscreen-enabled &,
+		html.window-embedded.fullscreen-not-enabled & {
+			right: 35px;
+		}
+		html.window-embedded.fullscreen-enabled & {
+			right: 66px;
+		}
 	}
-	html.window-not-embedded.fullscreen-enabled &,
-	html.window-embedded.fullscreen-not-enabled & {
-		right: 35px;
-	}
-	html.window-embedded.fullscreen-enabled & {
-		right: 66px;
-	}
-	a {
+	*/
+	a, span {
 		display: inline-block;
 		text-decoration: none;
 		color: black;
-		opacity: 0.64;
-		@include transition(.15s linear);
+		opacity: 0.48;
 		img {
-			margin-top: 10px;
+			margin-top: 8px;
 			width: auto;
-			height: 15px;
+			height: 16px;
 			vertical-align: top;
 		}
+	}
+	a {
+		@include transition(.15s linear);
 		&:hover {
-			color: white;
 			opacity: 1;
+			@include transition(.075s linear);
 		}
 	}
 }
@@ -574,11 +802,11 @@ div#bibi-panel-misc {
 
 div#bibi-panel-navigation {
 	@include box-sizing(border-box);
+	//font-family: sans-serif;
 }
 	div#bibi-panel-navigation-item-box {
 		@include box-sizing(border-box);
 		position: absolute;
-		padding: 52px 35px;
 		width: 100%;
 		height: 100%;
 		-webkit-overflow-scrolling: touch;
@@ -590,47 +818,65 @@ div#bibi-panel-navigation {
 	}
 		div#bibi-panel-navigation-item {
 			@include box-sizing(border-box);
-			color: rgb(128,128,128);
-//			html.display-all.spread-ltr &, html.display-each.page-ltr & { @include column-width(240px); @include column-gap(20px); }
-			html.page-rtl & { @include writing-mode(vertical-rl); }
-			>*:first-child,
-			>*:first-child >*:first-child,
-			>*:first-child >*:first-child >*:first-child {
-				html.page-ltr & { margin-top: 0 !important; }
-				html.page-rtl & { margin-right: 0 !important; }
+			padding: 65px 35px 35px;
+			min-width: 100%;
+			min-height: 100%;
+//			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { @include column-width(240px); @include column-gap(20px); }
+			html.page-rtl & {
+				@include writing-mode(vertical-rl);
+				>*:first-child,
+				>*:first-child >*:first-child,
+				>*:first-child >*:first-child >*:first-child {
+					margin-right: 0 !important;
+				}
+				span.tcy {
+					@include text-combine-upright_all();
+				}
+			}
+			html.page-ltr & {
+				>*:first-child,
+				>*:first-child >*:first-child,
+				>*:first-child >*:first-child >*:first-child {
+					margin-top: 0 !important;
+				}
 			}
 			nav {
 				$margin-before: 2em;
 				$margin-after: 1em;
+				line-height: 1.2;
+				font-size: 20px;
 				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 				h1, h2, h3, h4, h5, h6 {
-					$margin-before: 1em;
-					$margin-after: .5em;
-					line-height: 1.4;
-					font-size: 18px;
+					$margin-before: 0;
+					$margin-after: 1em;
 					font-weight: bold;
-					color: rgb(144,144,144);
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 				}
+				small {
+					font-size: .8em;
+				}
+				br +small {
+					$margin-start: 2em;
+					html.page-ltr & { margin: 0 0 0 $margin-start; }
+					html.page-rtl & { margin: $margin-start 0 0 0; }
+				}
 				ul, ol {
-					$margin-before: .5em;
-					$margin-after: .75em;
+					$margin-before: 0;
+					$margin-after: 1em;
+					font-size: .9em;
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 					li {
-						$margin-before: .25em;
-						$margin-after: .25em;
-						line-height: 1.2;
-						font-size: 16px;
-						color: rgb(160,160,160);
+						$margin-before: .75em;
+						$margin-after: 0;
 						html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 						html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 						ul, ol {
 							position: relative;
-							$margin-before: .25em;
-							$margin-after: .55em;
+							$margin-before: 0;
+							$margin-after: 0;
 							html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 							html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 							&:before {
@@ -646,10 +892,9 @@ div#bibi-panel-navigation {
 								html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
 							}
 							li {
-								$margin-before: .125em;
-								$margin-after: .25em;
+								$margin-before: .25em;
+								$margin-after: 0;
 								$margin-start: 1em;
-								font-size: 14px;
 								html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
 								html.page-rtl & { margin: $margin-start $margin-before 0 $margin-after; }
 							}
@@ -657,18 +902,14 @@ div#bibi-panel-navigation {
 					}
 				}
 				a {
-					border-style: solid ;
-					border-color: transparent;
-					$border-width: 1px;
 					color: rgb(64,64,64);
 					text-decoration: none;
-					@include transition(linear .1s);
-					html.page-ltr & { border-bottom-width: $border-width; }
-					html.page-rtl & { border-right-width: $border-width; }
+					@include transition(linear .15s);
 					&:hover {
-						border-color: navy;
 						color: steelblue;
-						@include transition(linear .05s);
+						@include transition(none);
+						html.page-ltr & { text-decoration: underline; }
+						html.page-rtl & { text-decoration: overline; }
 					}
 					&.bibi-navigation-inactive-link {
 						color: inherit !important;
@@ -677,6 +918,28 @@ div#bibi-panel-navigation {
 						&:hover {
 							color: inherit !important;
 						}
+					}
+				}
+			}
+			nav.bibi-nav-landmarks,
+			nav.bibi-nav-page-list {
+				font-size: 16px;
+				h1, h2, h3, h4, h5, h6 {
+					$margin-before: 0;
+					$margin-after: .25em;
+					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+				}
+				ul, ol {
+					overflow: hidden;
+					$padding-after: .25em;
+					html.page-ltr & { padding-bottom: $padding-after; }
+					html.page-rtl & { padding-left: $padding-after; }
+					li {
+						float: left;
+						$padding-end: 1em;
+						html.page-ltr & { padding-right: $padding-end; &:last-child { padding-right: 0; } }
+						html.page-rtl & { padding-bottom: $padding-end; &:last-child { padding-bottom: 0; } }
 					}
 				}
 			}
