@@ -1086,32 +1086,16 @@ R.initialize = function() {
 
 
 R.resetStage = function() {
-	//if(sML.OS.iOS && sML.UA.Sa) O.Body.style.height = S.SLA == "vertical" ? "100%" : window.innerHeight + "px";
 	R.Stage = {};
 	R.Stage.Width   = Math.min(window.innerWidth,  O.HTML.clientWidth);
 	R.Stage.Height  = Math.min(window.innerHeight, O.HTML.clientHeight);// - 35 * 2;
 	R.Stage.Breadth = R.Stage[S.SIZE.B] - (S.RVM == "paged" ? 0 : S["spread-margin-start"] + S["spread-margin-end"]);
 	R.Stage.Length  = R.Stage[S.SIZE.L] - (S.RVM == "paged" ? 0 : S["spread-gap"] * 2);
     R.Stage.Orientation = (R.Stage.Width / R.Stage.Height > 1.4) ? "landscape" : "portrait";
-	//R.Main.Book.style["padding" + S.BASE.B] = R.Main.Book.style["padding" + S.BASE.A] = S["spread-gap"] + "px";
 	R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
 	R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = (S.RVM == "paged" ? 0 : S["spread-margin-start"]/* + 35*/ + "px");
-	R.Main.Book.style["background"] = S["book-background"];
 	R.Columned = false;
-	/*
-	if(!R.Bar) R.Bar = document.body.appendChild(
-		sML.create("div", {}, {
-			position: "fixed",
-			zIndex: 1000,
-			left: 0,
-			top: 0,
-			width: "100%",
-			height: "35px",
-			background: "rgb(248,248,248)",
-			background: "rgb(64,64,64)"
-		})
-	);
-	*/
+	if(S["book-background"]) O.HTML.style["background"] = S["book-background"];
 };
 
 R.resetSpread = function(Spread) {
@@ -1886,29 +1870,34 @@ R.selectTextLocation = function(Target) {
 R.move = function(Distance) {
 	if(!R.Started || isNaN(Distance)) return;
 	Distance *= 1;
-	if(Distance != -1) Distance = +1;
-	var CurrentEdge = Distance < 0 ? "StartPage" : "EndPage";
+	if(Distance != -1) Distance = 1;
+    if(Distance > 0) {
+        var CurrentEdge = "EndPage";
+        var Side = "before";
+    } else {
+        var CurrentEdge = "StartPage";
+        var Side = "after";
+    }
 	var CurrentPages = R.getCurrentPages();
 	var CurrentPage = CurrentPages[CurrentEdge];
 	if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
 		var CurrentPageStatus = CurrentPages[CurrentEdge + "Status"];
         var CurrentPageRatio  = CurrentPages[CurrentEdge + "Ratio"];
-        var Side = "before";
         if(/(oversize)/.test(CurrentPageStatus)) {
             if(Distance > 0) {
-                     if(CurrentPageRatio >= 90)             Distance =  1, Side = "before";
-                else if(/entering/.test(CurrentPageStatus)) Distance =  0, Side = "before";
-                else if( /entered/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+                     if(CurrentPageRatio >= 90)             Side = "before";
+                else if(/entering/.test(CurrentPageStatus)) Side = "before", Distance =  0;
+                else if( /entered/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
             } else {
-                if(CurrentPageRatio >= 90)                  Distance = -1, Side = "after";
-                else if( /passing/.test(CurrentPageStatus)) Distance =  0, Side = "before";
-                else if(  /passed/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+                     if(CurrentPageRatio >= 90)             Side = "after";
+                else if( /passing/.test(CurrentPageStatus)) Side = "before", Distance =  0;
+                else if(  /passed/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
             }
         } else {
             if(Distance > 0) {
-                     if(   /enter/.test(CurrentPageStatus)) Distance =  0, Side = "before";
+                     if(   /enter/.test(CurrentPageStatus)) Side = "before", Distance =  0;
             } else {
-                     if(    /pass/.test(CurrentPageStatus)) Distance =  0, Side = "after";
+                     if(    /pass/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
             }
         }
         //sML.log([CurrentPageStatus, CurrentPageRatio, Distance, Side].join(" / "));
