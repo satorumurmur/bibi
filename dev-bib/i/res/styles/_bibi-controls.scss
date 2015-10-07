@@ -168,7 +168,7 @@ div#bibi-veil-cover {
 	top: 0;
 	@include box-sizing(border-box);
 	border: solid transparent;
-	border-width: 41px 8px 2px;
+	$cover-offset: 4px; border-width: (41px + $cover-offset) $cover-offset $cover-offset;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
