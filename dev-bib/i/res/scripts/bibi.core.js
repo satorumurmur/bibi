@@ -1264,6 +1264,7 @@ R.resetItem.asReflowableItem.adjustContent.columify = function(Item, PageB, Page
 		Item.HTML.style[S.SIZE.b] = PageB + "px";
 		Item.HTML.style[S.SIZE.l] = PageL + "px";
 		sML.style(Item.HTML, {
+            "column-fill": "auto",
 			"column-width": Item.ColumnLength + "px",
 			"column-gap": Item.ColumnGap + "px",
 			"column-rule": ""
