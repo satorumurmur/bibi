@@ -1340,6 +1340,13 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 				"transform": "scale(" + Scale + ")"
 			});
 		}
+        sML.each(Item.Body.getElementsByTagName("img"), function() {
+            var IMG = this;
+            IMG.style.maxWidth = "none";
+            setTimeout(function() {
+                IMG.style.maxWidth = "";
+            }, 0);
+        });
 	} else if(Item.FrameItem) {
 		var IFrame = Item.Body.getElementsByTagName("iframe")[0];
 		IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
