@@ -18,10 +18,10 @@ P.initialize({
 'spread-border-radius'       : '', // CSS border-radius value or ''
 'spread-box-shadow'          : '', // CSS box-shadow value or ''
 
-'item-padding-left'          : 16, // px
-'item-padding-right'         : 16, // px
-'item-padding-top'           : 36, // px
-'item-padding-bottom'        : 12, // px
+'item-padding-left'          : 32, // px
+'item-padding-right'         : 32, // px
+'item-padding-top'           : 45, // px
+'item-padding-bottom'        : 20, // px
 
 'item-column-rule'           : '', // CSS column-rule value or ''
 
