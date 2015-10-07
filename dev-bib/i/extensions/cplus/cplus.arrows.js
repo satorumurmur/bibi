@@ -37,8 +37,10 @@ Bibi.x({
 	);
 
 	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-		Arrow.addEventListener("mouseover", function() { if(Arrow.isActive()) sML.addClass(Arrow, "flickering"); });
-		Arrow.addEventListener("mouseout",  function() { sML.removeClass(Arrow, "flickering"); });
+        if(!O.SmartPhone) {
+            Arrow.addEventListener("mouseover", function() { if(Arrow.isActive()) sML.addClass(Arrow, "flickering"); });
+            Arrow.addEventListener("mouseout",  function() { sML.removeClass(Arrow, "flickering"); });
+        }
 		Arrow.addEventListener("click", function() {
             if(!Arrow.isActive()) return false;
 			E.dispatch("bibi:command:move", Arrow.DistanceToMove);
@@ -46,15 +48,17 @@ Bibi.x({
 			if(Arrow.Timer) clearTimeout(Arrow.Timer);
 			Arrow.Timer = setTimeout(function() {
                 sML.removeClass(Arrow, "firing")
-			}, 400);
+			}, 200);
 		});
 	});
 
     C.Arrows.navigate = function() {
+        R.CurrentPages = R.getCurrentPages();
+        C.Arrows.check();
 		setTimeout(function() {
             R.CurrentPages = R.getCurrentPages();
             [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-                if(Arrow.isActive()) sML.addClass(Arrow, "glowing")
+                if(Arrow.isActive()) sML.addClass(Arrow, "glowing");
             });
 			setTimeout(function() {
 				[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {

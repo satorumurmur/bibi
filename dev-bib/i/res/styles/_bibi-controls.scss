@@ -483,19 +483,20 @@ p#bibi-veil-powered {
 // --------------------------------------------------------------------------------
 
 div#bibi-arrows {
-	$arrow-offset: 4px;
-	$arrow-size: 33px;
-	$panel-breadth: 50;
+	$arrow-offset: 3px;
+	$arrow-size: 25px;
+	$bar-length: $arrow-size + $arrow-offset * 2;
+	$bar-breadth: 100;
 	div.bibi-arrow {
 		position: fixed;
 		z-index: 1000;
 		font-size: $arrow-size;
 		line-height: 1;
 		@include transition(opacity 0.2s linear);
-		$length: $arrow-size + $arrow-offset * 2;
-		html.view-vertical &                      { width: 50%; width: 50vw; height: $length; }
-		html.view-horizontal &, html.view-paged & { width: $length; height: 50%; height: 50vh; }
+		html.view-vertical &                      { left: 0; right: 0; margin: 0 auto; width: 1% * $bar-breadth; width: 1vw * $bar-breadth; height: $bar-length; }
+		html.view-horizontal &, html.view-paged & { top: 0; bottom: 0; margin: auto 0; width: $bar-length; height: 1% * $bar-breadth; height: 1vh * $bar-breadth; }
 		&:after {
+			@include font-icon("ElegantIcons");
 			display: block;
 			position: absolute;
 			z-index: 2;
