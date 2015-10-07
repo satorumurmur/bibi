@@ -149,6 +149,7 @@ Bibi.welcome = function() {
 
 	C.createVeil();
 	C.createPanel();
+	C.createNombre();
 
 	if(sML.UA.InternetExplorer < 10) {
 		return Bibi.byebye();
@@ -1631,11 +1632,12 @@ R.relayout = function(Option) {
 R.onscroll = function() {
 	if(!R.Started) return;
 	clearTimeout(R.Timer_onscroll);
-	R.Timer_onscroll = setTimeout(R.onscrolled, 333);
+	R.Timer_onscroll = setTimeout(R.onscrolled, 123);
 };
 
 R.onscrolled = function() {
     R.CurrentPages = R.getCurrentPages();
+    C.Nombre.flick();
     E.dispatch("bibi:scrolled");
 };
 
@@ -2200,6 +2202,38 @@ C.createPanel = function() {
 	});
 
 	E.dispatch("bibi:createPanel");
+
+};
+
+
+C.createNombre = function() {
+
+    C.Nombre = O.Body.appendChild(
+        sML.create("div", { id: "bibi-nombre",
+            flick: function() {
+                clearTimeout(C.Nombre.Timer_vanish);
+                clearTimeout(C.Nombre.Timer_transparentize);
+                setTimeout(function() {
+                    sML.removeClass(C.Nombre, "vanished");
+                }, 0);
+                setTimeout(function() {
+                    sML.removeClass(C.Nombre, "transparentized");
+                }, 10);
+                C.Nombre.Timer_transparentize = setTimeout(function() {
+                    sML.addClass(C.Nombre, "transparentized");
+                }, 1981);
+                C.Nombre.Timer_vanish = setTimeout(function() {
+                    sML.addClass(C.Nombre, "vanished");
+                }, 1981 + 255);
+                C.Nombre.innerHTML = [
+                    '<span id="bibi-nombre-current">' + (R.CurrentPages.EndPage.PageIndex + 1) + '</span>',
+                    '<span id="bibi-nombre-delimiter">/</span>',
+                    '<span id="bibi-nombre-total">' + (R.Pages.length) + '</span>',
+                    '<span id="bibi-nombre-percent">(' + Math.round((R.CurrentPages.EndPage.PageIndex + 1) / R.Pages.length * 100) + '%)</span>'
+                ].join(" ");
+            }
+        })
+    );
 
 };
 
