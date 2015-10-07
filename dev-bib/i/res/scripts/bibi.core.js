@@ -2441,14 +2441,7 @@ S.update = function(Settings) { // formerly O.updateSetting
 
 	var PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD;
 
-	if(typeof Settings == "object") {
-		if(Settings.Reset) {
-			alert("[dev] S.update(Settings) receives Settings.Reset!!");
-			S.reset();
-			delete Settings.Reset;
-		}
-		for(var Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
-	}
+	if(typeof Settings == "object") for(var Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
 
 	S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
 	S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
