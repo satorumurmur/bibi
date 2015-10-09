@@ -1125,25 +1125,30 @@ R.resetSpread = function(Spread) {
 	SpreadBox.style["margin" + S.BASE.B] = SpreadBox.style["margin" + S.BASE.A] = "";
 	SpreadBox.style["margin" + S.BASE.E] = SpreadBox.style["margin" + S.BASE.S] = "auto";
 	SpreadBox.style.padding = SpreadBox.style.width = SpreadBox.style.height = "";
-	if(Spread.RenditionLayout == "reflowable") {
-		SpreadBox.style.width  = Spread.Items[0].ItemBox.style.width;
-		SpreadBox.style.height = Spread.Items[0].ItemBox.style.height;
+	if(Spread.RenditionLayout == "reflowable" || (S.BRL == "reflowable" && S.SLA == "vertical")) {
+		if(Spread.Items.length == 2) {
+            if(R.Stage.Width > Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth) {
+                var Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+                var Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+            } else {
+                var Width  = Math.max(Spread.Items[0].ItemBox.offsetWidth,   Spread.Items[1].ItemBox.offsetWidth);
+                var Height =          Spread.Items[0].ItemBox.offsetHeight + Spread.Items[1].ItemBox.offsetHeight;
+            }
+		} else {
+            var Width  = Spread.Items[0].ItemBox.offsetWidth;
+            var Height = Spread.Items[0].ItemBox.offsetHeight;
+		}
 	} else {
 		if(Spread.Items.length == 2) {
-			var Width  = Math.ceil(         Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth        );
-			var Height = Math.ceil(Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight));
+			var Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+			var Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
 		} else {
-			var Width  = Math.ceil(parseFloat(Spread.Items[0].ItemBox.style.width) * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1));
-			var Height = parseFloat(Spread.Items[0].ItemBox.style.height);
+			var Width  = Spread.Items[0].ItemBox.offsetWidth * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1);
+			var Height = Spread.Items[0].ItemBox.offsetHeight;
 		}
-        /* ????
-        if(S.RVM == "paged") {
-            Height = Math.max(R.Stage.Length, Height);
-        }
-        */
-        SpreadBox.style.width  = Width + "px";
-        SpreadBox.style.height = Height + "px";
 	}
+    SpreadBox.style.width  = Math.ceil(Width) + "px";
+    SpreadBox.style.height = Math.ceil(Height) + "px";
 	Spread.style["border-radius"] = S["spread-border-radius"];
 	Spread.style["box-shadow"]    = S["spread-box-shadow"];
     O.stamp("Reset Spread " + Spread.SpreadIndex + " End");
@@ -1375,7 +1380,7 @@ R.resetItem.asPrePaginatedItem = function(Item) {
 		delete Item.Scale;
 	} else {
         var Scale = 1;
-        if(S.SLA == "vertical" || R.Stage.Orientation == ItemRef["rendition:spread"] || ItemRef["rendition:spread"] == "both") {
+        if((S.BRL == "pre-paginated" && S.SLA == "vertical") || R.Stage.Orientation == ItemRef["rendition:spread"] || ItemRef["rendition:spread"] == "both") {
             var SpreadViewPort = { width: ItemRef["viewport"].width, height: ItemRef["viewport"].height };
             if(Item.Pair) SpreadViewPort.width += Item.Pair.ItemRef["viewport"].width;
             else if(ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left") SpreadViewPort.width += SpreadViewPort.width;
@@ -1902,11 +1907,11 @@ R.move = function(Distance) {
         var CurrentEdge = "StartPage";
         var Side = "after";
     }
-	var CurrentPages = R.getCurrentPages();
-	var CurrentPage = CurrentPages[CurrentEdge];
+	R.CurrentPages = R.getCurrentPages();
+	var CurrentPage = R.CurrentPages[CurrentEdge];
 	if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
-		var CurrentPageStatus = CurrentPages[CurrentEdge + "Status"];
-        var CurrentPageRatio  = CurrentPages[CurrentEdge + "Ratio"];
+		var CurrentPageStatus = R.CurrentPages[CurrentEdge + "Status"];
+        var CurrentPageRatio  = R.CurrentPages[CurrentEdge + "Ratio"];
         if(/(oversize)/.test(CurrentPageStatus)) {
             if(Distance > 0) {
                      if(CurrentPageRatio >= 90)             Side = "before";
@@ -1963,7 +1968,8 @@ R.Scale = 1;
 
 R.zoom = function(Scale) {
 	if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-	var CurrentStartPage = R.getCurrentPages().StartPage;
+    R.CurrentPages = R.getCurrentPages();
+	var CurrentStartPage = R.CurrentPages.StartPage;
 	sML.style(R.Main.Book, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
 	if(Scale == 1) {
 		O.HTML.style.overflow = "";
@@ -2495,7 +2501,7 @@ S.reset = function() {
 
 S.update = function(Settings) { // formerly O.updateSetting
 
-	var PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD;
+	var PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD;
 
 	if(typeof Settings == "object") for(var Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
 
@@ -2549,10 +2555,11 @@ S.update = function(Settings) { // formerly O.updateSetting
 	}
 
 	// Root Class
-	if(PrevRVM != S.RVM) { sML.replaceClass(O.HTML, "view-"   + PrevRVM, "view-"   + S.RVM ); }
-	if(PrevPPD != S.PPD) { sML.replaceClass(O.HTML, "page-"   + PrevPPD, "page-"   + S.PPD ); }
-	if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-" + PrevSLA, "spread-" + S.SLA ); }
-	if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-" + PrevSLD, "spread-" + S.SLD ); }
+	if(PrevBRL != S.BRL) { sML.replaceClass(O.HTML, "book-"   + PrevBRL, "book-"   + S.BRL); }
+	if(PrevRVM != S.RVM) { sML.replaceClass(O.HTML, "view-"   + PrevRVM, "view-"   + S.RVM); }
+	if(PrevPPD != S.PPD) { sML.replaceClass(O.HTML, "page-"   + PrevPPD, "page-"   + S.PPD); }
+	if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-" + PrevSLA, "spread-" + S.SLA); }
+	if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-" + PrevSLD, "spread-" + S.SLD); }
 
 };
 
