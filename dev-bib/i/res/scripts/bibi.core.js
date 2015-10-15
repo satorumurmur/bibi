@@ -2638,7 +2638,7 @@ O.requestDocument = function(Path) {
 	var XHR, Doc;
 	return (
 		!B.Zipped
-		? O.download(B.Path + "/" +  Path, (IsXML ? "application/xml" : "")).then(function(ResolvedXHR) {
+		? O.download(B.Path + "/" +  Path/*, (IsXML ? "application/xml" : "")*/).then(function(ResolvedXHR) {
 			XHR = ResolvedXHR;
 			if(!IsXML) Doc = XHR.responseXML;
 			return Doc;
