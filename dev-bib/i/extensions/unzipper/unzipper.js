@@ -55,10 +55,10 @@ Bibi.x({
 B.dropOrClick = function() {
 	if(O.WindowEmbedded) {
 		C.Veil.Catcher.style.display = "block";
-		C.Veil.Message.note('Drop an EPUB file into this window. Or click and select EPUB file.');
+		N.note('Drop an EPUB file into this window. Or click and select EPUB file.');
 	} else {
 		C.Veil.Catcher.style.display = "block";
-		C.Veil.Message.note('Drop an EPUB file into this window. Or click and select EPUB file.');
+		N.note('Drop an EPUB file into this window. Or click and select EPUB file.');
 	}
 };
 
@@ -79,7 +79,7 @@ B.loadZippedEPUB = function() {
 		// EPUB Zip (Local)
 		O.log(3, "[Local] " + B.Path);
 		sML.edit(new FileReader(), {
-			onerror : function() { O.Body.style.opacity = 1; C.Veil.Message.note('Error. Something trouble...'); },
+			onerror : function() { O.Body.style.opacity = 1; N.note('Error. Something trouble...'); },
 			onload  : function() { onload(this.result); }
 		}).readAsArrayBuffer(B.File);
 		C.Veil.Catcher.style.opacity = 0;
