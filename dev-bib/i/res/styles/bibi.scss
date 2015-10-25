@@ -7,19 +7,6 @@ $path-res: "../../../../bib/i/res";
 
 /*!
  *
- *  # Compass
- *
- *  - Copyright (c) 2009 Christopher M. Eppstein
- *  - Released under a slightly modified MIT license. - https://github.com/Compass/compass/blob/stable/LICENSE.markdown
- *
- */
-
-@import "compass";
-@import "compass/reset";
-
-
-/*!
- *
  *  # The Elegant Icon Font
  *
  *  - by Elegant Themes, Inc. - http://www.elegantthemes.com/blog/resources/elegant-icon-font
@@ -35,7 +22,7 @@ $path-res: "../../../../bib/i/res";
  *  # The Material Icons
  *
  *  - by Google Inc. - https://www.google.com/design/icons/
- *  - Licensed under ther Creative Common Attribution 4.0 International License (CC-BY 4.0) - http://creativecommons.org/licenses/by/4.0/
+ *  - Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0) - http://creativecommons.org/licenses/by/4.0/
  *
  */
 @import "_lib/_MaterialIcons";

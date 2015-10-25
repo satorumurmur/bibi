@@ -75,9 +75,9 @@ body {
 	width: 100%;
 	height: 100%;
 	background: transparent no-repeat center center;
-	@include transition(opacity .25s ease);
+	transition: opacity .25s ease;
 	html.with-poster & {
-		@include background-size(contain);
+		background-size: contain;
 		opacity: 0; &:hover { opacity: 1; }
 	}
 }
@@ -97,9 +97,9 @@ div#epub-metafiles * {
 
 div#main {
 	-webkit-overflow-scrolling: touch;
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	//padding: 35px 0;
-	//@include transition(.2s ease-out);
+	//transition: .2s ease-out;
 	position: fixed; width: 100%; height: 100%;
 	html.spread-horizontal & { overflow-x: scroll; overflow-y: hidden; }
 	html.spread-vertical   & { overflow-x: hidden; overflow-y: scroll; }
@@ -110,8 +110,8 @@ div#main {
 	html.iOS.view-paged        &, html.Android.view-paged        & { overflow-x: hidden; overflow-y: hidden; }*/
 	@include scrollbar();
 	html.panel-opened & {
-		@include transition(.2s ease-in);
-		//@include filter(blur(4px));
+		transition: .2s ease-in;
+		//filter: blur(4px);
 		opacity: 0.75;
 	}
 	html.panel-opened.InternetExplorer & {
@@ -119,26 +119,26 @@ div#main {
 	}
 	html.page-ltr.flipping-ahead &,
 	html.page-rtl.flipping-astern & {
-		@include transform(translateX(-100px));
+		transform: translateX(-100px);
 		opacity: 0;
 	}
 	html.page-ltr.flipping-astern &,
 	html.page-rtl.flipping-ahead & {
-		@include transform(translateX(100px));
+		transform: translateX(100px);
 		opacity: 0;
 	}
 }
 
 	div#book {
 		html.preparing & { opacity: 0; }
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		//overflow: hidden;
 		position: relative;
 		z-index: 10;
-		@include transition(0.75s ease-in-out);
-		@include transition-property(transform opacity);
-//		@include transform(translateY( 0  ));
-//		html.panel-opened & { @include transform(translateY(36px)); /* @include transform-origin(50% 100%); @include transform(rotateX(-45deg)); */ }
+		transition: 0.75s ease-in-out;
+		transition-property: transform opacity;
+//		transform: translateY( 0  );
+//		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
 	}
 
 		div.spread-box {
@@ -191,8 +191,8 @@ div#main {
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
-						html.page-ltr & { @include transform-origin(0 0); }
-						html.page-rtl & { @include transform-origin(100% 0); }
+						html.page-ltr & { transform-origin: 0 0; }
+						html.page-rtl & { transform-origin: 100% 0; }
 					}
 					span.page {
 						position: absolute;
@@ -215,15 +215,15 @@ div#main {
 						background: transparent;
 						cursor: pointer;
 						opacity: 0;
-						@include transition(.1s linear);
+						transition: .1s linear;
 						&:hover {
 							opacity: 1;
 							background: rgba(0,0,0,0.2);
-							@include transition(.2s linear);
+							transition: .2s linear;
 						}
 						&:active {
 							background: rgba(0,0,0,0.4);
-							@include transition(.05s linear);
+							transition: .05s linear;
 						}
 						a, &:before, &:after {
 							position: absolute;
@@ -263,7 +263,7 @@ div#main {
 					}
 
 div#sub {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: fixed;
 	z-index: 100000;
 	top: 0;
@@ -276,7 +276,7 @@ div#sub {
 	height: 100%;
 	display: none;
 	div.overreflow-layer {
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		-webkit-overflow-scrolling: touch;
 		position: absolute;
 		z-index: 1;
@@ -285,19 +285,19 @@ div#sub {
 		width: 100%;
 		height: 100%;
 		background: rgba(255,255,255,0.96);
-		@include transform-origin_(50% 100%);
-		@include transition(.125s ease-out);
+		transform-origin_: 50% 100%;
+		transition: .125s ease-out;
 		.iOS & {
 			overflow: scroll;
 			height: calc(100% - 41px);
 		}
 		&.hidden {
 			opacity: 0;
-			@include transform(scale(0, 0.88));
-			//@include transition(.2s ease-in);
+			transform: scale(0, 0.88);
+			//transition: .2s ease-in;
 		}
 		iframe.overreflow-frame {
-			@include box-sizing(border-box);
+			box-sizing: border-box;
 			display: block;
 			position: absolute;
 			z-index: 1;
@@ -312,7 +312,7 @@ div#sub {
 		}
 	}
 	div.overreflow-bar {
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		display: block;
 		overflow: hidden;
 		position: absolute;
@@ -321,16 +321,16 @@ div#sub {
 		top: 0;
 		width: 100%;
 		height: 41px;
-		@include transform-origin_(50% 0);
-		@include transition(.250s ease-out);
+		transform-origin_: 50% 0;
+		transition: .250s ease-out;
 		box-shadow: 0 2px 4px rgba(0,0,0,0.125);
 		&.hidden {
 			opacity: 0;
-			@include transform(scale(1.0, 0));
-			//@include transition(.2s ease-in);
+			transform: scale(1.0, 0);
+			//transition: .2s ease-in;
 		}
 		span.overreflow-closer {
-			@include box-sizing(border-box);
+			box-sizing: border-box;
 			display: block;
 			border-bottom: solid 1px rgba(255,255,255,0.34);
 			width: 100%;
@@ -342,7 +342,7 @@ div#sub {
 			cursor: pointer;
 			color: rgb(64,64,64);
 			background: rgb(248,248,248);
-			@include transition(0.15s linear);
+			transition: 0.15s linear;
 			&:hover, &:active {
 				color: white;
 				//border-bottom-color: rgba(69,69,69,0.34);

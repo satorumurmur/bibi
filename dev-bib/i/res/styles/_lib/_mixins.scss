@@ -22,28 +22,6 @@
 @mixin animation-iteration-count($V) { @include prefix(animation-iteration-count, $V); }
 @mixin animation-direction($V) { @include prefix(animation-direction, $V); }
 
-@mixin background-image_linear-gradient($to, $color_start, $color_end) {
-	$from: '';
-	$color_one: '';
-	$color_two: '';
-	@if $to == to right or $to == to bottom {
-		$from: if($to == 'to right', left, top);
-		$color_one: $color_start;
-		$color_two: $color_end;
-	} @else {
-		$from: if($to == to left, left, top);
-		$color_one: $color_end;
-		$color_two: $color_start;
-	}
-	@include                         filter-gradient($color_one,    $color_two, if($from == top, vertical, horizontal));
-	@include background-image(linear-gradient($from, $color_one 0%, $color_two 100%));
-	@include background-image(linear-gradient($to, $color_start 0%, $color_end 100%));
-}
-
-@mixin background-image_linear-gradient_($from, $color, $lighten, $darken) {
-	@include background-image_linear-gradient($from, lighten($color, $lighten * -1), darken($color, $darken));
-}
-
 @mixin column($V) { @include prefix(column, $V); }
 @mixin column-width($V) { @include prefix(column-width, $V); }
 @mixin column-gap($V) { @include prefix(column-gap, $V); }

@@ -15,7 +15,7 @@ div#bibi-notifier {
 
 div#bibi-notifier-board {
 	$height: 41px;
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: fixed;
 	z-index: 10000;
 	top: 0;
@@ -30,29 +30,29 @@ div#bibi-notifier-board {
 	color: rgb(69,69,69);
 	background: rgba(252,252,252,0.96);
 	box-shadow: 0 2px 4px rgba(0,0,0,0.125);
-	@include transition(.15s linear);
-	@include transform-origin_(50% 0);/*
+	transition: .15s linear;
+	transform-origin: 50% 0;/*
 	html.wait-please & {
 		display: block;
 		opacity: 1;
 	}
 	html.loading & {
 		opacity: 1;
-		@include animation(fade .2s linear 0 infinite normal);
+		animation: fade .2s linear 0 infinite normal;
 	}*/
 	small {
 		font-size: 0.75em;
 	}
 	&.shown {
 		opacity: 1;
-		@include transform(none);
-		@include transition(.15s linear);
+		transform: none;
+		transition: .15s linear;
 	}
 	&.hidden {
 		opacity: 0;
-		//@include transform(translateY($height));
-		@include transform(scaleY(0));
-		@include transition(.2s linear);
+		//transform: translateY($height);
+		transform: scaleY(0);
+		transition: .2s linear;
 	}
 }/*
 @include keyframes(fade) {
@@ -73,7 +73,7 @@ div#bibi-notifier-board {
 // --------------------------------------------------------------------------------
 
 div#bibi-veil {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	overflow: hidden;
 	display: block;
 	position: fixed;
@@ -87,7 +87,7 @@ div#bibi-veil {
 	background: rgb(69,69,69);
 	opacity: 1;
 	html.panel-opened & {
-		@include transition(.2s ease-in);
+		transition: .2s ease-in;
 		opacity: 0.25;
 	}
 }
@@ -124,10 +124,10 @@ p#bibi-veil-byebye {
 	color: rgb(160,160,160);
 	a {
 		color: inherit;
-		@include transition(.2s linear);
+		transition: .2s linear;
 		&:hover {
 			color: rgb(216,216,216);
-			@include transition(.1s linear);
+			transition: .1s linear;
 		}
 	}
 	span {
@@ -166,15 +166,15 @@ div#bibi-veil-cover {
 	z-index: 1;
 	left: 0;
 	top: 0;
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	border: solid transparent;
 	$cover-offset: 4px; border-width: (41px + $cover-offset) $cover-offset $cover-offset;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
-	@include transition(opacity 0.5s linear);
+	transition: opacity 0.5s linear;
 	background: transparent no-repeat center center;
-	@include background-size(contain);
+	background-size: contain;
 //	html.page-ltr & { background-position: 40% center; }
 //	html.page-rtl & { background-position: 60% center; }
 	p {
@@ -238,7 +238,7 @@ div#bibi-veil-cover {
 
 p#bibi-veil-catcher,
 p#bibi-veil-playbutton {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 10;
 	left: 0;
@@ -248,9 +248,9 @@ p#bibi-veil-playbutton {
 	margin: auto;
 	width: 100%;
 	height: 100%;
-	@include transition(0.2s linear);
+	transition: 0.2s linear;
 	&:before, &:after {
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		display: block;
 		position: absolute;
 		left: 0;
@@ -261,7 +261,7 @@ p#bibi-veil-playbutton {
 		vertical-align: middle;
 		text-align: center;
 		color: rgb(128,128,128);
-		@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
+		transition: .2s cubic-bezier(.2,.8,.8,1.6);
 		@include font-icon("ElegantIcons");
 		//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
 		//text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
@@ -294,7 +294,7 @@ p#bibi-veil-catcher {
 			color: white;
 		}
 		&:after {
-			@include transform(scale(1.1));
+			transform: scale(1.1);
 		}
 	}
 	input {
@@ -316,17 +316,17 @@ p#bibi-veil-playbutton {
 		line-height: $size;
 		font-size: $size;
 		color: rgb(216,216,216);
-		//@include text-stroke(4px white);
+		//text-stroke: 4px white;
 	}
-	&:hover:after  { @include transform(scale(1.250)); color: white; }
-	&:active:after { @include transform(scale(1.125)); }
+	&:hover:after  { transform: scale(1.250); color: white; }
+	&:active:after { transform: scale(1.125); }
 	html.view-vertical & {
 		$offset: 40px;
 		&:after {
 			content: $ElegantIcons_arrow_carrot-down_alt;
 			top: auto;
 			bottom: $offset;
-			@include transform-origin_(50% 100%);
+			transform-origin: 50% 100%;
 		}
 		&:hover:after  { bottom: $offset + $hover-move; }
 		&:active:after { bottom: $size * -1/3; }
@@ -338,7 +338,7 @@ p#bibi-veil-playbutton {
 			content: $ElegantIcons_arrow_carrot-left_alt;
 			left: $offset;
 			right: auto;
-			@include transform-origin_(0 50%);
+			transform-origin: 0 50%;
 		}
 		&:hover:after  { left: $offset + $hover-move; }
 		&:active:after { left: $size * -1/3; }
@@ -350,7 +350,7 @@ p#bibi-veil-playbutton {
 			content: $ElegantIcons_arrow_carrot-right_alt;
 			left: auto;
 			right: $offset;
-			@include transform-origin_(100% 50%);
+			transform-origin: 100% 50%;
 		}
 		&:hover:after  { right: $offset + $hover-move; }
 		&:active:after { right: $size * -1/3; }
@@ -395,15 +395,15 @@ div#bibi-veil-mark {
 	}
 	html.loading & {
 		display: block;
-		@include animation(loading 2s linear 0s infinite normal);
+		animation: loading 2s linear 0s infinite normal;
 	}
 }
 @include keyframes(loading) {
-	  0% { @include transform(rotate(  0deg) scale(1.00)); @include filter(blur(0px)); }
-	 25% { @include transform(rotate(180deg) scale(0.50)); @include filter(blur(0px)); }
-	 50% { @include transform(rotate(360deg) scale(1.00)); @include filter(blur(0px)); }
-	 75% { @include transform(rotate(540deg) scale(0.50)); @include filter(blur(0px)); }
-	100% { @include transform(rotate(720deg) scale(1.00)); @include filter(blur(0px)); }
+	  0% { transform: rotate(  0deg) scale(1.00); filter: blur(0px); }
+	 25% { transform: rotate(180deg) scale(0.50); filter: blur(0px); }
+	 50% { transform: rotate(360deg) scale(1.00); filter: blur(0px); }
+	 75% { transform: rotate(540deg) scale(0.50); filter: blur(0px); }
+	100% { transform: rotate(720deg) scale(1.00); filter: blur(0px); }
 }
 
 
@@ -411,7 +411,7 @@ div#bibi-veil-mark {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-powered {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 999;
 	top: 0;
@@ -420,7 +420,6 @@ p#bibi-veil-powered {
 	line-height: 41px;
 	text-align: center;
 	color: rgb(216,216,216);
-	//@include background-image_linear-gradient(to top, rgba(0,0,0,0.16), rgba(0,0,0,0));
 	small {
 		font-size: 0.75em;
 	}
@@ -445,7 +444,7 @@ p#bibi-veil-powered {
 		//font-weight: bold;
 		color: inherit;
 		text-decoration: none;
-		@include transition(0.25s linear);
+		transition: 0.25s linear;
 		/*
 		&:after {
 			content: "";
@@ -492,7 +491,7 @@ div#bibi-arrows {
 		z-index: 1000;
 		font-size: $arrow-size;
 		line-height: 1;
-		@include transition(opacity 0.2s linear);
+		transition: opacity 0.2s linear;
 		html.view-vertical &                      { left: 0; right: 0; margin: 0 auto; width: 1% * $bar-breadth; width: 1vw * $bar-breadth; height: $bar-length; }
 		html.view-horizontal &, html.view-paged & { top: 0; bottom: 0; margin: auto 0; width: $bar-length; height: 1% * $bar-breadth; height: 1vh * $bar-breadth; }
 		&:after {
@@ -518,38 +517,38 @@ div#bibi-arrows {
 				 0px  2px 1px $text-shadow-color,
 				-2px  0px 1px $text-shadow-color;
 			opacity: 0.20;
-			@include transition(.1s cubic-bezier(.2,.8,.8,1.6));
+			transition: .1s cubic-bezier(.2,.8,.8,1.6);
 		}
 		html.view-vertical.spread-ttb &#bibi-arrow-back {
 			top: 0; &.flickering { cursor: n-resize; }
-			&:after { content: $ElegantIcons_arrow_carrot-up_alt;    top: $arrow-offset; bottom: auto; text-align: center; @include transform-origin_( 50%   0 ); }
+			&:after { content: $ElegantIcons_arrow_carrot-up_alt;    top: $arrow-offset; bottom: auto; text-align: center; transform-origin:  50%   0 ; }
 		}
 		html.view-vertical.spread-ttb &#bibi-arrow-forward {
 			bottom: 0; &.flickering { cursor: s-resize; }
-			&:after { content: $ElegantIcons_arrow_carrot-down_alt;  bottom: $arrow-offset + 2px; top: auto; text-align: center; @include transform-origin_( 50% 100%); }
+			&:after { content: $ElegantIcons_arrow_carrot-down_alt;  bottom: $arrow-offset + 2px; top: auto; text-align: center; transform-origin:  50% 100%; }
 		}
 		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
 		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
 			left: 0; &.flickering { cursor: w-resize; }
-			&:after { content: $ElegantIcons_arrow_carrot-left_alt;  left: $arrow-offset; right: auto; text-align: left;   @include transform-origin_(  0   50%); }
+			&:after { content: $ElegantIcons_arrow_carrot-left_alt;  left: $arrow-offset; right: auto; text-align: left;   transform-origin:   0   50%; }
 		}
 		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
 		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
 			right: 0; &.flickering { cursor: e-resize; }
-			&:after { content: $ElegantIcons_arrow_carrot-right_alt; right: $arrow-offset + 2px; left: auto; text-align: right;  @include transform-origin_(100%  50%); }
+			&:after { content: $ElegantIcons_arrow_carrot-right_alt; right: $arrow-offset + 2px; left: auto; text-align: right;  transform-origin: 100%  50%; }
 		}
 		&.flickering:after {
 			opacity: 0.4 !important;
-			@include transform(scale(1.50) !important);
+			transform: scale(1.50) !important;
 		}
 		&.firing:after {
 			opacity: 0.8 !important;
-			@include transform(scale(1.25) !important);
+			transform: scale(1.25) !important;
 		}
 		&.glowing:after {
 			opacity: 1.0 !important;
-			@include transform(scale(2.00) !important);
-			@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
+			transform: scale(2.00) !important;
+			transition: .2s cubic-bezier(.2,.8,.8,1.6);
 		}
 		&.inactive:after {
 			opacity: 0.0 !important;
@@ -574,7 +573,7 @@ div#bibi-arrows { // Material Icons
 		font-size: $arrow-size;
 		line-height: 1;
 		opacity: 0;
-		@include transition(.2s cubic-bezier(.2,.8,.8,1.6));
+		transition: .2s cubic-bezier(.2,.8,.8,1.6);
 		html.view-vertical &                      { width: $breadth; height: $length; }
 		html.view-horizontal &, html.view-paged & { width: $length;  height: $breadth; }
 		&:before, &:after {
@@ -606,29 +605,29 @@ div#bibi-arrows { // Material Icons
 			@include font-icon("MaterialIcons");
 		}
 		html.view-vertical.spread-ttb &#bibi-arrow-back {
-			top: 0; bottom: auto; cursor: n-resize; @include transform-origin_( 50%   0 ); &:after { content: $mif_keyboard-arrow-up; }
+			top: 0; bottom: auto; cursor: n-resize; transform-origin:  50%   0 ; &:after { content: $mif_keyboard-arrow-up; }
 		}
 		html.view-vertical.spread-ttb &#bibi-arrow-forward {
-			bottom: 0; top: auto; cursor: s-resize; @include transform-origin_( 50% 100%); &:after { content: $mif_keyboard-arrow-down; }
+			bottom: 0; top: auto; cursor: s-resize; transform-origin:  50% 100%; &:after { content: $mif_keyboard-arrow-down; }
 		}
 		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
 		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
-			left: 0; right: auto; cursor: w-resize; @include transform-origin_(  0   50%); &:after { content: $mif_keyboard-arrow-left; }
+			left: 0; right: auto; cursor: w-resize; transform-origin:   0   50%; &:after { content: $mif_keyboard-arrow-left; }
 		}
 		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
 		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
-			right: 0; left: auto; cursor: e-resize; @include transform-origin_(100%  50%); &:after { content: $mif_keyboard-arrow-right; }
+			right: 0; left: auto; cursor: e-resize; transform-origin: 100%  50%; &:after { content: $mif_keyboard-arrow-right; }
 		}
 		&.glowing {
 			opacity: 1.00 !important;
-			@include transform(scale(1.50) !important);
+			transform: scale(1.50) !important;
 		}
 		&.flickering {
 			opacity: 1.00 !important;
 		}
 		&.firing {
 			opacity: 1.00 !important;
-			@include transform(scale(1.25) !important);
+			transform: scale(1.25) !important;
 		}
 	}
 }
@@ -676,7 +675,7 @@ div#bibi-switches {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	overflow: hidden;
 	z-index: 3000;
 	position: fixed;
@@ -686,11 +685,11 @@ div#bibi-panel {
 	height: 100%;
 	background: rgb(246,246,246);
 	opacity: 0;
-	@include transition(0.15s ease-out);
-	@include transform(translateY(-100%));
+	transition: 0.15s ease-out;
+	transform: translateY(-100%);
 	html.panel-opened & {
-		@include transform(none !important);
-		@include transition(0.15s ease-in);
+		transform: none !important;
+		transition: 0.15s ease-in;
 		opacity: 1 !important;
 	}
 	&:before {
@@ -714,7 +713,7 @@ div#bibi-panel {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-menus {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 10;
 	top: 0;
@@ -748,7 +747,7 @@ div#bibi-panel-menus {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-powered {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 10;
 	left: 0;
@@ -790,10 +789,10 @@ div#bibi-panel-powered {
 		}
 	}
 	a {
-		@include transition(.15s linear);
+		transition: .15s linear;
 		&:hover {
 			opacity: 1;
-			@include transition(.075s linear);
+			transition: .075s linear;
 		}
 	}
 }
@@ -803,11 +802,11 @@ div#bibi-panel-powered {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-navigation {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	//font-family: sans-serif;
 }
 	div#bibi-panel-navigation-item-box {
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		position: absolute;
 		width: 100%;
 		height: 100%;
@@ -819,11 +818,11 @@ div#bibi-panel-navigation {
 		&::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.75); border-radius: 3px; }
 	}
 		div#bibi-panel-navigation-item {
-			@include box-sizing(border-box);
+			box-sizing: border-box;
 			padding: 65px 35px 35px;
 			min-width: 100%;
 			min-height: 100%;
-//			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { @include column-width(240px); @include column-gap(20px); }
+//			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { column-width: 240px; column-gap: 20px; }
 			html.page-rtl & {
 				@include writing-mode(vertical-rl);
 				>*:first-child,
@@ -906,10 +905,10 @@ div#bibi-panel-navigation {
 				a {
 					color: rgb(64,64,64);
 					text-decoration: none;
-					@include transition(linear .15s);
+					transition: linear .15s;
 					&:hover {
 						color: steelblue;
-						@include transition(none);
+						transition: none;
 						html.page-ltr & { text-decoration: underline; }
 						html.page-rtl & { text-decoration: overline; }
 					}
@@ -959,7 +958,7 @@ div#bibi-panel-navigation {
 // --------------------------------------------------------------------------------
 
 div#bibi-nombre {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	overflow: hidden;
 	z-index: 2000;
 	position: fixed;
@@ -982,10 +981,10 @@ div#bibi-nombre {
 			 0px  1px 1px $text-shadow-color,
 			-1px  0px 1px $text-shadow-color;
 	}
-	@include transition(0.125s ease-out);
+	transition: 0.125s ease-out;
 	&.transparentized {
 		opacity: 0;
-		@include transition(0.250s ease-out);
+		transition: 0.250s ease-out;
 	}
 	&.vanished {
 		display: none;

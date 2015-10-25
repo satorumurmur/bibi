@@ -8,7 +8,7 @@
 
 span.bibi-holder,
 span.bibi-holder iframe.bibi-frame {
-	@include box-sizing(border-box);
+	box-sizing: border-box;
 	display: inline-block;
 	margin: 0;
 	padding: 0;
@@ -47,7 +47,7 @@ span.bibi-holder.bibi-loading .bibi-switch-fullscreen {
 
 span.bibi-holder {
 	.bibi-icon {
-		@include box-sizing(border-box);
+		box-sizing: border-box;
 		position: absolute;
 		z-index: 5000;
 		top: 4px;
