@@ -78,7 +78,7 @@ This is recommended because it accelarates reading experience of your readers.
 1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
 2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
 3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system` and `$ gem install bundler`
-4. [Grunt](http://gruntjs.com/) - how to install: `$ npm install -g grunt-cli` ... (“[Getting Started](http://gruntjs.com/getting-started)”)
+4. [gulp](http://gulpjs.com/) - will be installed in following process.
 
 
 ### Arrangements
@@ -86,32 +86,33 @@ This is recommended because it accelarates reading experience of your readers.
 1. Clone this repository. (https://github.com/satorumurmur/bibi/)
 2. `$ cd <the repository>`
 3. `$ bundle install --path=vendor/bundle` -> `vendor/bundle` directory including RubyGems (Compass and dependent gems) is installed.
-4. `$ npm install` -> `npm-modules` directory including modules is installed.
+4. `$ npm install` -> `npm-modules` directory including "gulp" and other modules is installed.
 
 
 ### Development
 
-1. `$grunt build` and renew these files. Or `$ grunt` and start watching changes of files for development, and renew these files:
-    * `bib/i/res/scripts/bibi.js`
-    * `bib/i/res/styles/bibi.css`
-    * `bib/i.js`
-    * `bib/i.css`
+1. Command `$ gulp` or `$ gulp build`, and renew these files:
+    - `bib/i/res/scripts/bibi.js`
+    - `bib/i/res/styles/bibi.css`
+    - `bib/i.js`
+    - `bib/i.css`
+    - the extentions in `bib/i/extensions/`
 2. Edit files.
-    * SCSS source files of `bib/i/res/styles/bibi.css` and `bib/i/res/styles/pipi.css` are in `dev-bib/i/res/styles/`.
+    * SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
+    * SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
     * JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
-    * JavaScript source file of `bib/i.js` is `dev-bib/i/res/scripts/pipi.js`.
+    * JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
+    * JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 3. Run web server for dynamic-compiling.
     * `$ bundle exec rackup`
     * A server starts listening port 9292 by default.
-    * The server returns compiled CSS of dev-bib/styles/*.scss to request.
+    * The server returns compiled CSS of SCSS files.
 
-Following files are not watched or processed by Grunt tasks:
+Following source files are not processed by gulp tasks:
 
 * `bib/i/index.html` (as portal)
-* `bib/i.js` (for embedding in HTML webpage)
 * `bib/manifest.json` (for using as Chrome application)
-* Files in `bib/presets/` (customisable settings and styles)
-* Files in `bib/i/res/fonts/` (icon fonts)
+* Files in `bib/i/presets/` (customisable settings and styles)
 
 And `bib/bookshelf/` directory is including `.gitkeep`
 
@@ -134,6 +135,7 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
 * [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 * [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and the MIT license.)
+* [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. (]Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
 
 #### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
