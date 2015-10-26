@@ -86,7 +86,7 @@ This is recommended because it accelarates reading experience of your readers.
 1. Clone this repository. (https://github.com/satorumurmur/bibi/)
 2. `$ cd <the repository>`
 3. `$ bundle install --path=vendor/bundle` -> `vendor/bundle` directory including RubyGems (Compass and dependent gems) is installed.
-4. `$ npm install` -> `npm-modules` directory including "gulp" and other modules is installed.
+4. `$ npm install` -> make `npm-modules` directory and install modules in it.
 
 
 ### Development
