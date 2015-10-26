@@ -78,7 +78,7 @@ This is recommended because it accelarates reading experience of your readers.
 1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
 2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
 3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system` and `$ gem install bundler`
-4. [gulp](http://gulpjs.com/) - will be installed in following process.
+4. [gulp](http://gulpjs.com/) - how to install: `$ npm install -g gulp`
 
 
 ### Arrangements
