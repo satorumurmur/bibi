@@ -91,7 +91,7 @@ This is recommended because it accelarates reading experience of your readers.
 
 ### Development
 
-1. Command `$ gulp` or `$ gulp build`, and renew these files:
+1. `$ gulp` or `$ gulp build`, and renew these files:
     - `bib/i/res/scripts/bibi.js`
     - `bib/i/res/styles/bibi.css`
     - `bib/i.js`
