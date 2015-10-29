@@ -3,7 +3,9 @@ BiB/i
 
 EPUB Reader on your website.
 
-1. How to setup & read/publish EPUB books (for users)
+You can publish EPUB books on the web with parmalink and can embed it in your webpage. 
+
+1. How to setup & read/publish EPUB books (for users/publishers)
 2. How to arrange development environment (for developers)
 3. License
 4. Special Thanks
@@ -16,56 +18,56 @@ EPUB Reader on your website.
 
 BiB/i supports two ways to read/publish EPUB books:
 
-* Read in browsers on your local machine, or
-* Publish on the web, to have your books read by someone.
++ Read in browsers on your local machine, or
++ Publish on the web, to have your books read by someone.
 
 In either case, download BiB/i from [web site](http://bibi.epub.link/#download) and unzip it at first.
 
 
 
-### Read in browsers on your local machine
+### Read in browsers on your local machine 
 
-1. Open `bib/i/index.html` in your browser and
+1. Open `bib/i/index.html` in your browser (except Internet Explorer), and
 2. Drag an EPUB book and drop it into the window.
 3. That's all!
-
 
 
 ### Publish on the web
 
 [Demo](http://bibi.epub.link/#demo).
 
-You can publish both zipped archive and unzipped folder.
-(Using unzipped is highly recommended.)
+You can publish both unzipped folder and zipped EPUB archive. But using unzipped folder is highly recommended.
 
 
-#### Use zipped archives
+#### Publish unzipped folders (recommended)
 
-1. Upload `bib` directory to your web server,
-2. Upload your EPUB books(for instance, `my-book.epub` here) to `bib/bookshelf` directory, and
-3. Access to `http://your.web.site/bib/i/?book=my-book.epub` by your browser.
-4. Or embed code below into your blog and visit the blog entry.
+This is recommended. It accelarates reading experience of your readers, and is more compatible with many browsers.
 
-```
-<a href="http://your.web.site/somewhere/bib/i/?book=my-book.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i, as you like ]]">My Great Book Title</a><script src="http://your.web.site/bib/i.js"></script>
-```
+1. Upload `bib` directory to your web server.
+2. Unzip an EPUB book,
+    1. Change the file extension from `.epub` to `.zip` (`BOOKNAME.epub` -> `BOOKNAME.zip`), and
+    2. Unzip the file with some tool.
+3. Upload the unzipped folder `BOOKNAME` to `bib/bookshelf` directory, and
+4. Access to `http://your.web.site/bib/i/?book=BOOKNAME` by your browser. (note that it has no extension)
+5. Or embed code below into your blog entry or other webpages, and visit the entry.
+
+````
+<a href="http://your.web.site/somewhere/bib/i/?book=BOOKNAME" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i frame, as you like ]]">My Great Book Title</a><script src="http://your.web.site/bib/i.js"></script>
+````
 
 
-#### Use unzipped archives (recommended)
+#### Publish zipped EPUB archives
 
-You may also read EPUB books as unzipped archives, or by page-by-page access, by uploading unzipped EPUB books to `bookshelf` directory.
-This is recommended because it accelarates reading experience of your readers.
+This is not recommended. It is slow and not compatible with Internet Explorer.
 
-1. Unzip an EPUB book,
-    1. Change the file extension from `.epub` to `.zip` (`my-book.epub` -> `my-book.zip`) and then
-    2. unzip the file with some tool.
-2. Upload it to `bib/bookshelf` directory, and
-3. Visit `http://your.web.site/bib/i/?book=my-book` (note that it has *No Extension*) or embed code for it.
+1. Upload `bib` directory to your web server.
+2. Upload your EPUB book (ex. `BOOKNAME.epub`) to `bib/bookshelf` directory, and
+3. Access to `http://your.web.site/bib/i/?book=BOOKNAME.epub` by your browser.
+4. Or embed code for it.
 
-```
-<a href="http://your.web.site/somewhere/bib/i/?book=my-book" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i, as you like ]]">My Great Book Title</a><script src="http://your.web.site/bib/i.js"></script>
-```
-
+````
+<a href="http://your.web.site/somewhere/bib/i/?book=BOOKNAME.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i frame, as you like ]]">My Great Book Title</a><script src="http://your.web.site/bib/i.js"></script>
+````
 
 
 
@@ -91,30 +93,43 @@ This is recommended because it accelarates reading experience of your readers.
 
 ### Development
 
-1. `$ gulp` or `$ gulp build`, and renew these files:
-    - `bib/i/res/scripts/bibi.js`
-    - `bib/i/res/styles/bibi.css`
-    - `bib/i.js`
-    - `bib/i.css`
-    - the extentions in `bib/i/extensions/`
-2. Edit files.
-    * SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
-    * SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
-    * JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
-    * JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
-    * JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
-3. Run web server for dynamic-compiling.
-    * `$ bundle exec rackup`
-    * A server starts listening port 9292 by default.
-    * The server returns compiled CSS of SCSS files.
+1. Edit source files.
+    - SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
+    - SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
+    - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
+    - JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
+    - JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
+2. `$ gulp build`
+    - cleans all the distribution files,
+    - and makes all the distribution files from the source files.
 
-Following source files are not processed by gulp tasks:
 
-* `bib/i/index.html` (as portal)
-* `bib/manifest.json` (for using as Chrome application)
-* Files in `bib/i/presets/` (customisable settings and styles)
+### The other utilities for development:
 
-And `bib/bookshelf/` directory is including `.gitkeep`
++ `$ gulp watch`
+    - It runs `build` task at first,
+    - watches the changes of source files,
+    - and rebuild the distribution files automatically when the source files are changed.
++ `$ gulp sync`
+    - It runs `watch` task at first,
+    - launches a web server listening port 3000 by default,
+    - opens a browser and load `http://localhost:3000/bib/i/?book=`,
+    - reloads your browser automatically when the distribution files are changed,
+    - and syncronizes your browsers on same URI in the web server.
++ `$ bundle exec rackup`
+    - It launches a web server listening port 9292 by default,
+    - and the server returns compiled CSS dynamically to your browser's request for the SCSS source files.
+
+The default task of gulp is `sync`. (`$ gulp` = `$ gulp sync`)
+
+
+### Following files are not processed by gulp tasks:
+
++ `bib/i/index.html` (as portal)
++ `bib/manifest.json` (for using as Chrome application)
++ Files in `bib/i/presets/` (customisable settings and styles)
++ Files in `bib/bookshelf/` (and the directory is including `.gitkeep`)
+
 
 
 
@@ -125,22 +140,23 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 
 ### BiB/i
 
-* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
-* Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
++ &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
++ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
 ### BiB/i is including and powered by these open source softwares:
 
-* [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
-* [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
-* [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
-* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and the MIT license.)
-* [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
++ [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
++ [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
++ [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
++ [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and the MIT license.)
++ [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
 
-#### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
-* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
-* [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
+### BiB/i Extension: Unzipper is including and powered by these open source softwares:
+
++ [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
++ [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
 
 
 
@@ -148,5 +164,5 @@ And `bib/bookshelf/` directory is including `.gitkeep`
 4. Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
-* Shunsuke Ito ... [@shunito](https://github.com/shunito)
++ KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
++ Shunsuke Ito ... [@shunito](https://github.com/shunito)
