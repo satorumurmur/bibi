@@ -3,12 +3,35 @@ BiB/i
 
 EPUB Reader on your website.
 
-You can publish EPUB books on the web with parmalink and can embed it in your webpage. 
+
+Summary
+--------------------------------------------------------------------------------------------------------------------------------
+
+You can publish EPUB books on the web with a parmalink for each book, and you can embed it in your webpage (just like a YouTube).
+
+### Spec.
+
++ EPUB 3 and 2 compliant.
++ Open source. (MIT lisence)
++ Made with JavaScript, works compatibly with all major web browsers:
+    - Safari
+    - Chrome
+    - Android Browser
+    - Opera
+    - Firefox
+    - Microsoft Edge
+    - Internet Explorer (except opening zipped EPUB archive)
+
+
+
+
+Table of Contents
+--------------------------------------------------------------------------------------------------------------------------------
 
 1. How to setup & read/publish EPUB books (for users/publishers)
 2. How to arrange development environment (for developers)
 3. License
-4. Special Thanks
+4. Special thanks
 
 
 
@@ -24,7 +47,7 @@ BiB/i supports two ways to read/publish EPUB books:
 In either case,
 
 1. Download BiB/i from [GitHub repositoly page](https://github.com/satorumurmur/bibi)'s right sidebar or [BiB/i web site](http://bibi.epub.link/#download),
-2. Unzip it at first.
+2. And unzip it at first.
 
 
 
@@ -42,7 +65,7 @@ In either case,
 You can publish both unzipped folder and zipped EPUB archive. But using unzipped folder is highly recommended.
 
 
-#### Publish unzipped folders (recommended)
+#### Publish unzipped folders (Recommended)
 
 This is recommended. It accelarates reading experience of your readers, and is more compatible with many browsers.
 
@@ -59,7 +82,7 @@ This is recommended. It accelarates reading experience of your readers, and is m
 ````
 
 
-#### Publish zipped EPUB archives
+#### Publish zipped EPUB archives (Not recommended)
 
 This is not recommended. It is slow and not compatible with Internet Explorer.
 
@@ -88,8 +111,8 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 ### Arrangements
 
-1. Clone this repository. (https://github.com/satorumurmur/bibi/)
-2. `$ cd <the repository>`
+1. Clone [this repository](https://github.com/satorumurmur/bibi/). 
+2. `$ cd <the local repository>`
 3. `$ bundle install --path=vendor/bundle` -> make `vendor/bundle` directory and install RubyGems in it.
 4. `$ npm install` -> make `npm-modules` directory and install modules in it.
 
@@ -128,10 +151,10 @@ The default task of gulp is `sync`. (`$ gulp` = `$ gulp sync`)
 
 ### Following files are not processed by gulp tasks:
 
-+ `bib/i/index.html` (as portal)
-+ `bib/manifest.json` (for using as Chrome application)
-+ Files in `bib/i/presets/` (customisable settings and styles)
-+ Files in `bib/bookshelf/` (and the directory is including `.gitkeep`)
++ `bib/i/index.html` ... as portal
++ `bib/manifest.json` ... for using as Chrome application
++ Files in `bib/i/presets/` ... customisable settings and styles
++ Files in `bib/bookshelf/` .... this directory is including `.gitkeep`
 
 
 
@@ -164,7 +187,7 @@ The default task of gulp is `sync`. (`$ gulp` = `$ gulp sync`)
 
 
 
-4. Special Thanks
+4. Special thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
 + KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
