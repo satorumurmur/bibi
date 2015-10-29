@@ -21,7 +21,10 @@ BiB/i supports two ways to read/publish EPUB books:
 + Read in browsers on your local machine, or
 + Publish on the web, to have your books read by someone.
 
-In either case, download BiB/i from [web site](http://bibi.epub.link/#download) and unzip it at first.
+In either case,
+
+1. Download BiB/i from [GitHub repositoly page](https://github.com/satorumurmur/bibi)'s right sidebar or [BiB/i web site](http://bibi.epub.link/#download),
+2. Unzip it at first.
 
 
 
@@ -93,7 +96,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 ### Development
 
-1. Edit source files.
+1. Edit source files:
     - SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
     - SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
     - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
@@ -104,7 +107,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
     - and makes all the distribution files from the source files.
 
 
-### The other utilities for development:
+### Other utilities for development:
 
 + `$ gulp watch`
     - It runs `build` task at first,
