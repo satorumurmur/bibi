@@ -7,7 +7,7 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a parmalink for each book, and you can embed it in your webpage (just like a YouTube).
+You can publish EPUB books on the web with a parmalink for each book, and you can embed it in your webpage (just like a YouTube video).
 
 ### Spec.
 
