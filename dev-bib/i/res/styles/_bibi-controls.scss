@@ -882,7 +882,7 @@ div#bibi-panel-bookinfo-navigation {
 			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 			li {
-				$margin-before: .75em;
+				$margin-before: 1em;
 				$margin-after: 0;
 				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
@@ -905,7 +905,7 @@ div#bibi-panel-bookinfo-navigation {
 						html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
 					}
 					li {
-						$margin-before: .25em;
+						$margin-before: .5em;
 						$margin-after: 0;
 						$margin-start: 1em;
 						html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
@@ -963,28 +963,29 @@ div#bibi-panel-bookinfo-navigation {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-cover {
-	border: solid 0 rgb(192,192,192);
-	html.page-ltr & { margin-top: 2em; border-top-width: 1px; padding-top: 2em; margin-right: 30px; }
-	html.page-rtl & { margin-right: 2em; border-right-width: 1px; padding-right: 2em; margin-bottom: 30px; }
+	border: solid 0 rgb(232,232,232);
+	html.page-ltr & { margin-top: 2em; border-top-width: 1px; padding-top: 2em; padding-bottom: 2em; margin-right: 30px; }
+	html.page-rtl & { margin-right: 2em; border-right-width: 1px; padding-right: 2em; padding-left: 2em; margin-bottom: 30px; }
 	img {
-		max-width: 100%;
-		max-height: 100%;
-		html.page-ltr & { margin-bottom: .5em; }
-		html.page-rtl & { margin-left: .5em; }
+		max-width: 50%;
+		max-height: 50%;
+		html.page-ltr & { margin-bottom: .75em; }
+		html.page-rtl & { margin-left: .75em; }
 	}
 	p#bibi-panel-bookinfo-cover-info {
 		color: rgb(160,160,160);
 		strong, em, span {
 			display: block;
 			line-height: 1.2;
-			html.page-ltr & { margin-bottom: .5em; }
-			html.page-rtl & { margin-left: .5em; }
+			html.page-ltr & { margin-bottom: .5rem; }
+			html.page-rtl & { margin-left: .5rem; }
 		}
 		strong {
-			font-size: 20px;
+			font-size: 16px;
+			font-weight: bold;
 		}
 		em {
-			font-size: 16px;
+			font-size: 14px;
 		}
 		span {
 			font-size: 12px;
