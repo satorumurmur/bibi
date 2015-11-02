@@ -9,7 +9,7 @@
 
 // requires: Native Promiss Only & easing.js & sML
 
-Bibi = { "version": "0.999.0", "build": 20151001.0015 };
+Bibi = { "version": "0.999.0", "build": 20151102.2258 };
 
 
 
@@ -533,31 +533,43 @@ L.createCover = function() {
 
 	O.log(2, 'Creating Cover...', "Show");
 
+    C.Veil.Cover.innerHTML = C.Panel.BookInfo.Cover.innerHTML = "";
+
 	if(B.Package.Manifest["cover-image"].Path) {
 		R.CoverImage.Path = B.Package.Manifest["cover-image"].Path;
 	}
 
+    var InfoHTML = (function() {
+        var BookID = [];
+        if(B.Title)     BookID.push('<strong>' + B.Title + '</strong>');
+        if(B.Creator)   BookID.push('<em>' + B.Creator + '</em>');
+        if(B.Publisher) BookID.push('<span>' + B.Publisher + '</span>');
+        return BookID.join(" ");
+    })();
+
 	C.Veil.Cover.Info = C.Veil.Cover.appendChild(
 		sML.create("p", { id: "bibi-veil-cover-info",
-			innerHTML: (function() {
-				var BookID = [];
-				if(B.Title)     BookID.push('<strong>' + B.Title + '</strong>');
-				if(B.Creator)   BookID.push('<em>' + B.Creator + '</em>');
-				if(B.Publisher) BookID.push('<span>' + B.Publisher + '</span>');
-				return BookID.join(" ");
-			})()
+			innerHTML: InfoHTML
+		})
+	);
+
+	C.Panel.BookInfo.Cover.Info = C.Panel.BookInfo.Cover.appendChild(
+		sML.create("p", { id: "bibi-panel-bookinfo-cover-info",
+			innerHTML: InfoHTML
 		})
 	);
 
 	if(R.CoverImage.Path) {
 		O.log(3, B.Path + B.PathDelimiter + R.CoverImage.Path);
-		C.Veil.Cover.className = [C.Veil.Cover.className, "with-cover-image"].join(" ");
+		C.Veil.Cover.className = "with-cover-image";
 		sML.create("img", {
 			onload: function() {
 				sML.style(C.Veil.Cover, {
 					backgroundImage: "url(" + this.src + ")",
 					opacity: 1
 				});
+                C.Panel.BookInfo.Cover.insertBefore(this, C.Panel.BookInfo.Cover.Info);
+                C.Panel.BookInfo.Cover.className = "with-cover-image";
 				E.dispatch("bibi:createCover", R.CoverImage.Path);
 				O.log(2, 'Cover Created.', "Show");
 				L.createNavigation();
@@ -568,7 +580,8 @@ L.createCover = function() {
 		})();
 	} else {
 		O.log(3, 'No Cover Image.');
-		C.Veil.Cover.className = [C.Veil.Cover.className, "without-cover-image"].join(" ");
+		C.Veil.Cover.className = "without-cover-image";
+		C.Panel.BookInfo.Cover.className = "without-cover-image";
 		E.dispatch("bibi:createCover", "");
 		O.log(2, 'Cover Created.', "Show");
 		L.createNavigation();
@@ -582,13 +595,13 @@ L.createNavigation = function(Doc) {
 	if(!Doc) {
 		O.log(2, 'Creating Navigation...', "Show");
 		if(B.Package.Manifest["nav"].Path) {
-			C.Panel.Navigation.Item.Path = B.Package.Manifest["nav"].Path;
-			C.Panel.Navigation.Item.Type = "NavigationDocument";
+			C.Panel.BookInfo.Navigation.Path = B.Package.Manifest["nav"].Path;
+			C.Panel.BookInfo.Navigation.Type = "NavigationDocument";
 		} else {
 			O.log(2, 'No Navigation Document.');
 			if(B.Package.Manifest["toc-ncx"].Path) {
-				C.Panel.Navigation.Item.Path = B.Package.Manifest["toc-ncx"].Path;
-				C.Panel.Navigation.Item.Type = "TOC-NCX";
+				C.Panel.BookInfo.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
+				C.Panel.BookInfo.Navigation.Type = "TOC-NCX";
 			} else {
 				O.log(2, 'No TOC-NCX.');
 				E.dispatch("bibi:createNavigation", "");
@@ -596,13 +609,13 @@ L.createNavigation = function(Doc) {
 				return L.loadSpreads();
 			}
 		}
-		O.log(3, B.Path + B.PathDelimiter + C.Panel.Navigation.Item.Path);
-		return O.openDocument(C.Panel.Navigation.Item.Path, { then: L.createNavigation });
+		O.log(3, B.Path + B.PathDelimiter + C.Panel.BookInfo.Navigation.Path);
+		return O.openDocument(C.Panel.BookInfo.Navigation.Path, { then: L.createNavigation });
 	}
 
-	C.Panel.Navigation.Item.innerHTML = "";
+	C.Panel.BookInfo.Navigation.innerHTML = "";
 	var NavContent = document.createDocumentFragment();
-	if(C.Panel.Navigation.Item.Type == "NavigationDocument") {
+	if(C.Panel.BookInfo.Navigation.Type == "NavigationDocument") {
 		sML.each(Doc.querySelectorAll("nav"), function() {
 			switch(this.getAttribute("epub:type")) {
 				case "toc":       sML.addClass(this, "bibi-nav-toc"); break;
@@ -633,16 +646,16 @@ L.createNavigation = function(Doc) {
 		});
 		NavContent.appendChild(document.createElement("nav")).innerHTML = TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "");
 	}
-	C.Panel.Navigation.Item.appendChild(NavContent);
-	C.Panel.Navigation.Item.Body = C.Panel.Navigation.Item;
+	C.Panel.BookInfo.Navigation.appendChild(NavContent);
+	C.Panel.BookInfo.Navigation.Body = C.Panel.BookInfo.Navigation;
 	delete NavContent;
 
 	delete Doc;
 
-	L.postprocessItem.coordinateLinkages(C.Panel.Navigation.Item, "InNav");
+	L.postprocessItem.coordinateLinkages(C.Panel.BookInfo.Navigation, "InNav");
 	R.resetNavigation();
 
-	E.dispatch("bibi:createNavigation", C.Panel.Navigation.Item.Path);
+	E.dispatch("bibi:createNavigation", C.Panel.BookInfo.Navigation.Path);
 
 	O.log(2, 'Navigation Created.', "Show");
 
@@ -932,7 +945,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
 		if(!HrefPathInSource) {
 			if(InNav) {
 				A.addEventListener("click", function(Eve) { Eve.preventDefault(); Eve.stopPropagation(); return false; });
-				sML.addClass(A, "bibi-navigation-inactive-link");
+				sML.addClass(A, "bibi-bookinfo-inactive-link");
 			}
 			return;
 		}
@@ -1440,14 +1453,12 @@ R.resetPages = function() {
 	return R.Pages;
 };
 
-R.resetNavigation = function() {
-	sML.style(C.Panel.Navigation.Item, { float: "" });
+R.resetNavigation = function() {/*
 	if(S.PPD == "rtl") {
-		var theWidth = C.Panel.Navigation.Item.scrollWidth - window.innerWidth;
-		if(C.Panel.Navigation.Item.scrollWidth < window.innerWidth) sML.style(C.Panel.Navigation.Item, { float: "right" });
-		C.Panel.Navigation.ItemBox.scrollLeft = C.Panel.Navigation.ItemBox.scrollWidth - window.innerWidth;
+		var theWidth = C.Panel.Navigation.scrollWidth - window.innerWidth;
+		C.Panel.NavigationBox.scrollLeft = C.Panel.NavigationBox.scrollWidth - window.innerWidth;
 	}
-};
+*/};
 
 
 R.layoutSpread = function(Spread) {
@@ -2167,30 +2178,41 @@ C.createPanel = function() {
 			}
 		})
 	);
-
-	C.Panel.Powered = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
-
-	C.Panel.Navigation = C.Panel.appendChild(
-		sML.create("div", { id: "bibi-panel-navigation" })
-	);
-	C.Panel.Navigation.ItemBox = C.Panel.Navigation.appendChild(
-		sML.create("div", { id: "bibi-panel-navigation-item-box" })
-	);
-	C.Panel.Navigation.Item = C.Panel.Navigation.ItemBox.appendChild(
-		sML.create("div", { id: "bibi-panel-navigation-item", ItemBox: C.Panel.Navigation.ItemBox })
-	);
-	C.Panel.Navigation.ItemBox.addEventListener("click", function() {
+    C.Panel.addEventListener("click", function() {
 		C.Panel.toggle();
 	});
 
-	C["menu"] = C.Panel.appendChild(
+    // Powered
+	C.Panel.Powered = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
+
+    // Box
+	C.Panel.BookInfo = C.Panel.appendChild(
+		sML.create("div", { id: "bibi-panel-bookinfo" })
+	);
+	C.Panel.BookInfo.Box = C.Panel.BookInfo.appendChild(
+		sML.create("div", { id: "bibi-panel-bookinfo-box" })
+	);
+
+    // Box > Navigation
+    C.Panel.BookInfo.Navigation = C.Panel.BookInfo.Box.appendChild(
+        sML.create("div", { id: "bibi-panel-bookinfo-navigation" })
+    );
+
+    // Box > Cover
+    C.Panel.BookInfo.Cover = C.Panel.BookInfo.Box.appendChild(
+        sML.create("div", { id: "bibi-panel-bookinfo-cover" })
+    );
+
+    // Menu
+	C.Panel.Menu = C["menu"] = C.Panel.appendChild(
 		sML.create("div", { id: "bibi-panel-menus" })
 	);
 
-	C["switch"] = O.Body.appendChild(
+    // Switches
+	C.Switches = C["switch"] = O.Body.appendChild(
 		sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
 	);
-	C["switch"].Panel = C.addButton({
+	C.Switches.Panel = C.addButton({
 		id: "bibi-switch-panel",
 		Category: "switch",
 		Group: "panel",
@@ -2201,10 +2223,10 @@ C.createPanel = function() {
 		IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-panel"></span>'
 	}, function() {
 		C.Panel.toggle();
-		C.setLabel(C["switch"].Panel, C.Panel.State);
+		C.setLabel(C.Switches.Panel, C.Panel.State);
 	});
 	E.add("bibi:start", function() {
-		sML.style(C["switch"].Panel, { display: "block" });
+		sML.style(C.Switches.Panel, { display: "block" });
 	});
 
 	E.dispatch("bibi:createPanel");

@@ -752,10 +752,13 @@ div#bibi-panel-powered {
 	z-index: 10;
 	left: 0;
 	right: 0;
-	bottom: 0;
+	bottom: 15px;
+	html.WebKit & {
+		bottom: 8px;
+	}
 	margin: 0 auto;
 	padding: 4px 16px;
-	border-top: solid 1px rgb(236,236,236);
+	border: solid rgb(236,236,236); border-width: 1px 0;
 	width: 100%;
 	height: 36px;
 	line-height: 30px;
@@ -798,16 +801,18 @@ div#bibi-panel-powered {
 }
 
 
-// - Panel > Navigation (div#bibi-panel-navigation)
+// - Panel > BookInfo (div#bibi-panel-bookinfo)
 // --------------------------------------------------------------------------------
 
-div#bibi-panel-navigation {
+div#bibi-panel-bookinfo {
 	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
 	//font-family: sans-serif;
 }
-	div#bibi-panel-navigation-item-box {
+	div#bibi-panel-bookinfo-box {
 		box-sizing: border-box;
-		position: absolute;
+		padding: 65px 35px 35px;
 		width: 100%;
 		height: 100%;
 		-webkit-overflow-scrolling: touch;
@@ -815,137 +820,177 @@ div#bibi-panel-navigation {
 		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; }
 		&::-webkit-scrollbar { width: 8px; height: 8px; }
 		&::-webkit-scrollbar-track { background: transparent; }
-		&::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.75); border-radius: 3px; }
+		&::-webkit-scrollbar-thumb { background: rgb(128,128,128); border-radius: 3px; }
+		html.page-rtl & {
+			@include writing-mode(vertical-rl);
+		}
 	}
-		div#bibi-panel-navigation-item {
-			box-sizing: border-box;
-			padding: 65px 35px 35px;
-			min-width: 100%;
-			min-height: 100%;
-//			html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { column-width: 240px; column-gap: 20px; }
-			html.page-rtl & {
-				@include writing-mode(vertical-rl);
-				>*:first-child,
-				>*:first-child >*:first-child,
-				>*:first-child >*:first-child >*:first-child {
-					margin-right: 0 !important;
-				}
-				span.tcy {
-					@include text-combine-upright_all();
-				}
-			}
-			html.page-ltr & {
-				>*:first-child,
-				>*:first-child >*:first-child,
-				>*:first-child >*:first-child >*:first-child {
-					margin-top: 0 !important;
-				}
-			}
-			nav {
-				$margin-before: 2em;
-				$margin-after: 1em;
-				line-height: 1.2;
-				font-size: 20px;
+
+
+// - Panel > BookInfo > Navigation (div#bibi-panel-bookinfo-navigation)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-navigation {
+	box-sizing: border-box;
+	//min-width: 100%;
+	//min-height: 100%;
+	//html.view-horizontal.spread-ltr &, html.view-paged.page-ltr & { column-width: 240px; column-gap: 20px; }
+	html.page-rtl & {
+		//@include writing-mode(vertical-rl);
+		>*:first-child,
+		>*:first-child >*:first-child,
+		>*:first-child >*:first-child >*:first-child {
+			margin-right: 0 !important;
+		}
+		span.tcy {
+			@include text-combine-upright_all();
+		}
+	}
+	html.page-ltr & {
+		>*:first-child,
+		>*:first-child >*:first-child,
+		>*:first-child >*:first-child >*:first-child {
+			margin-top: 0 !important;
+		}
+	}
+	nav {
+		$margin-before: 2em;
+		$margin-after: 1em;
+		line-height: 1.2;
+		font-size: 20px;
+		html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+		html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+		h1, h2, h3, h4, h5, h6 {
+			$margin-before: 0;
+			$margin-after: 1em;
+			font-weight: bold;
+			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+		}
+		small {
+			font-size: .8em;
+		}
+		br +small {
+			$margin-start: 2em;
+			html.page-ltr & { margin: 0 0 0 $margin-start; }
+			html.page-rtl & { margin: $margin-start 0 0 0; }
+		}
+		ul, ol {
+			$margin-before: 0;
+			$margin-after: 1em;
+			font-size: .9em;
+			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+			li {
+				$margin-before: .75em;
+				$margin-after: 0;
 				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
-				h1, h2, h3, h4, h5, h6 {
-					$margin-before: 0;
-					$margin-after: 1em;
-					font-weight: bold;
-					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
-					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
-				}
-				small {
-					font-size: .8em;
-				}
-				br +small {
-					$margin-start: 2em;
-					html.page-ltr & { margin: 0 0 0 $margin-start; }
-					html.page-rtl & { margin: $margin-start 0 0 0; }
-				}
 				ul, ol {
+					position: relative;
 					$margin-before: 0;
-					$margin-after: 1em;
-					font-size: .9em;
+					$margin-after: 0;
 					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+					&:before {
+						content: "";
+						display: block;
+						position: absolute;
+						$start: .175em;
+						$before: 0;
+						$breadth: 4px;
+						$length: 100%;
+						background: white;
+						html.page-ltr & { left: $start; top: $before; width: $breadth; height: $length; }
+						html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
+					}
 					li {
-						$margin-before: .75em;
+						$margin-before: .25em;
 						$margin-after: 0;
-						html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
-						html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
-						ul, ol {
-							position: relative;
-							$margin-before: 0;
-							$margin-after: 0;
-							html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
-							html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
-							&:before {
-								content: "";
-								display: block;
-								position: absolute;
-								$start: .175em;
-								$before: 0;
-								$breadth: 4px;
-								$length: 100%;
-								background: white;
-								html.page-ltr & { left: $start; top: $before; width: $breadth; height: $length; }
-								html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
-							}
-							li {
-								$margin-before: .25em;
-								$margin-after: 0;
-								$margin-start: 1em;
-								html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
-								html.page-rtl & { margin: $margin-start $margin-before 0 $margin-after; }
-							}
-						}
-					}
-				}
-				a {
-					color: rgb(64,64,64);
-					text-decoration: none;
-					transition: linear .15s;
-					&:hover {
-						color: steelblue;
-						transition: none;
-						html.page-ltr & { text-decoration: underline; }
-						html.page-rtl & { text-decoration: overline; }
-					}
-					&.bibi-navigation-inactive-link {
-						color: inherit !important;
-						border: none 0 !important;
-						cursor: default !important;
-						&:hover {
-							color: inherit !important;
-						}
-					}
-				}
-			}
-			nav.bibi-nav-landmarks,
-			nav.bibi-nav-page-list {
-				font-size: 16px;
-				h1, h2, h3, h4, h5, h6 {
-					$margin-before: 0;
-					$margin-after: .25em;
-					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
-					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
-				}
-				ul, ol {
-					overflow: hidden;
-					$padding-after: .25em;
-					html.page-ltr & { padding-bottom: $padding-after; }
-					html.page-rtl & { padding-left: $padding-after; }
-					li {
-						float: left;
-						$padding-end: 1em;
-						html.page-ltr & { padding-right: $padding-end; &:last-child { padding-right: 0; } }
-						html.page-rtl & { padding-bottom: $padding-end; &:last-child { padding-bottom: 0; } }
+						$margin-start: 1em;
+						html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
+						html.page-rtl & { margin: $margin-start $margin-before 0 $margin-after; }
 					}
 				}
 			}
 		}
+		a {
+			color: rgb(64,64,64);
+			text-decoration: none;
+			transition: linear .15s;
+			&:hover {
+				color: steelblue;
+				transition: none;
+				html.page-ltr & { text-decoration: underline; }
+				html.page-rtl & { text-decoration: overline; }
+			}
+			&.bibi-bookinfo-inactive-link {
+				color: inherit !important;
+				border: none 0 !important;
+				cursor: default !important;
+				&:hover {
+					color: inherit !important;
+				}
+			}
+		}
+	}
+	nav.bibi-nav-landmarks,
+	nav.bibi-nav-page-list {
+		font-size: 16px;
+		h1, h2, h3, h4, h5, h6 {
+			$margin-before: 0;
+			$margin-after: .25em;
+			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
+		}
+		ul, ol {
+			overflow: hidden;
+			$padding-after: .25em;
+			html.page-ltr & { padding-bottom: $padding-after; }
+			html.page-rtl & { padding-left: $padding-after; }
+			li {
+				float: left;
+				$padding-end: 1em;
+				html.page-ltr & { padding-right: $padding-end; &:last-child { padding-right: 0; } }
+				html.page-rtl & { padding-bottom: $padding-end; &:last-child { padding-bottom: 0; } }
+			}
+		}
+	}
+}
 
+
+// - Panel > BookInfo > Cover (div#bibi-panel-bookinfo-cover)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-cover {
+	border: solid 0 rgb(192,192,192);
+	html.page-ltr & { margin-top: 2em; border-top-width: 1px; padding-top: 2em; margin-right: 30px; }
+	html.page-rtl & { margin-right: 2em; border-right-width: 1px; padding-right: 2em; margin-bottom: 30px; }
+	img {
+		max-width: 100%;
+		max-height: 100%;
+		html.page-ltr & { margin-bottom: .5em; }
+		html.page-rtl & { margin-left: .5em; }
+	}
+	p#bibi-panel-bookinfo-cover-info {
+		color: rgb(160,160,160);
+		strong, em, span {
+			display: block;
+			line-height: 1.2;
+			html.page-ltr & { margin-bottom: .5em; }
+			html.page-rtl & { margin-left: .5em; }
+		}
+		strong {
+			font-size: 20px;
+		}
+		em {
+			font-size: 16px;
+		}
+		span {
+			font-size: 12px;
+		}
+	}
+}
 
 
 
