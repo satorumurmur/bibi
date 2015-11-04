@@ -9,7 +9,7 @@
 
 // requires: Native Promiss Only & easing.js & sML
 
-Bibi = { "version": "0.999.0", "build": 20151102.2353 };
+Bibi = { "version": "0.999.0", "build": 20151103.1845 };
 
 
 
@@ -2173,7 +2173,7 @@ C.createPanel = function() {
 			},
 			toggle: function(Cb) {
 				var State = (this.State == 0 ? this.open(Cb) : this.close(Cb));
-				E.dispatch("bibi:togglePanel", State);
+                E.dispatch("bibi:togglePanel", State);
 				return State;
 			}
 		})
@@ -2203,15 +2203,21 @@ C.createPanel = function() {
         sML.create("div", { id: "bibi-panel-bookinfo-cover" })
     );
 
-    // Menu
-	C.Panel.Menu = C["menu"] = C.Panel.appendChild(
+    // Menus
+	C.Panel.Menus = C["menu"] = C.Panel.appendChild(
 		sML.create("div", { id: "bibi-panel-menus" })
 	);
+    C.Panel.Menus.addEventListener("click", function(Eve) {
+		Eve.stopPropagation();
+	});
 
     // Switches
 	C.Switches = C["switch"] = O.Body.appendChild(
 		sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
 	);
+    C.Switches.addEventListener("click", function(Eve) {
+		Eve.stopPropagation();
+	});
 	C.Switches.Panel = C.addButton({
 		id: "bibi-switch-panel",
 		Category: "switch",
