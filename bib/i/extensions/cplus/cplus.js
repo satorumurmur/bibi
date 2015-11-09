@@ -41,4 +41,10 @@ Bibi.x({name:"C+Arrows",description:"Floating Buttons for Scrolling and Page-Fli
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
-Bibi.x({name:"C+Keys",description:"Listening Key Pressing.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.listenKeys=function(e){if(R.Started){e.preventDefault();var i=parent!=window&&parent.Bibi?parent:window;i.C.KeyCode=e.keyCode;var a=null;if("rtl"==S["page-progression-direction"])switch(e.keyCode){case 37:a=1;break;case 38:a=-1;break;case 39:a=-1;break;case 40:a=1}else switch(e.keyCode){case 37:a=-1;break;case 38:a=-1;break;case 39:a=1;break;case 40:a=1}a&&i.R.page(a)}},E.add("bibi:loadItem",function(e){e.contentWindow.addEventListener("keydown",C.listenKeys,!1)}),E.add("bibi:start",function(){O.SmartPhone||window.addEventListener("keydown",C.listenKeys,!1)})});
+Bibi.x({name:"C+Keys",description:"Listening Key Pressing.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.listenKeys=function(e){if(R.Started){e.preventDefault();var i=parent!=window&&parent.Bibi?parent:window;i.C.KeyCode=e.keyCode;var r=null;if("rtl"==S["page-progression-direction"])switch(e.keyCode){case 37:r=1;break;case 38:r=-1;break;case 39:r=-1;break;case 40:r=1}else switch(e.keyCode){case 37:r=-1;break;case 38:r=-1;break;case 39:r=1;break;case 40:r=1}r&&i.R.page(r)}},E.add("bibi:loadItem",function(e){e.contentWindow.addEventListener("keydown",C.listenKeys,!1)}),E.add("bibi:start",function(){O.SmartPhone||window.addEventListener("keydown",C.listenKeys,!1)})}),/*!
+ *
+ * # BiB/i Extension: C+Messages
+ *
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ */

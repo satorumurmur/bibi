@@ -1,6 +1,6 @@
 /*!
  *
- * # BiB/i Extension: C+Keys
+ * # BiB/i Extension: C+Messages
  *
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
@@ -17,11 +17,12 @@ Bibi.x({
 })(function() {
 
 	C.listenMessage = function(E) {
-		return false;
+		return;
 	};
 
 	E.add("bibi:start", function() {
-		if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
+        return;
+		//if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
 	});
 
 });*/
