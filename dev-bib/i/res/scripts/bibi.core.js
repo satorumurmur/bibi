@@ -75,19 +75,20 @@ Bibi.welcome = function() {
 	}
 
 	if(window.parent == window) {
-		O.WindowEmbedded = false;
+		O.WindowEmbedded = 0; // false
+        O.WindowEmbeddedDetail = "Direct Opened: " + location.origin + location.pathname + location.search;
 		O.HTML.className = O.HTML.className + " window-not-embedded";
 	} else {
-		O.WindowEmbedded = 1; // true
 		O.HTML.className = O.HTML.className + " window-embedded";
-		try {
-			if(location.host == parent.location.host) {
-				O.HTML.className = O.HTML.className + " window-embedded-sameorigin";
-			}
-		} catch(Err) {
-			O.WindowEmbedded = -1; // true
-			O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
-		}
+        if(location.host == parent.location.host) {
+            O.WindowEmbedded = 1; // true
+            O.WindowEmbeddedDetail = "Embedded in: " + parent.location.origin + parent.location.pathname + parent.location.search;
+            O.HTML.className = O.HTML.className + " window-embedded-sameorigin";
+        } else {
+            O.WindowEmbedded = -1; // true
+            O.WindowEmbeddedDetail = "Embedded in: Cross-Origin Parent";
+            O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
+        }
 	}
 
 	if((function() {
