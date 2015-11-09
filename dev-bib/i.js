@@ -15,6 +15,7 @@
         Anchors: [],
         Holders: [],
         Frames: [],
+        TrustworthyOrigins: [location.origin],
         Loaded: 0
     };
 	Pipi.BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
@@ -38,6 +39,7 @@
 			var Nav        = Anchor.getAttribute("data-bibi-nav");
 			var View       = Anchor.getAttribute("data-bibi-view");
 			var Arrows     = Anchor.getAttribute("data-bibi-arrows");
+            Pipi.TrustworthyOrigins.push(Href.replace(/^.+?:\/\/([^\/]+).*$/, "$1"));
 			Anchor.addEventListener("bibi:load",              function(Eve) { console.log("BiB/i: Loaded. - #"               + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
 			Anchor.addEventListener("bibi:openInNewWindow",   function(Eve) { console.log("BiB/i: Opened in New Window. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
 			Anchor.addEventListener("bibi:requestFullscreen", function(Eve) { console.log("BiB/i: Entered Fullscreen. - #"   + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
@@ -52,7 +54,8 @@
 			if(ID)    Holder.id = ID;
 			if(Style) Holder.setAttribute("style", Style);
 			var PipiFragments = [];
-			if(location.origin != Anchor.origin) PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
+			PipiFragments.push("parent-uri:"    + Pipi.encode(location.href));
+			PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
 			if(Poster) {
 				var PosterLink = Pipi.create("link", { href: Poster });
 				Poster = PosterLink.href;
@@ -244,8 +247,8 @@
 		window.CustomEvent.prototype = window.Event.prototype;
 	}
 	document.getElementsByTagName("head")[0].appendChild(Pipi.create("link", { rel: "stylesheet", id: "bibi-css", href: Pipi.BibiPath + ".css" }));
-	document.addEventListener("bibi:ready",             function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
-	document.addEventListener("bibi:load",              function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
-	document.addEventListener("bibi:timeout",           function(Eve) { console.log("BiB/i: Timeouted.");                                            }, false);
-	document.addEventListener("DOMContentLoaded",       Pipi.embed,                                                                                     false);
+	document.addEventListener("bibi:ready",       function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
+	document.addEventListener("bibi:load",        function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
+	document.addEventListener("bibi:timeout",     function(Eve) { console.log("BiB/i: Timeouted.");                                            }, false);
+	document.addEventListener("DOMContentLoaded", Pipi.embed,                                                                                     false);
 })();

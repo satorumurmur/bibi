@@ -2130,6 +2130,8 @@ C.createVeil = function() {
                 play: function(Eve) {
                     Eve.stopPropagation();
                     L.play();
+                    M.post("bibi:play:button:" + location.href);
+                    E.dispatch("bibi:play:button");
                 },
 				hide: function() {
 					this.removeEventListener("click", C.Veil.PlayButton.play);
@@ -2334,6 +2336,7 @@ U.initialize = function() { // formerly O.readExtras
 				}
 			} else {
 				switch(PnV[0]) {
+					case "parent-uri":        PnV[1] = U.decode(PnV[1]); break;
 					case "parent-origin":     PnV[1] = U.decode(PnV[1]); break;
 					case "poster":            PnV[1] = U.decode(PnV[1]); break;
 					case "autostart":         PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
@@ -2356,7 +2359,7 @@ U.initialize = function() { // formerly O.readExtras
 
 	if(H["pipi"]) {
 		applyToU(H["pipi"]);
-		if(U["parent-origin"]) P["trustworthy-origins"].push(U["parent-origin"]);
+		if(U["parent-origin"] && U["parent-origin"] != location.origin) P["trustworthy-origins"].push(U["parent-origin"]);
 		if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ""));　
 	}
 

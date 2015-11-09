@@ -141,6 +141,18 @@ gulp.task('make_script_pipi', function() {
     });
 });
 
+gulp.task('make_script_extension_analytics', function() {
+    return make_script({
+        src: [
+			'./dev-bib/i/extensions/analytics/analytics.js'
+        ],
+        dist: {
+            dir: './bib/i/extensions/analytics',
+            name: 'analytics.js'
+        }
+    });
+});
+
 gulp.task('make_script_extension_cplus', function() {
     return make_script({
         src: [
@@ -225,6 +237,7 @@ gulp.task('make', [
     'make_style_pipi',
     'make_script_bibi',
     'make_script_pipi',
+    'make_script_extension_analytics',
     'make_script_extension_cplus',
     'make_script_extension_unzipper',
     'make_script_extension_epubcfi',
@@ -278,6 +291,9 @@ gulp.task('watch', ['build'], function() {
     gulp.watch([
         './dev-bib/i.js'
     ], ['make_script_pipi']);
+    gulp.watch([
+        './dev-bib/i/extensions/analytics/**/*.js'
+    ], ['make_script_extension_analytics']);
     gulp.watch([
         './dev-bib/i/extensions/cplus/**/*.js'
     ], ['make_script_extension_cplus']);
