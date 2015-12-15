@@ -38,7 +38,7 @@ html {
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	background-color: rgb(69,69,69);
+	background: $bibi-background;
 	&.spread-vertical {
 		width: 100%;
 		&.preparing {

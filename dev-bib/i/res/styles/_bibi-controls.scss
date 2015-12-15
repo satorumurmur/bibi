@@ -84,7 +84,7 @@ div#bibi-veil {
 	height: 100%;
 	font-size: 15px;
 	color: white;
-	background: rgb(69,69,69);
+	background: $veil-background;
 	opacity: 1;
 	html.panel-opened & {
 		transition: .2s ease-in;
