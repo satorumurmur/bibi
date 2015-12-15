@@ -195,7 +195,7 @@ Bibi.welcome = function() {
 
 Bibi.byebye = function() {
 
-	var Message = {
+	var Msg = {
 		En: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
 		Ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
 	};
@@ -203,13 +203,13 @@ Bibi.byebye = function() {
 	C.Veil.ByeBye = C.Veil.appendChild(
 		sML.createElement("p", { id: "bibi-veil-byebye",
 			innerHTML: [
-				'<span lang="en">', Message.En, '</span>',
-				'<span lang="ja">', Message.Ja, '</span>',
+				'<span lang="en">', Msg.En, '</span>',
+				'<span lang="ja">', Msg.Ja, '</span>',
 			].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
 		})
 	);
 
-	O.log(1, Message.En.replace(/<[^>]*>/g, ""));
+	O.log(1, Msg.En.replace(/<[^>]*>/g, ""));
 
 };
 
@@ -2027,10 +2027,10 @@ N.createBoard = function() {
 
 };
 
-N.note = function(Message, Time) {
-    if(!Message) Time = 0;
-    else         Time = (typeof Time == "number") ? Time : 3210;
-    N.Board.innerHTML = '<p>' + Message + '</p>';
+N.note = function(Msg, Time) {
+    if(!Msg) Time = 0;
+    else     Time = (typeof Time == "number") ? Time : 3210;
+    N.Board.innerHTML = '<p>' + Msg + '</p>';
     clearTimeout(N.hide_Timer);
     N.Board.style.display = "block";
     setTimeout(function() {
@@ -2046,7 +2046,7 @@ N.note = function(Message, Time) {
     }, 0);
     if(!O.SmartPhone) {
         if(O.statusClearer) clearTimeout(O.statusClearer);
-        window.status = 'BiB/i: ' + Message;
+        window.status = 'BiB/i: ' + Msg;
         O.statusClearer = setTimeout(function() { window.status = ""; }, Time);
     }
 };
@@ -2571,16 +2571,16 @@ S.update = function(Settings) { // formerly O.updateSetting
 O.Log = ((!parent || parent == window) && console && console.log);
 
 
-O.log = function(Lv, Message) {
-	if(O.SmartPhone || !O.Log || !Message || typeof Message != "string") return;
+O.log = function(Lv, Msg) {
+	if(O.SmartPhone || !O.Log || !Msg || typeof Msg != "string") return;
 	switch(Lv) {
-		case 0: Message = "[ERROR] " + Message; break;
-		case 1: Message = "-------- " + Message + " --------"; break;
-		case 2: Message = Message; break;
-		case 3: Message = " - " + Message; break;
-		case 4: Message = "   . " + Message; break;
+		case 0: Msg = "[ERROR] " + Msg; break;
+		case 1: Msg = "-------- " + Msg + " --------"; break;
+		case 2: Msg = Msg; break;
+		case 3: Msg = " - " + Msg; break;
+		case 4: Msg = "   . " + Msg; break;
 	}
-	console.log('BiB/i: ' + Message);
+	console.log('BiB/i: ' + Msg);
 };
 
 
@@ -2596,10 +2596,10 @@ O.stopLoading = function() {
 };
 
 
-O.error = function(Message) {
+O.error = function(Msg) {
 	O.stopLoading();
-	O.log(0, Message);
-	E.dispatch("bibi:error", Message);
+	O.log(0, Msg);
+	E.dispatch("bibi:error", Msg);
 };
 
 
@@ -2825,11 +2825,11 @@ E.dispatch = function(Name, Detail) {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-M.post = function(Message, TargetOrigin) {
+M.post = function(Msg, TargetOrigin) {
 	if(!O.WindowEmbedded) return false;
-	if(typeof Message != "string" || !Message) return false;
+	if(typeof Msg != "string" || !Msg) return false;
 	if(typeof TargetOrigin != "string" || !TargetOrigin) TargetOrigin = "*";
-	return window.parent.postMessage(Message, TargetOrigin);
+	return window.parent.postMessage(Msg, TargetOrigin);
 };
 
 M.receive = function(Data) {
