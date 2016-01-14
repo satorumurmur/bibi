@@ -753,7 +753,8 @@ div#bibi-panel-powered {
 	left: 0;
 	right: 0;
 	bottom: 15px;
-	html.WebKit & {
+	html.WebKit &,
+	html.Blink & {
 		bottom: 8px;
 	}
 	margin: 0 auto;
@@ -1045,7 +1046,7 @@ div#bibi-indicator-nombre {
 	font-size: 12px;
 	text-align: center;
 	color: rgb(128,128,128);
-	html.Mac &, html.PC & {
+	html.OSX &, html.Windows &, html.Linux & {
 		$text-shadow-color: white;
 		text-shadow:
 			 0px -1px 1px $text-shadow-color,

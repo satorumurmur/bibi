@@ -108,26 +108,22 @@ Bibi.welcome = function() {
 	var HTMLCS = getComputedStyle(O.HTML);
 	O.WritingModeProperty = (function() {
 		if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
-		if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer >= 10) return "writing-mode";
+		if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
 		else return undefined;
 	})();
 
-	if(sML.UA.InternetExplorer < 10) {
-		O.VerticalTextEnabled = false;
-	} else {
-		var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
-		Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
-		if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
-			O.HTML.className = O.HTML.className + " vertical-text-enabled";
-			O.VerticalTextEnabled = true;
-		} else {
-			O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
-			O.VerticalTextEnabled = false;
-		};
-		O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
-		document.body.removeChild(Checker);
-		delete Checker;
-	}
+    var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
+    Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
+    if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
+        O.HTML.className = O.HTML.className + " vertical-text-enabled";
+        O.VerticalTextEnabled = true;
+    } else {
+        O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
+        O.VerticalTextEnabled = false;
+    };
+    O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
+    document.body.removeChild(Checker);
+    delete Checker;
 
 	R.Main = O.Body.insertBefore(sML.create("div", { id: "main" }), O.Body.firstElementChild);
 	R.Sub  = O.Body.insertBefore(sML.create("div", { id: "sub" }),  R.Main.nextSibling);
@@ -1015,7 +1011,7 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 
 
 L.postprocessItem.patchWritingModeStyle = function(Item) {
-	if(sML.UA.Gecko || sML.UA.InternetExplorer < 12) {
+	if(sML.UA.Gecko || sML.UA.InternetExplorer) {
 		sML.each(Item.contentDocument.styleSheets, function () {
 			var StyleSheet = this;
 			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
@@ -1228,7 +1224,7 @@ R.resetItem.asReflowableItem = function(Item) {
 	Item.style[S.SIZE.b] = PageB + "px";
 	Item.style[S.SIZE.l] = PageL + "px";
     R.resetItem.asReflowableItem.adjustContent(Item, PageB, PageL, PageGap);
-	var ItemL = (sML.UA.InternetExplorer >= 10) ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
+	var ItemL = sML.UA.InternetExplorer ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
 	var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
 	ItemL = (PageL + PageGap) * Pages - PageGap;
 	Item.style[S.SIZE.l] = ItemL + "px";
@@ -2681,7 +2677,7 @@ O.translateWritingMode = function(CSSRule) {
 		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
 		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
 		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
-	} else if(sML.UA.InternetExplorer < 12) {
+	} else if(sML.UA.InternetExplorer) {
 		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
 		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
 		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";

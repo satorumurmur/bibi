@@ -10,8 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- * - Mon September 7 23:13:00 2015 +0900
- */ sML = (function() { var Version = "0.999.21", Build = 20150907.0;
+ */ sML = (function() { var version = "0.999.22", build = 20160112.0;
 
 
 
@@ -29,67 +28,51 @@ var sML = function(S) {
 	return SML;
 };
 
-sML.Version = Version, sML.Build = Build;
+sML.version = version, sML.build = build;
 
 var nUA = navigator.userAgent;
-var v2n = function(t, r) { // Version To Number
-	var N = parseFloat(t.replace(r, "$1").replace(/[_\.]/g, ",").replace(/\,/, ".").replace(/\,/g, ""));
-	return (isNaN(N) ? undefined : N);
-}
-
-var iOSV = /(iPod|iPhone|iPad)( Simulator)?;/.test(nUA) ? v2n(nUA, /^.+? OS ([\d_]+).+$/)       : undefined;
-var AndV = /Android /.test(nUA)                         ? v2n(nUA, /^.+? Android ([\d\.]+).+$/) : undefined;
-
-sML.OperatingSystem = sML.OS = {
-	OSX     : ((nUA.indexOf("Mac")     > -1 && !iOSV) ? 1 : undefined),
-	Windows : ((nUA.indexOf("Windows") > -1         ) ? 1 : undefined),
-	Linux   : ((nUA.indexOf("Linux")   > -1 && !AndV) ? 1 : undefined),
-	iOS     : iOSV,
-	Android : AndV
+var getVersion = function(Prefix) {
+	var N = parseFloat(nUA.replace(new RegExp('^.*' + Prefix + '[ :\\/]?(\\d+([\\._]\\d+)?).*$'), "$1").replace(/_/g, "."));
+	return (!isNaN(N) ? N : undefined);
 };
 
-sML.DeviceName = sML.DN = (function() {
-	if(sML.OS.OSX)     return "Mac";
-	if(sML.OS.Windows) return "PC";
-	if(sML.OS.Linux)   return "PC";
-	if(sML.OS.iOS)     return nUA.replace(/^.+?(iPod|iPhone|iPad)( Simulator)?;.+$/, "$1");
-	if(sML.OS.Android) return nUA.replace(/^.+?\(.+?; ([^;]+)\).+$/, "$1");
-	return "";
-})();
+sML.OperatingSystem = sML.OS = (function(OS) {
+         if(            /Android \d/.test(nUA)) OS.Android      = getVersion("Android");
+    else if(          /iPhone OS \d/.test(nUA)) OS.iOS          = getVersion("iPhone OS");
+    else if(               /OS X \d/.test(nUA)) OS.OSX          = getVersion("OS X");
+    else if(/Windows Phone( OS)? \d/.test(nUA)) OS.WindowsPhone = getVersion("Windows Phone OS") || getVersion("Windows Phone");
+    else if(      /Windows( NT)? \d/.test(nUA)) OS.Windows      = getVersion("Windows NT") || getVersion("Windows");
+    else if(                 /Linux/.test(nUA)) OS.Linux        = 1;
+    return OS;
+})({});
 
-sML.UserAgent = sML.UA = {
-	WebKit           : ((nUA.indexOf("AppleWebKit") > -1) ? v2n(nUA, /^.+AppleWebKit\/([\d\.]+).+$/) : undefined),
-	Safari           : ((nUA.indexOf("Safari/")     > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).+$/)     : undefined),
-	Chrome           : ((nUA.indexOf("Chrome/")     > -1) ? v2n(nUA, /^.+Chrome\/([\d\.]+).+$/)      : undefined),
-	Gecko            : ((nUA.indexOf("Gecko/")      > -1) ? v2n(nUA, /^.+rv\:([\d\.]+).+$/)          : undefined),
-	Firefox          : ((nUA.indexOf("Firefox/")    > -1) ? v2n(nUA, /^.+Firefox\/([\d\.]+).+$/)     : undefined),
-	Presto           : ((nUA.indexOf("Presto")      > -1) ? v2n(nUA, /^.+Presto\/([\d\.]+).+$/)      : undefined),
-	Opera            : ((nUA.indexOf("OPR/")        > -1) ? v2n(nUA, /^.+OPR\/([\d\.]+).*$/)         : undefined),
-	Trident          : ((nUA.indexOf("Trident/")    > -1) ? v2n(nUA, /^.+Trident\/([\d\.]+).*$/)     : undefined),
-	InternetExplorer : ((nUA.indexOf("MSIE ")       > -1) ? v2n(nUA, /^.+MSIE ([\d\.]+).*$/)         : undefined),
-	Flash            : undefined
-}
-if(sML.UA.Trident >= 7) sML.UA.InternetExplorer = v2n(nUA, /^.+rv:([\d\.]+).*$/);
-if(!sML.UA.Opera) sML.UA.Opera = ((nUA.indexOf("Opera/") > -1) ? v2n(nUA, /^.+Version\/([\d\.]+).*$/) : undefined);
+sML.UserAgent = sML.UA = (function(UA) {
+    if(/Gecko\/\d/.test(nUA)) {
+        UA.Gecko   = getVersion("rv");
+        UA.Firefox = getVersion("Firefox");
+    } else if(/Edge\/\d/.test(nUA)) {
+        UA.Edge = getVersion("Edge");
+    } else if(/Chrome\/\d/.test(nUA)) {
+        UA.Blink = getVersion("Chrome") || 1;
+             if( /OPR\/\d/.test(nUA)) UA.Opera  = getVersion("OPR");
+        else if(/Silk\/\d/.test(nUA)) UA.Silk   = getVersion("Silk");
+        else                          UA.Chrome = UA.Blink;
+    } else if(/AppleWebKit\/\d/.test(nUA)) {
+        UA.WebKit = getVersion("AppleWebKit");
+             if(/Android \d/.test(nUA)) UA.Browser = sML.OS.Android;
+        else                            UA.Safari  = getVersion("Version");
+    } else if(/Trident\/\d/.test(nUA)) {
+        UA.Trident          = getVersion("Trident"); 
+        UA.InternetExplorer = (UA.Trident >= 7) ? getVersion("rv") : getVersion("MSIE");
+    }
+    try { UA.Flash = parseFloat(navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description.replace(/^.+?([\d\.]+).*$/, "$1")); } catch(e) {}
+    return UA;
+})({});
 
-sML.Environments = sML.Env = (function(Environments, Softwares) {
-	for(var S in Softwares) for(var E in Softwares[S]) if(Softwares[S][E]) Environments.push(E);
-	return Environments;
-})([sML.DeviceName], [sML.OS, sML.UA]);
-
-try {
-	sML.UA.Flash = parseFloat(navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description.replace(/^.+?([\d\.]+).*$/, "$1"));
-} catch(e) {}
-if(sML.UA.InternetExplorer) { try {
-	sML.UA.Flash = parseFloat((new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7")).GetVariable("$version").replace(/^[^\d]+(\d+)\,([\d\,]+)$/, "$1.$2").replace(/\,/g, ""));
-} catch(e) {} }
-
-sML.OS.Mac = sML.OS.OSX, sML.OS.Win = sML.OS.Windows, sML.OS.Lin = sML.OS.Linux, sML.OS.And = sML.OS.Android;
-sML.UA.WK = sML.UA.WebKit,  sML.UA.Sa = sML.UA.Safari, sML.UA.Ch = sML.UA.Chrome;
-sML.UA.Ge = sML.UA.Gecko,   sML.UA.Fx = sML.UA.Firefox;
-sML.UA.Pr = sML.UA.Presto,  sML.UA.Op = sML.UA.Opera;
-sML.UA.Tr = sML.UA.Trident, sML.UA.IE = sML.UA.InternetExplorer;
-sML.UA.Fl = sML.UA.Flash;
+sML.Environments = sML.Env = (function(Env) {
+    ["OS", "UA"].forEach(function(OS_UA) { for(var Param in sML[OS_UA]) if(Param != "Flash" && sML[OS_UA][Param]) Env.push(Param); });
+	return Env;
+})([]);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -514,7 +497,7 @@ sML.hatch = function() {
 };
 
 sML.getContentDocument = function(F) {
-	return (sML.UA.IE < 8) ? F.contentWindow.document : F.contentDocument;
+	return (sML.UA.InternetExplorer < 8) ? F.contentWindow.document : F.contentDocument;
 };
 
 
@@ -528,9 +511,9 @@ sML.getContentDocument = function(F) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 sML.CSS = sML.S = {
-	Prefix:        (sML.UA.WK ? "Webkit"              : (sML.UA.Ge ? "Moz"           : (sML.UA.IE ? "ms"              : ""))),
-	TransitionEnd: (sML.UA.WK ? "webkitTransitionEnd" : (sML.UA.Ge ? "transitionend" : (sML.UA.IE ? "MSTransitionEnd" : ""))),
-	AnimationEnd:  (sML.UA.WK ? "webkitAnimationEnd"  : (sML.UA.Ge ? "animationend"  : (sML.UA.IE ? "MSAnimationEnd"  : ""))),
+	Prefix:        (sML.UA.WebKit || sML.UA.Blink ? "Webkit"              : (sML.UA.Gecko ? "Moz"           : (sML.UA.Trident ? "ms"              : ""))),
+	TransitionEnd: (sML.UA.WebKit || sML.UA.Blink ? "webkitTransitionEnd" : (sML.UA.Gecko ? "transitionend" : (sML.UA.Trident ? "MSTransitionEnd" : ""))),
+	AnimationEnd:  (sML.UA.WebKit || sML.UA.Blink ? "webkitAnimationEnd"  : (sML.UA.Gecko ? "animationend"  : (sML.UA.Trident ? "MSAnimationEnd"  : ""))),
 	Catalogue : [],
 	getSFO : function(E) {
 		for(var i = 0, L = this.Catalogue.length; i < L; i++) if(this.Catalogue[i].Element == E) return this.Catalogue[i];
@@ -542,7 +525,7 @@ sML.CSS = sML.S = {
 	},
 	StyleSheets: [],
 	getStyleSheet: function(ParentDocument) {
-		if(sML.UA.IE < 9) return ParentDocument.styleSheets[ParentDocument.styleSheets.length - 1];
+		if(sML.UA.InternetExplorer < 9) return ParentDocument.styleSheets[ParentDocument.styleSheets.length - 1];
 		for(var i = 0, L = this.StyleSheets.length; i < L; i++) {
 			if(this.StyleSheets[i].StyleFor == ParentDocument) {
 				return this.StyleSheets[i].StyleSheet;
@@ -605,7 +588,7 @@ sML.CSS = sML.S = {
 		if(/^(animation|background(-s|S)ize|box|break|column|filter|flow|hyphens|region|shape|transform|transition|writing)/.test(P)) { // 2013/09/25
 			E.style[this.Prefix + P.replace(/(-|^)([a-z])/g, function (M0, M1, M2) { return M2 ? M2.toUpperCase() : ""; })] = V;
 		} else if(P == "float") {
-			P = sML.UA.IE ? "styleFloat" : "cssFloat";
+			P = sML.UA.InternetExplorer ? "styleFloat" : "cssFloat";
 		}
 		E.style[P] = V;
 		return E;
@@ -1385,7 +1368,7 @@ sML.Selection = {
 		S.addRange(R);
 		return R;
 	},
-	getSelectedText: ((sML.UA.IE < 9) ? function() {
+	getSelectedText: ((sML.UA.InternetExplorer < 9) ? function() {
 		var S = "" + document.selection.createRange().text;
 		return (S ? S : "");
 	} : function() {
@@ -1410,16 +1393,16 @@ sML.find   = function(SearchText, TargetNode) { return sML.Selection.selectRange
 
 sML.Fullscreen = {
 	Enabled: (function(D) {
-	                                                        return (
-	                                                        	D.fullscreenEnabled || // Standard
-	                                                        	D.fullScreenEnabled ||
-	                                                        	D.webkitFullscreenEnabled ||
-	                                                        	D.webkitFullScreenEnabled ||
-	                                                        	D.mozFullscreenEnabled ||
-	                                                        	D.mozFullScreenEnabled ||
-	                                                        	D.msFullscreenEnabled ||
-	                                                        	D.msFullScreenEnabled
-	                                                        );
+	    return (
+	                                                        	     D.fullscreenEnabled || // Standard
+	                                                        	     D.fullScreenEnabled ||
+	                                                        	     D.webkitFullscreenEnabled ||
+	                                                        	     D.webkitFullScreenEnabled ||
+	                                                        	     D.mozFullscreenEnabled ||
+	                                                        	     D.mozFullScreenEnabled ||
+	                                                        	     D.msFullscreenEnabled ||
+	                                                        	     D.msFullScreenEnabled
+	    );
 	})(document),
 	request: (function(Ele) {
 		var getFunction = function(M) { return function(O) { if(!O) O = Ele; return O[M](); } };
