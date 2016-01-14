@@ -23,7 +23,7 @@ Bibi.x({
 		sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",
             DistanceToMove: -1,
             isActive: function() {
-                return (R.CurrentPages.StartPage != R.Pages[0] || R.CurrentPages.StartPageRatio != 100);
+                return (R.Current.Pages.StartPage != R.Pages[0] || R.Current.Pages.StartPageRatio != 100);
             }
         })
 	);
@@ -31,7 +31,7 @@ Bibi.x({
 		sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward",
             DistanceToMove: +1,
             isActive: function() {
-                return (R.CurrentPages.EndPage != R.Pages[R.Pages.length - 1] || R.CurrentPages.EndPageRatio != 100);
+                return (R.Current.Pages.EndPage != R.Pages[R.Pages.length - 1] || R.Current.Pages.EndPageRatio != 100);
             }
         })
 	);
@@ -53,10 +53,10 @@ Bibi.x({
 	});
 
     C.Arrows.navigate = function() {
-        R.CurrentPages = R.getCurrentPages();
+        R.getCurrent();
         C.Arrows.check();
 		setTimeout(function() {
-            R.CurrentPages = R.getCurrentPages();
+            R.getCurrent();
             [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
                 if(Arrow.isActive()) sML.addClass(Arrow, "glowing");
             });

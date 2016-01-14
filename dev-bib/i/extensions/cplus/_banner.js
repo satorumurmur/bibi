@@ -12,4 +12,5 @@
  * 3. BiB/i Extension: C+Arrows
  * 4. BiB/i Extension: C+Keys
  * 5. BiB/i Extension: C+Messages
+ * 6. BiB/i Extension: C+Indicator
  */

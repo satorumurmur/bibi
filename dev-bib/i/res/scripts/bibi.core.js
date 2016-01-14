@@ -1652,7 +1652,7 @@ R.onscroll = function() {
 };
 
 R.onscrolled = function() {
-    R.CurrentPages = R.getCurrentPages();
+    R.getCurrent();
     E.dispatch("bibi:scrolled");
 };
 
@@ -1738,6 +1738,16 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
 	if(FrameAfter  * S.AXIS.PM == PageCoord.After  * S.AXIS.PM) Status.push("passsing");
 	if(FrameAfter  * S.AXIS.PM  > PageCoord.After  * S.AXIS.PM) Status.push("passed");
 	return Status.join(" ");
+};
+
+R.getCurrent = function() {
+    R.Current.Pages = R.getCurrentPages();
+    R.Current.Page = R.Current.Pages.EndPage;
+    R.Current.PageNumber = R.Current.Page.PageIndex + 1;
+    R.Current.Item = R.Current.Page.Item;
+    R.Current.ItemNumber = R.Current.Item.ItemIndex + 1;
+    R.Current.Percent = Math.round(R.Current.PageNumber / R.Pages.length * 100);
+    return R.Current;
 };
 
 
@@ -1917,11 +1927,11 @@ R.move = function(Distance) {
         var CurrentEdge = "StartPage";
         var Side = "after";
     }
-	R.CurrentPages = R.getCurrentPages();
-	var CurrentPage = R.CurrentPages[CurrentEdge];
+	R.Current.Pages = R.getCurrentPages();
+	var CurrentPage = R.Current.Pages[CurrentEdge];
 	if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
-		var CurrentPageStatus = R.CurrentPages[CurrentEdge + "Status"];
-        var CurrentPageRatio  = R.CurrentPages[CurrentEdge + "Ratio"];
+		var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
+        var CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
         if(/(oversize)/.test(CurrentPageStatus)) {
             if(Distance > 0) {
                      if(CurrentPageRatio >= 90)             Side = "before";
@@ -1978,8 +1988,8 @@ R.Scale = 1;
 
 R.zoom = function(Scale) {
 	if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-    R.CurrentPages = R.getCurrentPages();
-	var CurrentStartPage = R.CurrentPages.StartPage;
+    R.Current.Pages = R.getCurrentPages();
+	var CurrentStartPage = R.Current.Pages.StartPage;
 	sML.style(R.Main.Book, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
 	if(Scale == 1) {
 		O.HTML.style.overflow = "";
