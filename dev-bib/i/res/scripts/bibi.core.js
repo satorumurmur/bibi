@@ -1112,6 +1112,8 @@ R.initialize = function() {
 
 	R.CoverImage = { Path: "" };
 
+    R.Current = {};
+
 };
 
 
