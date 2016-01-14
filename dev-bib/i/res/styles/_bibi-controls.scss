@@ -996,14 +996,40 @@ div#bibi-panel-bookinfo-cover {
 
 
 // ================================================================================
-// + Nombre
+// + Indicator
 // --------------------------------------------------------------------------------
 
 
-// - Nombre (div#bibi-nombre)
+// - Bar (div#bibi-indicator-bar)
 // --------------------------------------------------------------------------------
 
-div#bibi-nombre {
+div#bibi-indicator-bar {
+	display: none; html.view-paged & { display: block; }
+	box-sizing: border-box;
+	position: absolute;
+	z-index: 1500;
+	bottom: 2px;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: rgba(0,0,0,0.1);
+	span#bibi-indicator-bar-progress {
+		display: block;
+		position: absolute;
+		html.page-ltr & { left: 0; }
+		html.page-rtl & { right: 0; }
+		top: 0;
+		height: 100%;
+		background: rgba(0,0,0,0.4);
+		transition: width 0.125s linear;
+	}
+}
+
+
+// - Nombre (div#bibi-indicator-nombre)
+// --------------------------------------------------------------------------------
+
+div#bibi-indicator-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
 	z-index: 2000;
@@ -1043,16 +1069,16 @@ div#bibi-nombre {
 	span {
 		display: inline-block;
 	}
-	span#bibi-nombre-current {
+	span#bibi-indicator-nombre-current {
 		font-size: 1.4em;
 		font-weight: bold;
 		color: rgb(112,112,112);
 	}
-	span#bibi-nombre-delimiter {
+	span#bibi-indicator-nombre-delimiter {
 		margin: 0 -0.125em;
 	}
-	span#bibi-nombre-total {
+	span#bibi-indicator-nombre-total {
 	}
-	span#bibi-nombre-percent {
+	span#bibi-indicator-nombre-percent {
 	}
 }
