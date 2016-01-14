@@ -822,29 +822,36 @@ L.postprocessItem = function(Item) {
         });
 	}
 
-	if(Item.contentDocument.querySelectorAll("body>*").length == 1) {
-        if(/^svg$/i.test(Item.Body.firstElementChild.tagName)) {
-            Item.Outsourcing = true;
-            Item.ImageItem = true;
-            Item.SingleSVGOnlyItem = true;
-		} else if(/^img$/i.test(Item.Body.firstElementChild.tagName)) {
-            Item.Outsourcing = true;
-            Item.ImageItem = true;
-            Item.SingleIMGOnlyItem = true;
-        } else if(/^iframe$/i.test(Item.Body.firstElementChild.tagName)) {
-            Item.Outsourcing = true;
-            Item.FrameItem = true;
-            Item.SingleFrameOnlyItem = true;
-        } else if(!O.getElementInnerText(Item.Body)) {
-			if(Item.Body.querySelectorAll("img, svg, video, audio").length - Item.Body.querySelectorAll("svg img, video img, audio img").length == 1) {
+    var Elements = Item.contentDocument.querySelectorAll("body>*");
+    if(Elements && Elements.length) {
+        var LengthOfElements = 0;
+        for(var i = 0, l = Elements.length; i < l; i++) {
+            if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
+        }
+        if(LengthOfElements == 1) {
+            if(/^svg$/i.test(Item.Body.firstElementChild.tagName)) {
                 Item.Outsourcing = true;
                 Item.ImageItem = true;
-			} else if(Item.Body.getElementsByTagName("iframe").length == 1) {
+                Item.SingleSVGOnlyItem = true;
+            } else if(/^img$/i.test(Item.Body.firstElementChild.tagName)) {
+                Item.Outsourcing = true;
+                Item.ImageItem = true;
+                Item.SingleIMGOnlyItem = true;
+            } else if(/^iframe$/i.test(Item.Body.firstElementChild.tagName)) {
                 Item.Outsourcing = true;
                 Item.FrameItem = true;
-			}
-		}
-	}
+                Item.SingleFrameOnlyItem = true;
+            } else if(!O.getElementInnerText(Item.Body)) {
+                if(Item.Body.querySelectorAll("img, svg, video, audio").length - Item.Body.querySelectorAll("svg img, video img, audio img").length == 1) {
+                    Item.Outsourcing = true;
+                    Item.ImageItem = true;
+                } else if(Item.Body.getElementsByTagName("iframe").length == 1) {
+                    Item.Outsourcing = true;
+                    Item.FrameItem = true;
+                }
+            }
+        }
+    }
 
 	E.dispatch("bibi:before:postprocessItem", Item);
 
@@ -2695,12 +2702,14 @@ O.getElementInnerText = function(Ele) {
 	var InnerText = "InnerText";
 	var Copy = document.createElement("div");
 	Copy.innerHTML = Ele.innerHTML.replace(/ (src(set)?|source|(xlink:)?href)=/g, " data-$1=");
-	sML.each(Copy.querySelectorAll("svg"),   function() { this.parentNode.removeChild(this); });
-	sML.each(Copy.querySelectorAll("video"), function() { this.parentNode.removeChild(this); });
-	sML.each(Copy.querySelectorAll("audio"), function() { this.parentNode.removeChild(this); });
-	sML.each(Copy.querySelectorAll("img"),   function() { this.parentNode.removeChild(this); });
-	/**/ if(typeof Copy.innerText   != "undefined") InnerText = Copy.innerText;
-	else if(typeof Copy.textContent != "undefined") InnerText = Copy.textContent;
+	sML.each(Copy.querySelectorAll("svg"),    function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("video"),  function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("audio"),  function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("img"),    function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("script"), function() { this.parentNode.removeChild(this); });
+	sML.each(Copy.querySelectorAll("style"),  function() { this.parentNode.removeChild(this); });
+	/**/ if(typeof Copy.textContent != "undefined") InnerText = Copy.textContent;
+	else if(typeof Copy.innerText   != "undefined") InnerText = Copy.innerText;
 	return InnerText.replace(/[\r\n\s\t ]/g, "");
 };
 
