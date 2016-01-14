@@ -74,7 +74,7 @@ B.loadZippedEPUB = function() {
 	if(!B.Local) {
 		// EPUB Zip (Online)
 		O.log(3, B.Path);
-		O.download(B.Path, "text/plain;charset=x-user-defined").then(function(XHR) { onload(XHR); });
+		O.download(B.Path, "text/plain;charset=x-user-defined").then(function(XHR) { onload(XHR.responseText); });
 	} else {
 		// EPUB Zip (Local)
 		O.log(3, "[Local] " + B.Path);
