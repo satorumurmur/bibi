@@ -135,8 +135,8 @@ div#main {
 		//overflow: hidden;
 		position: relative;
 		z-index: 10;
-		transition: 0.75s ease-in-out;
-		transition-property: transform opacity;
+		transition: 0.5s ease-in-out;
+		transition-property: transform;
 //		transform: translateY( 0  );
 //		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
 	}

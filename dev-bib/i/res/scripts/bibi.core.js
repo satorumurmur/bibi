@@ -54,9 +54,9 @@ Bibi.welcome = function() {
 	O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
 	O.stamp("Welcome!");
 
-	O.HTML  = document.getElementsByTagName("html" )[0]; O.HTML.className = "preparing " + sML.Environments.join(" ");
-	O.Head  = document.getElementsByTagName("head" )[0];
-	O.Body  = document.getElementsByTagName("body" )[0];
+	O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ");
+	O.Head  = document.head;
+	O.Body  = document.body;
 	O.Title = document.getElementsByTagName("title")[0];
 
 	if(sML.OS.iOS || sML.OS.Android) {
@@ -1070,14 +1070,9 @@ L.start = function() {
 	window.removeEventListener("resize", L.listenResizingWhileLoading);
 	delete L.listenResizingWhileLoading;
 
-	sML.style(R.Main.Book, {
-		transition: "opacity 0.5s ease-in-out",
-		opacity: 1
-	});
-
 	setTimeout(function() {
+        sML.removeClass(O.HTML, "preparing");
 		C.Veil.close(function() {
-			sML.removeClass(O.HTML, "preparing");
 			setTimeout(function() {
 				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
 			}, 500);
@@ -1105,7 +1100,8 @@ L.start = function() {
 
 R.initialize = function() {
 
-	R.Main.Book.style.opacity = 0;
+	sML.addClass(O.HTML, "preparing");
+
 	R.Main.Book.innerHTML = R.Sub.innerHTML = "";
 
 	R.Spreads = [], R.Items = [], R.Pages = [];
@@ -1619,10 +1615,6 @@ R.relayout = function(Option) {
 		PageProgressInSpread: 0
 	};
 	setTimeout(function() {
-		sML.style(R.Main.Book, {
-			transition: "opacity 0.4s ease",
-			opacity: 0
-		});
 		window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 		R.Frame.removeEventListener("scroll", R.onscroll);
 		sML.addClass(O.HTML, "preparing");
@@ -1637,10 +1629,6 @@ R.relayout = function(Option) {
 				sML.removeClass(O.HTML, "preparing");
 				window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 				R.Frame.addEventListener("scroll", R.onscroll);
-				sML.style(R.Main.Book, {
-					transition: "opacity 0.4s ease",
-					opacity: 1
-				});
 				if(Option && typeof Option.callback == "function") Option.callback();
                 E.dispatch("bibi:relayout");
                 O.stamp("Relayout End");
