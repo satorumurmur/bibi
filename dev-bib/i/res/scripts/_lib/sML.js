@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- */ sML = (function() { var version = "0.999.22", build = 20160112.0;
+ */ sML = (function() { var version = "0.999.23", build = 20160114.0;
 
 
 
@@ -28,7 +28,7 @@ var sML = function(S) {
 	return SML;
 };
 
-sML.version = version, sML.build = build;
+sML.Version = sML.version = version, sML.Build = sML.build = build;
 
 var nUA = navigator.userAgent;
 var getVersion = function(Prefix) {
@@ -37,33 +37,36 @@ var getVersion = function(Prefix) {
 };
 
 sML.OperatingSystem = sML.OS = (function(OS) {
-         if(            /Android \d/.test(nUA)) OS.Android      = getVersion("Android");
-    else if(          /iPhone OS \d/.test(nUA)) OS.iOS          = getVersion("iPhone OS");
+         if(          /iPhone OS \d/.test(nUA)) OS.iOS          = getVersion("iPhone OS");
     else if(               /OS X \d/.test(nUA)) OS.OSX          = getVersion("OS X");
     else if(/Windows Phone( OS)? \d/.test(nUA)) OS.WindowsPhone = getVersion("Windows Phone OS") || getVersion("Windows Phone");
     else if(      /Windows( NT)? \d/.test(nUA)) OS.Windows      = getVersion("Windows NT") || getVersion("Windows");
-    else if(                 /Linux/.test(nUA)) OS.Linux        = 1;
+    else if(            /Android \d/.test(nUA)) OS.Android      = getVersion("Android");
+    else if(                  /CrOS/.test(nUA)) OS.Chrome       = true;
+    else if(                  /X11;/.test(nUA)) OS.Linux        = true;
+    else if(               /Firefox/.test(nUA)) OS.Firefox      = true;
     return OS;
 })({});
 
 sML.UserAgent = sML.UA = (function(UA) {
     if(/Gecko\/\d/.test(nUA)) {
-        UA.Gecko   = getVersion("rv");
-        UA.Firefox = getVersion("Firefox");
+        UA.Gecko = getVersion("rv");
+        if(/Firefox\/\d/.test(nUA)) UA.Firefox = getVersion("Firefox");
     } else if(/Edge\/\d/.test(nUA)) {
         UA.Edge = getVersion("Edge");
     } else if(/Chrome\/\d/.test(nUA)) {
-        UA.Blink = getVersion("Chrome") || 1;
+        UA.Blink = getVersion("Chrome") || true;
              if( /OPR\/\d/.test(nUA)) UA.Opera  = getVersion("OPR");
         else if(/Silk\/\d/.test(nUA)) UA.Silk   = getVersion("Silk");
         else                          UA.Chrome = UA.Blink;
     } else if(/AppleWebKit\/\d/.test(nUA)) {
         UA.WebKit = getVersion("AppleWebKit");
-             if(/Android \d/.test(nUA)) UA.Browser = sML.OS.Android;
-        else                            UA.Safari  = getVersion("Version");
+             if(   /CriOS \d/.test(nUA)) UA.Chrome  = getVersion("CriOS");
+        else if(   /FxiOS \d/.test(nUA)) UA.Firefox = getVersion("FxiOS");
+        else if(/Version\/\d/.test(nUA)) UA.Safari  = getVersion("Version");
     } else if(/Trident\/\d/.test(nUA)) {
         UA.Trident          = getVersion("Trident"); 
-        UA.InternetExplorer = (UA.Trident >= 7) ? getVersion("rv") : getVersion("MSIE");
+        UA.InternetExplorer = getVersion("rv") || getVersion("MSIE");
     }
     try { UA.Flash = parseFloat(navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description.replace(/^.+?([\d\.]+).*$/, "$1")); } catch(e) {}
     return UA;
