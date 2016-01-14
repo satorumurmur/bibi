@@ -1279,7 +1279,7 @@ R.resetItem.asReflowableItem.adjustContent.fitImages = function(Item, PageB, Pag
 	});
 };
 R.resetItem.asReflowableItem.adjustContent.columify = function(Item, PageB, PageL, PageGap) {
-	if(S.RVM == "paged" || Item.Body["scroll"+ S.SIZE.B] > PageB) {
+	if(S.RVM == "paged" || Item.HTML["offset"+ S.SIZE.B] > PageB) {
 		R.Columned = Item.Columned = true, Item.ColumnBreadth = PageB, Item.ColumnLength = PageL, Item.ColumnGap = PageGap;
 		Item.HTML.style[S.SIZE.b] = PageB + "px";
 		Item.HTML.style[S.SIZE.l] = PageL + "px";
