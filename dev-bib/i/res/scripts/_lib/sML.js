@@ -10,7 +10,7 @@
  * - Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
- */ sML = (function() { var version = "0.999.23", build = 20160114.0;
+ */ sML = (function() { var version = "0.999.24", build = 20160115.0;
 
 
 
@@ -38,7 +38,7 @@ var getVersion = function(Prefix) {
 
 sML.OperatingSystem = sML.OS = (function(OS) {
          if(          /iPhone OS \d/.test(nUA)) OS.iOS          = getVersion("iPhone OS");
-    else if(               /OS X \d/.test(nUA)) OS.OSX          = getVersion("OS X");
+    else if(        /OS X 10[\._]\d/.test(nUA)) OS.OSX          = getVersion("OS X 10[\\._]");
     else if(/Windows Phone( OS)? \d/.test(nUA)) OS.WindowsPhone = getVersion("Windows Phone OS") || getVersion("Windows Phone");
     else if(      /Windows( NT)? \d/.test(nUA)) OS.Windows      = getVersion("Windows NT") || getVersion("Windows");
     else if(            /Android \d/.test(nUA)) OS.Android      = getVersion("Android");
