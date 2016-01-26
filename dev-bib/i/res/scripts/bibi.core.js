@@ -2162,24 +2162,36 @@ C.createPanel = function() {
 		sML.create("div", { id: "bibi-panel",
 			State: 0,
 			open: function(Cb) {
-				if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
+				if(this.State == 1) {
+                    if(typeof Cb == "function") Cb();
+                    return 1;
+                }
 				this.State = 1;
 				sML.addClass(O.HTML, "panel-opened");
-				setTimeout(Cb, 250);
+                E.dispatch("bibi:openPanel");
+                this.callback(Cb);
 				return this.State;
 			},
 			close: function(Cb) {
-				if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
+				if(this.State == 0) {
+                    if(typeof Cb == "function") Cb();
+                    return 0;
+                }
 				this.State = 0;
 				sML.removeClass(O.HTML, "panel-opened");
-				setTimeout(Cb, 250);
+                E.dispatch("bibi:closePanel");
+                this.callback(Cb);
 				return this.State;
 			},
 			toggle: function(Cb) {
-				var State = (this.State == 0 ? this.open(Cb) : this.close(Cb));
-                E.dispatch("bibi:togglePanel", State);
-				return State;
-			}
+				this.State ? this.close() : this.open();
+                E.dispatch("bibi:togglePanel", this.State);
+                this.callback(Cb);
+				return this.State;
+			},
+            callback: function(Cb) {
+				if(typeof Cb == "function") setTimeout(Cb, 250);
+            }
 		})
 	);
     C.Panel.addEventListener("click", function() {
@@ -2233,8 +2245,9 @@ C.createPanel = function() {
 		IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-panel"></span>'
 	}, function() {
 		C.Panel.toggle();
-		C.setLabel(C.Switches.Panel, C.Panel.State);
 	});
+    E.add("bibi:openPanel",  function() { C.setLabel(C.Switches.Panel, 1); });
+    E.add("bibi:closePanel", function() { C.setLabel(C.Switches.Panel, 0); });
 	E.add("bibi:start", function() {
 		sML.style(C.Switches.Panel, { display: "block" });
 	});
