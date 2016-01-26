@@ -2588,7 +2588,8 @@ O.Log = ((!parent || parent == window) && console && console.log);
 
 
 O.log = function(Lv, Msg) {
-	if(O.SmartPhone || !O.Log || !Msg || typeof Msg != "string") return;
+	//if(O.SmartPhone) return;
+	if(!O.Log || !Msg || typeof Msg != "string") return;
 	switch(Lv) {
 		case 0: Msg = "[ERROR] " + Msg; break;
 		case 1: Msg = "-------- " + Msg + " --------"; break;
