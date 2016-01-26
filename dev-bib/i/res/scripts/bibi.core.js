@@ -147,9 +147,7 @@ Bibi.welcome = function() {
 	C.createVeil();
 	C.createPanel();
 
-	if(sML.UA.InternetExplorer < 10) {
-		return Bibi.byebye();
-	}
+	if(sML.UA.InternetExplorer < 11) return Bibi.byebye();
 
     N.note("Welcome!");
 
@@ -204,6 +202,8 @@ Bibi.byebye = function() {
 			].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
 		})
 	);
+
+    E.dispatch("bibi:byebye");
 
 	O.log(1, Msg.En.replace(/<[^>]*>/g, ""));
 
