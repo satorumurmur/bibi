@@ -7,20 +7,18 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a parmalink for each book, and you can embed it in your webpage (just like a YouTube video).
+You can publish EPUB books on the web with a parmalink for each book, and you can embed it in other webpages (just like a YouTube video).
 
 ### Spec.
 
 + EPUB 3 and 2 compliant.
 + Open source. (MIT lisence)
-+ Made with JavaScript, works compatibly with all major web browsers:
++ Made with JavaScript, works compatibly with all major web browsers on Mac/PC/smartphones:
     - Safari
-    - Chrome
-    - Android Browser
-    - Opera
+    - Chrome, Android Browser, Opera, Vivaldi
     - Firefox
     - Microsoft Edge
-    - Internet Explorer (except opening zipped EPUB archive)
+    - Internet Explorer 11 (except opening zipped EPUB archive)
 
 
 
@@ -69,12 +67,12 @@ You can publish both unzipped folder and zipped EPUB archive. But using unzipped
 
 This is recommended. It accelarates reading experience of your readers, and is more compatible with many browsers.
 
-1. Upload `bib` directory to your web server.
+1. Upload `bib` directory into some directory on your web server.
 2. Unzip an EPUB book,
     1. Change the file extension from `.epub` to `.zip` (`BOOKNAME.epub` -> `BOOKNAME.zip`), and
     2. Unzip the file with some tool.
-3. Upload the unzipped folder `BOOKNAME` to `bib/bookshelf` directory, and
-4. Access to `http://your.web.site/bib/i/?book=BOOKNAME` by your browser. (note that it has no extension)
+3. Upload the unzipped folder `BOOKNAME` into `bib/bookshelf` directory, and
+4. Access to `http://your.web.site/somewhere/bib/i/?book=BOOKNAME` by your browser. (note that it has no extension)
 5. Or embed code below into your blog entry or other webpages, and visit the entry.
 
 ````
@@ -86,9 +84,9 @@ This is recommended. It accelarates reading experience of your readers, and is m
 
 This is not recommended. It is slow and not compatible with Internet Explorer.
 
-1. Upload `bib` directory to your web server.
+1. Upload `bib` directory into some directory on your web server.
 2. Upload your EPUB book (ex. `BOOKNAME.epub`) to `bib/bookshelf` directory, and
-3. Access to `http://your.web.site/bib/i/?book=BOOKNAME.epub` by your browser.
+3. Access to `http://your.web.site/somewhere/bib/i/?book=BOOKNAME.epub` by your browser.
 4. Or embed code for it.
 
 ````
@@ -146,7 +144,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
     - It launches a web server listening port 9292 by default,
     - and the server returns compiled CSS dynamically to your browser's request for the SCSS source files.
 
-The default task of gulp is `sync`. (`$ gulp` = `$ gulp sync`)
+The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 
 
 ### Following files are not processed by gulp tasks:
@@ -191,4 +189,4 @@ The default task of gulp is `sync`. (`$ gulp` = `$ gulp sync`)
 --------------------------------------------------------------------------------------------------------------------------------
 
 + KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
-+ Shunsuke Ito ... [@shunito](https://github.com/shunito)
++ Shunsuke ITO ... [@shunito](https://github.com/shunito)
