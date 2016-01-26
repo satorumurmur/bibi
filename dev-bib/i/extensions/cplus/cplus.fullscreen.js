@@ -31,9 +31,11 @@ Bibi.x({
 		if(!sML.getFullscreenElement()) {
 			sML.requestFullscreen(O.HTML);
 			C.setLabel(C["switch"].Fullscreen, 1);
+            E.dispatch("bibi:enterFullscreen");
 		} else {
 			sML.exitFullscreen();
 			C.setLabel(C["switch"].Fullscreen, 0);
+            E.dispatch("bibi:exitFullscreen");
 		}
 	});
 
