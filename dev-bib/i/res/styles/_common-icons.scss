@@ -103,16 +103,22 @@ $shape-spread-height: $shape-item-height;
 			}
 		}
 	}
-	span.bibi-shape-spreads-vertical {
+	span.bibi-shape-spreads-paged {
 		span.bibi-shape-spread {
-			&:first-child { top: ($shape-spread-height + 2px) * -1; }
-			&:last-child  { top: ($shape-spread-height + 2px); }
+			&:first-child { display: none; }
+			&:last-child  { display: none; }
 		}
 	}
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
 			&:first-child { left: ($shape-spread-width + 1px) * -1; }
 			&:last-child  { left: ($shape-spread-width + 1px); }
+		}
+	}
+	span.bibi-shape-spreads-vertical {
+		span.bibi-shape-spread {
+			&:first-child { top: ($shape-spread-height + 2px) * -1; }
+			&:last-child  { top: ($shape-spread-height + 2px); }
 		}
 	}
 }

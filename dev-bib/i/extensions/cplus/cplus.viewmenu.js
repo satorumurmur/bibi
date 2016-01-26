@@ -21,9 +21,9 @@ Bibi.x({
 	var Shape = {};
 	Shape.Item     = '<span class="bibi-shape bibi-shape-item"></span>';
 	Shape.Spread   = '<span class="bibi-shape bibi-shape-spread">' + Shape.Item + Shape.Item + '</span>';
-	Shape.SpreadsS = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-single">' + Shape.Spread + '</span>';
-	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
+	Shape.SpreadsP = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">'      + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 	Shape.SpreadsH = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
+	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">'   + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 
 	C.addButton({
 		Category: "menu",
@@ -31,7 +31,7 @@ Bibi.x({
 		Labels: [
 			{ ja: 'ページ表示', en: 'Paged View' }
 		],
-		IconHTML: '<span class="bibi-icon bibi-icon-paged">' + Shape.SpreadsS + '</span>'
+		IconHTML: '<span class="bibi-icon bibi-icon-paged">' + Shape.SpreadsP + '</span>'
 	}, function() {
 		C.Panel.toggle(function() {
 			R.changeView("paged");
