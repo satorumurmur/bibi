@@ -10,6 +10,7 @@ P.initialize({
 'bookshelf'                    : '../../bib/bookshelf/', // relative path from bib/i/index.html or COR-allowed URI begins with 'http://' or 'https://'.
 
 'reader-view-mode'             : 'paged', // 'paged' or 'vertical' or 'horizontal' ('paged' is for flipping, 'vertical' and 'horizontal' are for scrolling)
+'reader-view-mode-fixed'       : false, // true or false
 
 'ui-font-family'               : '', // CSS font-family value as '"Helvetica", sans-serif' or ''
 

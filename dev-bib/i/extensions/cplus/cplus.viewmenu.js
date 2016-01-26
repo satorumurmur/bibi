@@ -16,7 +16,7 @@ Bibi.x({
 
 })(function() {
 
-	if(S["view"] == "fixed") return;
+	if(S["reader-view-mode-fixed"]) return;
 
 	var Shape = {};
 	Shape.Item     = '<span class="bibi-shape bibi-shape-item"></span>';

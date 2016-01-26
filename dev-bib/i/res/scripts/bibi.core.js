@@ -1661,7 +1661,7 @@ R.onresized = function() {
 };
 
 R.changeView = function(BDM) {
-	if(typeof BDM != "string" || S.RVM == BDM) return false;
+	if(S["reader-view-mode-fixed"] || typeof BDM != "string" || S.RVM == BDM) return false;
 	if(R.Started) {
         if(BDM != "paged") {
             R.Spreads.forEach(function(Spread) {
