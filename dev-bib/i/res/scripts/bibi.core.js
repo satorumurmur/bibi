@@ -1755,8 +1755,8 @@ R.focus = function(Target, ScrollOption) {
             FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Frame)[S.SIZE.L];
         } else {
             FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
-            if(Target.Side == "after") FocusPoint += (Target.Page["offset" + S.SIZE.L] + S["spread-gap"] / 2 - window["inner" + S.SIZE.L]) * S.AXIS.PM;
-            else                       FocusPoint -= S["spread-gap"] / 2 * S.AXIS.PM;
+            if(Target.Side == "after") FocusPoint += (Target.Page["offset" + S.SIZE.L] + S["spread-gap"] - window["inner" + S.SIZE.L]) * S.AXIS.PM;
+            else                       FocusPoint -= S["spread-gap"] * S.AXIS.PM;
             if(S.SLD == "rtl") FocusPoint += Target.Page.offsetWidth - window.innerWidth;
         }
     } else {
@@ -1865,7 +1865,7 @@ R.focus.getNearestPageOfElement = function(Ele) {
 			ElementCoordInItem = Item.offsetWidth - (S["item-padding-left"] + S["item-padding-right"]) - ElementCoordInItem - Ele.offsetWidth;
 		}
 		sML.style(Item.HTML, { "column-width": Item.ColumnLength + "px" });
-		var NearestPage = Item.Pages[Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
+		var NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth - 1)];
 	} else {
 		var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
 		if(S.SLD == "rtl" && S.SLA == "horizontal") {
@@ -1959,9 +1959,9 @@ R.move = function(Distance) {
 			R.Frame,
 			(function(ScrollCoord) {
 				switch(S.SLD) {
-					case "ttb": return { Y: ScrollCoord.Y + (R.Stage.Length + S["spread-gap"]) * Distance      };
-					case "ltr": return { X: ScrollCoord.X + (R.Stage.Length + S["spread-gap"]) * Distance      };
-					case "rtl": return { X: ScrollCoord.X + (R.Stage.Length + S["spread-gap"]) * Distance * -1 };
+					case "ttb": return { Y: ScrollCoord.Y + (window.innerHeight - S["spread-gap"]) * Distance      };
+					case "ltr": return { X: ScrollCoord.X + (window.innerWidth  - S["spread-gap"]) * Distance      };
+					case "rtl": return { X: ScrollCoord.X + (window.innerWidth  - S["spread-gap"]) * Distance * -1 };
 				}
 			})(sML.Coord.getScrollCoord(R.Frame))
 		);
