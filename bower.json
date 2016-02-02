@@ -1,28 +1,33 @@
 {
-	"name": "bibi",
-	"version": "0.999.0",
-	"authors": [
-		"Satoru MATSUSHIMA"
-	],
-	"description": "BiB/i | EPUB Reader on your website.",
-	"keywords": [
-		"EPUB",
-		"Reading System",
-		"Viewer",
-		"Books-in-Browsers"
-	],
-	"license": "MIT",
-	"homepage": "http://bibi.epub.link/",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/satorumurmur/bibi.git"
-	},
-	"main": "bib/i/index.html",
-	"ignore": [
-		"**/.*",
-		"node_modules",
-		"bower_components",
-		"test",
-		"tests"
-	]
+  "name": "bibi",
+  "version": "0.999.0",
+  "authors": [
+    "Satoru MATSUSHIMA"
+  ],
+  "description": "BiB/i | EPUB Reader on your website.",
+  "keywords": [
+    "EPUB",
+    "Reading System",
+    "Viewer",
+    "Books-in-Browsers"
+  ],
+  "license": "MIT",
+  "homepage": "http://bibi.epub.link/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/satorumurmur/bibi.git"
+  },
+  "main": "bib/i/index.html",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "sML": "sml#^0.999.24",
+    "easing": "*",
+    "native-promise-only": "^0.8.0-a"
+  }
 }

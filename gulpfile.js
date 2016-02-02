@@ -117,9 +117,9 @@ gulp.task('make_script_bibi', function() {
     return make_script({
         src: [
 			'./dev-bib/i/res/scripts/_banner.js',
-			'./dev-bib/i/res/scripts/_lib/npo.src.js',
-			'./dev-bib/i/res/scripts/_lib/easing.js',
-			'./dev-bib/i/res/scripts/_lib/sML.js',
+			'./bower_components/native-promise-only/lib/npo.src.js',
+			'./bower_components/easing/easing-min.js',
+			'./bower_components/sML/sML.js',
 			'./dev-bib/i/res/scripts/bibi.core.js'
         ],
         dist: {

@@ -104,7 +104,8 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
 2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
 3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system` and `$ gem install bundler`
-4. [gulp](http://gulpjs.com/) - how to install: `$ npm install -g gulp`
+4. [Bower](http://bower.io) - how to install: `$ npm install -g bower`
+5. [gulp](http://gulpjs.com/) - how to install: `$ npm install -g gulp`
 
 
 ### Arrangements
@@ -113,6 +114,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 2. `$ cd <the local repository>`
 3. `$ bundle install --path=vendor/bundle` -> make `vendor/bundle` directory and install RubyGems in it.
 4. `$ npm install` -> make `npm-modules` directory and install modules in it.
+5. `$ bower install` -> make `bower_components` directory and install modules in it.
 
 
 ### Development
@@ -120,7 +122,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 1. Edit source files:
     - SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
     - SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
-    - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`.
+    - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`).
     - JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
     - JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 2. `$ gulp build`
