@@ -23,8 +23,10 @@ Bibi.x({
 
 	if(!window.File) return;
 
+    var CatcherLabel = "Drop me an EPUB file or click me...";
+
 	C.Veil.Catcher = C.Veil.appendChild(
-		sML.create("p", { id: "bibi-veil-catcher", title: 'Drop me an EPUB! or Click me!' }, { display: "none" })
+		sML.create("p", { id: "bibi-veil-catcher", title: CatcherLabel, innerHTML: '<span>' + CatcherLabel + '</span>' }, { display: "none" })
 	);
 
 	C.Veil.Catcher.addEventListener("click", function() {

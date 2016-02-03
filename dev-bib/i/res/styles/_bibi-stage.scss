@@ -252,8 +252,8 @@ div#main {
 							background: rgba(255,255,255,0.69);
 						}
 						&:after {
-							content: $mif_open-in-browser;
-							@include font-icon("MaterialIcons");
+							@include font-icon("Material Icons");
+							content: /*open_in_browser*/ "\e89d";
 							z-index: 100;
 							line-height: 50px;
 							text-align: center;
@@ -349,8 +349,8 @@ div#sub {
 				background: rgb(128,128,128);
 			}
 			&:before {
-				content: $mif_highlight-off;
-				@include font-icon("MaterialIcons");
+				@include font-icon("Material Icons");
+				content: /*highlight_off*/ "\e888";
 				display: inline-block;
 				position: absolute;
 				top: 12px;
