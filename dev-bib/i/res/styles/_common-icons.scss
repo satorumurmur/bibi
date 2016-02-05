@@ -205,40 +205,18 @@ $shape-spread-height: $shape-item-height;
 		margin: 1.5px auto 0;
 		width: 28px;
 		height: 28px;
-		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png);      /* The Material Icons */
-		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
-		html:fullscreen                      & { background-image: $background-image_fullscreen; }
-		html:full-screen                     & { background-image: $background-image_fullscreen; }
-		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen; }
-		html:-webkit-full-screen             & { background-image: $background-image_fullscreen; }
-		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen; }
-		html:-moz-full-screen                & { background-image: $background-image_fullscreen; }
-		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen; }
-		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen; }
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png); /* The Material Icons */
+		html:fullscreen &,
+		span.bibi-holder:fullscreen & {
+			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
+		}
 	}
 	&:hover:before {
-		background-image:             url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png);      /* The Material Icons */
-		$background-image_fullscreen: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
-		html:fullscreen                      & { background-image: $background-image_fullscreen }
-		html:full-screen                     & { background-image: $background-image_fullscreen }
-		html:-webkit-fullscreen              & { background-image: $background-image_fullscreen }
-		html:-webkit-full-screen             & { background-image: $background-image_fullscreen }
-		html:-moz-fullscreen                 & { background-image: $background-image_fullscreen }
-		html:-moz-full-screen                & { background-image: $background-image_fullscreen }
-		html:-ms-fullscreen                  & { background-image: $background-image_fullscreen }
-		span.bibi-holder:fullscreen          & { background-image: $background-image_fullscreen }
-		span.bibi-holder:full-screen         & { background-image: $background-image_fullscreen }
-		span.bibi-holder:-webkit-fullscreen  & { background-image: $background-image_fullscreen }
-		span.bibi-holder:-webkit-full-screen & { background-image: $background-image_fullscreen }
-		span.bibi-holder:-moz-fullscreen     & { background-image: $background-image_fullscreen }
-		span.bibi-holder:-moz-full-screen    & { background-image: $background-image_fullscreen }
-		span.bibi-holder:-ms-fullscreen      & { background-image: $background-image_fullscreen }
+		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png); /* The Material Icons */
+		html:fullscreen &,
+		span.bibi-holder:fullscreen & {
+			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
+		}
 	}
 }
 
