@@ -57,6 +57,7 @@ Bibi.welcome = function() {
 	O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ");
 	O.Head  = document.head;
 	O.Body  = document.body;
+    O.Info  = document.getElementById("bibi-info");
 	O.Title = document.getElementsByTagName("title")[0];
 
 	if(sML.OS.iOS || sML.OS.Android) {
@@ -2067,51 +2068,51 @@ N.note = function(Msg, Time) {
 
 C.createVeil = function() {
 
-	C.Veil = document.getElementById("bibi-veil");
-
-	sML.edit(C.Veil, {
-		State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
-		open: function(Cb) {
-			if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
-			this.State = 1;
-			this.style.display = "block";
-			this.style.zIndex = 100;
-			sML.style(this, {
-				transition: "0.5s ease-out",
-				transform: "",
-				opacity: 0.75
-			}, function() {
-				if(typeof Cb == "function") Cb();
-			});
-			return this.State;
-		},
-		close: function(Cb) {
-			if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
-			this.State = 0;
-			var getTranslate = function(Percent) {
-				if(S.RVM != "vertical") var Axis = "X", PM = (S.PPD == "ltr") ? -1 : 1;
-				else                    var Axis = "Y", PM = -1;
-				return "translate" + Axis + "(" + (Percent * PM) + "%)";
-			};
-			sML.style(this, {
-				transition: "0.5s ease-in",
-				transform: getTranslate(240),
-				opacity: 0
-			}, function() {
-				sML.style(this, {
-					transition: "none",
-					transform: getTranslate(-240)
-				});
-				this.style.zIndex = 1;
-				this.style.display = "none";
-				if(typeof Cb == "function") Cb();
-			});
-			return this.State;
-		},
-		toggle: function(Cb) {
-			return (this.State == 0 ? this.open(Cb) : this.close(Cb));
-		}
-	});
+	C.Veil = O.Body.appendChild(
+        sML.create("div", { id: "bibi-veil",
+            State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
+            open: function(Cb) {
+                if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
+                this.State = 1;
+                this.style.display = "block";
+                this.style.zIndex = 100;
+                sML.style(this, {
+                    transition: "0.5s ease-out",
+                    transform: "",
+                    opacity: 0.75
+                }, function() {
+                    if(typeof Cb == "function") Cb();
+                });
+                return this.State;
+            },
+            close: function(Cb) {
+                if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
+                this.State = 0;
+                var getTranslate = function(Percent) {
+                    if(S.RVM != "vertical") var Axis = "X", PM = (S.PPD == "ltr") ? -1 : 1;
+                    else                    var Axis = "Y", PM = -1;
+                    return "translate" + Axis + "(" + (Percent * PM) + "%)";
+                };
+                sML.style(this, {
+                    transition: "0.5s ease-in",
+                    transform: getTranslate(240),
+                    opacity: 0
+                }, function() {
+                    sML.style(this, {
+                        transition: "none",
+                        transform: getTranslate(-240)
+                    });
+                    this.style.zIndex = 1;
+                    this.style.display = "none";
+                    if(typeof Cb == "function") Cb();
+                });
+                return this.State;
+            },
+            toggle: function(Cb) {
+                return (this.State == 0 ? this.open(Cb) : this.close(Cb));
+            }
+        })
+    );
 
 	C.Veil.Cover   = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
 	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-mark" })); for(var i = 1; i <= 12; i++) C.Veil.Mark.appendChild(sML.create("span"));
