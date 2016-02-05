@@ -2721,17 +2721,16 @@ O.getLogo = function(Setting) {
 };
 
 O.getPath = function() {
-    var Path;
-    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) arguments[0] = arguments[1], arguments[1] = "";
-    else for(var i = 1; i < arguments.length; i++) arguments[0] += "/" + arguments[i];
-    arguments[0].replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() {
-        Path = [arguments[1], arguments[2]]
-    });
-	while(/([^:\/])\/{2,}/.test(Path[1])) Path[1] = Path[1].replace(/([^:\/])\/{2,}/g, "$1/");
-	while(        /\/\.\//.test(Path[1])) Path[1] = Path[1].replace(        /\/\.\//g, "/");
-	while(/[^\/]+\/\.\.\//.test(Path[1])) Path[1] = Path[1].replace(/[^\/]+\/\.\.\//g, "");
-	                                      Path[1] = Path[1].replace(      /^(\.\/)+/g, "");
-	return Path[0] ? Path.join("/") : Path[1];
+    var Origin = "", Path = arguments[0];
+    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  = arguments[1];
+    else for(var i = 1; i < arguments.length; i++)                  Path += "/" + arguments[i];
+    Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Origin = arguments[1], Path = arguments[2]; });
+	while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, "$1/");
+	while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   "/");
+	while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(/[^\/]+\/\.\.\//g,    "");
+	/**/                               Path = Path.replace(      /^(\.\/)+/g,    "");
+    if(Origin) Path = Origin + "/" + Path;
+    return Path;
 };
 
 
