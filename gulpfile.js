@@ -158,7 +158,6 @@ gulp.task('make_script_extension_cplus', function() {
         src: [
 			'./dev-bib/i/extensions/cplus/_banner.js',
 			'./dev-bib/i/extensions/cplus/cplus.viewmenu.js',
-			'./dev-bib/i/extensions/cplus/cplus.fullscreen.js',
 			'./dev-bib/i/extensions/cplus/cplus.arrows.js',
 			'./dev-bib/i/extensions/cplus/cplus.keys.js',
 			'./dev-bib/i/extensions/cplus/cplus.messages.js',

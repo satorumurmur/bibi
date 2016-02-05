@@ -2257,6 +2257,29 @@ C.createPanel = function() {
 		sML.style(C.Switches.Panel, { display: "block" });
 	});
 
+	if(!O.WindowEmbedded && O.FullscreenEnabled) {
+        C["switch"].Fullscreen = C.addButton({
+            id: "bibi-switch-fullscreen",
+            Category: "switch",
+            Group: "fullscreen",
+            Labels: [
+                { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
+                { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
+            ],
+            IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-fullscreen"></span>'
+        }, function() {
+            if(!sML.getFullscreenElement()) {
+                sML.requestFullscreen(O.HTML);
+                C.setLabel(C["switch"].Fullscreen, 1);
+                E.dispatch("bibi:enterFullscreen");
+            } else {
+                sML.exitFullscreen();
+                C.setLabel(C["switch"].Fullscreen, 0);
+                E.dispatch("bibi:exitFullscreen");
+            }
+        });
+    }
+
 	E.dispatch("bibi:createPanel");
 
 };

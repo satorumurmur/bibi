@@ -7,10 +7,9 @@
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
  * ## Components:
- * 1. BiB/i Extension: C+ViewMenu
- * 2. BiB/i Extension: C+Fullscreen
- * 3. BiB/i Extension: C+Arrows
- * 4. BiB/i Extension: C+Keys
- * 5. BiB/i Extension: C+Messages
- * 6. BiB/i Extension: C+Indicator
+ * 1. BiB/i Extension: C+ViewMenu\
+ * 2. BiB/i Extension: C+Arrows
+ * 3. BiB/i Extension: C+Keys
+ * 4. BiB/i Extension: C+Messages
+ * 5. BiB/i Extension: C+Indicator
  */
