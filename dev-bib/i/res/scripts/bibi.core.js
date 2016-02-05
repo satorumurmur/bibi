@@ -2114,7 +2114,7 @@ C.createVeil = function() {
 	});
 
 	C.Veil.Cover   = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
-	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-mark" })); for(var i = 1; i <= 8; i++) C.Veil.Mark.appendChild(sML.create("span"));
+	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-mark" })); for(var i = 1; i <= 12; i++) C.Veil.Mark.appendChild(sML.create("span"));
 	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   { id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
 
 	E.add("bibi:startLoading", function() {

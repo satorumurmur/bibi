@@ -374,32 +374,44 @@ p#bibi-veil-playbutton {
 // - Veil > Mark
 // --------------------------------------------------------------------------------
 
+@mixin mark-bits($n) {
+	@for $i from 1 through $n {
+		&:nth-child(#{$i}) {
+			background: darken(white, 50% / $n * $i);
+			transform: rotate(360deg / $n * $i);
+		}
+	}
+}
+
 div#bibi-veil-mark {
+	$mark-size: 60px;
+	$mark-bit-size: 6px;
 	position: absolute;
 	display: none;
 	z-index: 100;
-	left: 50%;
-	top: 50%;
-	margin: -36px -36px 0;
-	width: 72px;
-	height: 72px;
+	left: -100%;
+	right: -100%;
+	top: -100%;
+	bottom: -100%;
+	margin: auto;
+	width: $mark-size;
+	height: $mark-size;
 	font-size: 20px;
 	span {
 		display: block;
 		position: absolute;
-		width: 10px;
-		height: 10px;
+		left: -100%;
+		right: -100%;
+		top: 0;
+		bottom: auto;
+		margin: 0 auto;
+		width: $mark-bit-size;
+		height: $mark-bit-size;
+		transform-origin: 50% ($mark-size * 0.5);
 		//border-radius: 50%;
-		&:nth-child(odd)  { background: rgb(216,216,216); }
+		&:nth-child(odd)  { background: rgb(128,128,128); }
 		&:nth-child(even) { background: rgb(192,192,192); }
-		&:nth-child(1)    { left: 32px; top:  0px; }
-		&:nth-child(2)    { left: 54px; top:  8px; }
-		&:nth-child(3)    { left: 64px; top: 32px; }
-		&:nth-child(4)    { left: 54px; top: 54px; }
-		&:nth-child(5)    { left: 32px; top: 64px; }
-		&:nth-child(6)    { left:  8px; top: 54px; }
-		&:nth-child(7)    { left:  0px; top: 32px; }
-		&:nth-child(8)    { left:  8px; top:  8px; }
+		@include mark-bits(12);
 	}
 	html.loading & {
 		display: block;
@@ -408,9 +420,9 @@ div#bibi-veil-mark {
 }
 @include keyframes(loading) {
 	  0% { transform: rotate(  0deg) scale(1.00); filter: blur(0px); }
-	 25% { transform: rotate(180deg) scale(0.50); filter: blur(0px); }
+	 25% { transform: rotate(180deg) scale(0.75); filter: blur(0px); }
 	 50% { transform: rotate(360deg) scale(1.00); filter: blur(0px); }
-	 75% { transform: rotate(540deg) scale(0.50); filter: blur(0px); }
+	 75% { transform: rotate(540deg) scale(1.25); filter: blur(0px); }
 	100% { transform: rotate(720deg) scale(1.00); filter: blur(0px); }
 }
 
