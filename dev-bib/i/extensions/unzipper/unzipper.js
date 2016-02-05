@@ -33,7 +33,7 @@ Bibi.x({
 		if(!this.Input) this.Input = this.appendChild(
 			sML.create("input", { type: "file",
 				onchange: function(Eve) {
-					B.initialize({ File: Eve.target.files[0] });
+					B.initialize(Eve.target.files[0]);
 					B.load();
 				}
 			})
@@ -46,7 +46,7 @@ Bibi.x({
 		document.body.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
 		document.body.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
 		document.body.addEventListener("drop",      function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0;
-			B.initialize({ File: Eve.dataTransfer.files[0] });
+			B.initialize(Eve.dataTransfer.files[0]);
 			B.load();
 		}, 1);
 	}

@@ -165,7 +165,7 @@ Bibi.welcome = function() {
 
 	setTimeout(function() {
 		if(U["book"]) {
-			B.initialize({ Name: U["book"] });
+			B.initialize(U["book"]);
 			if(S["autostart"] || !B.Zipped) {
 				B.load();
 			} else {
@@ -242,19 +242,23 @@ B.initialize = function(Book) {
 		},
 		FileDigit: 3
 	}, B);
-	if(typeof Book.Name == "string") {
-		B["name"] = Book.Name;
-		B.Path = P["bookshelf"] + B["name"];
-		if(/\.epub$/i.test(Book.Name)) B.Zipped = true;
-	} else if(typeof Book.File == "object" && Book.File) {
-		if(!Book.File.size || typeof Book.File.name != "string" || !/\.epub$/i.test(Book.File.name)) {
+	if(typeof Book == "string") {
+		B["name"] = Book;
+		B.Path = (function() {
+            if(/^([\w\d]+:)?\/\//.test(B["name"])) return B["name"];
+            if(             /^\//.test(B["name"])) return location.origin + B["name"];
+            return P["bookshelf"] + B["name"];
+        })();
+		if(/\.epub$/i.test(B["name"])) B.Zipped = true;
+	} else if(typeof Book == "object" && Book) {
+		if(!Book.size || typeof Book.name != "string" || !/\.epub$/i.test(Book.name)) {
 			N.note('Give me <strong>EPUB</strong>.');
 			return false;
 		}
-		B["name"] = B.Path = Book.File.name;
+		B["name"] = B.Path = Book.name;
 		B.Zipped = true;
 		B.Local = true;
-		B.File = Book.File;
+		B.File = Book;
 	} else {
 		return false;
 	}
@@ -2311,7 +2315,7 @@ P.initialize = function(Preset) {
 		P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
 	});
 	if(P["spread-gap"] % 2) P["spread-gap"]++;
-	if(!/^(https?:)?\/\//.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
+	if(!/^([\w\d]+:)?\/+/.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
 	if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
 	if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
 };
@@ -2329,12 +2333,17 @@ P.initialize = function(Preset) {
 U.initialize = function() { // formerly O.readExtras
 
 	var Q = U.parseQuery(location.search);
-	var F = U.parseFileName(location.pathname);
 	var H = U.parseHash(location.hash);
 
-	     if( Q["book"]) U["book"] = Q["book"];
-	else if( F["book"]) U["book"] = F["book"];
-	else                U["book"] = "";
+	U["book"] = (function() {
+        var Book = Q["book"] ? Q["book"] : O.Body.getAttribute("data-bibi-book");
+        if(typeof Book != "string") return undefined;
+        if(/^([\w\d]+:)?\/\//.test(Book)) { // absolute URI
+            if(/^\/\//.test(Book)) Book = location.protocol + Book;
+            if(Book.replace(/^([\w\d]+:\/\/[^\/]+).*$/, "$1") != location.origin) return undefined; // allow same origin
+        }
+        return Book;
+    })();
 
 	if(H["epubcfi"]) {
 		U["epubcfi"] = H["epubcfi"];
@@ -2388,35 +2397,15 @@ U.decode = function(Str) {
 };
 
 
-U.distillBookName = function(BookName) {
-	if(typeof BookName != "string" || !BookName) return "";
-	if(/^([\w\d]+:)?\/\//.test(BookName)) return "";
-	return BookName;
-};
-
-
 U.parseQuery = function(Q) {
 	if(typeof Q != "string") return {};
 	Q = Q.replace(/^\?/, "");
 	var Params = {};
 	Q.split("&").forEach(function(PnV) {
 		PnV = PnV.split("=");
-		if(/^[a-z]+$/.test(PnV[0])) {
-			if(PnV[0] == "book") {
-				PnV[1] = U.distillBookName(PnV[1]);
-				if(!PnV[1]) return;
-			}
-			Params[PnV[0]] = PnV[1];
-		}
+		if(/^[a-z]+$/.test(PnV[0])) Params[PnV[0]] = PnV[1];
 	});
 	return Params;
-};
-
-
-U.parseFileName = function(Path) {
-	if(typeof Path != "string") return {};
-	var BookName = U.distillBookName(Path.replace(/^.*([^\/]*)$/, "$1").replace(/\.(x?html?|php|cgi|aspx?)$/, "").replace(/^index$/, ""));
-	return BookName ? { "book": BookName } : {};
 };
 
 
@@ -2733,7 +2722,7 @@ O.getLogo = function(Setting) {
 
 O.getPath = function() {
     var Path;
-    if(arguments.length == 2 && /^https?:\/\//.test(arguments[1])) arguments[0] = arguments[1], arguments[1] == "";
+    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) arguments[0] = arguments[1], arguments[1] = "";
     else for(var i = 1; i < arguments.length; i++) arguments[0] += "/" + arguments[i];
     arguments[0].replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() {
         Path = [arguments[1], arguments[2]]
