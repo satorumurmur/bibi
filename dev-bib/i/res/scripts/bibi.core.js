@@ -2231,72 +2231,75 @@ C.createPanel = function() {
         sML.create("div", { id: "bibi-panel-bookinfo-cover" })
     );
 
-    // Menus
-	C.Panel.Menus = C["menu"] = C.Panel.appendChild(
-		sML.create("div", { id: "bibi-panel-menus" })
-	);
-    C.Panel.Menus.addEventListener("click", function(Eve) {
-		Eve.stopPropagation();
-	});
-
     // Switches
-	C.Switches = C["switch"] = O.Body.appendChild(
-		sML.create("div", { id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
+	C["switches"] = O.Body.appendChild(
+		sML.create("div", { className: "bibi-buttons", id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
 	);
-    C.Switches.addEventListener("click", function(Eve) {
+    C["switches"].addEventListener("click", function(Eve) {
 		Eve.stopPropagation();
 	});
-	C.Switches.Panel = C.addButton({
-		id: "bibi-switch-panel",
-		Category: "switch",
+	C["switches"].Panel = C.addButton({
+		Category: "switches",
 		Group: "panel",
 		Labels: [
 			{ ja: 'メニューを開く',   en: 'Open Menu'  },
 			{ ja: 'メニューを閉じる', en: 'Close Menu' }
 		],
-		IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-panel"></span>'
+		IconHTML: '<span class="bibi-icon bibi-icon-toggle-panel"></span>'
 	}, function() {
 		C.Panel.toggle();
 	});
-    E.add("bibi:openPanel",  function() { C.setLabel(C.Switches.Panel, 1); });
-    E.add("bibi:closePanel", function() { C.setLabel(C.Switches.Panel, 0); });
+    E.add("bibi:openPanel",  function() { C.setLabel(C["switches"].Panel, 1); });
+    E.add("bibi:closePanel", function() { C.setLabel(C["switches"].Panel, 0); });
 	E.add("bibi:start", function() {
-		sML.style(C.Switches.Panel, { display: "block" });
+		sML.style(C["switches"].Panel, { display: "block" });
 	});
 
-    C["switch"].Fullscreen = C.addButton({
-        id: "bibi-switch-fullscreen",
-        Category: "switch",
-        Group: "fullscreen",
+    // Menus
+	C["panel-menus-alpha"] = C.Panel.appendChild(
+		sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-alpha" })
+	);
+    C["panel-menus-alpha"].addEventListener("click", function(Eve) {
+		Eve.stopPropagation();
+	});
+	C["panel-menus-beta"] = C.Panel.appendChild(
+		sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-beta" })
+	);
+    C["panel-menus-beta"].addEventListener("click", function(Eve) {
+		Eve.stopPropagation();
+	});
+    C.addButton({
+        id: "bibi-toggle-fullscreen",
+        Category: "panel-menus-alpha",
+        Group: "window",
         Labels: [
             { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
             { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
         ],
-        IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-fullscreen"></span>'
+        IconHTML: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>'
     }, function() {
         if(!O.HTML.Fullscreen) {
+            sML.requestFullscreen(O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML);
             O.HTML.Fullscreen = true;
             sML.addClass(O.HTML, "fullscreen");
-            sML.requestFullscreen(O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML);
-            C.setLabel(C["switch"].Fullscreen, 1);
-            E.dispatch("bibi:enterFullscreen");
+            C.setLabel(this, 1);
+            E.dispatch("bibi:requestFullscreen");
         } else {
+            sML.exitFullscreen(O.WindowEmbedded ? window.parent.document : document);
             O.HTML.Fullscreen = false;
             sML.removeClass(O.HTML, "fullscreen");
-            sML.exitFullscreen(O.WindowEmbedded ? window.parent.document : document);
-            C.setLabel(C["switch"].Fullscreen, 0);
+            C.setLabel(this, 0);
             E.dispatch("bibi:exitFullscreen");
         }
     });
-
-    C["switch"].Fullscreen = C.addButton({
-        id: "bibi-switch-newwindow",
-        Category: "switch",
-        Group: "newwindow",
+    C.addButton({
+        id: "bibi-open-newwindow",
+        Category: "panel-menus-alpha",
+        Group: "window",
         Labels: [
             { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }
         ],
-        IconHTML: '<a class="bibi-icon bibi-switch bibi-switch-newwindow" href="' + location.href + '" target="_blank"></a>'
+        IconHTML: '<a class="bibi-icon bibi-icon-open-newwindow" href="' + location.href + '" target="_blank"></a>'
     });
 
 	E.dispatch("bibi:createPanel");
@@ -2314,7 +2317,9 @@ C.setLabel = function(Button, State) {
 
 C.addButton = function(Param, Fn) {
 	if(typeof Param.Category != "string" || typeof Param.Group != "string") return false;
-	if(!C[Param.Category][Param.Group]) C[Param.Category][Param.Group] = C[Param.Category].appendChild(sML.create("ul"));
+	if(!C[Param.Category][Param.Group]) C[Param.Category][Param.Group] = C[Param.Category].appendChild(
+        sML.create("ul", { id: ["bibi", Param.Category, Param.Group].join("-") })
+    );
 	var Button = C[Param.Category][Param.Group].appendChild(
 		sML.create("li", { className: "bibi-button",
 			innerHTML: (typeof Param.IconHTML == "string" ? Param.IconHTML : '<span class="bibi-icon"></span>') + '<span class="bibi-button-label non-visual"></span>',
@@ -2325,7 +2330,7 @@ C.addButton = function(Param, Fn) {
 	);
 	if(typeof Param.id == "string" || /^[a-zA-Z_][a-zA-Z0-9_\-]*$/.test(Param.id)) Button.id = Param.id;
 	Button.Label = Button.querySelector(".bibi-icon").appendChild(sML.create("span", { className: "non-visual" }));
-	Button.addEventListener("click", function(){ Fn(); });
+	if(typeof Fn == "function") Button.addEventListener("click", Fn);
 	C[Param.Category][Param.Group].style.display = "block";
 	try { C.setLabel(Button, 0); } catch(Err) { E.add("bibi:readPackageDocument", function() { C.setLabel(Button, 0); }); }
 	return Button;

@@ -127,7 +127,7 @@ $shape-spread-height: $shape-item-height;
 // - Write
 // --------------------------------------------------------------------------------
 
-.bibi-icon.bibi-switch-panel {
+.bibi-icon-toggle-panel {
 	$bar-width: 19px;
 	$bar-height: 2px;
 	$bar-isolation: 4px;
@@ -172,15 +172,15 @@ $shape-spread-height: $shape-item-height;
 	}
 }
 
-.bibi-icon.bibi-switch-newwindow,
-.bibi-icon.bibi-switch-fullscreen {
+.bibi-icon-open-newwindow,
+.bibi-icon-toggle-fullscreen {
 	&:before {
 		background: no-repeat center center;
 		background-size: contain;
 	}
 }
 
-.bibi-icon.bibi-switch-newwindow {
+.bibi-icon-open-newwindow {
 	text-decoration: none !important;
 	&:before {
 		margin: 3.5px auto 0;
@@ -193,7 +193,7 @@ $shape-spread-height: $shape-item-height;
 	}
 }
 
-.bibi-icon.bibi-switch-fullscreen {
+.bibi-icon-toggle-fullscreen {
 	&:before {
 		margin: 1.5px auto 0;
 		width: 28px;
@@ -235,13 +235,13 @@ $shape-spread-height: $shape-item-height;
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before,
-	&.bibi-switch-panel span,
-	&.bibi-switch-panel:after {
+	&.bibi-icon-toggle-panel:before,
+	&.bibi-icon-toggle-panel span,
+	&.bibi-icon-toggle-panel:after {
 		background-color: lighten($color_label, 5%) !important;
 	}
-	&.bibi-switch-newwindow:before,
-	&.bibi-switch-fullscreen:before {
+	&.bibi-icon-open-newwindow:before,
+	&.bibi-icon-toggle-fullscreen:before {
 		opacity: 0.4 !important;
 	}
 	span.bibi-shape-spreads {
@@ -268,14 +268,14 @@ $shape-spread-height: $shape-item-height;
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before,
-	&.bibi-switch-panel span,
-	&.bibi-switch-panel:after {
+	&.bibi-icon-toggle-panel:before,
+	&.bibi-icon-toggle-panel span,
+	&.bibi-icon-toggle-panel:after {
 		border-bottom-color: darken($color_label, 25%) !important;
 		background-color: $color_label !important;
 	}
-	&.bibi-switch-newwindow:before,
-	&.bibi-switch-fullscreen:before {
+	&.bibi-icon-open-newwindow:before,
+	&.bibi-icon-toggle-fullscreen:before {
 		opacity: 1 !important;
 	}
 	span.bibi-shape-spreads {

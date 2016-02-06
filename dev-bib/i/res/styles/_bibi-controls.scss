@@ -552,52 +552,6 @@ div#bibi-arrows {
 
 
 // ================================================================================
-// + Switches
-// --------------------------------------------------------------------------------
-
-
-// - Switches
-// --------------------------------------------------------------------------------
-
-div#bibi-switches {
-	html.wait-please & {
-		display: none;
-	}
-	ul {
-		li {
-			position: fixed;
-			z-index: 6000;
-			top: 4px;
-			&#bibi-switch-panel {
-				left: 4px;
-			}
-			&#bibi-switch-newwindow {
-				html.fullscreen-enabled & {
-					right: 4px + $icon-size + 4px;
-				}
-				html.fullscreen-not-enabled & {
-					right: 4px;
-				}
-				html.window-not-embedded & {
-					display: none;
-				}
-			}
-			&#bibi-switch-fullscreen {
-				html.fullscreen-enabled & {
-					right: 4px;
-				}
-				html.fullscreen-not-enabled & {
-					display: none;
-				}
-			}
-		}
-	}
-}
-
-
-
-
-// ================================================================================
 // + Panel
 // --------------------------------------------------------------------------------
 
@@ -636,32 +590,6 @@ div#bibi-panel {
 		//background: rgba(255,255,255,0.88);
 		//background: white;
 		background: rgba(255,255,255,0.9);
-	}
-}
-
-
-// - Panel > Menu (div#bibi-panel-menus)
-// --------------------------------------------------------------------------------
-
-div#bibi-panel-menus {
-	box-sizing: border-box;
-	position: absolute;
-	z-index: 10;
-	top: 0;
-	left: 0;
-	padding-left: $icon-width + 4px * 2;
-	height: $icon-height + 4px * 2;
-	color: white;
-	ul {
-		padding: 4px;
-		height: $icon-height;
-		li {
-			position: relative;
-			float: left;
-			margin-left: 4px;
-			opacity: 1;
-			&:first-child { margin-left: 0; }
-		}
 	}
 }
 
@@ -895,6 +823,80 @@ div#bibi-panel-bookinfo-cover {
 		span {
 			font-size: 12px;
 		}
+	}
+}
+
+
+
+
+// ================================================================================
+// + Buttons
+// --------------------------------------------------------------------------------
+
+
+// - Buttons: div#bibi-switches & div#bibi-panel-menus-alpha & div#bibi-panel-menus-beta
+// --------------------------------------------------------------------------------
+
+div.bibi-buttons {
+	box-sizing: border-box;
+	position: absolute;
+	z-index: 6000;
+	top: 0;
+	height: $icon-height + 4px * 2;
+	color: white;
+	ul {
+		padding: 4px;
+		height: $icon-height;
+		li {
+			position: relative;
+			opacity: 1;
+		}
+	}
+	&#bibi-switches,
+	&#bibi-panel-menus-alpha {
+		ul {
+			float: right;
+			li {
+				float: right;
+				margin-right: 4px;
+				&:first-child { margin-right: 0; }
+			}
+		}
+	}
+	&#bibi-switches {
+		right: 0;
+	}
+	&#bibi-panel-menus-alpha {
+		right: 4px + $icon-size + 4px;
+	}
+	&#bibi-panel-menus-beta {
+		left: 0;
+		ul {
+			li {
+				float: left;
+				margin-left: 4px;
+				&:first-child { margin-left: 0; }
+			}
+		}
+	}
+}
+
+
+// - Button: div.bibi-buttons > ul > li
+// --------------------------------------------------------------------------------
+
+li#bibi-switch-panel {
+}
+
+li#bibi-toggle-fullscreen {
+	html.fullscreen-not-enabled & {
+		display: none;
+	}
+}
+
+li#bibi-open-newwindow {
+	html.window-not-embedded & {
+		display: none;
 	}
 }
 
