@@ -120,8 +120,8 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 ### Development
 
 1. Edit source files:
-    - SCSS source files of `bib/i/res/styles/bibi.css` is in `dev-bib/i/res/styles/`.
-    - SCSS source files of `bib/i.css` are in `dev-bib/` and `dev-bib/i/res/styles/`.
+    - SCSS source files of `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`.
+    - SCSS source files of `bib/i.css` is `dev-bib/i.scss`.
     - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`).
     - JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
     - JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.

@@ -1,21 +1,5 @@
 @charset "utf-8";
  
-@import "./i/res/styles/_lib/_mixins";
-
-$path-res: "../bib/i/res";
-
-
-/*!
- *
- *  # The Material Icons
- *
- *  - by Google Inc. - https://www.google.com/design/icons/
- *  - Licensed under ther Creative Common Attribution 4.0 International License (CC-BY 4.0) - http://creativecommons.org/licenses/by/4.0/
- *
- */
-@include at-font-face("MaterialIcons", "#{$path-res}/fonts/MaterialIcons/MaterialIcons-Regular");
-
-
 /*!
  *
  *  # Pipi Style
@@ -26,6 +10,36 @@ $path-res: "../bib/i/res";
  *
  */
 
-@import "./i/res/styles/_common-lib";
-@import "./i/res/styles/_common-icons";
-@import "./i/res/styles/_pipi-style";
+// ================================================================================
+// + Pipi (Bibi Putter)
+// --------------------------------------------------------------------------------
+
+
+// - Reset
+// --------------------------------------------------------------------------------
+
+span.bibi-holder,
+span.bibi-holder iframe.bibi-frame {
+	box-sizing: border-box;
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+	border: none 0;
+	vertical-align: top;
+	line-height: 1;
+	text-decoration: none;
+	background: transparent;
+}
+
+span.bibi-holder {
+	position: relative;
+	border: solid 1px rgb(236,234,232);
+	border: solid 1px rgb(220,216,212);
+	iframe.bibi-frame {
+		position: relative;
+		z-index: 10;
+		border-top: solid 1px transparent;
+		width: 100%;
+		height: 100%;
+	}
+}

@@ -566,13 +566,29 @@ div#bibi-switches {
 	ul {
 		li {
 			position: fixed;
-			z-index: 4000;
+			z-index: 6000;
 			top: 4px;
 			&#bibi-switch-panel {
 				left: 4px;
 			}
+			&#bibi-switch-newwindow {
+				html.fullscreen-enabled & {
+					right: 4px + $icon-size + 4px;
+				}
+				html.fullscreen-not-enabled & {
+					right: 4px;
+				}
+				html.window-not-embedded & {
+					display: none;
+				}
+			}
 			&#bibi-switch-fullscreen {
-				right: 4px;
+				html.fullscreen-enabled & {
+					right: 4px;
+				}
+				html.fullscreen-not-enabled & {
+					display: none;
+				}
 			}
 		}
 	}
@@ -592,7 +608,7 @@ div#bibi-switches {
 div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: 3000;
+	z-index: 5000;
 	position: fixed;
 	left: 0;
 	top: 0;

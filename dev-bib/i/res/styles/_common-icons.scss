@@ -174,14 +174,7 @@ $shape-spread-height: $shape-item-height;
 
 .bibi-icon.bibi-switch-newwindow,
 .bibi-icon.bibi-switch-fullscreen {
-	&:before {/*
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
-		margin: auto;*/
-		//transform: translateY(-1px);
+	&:before {
 		background: no-repeat center center;
 		background-size: contain;
 	}
@@ -206,6 +199,7 @@ $shape-spread-height: $shape-item-height;
 		width: 28px;
 		height: 28px;
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png); /* The Material Icons */
+		html.fullscreen &,
 		html:fullscreen &,
 		span.bibi-holder:fullscreen & {
 			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
@@ -213,6 +207,7 @@ $shape-spread-height: $shape-item-height;
 	}
 	&:hover:before {
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png); /* The Material Icons */
+		html.fullscreen &,
 		html:fullscreen &,
 		span.bibi-holder:fullscreen & {
 			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
@@ -240,10 +235,13 @@ $shape-spread-height: $shape-item-height;
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+	&.bibi-switch-panel:before,
+	&.bibi-switch-panel span,
+	&.bibi-switch-panel:after {
 		background-color: lighten($color_label, 5%) !important;
 	}
-	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+	&.bibi-switch-newwindow:before,
+	&.bibi-switch-fullscreen:before {
 		opacity: 0.4 !important;
 	}
 	span.bibi-shape-spreads {
@@ -270,11 +268,14 @@ $shape-spread-height: $shape-item-height;
 	&:before, &:after {
 		color: $color_label !important;
 	}
-	&.bibi-switch-panel:before, &.bibi-switch-panel span, &.bibi-switch-panel:after {
+	&.bibi-switch-panel:before,
+	&.bibi-switch-panel span,
+	&.bibi-switch-panel:after {
 		border-bottom-color: darken($color_label, 25%) !important;
 		background-color: $color_label !important;
 	}
-	&.bibi-switch-newwindow:before, &.bibi-switch-fullscreen:before {
+	&.bibi-switch-newwindow:before,
+	&.bibi-switch-fullscreen:before {
 		opacity: 1 !important;
 	}
 	span.bibi-shape-spreads {

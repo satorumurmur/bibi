@@ -92,20 +92,6 @@ Bibi.welcome = function() {
         }
 	}
 
-	if((function() {
-		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
-		if(document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen) return true;
-		if(document.body.mozRequestFullscreen    || document.body.mozRequestFullScreen)    return true;
-		if(document.body.msRequestFullscreen)                                              return true;
-		return false;
-	})()) {
-		O.FullscreenEnabled = true;
-		O.HTML.className = O.HTML.className + " fullscreen-enabled";
-	} else {
-		O.FullscreenEnabled = false;
-		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
-	}
-
 	var HTMLCS = getComputedStyle(O.HTML);
 	O.WritingModeProperty = (function() {
 		if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
@@ -133,6 +119,27 @@ Bibi.welcome = function() {
 
 	U.initialize();
 	S.initialize();
+
+    if(O.WindowEmbedded) {
+        try {
+            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
+        } catch(Err) {}
+    }
+
+	if((function() {
+        if(O.WindowEmbedded && !O.ParentHolder) return false;
+		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
+		if(document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen) return true;
+		if(document.body.mozRequestFullscreen    || document.body.mozRequestFullScreen)    return true;
+		if(document.body.msRequestFullscreen)                                              return true;
+		return false;
+	})()) {
+		O.FullscreenEnabled = true;
+		O.HTML.className = O.HTML.className + " fullscreen-enabled";
+	} else {
+		O.FullscreenEnabled = false;
+		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
+	}
 
 	if(S["poster"]) {
 		sML.addClass(O.HTML, "with-poster");
@@ -2257,28 +2264,40 @@ C.createPanel = function() {
 		sML.style(C.Switches.Panel, { display: "block" });
 	});
 
-	if(!O.WindowEmbedded && O.FullscreenEnabled) {
-        C["switch"].Fullscreen = C.addButton({
-            id: "bibi-switch-fullscreen",
-            Category: "switch",
-            Group: "fullscreen",
-            Labels: [
-                { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
-                { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
-            ],
-            IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-fullscreen"></span>'
-        }, function() {
-            if(!sML.getFullscreenElement()) {
-                sML.requestFullscreen(O.HTML);
-                C.setLabel(C["switch"].Fullscreen, 1);
-                E.dispatch("bibi:enterFullscreen");
-            } else {
-                sML.exitFullscreen();
-                C.setLabel(C["switch"].Fullscreen, 0);
-                E.dispatch("bibi:exitFullscreen");
-            }
-        });
-    }
+    C["switch"].Fullscreen = C.addButton({
+        id: "bibi-switch-fullscreen",
+        Category: "switch",
+        Group: "fullscreen",
+        Labels: [
+            { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
+            { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
+        ],
+        IconHTML: '<span class="bibi-icon bibi-switch bibi-switch-fullscreen"></span>'
+    }, function() {
+        if(!O.HTML.Fullscreen) {
+            O.HTML.Fullscreen = true;
+            sML.addClass(O.HTML, "fullscreen");
+            sML.requestFullscreen(O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML);
+            C.setLabel(C["switch"].Fullscreen, 1);
+            E.dispatch("bibi:enterFullscreen");
+        } else {
+            O.HTML.Fullscreen = false;
+            sML.removeClass(O.HTML, "fullscreen");
+            sML.exitFullscreen(O.WindowEmbedded ? window.parent.document : document);
+            C.setLabel(C["switch"].Fullscreen, 0);
+            E.dispatch("bibi:exitFullscreen");
+        }
+    });
+
+    C["switch"].Fullscreen = C.addButton({
+        id: "bibi-switch-newwindow",
+        Category: "switch",
+        Group: "newwindow",
+        Labels: [
+            { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }
+        ],
+        IconHTML: '<a class="bibi-icon bibi-switch bibi-switch-newwindow" href="' + location.href + '" target="_blank"></a>'
+    });
 
 	E.dispatch("bibi:createPanel");
 
@@ -2394,7 +2413,7 @@ U.initialize = function() { // formerly O.readExtras
 					case "nav":               PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined; break;
 					case "view":              PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
 					case "arrows":            PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
-					case "preset":            break;
+					case "preset": case "pipi-id": break;
 					default: PnV[0] = undefined;
 				}
 			}
@@ -2867,11 +2886,10 @@ M.receive = function(Data) {
 	try {
         Data = JSON.parse(Data);
         if(typeof Data != "object" || !Data) return false;
-        for(var EventName in Data) E.dispatch((!/^bibi:command:[\w\d]+$/.test(EventName) ? "bibi:command:" : "") + EventName, Data[EventName]);
+        for(var EventName in Data) if(/^bibi:command:/.test(EventName)) E.dispatch(EventName, Data[EventName]);
         return true;
-    } catch(Err) {
-        return false;
-    }
+    } catch(Err) {}
+    return false;
 };
 
 M.gate = function(Eve) {
