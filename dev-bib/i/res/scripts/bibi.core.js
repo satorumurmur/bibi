@@ -1083,7 +1083,9 @@ L.start = function() {
 	delete L.listenResizingWhileLoading;
 
 	setTimeout(function() {
-        sML.removeClass(O.HTML, "preparing");
+        setTimeout(function() {
+            sML.removeClass(O.HTML, "preparing");
+        }, 100);
 		C.Veil.close(function() {
 			setTimeout(function() {
 				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
