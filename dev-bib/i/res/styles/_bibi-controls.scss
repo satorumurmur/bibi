@@ -608,6 +608,9 @@ div#bibi-panel-powered {
 	html.Blink & {
 		bottom: 8px;
 	}
+	html.iOS & {
+		bottom: 0;
+	}
 	margin: 0 auto;
 	padding: 4px 16px;
 	border: solid rgb(236,236,236); border-width: 1px 0;
