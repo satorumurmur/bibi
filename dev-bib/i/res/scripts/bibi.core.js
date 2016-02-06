@@ -2213,7 +2213,7 @@ C.createPanel = function() {
 	});
 
     // Powered
-	C.Panel.Powered = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
+	C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
     // Box
 	C.Panel.BookInfo = C.Panel.appendChild(

@@ -98,7 +98,7 @@ div#bibi-veil {
 
 p#bibi-veil-byebye {
 	position: absolute;
-	z-index: 100;
+	z-index: 1000;
 	left: 0;
 	right: 0;
 	top: 69px;
@@ -152,20 +152,18 @@ p#bibi-veil-byebye {
 div#bibi-veil-cover {
 	overflow: hidden;
 	position: absolute;
-	z-index: 1;
+	z-index: 10;
 	left: 0;
 	top: 0;
 	box-sizing: border-box;
 	border: solid transparent;
-	$cover-offset: 4px; border-width: (41px + $cover-offset) $cover-offset $cover-offset;
+	border-width: 4px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
 	transition: opacity 0.5s linear;
 	background: transparent no-repeat center center;
 	background-size: contain;
-//	html.page-ltr & { background-position: 40% center; }
-//	html.page-rtl & { background-position: 60% center; }
 	p {
 		opacity: 0;
 	}
@@ -232,7 +230,7 @@ p#bibi-veil-catcher,
 p#bibi-veil-playbutton {
 	box-sizing: border-box;
 	position: absolute;
-	z-index: 10;
+	z-index: 100;
 	left: 0;
 	top: 0;
 	right: 0;
@@ -308,7 +306,7 @@ p#bibi-veil-catcher {
 }
 
 p#bibi-veil-playbutton {
-	$size: 69px;
+	$size: 81px;
 	$hover-move: -4px;
 	cursor: pointer;
 	&:hover  { background: rgba(0,0,0,0.5); }
@@ -321,10 +319,10 @@ p#bibi-veil-playbutton {
 			height: $size;
 			line-height: $size;
 			font-size: $size;
-			color: rgb(150,150,150);
+			color: rgb(216,216,216);
 		}
-		&:hover:after  { transform: scale(1.250); color: white; }
-		&:active:after { transform: scale(1.125); }
+		&:hover:after  { color: white; }
+		&:active:after {}
 	}
 	html.view-vertical & {
 		$offset: 8px;
@@ -413,51 +411,6 @@ div#bibi-veil-mark {
 	 50% { transform: rotate(360deg) scale(1.00); filter: blur(0px); }
 	 75% { transform: rotate(540deg) scale(1.25); filter: blur(0px); }
 	100% { transform: rotate(720deg) scale(1.00); filter: blur(0px); }
-}
-
-
-// - Veil > Powered
-// --------------------------------------------------------------------------------
-
-p#bibi-veil-powered {
-	box-sizing: border-box;
-	position: absolute;
-	z-index: 999;
-	top: 0;
-	width: 100%;
-	height: 41px;
-	line-height: 41px;
-	text-align: center;
-	color: rgb(216,216,216);
-	small {
-		font-size: 0.75em;
-	}
-	a, span {
-		display: inline-block;
-		position: relative;
-		color: white;
-		opacity: 0.69;
-		img {
-			display: inline-block;
-			position: relative;
-			top: 4px;
-			width: auto;
-			height: 16px;
-			vertical-align: baseline;
-		}
-		html.loading & {
-			opacity: 0;
-		}
-	}
-	a {
-		color: inherit;
-		text-decoration: none;
-		transition: 0.25s linear;
-		&:hover {
-			opacity: 1;
-			color: rgb(160,160,160);
-		}
-	}
 }
 
 
@@ -590,54 +543,6 @@ div#bibi-panel {
 		//background: rgba(255,255,255,0.88);
 		//background: white;
 		background: rgba(255,255,255,0.9);
-	}
-}
-
-
-// - Panel > Powered (div#bibi-panel-powered)
-// --------------------------------------------------------------------------------
-
-div#bibi-panel-powered {
-	box-sizing: border-box;
-	position: absolute;
-	z-index: 10;
-	left: 0;
-	right: 0;
-	bottom: 15px;
-	html.WebKit &,
-	html.Blink & {
-		bottom: 8px;
-	}
-	html.iOS & {
-		bottom: 0;
-	}
-	margin: 0 auto;
-	padding: 4px 16px;
-	border: solid rgb(236,236,236); border-width: 1px 0;
-	width: 100%;
-	height: 36px;
-	line-height: 30px;
-	text-align: right;
-	font-size: 14px;
-	background: rgba(240,240,240,0.9);
-	a, span {
-		display: inline-block;
-		text-decoration: none;
-		color: black;
-		opacity: 0.48;
-		img {
-			margin-top: 8px;
-			width: auto;
-			height: 16px;
-			vertical-align: top;
-		}
-	}
-	a {
-		transition: .15s linear;
-		&:hover {
-			opacity: 1;
-			transition: .075s linear;
-		}
 	}
 }
 
@@ -902,6 +807,109 @@ li#bibi-open-newwindow {
 		display: none;
 	}
 }
+
+
+
+// ================================================================================
+// + Powered
+// --------------------------------------------------------------------------------
+
+
+// - Powered (p#bibi-veil-powered, div#bibi-panel-powered)
+// --------------------------------------------------------------------------------
+
+div#bibi-veil:after,
+div#bibi-panel:after,
+p#bibi-veil-powered,
+p#bibi-panel-powered {
+	box-sizing: border-box;
+	position: absolute;
+	right: 0;
+	margin: 0 auto;
+	padding: 4px;
+	height: 36px;
+}
+
+div#bibi-veil:after,
+div#bibi-panel:after {
+	content: "";
+	z-index: 1;
+	border-style: solid; border-width: 1px 0;
+	width: 100%;
+}
+
+div#bibi-veil:after {
+	border-color: rgb(104,104,104);
+	background: rgb(96,96,96);
+}
+
+div#bibi-panel:after {
+	border-color: rgb(232,232,232);
+	background: rgba(240,240,240,0.9);
+}
+
+div#bibi-panel:after,
+p#bibi-panel-powered {
+	bottom: 15px;
+	html.WebKit &,
+	html.Blink & {
+		bottom: 8px;
+	}
+	html.page-ltr &,
+	html.iOS & {
+		bottom: 0;
+	}
+}
+
+div#bibi-veil:after,
+p#bibi-veil-powered {
+	bottom: 1px;
+}
+
+p#bibi-veil-powered,
+p#bibi-panel-powered {
+	z-index: 999;
+	line-height: 30px;
+	text-align: right;
+	font-size: 14px;
+	a, span {
+		display: block;
+		text-decoration: none;
+		color: black;
+		padding: 8px 8px 4px;
+		border-radius: 2px;
+		img {
+			display: block;
+			opacity: 0.5;
+			width: auto;
+			height: 16px;
+			vertical-align: top;
+		}
+	}
+	a {
+		transition: .15s linear;
+		img {
+			transition: .15s linear;
+		}
+		&:hover {
+			transition: .075s linear;
+			img {
+				opacity: 1;
+				transition: .075s linear;
+			}
+		}
+	}
+}
+
+p#bibi-veil-powered {
+	a {
+		background: rgba(96,96,96,0.9);
+		&:hover {
+			background: rgba(150,150,150,0.9);
+		}
+	}
+}
+
 
 
 
