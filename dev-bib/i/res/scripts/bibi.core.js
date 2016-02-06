@@ -168,7 +168,7 @@ Bibi.welcome = function() {
 
 	E.dispatch("bibi:welcome");
 	window.addEventListener("message", M.gate, false);
-	M.post("bibi:welcome");
+	//M.post("bibi:welcome");
 
 	setTimeout(function() {
 		if(U["book"]) {
@@ -1090,7 +1090,7 @@ L.start = function() {
 			}, 500);
 		});
 		E.dispatch("bibi:start");
-		M.post("bibi:start");
+		//M.post("bibi:start");
 		O.log(1, 'Enjoy Readings!');
 		O.stamp("Enjoy");
 		R.Started = true;
@@ -2145,7 +2145,7 @@ C.createVeil = function() {
                 play: function(Eve) {
                     Eve.stopPropagation();
                     L.play();
-                    M.post("bibi:play:button:" + location.href);
+                    //M.post("bibi:play:button:" + location.href);
                     E.dispatch("bibi:play:button");
                 },
 				hide: function() {
