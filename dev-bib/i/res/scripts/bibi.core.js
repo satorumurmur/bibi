@@ -134,10 +134,10 @@ Bibi.welcome = function() {
 		if(document.body.msRequestFullscreen)                                              return true;
 		return false;
 	})()) {
-		O.FullscreenEnabled = true;
 		O.HTML.className = O.HTML.className + " fullscreen-enabled";
+        O.FullscreenElement  = O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML;
+        O.FullscreenDocument = O.WindowEmbedded ? window.parent.document    : document;
 	} else {
-		O.FullscreenEnabled = false;
 		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
 	}
 
@@ -2280,19 +2280,25 @@ C.createPanel = function() {
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>'
     }, function() {
-        if(!O.HTML.Fullscreen) {
-            sML.requestFullscreen(O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML);
-            O.HTML.Fullscreen = true;
-            sML.addClass(O.HTML, "fullscreen");
-            C.setLabel(this, 1);
-            E.dispatch("bibi:requestFullscreen");
+        var Button = this;
+        if(!O.FullscreenElement.Fullscreen) {
+            sML.requestFullscreen(O.FullscreenElement);
         } else {
-            sML.exitFullscreen(O.WindowEmbedded ? window.parent.document : document);
-            O.HTML.Fullscreen = false;
-            sML.removeClass(O.HTML, "fullscreen");
-            C.setLabel(this, 0);
-            E.dispatch("bibi:exitFullscreen");
+            sML.exitFullscreen(O.FullscreenDocument);
         }
+		C.Panel.toggle(function() {
+            if(!O.FullscreenElement.Fullscreen) {
+                O.FullscreenElement.Fullscreen = true;
+                sML.addClass(O.HTML, "fullscreen");
+                C.setLabel(Button, 1);
+                E.dispatch("bibi:requestFullscreen");
+            } else {
+                O.FullscreenElement.Fullscreen = false;
+                sML.removeClass(O.HTML, "fullscreen");
+                C.setLabel(Button, 0);
+                E.dispatch("bibi:exitFullscreen");
+            }
+        });
     });
     C.addButton({
         id: "bibi-open-newwindow",

@@ -19,7 +19,7 @@ Bibi.x({
 	C.listenKeys = function(E) {
 		if(!R.Started) return;
 		E.preventDefault();
-		var Window = (parent != window && parent.Bibi) ? parent : window;
+		var Window = (window.Bibi && window.O && window.C) ? window : parent;
 		Window.C.KeyCode = E.keyCode;
 		var Dir = null; //                                                      W                          N                          E                          S
 		if(S["page-progression-direction"] == "rtl") switch(E.keyCode) {  case 37: Dir = +1; break;  case 38: Dir = -1; break;  case 39: Dir = -1; break;  case 40: Dir = +1; break;  }
