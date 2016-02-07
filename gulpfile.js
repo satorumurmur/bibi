@@ -157,11 +157,11 @@ gulp.task('make_script_extension_cplus', function() {
     return make_script({
         src: [
 			'./dev-bib/i/extensions/cplus/_banner.js',
-			'./dev-bib/i/extensions/cplus/cplus.viewmenu.js',
-			'./dev-bib/i/extensions/cplus/cplus.arrows.js',
-			'./dev-bib/i/extensions/cplus/cplus.keys.js',
-			'./dev-bib/i/extensions/cplus/cplus.messages.js',
-			'./dev-bib/i/extensions/cplus/cplus.indicator.js'
+			'./dev-bib/i/extensions/cplus/cplus_viewmenu.js',
+			'./dev-bib/i/extensions/cplus/cplus_arrows.js',
+			'./dev-bib/i/extensions/cplus/cplus_keys.js',
+			'./dev-bib/i/extensions/cplus/cplus_messages.js',
+			'./dev-bib/i/extensions/cplus/cplus_indicator.js'
         ],
         dist: {
             dir: './bib/i/extensions/cplus',
