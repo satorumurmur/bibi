@@ -133,17 +133,16 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 ### Other utilities for development:
 
 + `$ gulp watch`
-    - It runs `build` task at first,
     - watches the changes of source files,
     - and rebuild the distribution files automatically when the source files are changed.
 + `$ gulp sync`
-    - It runs `watch` task at first,
+    - runs `build` and `watch` task,
     - launches a web server listening port 3000 by default,
     - opens a browser and load `http://localhost:3000/bib/i/?book=`,
     - reloads your browser automatically when the distribution files are changed,
     - and syncronizes your browsers on same URI in the web server.
 + `$ bundle exec rackup`
-    - It launches a web server listening port 9292 by default,
+    - launches a web server listening port 9292 by default,
     - and the server returns compiled CSS dynamically to your browser's request for the SCSS source files.
 
 The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)

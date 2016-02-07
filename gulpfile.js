@@ -25,13 +25,18 @@ var reload = false;
 
 gulp.task('clean', function() {
     $.del([
-        './bib/i/res/scripts/bibi.js',
-        './bib/i/res/styles/bibi.css',
-        './bib/i/extensions/*',
+        './bib/i/res/scripts',
+        './bib/i/res/styles',
+        './bib/i/extensions/analytics',
+        './bib/i/extensions/cplus',
+        './bib/i/extensions/epubcfi',
+        './bib/i/extensions/jatex',
+        './bib/i/extensions/overreflow',
+        './bib/i/extensions/unzipper',
         './bib/i.js',
         './bib/i.css'
     ]);
-    return;
+    return gulp;
 });
 
 
@@ -104,10 +109,7 @@ make_script = function(param) {
         .pipe($.uglify({
             preserveComments: 'some'
          }))
-        .pipe(gulp.dest(param.dist.dir))
-        .pipe($.browserSync.reload({
-            stream: true
-        }));
+        .pipe(gulp.dest(param.dist.dir));
     return reload ? g.pipe($.browserSync.reload({
             stream: true
         })) : g;
@@ -272,7 +274,7 @@ gulp.task('build', function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('watch', ['build'], function() {
+gulp.task('watch', function() {
     reload = true;
     gulp.watch([
         './dev-bib/i/res/styles/_lib/*.scss',
@@ -324,7 +326,11 @@ gulp.task('watch', ['build'], function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('sync', ['watch'], function() {
+gulp.task('sync', function() {
+    $.runSequence(
+        'build',
+        'watch'
+    );
     $.browserSync({
         server: {
             baseDir: './'
