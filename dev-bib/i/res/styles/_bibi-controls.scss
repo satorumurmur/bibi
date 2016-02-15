@@ -916,7 +916,7 @@ div#bibi-indicator-bar {
 	left: 0;
 	width: 100%;
 	height: 4px;
-	background: rgb(192,192,192);
+	background: rgb(216,216,216);
 	span#bibi-indicator-bar-progress {
 		display: block;
 		position: absolute;
@@ -924,7 +924,7 @@ div#bibi-indicator-bar {
 		html.page-rtl & { right: 0; }
 		top: 0;
 		height: 4px;
-		background: rgb(64,64,64);
+		background: rgb(96,96,96);
 		transition: width 0.125s linear;
 	}
 }
@@ -942,7 +942,7 @@ div#bibi-indicator-nombre {
 	left: 0;
 	right: 0;
 	top: auto;
-	bottom: 14px; // to be overwritten by cplus_indicator.js ... "bottom: " + (O.ScrollBars.Height + 2) + "px;"
+	bottom: 15px + 2px; html.WebKit &, html.Blink & { bottom: 12px + 2px; } // to be overwritten ... (O.ScrollBars.Height + 2) + "px"
 	html.view-paged & { bottom: 6px !important; }
 	margin: 0 auto;
 	border-radius: .8em;
@@ -953,16 +953,6 @@ div#bibi-indicator-nombre {
 	text-align: center;
 	color: $color;
 	background: rgba(240,240,240,0.9);
-	/*
-	html.OSX &, html.Windows &, html.Linux & {
-		$text-shadow-color: white;
-		text-shadow:
-			 0px -1px 1px $text-shadow-color,
-			 1px  0px 1px $text-shadow-color,
-			 0px  1px 1px $text-shadow-color,
-			-1px  0px 1px $text-shadow-color;
-	}
-	*/
 	transition: 0.125s ease-out;
 	&.transparentized {
 		opacity: 0;
@@ -980,11 +970,12 @@ div#bibi-indicator-nombre {
 		color: darken($color, 30%);
 	}
 	span#bibi-indicator-nombre-delimiter {
-		margin: 0 -0.125em;
+		margin: 0 0.1em 0 0.2em;
 	}
 	span#bibi-indicator-nombre-total {
 	}
 	span#bibi-indicator-nombre-percent {
+		margin-left: .25em;
 		color: lighten($color, 30%);
 		span.unit {
 			margin-left: .125em;

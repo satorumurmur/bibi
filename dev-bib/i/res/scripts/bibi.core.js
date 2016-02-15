@@ -2331,12 +2331,6 @@ C.createIndicator = function() {
 
     C.Indicator.Nombre = C.Indicator.appendChild(
         sML.create("div", { id: "bibi-indicator-nombre", className: "transparentized vanished",
-            innerHTML: [
-                '<span id="bibi-indicator-nombre-current"></span>',
-                '<span id="bibi-indicator-nombre-delimiter"></span>',
-                '<span id="bibi-indicator-nombre-total"></span>',
-                '<span id="bibi-indicator-nombre-percent"></span>'
-            ].join(" "),
             flick: function() {
                 clearTimeout(C.Indicator.Nombre.Timer_vanish);
                 clearTimeout(C.Indicator.Nombre.Timer_transparentize);
@@ -2360,12 +2354,12 @@ C.createIndicator = function() {
             }
         })
     );
-    C.Indicator.Nombre.Current   = document.getElementById("bibi-indicator-nombre-current");
-    C.Indicator.Nombre.Delimiter = document.getElementById("bibi-indicator-nombre-delimiter");
-    C.Indicator.Nombre.Total     = document.getElementById("bibi-indicator-nombre-total");
-    C.Indicator.Nombre.Percent   = document.getElementById("bibi-indicator-nombre-percent");
+    C.Indicator.Nombre.Current   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-current"   }));
+    C.Indicator.Nombre.Delimiter = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-delimiter" }));
+    C.Indicator.Nombre.Total     = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-total"     }));
+    C.Indicator.Nombre.Percent   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-percent"   }));
 
-    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
+    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px !important;");
 
     E.add("bibi:scrolled", C.Indicator.Bar.progress);
     E.add("bibi:scrolled", C.Indicator.Nombre.flick);
