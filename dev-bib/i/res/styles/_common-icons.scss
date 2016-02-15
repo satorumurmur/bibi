@@ -2,17 +2,35 @@
 // + Icons
 // --------------------------------------------------------------------------------
 
-// - Vars
-// --------------------------------------------------------------------------------
 
-$icon-size: 33px;
-$icon-width: $icon-size;
-$icon-height: $icon-size;
+// - Vars: Size
+// --------------------------------------------------------------------------------
 
 $shape-item-width: 11px;
 $shape-item-height: 17px;
 $shape-spread-width: $shape-item-width * 2 - 1px;
 $shape-spread-height: $shape-item-height;
+
+$icon-size: 29px;
+$icon-width: $icon-size;
+$icon-height: $icon-size;
+
+
+// - Vars: Color
+// --------------------------------------------------------------------------------
+
+$icon-border-color: rgb(192,192,192);
+
+$icon-label-alpha: 0.5;
+$icon-label-inner-color: white;
+$icon-background-color: rgba(248,248,248,0.9);
+
+$icon-background-color_chosen: rgb(192,192,192);
+
+$icon-label-inner-color_hover: rgb(144,144,144);
+$icon-background-color_hover: rgb(128,128,128);
+
+
 
 
 // - BiB/i Logo
@@ -77,7 +95,7 @@ $shape-spread-height: $shape-item-height;
 	&:before, &:after {
 		content: "";
 	}
-	* {
+	&:before, &:after, * {
 		position: absolute;
 	}
 	span.bibi-shape-spreads {
@@ -174,18 +192,24 @@ $shape-spread-height: $shape-item-height;
 
 .bibi-icon-open-newwindow,
 .bibi-icon-toggle-fullscreen {
+	text-decoration: none !important;
 	&:before {
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;
 		background: no-repeat center center;
 		background-size: contain;
 	}
 }
 
 .bibi-icon-open-newwindow {
-	text-decoration: none !important;
+	$image-size: ($icon-size - 1) * 0.8;
 	&:before {
-		margin: 3.5px auto 0;
-		width: 24px;
-		height: 24px;
+		//margin: 3.5px auto 0;
+		width: $image-size;
+		height: $image-size;
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_black_48dp.png); /* The Material Icons */
 	}
 	&:hover:before {
@@ -194,10 +218,11 @@ $shape-spread-height: $shape-item-height;
 }
 
 .bibi-icon-toggle-fullscreen {
+	$image-size: ($icon-size - 1) * 1.0;
 	&:before {
-		margin: 1.5px auto 0;
-		width: 28px;
-		height: 28px;
+		//margin: 1.5px auto 0;
+		width: $image-size;
+		height: $image-size;
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png); /* The Material Icons */
 		html.fullscreen &,
 		html:fullscreen &,
@@ -221,69 +246,37 @@ $shape-spread-height: $shape-item-height;
 
 //.bibi-icon { &, &:before, &:after, & * { transition: 0.15s linear; } }
 
+$icon-label-color: lighten(black, 100% * (1 - $icon-label-alpha));
+
 .bibi-icon {
-	$color_label: rgb(128,128,128);
-//	border-color: rgba(66,64,62,.5) !important;
-//	background-color: rgba(255,255,255,0.8) !important;
-	border-color: rgba(192,192,192,0.5) !important;
-	background-color: rgba(255,255,255,0.8) !important;
-//	opacity: .64;
+	border-color: $icon-border-color !important;
+	background-color: $icon-background-color !important;
+	&.bibi-icon-toggle-panel {
+		background-color: rgba(255,255,255,0.88) !important;
+	}
 	transition: 0.15s linear;
 	html.panel-opened & {
 //		opacity: 1 !important;
 	}
 	&:before, &:after {
-		color: $color_label !important;
+		color: $icon-label-color !important;
 	}
 	&.bibi-icon-toggle-panel:before,
 	&.bibi-icon-toggle-panel span,
 	&.bibi-icon-toggle-panel:after {
-		background-color: lighten($color_label, 5%) !important;
+		background-color: $icon-label-color !important;
 	}
 	&.bibi-icon-open-newwindow:before,
 	&.bibi-icon-toggle-fullscreen:before {
-		opacity: 0.4 !important;
+		// image: black version
+		opacity: $icon-label-alpha !important;
 	}
 	span.bibi-shape-spreads {
-		opacity: 0.8 !important;
+		//opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(128,128,128) !important;
-				background-color: white !important;
-			}
-		}
-	}
-}
-
-/*html.view-paged*/ .bibi-icon-paged,
-/*html.view-horizontal*/ .bibi-icon-horizontal,
-/*html.view-vertical*/ .bibi-icon-vertical {
-	background-color: rgb(236,232,228) !important;
-}
-
-.bibi-icon:hover {
-	$color_label: white;
-	background-color: rgba(132,128,124,.88) !important;
-	opacity: 1 !important;
-	&:before, &:after {
-		color: $color_label !important;
-	}
-	&.bibi-icon-toggle-panel:before,
-	&.bibi-icon-toggle-panel span,
-	&.bibi-icon-toggle-panel:after {
-		border-bottom-color: darken($color_label, 25%) !important;
-		background-color: $color_label !important;
-	}
-	&.bibi-icon-open-newwindow:before,
-	&.bibi-icon-toggle-fullscreen:before {
-		opacity: 1 !important;
-	}
-	span.bibi-shape-spreads {
-		opacity: 1 !important;
-		span.bibi-shape-spread {
-			span.bibi-shape-item {
-				border-color: white !important;
-				background-color: rgb(192,188,184) !important;
+				border-color: $icon-label-color !important;
+				background-color: $icon-label-inner-color !important;
 			}
 		}
 	}
@@ -293,15 +286,45 @@ html.view-paged .bibi-icon-paged,
 html.view-horizontal .bibi-icon-horizontal,
 html.view-vertical .bibi-icon-vertical {
 	// ON
-	background-color: rgb(196,192,188) !important;
+	background-color: $icon-background-color_chosen !important;
 	cursor: default !important;
-	opacity: 1 !important;
+	//opacity: 1 !important;
 	span.bibi-shape-spreads {
-		opacity: 1 !important;
+		//opacity: 1 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: rgb(164,160,156) !important;
-				background-color: white !important;
+				border-color: $icon-label-color !important;
+				background-color: $icon-label-inner-color !important;
+			}
+		}
+	}
+}
+
+$icon-label-color_hover: white;
+
+.bibi-icon:hover {
+	background-color: $icon-background-color_hover !important;
+	//opacity: 1 !important;
+	&:before, &:after {
+		color: $icon-label-color_hover !important;
+	}
+	&.bibi-icon-toggle-panel:before,
+	&.bibi-icon-toggle-panel span,
+	&.bibi-icon-toggle-panel:after {
+//		border-bottom-color: darken($icon-label-color_hover, 25%) !important;
+		background-color: $icon-label-color_hover !important;
+	}
+	&.bibi-icon-open-newwindow:before,
+	&.bibi-icon-toggle-fullscreen:before {
+		// image: white version
+		opacity: 1 !important;
+	}
+	span.bibi-shape-spreads {
+		//opacity: 1 !important;
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: $icon-label-color_hover !important;
+				background-color: $icon-label-inner-color_hover !important;
 			}
 		}
 	}

@@ -658,6 +658,7 @@ div#bibi-panel-bookinfo-cover {
 // --------------------------------------------------------------------------------
 
 div.bibi-buttons {
+	$button-margin: 4px;
 	box-sizing: border-box;
 	position: absolute;
 	z-index: 6000;
@@ -665,58 +666,35 @@ div.bibi-buttons {
 	height: $icon-height + 4px * 2;
 	color: white;
 	ul {
-		padding: 4px;
+		padding: $button-margin;
+		border: solid 0 rgb(234,234,234);
 		height: $icon-height;
 		li {
 			position: relative;
+			float: left;
+			margin-left: $button-margin / 2; &:first-child { margin-left: 0; }
 			opacity: 1;
-		}
-	}
-	&#bibi-switches,
-	&#bibi-panel-menus-alpha {
-		ul {
-			float: right;
-			li {
-				float: right;
-				margin-right: 4px;
-				&:first-child { margin-right: 0; }
-			}
 		}
 	}
 	&#bibi-switches {
 		right: 0;
+		ul {
+			float: right;
+		}
 	}
 	&#bibi-panel-menus-alpha {
-		right: 4px + $icon-size + 4px;
+		right: $button-margin + $icon-size + $button-margin;
+		ul {
+			float: right;
+			border-right-width: 1px;
+		}
 	}
 	&#bibi-panel-menus-beta {
 		left: 0;
 		ul {
-			li {
-				float: left;
-				margin-left: 4px;
-				&:first-child { margin-left: 0; }
-			}
+			float: left;
+			border-left-width: 1px; &:first-child { border-left-width: 0; }
 		}
-	}
-}
-
-
-// - Button: div.bibi-buttons > ul > li
-// --------------------------------------------------------------------------------
-
-li#bibi-switch-panel {
-}
-
-li#bibi-toggle-fullscreen {
-	html.fullscreen-not-enabled & {
-		display: none;
-	}
-}
-
-li#bibi-open-newwindow {
-	html.window-not-embedded & {
-		display: none;
 	}
 }
 

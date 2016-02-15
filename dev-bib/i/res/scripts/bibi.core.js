@@ -135,6 +135,7 @@ Bibi.welcome = function() {
 		return false;
 	})()) {
 		O.HTML.className = O.HTML.className + " fullscreen-enabled";
+        O.FullscreenEnabled = true;
         O.FullscreenElement  = O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML;
         O.FullscreenDocument = O.WindowEmbedded ? window.parent.document    : document;
 	} else {
@@ -2270,7 +2271,7 @@ C.createPanel = function() {
     C["panel-menus-beta"].addEventListener("click", function(Eve) {
 		Eve.stopPropagation();
 	});
-    C.addButton({
+    if(O.FullscreenEnabled) C.addButton({
         id: "bibi-toggle-fullscreen",
         Category: "panel-menus-alpha",
         Group: "window",
@@ -2300,7 +2301,7 @@ C.createPanel = function() {
             }
         });
     });
-    C.addButton({
+    if(O.WindowEmbedded) C.addButton({
         id: "bibi-open-newwindow",
         Category: "panel-menus-alpha",
         Group: "window",
