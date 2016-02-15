@@ -31,7 +31,7 @@ Bibi.x({
     C.Indicator.Bar.Progress = document.getElementById("bibi-indicator-bar-progress");
 
     C.Indicator.Nombre = O.Body.appendChild(
-        sML.create("div", { id: "bibi-indicator-nombre",
+        sML.create("div", { id: "bibi-indicator-nombre", className: "transparentized vanished",
             innerHTML: [
                 '<span id="bibi-indicator-nombre-current"></span>',
                 '<span id="bibi-indicator-nombre-delimiter"></span>',
@@ -66,7 +66,11 @@ Bibi.x({
     C.Indicator.Nombre.Total     = document.getElementById("bibi-indicator-nombre-total");
     C.Indicator.Nombre.Percent   = document.getElementById("bibi-indicator-nombre-percent");
 
+    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
+
     E.add("bibi:scrolled", C.Indicator.Bar.progress);
     E.add("bibi:scrolled", C.Indicator.Nombre.flick);
+
+    E.add("bibi:start", function() { setTimeout(C.Indicator.Nombre.flick, 321); });
 
 });

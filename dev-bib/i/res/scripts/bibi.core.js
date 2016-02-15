@@ -1127,6 +1127,7 @@ R.resetStage = function() {
     R.Stage.Width   = window.innerWidth;
     R.Stage.Height  = window.innerHeight;// - 35 * 2;
     if(S.RVM == "paged") {
+        R.Stage[S.SIZE.B] -= 4;
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
     } else {
         R.Stage[S.SIZE.B] -= O.ScrollBars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
