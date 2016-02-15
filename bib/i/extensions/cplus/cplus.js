@@ -11,7 +11,6 @@
  * 2. BiB/i Extension: C+Arrows
  * 3. BiB/i Extension: C+Keys
  * 4. BiB/i Extension: C+Messages
- * 5. BiB/i Extension: C+Indicator
  */
 /*!
  *
@@ -34,18 +33,4 @@ Bibi.x({name:"C+Arrows",description:"Floating Buttons for Scrolling and Page-Fli
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
-Bibi.x({name:"C+Keys",description:"Listening Key Pressing.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.listenKeys=function(e){if(R.Started){e.preventDefault();var i=window.Bibi&&window.O&&window.C?window:parent;i.C.KeyCode=e.keyCode;var r=null;if("rtl"==S["page-progression-direction"])switch(e.keyCode){case 37:r=1;break;case 38:r=-1;break;case 39:r=-1;break;case 40:r=1}else switch(e.keyCode){case 37:r=-1;break;case 38:r=-1;break;case 39:r=1;break;case 40:r=1}r&&i.R.page(r)}},E.add("bibi:loadItem",function(e){e.contentWindow.addEventListener("keydown",C.listenKeys,!1)}),E.add("bibi:start",function(){O.SmartPhone||window.addEventListener("keydown",C.listenKeys,!1)})}),/*!
- *
- * # BiB/i Extension: C+Messages
- *
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- */
-/*!
- *
- * # BiB/i Extension: C+Indicator
- *
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- */
-Bibi.x({name:"C+Indicator",description:"Show Indicator (Bar, Nombre, and Percent).",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.Indicator={},C.Indicator.Bar=O.Body.appendChild(sML.create("div",{id:"bibi-indicator-bar",innerHTML:['<span id="bibi-indicator-bar-progress"></span>'].join(" "),progress:function(){C.Indicator.Bar.Progress.style.width=R.Current.PageNumber/R.Pages.length*100+"%"}})),C.Indicator.Bar.Progress=document.getElementById("bibi-indicator-bar-progress"),C.Indicator.Nombre=O.Body.appendChild(sML.create("div",{id:"bibi-indicator-nombre",innerHTML:['<span id="bibi-indicator-nombre-current"></span>','<span id="bibi-indicator-nombre-delimiter"></span>','<span id="bibi-indicator-nombre-total"></span>','<span id="bibi-indicator-nombre-percent"></span>'].join(" "),flick:function(){clearTimeout(C.Indicator.Nombre.Timer_vanish),clearTimeout(C.Indicator.Nombre.Timer_transparentize),setTimeout(function(){sML.removeClass(C.Indicator.Nombre,"vanished")},0),setTimeout(function(){sML.removeClass(C.Indicator.Nombre,"transparentized")},10),C.Indicator.Nombre.Timer_transparentize=setTimeout(function(){sML.addClass(C.Indicator.Nombre,"transparentized")},1981),C.Indicator.Nombre.Timer_vanish=setTimeout(function(){sML.addClass(C.Indicator.Nombre,"vanished")},2236),C.Indicator.Nombre.Current.innerHTML=R.Current.PageNumber,C.Indicator.Nombre.Delimiter.innerHTML="/",C.Indicator.Nombre.Total.innerHTML=R.Pages.length,C.Indicator.Nombre.Percent.innerHTML="("+R.Current.Percent+"%)",E.dispatch("bibi:x:cplus:nombre:flick")}})),C.Indicator.Nombre.Current=document.getElementById("bibi-indicator-nombre-current"),C.Indicator.Nombre.Delimiter=document.getElementById("bibi-indicator-nombre-delimiter"),C.Indicator.Nombre.Total=document.getElementById("bibi-indicator-nombre-total"),C.Indicator.Nombre.Percent=document.getElementById("bibi-indicator-nombre-percent"),E.add("bibi:scrolled",C.Indicator.Bar.progress),E.add("bibi:scrolled",C.Indicator.Nombre.flick)});
+Bibi.x({name:"C+Keys",description:"Listening Key Pressing.",author:"Satoru MATSUSHIMA (@satorumurmur)",version:Bibi.version,build:Bibi.build})(function(){C.listenKeys=function(e){if(R.Started){e.preventDefault();var i=window.Bibi&&window.O&&window.C?window:parent;i.C.KeyCode=e.keyCode;var a=null;if("rtl"==S["page-progression-direction"])switch(e.keyCode){case 37:a=1;break;case 38:a=-1;break;case 39:a=-1;break;case 40:a=1}else switch(e.keyCode){case 37:a=-1;break;case 38:a=-1;break;case 39:a=1;break;case 40:a=1}a&&i.R.page(a)}},E.add("bibi:loadItem",function(e){e.contentWindow.addEventListener("keydown",C.listenKeys,!1)}),E.add("bibi:start",function(){O.SmartPhone||window.addEventListener("keydown",C.listenKeys,!1)})});
