@@ -152,6 +152,7 @@ Bibi.welcome = function() {
 
 	C.createVeil();
 	C.createPanel();
+	C.createIndicator();
 
 	if(sML.UA.InternetExplorer < 11) return Bibi.byebye();
 
@@ -1127,7 +1128,7 @@ R.resetStage = function() {
     R.Stage.Width   = window.innerWidth;
     R.Stage.Height  = window.innerHeight;// - 35 * 2;
     if(S.RVM == "paged") {
-        R.Stage[S.SIZE.B] -= 4;
+        R.Stage[S.SIZE.B] -= C.Indicator.Bar.offsetHeight;
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
     } else {
         R.Stage[S.SIZE.B] -= O.ScrollBars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
@@ -2312,6 +2313,64 @@ C.createPanel.createMenus = function() {
         IconHTML: '<a class="bibi-icon bibi-icon-open-newwindow" href="' + location.href + '" target="_blank"></a>'
     });
 
+};
+
+
+C.createIndicator = function() {
+
+    C.Indicator = O.Body.appendChild(sML.create("div", { id: "bibi-indicator" }));
+
+    C.Indicator.Bar = C.Indicator.appendChild(
+        sML.create("div", { id: "bibi-indicator-bar",
+            progress: function() {
+                C.Indicator.Bar.Progress.style.width = (R.Current.PageNumber / R.Pages.length * 100) + "%";
+            }
+        })
+    );
+    C.Indicator.Bar.Progress = C.Indicator.Bar.appendChild(sML.create("span", { id: "bibi-indicator-bar-progress" }));
+
+    C.Indicator.Nombre = C.Indicator.appendChild(
+        sML.create("div", { id: "bibi-indicator-nombre", className: "transparentized vanished",
+            innerHTML: [
+                '<span id="bibi-indicator-nombre-current"></span>',
+                '<span id="bibi-indicator-nombre-delimiter"></span>',
+                '<span id="bibi-indicator-nombre-total"></span>',
+                '<span id="bibi-indicator-nombre-percent"></span>'
+            ].join(" "),
+            flick: function() {
+                clearTimeout(C.Indicator.Nombre.Timer_vanish);
+                clearTimeout(C.Indicator.Nombre.Timer_transparentize);
+                setTimeout(function() {
+                    sML.removeClass(C.Indicator.Nombre, "vanished");
+                }, 0);
+                setTimeout(function() {
+                    sML.removeClass(C.Indicator.Nombre, "transparentized");
+                }, 10);
+                C.Indicator.Nombre.Timer_transparentize = setTimeout(function() {
+                    sML.addClass(C.Indicator.Nombre, "transparentized");
+                }, 1981);
+                C.Indicator.Nombre.Timer_vanish = setTimeout(function() {
+                    sML.addClass(C.Indicator.Nombre, "vanished");
+                }, 1981 + 255);
+                C.Indicator.Nombre.Current.innerHTML   = R.Current.PageNumber;
+                C.Indicator.Nombre.Delimiter.innerHTML = '/';
+                C.Indicator.Nombre.Total.innerHTML     = R.Pages.length;
+                C.Indicator.Nombre.Percent.innerHTML   = '(' + R.Current.Percent + '<span class="unit">%</span>)';
+                E.dispatch("bibi:x:cplus:nombre:flick");
+            }
+        })
+    );
+    C.Indicator.Nombre.Current   = document.getElementById("bibi-indicator-nombre-current");
+    C.Indicator.Nombre.Delimiter = document.getElementById("bibi-indicator-nombre-delimiter");
+    C.Indicator.Nombre.Total     = document.getElementById("bibi-indicator-nombre-total");
+    C.Indicator.Nombre.Percent   = document.getElementById("bibi-indicator-nombre-percent");
+
+    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
+
+    E.add("bibi:scrolled", C.Indicator.Bar.progress);
+    E.add("bibi:scrolled", C.Indicator.Nombre.flick);
+
+    E.add("bibi:start", function() { setTimeout(C.Indicator.Nombre.flick, 321); });
 
 };
 

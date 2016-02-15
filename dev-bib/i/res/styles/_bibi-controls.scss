@@ -928,6 +928,7 @@ div#bibi-indicator-bar {
 // --------------------------------------------------------------------------------
 
 div#bibi-indicator-nombre {
+	$color: rgb(64,64,64);
 	box-sizing: border-box;
 	overflow: hidden;
 	z-index: 2000;
@@ -941,10 +942,10 @@ div#bibi-indicator-nombre {
 	border-radius: .8em;
 	width: 10em;
 	height: 1.6em;
-	line-height: 1.44em;
+	line-height: 1.5em;
 	font-size: 12px;
 	text-align: center;
-	color: rgb(64,64,64);
+	color: $color;
 	background: rgba(240,240,240,0.9);
 	/*
 	html.OSX &, html.Windows &, html.Linux & {
@@ -970,7 +971,7 @@ div#bibi-indicator-nombre {
 	span#bibi-indicator-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
-		color: rgb(32,32,32);
+		color: darken($color, 30%);
 	}
 	span#bibi-indicator-nombre-delimiter {
 		margin: 0 -0.125em;
@@ -978,5 +979,10 @@ div#bibi-indicator-nombre {
 	span#bibi-indicator-nombre-total {
 	}
 	span#bibi-indicator-nombre-percent {
+		color: lighten($color, 30%);
+		span.unit {
+			margin-left: .125em;
+			font-size: .75em;
+		}
 	}
 }
