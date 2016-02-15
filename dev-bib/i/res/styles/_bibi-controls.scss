@@ -666,6 +666,7 @@ div.bibi-buttons {
 	top: 0;
 	height: $icon-height + 4px * 2;
 	color: white;
+	transition: opacity 0.75s linear;
 	ul {
 		padding: $button-margin;
 		border: solid 0 rgb(234,234,234);

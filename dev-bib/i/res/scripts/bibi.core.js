@@ -2210,7 +2210,17 @@ C.createPanel = function() {
     // Powered
 	C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
-    // Box
+    C.createPanel.createBookInfo();
+    C.createPanel.createSwitches();
+    C.createPanel.createMenus();
+
+	E.dispatch("bibi:createPanel");
+
+};
+
+
+C.createPanel.createBookInfo = function() {
+
 	C.Panel.BookInfo = C.Panel.appendChild(
 		sML.create("div", { id: "bibi-panel-bookinfo" })
 	);
@@ -2218,24 +2228,22 @@ C.createPanel = function() {
 		sML.create("div", { id: "bibi-panel-bookinfo-box" })
 	);
 
-    // Box > Navigation
     C.Panel.BookInfo.Navigation = C.Panel.BookInfo.Box.appendChild(
         sML.create("div", { id: "bibi-panel-bookinfo-navigation" })
     );
 
-    // Box > Cover
     C.Panel.BookInfo.Cover = C.Panel.BookInfo.Box.appendChild(
         sML.create("div", { id: "bibi-panel-bookinfo-cover" })
     );
+};
 
-    // Switches
-	C["switches"] = O.Body.appendChild(
-		sML.create("div", { className: "bibi-buttons", id: "bibi-switches" }, { "transition": "opacity 0.75s linear" })
-	);
-    C["switches"].addEventListener("click", function(Eve) {
-		Eve.stopPropagation();
-	});
-	C["switches"].Panel = C.addButton({
+
+C.createPanel.createSwitches = function() {
+
+    C["switches"] = O.Body.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-switches" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+
+    // Toggle Panel
+    C["switches"].Panel = C.addButton({
 		Category: "switches",
 		Group: "panel",
 		Labels: [
@@ -2246,25 +2254,22 @@ C.createPanel = function() {
 	}, function() {
 		C.Panel.toggle();
 	});
+
     E.add("bibi:openPanel",  function() { C.setLabel(C["switches"].Panel, 1); });
     E.add("bibi:closePanel", function() { C.setLabel(C["switches"].Panel, 0); });
 	E.add("bibi:start", function() {
 		sML.style(C["switches"].Panel, { display: "block" });
 	});
 
-    // Menus
-	C["panel-menus-alpha"] = C.Panel.appendChild(
-		sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-alpha" })
-	);
-    C["panel-menus-alpha"].addEventListener("click", function(Eve) {
-		Eve.stopPropagation();
-	});
-	C["panel-menus-beta"] = C.Panel.appendChild(
-		sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-beta" })
-	);
-    C["panel-menus-beta"].addEventListener("click", function(Eve) {
-		Eve.stopPropagation();
-	});
+};
+
+
+C.createPanel.createMenus = function() {
+
+    C["panel-menus-alpha"] = C.Panel.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-alpha" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+	C["panel-menus-beta"]  = C.Panel.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-beta"  }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+
+    // Fullscreen
     if(O.FullscreenEnabled) C.addButton({
         id: "bibi-toggle-fullscreen",
         Category: "panel-menus-alpha",
@@ -2295,6 +2300,8 @@ C.createPanel = function() {
             }
         });
     });
+
+    // New Window
     if(O.WindowEmbedded) C.addButton({
         id: "bibi-open-newwindow",
         Category: "panel-menus-alpha",
@@ -2305,7 +2312,6 @@ C.createPanel = function() {
         IconHTML: '<a class="bibi-icon bibi-icon-open-newwindow" href="' + location.href + '" target="_blank"></a>'
     });
 
-	E.dispatch("bibi:createPanel");
 
 };
 
@@ -2317,6 +2323,7 @@ C.setLabel = function(Button, State) {
 	Button.title = Button.Label.innerHTML = (Japanese ? Label["ja"] + " / " : "") + Label["en"];
 	return State;
 };
+
 
 C.addButton = function(Param, Fn) {
 	if(typeof Param.Category != "string" || typeof Param.Group != "string") return false;
@@ -2338,6 +2345,7 @@ C.addButton = function(Param, Fn) {
 	try { C.setLabel(Button, 0); } catch(Err) { E.add("bibi:readPackageDocument", function() { C.setLabel(Button, 0); }); }
 	return Button;
 };
+
 
 C.removeButton = function(Button) {
 	if(typeof Button == "string") Button = document.getElementById(Button);
