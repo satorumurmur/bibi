@@ -658,8 +658,11 @@ div#bibi-panel-bookinfo-cover {
 // - Buttons: div#bibi-switches & div#bibi-panel-menus-alpha & div#bibi-panel-menus-beta
 // --------------------------------------------------------------------------------
 
-div.bibi-buttons {
-	$button-margin: 4px;
+$button-margin: 4px;
+
+div#bibi-switch,
+div#bibi-panel-menu-alpha,
+div#bibi-panel-menu-beta {
 	box-sizing: border-box;
 	position: absolute;
 	z-index: 6000;
@@ -678,25 +681,28 @@ div.bibi-buttons {
 			opacity: 1;
 		}
 	}
-	&#bibi-switches {
-		right: 0;
-		ul {
-			float: right;
-		}
+}
+
+div#bibi-switch {
+	right: 0;
+	ul {
+		float: right;
 	}
-	&#bibi-panel-menus-alpha {
-		right: $button-margin + $icon-size + $button-margin;
-		ul {
-			float: right;
-			border-right-width: 1px;
-		}
+}
+
+div#bibi-panel-menu-alpha {
+	right: $button-margin + $icon-size + $button-margin;
+	ul {
+		float: right;
+		border-right-width: 1px;
 	}
-	&#bibi-panel-menus-beta {
-		left: 0;
-		ul {
-			float: left;
-			border-left-width: 1px; &:first-child { border-left-width: 0; }
-		}
+}
+
+div#bibi-panel-menu-beta {
+	left: 0;
+	ul {
+		float: left;
+		border-left-width: 1px; &:first-child { border-left-width: 0; }
 	}
 }
 

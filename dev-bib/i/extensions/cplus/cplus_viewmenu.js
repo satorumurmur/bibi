@@ -26,7 +26,7 @@ Bibi.x({
 	Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">'   + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 
 	C.addButton({
-		Category: "panel-menus-alpha",
+		Category: "panel-menu-alpha",
 		Group: "view",
 		Labels: [
 			{ ja: 'ページ表示', en: 'Paged View' }
@@ -39,7 +39,7 @@ Bibi.x({
 	});
 
 	C.addButton({
-		Category: "panel-menus-alpha",
+		Category: "panel-menu-alpha",
 		Group: "view",
 		Labels: [
 			{ ja: '横スクロール表示', en: 'Scroll View (Horizontal)' }
@@ -52,7 +52,7 @@ Bibi.x({
 	});
 
 	C.addButton({
-		Category: "panel-menus-alpha",
+		Category: "panel-menu-alpha",
 		Group: "view",
 		Labels: [
 			{ ja: '縦スクロール表示', en: 'Scroll View (Vertical)' }

@@ -2212,7 +2212,7 @@ C.createPanel = function() {
 	C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
     C.createPanel.createBookInfo();
-    C.createPanel.createSwitches();
+    C.createPanel.createSwitch();
     C.createPanel.createMenus();
 
 	E.dispatch("bibi:createPanel");
@@ -2239,13 +2239,13 @@ C.createPanel.createBookInfo = function() {
 };
 
 
-C.createPanel.createSwitches = function() {
+C.createPanel.createSwitch = function() {
 
-    C["switches"] = O.Body.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-switches" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+    C["switch"] = O.Body.appendChild(sML.create("div", { id: "bibi-switch" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
 
     // Toggle Panel
-    C["switches"].Panel = C.addButton({
-		Category: "switches",
+    C["switch"].Panel = C.addButton({
+		Category: "switch",
 		Group: "panel",
 		Labels: [
 			{ ja: 'メニューを開く',   en: 'Open Menu'  },
@@ -2256,10 +2256,10 @@ C.createPanel.createSwitches = function() {
 		C.Panel.toggle();
 	});
 
-    E.add("bibi:openPanel",  function() { C.setLabel(C["switches"].Panel, 1); });
-    E.add("bibi:closePanel", function() { C.setLabel(C["switches"].Panel, 0); });
+    E.add("bibi:openPanel",  function() { C.setLabel(C["switch"].Panel, 1); });
+    E.add("bibi:closePanel", function() { C.setLabel(C["switch"].Panel, 0); });
 	E.add("bibi:start", function() {
-		sML.style(C["switches"].Panel, { display: "block" });
+		sML.style(C["switch"].Panel, { display: "block" });
 	});
 
 };
@@ -2267,13 +2267,13 @@ C.createPanel.createSwitches = function() {
 
 C.createPanel.createMenus = function() {
 
-    C["panel-menus-alpha"] = C.Panel.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-alpha" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
-	C["panel-menus-beta"]  = C.Panel.appendChild(sML.create("div", { className: "bibi-buttons", id: "bibi-panel-menus-beta"  }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+    C["panel-menu-alpha"] = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-alpha" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
+	C["panel-menu-beta"]  = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-beta"  }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
 
     // Fullscreen
     if(O.FullscreenEnabled) C.addButton({
         id: "bibi-toggle-fullscreen",
-        Category: "panel-menus-alpha",
+        Category: "panel-menu-alpha",
         Group: "window",
         Labels: [
             { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
@@ -2305,7 +2305,7 @@ C.createPanel.createMenus = function() {
     // New Window
     if(O.WindowEmbedded) C.addButton({
         id: "bibi-open-newwindow",
-        Category: "panel-menus-alpha",
+        Category: "panel-menu-alpha",
         Group: "window",
         Labels: [
             { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }
