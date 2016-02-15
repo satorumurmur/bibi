@@ -69,8 +69,6 @@
 					frameborder: "0",
 					scrolling: "auto",
 					allowfullscreen: "true",
-					webkitallowfullscreen: "true",
-					mozallowfullscreen: "true",
 					src: Src
 				})
 			);

@@ -129,12 +129,12 @@ Bibi.welcome = function() {
     }
 
 	if((function() {
-        if(O.WindowEmbedded && !O.ParentHolder) return false;
-		if(document.body.requestFullscreen       || document.body.requestFullScreen)       return true;
-		if(document.body.webkitRequestFullscreen || document.body.webkitRequestFullScreen) return true;
-		if(document.body.mozRequestFullscreen    || document.body.mozRequestFullScreen)    return true;
-		if(document.body.msRequestFullscreen)                                              return true;
-		return false;
+        if(O.WindowEmbedded && !O.ParentHolder)   return false;
+		if(document.body.requestFullscreen)       return true;
+		if(document.body.webkitRequestFullscreen) return true;
+		if(document.body.mozRequestFullScreen)    return true;
+		if(document.body.msRequestFullscreen)     return true;
+		                                          return false;
 	})()) {
 		O.HTML.className = O.HTML.className + " fullscreen-enabled";
         O.FullscreenEnabled = true;
