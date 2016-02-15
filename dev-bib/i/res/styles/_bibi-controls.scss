@@ -621,8 +621,8 @@ div#bibi-panel-bookinfo-cover {
 	html.page-ltr & { margin-top: 2em; border-top-width: 1px; padding-top: 2em; padding-bottom: 2em; margin-right: 30px; }
 	html.page-rtl & { margin-right: 2em; border-right-width: 1px; padding-right: 2em; padding-left: 2em; margin-bottom: 30px; }
 	img {
-		max-width: 50%;
-		max-height: 50%;
+		max-width:  40%; max-width:  40vw;
+		max-height: 40%; max-height: 40vh;
 		html.page-ltr & { margin-bottom: .75em; }
 		html.page-rtl & { margin-left: .75em; }
 	}
