@@ -170,7 +170,7 @@ div#bibi-veil-cover {
 	&.without-cover-image{
 		$icon-size: 128px;
 		opacity: 1;
-		p, &:after {
+		p, &:before {
 			display: block;
 			position: absolute;
 			margin: auto;
@@ -206,7 +206,7 @@ div#bibi-veil-cover {
 				font-size: 10px;
 			}
 		}
-		&:after {
+		&:before {
 			@include font-icon("Material Icons");
 			content: /*import_contacts*/ "\e0e0";
 			z-index: 1;
@@ -223,70 +223,51 @@ div#bibi-veil-cover {
 }
 
 
-// - Veil > Catcher, PlayButton
+// - Veil > Catcher
 // --------------------------------------------------------------------------------
 
-p#bibi-veil-catcher,
-p#bibi-veil-playbutton {
+p#bibi-veil-catcher {
+	$size: 140px;
 	box-sizing: border-box;
-	position: absolute;
+	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 	z-index: 100;
-	left: 0;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	margin: auto;
 	width: 100%;
 	height: 100%;
 	transition: 0.2s linear;
+	cursor: pointer;
 	&:before, &:after, span {
 		box-sizing: border-box;
 		display: block;
-		position: absolute;
-		left: 0;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		margin: auto;
+		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 		vertical-align: middle;
 		text-align: center;
-		color: rgb(128,128,128);
+		color: rgba(255,255,255,0.5);
 		transition: .2s cubic-bezier(.2,.8,.8,1.6);
-		//text-shadow: -1px -1px 0 rgba(0,0,0,0.2);
-		//text-shadow: -1px -1px 0 rgba(0,0,0,0.75);
 	}
 	&:before, &:after {
 		@include font-icon("Material Icons");
 	}
-}
-
-p#bibi-veil-catcher {
-	$icon-size: 140px;
-	cursor: pointer;
-	&:before, &:after, span {
-		color: rgba(255,255,255,0.5);
+	&:before { // icon
+		content: /*import_contacts*/ "\e0e0";
+		width: $size;
+		height: $size;
+		line-height: $size;
+		font-size: $size;
+		transform: translateY($size * -0.1);
 	}
-	&:before {
+	&:after { // frame
 		content: "";
 		border: dashed 10px;
 		border-radius: 30px;
 		width: 88%;
 		height: 80%;
 	}
-	&:after {
-		content: /*import_contacts*/ "\e0e0";
-		width: $icon-size;
-		height: $icon-size;
-		line-height: $icon-size;
-		font-size: $icon-size;
-		transform: translateY($icon-size * -0.1);
-	}
 	span {
 		width: 100%;
 		height: 1.5em;
 		font-size: 12px;
 		font-weight: bold;
-		transform: translateY($icon-size * 0.5);
+		transform: translateY($size * 0.5);
 	}
 	input {
 		visibility: hidden;
@@ -296,64 +277,84 @@ p#bibi-veil-catcher {
 		&:before, &:after, span {
 			color: white;
 		}
-		&:after {
-			transform: translateY($icon-size * -0.1) scale(1.1);
+		&:before {
+			transform: translateY($size * -0.1) scale(1.1);
 		}
 		span {
-			transform: translateY($icon-size * 0.5) scale(0.9);
+			transform: translateY($size * 0.5) scale(0.9);
 		}
 	}
 }
 
+
+// - Veil > PlayButton
+// --------------------------------------------------------------------------------
+
 p#bibi-veil-playbutton {
 	$size: 81px;
 	$hover-move: -4px;
+	box-sizing: border-box;
+	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
+	z-index: 100;
+	width: 100%;
+	height: 100%;
+	transition: 0.2s linear;
 	cursor: pointer;
 	&:hover  { background: rgba(0,0,0,0.5); }
 	&:active { background: rgba(0,0,0,0.25); }
-	html & {
-		&:after {
-			content: /*play_circle_filled*/ "\e038";
-			z-index: 2;
-			width: $size;
-			height: $size;
-			line-height: $size;
-			font-size: $size;
-			color: rgb(216,216,216);
-		}
-		&:hover:after  { color: white; }
-		&:active:after {}
+	&:before, &:after, span {
+		box-sizing: border-box;
+		display: block;
+		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
+		vertical-align: middle;
+		text-align: center;
+		color: rgb(128,128,128);
+		transition: .2s cubic-bezier(.2,.8,.8,1.6);
 	}
-	html.view-vertical & {
+	&:before, &:after {
+		@include font-icon("Material Icons");
+	}
+	&:before { // icon
+		content: /*play_circle_filled*/ "\e038";
+		width: $size;
+		height: $size;
+		line-height: $size;
+		font-size: $size;
+		color: rgb(216,216,216);
+	}
+	&:hover:before  { color: white; }
+	&:active:before {}
+	html.view-vertical.page-ltr &,
+	html.view-vertical.page-rtl & {
 		$offset: 8px;
-		&:after {
+		&:before {
 			top: auto;
 			bottom: $offset;
 			transform: rotate(90deg);
 		}
-		&:hover:after  { bottom: $offset + $hover-move; }
-		&:active:after { bottom: $size * -1/3; }
+		&:hover:before  { bottom: $offset + $hover-move; }
+		&:active:before { bottom: $size * -1/3; }
 	}
 	html.view-horizontal.page-rtl &,
 	html.view-paged.page-rtl & {
 		$offset: 8px;
-		&:after {
+		&:before {
 			left: $offset;
 			right: auto;
 			transform: rotate(180deg);
 		}
-		&:hover:after  { left: $offset + $hover-move; }
-		&:active:after { left: $size * -1/3; }
+		&:hover:before  { left: $offset + $hover-move; }
+		&:active:before { left: $size * -1/3; }
 	}
 	html.view-horizontal.page-ltr &,
 	html.view-paged.page-ltr & {
 		$offset: 8px;
-		&:after {
+		&:before {
 			left: auto;
 			right: $offset;
 		}
-		&:hover:after  { right: $offset + $hover-move; }
-		&:active:after { right: $size * -1/3; }
+		&:hover:before  { right: $offset + $hover-move; }
+		&:active:before { right: $size * -1/3; }
 	}
 }
 
