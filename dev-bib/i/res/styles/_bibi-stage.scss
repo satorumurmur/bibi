@@ -53,10 +53,6 @@ body {
 	height: 100%;
 	background: transparent no-repeat center center;
 	transition: opacity .25s ease;
-	html.with-poster & {
-		background-size: contain;
-		opacity: 0; &:hover { opacity: 1; }
-	}
 }
 
 

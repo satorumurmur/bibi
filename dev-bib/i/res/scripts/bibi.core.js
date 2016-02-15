@@ -144,11 +144,6 @@ Bibi.welcome = function() {
 		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
 	}
 
-	if(S["poster"]) {
-		sML.addClass(O.HTML, "with-poster");
-		O.Body.style.backgroundImage = "url(" + S["poster"] + ")";
-	}
-
 	var ExtentionNames = [];
 	for(var Property in X) if(X[Property] && typeof X[Property] == "object" && X[Property]["name"]) ExtentionNames.push(X[Property]["name"]);
 	if(ExtentionNames.length) O.log(2, "Extention" + (ExtentionNames.length >= 2 ? "s" : "") + ": " + ExtentionNames.join(", "));
@@ -695,9 +690,6 @@ L.loadSpreads = function() {
 
 	O.log(2, 'Loading ' + R.Items.length + ' Items in ' + R.Spreads.length + ' Spreads...', "Show");
 	O.stamp("Load Spreads");
-
-	O.Body.style.backgroundImage = "none";
-	sML.removeClass(O.HTML, "with-poster");
 
 	R.resetStage();
 
@@ -2421,7 +2413,6 @@ U.initialize = function() { // formerly O.readExtras
 				switch(PnV[0]) {
 					case "parent-uri":        PnV[1] = U.decode(PnV[1]); break;
 					case "parent-origin":     PnV[1] = U.decode(PnV[1]); break;
-					case "poster":            PnV[1] = U.decode(PnV[1]); break;
 					case "autostart":         PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
 					case "reader-view-mode":  PnV[1] = /^(horizontal|vertical|paged)$/.test(PnV[1]) ? PnV[1] : undefined; break;
 					case "to":                PnV[1] = U.getBibiToTarget(PnV[1]); break;

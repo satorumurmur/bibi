@@ -32,7 +32,6 @@
 			var Class      = Anchor.getAttribute("data-bibi-class");
 			var ID         = Anchor.getAttribute("data-bibi-id");
 			var Style      = Anchor.getAttribute("data-bibi-style");
-			var Poster     = Anchor.getAttribute("data-bibi-poster");
 			var Autostart  = Anchor.getAttribute("data-bibi-autostart");
 			var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
 			var To         = Anchor.getAttribute("data-bibi-to");
@@ -55,12 +54,6 @@
             PipiFragments.push("pipi-id:" + Holder.id);
 			PipiFragments.push("parent-uri:"    + Pipi.encode(location.href));
 			PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
-			if(Poster) {
-				var PosterLink = Pipi.create("link", { href: Poster });
-				Poster = PosterLink.href;
-				delete PosterLink;
-				PipiFragments.push("poster:" + Pipi.encode(Poster));
-			}
 			if(Autostart && /^(undefined|autostart|yes|true)?$/.test(Autostart)) PipiFragments.push("autostart");
 			if(RVM && /^(horizontal|vertical|paged)?$/.test(RVM)) PipiFragments.push("reader-view-mode:" + RVM);
 			if(To && /^[1-9][\d\-\.]*$/.test(To)) PipiFragments.push("to:" + To);
