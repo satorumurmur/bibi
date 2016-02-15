@@ -707,16 +707,79 @@ L.loadSpreads = function() {
 	E.remove("bibi:postprocessItem", L.onLoadItem);
 	E.add(   "bibi:postprocessItem", L.onLoadItem);
 
-	R.Spreads.forEach(function(Spread) {
-		Spread.Loaded = false;
-		Spread.LoadedItems = 0;
-		Spread.Items.forEach(function(Item) {
-			Item.Loaded = false;
-			O.log(3, "Item: " + sML.String.padZero(Item.ItemIndex + 1, B.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'));
-			L.loadItem(Item);
-		});
-	});
+	R.Spreads.forEach(L.loadSpread);
 
+};
+
+
+L.loadSpread = function(Spread) {
+    Spread.Loaded = false;
+    Spread.LoadedItems = 0;
+    Spread.Items.forEach(L.loadItem);
+};
+
+
+L.loadItem = function(Item) {
+    O.log(3, "Item: " + sML.String.padZero(Item.ItemIndex + 1, B.FileDigit) + '/' + sML.String.padZero(B.Package.Spine["itemrefs"].length, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'));
+    Item.Loaded = false;
+	Item.TimeCard = {};
+	Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
+	var Path = Item.Path;
+	if(/\.(x?html?)$/i.test(Path)) {
+		// If HTML or Others
+		if(B.Zipped) {
+			L.loadItem.writeItemHTML(Item, B.Files[Path]);
+			setTimeout(L.postprocessItem, 0, Item);
+		} else {
+			Item.src = B.Path + "/" + Path;
+			Item.onload = function() { setTimeout(L.postprocessItem, 0, Item); };
+			Item.ItemBox.appendChild(Item);
+		}
+	} else if(/\.(svg)$/i.test(Path)) {
+		// If SVG-in-Spine
+		Item.IsSVG = true;
+		if(B.Zipped) {
+			L.loadItem.writeItemHTML(Item, false, '', B.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+		} else {
+			var URI = B.Path + "/" + Path;
+			O.download(URI).then(function(XHR) {
+				L.loadItem.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+			});
+		}
+	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
+		// If Bitmap-in-Spine
+		Item.IsBitmap = true;
+		L.loadItem.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? B.getDataURI(Path) : B.Path + "/" + Path) + '" />');
+	} else if(/\.(pdf)$/i.test(Path)) {
+		// If PDF-in-Spine
+		Item.IsPDF = true;
+		L.loadItem.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? B.getDataURI(Path) : B.Path + "/" + Path) + '" />');
+	}
+};
+
+
+L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
+	Item.ItemBox.appendChild(Item);
+	Item.contentDocument.open();
+	Item.contentDocument.write(HTML ? HTML : [
+		'<html>',
+			'<head>' + Head + '</head>',
+			'<body onload="parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
+		'</html>'
+	].join(""));
+	Item.contentDocument.close();
+};
+
+
+L.onLoadItem = function(Item) {
+	Item.Loaded = true;
+	R.LoadedItems++;
+	E.dispatch("bibi:loadItem", Item);
+	Item.stamp("Loaded");
+	var Spread = Item.Spread;
+	Spread.LoadedItems++;
+	if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
+	N.note("Loading... (" + (R.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
 };
 
 
@@ -734,68 +797,6 @@ L.onLoadSpread = function(Spread) {
 		L.start();
 		E.remove("bibi:postprocessItem", L.onLoadItem);
 	}
-};
-
-
-L.loadItem = function(Item) { 
-	var Path = Item.Path;
-	Item.TimeCard = {};
-	Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
-	if(/\.(x?html?)$/i.test(Path)) {
-		// If HTML or Others
-		if(B.Zipped) {
-			L.writeItemHTML(Item, B.Files[Path]);
-			setTimeout(L.postprocessItem, 0, Item);
-		} else {
-			Item.src = B.Path + "/" + Path;
-			Item.onload = function() { setTimeout(L.postprocessItem, 0, Item); };
-			Item.ItemBox.appendChild(Item);
-		}
-	} else if(/\.(svg)$/i.test(Path)) {
-		// If SVG-in-Spine
-		Item.IsSVG = true;
-		if(B.Zipped) {
-			L.writeItemHTML(Item, false, '', B.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
-		} else {
-			var URI = B.Path + "/" + Path;
-			O.download(URI).then(function(XHR) {
-				L.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
-			});
-		}
-	} else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
-		// If Bitmap-in-Spine
-		Item.IsBitmap = true;
-		L.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Zipped ? B.getDataURI(Path) : B.Path + "/" + Path) + '" />');
-	} else if(/\.(pdf)$/i.test(Path)) {
-		// If PDF-in-Spine
-		Item.IsPDF = true;
-		L.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Zipped ? B.getDataURI(Path) : B.Path + "/" + Path) + '" />');
-	}
-};
-
-
-L.onLoadItem = function(Item) {
-	Item.Loaded = true;
-	R.LoadedItems++;
-	E.dispatch("bibi:loadItem", Item);
-	Item.stamp("Loaded");
-	var Spread = Item.Spread;
-	Spread.LoadedItems++;
-	if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
-	N.note("Loading... (" + (R.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
-};
-
-
-L.writeItemHTML = function(Item, HTML, Head, Body) {
-	Item.ItemBox.appendChild(Item);
-	Item.contentDocument.open();
-	Item.contentDocument.write(HTML ? HTML : [
-		'<html>',
-			'<head>' + Head + '</head>',
-			'<body onload="parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
-		'</html>'
-	].join(""));
-	Item.contentDocument.close();
 };
 
 
