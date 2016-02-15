@@ -54,11 +54,13 @@ Bibi.welcome = function() {
 	O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
 	O.stamp("Welcome!");
 
-	O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ");
+	O.HTML  = document.documentElement; O.HTML.className = "welcome " + sML.Environments.join(" ");
 	O.Head  = document.head;
 	O.Body  = document.body;
     O.Info  = document.getElementById("bibi-info");
 	O.Title = document.getElementsByTagName("title")[0];
+
+    O.ScrollBars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
 
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
@@ -166,6 +168,8 @@ Bibi.welcome = function() {
 	E.add("bibi:command:togglePanel", function(BDM) { C.Panel.toggle(); });
 	window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	R.Frame.addEventListener("scroll", R.onscroll);
+
+    sML.removeClass(O.HTML, "welcome");
 
 	E.dispatch("bibi:welcome");
 	window.addEventListener("message", M.gate, false);
@@ -1085,9 +1089,6 @@ L.start = function() {
 	delete L.listenResizingWhileLoading;
 
 	setTimeout(function() {
-        setTimeout(function() {
-            sML.removeClass(O.HTML, "preparing");
-        }, 100);
 		C.Veil.close(function() {
 			setTimeout(function() {
 				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
@@ -1116,8 +1117,6 @@ L.start = function() {
 
 R.initialize = function() {
 
-	sML.addClass(O.HTML, "preparing");
-
 	R.Main.Book.innerHTML = R.Sub.innerHTML = "";
 
 	R.Spreads = [], R.Items = [], R.Pages = [];
@@ -1131,18 +1130,21 @@ R.initialize = function() {
 
 R.resetStage = function() {
 	R.Stage = {};
-	R.Stage.Width   = Math.min(window.innerWidth,  O.HTML.clientWidth);
-	R.Stage.Height  = Math.min(window.innerHeight, O.HTML.clientHeight);// - 35 * 2;
-	R.Stage.Width   = R.Main.offsetWidth;
-	R.Stage.Height  = R.Main.offsetHeight;
-    R.Stage.Orientation = (R.Stage.Width / R.Stage.Height > 1.4) ? "landscape" : "portrait";
-    R.Stage.PageGap = (S.RVM == "paged" ? 0 : S["spread-gap"]);
-	R.Stage.Breadth = R.Stage[S.SIZE.B] - (S.RVM == "paged" ? 0 : S["spread-margin-start"] + S["spread-margin-end"]);
-    R.Stage.BunkoLength = Math.floor(R.Stage.Breadth * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-	R.Stage.Length  = R.Stage[S.SIZE.L] - (S.RVM == "paged" ? 0 : S["spread-gap"] * 2);
-	R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
-	R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = (S.RVM == "paged" ? 0 : S["spread-margin-start"]/* + 35*/ + "px");
 	R.Columned = false;
+	R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
+    R.Stage.Width   = window.innerWidth;
+    R.Stage.Height  = window.innerHeight;// - 35 * 2;
+    if(S.RVM == "paged") {
+        R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
+    } else {
+        R.Stage[S.SIZE.B] -= O.ScrollBars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
+        R.Stage[S.SIZE.L] -= S["spread-gap"] * 2;
+        R.Stage.PageGap = S["spread-gap"];
+        R.Main.Book.style["padding" + S.BASE.S] = S["spread-margin-start"]/* + 35*/ + "px";
+        R.Main.Book.style["padding" + S.BASE.E] = S["spread-margin-end"] + "px";
+    }
+    R.Stage.Orientation = (R.Stage.Width / R.Stage.Height > 1.4) ? "landscape" : "portrait";
+    R.Stage.BunkoLength = Math.floor(R.Stage[S.SIZE.B] * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
 	if(S["book-background"]) O.HTML.style["background"] = S["book-background"];
 };
 
@@ -1209,8 +1211,8 @@ R.resetItem = function(Item) {
 
 R.resetItem.asReflowableItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
-    var StageB = R.Stage.Breadth;
-    var StageL = R.Stage.Length;
+    var StageB = R.Stage[S.SIZE.B];
+    var StageL = R.Stage[S.SIZE.L];
     var PageGap = R.Stage.PageGap;
     if(!/fill/.test(ItemRef["bibi:layout"])) {
         StageB  -= (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
@@ -1341,8 +1343,8 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
     Item.style.margin = "auto";
 	Item.style.padding = 0;
-	var StageB = R.Stage.Breadth;
-	var StageL = R.Stage.Length;
+	var StageB = R.Stage[S.SIZE.B];
+	var StageL = R.Stage[S.SIZE.L];
 	var PageGap = R.Stage.PageGap;
 	var PageB = StageB;
 	var PageL = StageL;
@@ -1400,8 +1402,8 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 R.resetItem.asPrePaginatedItem = function(Item) {
 	var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
 	Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
-	var StageB = R.Stage.Breadth;
-	var StageL = R.Stage.Length;
+	var StageB = R.Stage[S.SIZE.B];
+	var StageL = R.Stage[S.SIZE.L];
 	var PageB = StageB;
 	var PageL = StageL;
 	Item.style.padding = 0;
@@ -1486,9 +1488,9 @@ R.layoutSpread = function(Spread) {
     var SpreadGap = (S.RVM == "paged" ? 0 : S["spread-gap"]);
 	if(S.SLA == "horizontal") {
 		// Set padding-start + padding-end of SpreadBox
-		if(SpreadBox.offsetHeight < R.Stage.Breadth) {
-			SpreadBoxPaddingTop    = Math.floor((R.Stage.Breadth - SpreadBox.offsetHeight) / 2);
-			SpreadBoxPaddingBottom = R.Stage.Breadth - (SpreadBoxPaddingTop + SpreadBox.offsetHeight);
+		if(SpreadBox.offsetHeight < R.Stage[S.SIZE.B]) {
+			SpreadBoxPaddingTop    = Math.floor((R.Stage[S.SIZE.B] - SpreadBox.offsetHeight) / 2);
+			SpreadBoxPaddingBottom = R.Stage[S.SIZE.B] - (SpreadBoxPaddingTop + SpreadBox.offsetHeight);
 			SpreadBox.style.paddingTop    = SpreadBoxPaddingTop + "px";
 			SpreadBox.style.paddingBottom = SpreadBoxPaddingBottom + "px";
 		}
@@ -1506,11 +1508,11 @@ R.layoutSpread = function(Spread) {
 	} */if(S.BRL == "reflowable") {
 		SpreadBoxPaddingBefore = SpreadGap;
 	} else {
-		SpreadBoxPaddingBefore = Math.floor(R.Stage.Length / 4);
+		SpreadBoxPaddingBefore = Math.floor(R.Stage[S.SIZE.L] / 4);
 	}
 	if(SpreadBoxPaddingBefore < SpreadGap) SpreadBoxPaddingBefore = SpreadGap;
 	if(Spread.SpreadIndex == R.Spreads.length - 1) {
-		SpreadBoxPaddingAfter  += Math.ceil( (R.Stage.Length - SpreadBox["offset" + S.SIZE.L]) / 2);
+		SpreadBoxPaddingAfter  += Math.ceil( (R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
 		if(SpreadBoxPaddingAfter  < SpreadGap) SpreadBoxPaddingAfter  = SpreadGap;
 	}
 	if(SpreadBoxPaddingBefore) SpreadBox.style["padding" + S.BASE.B] = SpreadBoxPaddingBefore + "px";
@@ -1633,7 +1635,6 @@ R.relayout = function(Option) {
 	setTimeout(function() {
 		window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 		R.Frame.removeEventListener("scroll", R.onscroll);
-		sML.addClass(O.HTML, "preparing");
 		setTimeout(function() {
 			R.layout({
 				Target: Target,
@@ -1642,7 +1643,6 @@ R.relayout = function(Option) {
 			});
 			R.Relayouting--;
 			if(!R.Relayouting) setTimeout(function() {
-				sML.removeClass(O.HTML, "preparing");
 				window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 				R.Frame.addEventListener("scroll", R.onscroll);
 				if(Option && typeof Option.callback == "function") Option.callback();

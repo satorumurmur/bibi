@@ -31,6 +31,7 @@
 
 html {
 	font-family: sans-serif;
+	overflow: hidden; &.welcome { overflow: scroll; }
 	width: 100%;
 	height: 100%;
 	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
@@ -39,30 +40,6 @@ html {
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
 	background: $bibi-background;
-	&.spread-vertical {
-		width: 100%;
-		&.preparing {
-			overflow-x: hidden;
-			overflow-y: scroll;
-		}
-	}
-	&.spread-horizontal {
-		height: 100%;
-		&.preparing {
-			overflow-x: scroll;
-			overflow-y: hidden;
-		}
-	}
-	&.view-paged,
-	&.with-poster {
-		overflow-x: hidden !important;
-		overflow-y: hidden !important;
-		width: 100%;
-		height: 100%;
-	}
-	&.view-paged {
-		//background: white !important;
-	}
 	@include scrollbar();
 }
 
@@ -107,13 +84,14 @@ div#epub-metafiles * {
 
 div#main {
 	-webkit-overflow-scrolling: touch;
+	overflow: hidden;
 	box-sizing: border-box;
 	//padding: 35px 0;
 	//transition: .2s ease-out;
 	position: fixed; width: 100%; height: 100%;
-	html.spread-horizontal & { overflow-x: scroll; overflow-y: hidden; }
-	html.spread-vertical   & { overflow-x: hidden; overflow-y: scroll; }
-	html.view-paged        & { overflow-x: hidden; overflow-y: hidden; }/*
+	html.view-horizontal & { overflow-x: scroll; }
+	html.view-vertical   & { overflow-y: scroll; }
+	html.view-paged      & {}/*
 	html.iOS                   &, html.Android                   & { position: fixed; width: 100%; height: 100%; }
 	html.iOS.spread-horizontal &, html.Android.spread-horizontal & { overflow-x: scroll; overflow-y: hidden; }
 	html.iOS.spread-vertical   &, html.Android.spread-vertical   & { overflow-x: hidden; overflow-y: scroll; }
