@@ -1538,11 +1538,11 @@ R.layout = function(Option) {
 		}
 	*/
 
-	if(!R.Layouted || !R.ToRelayout) O.log(2, 'Laying Out...');
+	if(!R.OnceLayouted || !R.ToRelayout) O.log(2, 'Laying Out...');
 
     O.stamp("Layout Start");
 
-	R.Layouted = true;
+	R.OnceLayouted = true;
 
 	window.removeEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 	R.Frame.removeEventListener("scroll", R.onscroll);
