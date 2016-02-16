@@ -1084,7 +1084,7 @@ L.start = function() {
 	setTimeout(function() {
 		C.Veil.close(function() {
 			setTimeout(function() {
-				document.body.click(); // Making iOS browsers to responce for user scrolling immediately after loading.
+				document.body.click(); // Making iOS browsers to responce for user scrolling immediately
 			}, 500);
 		});
 		E.dispatch("bibi:start");
@@ -1407,14 +1407,14 @@ R.resetItem.asPrePaginatedItem = function(Item) {
 	} else {
         var Scale = 1;
         if((S.BRL == "pre-paginated" && S.SLA == "vertical") || R.Stage.Orientation == ItemRef["rendition:spread"] || ItemRef["rendition:spread"] == "both") {
-            var SpreadViewPort = { width: ItemRef["viewport"].width, height: ItemRef["viewport"].height };
-            if(Item.Pair) SpreadViewPort.width += Item.Pair.ItemRef["viewport"].width;
-            else if(ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left") SpreadViewPort.width += SpreadViewPort.width;
+            var SpreadViewPort = { Width: ItemRef["viewport"].width, Height: ItemRef["viewport"].height };
+            if(Item.Pair) SpreadViewPort.Width += Item.Pair.ItemRef["viewport"].width;
+            else if(ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left") SpreadViewPort.Width += SpreadViewPort.Width;
             Scale = Math.min(
-                PageB / SpreadViewPort[S.SIZE.b],
-                PageL / SpreadViewPort[S.SIZE.l]
+                PageB / SpreadViewPort[S.SIZE.B],
+                PageL / SpreadViewPort[S.SIZE.L]
             );
-            //if(S.SLA != "vertical" && SpreadViewPort[S.SIZE.b] * Scale < PageB) Scale = PageB / SpreadViewPort[S.SIZE.b];
+            //if(S.SLA != "vertical" && SpreadViewPort[S.SIZE.B] * Scale < PageB) Scale = PageB / SpreadViewPort[S.SIZE.B];
         } else {
             Scale = Math.min(
                 PageB / ItemRef["viewport"][S.SIZE.b],
@@ -1541,7 +1541,6 @@ R.layout = function(Option) {
 	*/
 
 	if(!R.OnceLayouted || !R.ToRelayout) O.log(2, 'Laying Out...');
-
     O.stamp("Layout Start");
 
 	R.OnceLayouted = true;
@@ -2313,11 +2312,13 @@ C.createIndicator = function() {
 
     C.Indicator = O.Body.appendChild(sML.create("div", { id: "bibi-indicator" }));
 
+    // Mark
 	C.Indicator.Mark = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-mark" }));
     for(var i = 1; i <= 12; i++) C.Indicator.Mark.appendChild(sML.create("span"));
 	E.add("bibi:startLoading", function() {    sML.addClass(O.HTML, "loading"); N.note('Loading...'); });
 	E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); N.note('');           });
 
+    // Bar
     C.Indicator.Bar = C.Indicator.appendChild(
         sML.create("div", { id: "bibi-indicator-bar",
             progress: function() {
@@ -2326,7 +2327,9 @@ C.createIndicator = function() {
         })
     );
     C.Indicator.Bar.Progress = C.Indicator.Bar.appendChild(sML.create("span", { id: "bibi-indicator-bar-progress" }));
+    E.add("bibi:scrolled", C.Indicator.Bar.progress);
 
+    // Nombre
     C.Indicator.Nombre = C.Indicator.appendChild(
         sML.create("div", { id: "bibi-indicator-nombre", className: "transparentized vanished",
             flick: function() {
@@ -2352,16 +2355,12 @@ C.createIndicator = function() {
             }
         })
     );
+    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px !important;");
     C.Indicator.Nombre.Current   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-current"   }));
     C.Indicator.Nombre.Delimiter = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-delimiter" }));
     C.Indicator.Nombre.Total     = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-total"     }));
     C.Indicator.Nombre.Percent   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-percent"   }));
-
-    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px !important;");
-
-    E.add("bibi:scrolled", C.Indicator.Bar.progress);
     E.add("bibi:scrolled", C.Indicator.Nombre.flick);
-
     E.add("bibi:start", function() { setTimeout(C.Indicator.Nombre.flick, 321); });
 
 };
