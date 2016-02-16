@@ -761,82 +761,121 @@ p#bibi-veil-powered {
 // --------------------------------------------------------------------------------
 
 
-// - Arrows (div#bibi-arrows)
+// - Arrow (div#bibi-arrows > div.bibi-arrow)
 // --------------------------------------------------------------------------------
 
-div#bibi-arrows {
-	$arrow-offset: 3px;
-	$arrow-size: 24px;
-	$bar-length: $arrow-size + $arrow-offset * 2;
-	$bar-breadth: 100;
-	div.bibi-arrow {
-		position: fixed;
-		z-index: 3000;
-		font-size: $arrow-size;
-		line-height: 1;
-		transition: opacity 0.2s linear;
-		html.view-vertical &                      { left: 0; right: 0; margin: 0 auto; width: 1% * $bar-breadth; width: 1vw * $bar-breadth; height: $bar-length; }
-		html.view-horizontal &, html.view-paged & { top: 0; bottom: 0; margin: auto 0; width: $bar-length; height: 1% * $bar-breadth; height: 1vh * $bar-breadth; }
+$arrow-bar-length: 4px + $icon-size + 4px;
+$arrow-bar-breadth: 100;
+$arrow-icon-size: 24px;
+$arrow-transition: .2s cubic-bezier(.2,.8,.8,1.6);
+
+div.bibi-arrow {
+	position: fixed;
+	z-index: 3000;
+	margin: auto;
+	font-size: $arrow-icon-size;
+	line-height: 1;
+	transition: $arrow-transition;
+	transition-duration: .2s;
+	html.view-vertical & {
+		// ↑↓
+		left: 0; right: 0;
+		width: 1% * $arrow-bar-breadth; width: 1vw * $arrow-bar-breadth;
+		height: $arrow-bar-length;
+	}
+	html.view-horizontal &,
+	html.view-paged & {
+		// ←→
+		top: 0; bottom: 0;
+		width: $arrow-bar-length;
+		height: 1% * $arrow-bar-breadth; height: 1vh * $arrow-bar-breadth;
+	}
+	&:after {
+		@include font-icon("Material Icons");
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+		z-index: 2;
+		left: -100%;
+		right: -100%;
+		top: -100%;
+		bottom: -100%;
+		margin: auto;
+		width: $arrow-icon-size;
+		height: $arrow-icon-size;
+		text-align: center;
+		vertical-align: middle;
+		line-height: $arrow-icon-size * 1.025;
+		color: rgb(128,128,128);
+		background: rgba(255,255,255,0.8);
+		border-radius: 50%;
+		box-shadow: 0 0 0 1.5px rgb(128,128,128);
+		opacity: 0;
+		transition: $arrow-transition;
+	}
+	&.flickering, // :hover
+	&.firing, // :active
+	&.glowing {
+		&:after { opacity: 1; }
+	}
+	&.flickering { // :hover
+	}
+	&.firing { // :active
+	}
+	&.glowing {
+		background: rgba(128,128,128,0.5);
+	}
+	&.inactive {
+		opacity: 0;
+	}
+}
+html.view-vertical div#bibi-arrow-back {
+	// ↑
+	top: 0;
+	&:after { content: /*keyboard_arrow_up*/ "\e316";    transform-origin: 50% 0%; }
+	&.flickering { cursor: n-resize; }
+	&.firing {
 		&:after {
-			@include font-icon("Material Icons");
-			display: block;
-			position: absolute;
-			z-index: 2;
-			left: -100%;
-			right: -100%;
-			top: -100%;
-			bottom: -100%;
-			margin: auto;
-			width: $arrow-size;
-			height: $arrow-size;
-			text-align: center;
-			vertical-align: middle;
-			line-height: $arrow-size * 1.025;
-			color: white;
-			background: rgb(128,128,128);
-			border-radius: 50%;
-			$box-shadow-color: white;
-			box-shadow:
-				 0px -2px 1px $box-shadow-color,
-				 2px  0px 1px $box-shadow-color,
-				 0px  2px 1px $box-shadow-color,
-				-2px  0px 1px $box-shadow-color;
-			opacity: 0.40;
-			transition: .1s cubic-bezier(.2,.8,.8,1.6);
+			transform: translateY(-25%);
 		}
-		html.view-vertical.spread-ttb &#bibi-arrow-back {
-			top: 0; &.flickering { cursor: n-resize; }
-			&:after { content: /*keyboard_arrow_up*/ "\e316";    top: $arrow-offset; bottom: auto; text-align: center; transform-origin:  50%   0 ; }
+	}
+}
+html.view-vertical div#bibi-arrow-forward {
+	// ↓
+	bottom: 0;
+	&:after { content: /*keyboard_arrow_down*/ "\e313";  transform-origin: 50% 100%; }
+	&.flickering { cursor: s-resize; }
+	&.firing {
+		&:after {
+			transform: translateY(25%);
 		}
-		html.view-vertical.spread-ttb &#bibi-arrow-forward {
-			bottom: 0; &.flickering { cursor: s-resize; }
-			&:after { content: /*keyboard_arrow_down*/ "\e313";  bottom: $arrow-offset + 2px; top: auto; text-align: center; transform-origin:  50% 100%; }
+	}
+}
+html.view-horizontal.page-ltr div#bibi-arrow-back,
+html.view-horizontal.page-rtl div#bibi-arrow-forward,
+html.view-paged.page-ltr div#bibi-arrow-back,
+html.view-paged.page-rtl div#bibi-arrow-forward {
+	// ←
+	left: 0;
+	&:after { content: /*keyboard_arrow_left*/ "\e314";  transform-origin: -50% 50%; }
+	&.flickering { cursor: w-resize; }
+	&.firing {
+		&:after {
+			transform: scale(0.9);
 		}
-		html.view-horizontal.spread-ltr &#bibi-arrow-back,    html.view-paged.page-ltr &#bibi-arrow-back,
-		html.view-horizontal.spread-rtl &#bibi-arrow-forward, html.view-paged.page-rtl &#bibi-arrow-forward {
-			left: 0; &.flickering { cursor: w-resize; }
-			&:after { content: /*keyboard_arrow_left*/ "\e314";  left: $arrow-offset; right: auto; text-align: left;   transform-origin:   0   50%; }
-		}
-		html.view-horizontal.spread-ltr &#bibi-arrow-forward, html.view-paged.page-ltr &#bibi-arrow-forward,
-		html.view-horizontal.spread-rtl &#bibi-arrow-back,    html.view-paged.page-rtl &#bibi-arrow-back {
-			right: 0; &.flickering { cursor: e-resize; }
-			&:after { content: /*keyboard_arrow_right*/ "\e315"; right: $arrow-offset + 2px; left: auto; text-align: right;  transform-origin: 100%  50%; }
-		}
-		&.flickering:after {
-			opacity: 0.6 !important;
-			transform: scale(1.50) !important;
-		}
-		&.firing:after {
-			opacity: 0.8 !important;
-			transform: scale(1.25) !important;
-		}
-		&.glowing:after {
-			opacity: 1.0 !important;
-			transform: scale(2.00) !important;
-			transition: .2s cubic-bezier(.2,.8,.8,1.6);
-		}
-		&.inactive:after {
-			opacity: 0.0 !important;
+	}
+}
+html.view-horizontal.page-ltr div#bibi-arrow-forward,
+html.view-horizontal.page-rtl div#bibi-arrow-back,
+html.view-paged.page-ltr div#bibi-arrow-forward,
+html.view-paged.page-rtl div#bibi-arrow-back {
+	// →
+	right: 0;
+	&:after { content: /*keyboard_arrow_right*/ "\e315"; transform-origin: 150% 50%; }
+	&.flickering { cursor: e-resize; }
+	&.firing {
+		&:after {
+			transform: scale(0.9);
 		}
 	}
 }
