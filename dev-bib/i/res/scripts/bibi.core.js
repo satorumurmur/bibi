@@ -60,8 +60,6 @@ Bibi.welcome = function() {
     O.Info  = document.getElementById("bibi-info");
 	O.Title = document.getElementsByTagName("title")[0];
 
-    O.ScrollBars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
-
 	if(sML.OS.iOS || sML.OS.Android) {
 		O.SmartPhone = true;
 		O.HTML.className = O.HTML.className + " Touch";
@@ -143,6 +141,8 @@ Bibi.welcome = function() {
 	} else {
 		O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
 	}
+
+    O.ScrollBars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
 
 	var ExtentionNames = [];
 	for(var Property in X) if(X[Property] && typeof X[Property] == "object" && X[Property]["name"]) ExtentionNames.push(X[Property]["name"]);
