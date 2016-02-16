@@ -54,6 +54,11 @@ Bibi.welcome = function() {
 	O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
 	O.stamp("Welcome!");
 
+    O.Language = (function() {
+        if(typeof navigator.language != "string") return "en";
+        return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
+    })();
+
 	O.HTML  = document.documentElement; O.HTML.className = "welcome " + sML.Environments.join(" ");
 	O.Head  = document.head;
 	O.Body  = document.body;
@@ -2365,10 +2370,8 @@ C.createIndicator = function() {
 
 
 C.setLabel = function(Button, State) {
-	if(typeof State != "number") State = 0;
-	var Japanese = (B.Package.Metadata["languages"][0].split("-")[0] == "ja");
-	var Label = Button.Labels[(Button.Labels.length > 1) ? State : 0];
-	Button.title = Button.Label.innerHTML = (Japanese ? Label["ja"] + " / " : "") + Label["en"];
+	if(typeof State != "number" || Button.Labels.length < State + 1) State = 0;
+	Button.title = Button.Label.innerHTML = Button.Labels[State][O.Language];
 	return State;
 };
 
