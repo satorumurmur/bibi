@@ -965,7 +965,7 @@ div#bibi-indicator-bar {
 	left: 0;
 	width: 100%;
 	height: 4px;
-	background: rgb(216,216,216);
+	background: rgb(96,96,96);
 	span#bibi-indicator-bar-progress {
 		display: block;
 		position: absolute;
@@ -973,7 +973,7 @@ div#bibi-indicator-bar {
 		html.page-rtl & { right: 0; }
 		top: 0;
 		height: 4px;
-		background: rgb(96,96,96);
+		background: rgb(216,216,216);
 		transition: width 0.125s linear;
 	}
 }
@@ -1016,7 +1016,7 @@ div#bibi-indicator-nombre {
 	span#bibi-indicator-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
-		color: darken($color, 30%);
+		color: darken($color, 25%);
 	}
 	span#bibi-indicator-nombre-delimiter {
 		margin: 0 0.1em 0 0.2em;
@@ -1025,7 +1025,7 @@ div#bibi-indicator-nombre {
 	}
 	span#bibi-indicator-nombre-percent {
 		margin-left: .25em;
-		color: lighten($color, 30%);
+		color: lighten($color, 25%);
 		span.unit {
 			margin-left: .125em;
 			font-size: .75em;
