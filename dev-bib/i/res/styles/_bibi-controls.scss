@@ -890,12 +890,14 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 // - Mark (div#bibi-indicator-mark)
 // --------------------------------------------------------------------------------
 
-$mark-size: 60px;
-$mark-core-size: 48px;
+$mark-size: 56px;
+$mark-halo-size: 48px;
+$mark-core-size: 40px;
 $mark-bits: 12;
 
 div#bibi-indicator-mark {
 	position: absolute;
+	box-sizing: border-box;
 	display: none;
 	z-index: 99999;
 	left: -100%;
@@ -903,22 +905,38 @@ div#bibi-indicator-mark {
 	top: 48%;
 	bottom: auto;
 	margin: auto;
-	width: $mark-core-size;
-	height: $mark-core-size;
-	background: rgba(255,255,255,0.125);
-	border-radius: 50%;
+	width: $mark-size;
+	height: $mark-size;
+	&:before, &:after {
+		content: "";
+		position: absolute;
+		box-sizing: border-box;
+		left: 0; right: 0; top: 0; bottom: 0;
+		margin: auto;
+		border-radius: 50%;
+	}
+	&:before { // core
+		width: $mark-core-size;
+		height: $mark-core-size;
+		background: rgba(128,128,128,0.125);
+	}
+	&:after { // halo
+		width: $mark-halo-size;
+		height: $mark-halo-size;
+		border: solid 1.5px rgba(128,128,128,0.125);
+	}
 	span {
 		display: block;
 		position: absolute;
 		left: -100%;
 		right: -100%;
-		top: ($mark-size - $mark-core-size) / 2 * -1;
+		top: 0;
 		bottom: auto;
 		margin: 0 auto;
 		width: 2px;
 		height: 1px;
 		transform-origin: 50% ($mark-size * 0.5);
-		//border-radius: 50%;
+		//background: rgba(128,128,128,0.5);
 		@for $i from 1 through $mark-bits {
 			&:nth-child(#{$i}) {
 				background: darken(white, (20% + 40% / $mark-bits * $i));
@@ -931,7 +949,7 @@ div#bibi-indicator-mark {
 		display: block;
 		animation: SPIN 1s linear 0s infinite normal;
 		span {
-			animation: GLOW 9s ease 0s infinite normal;
+			animation: GLOW 9s ease-in-out 0s infinite normal;
 		}
 	}
 }
@@ -945,10 +963,10 @@ div#bibi-indicator-mark {
 }
 
 @include keyframes(GLOW) {
-	  0% { width: 2px; height: 1px;  }
-	 25% { width: 1px; height: $mark-size * 0.25; }
-	 50% { width: 2px; height: 1px;  }
-	 75% { width: 1px; height: $mark-size * 0.25; }
+	  0% { width: 2px; height: 1px; }
+	 25% { width: 1px; height: 1px; }
+	 50% { width: 1px; height: $mark-size / 2 * 0.64; }
+	 75% { width: 1px; height: 1px; }
 	100% { width: 2px; height: 1px;  }
 }
 
