@@ -1586,9 +1586,7 @@ R.layout = function(Option) {
 
 	//R.layoutStage();
 
-	setTimeout(function() {
-        R.focus(Option.Target, { Duration: 0, Easing: 0 });
-    }, 100);
+	R.focus(Option.Target, { Duration: 0, Easing: 0 });
 
 	O.log(3, "rendition:layout: " + S.BRL);
 	O.log(3, "page-progression-direction: " + S.PPD);
