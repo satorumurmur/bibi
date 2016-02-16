@@ -764,10 +764,21 @@ p#bibi-veil-powered {
 // - Arrow (div#bibi-arrows > div.bibi-arrow)
 // --------------------------------------------------------------------------------
 
+$arrow-icon-size: 24px;
 $arrow-bar-length: 4px + $icon-size + 4px;
 $arrow-bar-breadth: 100;
-$arrow-icon-size: 24px;
-$arrow-transition: .2s cubic-bezier(.2,.8,.8,1.6);
+$arrow-bar-background-color: rgba(128,128,128,0.25);
+
+@mixin arrow-bar-background($d) {
+	background: linear-gradient(to $d, transparent, transparent 75%, $arrow-bar-background-color);
+	&.glowing {
+		background: linear-gradient(to $d, transparent, transparent 25%, darken($arrow-bar-background-color, 50%));
+		background: $arrow-bar-background-color;
+	}
+}
+@mixin arrow-transition($d) {
+	transition: $d cubic-bezier(.2,.8,.8,1.6)
+}
 
 div.bibi-arrow {
 	position: fixed;
@@ -775,8 +786,8 @@ div.bibi-arrow {
 	margin: auto;
 	font-size: $arrow-icon-size;
 	line-height: 1;
-	transition: $arrow-transition;
-	transition-duration: .2s;
+	opacity: 0;
+	@include arrow-transition(.4s);
 	html.view-vertical & {
 		// ↑↓
 		left: 0; right: 0;
@@ -809,47 +820,52 @@ div.bibi-arrow {
 		color: rgb(128,128,128);
 		background: rgba(255,255,255,0.8);
 		border-radius: 50%;
-		box-shadow: 0 0 0 1.5px rgb(128,128,128);
-		opacity: 0;
-		transition: $arrow-transition;
+		box-shadow: 0 0 0 2px rgb(128,128,128);
+		@include arrow-transition(.4s);
 	}
-	&.flickering, // :hover
-	&.firing, // :active
-	&.glowing {
-		&:after { opacity: 1; }
+	&.flickering, &.firing, &.glowing {
+		opacity: 1;
 	}
-	&.flickering { // :hover
+	&.flickering, &.flickering:after {
+		transition-duration: .2s;
 	}
-	&.firing { // :active
-	}
-	&.glowing {
-		background: rgba(128,128,128,0.5);
-	}
-	&.inactive {
-		opacity: 0;
+	&.firing, &.firing:after {
+		transition-duration: .1s;
 	}
 }
 html.view-vertical div#bibi-arrow-back {
 	// ↑
 	top: 0;
 	&:after { content: /*keyboard_arrow_up*/ "\e316";    transform-origin: 50% 0%; }
-	&.flickering { cursor: n-resize; }
+	&.flickering,
 	&.firing {
-		&:after {
-			transform: translateY(-25%);
-		}
+		cursor: n-resize;
 	}
+	&.flickering {
+	}
+	&.firing {
+		&:after { transform: translateY(-25%); }
+	}
+	&.glowing {
+	}
+	@include arrow-bar-background(top);
 }
 html.view-vertical div#bibi-arrow-forward {
 	// ↓
 	bottom: 0;
 	&:after { content: /*keyboard_arrow_down*/ "\e313";  transform-origin: 50% 100%; }
-	&.flickering { cursor: s-resize; }
+	&.flickering,
 	&.firing {
-		&:after {
-			transform: translateY(25%);
-		}
+		cursor: s-resize;
 	}
+	&.flickering {
+	}
+	&.firing {
+		&:after { transform: translateY(25%); }
+	}
+	&.glowing {
+	}
+	@include arrow-bar-background(bottom);
 }
 html.view-horizontal.page-ltr div#bibi-arrow-back,
 html.view-horizontal.page-rtl div#bibi-arrow-forward,
@@ -858,12 +874,18 @@ html.view-paged.page-rtl div#bibi-arrow-forward {
 	// ←
 	left: 0;
 	&:after { content: /*keyboard_arrow_left*/ "\e314";  transform-origin: -50% 50%; }
-	&.flickering { cursor: w-resize; }
+	&.flickering,
 	&.firing {
-		&:after {
-			transform: scale(0.9);
-		}
+		cursor: w-resize;
 	}
+	&.flickering {
+	}
+	&.firing {
+		&:after { transform: scale(0.9); }
+	}
+	&.glowing {
+	}
+	@include arrow-bar-background(left);
 }
 html.view-horizontal.page-ltr div#bibi-arrow-forward,
 html.view-horizontal.page-rtl div#bibi-arrow-back,
@@ -872,12 +894,18 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 	// →
 	right: 0;
 	&:after { content: /*keyboard_arrow_right*/ "\e315"; transform-origin: 150% 50%; }
-	&.flickering { cursor: e-resize; }
+	&.flickering,
 	&.firing {
-		&:after {
-			transform: scale(0.9);
-		}
+		cursor: e-resize;
 	}
+	&.flickering {
+	}
+	&.firing {
+		&:after { transform: scale(0.9); }
+	}
+	&.glowing {
+	}
+	@include arrow-bar-background(right);
 }
 
 
