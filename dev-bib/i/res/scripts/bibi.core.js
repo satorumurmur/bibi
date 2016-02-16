@@ -1027,14 +1027,18 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 
 
 L.postprocessItem.patchWritingModeStyle = function(Item) {
-	if(sML.UA.Gecko || sML.UA.InternetExplorer) {
+	if(sML.UA.InternetExplorer) {
 		sML.each(Item.contentDocument.styleSheets, function () {
 			var StyleSheet = this;
 			for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
 				var CSSRule = this.cssRules[i];
 				/**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
 				else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-				else                        O.translateWritingMode(CSSRule);
+				else {
+                    /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+                    else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+                    else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+                }
 			}
 		});
 	}
@@ -2771,19 +2775,6 @@ O.requestDocument = function(Path) {
 O.openDocument = function(Path, Option) {
 	if(!Option || typeof Option != "object" || typeof Option.then != "function") Option = { then: function() { return false; } };
 	O.requestDocument(Path).then(Option.then);
-};
-
-
-O.translateWritingMode = function(CSSRule) {
-	if(sML.UA.Gecko) {
-		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-rl";
-		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "vertical-lr";
-		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "horizontal-tb";
-	} else if(sML.UA.InternetExplorer) {
-		/**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-		else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-		else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-	}
 };
 
 
