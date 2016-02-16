@@ -919,8 +919,8 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 // --------------------------------------------------------------------------------
 
 $mark-size: 56px;
-$mark-halo-size: 48px;
-$mark-core-size: 40px;
+$mark-halo-size: 32px; $mark-halo-color: rgba(144,144,144,0.5);
+$mark-core-size: 24px; $mark-core-color: rgba(192,192,192,0.5);
 $mark-bits: 12;
 
 div#bibi-indicator-mark {
@@ -946,12 +946,12 @@ div#bibi-indicator-mark {
 	&:before { // core
 		width: $mark-core-size;
 		height: $mark-core-size;
-		background: rgba(128,128,128,0.125);
+		background: $mark-core-color;
 	}
 	&:after { // halo
 		width: $mark-halo-size;
 		height: $mark-halo-size;
-		border: solid 1.5px rgba(128,128,128,0.125);
+		border: solid 1.5px $mark-halo-color;
 	}
 	span {
 		display: block;
@@ -967,7 +967,7 @@ div#bibi-indicator-mark {
 		//background: rgba(128,128,128,0.5);
 		@for $i from 1 through $mark-bits {
 			&:nth-child(#{$i}) {
-				background: darken(white, (20% + 40% / $mark-bits * $i));
+				background: darken(white, (20% + 60% / $mark-bits * $i));
 				transform: rotate(360deg / $mark-bits * $i);
 			}
 		}
@@ -976,24 +976,35 @@ div#bibi-indicator-mark {
 	html.layouting & {
 		display: block;
 		animation: SPIN 1s linear 0s infinite normal;
+		&:before, &:after {
+			animation: BEAT 2s ease 0s infinite normal;
+		}
 		span {
-			animation: GLOW 9s ease-in-out 0s infinite normal;
+			animation: GLOW 4s ease 0s infinite normal;
 		}
 	}
 }
 
 @include keyframes(SPIN) {
-	  0% { transform: rotate(  0deg) scale(1.00); }
-	 25% { transform: rotate(180deg) scale(0.96); }
-	 50% { transform: rotate(360deg) scale(1.00); }
-	 75% { transform: rotate(540deg) scale(1.04); }
-	100% { transform: rotate(720deg) scale(1.00); }
+	  0% { transform: rotate(  0deg); }
+	 25% { transform: rotate(180deg); }
+	 50% { transform: rotate(360deg); }
+	 75% { transform: rotate(540deg); }
+	100% { transform: rotate(720deg); }
+}
+
+@include keyframes(BEAT) {
+	  0% { transform: scale(1.0); }
+	 25% { transform: scale(0.8); }
+	 50% { transform: scale(1.0); }
+	 75% { transform: scale(1.2); }
+	100% { transform: scale(1.0); }
 }
 
 @include keyframes(GLOW) {
 	  0% { width: 2px; height: 1px; }
 	 25% { width: 1px; height: 1px; }
-	 50% { width: 1px; height: $mark-size / 2 * 0.64; }
+	 50% { width: 1px; height: $mark-size * 0.4; }
 	 75% { width: 1px; height: 1px; }
 	100% { width: 2px; height: 1px;  }
 }
