@@ -359,62 +359,6 @@ p#bibi-veil-playbutton {
 }
 
 
-// - Veil > Mark
-// --------------------------------------------------------------------------------
-
-@mixin mark-bits($n) {
-	@for $i from 1 through $n {
-		&:nth-child(#{$i}) {
-			background: darken(white, 50% / $n * $i);
-			transform: rotate(360deg / $n * $i);
-		}
-	}
-}
-
-div#bibi-veil-mark {
-	$mark-size: 60px;
-	$mark-bit-size: 6px;
-	position: absolute;
-	display: none;
-	z-index: 100;
-	left: -100%;
-	right: -100%;
-	top: -100%;
-	bottom: -100%;
-	margin: auto;
-	width: $mark-size;
-	height: $mark-size;
-	font-size: 20px;
-	span {
-		display: block;
-		position: absolute;
-		left: -100%;
-		right: -100%;
-		top: 0;
-		bottom: auto;
-		margin: 0 auto;
-		width: $mark-bit-size;
-		height: $mark-bit-size;
-		transform-origin: 50% ($mark-size * 0.5);
-		//border-radius: 50%;
-		&:nth-child(odd)  { background: rgb(128,128,128); }
-		&:nth-child(even) { background: rgb(192,192,192); }
-		@include mark-bits(12);
-	}
-	html.loading & {
-		display: block;
-		animation: loading 2s linear 0s infinite normal;
-	}
-}
-@include keyframes(loading) {
-	  0% { transform: rotate(  0deg) scale(1.00); filter: blur(0px); }
-	 25% { transform: rotate(180deg) scale(0.75); filter: blur(0px); }
-	 50% { transform: rotate(360deg) scale(1.00); filter: blur(0px); }
-	 75% { transform: rotate(540deg) scale(1.25); filter: blur(0px); }
-	100% { transform: rotate(720deg) scale(1.00); filter: blur(0px); }
-}
-
-
 
 
 // ================================================================================
@@ -902,6 +846,72 @@ div#bibi-arrows {
 // ================================================================================
 // + Indicator
 // --------------------------------------------------------------------------------
+
+
+// - Mark (div#bibi-indicator-mark)
+// --------------------------------------------------------------------------------
+
+$mark-size: 60px;
+$mark-core-size: 48px;
+$mark-bits: 12;
+
+div#bibi-indicator-mark {
+	position: absolute;
+	display: none;
+	z-index: 99999;
+	left: -100%;
+	right: -100%;
+	top: 48%;
+	bottom: auto;
+	margin: auto;
+	width: $mark-core-size;
+	height: $mark-core-size;
+	background: rgba(255,255,255,0.125);
+	border-radius: 50%;
+	span {
+		display: block;
+		position: absolute;
+		left: -100%;
+		right: -100%;
+		top: ($mark-size - $mark-core-size) / 2 * -1;
+		bottom: auto;
+		margin: 0 auto;
+		width: 2px;
+		height: 1px;
+		transform-origin: 50% ($mark-size * 0.5);
+		//border-radius: 50%;
+		@for $i from 1 through $mark-bits {
+			&:nth-child(#{$i}) {
+				background: darken(white, (20% + 40% / $mark-bits * $i));
+				transform: rotate(360deg / $mark-bits * $i);
+			}
+		}
+	}
+	html.loading &,
+	html.layouting & {
+		display: block;
+		animation: SPIN 1s linear 0s infinite normal;
+		span {
+			animation: GLOW 9s ease 0s infinite normal;
+		}
+	}
+}
+
+@include keyframes(SPIN) {
+	  0% { transform: rotate(  0deg) scale(1.00); }
+	 25% { transform: rotate(180deg) scale(0.96); }
+	 50% { transform: rotate(360deg) scale(1.00); }
+	 75% { transform: rotate(540deg) scale(1.04); }
+	100% { transform: rotate(720deg) scale(1.00); }
+}
+
+@include keyframes(GLOW) {
+	  0% { width: 2px; height: 1px;  }
+	 25% { width: 1px; height: $mark-size * 0.25; }
+	 50% { width: 2px; height: 1px;  }
+	 75% { width: 1px; height: $mark-size * 0.25; }
+	100% { width: 2px; height: 1px;  }
+}
 
 
 // - Bar (div#bibi-indicator-bar)

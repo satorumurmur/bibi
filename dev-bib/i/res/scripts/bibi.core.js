@@ -1617,6 +1617,7 @@ R.relayout = function(Option) {
 	if(R.Relayouting) return;
 	N.note("Relaying Out...");
     O.stamp("Relayout Start");
+    sML.addClass(O.HTML, "layouting");
 	R.Relayouting++;
 	var CurrentPages = R.getCurrentPages();
 	var Target = CurrentPages.StartPage ? {
@@ -1640,6 +1641,7 @@ R.relayout = function(Option) {
 				window.addEventListener(O.SmartPhone ? "orientationchange" : "resize", R.onresize);
 				R.Frame.addEventListener("scroll", R.onscroll);
 				if(Option && typeof Option.callback == "function") Option.callback();
+                sML.removeClass(O.HTML, "layouting");
                 E.dispatch("bibi:relayout");
                 O.stamp("Relayout End");
                 N.note("");
@@ -2124,17 +2126,8 @@ C.createVeil = function() {
     );
 
 	C.Veil.Cover   = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
-	C.Veil.Mark    = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-mark" })); for(var i = 1; i <= 12; i++) C.Veil.Mark.appendChild(sML.create("span"));
 	C.Veil.Powered = C.Veil.appendChild(sML.create("p",   { id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
 
-	E.add("bibi:startLoading", function() {
-		sML.addClass(O.HTML, "loading");
-		N.note('Loading...');
-	});
-	E.add("bibi:stopLoading", function() {
-		sML.removeClass(O.HTML, "loading");
-		N.note('');
-	});
 	E.add("bibi:wait", function() {
 		var Title = (sML.OS.iOS || sML.OS.Android ? 'Tap' : 'Click') + ' to Open';
 		C.Veil.PlayButton = C.Veil.appendChild(
@@ -2319,6 +2312,11 @@ C.createPanel.createMenus = function() {
 C.createIndicator = function() {
 
     C.Indicator = O.Body.appendChild(sML.create("div", { id: "bibi-indicator" }));
+
+	C.Indicator.Mark = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-mark" }));
+    for(var i = 1; i <= 12; i++) C.Indicator.Mark.appendChild(sML.create("span"));
+	E.add("bibi:startLoading", function() {    sML.addClass(O.HTML, "loading"); N.note('Loading...'); });
+	E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); N.note('');           });
 
     C.Indicator.Bar = C.Indicator.appendChild(
         sML.create("div", { id: "bibi-indicator-bar",
