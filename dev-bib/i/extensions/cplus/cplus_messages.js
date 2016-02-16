@@ -8,21 +8,21 @@
 /*
 Bibi.x({
 
-	name: "C+Messages",
-	description: "Observing Posted Message.",
-	author: "Satoru MATSUSHIMA (@satorumurmur)",
-	version: Bibi["version"],
-	build: Bibi["build"]
+    name: "C+Messages",
+    description: "Observing Posted Message.",
+    author: "Satoru MATSUSHIMA (@satorumurmur)",
+    version: Bibi["version"],
+    build: Bibi["build"]
 
 })(function() {
 
-	C.listenMessage = function(E) {
-		return;
-	};
-
-	E.add("bibi:start", function() {
+    C.listenMessage = function(E) {
         return;
-		//if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
-	});
+    };
+
+    E.add("bibi:start", function() {
+        return;
+        //if(O.WindowEmbedded) window.addEventListener("message", C.listenMessage, false);
+    });
 
 });*/

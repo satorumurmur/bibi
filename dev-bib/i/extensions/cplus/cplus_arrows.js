@@ -8,65 +8,65 @@
 
 Bibi.x({
 
-	name: "C+Arrows",
-	description: "Floating Buttons for Scrolling and Page-Flipping",
-	author: "Satoru MATSUSHIMA (@satorumurmur)",
-	version: Bibi["version"],
-	build: Bibi["build"]
+    name: "C+Arrows",
+    description: "Floating Buttons for Scrolling and Page-Flipping",
+    author: "Satoru MATSUSHIMA (@satorumurmur)",
+    version: Bibi["version"],
+    build: Bibi["build"]
 
 })(function() {
 
-	C.Arrows = O.Body.appendChild(
-		sML.create("div", { id: "bibi-arrows" }, { display: S["arrows"] == "hidden" ? "none" : "" })
-	);
-	C.Arrows.Back = C.Arrows.appendChild(
-		sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",
+    C.Arrows = O.Body.appendChild(
+        sML.create("div", { id: "bibi-arrows" }, { display: S["arrows"] == "hidden" ? "none" : "" })
+    );
+    C.Arrows.Back = C.Arrows.appendChild(
+        sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",
             DistanceToMove: -1,
             isActive: function() {
                 return (R.Current.Pages.StartPage != R.Pages[0] || R.Current.Pages.StartPageRatio != 100);
             }
         })
-	);
-	C.Arrows.Forward = C.Arrows.appendChild(
-		sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward",
+    );
+    C.Arrows.Forward = C.Arrows.appendChild(
+        sML.create("div", { title: "Forward", className: "bibi-arrow", id: "bibi-arrow-forward",
             DistanceToMove: +1,
             isActive: function() {
                 return (R.Current.Pages.EndPage != R.Pages[R.Pages.length - 1] || R.Current.Pages.EndPageRatio != 100);
             }
         })
-	);
+    );
 
-	[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
+    [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
         if(!O.SmartPhone) {
             Arrow.addEventListener("mouseover", function() { if(Arrow.isActive()) sML.addClass(Arrow, "flickering"); });
             Arrow.addEventListener("mouseout",  function() { sML.removeClass(Arrow, "flickering"); });
         }
-		Arrow.addEventListener("click", function() {
+        Arrow.addEventListener("click", function() {
             if(!Arrow.isActive()) return false;
-			E.dispatch("bibi:command:move", Arrow.DistanceToMove);
-			sML.addClass(Arrow, "firing");
-			if(Arrow.Timer) clearTimeout(Arrow.Timer);
-			Arrow.Timer = setTimeout(function() {
+            E.dispatch("bibi:command:move", Arrow.DistanceToMove);
+            sML.addClass(Arrow, "firing");
+            if(Arrow.Timer) clearTimeout(Arrow.Timer);
+            Arrow.Timer = setTimeout(function() {
                 sML.removeClass(Arrow, "firing")
-			}, 200);
-		});
-	});
+            }, 200);
+        });
+    });
 
     C.Arrows.navigate = function() {
         R.getCurrent();
         C.Arrows.check();
-		setTimeout(function() {
+        setTimeout(function() {
             R.getCurrent();
             [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
                 if(Arrow.isActive()) sML.addClass(Arrow, "glowing");
             });
-			setTimeout(function() {
-				[C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
+            setTimeout(function() {
+                [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
                     sML.removeClass(Arrow, "glowing");
                 });
-			}, 1234);
-		}, 420);
-	};
+            }, 1234);
+        }, 420);
+    };
 
     C.Arrows.check = function() {
         [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
@@ -74,10 +74,10 @@ Bibi.x({
         });
     };
 
-	E.add("bibi:start",    C.Arrows.navigate);
-	E.add("bibi:relayout", C.Arrows.navigate);
+    E.add("bibi:start",    C.Arrows.navigate);
+    E.add("bibi:relayout", C.Arrows.navigate);
     E.add("bibi:scrolled", C.Arrows.check);
 
-	E.dispatch("bibi:createArrows");
+    E.dispatch("bibi:createArrows");
 
 });
