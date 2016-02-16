@@ -10,5 +10,4 @@
  * 1. BiB/i Extension: C+ViewMenu
  * 2. BiB/i Extension: C+Arrows
  * 3. BiB/i Extension: C+Keys
- * 4. BiB/i Extension: C+Messages
  */
