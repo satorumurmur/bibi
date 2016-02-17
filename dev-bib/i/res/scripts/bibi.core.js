@@ -2248,8 +2248,10 @@ C.createPanel.createSwitch = function() {
             { ja: 'メニューを閉じる', en: 'Close Menu' }
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-toggle-panel"></span>'
-    }, function() {
-        C.Panel.toggle();
+    }, {
+        click: function() {
+            C.Panel.toggle();
+        }
     });
 
     E.add("bibi:openPanel",  function() { C.setState(C["switch"].Panel, 1); });
@@ -2276,26 +2278,28 @@ C.createPanel.createMenus = function() {
             { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>'
-    }, function() {
-        var Button = this;
-        if(!O.FullscreenElement.Fullscreen) {
-            sML.requestFullscreen(O.FullscreenElement);
-        } else {
-            sML.exitFullscreen(O.FullscreenDocument);
-        }
-        C.Panel.toggle(function() {
+    }, {
+        click: function() {
+            var Button = this;
             if(!O.FullscreenElement.Fullscreen) {
-                O.FullscreenElement.Fullscreen = true;
-                sML.addClass(O.HTML, "fullscreen");
-                C.setState(Button, 1);
-                E.dispatch("bibi:requestFullscreen");
+                sML.requestFullscreen(O.FullscreenElement);
             } else {
-                O.FullscreenElement.Fullscreen = false;
-                sML.removeClass(O.HTML, "fullscreen");
-                C.setState(Button, 0);
-                E.dispatch("bibi:exitFullscreen");
+                sML.exitFullscreen(O.FullscreenDocument);
             }
-        });
+            C.Panel.toggle(function() {
+                if(!O.FullscreenElement.Fullscreen) {
+                    O.FullscreenElement.Fullscreen = true;
+                    sML.addClass(O.HTML, "fullscreen");
+                    C.setState(Button, 1);
+                    E.dispatch("bibi:requestFullscreen");
+                } else {
+                    O.FullscreenElement.Fullscreen = false;
+                    sML.removeClass(O.HTML, "fullscreen");
+                    C.setState(Button, 0);
+                    E.dispatch("bibi:exitFullscreen");
+                }
+            });
+        }
     });
 
     // New Window
