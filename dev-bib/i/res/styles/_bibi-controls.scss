@@ -670,7 +670,7 @@ p#bibi-panel-powered {
 	right: 0;
 	margin: 0 auto;
 	padding: 4px;
-	height: 36px;
+	height: $bottom-bar-height;
 }
 
 div#bibi-veil:after,
@@ -679,6 +679,21 @@ div#bibi-panel:after {
 	z-index: 1;
 	border-style: solid; border-width: 1px 0;
 	width: 100%;
+}
+
+div#bibi-veil:after,
+p#bibi-veil-powered {
+	bottom: 0;
+}
+
+div#bibi-panel:after,
+p#bibi-panel-powered {
+	html.page-rtl & {
+		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.page-ltr & {
+		bottom: 0;
+	}
 }
 
 div#bibi-veil:after {
@@ -691,29 +706,11 @@ div#bibi-panel:after {
 	background: rgba(240,240,240,0.9);
 }
 
-div#bibi-panel:after,
-p#bibi-panel-powered {
-	bottom: 15px;
-	html.WebKit &,
-	html.Blink & {
-		bottom: 8px;
-	}
-	html.page-ltr &,
-	html.iOS & {
-		bottom: 0;
-	}
-}
-
-div#bibi-veil:after,
-p#bibi-veil-powered {
-	bottom: 1px;
-}
-
 p#bibi-veil-powered,
 p#bibi-panel-powered {
 	z-index: 999;
-	line-height: 30px;
 	text-align: right;
+	line-height: 30px;
 	font-size: 14px;
 	a, span {
 		display: block;

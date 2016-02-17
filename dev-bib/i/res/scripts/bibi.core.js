@@ -2200,6 +2200,9 @@ C.createPanel = function() {
     // Powered
     C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
+    // Optimize to Scrollbar Size
+    sML.CSS.addRule("html.page-rtl div#bibi-panel:after, html.page-rtl p#bibi-panel-powered", "bottom: " + (O.ScrollBars.Height) + "px;");
+
     C.createPanel.createBookInfo();
     C.createPanel.createSwitch();
     C.createPanel.createMenus();
