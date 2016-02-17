@@ -676,7 +676,7 @@ L.createNavigation = function(Doc) {
 
 
 L.play = function() {
-    if(S["play-in-new-window"]) return window.open(location.href.replace(/&wait=[^&]+/g, "")); // WIP
+    if(S["play-in-new-window"]) return window.open(location.href);
     O.startLoading();
     if(B["name"]) L.loadSpreads();
     else          B.load({ Name: U["book"] });
@@ -1004,11 +1004,7 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
         var Go = R.Started ? function() {
             R.focus(This.Destination);
         } : function() {
-            if(S["play-in-new-window"]) {
-                var URI = location.href;
-                if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
-                return window.open(URI);
-            }
+            if(S["play-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + This.NavANumber + ")");
             S["to"] = This.Destination;
             L.play();
         };
@@ -2437,12 +2433,15 @@ C.removeButton = function(Button) {
 P.initialize = function(Preset) {
     O.apply(Preset, P);
     if(!/^([\w\d]+:)?\/+/.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
-    if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "horizontal";
+    if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
+    ["reader-view-mode-fided", "autostart", "play-in-new-window"].forEach(function(Property) {
+        if(typeof P[Property] == "string") P[Property] = /^(yes|no|mobile|desktop)$/.test(P[Property]) ? P[Property] : "no";
+        else                               P[Property] = P[Property] ? "yes" : "no";
+    });
     ["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"].forEach(function(Property) {
         P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
     });
     if(P["spread-gap"] % 2) P["spread-gap"]++;
-    P["play-in-new-window"] = (typeof P["play-in-new-window"] == "string" && (P["play-in-new-window"] == "always" || (P["play-in-new-window"] == "handheld" && O.Handheld)));
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
 };
@@ -2483,26 +2482,51 @@ U.initialize = function() { // formerly O.readExtras
             PnV = PnV.split(":"); if(!PnV[0]) return;
             if(!PnV[1]) {
                 switch(PnV[0]) {
-                    case "horizontal": case "vertical": case "paged": PnV[1] = PnV[0], PnV[0] = "reader-view-mode"; break;
-                    case "autostart":                                 PnV[1] = true; break;
-                    default: PnV[0] = undefined;
+                    case "horizontal":
+                    case "vertical":
+                    case "paged":
+                        PnV[1] = PnV[0], PnV[0] = "reader-view-mode";
+                        break;
+                    case "reader-view-mode-fixed":
+                    case "autostart":
+                    case "play-in-new-window":
+                    case "hide-arrows":
+                        PnV[1] = "yes";
+                        break;
+                    default:
+                        PnV[0] = undefined;
                 }
             } else {
                 switch(PnV[0]) {
-                    case "parent-uri":         PnV[1] = U.decode(PnV[1]); break;
-                    case "parent-origin":      PnV[1] = U.decode(PnV[1]); break;
-                    case "autostart":          PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
-                    case "reader-view-mode":   PnV[1] = /^(horizontal|vertical|paged)$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "play-in-new-window": PnV[1] = /^(always|handheld)$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "to":                 PnV[1] = U.getBibiToDestination(PnV[1]); break;
-                    case "nav":                PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined; break;
-                    case "view":               PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "arrows":             PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "preset": case "pipi-id": break;
-                    default: PnV[0] = undefined;
+                    case "parent-uri":
+                    case "parent-origin":
+                        PnV[1] = U.decode(PnV[1]);
+                        break;
+                    case "reader-view-mode":
+                        if(!/^(horizontal|vertical|paged)$/.test(PnV[1])) PnV[1] = undefined;
+                        break;
+                    case "reader-view-mode-fixed":
+                    case "autostart":
+                    case "play-in-new-window":
+                    case "hide-arrows":
+                        if(!/^(true|false|yes|no|desktop|mobile)$/.test(PnV[1])) PnV[1] = undefined;
+                        else if(PnV[1] == "true" ) PnV[1] = "yes";
+                        else if(PnV[1] == "false") PnV[1] = "no";
+                        break;
+                    case "to":
+                        PnV[1] = U.getBibiToDestination(PnV[1]);
+                        break;
+                    case "nav":
+                        PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined;
+                        break;
+                    case "preset":
+                    case "pipi-id":
+                        break;
+                    default:
+                        PnV[0] = undefined;
                 }
             }
-            if(PnV[0] && typeof PnV[1] != "undefined") U[PnV[0]] = PnV[1];
+            if(PnV[0] && typeof PnV[1] == "string") U[PnV[0]] = PnV[1];
         });
     };
 
@@ -2613,8 +2637,18 @@ U.getEPUBCFIDestination = function(CFIString) {
 
 S.initialize = function() {
     S.reset();
-    if(typeof S["autostart"] == "undefined") S["autostart"] = !O.WindowEmbedded;
+    S["reader-view-mode-fixed"] = S.decide("reader-view-mode-fixed", "Always");
+    S["autostart"]              = S.decide("autostart");
+    S["play-in-new-window"]     = S.decide("play-in-new-window");
+    S["hide-arrows"]            = S.decide("hide-arrows", "Always");
 };
+
+
+S.decide = function(Property, Always) {
+         if(U[Property])                return (U[Property] == "yes" || (U[Property] == "mobile" && O.Handheld) || (U[Property] == "desktop" && !O.Handheld));
+    else if(O.WindowEmbedded || Always) return (S[Property] == "yes" || (S[Property] == "mobile" && O.Handheld) || (S[Property] == "desktop" && !O.Handheld));
+    else                                return (Property == "autostart");
+}
 
 
 S.reset = function() {

@@ -32,13 +32,13 @@
             var Class      = Anchor.getAttribute("data-bibi-class");
             var ID         = Anchor.getAttribute("data-bibi-id");
             var Style      = Anchor.getAttribute("data-bibi-style");
+            var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
+            var RVMFixed   = Anchor.getAttribute("data-bibi-reader-view-mode-fixed");
             var Autostart  = Anchor.getAttribute("data-bibi-autostart");
             var NewWindow  = Anchor.getAttribute("data-bibi-play-in-new-window");
-            var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
+            var HideArrows = Anchor.getAttribute("data-bibi-hide-arrows");
             var To         = Anchor.getAttribute("data-bibi-to");
             var Nav        = Anchor.getAttribute("data-bibi-nav");
-            var View       = Anchor.getAttribute("data-bibi-view");
-            var Arrows     = Anchor.getAttribute("data-bibi-arrows");
             if(Anchor.origin != location.origin) Pipi.TrustworthyOrigins.push(Anchor.origin);
             Anchor.addEventListener("bibi:load", function(Eve) { console.log("BiB/i: Loaded. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
             Pipi.Anchors.push(Anchor);
@@ -51,19 +51,19 @@
             if(Class) Holder.className += " " + Class;
             if(ID)    Holder.id = ID;
             if(Style) Holder.setAttribute("style", Style);
-            var PipiFragments = [];
-            PipiFragments.push("pipi-id:" + Holder.id);
-            PipiFragments.push("parent-uri:"    + Pipi.encode(location.href));
-            PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
-            if(Autostart && /^(undefined|autostart|yes|true)?$/.test(Autostart)) PipiFragments.push("autostart");
-            if(NewWindow && /^(always|handheld)?$/.test(NewWindow)) PipiFragments.push("play-in-new-window");
-            if(RVM && /^(horizontal|vertical|paged)?$/.test(RVM)) PipiFragments.push("reader-view-mode:" + RVM);
-            if(To && /^[1-9][\d\-\.]*$/.test(To)) PipiFragments.push("to:" + To);
-            if(Nav && /^[1-9]\d*$/.test(Nav)) PipiFragments.push("nav:" + Nav);
-            if(View && /^fixed$/.test(View)) PipiFragments.push("view:" + View);
-            if(Arrows && /^hidden$/.test(Arrows)) PipiFragments.push("arrows:" + Arrows);
-            if(PipiFragments.length) Src += (/#/.test(Src) ? "," : "#") + "pipi(" + PipiFragments.join(",") + ")"
             Pipi.Holders.push(Holder);
+            // Fragment
+            var Fragment = new Pipi.Fragment();
+            Fragment.add("pipi-id", Holder.id);
+            Fragment.add("parent-uri", Pipi.encode(location.href));
+            Fragment.add("parent-origin", Pipi.encode(location.origin));
+            if(/^(horizontal|vertical|paged)$/.test(RVM)) Fragment.add("reader-view-mode", RVM);
+            if(/^(true|false|yes|no|desktop|mobile)?$/.test(RVMFixed  )) Fragment.add("reader-view-mode-fixed", RVMFixed);
+            if(/^(true|false|yes|no|desktop|mobile)?$/.test(Autostart )) Fragment.add("autostart", Autostart);
+            if(/^(true|false|yes|no|desktop|mobile)?$/.test(NewWindow )) Fragment.add("play-in-new-window", NewWindow);
+            if(/^(true|false|yes|no|desktop|mobile)?$/.test(HideArrows)) Fragment.add("hide-arrows", HideArrows);
+            if(/^[1-9][\d\-\.]*$/.test(To)) Fragment.add("to", To);
+            if(/^[1-9]\d*$/.test(Nav)) Fragment.add("nav", Nav);
             // Frame
             var Frame = Bibi.Frame = Holder.appendChild(
                 Pipi.create("iframe", {
@@ -71,7 +71,7 @@
                     frameborder: "0",
                     scrolling: "auto",
                     allowfullscreen: "true",
-                    src: Src
+                    src: Src + (/#/.test(Src) ? "," : "#") + Fragment.make()
                 })
             );
             Frame.addEventListener("load", function() {
@@ -83,10 +83,11 @@
                 }
             }, false);
             Pipi.Frames.push(Frame);
-            // Add & Load
+            // Add
             Pipi.Bibis.push(Bibi);
             Frame.Bibi = Holder.Bibi = Anchor.Bibi = Bibi;
         }
+        // Put
         for(var i = 0, L = Pipi.Bibis.length; i < L; i++) {
             if(Pipi.Bibis[i].Embedded) continue;
             var Bibi = Pipi.Bibis[i];
@@ -123,6 +124,16 @@
         var Ele = document.createElement(TagName);
         for(var Attribute in Properties) Ele[Attribute] = Properties[Attribute];
         return Ele;
+    };
+    Pipi.Fragment = function() {
+        this.Fragment = [];
+        this.add = function(Key, Value) {
+            this.Fragment.push([Key, Value].join(":"));
+        };
+        this.make = function() {
+            return this.Fragment.length ? "pipi(" + this.Fragment.join(",") + ")" : "";
+        };
+        return this;
     };
     if(!window.CustomEvent || (typeof window.CustomEvent !== "function") && (window.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
         window.CustomEvent = function(EventName, Arguments) {

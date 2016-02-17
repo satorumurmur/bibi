@@ -17,7 +17,7 @@ Bibi.x({
 })(function() {
 
     C.Arrows = O.Body.appendChild(
-        sML.create("div", { id: "bibi-arrows" }, { display: S["arrows"] == "hidden" ? "none" : "" })
+        sML.create("div", { id: "bibi-arrows" }, { display: S["hide-arrows"] ? "none" : "" })
     );
     C.Arrows.Back = C.Arrows.appendChild(
         sML.create("div", { title: "Back",    className: "bibi-arrow", id: "bibi-arrow-back",

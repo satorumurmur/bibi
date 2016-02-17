@@ -12,9 +12,11 @@ P.initialize({
 "bookshelf"                    : "../../bib/bookshelf/", // relative path from bib/i/index.html or COR-allowed URI begins with "http://" or "https://".
 
 "reader-view-mode"             : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
-"reader-view-mode-fixed"       : false, // true or false
 
-"play-with-new-window"         : "handheld", // "" or "always" or "handheld"
+"reader-view-mode-fixed"       : "no", // "yes" or "no" or "desktop" or "mobile"
+"autostart"                    : "no", // "yes" or "no" or "desktop" or "mobile"
+"play-in-new-window"           : "mobile", // "yes" or "no" or "desktop" or "mobile"
+"hide-arrows"                  : "no", // "yes" or "no" or "desktop" or "mobile"
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
