@@ -2248,8 +2248,8 @@ C.createPanel.createSwitch = function() {
         C.Panel.toggle();
     });
 
-    E.add("bibi:openPanel",  function() { C.setLabel(C["switch"].Panel, 1); });
-    E.add("bibi:closePanel", function() { C.setLabel(C["switch"].Panel, 0); });
+    E.add("bibi:openPanel",  function() { C.setState(C["switch"].Panel, 1); });
+    E.add("bibi:closePanel", function() { C.setState(C["switch"].Panel, 0); });
     E.add("bibi:start", function() {
         sML.style(C["switch"].Panel, { display: "block" });
     });
@@ -2283,12 +2283,12 @@ C.createPanel.createMenus = function() {
             if(!O.FullscreenElement.Fullscreen) {
                 O.FullscreenElement.Fullscreen = true;
                 sML.addClass(O.HTML, "fullscreen");
-                C.setLabel(Button, 1);
+                C.setState(Button, 1);
                 E.dispatch("bibi:requestFullscreen");
             } else {
                 O.FullscreenElement.Fullscreen = false;
                 sML.removeClass(O.HTML, "fullscreen");
-                C.setLabel(Button, 0);
+                C.setState(Button, 0);
                 E.dispatch("bibi:exitFullscreen");
             }
         });
@@ -2367,10 +2367,11 @@ C.createIndicator = function() {
 };
 
 
-C.setLabel = function(Button, State) {
+C.setState = function(Button, State) {
     if(typeof State != "number" || Button.Labels.length < State + 1) State = 0;
-    Button.title = Button.Label.innerHTML = Button.Labels[State][O.Language];
-    return State;
+    Button.State = State;
+    Button.title = Button.Label.innerHTML = Button.Labels[Button.State][O.Language];
+    return Button.State;
 };
 
 
@@ -2381,17 +2382,18 @@ C.addButton = function(Param, Fn) {
     );
     var Button = C[Param.Category][Param.Group].appendChild(
         sML.create("li", { className: "bibi-button",
-            innerHTML: (typeof Param.IconHTML == "string" ? Param.IconHTML : '<span class="bibi-icon"></span>') + '<span class="bibi-button-label non-visual"></span>',
+            innerHTML: (typeof Param.IconHTML == "string" ? Param.IconHTML : '<span class="bibi-icon"></span>'),
             Category: Param.Category,
             Group: Param.Group,
             Labels: Param.Labels
         })
     );
-    if(typeof Param.id == "string" || /^[a-zA-Z_][a-zA-Z0-9_\-]*$/.test(Param.id)) Button.id = Param.id;
-    Button.Label = Button.querySelector(".bibi-icon").appendChild(sML.create("span", { className: "non-visual" }));
+    if(typeof Param.id == "string" && /^[a-zA-Z_][a-zA-Z0-9_\-]*$/.test(Param.id)) Button.id = Param.id;
+    Button.Label = Button.querySelector(".bibi-icon").appendChild(sML.create("span", { className: "bibi-button-label non-visual" }));
+    C.setState(Button, 0);
     if(typeof Fn == "function") Button.addEventListener("click", Fn);
+    else for(EventName in Fn) if(typeof Fn[EventName] == "function") Button.addEventListener(EventName, Fn[EventName]);
     C[Param.Category][Param.Group].style.display = "block";
-    try { C.setLabel(Button, 0); } catch(Err) { E.add("bibi:readPackageDocument", function() { C.setLabel(Button, 0); }); }
     return Button;
 };
 
