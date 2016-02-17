@@ -610,7 +610,7 @@ div#bibi-panel-help {
 		bottom: 0;
 	}
 	p {
-		line-height: $bottom-bar-height * 1.2;
+		line-height: $bottom-bar-height;
 		font-size: 12px;
 		color: rgb(64,64,64);
 		opacity: 0;
@@ -743,33 +743,30 @@ p#bibi-veil-powered,
 p#bibi-panel-powered {
 	z-index: 999;
 	text-align: right;
-	line-height: 30px;
 	font-size: 14px;
-	a, span {
+	a {
 		display: block;
+		position: relative;
+		top: 2px;
 		text-decoration: none;
 		color: black;
-		padding: 8px 8px 4px;
+		padding: 6px 8px 2px;
 		border-radius: 2px;
+		transition: .15s linear;
 		img {
 			display: block;
 			opacity: 0.5;
 			width: auto;
 			height: 16px;
 			vertical-align: top;
-		}
-	}
-	a {
-		transition: .15s linear;
-		img {
 			transition: .15s linear;
 		}
-		&:hover {
+	}
+	a:hover {
+		transition: .075s linear;
+		img {
+			opacity: 1;
 			transition: .075s linear;
-			img {
-				opacity: 1;
-				transition: .075s linear;
-			}
 		}
 	}
 }
@@ -777,9 +774,9 @@ p#bibi-panel-powered {
 p#bibi-veil-powered {
 	a {
 		background: rgba(96,96,96,0.9);
-		&:hover {
-			background: rgba(150,150,150,0.9);
-		}
+	}
+	a:hover {
+		background: rgba(150,150,150,0.9);
 	}
 }
 
