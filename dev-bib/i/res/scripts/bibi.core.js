@@ -2197,11 +2197,15 @@ C.createPanel = function() {
         C.Panel.toggle();
     });
 
+    // Help
+    C.Panel.Help = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-help" }));
+    C.Panel.Help.Message = C.Panel.Help.appendChild(sML.create("p", { className: "hidden", id: "bibi-panel-help-message" }));
+
     // Powered
     C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
     // Optimize to Scrollbar Size
-    sML.CSS.addRule("html.page-rtl div#bibi-panel:after, html.page-rtl p#bibi-panel-powered", "bottom: " + (O.ScrollBars.Height) + "px;");
+    sML.CSS.addRule("html.page-rtl div#bibi-panel-help, html.page-rtl div#bibi-panel:after, html.page-rtl p#bibi-panel-powered", "bottom: " + (O.ScrollBars.Height) + "px;");
 
     C.createPanel.createBookInfo();
     C.createPanel.createSwitch();
@@ -2393,6 +2397,15 @@ C.addButton = function(Param, Fn) {
     C.setState(Button, 0);
     if(typeof Fn == "function") Button.addEventListener("click", Fn);
     else for(EventName in Fn) if(typeof Fn[EventName] == "function") Button.addEventListener(EventName, Fn[EventName]);
+    if(!O.Handheld) {
+        Button.addEventListener("mouseover", function() {
+            C.Panel.Help.Message.innerHTML = this.Labels[this.State][O.Language];
+            C.Panel.Help.Message.className = "shown";
+        });
+        Button.addEventListener("mouseout", function() {
+            C.Panel.Help.Message.className = "";
+        });
+    }
     C[Param.Category][Param.Group].style.display = "block";
     return Button;
 };

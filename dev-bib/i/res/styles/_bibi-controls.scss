@@ -592,6 +592,39 @@ div#bibi-panel-bookinfo-cover {
 }
 
 
+// - Panel > Help (div#bibi-panel-help)
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-help {
+	box-sizing: border-box;
+	position: absolute;
+	z-index: 999;
+	margin: auto;
+	padding-left: 8px;
+	height: $bottom-bar-height;
+	left: 0;
+	html.page-rtl & {
+		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.page-ltr & {
+		bottom: 0;
+	}
+	p {
+		line-height: $bottom-bar-height * 1.2;
+		font-size: 12px;
+		color: rgb(64,64,64);
+		opacity: 0;
+		transition: .2s linear;
+		&.shown {
+			opacity: 1;
+		}
+		&.hidden {
+			opacity: 0;
+		}
+	}
+}
+
+
 
 
 // ================================================================================
