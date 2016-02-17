@@ -1040,27 +1040,38 @@ div#bibi-indicator-bar {
 // - Nombre (div#bibi-indicator-nombre)
 // --------------------------------------------------------------------------------
 
+$nombre-box-width: 10em;
+$nombre-box-height: 1.6em;
+
 div#bibi-indicator-nombre {
 	$color: rgb(64,64,64);
 	box-sizing: border-box;
 	overflow: hidden;
 	z-index: 2000;
 	position: fixed;
-	left: 0;
-	right: 0;
-	top: auto;
-	bottom: 15px + 2px; html.WebKit &, html.Blink & { bottom: 12px + 2px; } // to be overwritten ... (O.ScrollBars.Height + 2) + "px"
-	html.view-paged & { bottom: 6px !important; }
-	margin: 0 auto;
+	margin: auto;
 	border-radius: .8em;
-	width: 10em;
-	height: 1.6em;
-	line-height: 1.5em;
+	width: $nombre-box-width;
+	height: $nombre-box-height;
+	line-height: $nombre-box-height * 0.94;
 	font-size: 12px;
 	text-align: center;
 	color: $color;
 	background: rgba(240,240,240,0.9);
 	transition: 0.125s ease-out;
+	html.view-paged & {
+		left: 0; right: 0;
+		bottom: 4px + 2px;
+	}
+	html.view-horizontal & {
+		left: 0; right: 0;
+		bottom: 15px + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
+	}
+	html.view-vertical & {
+		top: 0; bottom: 0;
+		right: 15px + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
+		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
+	}
 	&.transparentized {
 		opacity: 0;
 		transition: 0.250s ease-out;

@@ -2352,7 +2352,8 @@ C.createIndicator = function() {
             }
         })
     );
-    sML.CSS.addRule("div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px !important;");
+    sML.CSS.addRule("html.view-horizontal div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
+    sML.CSS.addRule("html.view-vertical   div#bibi-indicator-nombre", "right: "  + (O.ScrollBars.Width  + 2) + "px;");
     C.Indicator.Nombre.Current   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-current"   }));
     C.Indicator.Nombre.Delimiter = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-delimiter" }));
     C.Indicator.Nombre.Total     = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-total"     }));
