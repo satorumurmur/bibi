@@ -676,7 +676,7 @@ L.createNavigation = function(Doc) {
 
 
 L.play = function() {
-    if(O.Handheld) return window.open(location.href.replace(/&wait=[^&]+/g, "")); // WIP
+    if(S["play-in-new-window"]) return window.open(location.href.replace(/&wait=[^&]+/g, "")); // WIP
     O.startLoading();
     if(B["name"]) L.loadSpreads();
     else          B.load({ Name: U["book"] });
@@ -1004,7 +1004,7 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
         var Go = R.Started ? function() {
             R.focus(This.Destination);
         } : function() {
-            if(O.Handheld) {
+            if(S["play-in-new-window"]) {
                 var URI = location.href;
                 if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
                 return window.open(URI);
@@ -2419,6 +2419,7 @@ P.initialize = function(Preset) {
         P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
     });
     if(P["spread-gap"] % 2) P["spread-gap"]++;
+    P["play-in-new-window"] = (typeof P["play-in-new-window"] == "string" && (P["play-in-new-window"] == "always" || (P["play-in-new-window"] == "handheld" && O.Handheld)));
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
 };
@@ -2465,14 +2466,15 @@ U.initialize = function() { // formerly O.readExtras
                 }
             } else {
                 switch(PnV[0]) {
-                    case "parent-uri":        PnV[1] = U.decode(PnV[1]); break;
-                    case "parent-origin":     PnV[1] = U.decode(PnV[1]); break;
-                    case "autostart":         PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
-                    case "reader-view-mode":  PnV[1] = /^(horizontal|vertical|paged)$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "to":                PnV[1] = U.getBibiToTarget(PnV[1]); break;
-                    case "nav":               PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined; break;
-                    case "view":              PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
-                    case "arrows":            PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
+                    case "parent-uri":         PnV[1] = U.decode(PnV[1]); break;
+                    case "parent-origin":      PnV[1] = U.decode(PnV[1]); break;
+                    case "autostart":          PnV[1] = /^(undefined|autostart|yes|true)?$/.test(PnV[1]); break;
+                    case "reader-view-mode":   PnV[1] = /^(horizontal|vertical|paged)$/.test(PnV[1]) ? PnV[1] : undefined; break;
+                    case "play-in-new-window": PnV[1] = /^(always|handheld)$/.test(PnV[1]) ? PnV[1] : undefined; break;
+                    case "to":                 PnV[1] = U.getBibiToDestination(PnV[1]); break;
+                    case "nav":                PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined; break;
+                    case "view":               PnV[1] = /^fixed$/.test(PnV[1]) ? PnV[1] : undefined; break;
+                    case "arrows":             PnV[1] = /^hidden$/.test(PnV[1]) ? PnV[1] : undefined; break;
                     case "preset": case "pipi-id": break;
                     default: PnV[0] = undefined;
                 }

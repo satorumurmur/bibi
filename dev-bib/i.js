@@ -33,6 +33,7 @@
             var ID         = Anchor.getAttribute("data-bibi-id");
             var Style      = Anchor.getAttribute("data-bibi-style");
             var Autostart  = Anchor.getAttribute("data-bibi-autostart");
+            var NewWindow  = Anchor.getAttribute("data-bibi-play-in-new-window");
             var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
             var To         = Anchor.getAttribute("data-bibi-to");
             var Nav        = Anchor.getAttribute("data-bibi-nav");
@@ -55,6 +56,7 @@
             PipiFragments.push("parent-uri:"    + Pipi.encode(location.href));
             PipiFragments.push("parent-origin:" + Pipi.encode(location.origin));
             if(Autostart && /^(undefined|autostart|yes|true)?$/.test(Autostart)) PipiFragments.push("autostart");
+            if(NewWindow && /^(always|handheld)?$/.test(NewWindow)) PipiFragments.push("play-in-new-window");
             if(RVM && /^(horizontal|vertical|paged)?$/.test(RVM)) PipiFragments.push("reader-view-mode:" + RVM);
             if(To && /^[1-9][\d\-\.]*$/.test(To)) PipiFragments.push("to:" + To);
             if(Nav && /^[1-9]\d*$/.test(Nav)) PipiFragments.push("nav:" + Nav);

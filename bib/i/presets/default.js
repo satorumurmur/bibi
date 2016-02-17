@@ -32,6 +32,8 @@ P.initialize({
 
 'page-breaking'                : false, // true or false (if it is true, CSS 'page-break-before/after: always;' will work, partially)
 
+'play-with-new-window'         : 'handheld', // '' or 'always' or 'handheld'
+
 // -------------------------------------------------------------------------------------------------
 
 'google-analytics-tracking-id' : '', // Your own Google Analytics tracking id, as 'UA-********-*'
