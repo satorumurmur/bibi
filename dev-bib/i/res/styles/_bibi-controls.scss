@@ -797,14 +797,11 @@ p#bibi-veil-powered {
 $arrow-icon-size: 24px;
 $arrow-bar-length: 4px + $icon-size + 4px;
 $arrow-bar-breadth: 100;
-$arrow-bar-background-color: rgba(128,128,128,0.25);
+$arrow-bar-background-base-color: rgb(128,128,128);
 
 @mixin arrow-bar-background($d) {
-	background: linear-gradient(to $d, transparent, transparent 75%, $arrow-bar-background-color);
-	&.glowing {
-		background: linear-gradient(to $d, transparent, transparent 25%, darken($arrow-bar-background-color, 50%));
-		background: $arrow-bar-background-color;
-	}
+	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 69%, rgba($arrow-bar-background-base-color, .25)); }
+	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 34%, rgba($arrow-bar-background-base-color, .25)); }
 }
 @mixin arrow-transition($d) {
 	transition: $d cubic-bezier(.2,.8,.8,1.6)
@@ -837,15 +834,9 @@ div.bibi-arrow {
 		display: block;
 		position: absolute;
 		z-index: 2;
-		left: -100%;
-		right: -100%;
-		top: -100%;
-		bottom: -100%;
-		margin: auto;
-		width: $arrow-icon-size;
-		height: $arrow-icon-size;
-		text-align: center;
-		vertical-align: middle;
+		left: -100%; right: -100%; top: -100%; bottom: -100%; margin: auto;
+		width: $arrow-icon-size; height: $arrow-icon-size;
+		text-align: center; vertical-align: middle;
 		line-height: $arrow-icon-size * 1.025;
 		color: rgb(128,128,128);
 		background: rgba(255,255,255,0.8);
@@ -866,34 +857,32 @@ div.bibi-arrow {
 html.view-vertical div#bibi-arrow-back {
 	// ↑
 	top: 0;
-	&:after { content: /*keyboard_arrow_up*/ "\e316";    transform-origin: 50% 0%; }
-	&.flickering,
-	&.firing {
-		cursor: n-resize;
+	&:after {
+		content: /*keyboard_arrow_up*/ "\e316";
+		top: ($arrow-bar-length - $arrow-icon-size) / 2; bottom: auto;
+		transform-origin: 50% 0%;
 	}
-	&.flickering {
+	&.flickering, &.firing {
+		cursor: n-resize;
 	}
 	&.firing {
 		&:after { transform: translateY(-25%); }
-	}
-	&.glowing {
 	}
 	@include arrow-bar-background(top);
 }
 html.view-vertical div#bibi-arrow-forward {
 	// ↓
 	bottom: 0;
-	&:after { content: /*keyboard_arrow_down*/ "\e313";  transform-origin: 50% 100%; }
-	&.flickering,
-	&.firing {
-		cursor: s-resize;
+	&:after {
+		content: /*keyboard_arrow_down*/ "\e313";
+		bottom: ($arrow-bar-length - $arrow-icon-size) / 2; top: auto;
+		transform-origin: 50% 100%;
 	}
-	&.flickering {
+	&.flickering, &.firing {
+		cursor: s-resize;
 	}
 	&.firing {
 		&:after { transform: translateY(25%); }
-	}
-	&.glowing {
 	}
 	@include arrow-bar-background(bottom);
 }
@@ -903,17 +892,16 @@ html.view-paged.page-ltr div#bibi-arrow-back,
 html.view-paged.page-rtl div#bibi-arrow-forward {
 	// ←
 	left: 0;
-	&:after { content: /*keyboard_arrow_left*/ "\e314";  transform-origin: -50% 50%; }
-	&.flickering,
-	&.firing {
-		cursor: w-resize;
+	&:after {
+		content: /*keyboard_arrow_left*/ "\e314";
+		left: ($arrow-bar-length - $arrow-icon-size) / 2; right: auto;
+		transform-origin: -50% 50%;
 	}
-	&.flickering {
+	&.flickering, &.firing {
+		cursor: w-resize;
 	}
 	&.firing {
 		&:after { transform: scale(0.9); }
-	}
-	&.glowing {
 	}
 	@include arrow-bar-background(left);
 }
@@ -923,17 +911,16 @@ html.view-paged.page-ltr div#bibi-arrow-forward,
 html.view-paged.page-rtl div#bibi-arrow-back {
 	// →
 	right: 0;
-	&:after { content: /*keyboard_arrow_right*/ "\e315"; transform-origin: 150% 50%; }
-	&.flickering,
-	&.firing {
-		cursor: e-resize;
+	&:after {
+		content: /*keyboard_arrow_right*/ "\e315";
+		right: ($arrow-bar-length - $arrow-icon-size) / 2; left: auto;
+		transform-origin: 150% 50%;
 	}
-	&.flickering {
+	&.flickering, &.firing {
+		cursor: e-resize;
 	}
 	&.firing {
 		&:after { transform: scale(0.9); }
-	}
-	&.glowing {
 	}
 	@include arrow-bar-background(right);
 }
