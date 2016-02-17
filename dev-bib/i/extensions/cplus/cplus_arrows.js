@@ -37,7 +37,7 @@ Bibi.x({
     );
 
     [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-        if(!O.SmartPhone) {
+        if(!O.Handheld) {
             Arrow.addEventListener("mouseover", function() { if(Arrow.isActive()) sML.addClass(Arrow, "flickering"); });
             Arrow.addEventListener("mouseout",  function() { sML.removeClass(Arrow, "flickering"); });
         }
@@ -47,7 +47,7 @@ Bibi.x({
             sML.addClass(Arrow, "firing");
             if(Arrow.Timer) clearTimeout(Arrow.Timer);
             Arrow.Timer = setTimeout(function() {
-                sML.removeClass(Arrow, "firing")
+                sML.removeClass(Arrow, "firing");
             }, 200);
         });
     });
