@@ -130,18 +130,11 @@ Bibi.welcome = function() {
         } catch(Err) {}
     }
 
-    if((function() {
-        if(O.WindowEmbedded && !O.ParentHolder)   return false;
-        if(document.body.requestFullscreen)       return true;
-        if(document.body.webkitRequestFullscreen) return true;
-        if(document.body.mozRequestFullScreen)    return true;
-        if(document.body.msRequestFullscreen)     return true;
-                                                  return false;
-    })()) {
-        O.HTML.className = O.HTML.className + " fullscreen-enabled";
+    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
         O.FullscreenEnabled = true;
-        O.FullscreenElement  = O.WindowEmbedded ? O.ParentHolder.Bibi.Frame : O.HTML;
-        O.FullscreenDocument = O.WindowEmbedded ? window.parent.document    : document;
+        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
+        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
+        O.HTML.className = O.HTML.className + " fullscreen-enabled";
     } else {
         O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
     }
@@ -152,11 +145,11 @@ Bibi.welcome = function() {
     for(var Property in X) if(X[Property] && typeof X[Property] == "object" && X[Property]["name"]) ExtentionNames.push(X[Property]["name"]);
     if(ExtentionNames.length) O.log(2, "Extention" + (ExtentionNames.length >= 2 ? "s" : "") + ": " + ExtentionNames.join(", "));
 
-    N.createBoard();
-
     C.createVeil();
     C.createPanel();
     C.createIndicator();
+
+    N.createBoard();
 
     if(sML.UA.InternetExplorer < 11) return Bibi.byebye();
 
@@ -2420,12 +2413,12 @@ C.removeButton = function(Button) {
 
 P.initialize = function(Preset) {
     O.apply(Preset, P);
+    if(!/^([\w\d]+:)?\/+/.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "horizontal";
     ["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"].forEach(function(Property) {
         P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
     });
     if(P["spread-gap"] % 2) P["spread-gap"]++;
-    if(!/^([\w\d]+:)?\/+/.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
 };
