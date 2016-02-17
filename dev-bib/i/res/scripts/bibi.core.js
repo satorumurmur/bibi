@@ -156,7 +156,7 @@ Bibi.welcome = function() {
     N.note("Welcome!");
 
     E.add("bibi:command:move", function(Distance) { R.move(Distance); });
-    E.add("bibi:command:focus", function(Target) { R.focus(Target); });
+    E.add("bibi:command:focus", function(Destination) { R.focus(Destination); });
     E.add("bibi:command:changeView", function(BDM) { R.changeView(BDM); });
     E.add("bibi:command:togglePanel", function(BDM) { C.Panel.toggle(); });
     window.addEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
@@ -977,7 +977,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
                 A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + "/" + HrefPathInSource);
                 A.InNav = InNav;
-                A.Target = {
+                A.Destination = {
                     Item: rItem,
                     ElementSelector: (HrefHash ? "#" + HrefHash : undefined)
                 };
@@ -989,27 +989,27 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
             A.setAttribute("data-bibi-original-href", HrefPathInSource);
             A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + "/#" + HrefHash);
             A.InNav = InNav;
-            A.Target = U.getEPUBCFITarget(HrefHash);
+            A.Destination = U.getEPUBCFIDestination(HrefHash);
             A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
         }
-        if(InNav && typeof S["nav"] == (i + 1) && A.Target) S["to"] = A.Target;
+        if(InNav && typeof S["nav"] == (i + 1) && A.Destination) S["to"] = A.Destination;
     });
 };
 
 L.postprocessItem.coordinateLinkages.jump = function(Eve) {
     Eve.preventDefault(); 
     Eve.stopPropagation();
-    if(this.Target) {
+    if(this.Destination) {
         var This = this;
         var Go = R.Started ? function() {
-            R.focus(This.Target);
+            R.focus(This.Destination);
         } : function() {
             if(O.Handheld) {
                 var URI = location.href;
                 if(typeof This.NavANumber == "number") URI += (/#/.test(URI) ? "," : "#") + 'pipi(nav:' + This.NavANumber + ')';
                 return window.open(URI);
             }
-            S["to"] = This.Target;
+            S["to"] = This.Destination;
             L.play();
         };
         This.InNav ? C.Panel.toggle(Go) : Go();
@@ -1077,7 +1077,7 @@ L.start = function() {
     O.stopLoading();
 
     R.layout({
-        Target: (S["to"] ? S["to"] : "head")
+        Destination: (S["to"] ? S["to"] : "head")
     });
     window.removeEventListener("resize", L.listenResizingWhileLoading);
     delete L.listenResizingWhileLoading;
@@ -1535,7 +1535,7 @@ R.layout = function(Option) {
 
     /*
         Option: {
-            Target: BibiTarget (Required),
+            Destination: BibiDestination (Required),
             Reset: Boolean (Required),
             Setting: BibiSetting (Optional)
         }
@@ -1551,9 +1551,9 @@ R.layout = function(Option) {
 
     if(!Option) Option = {};
 
-    if(!Option.Target) {
+    if(!Option.Destination) {
         var CurrentPage = R.getCurrentPages().StartPage;
-        Option.Target = {
+        Option.Destination = {
             SpreadIndex: CurrentPage.Spread.SpreadIndex,
             PageProgressInSpread: CurrentPage.PageIndexInSpread / CurrentPage.Spread.Pages.length
         }
@@ -1587,7 +1587,7 @@ R.layout = function(Option) {
 
     //R.layoutStage();
 
-    R.focus(Option.Target, { Duration: 0, Easing: 0 });
+    R.focus(Option.Destination, { Duration: 0, Easing: 0 });
 
     O.log(3, "rendition:layout: " + S.BRL);
     O.log(3, "page-progression-direction: " + S.PPD);
@@ -1618,7 +1618,7 @@ R.relayout = function(Option) {
     sML.addClass(O.HTML, "layouting");
     R.Relayouting++;
     var CurrentPages = R.getCurrentPages();
-    var Target = CurrentPages.StartPage ? {
+    var Destination = CurrentPages.StartPage ? {
         SpreadIndex: CurrentPages.StartPage.Spread.SpreadIndex,
         PageProgressInSpread: CurrentPages.StartPage.PageIndexInSpread / CurrentPages.StartPage.Spread.Pages.length
     } : {
@@ -1630,7 +1630,7 @@ R.relayout = function(Option) {
         R.Main.removeEventListener("scroll", R.onscroll);
         setTimeout(function() {
             R.layout({
-                Target: Target,
+                Destination: Destination,
                 Reset: true,
                 Setting: Option && Option.Setting ? Option.Setting : undefined
             });
@@ -1754,31 +1754,31 @@ R.getCurrent = function() {
 };
 
 
-R.focus = function(Target, ScrollOption) {
-    Target = R.focus.hatchTarget(Target);
-    if(!Target) return false;
+R.focus = function(Destination, ScrollOption) {
+    Destination = R.focus.hatchDestination(Destination);
+    if(!Destination) return false;
     var FocusPoint = 0;
     if(S["book-rendition-layout"] == "reflowable") {
-        if(Target.Edge == "head") {
+        if(Destination.Edge == "head") {
             FocusPoint = (S.SLD != "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
-        } else if(Target.Edge == "foot") {
+        } else if(Destination.Edge == "foot") {
             FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
         } else {
-            FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
-            if(Target.Side == "after") FocusPoint += (Target.Page["offset" + S.SIZE.L] + S["spread-gap"] - window["inner" + S.SIZE.L]) * S.AXIS.PM;
-            else                       FocusPoint -= S["spread-gap"] * S.AXIS.PM;
-            if(S.SLD == "rtl") FocusPoint += Target.Page.offsetWidth - window.innerWidth;
+            FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
+            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] + S["spread-gap"] - window["inner" + S.SIZE.L]) * S.AXIS.PM;
+            else                            FocusPoint -= S["spread-gap"] * S.AXIS.PM;
+            if(S.SLD == "rtl") FocusPoint += Destination.Page.offsetWidth - window.innerWidth;
         }
     } else {
-        if(window["inner" + S.SIZE.L] > Target.Page.Spread["offset" + S.SIZE.L]) {
-            FocusPoint = O.getElementCoord(Target.Page.Spread)[S.AXIS.L];
-            FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Target.Page.Spread["offset" + S.SIZE.L]) / 2);
+        if(window["inner" + S.SIZE.L] > Destination.Page.Spread["offset" + S.SIZE.L]) {
+            FocusPoint = O.getElementCoord(Destination.Page.Spread)[S.AXIS.L];
+            FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Destination.Page.Spread["offset" + S.SIZE.L]) / 2);
         } else {
-            FocusPoint = O.getElementCoord(Target.Page)[S.AXIS.L];
-            if(window["inner" + S.SIZE.L] > Target.Page["offset" + S.SIZE.L]) FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Target.Page["offset" + S.SIZE.L]) / 2);
+            FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
+            if(window["inner" + S.SIZE.L] > Destination.Page["offset" + S.SIZE.L]) FocusPoint -= Math.floor((window["inner" + S.SIZE.L] - Destination.Page["offset" + S.SIZE.L]) / 2);
         }
     }
-    if(typeof Target.TextNodeIndex == "number") R.selectTextLocation(Target); // Colorize Target with Selection
+    if(typeof Destination.TextNodeIndex == "number") R.selectTextLocation(Destination); // Colorize Destination with Selection
     var ScrollTo = { X: 0, Y: 0 }; 
     ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
     if(S.RVM == "paged") {
@@ -1801,13 +1801,13 @@ R.focus = function(Target, ScrollOption) {
                 end: function() {
                     if(S.RVM == "paged") {
                         R.Spreads.forEach(function(Spread) {
-                            if(Spread == Target.Item.Spread) Spread.style.opacity = 1;
-                            //else                      Spread.style.opacity = 0;
+                            if(Spread == Destination.Item.Spread) Spread.style.opacity = 1;
+                            //else                                Spread.style.opacity = 0;
                         });
                         sML.removeClass(O.HTML, "flipping-ahead");
                         sML.removeClass(O.HTML, "flipping-astern");
                     }
-                    E.dispatch("bibi:focus", Target);
+                    E.dispatch("bibi:focus", Destination);
                 }
             });
         }, FlippingDuration);*/
@@ -1818,51 +1818,51 @@ R.focus = function(Target, ScrollOption) {
 };
 
 
-R.focus.hatchTarget = function(Target) { // from Page, Element, or Edge
-    if(!Target) return null;
-    if(typeof Target == "number" || (typeof Target == "string" && /^\d+$/.test(Target))) {
-        Target = U.getBibiToTarget(Target);
-    } else if(typeof Target == "string") {
-        Target = (Target == "head" || Target == "foot") ? { Edge: Target } : U.getEPUBCFITarget(Target);
-    } else if(Target.tagName) {
-             if(typeof Target.PageIndex   == "number") Target = { Page: Target };
-        else if(typeof Target.ItemIndex   == "number") Target = { Item: Target };
-        else if(typeof Target.SpreadIndex == "number") Target = { Spread: Target }; 
-        else Target = { Element: Target };
+R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edge
+    if(!Destination) return null;
+    if(typeof Destination == "number" || (typeof Destination == "string" && /^\d+$/.test(Destination))) {
+        Destination = U.getBibiToDestination(Destination);
+    } else if(typeof Destination == "string") {
+        Destination = (Destination == "head" || Destination == "foot") ? { Edge: Destination } : U.getEPUBCFIDestination(Destination);
+    } else if(Destination.tagName) {
+             if(typeof Destination.PageIndex   == "number") Destination = { Page: Destination };
+        else if(typeof Destination.ItemIndex   == "number") Destination = { Item: Destination };
+        else if(typeof Destination.SpreadIndex == "number") Destination = { Spread: Destination }; 
+        else Destination = { Element: Destination };
     }
-    if(Target.Page    && !Target.Page.parentElement)    delete Target.Page;
-    if(Target.Item    && !Target.Item.parentElement)    delete Target.Item;
-    if(Target.Spread  && !Target.Spread.parentElement)  delete Target.Spread;
-    if(Target.Element && !Target.Element.parentElement) delete Target.Element;
-    if(typeof Target.Edge == "string") {
-        if(Target.Edge == "head") Target.Page = R.Pages[0];
-        else                      Target.Page = R.Pages[R.Pages.length - 1], Target.Edge = "foot";
+    if(Destination.Page    && !Destination.Page.parentElement)    delete Destination.Page;
+    if(Destination.Item    && !Destination.Item.parentElement)    delete Destination.Item;
+    if(Destination.Spread  && !Destination.Spread.parentElement)  delete Destination.Spread;
+    if(Destination.Element && !Destination.Element.parentElement) delete Destination.Element;
+    if(typeof Destination.Edge == "string") {
+        if(Destination.Edge == "head") Destination.Page = R.Pages[0];
+        else                           Destination.Page = R.Pages[R.Pages.length - 1], Destination.Edge = "foot";
     } else {
-        if(!Target.Element) {
-            if(!Target.Item) {
-                if(typeof Target.ItemIndex == "number") Target.Item = R.Items[Target.ItemIndex];
+        if(!Destination.Element) {
+            if(!Destination.Item) {
+                if(typeof Destination.ItemIndex == "number") Destination.Item = R.Items[Destination.ItemIndex];
                 else {
-                    if(!Target.Spread && typeof Target.SpreadIndex == "number") Target.Spread = R.Spreads[Target.SpreadIndex];
-                    if(Target.Spread) {
-                             if(typeof Target.PageIndexInSpread == "number") Target.Page = Target.Spread.Pages[Target.PageIndexInSpread];
-                        else if(typeof Target.ItemIndexInSpread == "number") Target.Item = Target.Spread.Items[Target.ItemIndexInSpread];
-                        else                                                 Target.Item = Target.Spread.Items[0];
+                    if(!Destination.Spread && typeof Destination.SpreadIndex == "number") Destination.Spread = R.Spreads[Destination.SpreadIndex];
+                    if(Destination.Spread) {
+                             if(typeof Destination.PageIndexInSpread == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
+                        else if(typeof Destination.ItemIndexInSpread == "number") Destination.Item = Destination.Spread.Items[Destination.ItemIndexInSpread];
+                        else                                                      Destination.Item = Destination.Spread.Items[0];
                     }
                 }
             }
-            if(Target.Item && typeof Target.ElementSelector == "string") Target.Element = Target.Item.contentDocument.querySelector(Target.ElementSelector);
+            if(Destination.Item && typeof Destination.ElementSelector == "string") Destination.Element = Destination.Item.contentDocument.querySelector(Destination.ElementSelector);
         }
-        if(Target.Element) Target.Page = R.focus.getNearestPageOfElement(Target.Element);
-        else if(!Target.Page){
-                 if(typeof Target.PageIndexInSpread    == "number") Target.Page = Target.Spread.Pages[Target.PageIndexInSpread];
-            else if(typeof Target.PageProgressInSpread == "number") Target.Page = Target.Spread.Pages[Math.floor(Target.Spread.Pages.length * Target.PageProgressInSpread)];
-            else                                                    Target.Page = Target.Item.Pages[0];
+        if(Destination.Element) Destination.Page = R.focus.getNearestPageOfElement(Destination.Element);
+        else if(!Destination.Page){
+                 if(typeof Destination.PageIndexInSpread    == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
+            else if(typeof Destination.PageProgressInSpread == "number") Destination.Page = Destination.Spread.Pages[Math.floor(Destination.Spread.Pages.length * Destination.PageProgressInSpread)];
+            else                                                         Destination.Page = Destination.Item.Pages[0];
         }
     }
-    if(!Target.Page) return null;
-    Target.Item = Target.Page.Item;
-    Target.Spread = Target.Page.Spread;
-    return Target;
+    if(!Destination.Page) return null;
+    Destination.Item = Destination.Page.Item;
+    Destination.Spread = Destination.Page.Spread;
+    return Destination;
 };
 
 R.focus.getNearestPageOfElement = function(Ele) {
@@ -1894,24 +1894,24 @@ R.focus.getNearestPageOfElement = function(Ele) {
 };
 
 
-R.selectTextLocation = function(Target) {
-    if(typeof Target.TextNodeIndex != "number") return;
-    var TargetNode = Target.Element.childNodes[Target.TextNodeIndex];
-    if(!TargetNode || !TargetNode.textContent) return;
-    var Sides = { Start: { Node: TargetNode, Index: 0 }, End: { Node: TargetNode, Index: TargetNode.textContent.length } };
-    if(Target.TermStep) {
-        if(Target.TermStep.Preceding || Target.TermStep.Following) {
-            Sides.Start.Index = Target.TermStep.Index, Sides.End.Index = Target.TermStep.Index;
-            if(Target.TermStep.Preceding) Sides.Start.Index -= Target.TermStep.Preceding.length;
-            if(Target.TermStep.Following)   Sides.End.Index += Target.TermStep.Following.length;
-            if(Sides.Start.Index < 0 || TargetNode.textContent.length < Sides.End.Index) return;
-            if(TargetNode.textContent.substr(Sides.Start.Index, Sides.End.Index - Sides.Start.Index) != Target.TermStep.Preceding + Target.TermStep.Following) return;
-        } else if(Target.TermStep.Side && Target.TermStep.Side == "a") {
-            Sides.Start.Node = TargetNode.parentNode.firstChild; while(Sides.Start.Node.childNodes.length) Sides.Start.Node = Sides.Start.Node.firstChild;
-            Sides.End.Index = Target.TermStep.Index - 1;
+R.selectTextLocation = function(Destination) {
+    if(typeof Destination.TextNodeIndex != "number") return;
+    var DestinationNode = Destination.Element.childNodes[Destination.TextNodeIndex];
+    if(!DestinationNode || !DestinationNode.textContent) return;
+    var Sides = { Start: { Node: DestinationNode, Index: 0 }, End: { Node: DestinationNode, Index: DestinationNode.textContent.length } };
+    if(Destination.TermStep) {
+        if(Destination.TermStep.Preceding || Destination.TermStep.Following) {
+            Sides.Start.Index = Destination.TermStep.Index, Sides.End.Index = Destination.TermStep.Index;
+            if(Destination.TermStep.Preceding) Sides.Start.Index -= Destination.TermStep.Preceding.length;
+            if(Destination.TermStep.Following)   Sides.End.Index += Destination.TermStep.Following.length;
+            if(Sides.Start.Index < 0 || DestinationNode.textContent.length < Sides.End.Index) return;
+            if(DestinationNode.textContent.substr(Sides.Start.Index, Sides.End.Index - Sides.Start.Index) != Destination.TermStep.Preceding + Destination.TermStep.Following) return;
+        } else if(Destination.TermStep.Side && Destination.TermStep.Side == "a") {
+            Sides.Start.Node = DestinationNode.parentNode.firstChild; while(Sides.Start.Node.childNodes.length) Sides.Start.Node = Sides.Start.Node.firstChild;
+            Sides.End.Index = Destination.TermStep.Index - 1;
         } else {
-            Sides.Start.Index = Target.TermStep.Index;
-            Sides.End.Node = TargetNode.parentNode.lastChild; while(Sides.End.Node.childNodes.length) Sides.End.Node = Sides.End.Node.lastChild;
+            Sides.Start.Index = Destination.TermStep.Index;
+            Sides.End.Node = DestinationNode.parentNode.lastChild; while(Sides.End.Node.childNodes.length) Sides.End.Node = Sides.End.Node.lastChild;
             Sides.End.Index = Sides.End.Node.textContent.length;
         }
     }
@@ -1953,17 +1953,17 @@ R.move = function(Distance) {
             }
         }
         //sML.log([CurrentPageStatus, CurrentPageRatio, Distance, Side].join(" / "));
-        var TargetPageIndex = CurrentPage.PageIndex + Distance;
-             if(TargetPageIndex <                  0) TargetPageIndex = 0;
-        else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
-        var TargetPage = R.Pages[TargetPageIndex];
-        if(S.BRL == "pre-paginated" && TargetPage.Item.Pair) {
-            if(S.SLA == "horizontal" && window["inner" + S.SIZE.L] > TargetPage.Spread["offset" + S.SIZE.L]) {
-                if(Distance < 0 && TargetPage.PageIndexInSpread == 0) TargetPage = TargetPage.Spread.Pages[1];
-                if(Distance > 0 && TargetPage.PageIndexInSpread == 1) TargetPage = TargetPage.Spread.Pages[0];
+        var DestinationPageIndex = CurrentPage.PageIndex + Distance;
+             if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
+        else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
+        var DestinationPage = R.Pages[DestinationPageIndex];
+        if(S.BRL == "pre-paginated" && DestinationPage.Item.Pair) {
+            if(S.SLA == "horizontal" && window["inner" + S.SIZE.L] > DestinationPage.Spread["offset" + S.SIZE.L]) {
+                if(Distance < 0 && DestinationPage.PageIndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
+                if(Distance > 0 && DestinationPage.PageIndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
             }
         }
-        R.focus({ Page: TargetPage, Side: Side });
+        R.focus({ Page: DestinationPage, Side: Side });
     } else {
         sML.scrollTo(R.Main, (function(ScrollCoord) {
             var ScrollCoord = sML.Coord.getScrollCoord(R.Main);
@@ -1981,7 +1981,7 @@ R.page = R.scroll = R.move;
 
 
 R.to = function(BibitoString) {
-    return R.focus(U.getBibiToTarget(BibitoString));
+    return R.focus(U.getBibiToDestination(BibitoString));
 };
 
 
@@ -2450,7 +2450,7 @@ U.initialize = function() { // formerly O.readExtras
 
     if(H["epubcfi"]) {
         U["epubcfi"] = H["epubcfi"];
-        U["to"] = U.getEPUBCFITarget(H["epubcfi"]);
+        U["to"] = U.getEPUBCFIDestination(H["epubcfi"]);
     }
 
     var applyToU = function(DataString) {
@@ -2532,7 +2532,7 @@ U.parseHash = function(H) {
 };
 
 
-U.getBibiToTarget = function(BibitoString) {
+U.getBibiToDestination = function(BibitoString) {
     if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
     if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
     var ElementSelector = "", InE = BibitoString.split("-"), ItemIndex = parseInt(InE[0]), ElementIndex = InE[1] ? InE[1] : null;
@@ -2545,7 +2545,7 @@ U.getBibiToTarget = function(BibitoString) {
 };
 
 
-U.getEPUBCFITarget = function(CFIString) {
+U.getEPUBCFIDestination = function(CFIString) {
     if(!X["EPUBCFI"]) return null;
     var CFI = X["EPUBCFI"].parse(CFIString);
     if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
