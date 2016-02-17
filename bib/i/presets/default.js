@@ -12,6 +12,8 @@ P.initialize({
 'reader-view-mode'             : 'paged', // 'paged' or 'vertical' or 'horizontal' ('paged' is for flipping, 'vertical' and 'horizontal' are for scrolling)
 'reader-view-mode-fixed'       : false, // true or false
 
+'play-with-new-window'         : 'handheld', // '' or 'always' or 'handheld'
+
 'ui-font-family'               : '', // CSS font-family value as '"Helvetica", sans-serif' or ''
 
 'book-background'              : '', // CSS background value or ''
@@ -23,16 +25,14 @@ P.initialize({
 'spread-border-radius'         : '', // CSS border-radius value or ''
 'spread-box-shadow'            : '', // CSS box-shadow value or ''
 
-'item-padding-left'            : 32, // px
-'item-padding-right'           : 32, // px
-'item-padding-top'             : 45, // px
+'item-padding-left'            : 28, // px
+'item-padding-right'           : 28, // px
+'item-padding-top'             : 36, // px
 'item-padding-bottom'          : 20, // px
 
 'item-column-rule'             : '', // CSS column-rule value or ''
 
 'page-breaking'                : false, // true or false (if it is true, CSS 'page-break-before/after: always;' will work, partially)
-
-'play-with-new-window'         : 'handheld', // '' or 'always' or 'handheld'
 
 // -------------------------------------------------------------------------------------------------
 
@@ -43,4 +43,4 @@ P.initialize({
 
 // =================================================================================================
 
-});
+'from-bibi' : '2Uw0' });
