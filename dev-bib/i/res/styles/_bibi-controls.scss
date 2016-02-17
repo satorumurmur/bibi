@@ -961,13 +961,14 @@ div#bibi-indicator-mark {
 		top: 0;
 		bottom: auto;
 		margin: 0 auto;
-		width: 2px;
-		height: 1px;
+		border-radius: 50%;
+		width: 3px;
+		height: 3px;
 		transform-origin: 50% ($mark-size * 0.5);
 		//background: rgba(128,128,128,0.5);
 		@for $i from 1 through $mark-bits {
 			&:nth-child(#{$i}) {
-				background: darken(white, (20% + 60% / $mark-bits * $i));
+				background: darken(rgba(255,255,255,0.75), (72% / $mark-bits * $i));
 				transform: rotate(360deg / $mark-bits * $i);
 			}
 		}
@@ -980,7 +981,7 @@ div#bibi-indicator-mark {
 			animation: BEAT 2s ease 0s infinite normal;
 		}
 		span {
-			animation: GLOW 4s ease 0s infinite normal;
+			animation: GLOW 4s ease-in-out 0s infinite normal;
 		}
 	}
 }
@@ -994,19 +995,19 @@ div#bibi-indicator-mark {
 }
 
 @include keyframes(BEAT) {
-	  0% { transform: scale(1.0); }
+	  0% { transform: scale(1.0); opacity: 1.0; }
 	 25% { transform: scale(0.8); }
-	 50% { transform: scale(1.0); }
+	 50% { transform: scale(1.0); opacity: 0.5; }
 	 75% { transform: scale(1.2); }
-	100% { transform: scale(1.0); }
+	100% { transform: scale(1.0); opacity: 1.0; }
 }
 
 @include keyframes(GLOW) {
-	  0% { width: 2px; height: 1px; }
+	  0% { width: 3px; height: 3px; opacity: 1.0; }
 	 25% { width: 1px; height: 1px; }
-	 50% { width: 1px; height: $mark-size * 0.4; }
+	 50% { width: 1px; height: ($mark-size - $mark-core-size) / 2 + 8px; opacity: 0.5; }
 	 75% { width: 1px; height: 1px; }
-	100% { width: 2px; height: 1px;  }
+	100% { width: 3px; height: 3px; opacity: 1.0; }
 }
 
 
