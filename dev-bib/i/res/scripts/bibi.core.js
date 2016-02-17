@@ -1765,8 +1765,8 @@ R.focus = function(Destination, ScrollOption) {
             FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
         } else {
             FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
-            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] + S["spread-gap"] - window["inner" + S.SIZE.L]) * S.AXIS.PM;
-            else                            FocusPoint -= S["spread-gap"] * S.AXIS.PM;
+            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] + R.Stage.PageGap - window["inner" + S.SIZE.L]) * S.AXIS.PM;
+            else                            FocusPoint -= R.Stage.PageGap * S.AXIS.PM;
             if(S.SLD == "rtl") FocusPoint += Destination.Page.offsetWidth - window.innerWidth;
         }
     } else {
