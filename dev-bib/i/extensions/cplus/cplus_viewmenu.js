@@ -25,42 +25,56 @@ Bibi.x({
     Shape.SpreadsH = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
     Shape.SpreadsV = '<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">'   + Shape.Spread + Shape.Spread + Shape.Spread + '</span>';
 
+    var changeView = function() {
+        if(this.State != 0) return; 
+        var RVM = this.id.replace("bibi-viewmenu-", "");
+        C.Panel.toggle(function() {
+            R.changeView(RVM);
+        });
+    };
+
     C.addButton({
+        id: "bibi-viewmenu-paged",
         Category: "panel-menu-alpha",
         Group: "view",
         Labels: [
-            { ja: 'ページ表示', en: 'Paged View' }
+            { ja: 'ページ表示に変更', en: 'Change to Paged View' },
+            { ja: 'ページ表示（現在の設定）', en: 'Paged View (Selected)' }
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-paged">' + Shape.SpreadsP + '</span>'
-    }, function() {
-        C.Panel.toggle(function() {
-            R.changeView("paged");
-        });
+    }, {
+        click: changeView
     });
 
     C.addButton({
+        id: "bibi-viewmenu-horizontal",
         Category: "panel-menu-alpha",
         Group: "view",
         Labels: [
-            { ja: '横スクロール表示', en: 'Scroll View (Horizontal)' }
+            { ja: '横スクロール表示に変更', en: 'Change to Horizontal-Scroll View' },
+            { ja: '横スクロール表示（現在の設定）', en: 'Horizontal-Scroll View (Selected)' }
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-horizontal">' + Shape.SpreadsH + '</span>'
-    }, function() {
-        C.Panel.toggle(function() {
-            R.changeView("horizontal");
-        });
+    }, {
+        click: changeView
     });
 
     C.addButton({
+        id: "bibi-viewmenu-vertical",
         Category: "panel-menu-alpha",
         Group: "view",
         Labels: [
-            { ja: '縦スクロール表示', en: 'Scroll View (Vertical)' }
+            { ja: '縦スクロール表示に変更', en: 'Change to Vertical-Scroll View' },
+            { ja: '縦スクロール表示（現在の設定）', en: 'Vertical-Scroll View (Selected)' }
         ],
         IconHTML: '<span class="bibi-icon bibi-icon-vertical">' + Shape.SpreadsV + '</span>'
-    }, function() {
-        C.Panel.toggle(function() {
-            R.changeView("vertical");
+    }, {
+        click: changeView
+    });
+
+    E.add("bibi:updateSetting", function() {
+        sML.each(document.querySelectorAll("#bibi-panel-menu-alpha-view > li"), function() {
+            C.setState(this, (this.id == "bibi-viewmenu-" + S.RVM ? 1 : 0));
         });
     });
 

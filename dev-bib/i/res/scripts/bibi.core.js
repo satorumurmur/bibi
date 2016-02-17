@@ -157,8 +157,8 @@ Bibi.welcome = function() {
 
     E.add("bibi:command:move", function(Distance) { R.move(Distance); });
     E.add("bibi:command:focus", function(Destination) { R.focus(Destination); });
-    E.add("bibi:command:changeView", function(BDM) { R.changeView(BDM); });
-    E.add("bibi:command:togglePanel", function(BDM) { C.Panel.toggle(); });
+    E.add("bibi:command:changeView", function(RVM) { R.changeView(RVM); });
+    E.add("bibi:command:togglePanel", function() { C.Panel.toggle(); });
     window.addEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
@@ -1670,23 +1670,23 @@ R.onresized = function() {
     E.dispatch("bibi:resized");
 };
 
-R.changeView = function(BDM) {
-    if(S["reader-view-mode-fixed"] || typeof BDM != "string" || S.RVM == BDM) return false;
+R.changeView = function(RVM) {
+    if(S["reader-view-mode-fixed"] || typeof RVM != "string" || S.RVM == RVM || !/^(paged|horizontal|vertical)$/.test(RVM)) return false;
     if(R.Started) {
-        if(BDM != "paged") {
+        if(RVM != "paged") {
             R.Spreads.forEach(function(Spread) {
                 Spread.style.opacity = "";
             });
         }
         R.relayout({
-            Setting: { "reader-view-mode": BDM },
+            Setting: { "reader-view-mode": RVM },
             callback: function() {
                 //Option["page-progression-direction"] = S.PPD;
-                E.dispatch("bibi:changeView", BDM);
+                E.dispatch("bibi:changeView", RVM);
             }
         });
     } else {
-        S.update({ "reader-view-mode": BDM });
+        S.update({ "reader-view-mode": RVM });
         return L.play();
     }
 };
@@ -2683,6 +2683,8 @@ S.update = function(Settings) { // formerly O.updateSetting
     if(PrevPPD != S.PPD) { sML.replaceClass(O.HTML, "page-"   + PrevPPD, "page-"   + S.PPD); }
     if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-" + PrevSLA, "spread-" + S.SLA); }
     if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-" + PrevSLD, "spread-" + S.SLD); }
+
+    E.dispatch("bibi:updateSetting", S);
 
 };
 
