@@ -6,29 +6,6 @@
 // - HTML / Body
 // --------------------------------------------------------------------------------
 
-@mixin scrollbar() {
-	$scrollbar-size: 12px;
-	&::-webkit-scrollbar {
-		height: $scrollbar-size;
-		width: $scrollbar-size;
-	}
-	&::-webkit-scrollbar-track {
-		background: rgb(240,240,240);
-		border: solid 0 rgb(192,192,192);
-		&:horizontal {
-			border-top-width: 1px;
-		}
-		&:vertical {
-			border-left-width: 1px;
-		}
-	}
-	&::-webkit-scrollbar-thumb {
-		border: solid 1px rgb(176,176,176);
-		border-radius: $scrollbar-size / 2;
-		background: rgb(192,192,192);
-	}
-}
-
 html {
 	overflow: hidden; &.welcome { overflow: scroll; }
 	width: 100%;
