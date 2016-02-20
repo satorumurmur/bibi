@@ -932,10 +932,10 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 // - Mark (div#bibi-indicator-mark)
 // --------------------------------------------------------------------------------
 
-$mark-size: 56px;
-$mark-halo-size: 32px; $mark-halo-color: rgba(144,144,144,0.5);
-$mark-core-size: 24px; $mark-core-color: rgba(192,192,192,0.5);
-$mark-bits: 12;
+$indicator-mark-size: 56px;
+$indicator-mark-halo-size: 32px; $indicator-mark-halo-color: rgba(144,144,144,0.5);
+$indicator-mark-core-size: 24px; $indicator-mark-core-color: rgba(192,192,192,0.5);
+$indicator-mark-bits: 12;
 
 div#bibi-indicator-mark {
 	position: absolute;
@@ -947,8 +947,8 @@ div#bibi-indicator-mark {
 	top: 48%;
 	bottom: auto;
 	margin: auto;
-	width: $mark-size;
-	height: $mark-size;
+	width: $indicator-mark-size;
+	height: $indicator-mark-size;
 	&:before, &:after {
 		content: "";
 		position: absolute;
@@ -958,14 +958,14 @@ div#bibi-indicator-mark {
 		border-radius: 50%;
 	}
 	&:before { // core
-		width: $mark-core-size;
-		height: $mark-core-size;
-		background: $mark-core-color;
+		width: $indicator-mark-core-size;
+		height: $indicator-mark-core-size;
+		background: $indicator-mark-core-color;
 	}
 	&:after { // halo
-		width: $mark-halo-size;
-		height: $mark-halo-size;
-		border: solid 1.5px $mark-halo-color;
+		width: $indicator-mark-halo-size;
+		height: $indicator-mark-halo-size;
+		border: solid 1.5px $indicator-mark-halo-color;
 	}
 	span {
 		display: block;
@@ -978,12 +978,12 @@ div#bibi-indicator-mark {
 		border-radius: 50%;
 		width: 3px;
 		height: 3px;
-		transform-origin: 50% ($mark-size * 0.5);
+		transform-origin: 50% ($indicator-mark-size * 0.5);
 		//background: rgba(128,128,128,0.5);
-		@for $i from 1 through $mark-bits {
+		@for $i from 1 through $indicator-mark-bits {
 			&:nth-child(#{$i}) {
-				background: darken(rgba(255,255,255,0.75), (72% / $mark-bits * $i));
-				transform: rotate(360deg / $mark-bits * $i);
+				background: darken(rgba(255,255,255,0.75), (72% / $indicator-mark-bits * $i));
+				transform: rotate(360deg / $indicator-mark-bits * $i);
 			}
 		}
 	}
@@ -1019,45 +1019,66 @@ div#bibi-indicator-mark {
 @include keyframes(GLOW) {
 	  0% { width: 3px; height: 3px; opacity: 1.0; }
 	 25% { width: 1px; height: 1px; }
-	 50% { width: 1px; height: ($mark-size - $mark-core-size) / 2 + 8px; opacity: 0.5; }
+	 50% { width: 1px; height: ($indicator-mark-size - $indicator-mark-core-size) / 2 + 8px; opacity: 0.5; }
 	 75% { width: 1px; height: 1px; }
 	100% { width: 3px; height: 3px; opacity: 1.0; }
 }
 
 
-// - Bar (div#bibi-indicator-bar)
+// - Progress (div#bibi-indicator-progress)
 // --------------------------------------------------------------------------------
 
-div#bibi-indicator-bar {
-	display: none; html.view-paged & { display: block; }
+div#bibi-indicator-progress {
+	transition: 0.125s ease-out;
+	&.transparentized {
+		opacity: 0;
+		transition: 0.250s ease-out;
+	}
+	&.vanished {
+		display: none;
+	}
+}
+
+
+// - Progress > Bar (div#bibi-indicator-progress-bar)
+// --------------------------------------------------------------------------------
+
+$indicator-progress-bar-size: $scrollbar-size;
+
+div#bibi-indicator-progress-bar {
 	box-sizing: border-box;
+	display: none; html.view-paged & { display: block; }
 	position: absolute;
 	z-index: 1500;
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	height: 4px;
-	background: rgb(96,96,96);
-	span#bibi-indicator-bar-progress {
+	height: $scrollbar-size;
+	border-top: solid 1px $scrollbar-track-border-color;
+	background: $scrollbar-track-background-color;;
+	span#bibi-indicator-progress-bar-current {
+		box-sizing: border-box;
 		display: block;
 		position: absolute;
-		html.page-ltr & { left: 0; }
-		html.page-rtl & { right: 0; }
-		top: 0;
-		height: 4px;
-		background: rgb(216,216,216);
-		transition: width 0.125s linear;
+		html.page-ltr & { right: 0; }
+		html.page-rtl & { left: 0; }
+		bottom: 0;
+		height: $scrollbar-size;
+		border-radius: $scrollbar-size * 0.5;
+		border: solid 1px $scrollbar-thumb-border-color;
+		background: $scrollbar-thumb-background-color;
+		transition: 0.125s linear;
 	}
 }
 
 
-// - Nombre (div#bibi-indicator-nombre)
+// - Progress > Nombre (div#bibi-indicator-progress-nombre)
 // --------------------------------------------------------------------------------
 
-$nombre-box-width: 10em;
-$nombre-box-height: 1.6em;
+$indicator-progress-nombre-box-width: 10em;
+$indicator-progress-nombre-box-height: 1.6em;
 
-div#bibi-indicator-nombre {
+div#bibi-indicator-progress-nombre {
 	$color: rgb(64,64,64);
 	box-sizing: border-box;
 	overflow: hidden;
@@ -1065,17 +1086,16 @@ div#bibi-indicator-nombre {
 	position: fixed;
 	margin: auto;
 	border-radius: .8em;
-	width: $nombre-box-width;
-	height: $nombre-box-height;
-	line-height: $nombre-box-height * 0.94;
+	width: $indicator-progress-nombre-box-width;
+	height: $indicator-progress-nombre-box-height;
+	line-height: $indicator-progress-nombre-box-height * 0.94;
 	font-size: 12px;
 	text-align: center;
 	color: $color;
 	background: rgba(240,240,240,0.9);
-	transition: 0.125s ease-out;
 	html.view-paged & {
 		left: 0; right: 0;
-		bottom: 4px + 2px;
+		bottom: $indicator-progress-bar-size + 2px;
 	}
 	html.view-horizontal & {
 		left: 0; right: 0;
@@ -1084,29 +1104,22 @@ div#bibi-indicator-nombre {
 	html.view-vertical & {
 		top: 0; bottom: 0;
 		right: 15px + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
-		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
-	}
-	&.transparentized {
-		opacity: 0;
-		transition: 0.250s ease-out;
-	}
-	&.vanished {
-		display: none;
+		transform: rotate(90deg) translateY(($indicator-progress-nombre-box-width - $indicator-progress-nombre-box-height) * -0.5);
 	}
 	span {
 		display: inline-block;
 	}
-	span#bibi-indicator-nombre-current {
+	span#bibi-indicator-progress-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
 		color: darken($color, 25%);
 	}
-	span#bibi-indicator-nombre-delimiter {
+	span#bibi-indicator-progress-nombre-delimiter {
 		margin: 0 0.1em 0 0.2em;
 	}
-	span#bibi-indicator-nombre-total {
+	span#bibi-indicator-progress-nombre-total {
 	}
-	span#bibi-indicator-nombre-percent {
+	span#bibi-indicator-progress-nombre-percent {
 		margin-left: .25em;
 		color: lighten($color, 25%);
 		span.unit {

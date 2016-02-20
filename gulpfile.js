@@ -28,7 +28,6 @@ gulp.task('clean', function() {
         './bib/i/res/scripts',
         './bib/i/res/styles',
         './bib/i/extensions/analytics',
-        './bib/i/extensions/cplus',
         './bib/i/extensions/epubcfi',
         './bib/i/extensions/jatex',
         './bib/i/extensions/overreflow',
@@ -127,7 +126,12 @@ gulp.task('make_script_bibi', function() {
 			'./bower_components/native-promise-only/lib/npo.src.js',
 			'./bower_components/easing/easing-min.js',
 			'./bower_components/sML/sML.js',
-			'./dev-bib/i/res/scripts/bibi.core.js'
+			'./dev-bib/i/res/scripts/bibi.core.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.arrows.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.keys.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.indicators.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.window-menu.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.view-menu.js'
         ],
         dist: {
             dir: './bib/i/res/scripts',
@@ -156,21 +160,6 @@ gulp.task('make_script_extension_analytics', function() {
         dist: {
             dir: './bib/i/extensions/analytics',
             name: 'analytics.js'
-        }
-    });
-});
-
-gulp.task('make_script_extension_cplus', function() {
-    return make_script({
-        src: [
-			'./dev-bib/i/extensions/cplus/_banner.js',
-			'./dev-bib/i/extensions/cplus/cplus_viewmenu.js',
-			'./dev-bib/i/extensions/cplus/cplus_arrows.js',
-			'./dev-bib/i/extensions/cplus/cplus_keys.js'
-        ],
-        dist: {
-            dir: './bib/i/extensions/cplus',
-            name: 'cplus.js'
         }
     });
 });
@@ -230,7 +219,6 @@ var make_script_tasks = [
     'make_script_bibi',
     'make_script_pipi',
     'make_script_extension_analytics',
-    'make_script_extension_cplus',
     'make_script_extension_unzipper',
     'make_script_extension_epubcfi',
     'make_script_extension_jatex',
@@ -267,9 +255,6 @@ gulp.task('watch', function() {
     gulp.watch([
         './dev-bib/i/extensions/analytics/**/*.js'
     ], ['make_script_extension_analytics']);
-    gulp.watch([
-        './dev-bib/i/extensions/cplus/**/*.js'
-    ], ['make_script_extension_cplus']);
     gulp.watch([
         './dev-bib/i/extensions/epubcfi/**/*.js'
     ], ['make_script_extension_epubcfi']);

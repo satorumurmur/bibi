@@ -58,10 +58,10 @@
             Fragment.add("parent-uri", Pipi.encode(location.href));
             Fragment.add("parent-origin", Pipi.encode(location.origin));
             if(/^(horizontal|vertical|paged)$/.test(RVM)) Fragment.add("reader-view-mode", RVM);
-            if(/^(true|false|yes|no|desktop|mobile)?$/.test(RVMFixed  )) Fragment.add("reader-view-mode-fixed", RVMFixed);
-            if(/^(true|false|yes|no|desktop|mobile)?$/.test(Autostart )) Fragment.add("autostart", Autostart);
-            if(/^(true|false|yes|no|desktop|mobile)?$/.test(NewWindow )) Fragment.add("play-in-new-window", NewWindow);
-            if(/^(true|false|yes|no|desktop|mobile)?$/.test(HideArrows)) Fragment.add("hide-arrows", HideArrows);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(RVMFixed  )) Fragment.add("reader-view-mode-fixed", RVMFixed);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart )) Fragment.add("autostart", Autostart);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(NewWindow )) Fragment.add("play-in-new-window", NewWindow);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(HideArrows)) Fragment.add("hide-arrows", HideArrows);
             if(/^[1-9][\d\-\.]*$/.test(To)) Fragment.add("to", To);
             if(/^[1-9]\d*$/.test(Nav)) Fragment.add("nav", Nav);
             // Frame

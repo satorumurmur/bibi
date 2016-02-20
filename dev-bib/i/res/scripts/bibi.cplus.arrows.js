@@ -37,18 +37,16 @@ Bibi.x({
     );
 
     [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-        if(!O.Handheld) {
+        if(!O.Mobile) {
             Arrow.addEventListener("mouseover", function() { if(Arrow.isActive()) sML.addClass(Arrow, "flickering"); });
             Arrow.addEventListener("mouseout",  function() { sML.removeClass(Arrow, "flickering"); });
         }
-        Arrow.addEventListener("click", function() {
-            if(!Arrow.isActive()) return false;
+        Arrow.addEventListener("click", function(Eve) {
+            if(!Arrow.isActive() || (!Eve.offsetX && !Eve.offsetY)) return false; // returns false in case of: 1. clicking inactive arrow, 2. ghost event (what is this...?)
             E.dispatch("bibi:command:move", Arrow.DistanceToMove);
             sML.addClass(Arrow, "firing");
-            if(Arrow.Timer) clearTimeout(Arrow.Timer);
-            Arrow.Timer = setTimeout(function() {
-                sML.removeClass(Arrow, "firing");
-            }, 200);
+            if(Arrow.Timer_out) clearTimeout(Arrow.Timer_out);
+            Arrow.Timer_out = setTimeout(function() { sML.removeClass(Arrow, "firing"); }, 200);
         });
     });
 

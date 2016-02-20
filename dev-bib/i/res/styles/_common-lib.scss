@@ -7,6 +7,10 @@
 // --------------------------------------------------------------------------------
 
 $scrollbar-size: 12px;
+$scrollbar-track-background-color: rgb(240,240,240);
+$scrollbar-track-border-color: rgb(192,192,192);
+$scrollbar-thumb-background-color: rgb(192,192,192);
+$scrollbar-thumb-border-color: rgb(176,176,176);
 
 $veil-background: rgb(64,64,64);
 $bibi-background: rgb(64,64,64);
@@ -23,8 +27,8 @@ $bottom-bar-height: 36px;
 		width: $scrollbar-size;
 	}
 	&::-webkit-scrollbar-track {
-		background: rgb(240,240,240);
-		border: solid 0 rgb(192,192,192);
+		border: solid 0 $scrollbar-track-border-color;
+		background: $scrollbar-track-background-color;
 		&:horizontal {
 			border-top-width: 1px;
 		}
@@ -33,8 +37,8 @@ $bottom-bar-height: 36px;
 		}
 	}
 	&::-webkit-scrollbar-thumb {
-		border: solid 1px rgb(176,176,176);
+		border: solid 1px $scrollbar-thumb-border-color;
 		border-radius: $scrollbar-size / 2;
-		background: rgb(192,192,192);
+		background: $scrollbar-thumb-background-color;
 	}
 }

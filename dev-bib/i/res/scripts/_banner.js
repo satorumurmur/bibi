@@ -11,4 +11,9 @@
  * 2. easing.js | Copyright (c) Dan Rogers - https://github.com/danro/easing-js | Licensed under the MIT license.
  * 3. sML | Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML | Licensed under the MIT license.
  * 4. BiB/i (core)
+ * 5. BiB/i Extensions: C+
+ *     1. BiB/i Extension: C+Keys
+ *     2. BiB/i Extension: C+Indicators
+ *     3. BiB/i Extension: C+ViewMenu
+ *     4. BiB/i Extension: C+WindowMenu
  */

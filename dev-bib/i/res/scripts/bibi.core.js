@@ -66,7 +66,7 @@ Bibi.welcome = function() {
     O.Title = document.getElementsByTagName("title")[0];
 
     if(sML.OS.iOS || sML.OS.Android) {
-        O.Handheld = true;
+        O.Mobile = true;
         O.HTML.className = O.HTML.className + " Touch";
         O.setOrientation = function() {
             sML.removeClass(O.HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
@@ -147,7 +147,6 @@ Bibi.welcome = function() {
 
     C.createVeil();
     C.createPanel();
-    C.createIndicator();
 
     N.createBoard();
 
@@ -159,7 +158,7 @@ Bibi.welcome = function() {
     E.add("bibi:command:focus", function(Destination) { R.focus(Destination); });
     E.add("bibi:command:changeView", function(RVM) { R.changeView(RVM); });
     E.add("bibi:command:togglePanel", function() { C.Panel.toggle(); });
-    window.addEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
+    window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
     sML.removeClass(O.HTML, "welcome");
@@ -178,7 +177,7 @@ Bibi.welcome = function() {
                 N.note('');
             }
         } else {
-            if(O.ZippedEPUBEnabled && window.File && !O.Handheld) {
+            if(O.ZippedEPUBEnabled && window.File && !O.Mobile) {
                 B.dropOrClick();
             } else {
                 if(O.WindowEmbedded) {
@@ -188,7 +187,7 @@ Bibi.welcome = function() {
                 }
             }
         }
-    }, (O.Handheld ? 999 : 1));
+    }, (O.Mobile ? 999 : 1));
 
 };
 
@@ -1529,7 +1528,7 @@ R.layout = function(Option) {
 
     R.OnceLayouted = true;
 
-    window.removeEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
+    window.removeEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
 
     if(!Option) Option = {};
@@ -1578,7 +1577,7 @@ R.layout = function(Option) {
 
     if(typeof doAfter == "function") doAfter();
 
-    window.addEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
+    window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
     E.dispatch("bibi:layout");
@@ -1609,7 +1608,7 @@ R.relayout = function(Option) {
         PageProgressInSpread: 0
     };
     setTimeout(function() {
-        window.removeEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
+        window.removeEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
         R.Main.removeEventListener("scroll", R.onscroll);
         setTimeout(function() {
             R.layout({
@@ -1619,7 +1618,7 @@ R.relayout = function(Option) {
             });
             R.Relayouting--;
             if(!R.Relayouting) setTimeout(function() {
-                window.addEventListener(O.Handheld ? "orientationchange" : "resize", R.onresize);
+                window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
                 R.Main.addEventListener("scroll", R.onscroll);
                 if(Option && typeof Option.callback == "function") Option.callback();
                 sML.removeClass(O.HTML, "layouting");
@@ -2041,7 +2040,7 @@ N.note = function(Msg, Time) {
             }, Time);
         }, 0);
     }, 0);
-    if(!O.Handheld) {
+    if(!O.Mobile) {
         if(O.statusClearer) clearTimeout(O.statusClearer);
         window.status = 'BiB/i: ' + Msg;
         O.statusClearer = setTimeout(function() { window.status = ""; }, Time);
@@ -2111,7 +2110,7 @@ C.createVeil = function() {
     C.Veil.Powered = C.Veil.appendChild(sML.create("p",   { id: "bibi-veil-powered", innerHTML: O.getLogo({ Color: "white", Linkify: true }) }));
 
     E.add("bibi:wait", function() {
-        var Title = (O.Handheld ? 'Tap' : 'Click') + ' to Open';
+        var Title = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
         C.Veil.PlayButton = C.Veil.appendChild(
             sML.create("p", { id: "bibi-veil-playbutton", title: Title,
                 innerHTML: '<span class="non-visual">' + Title + '</span>',
@@ -2254,110 +2253,6 @@ C.createPanel.createMenus = function() {
     C["panel-menu-alpha"] = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-alpha" }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
     C["panel-menu-beta"]  = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-beta"  }, {}, { "click": function(Eve) { Eve.stopPropagation(); } }));
 
-    // Fullscreen
-    if(O.FullscreenEnabled) C.addButton({
-        id: "bibi-toggle-fullscreen",
-        Category: "panel-menu-alpha",
-        Group: "window",
-        Labels: [
-            { ja: 'フルスクリーンモードを開始', en: 'Enter Fullscreen' },
-            { ja: 'フルスクリーンモードを終了', en:  'Exit Fullscreen' }
-        ],
-        IconHTML: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>'
-    }, {
-        click: function() {
-            var Button = this;
-            if(!O.FullscreenElement.Fullscreen) {
-                sML.requestFullscreen(O.FullscreenElement);
-            } else {
-                sML.exitFullscreen(O.FullscreenDocument);
-            }
-            C.Panel.toggle(function() {
-                if(!O.FullscreenElement.Fullscreen) {
-                    O.FullscreenElement.Fullscreen = true;
-                    sML.addClass(O.HTML, "fullscreen");
-                    C.setState(Button, 1);
-                    E.dispatch("bibi:requestFullscreen");
-                } else {
-                    O.FullscreenElement.Fullscreen = false;
-                    sML.removeClass(O.HTML, "fullscreen");
-                    C.setState(Button, 0);
-                    E.dispatch("bibi:exitFullscreen");
-                }
-            });
-        }
-    });
-
-    // New Window
-    if(O.WindowEmbedded) C.addButton({
-        id: "bibi-open-newwindow",
-        Category: "panel-menu-alpha",
-        Group: "window",
-        Labels: [
-            { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }
-        ],
-        IconHTML: '<a class="bibi-icon bibi-icon-open-newwindow" href="' + location.href + '" target="_blank"></a>'
-    });
-
-};
-
-
-C.createIndicator = function() {
-
-    C.Indicator = O.Body.appendChild(sML.create("div", { id: "bibi-indicator" }));
-
-    // Mark
-    C.Indicator.Mark = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-mark" }));
-    for(var i = 1; i <= 12; i++) C.Indicator.Mark.appendChild(sML.create("span"));
-    E.add("bibi:startLoading", function() {    sML.addClass(O.HTML, "loading"); N.note('Loading...'); });
-    E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); N.note('');           });
-
-    // Bar
-    C.Indicator.Bar = C.Indicator.appendChild(
-        sML.create("div", { id: "bibi-indicator-bar",
-            progress: function() {
-                C.Indicator.Bar.Progress.style.width = (R.Current.PageNumber / R.Pages.length * 100) + "%";
-            }
-        })
-    );
-    C.Indicator.Bar.Progress = C.Indicator.Bar.appendChild(sML.create("span", { id: "bibi-indicator-bar-progress" }));
-    E.add("bibi:scrolled", C.Indicator.Bar.progress);
-
-    // Nombre
-    C.Indicator.Nombre = C.Indicator.appendChild(
-        sML.create("div", { id: "bibi-indicator-nombre", className: "transparentized vanished",
-            flick: function() {
-                clearTimeout(C.Indicator.Nombre.Timer_vanish);
-                clearTimeout(C.Indicator.Nombre.Timer_transparentize);
-                setTimeout(function() {
-                    sML.removeClass(C.Indicator.Nombre, "vanished");
-                }, 0);
-                setTimeout(function() {
-                    sML.removeClass(C.Indicator.Nombre, "transparentized");
-                }, 10);
-                C.Indicator.Nombre.Timer_transparentize = setTimeout(function() {
-                    sML.addClass(C.Indicator.Nombre, "transparentized");
-                }, 1981);
-                C.Indicator.Nombre.Timer_vanish = setTimeout(function() {
-                    sML.addClass(C.Indicator.Nombre, "vanished");
-                }, 1981 + 255);
-                C.Indicator.Nombre.Current.innerHTML   = R.Current.PageNumber;
-                C.Indicator.Nombre.Delimiter.innerHTML = '/';
-                C.Indicator.Nombre.Total.innerHTML     = R.Pages.length;
-                C.Indicator.Nombre.Percent.innerHTML   = '(' + R.Current.Percent + '<span class="unit">%</span>)';
-                E.dispatch("bibi:x:cplus:nombre:flick");
-            }
-        })
-    );
-    sML.CSS.addRule("html.view-horizontal div#bibi-indicator-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
-    sML.CSS.addRule("html.view-vertical   div#bibi-indicator-nombre", "right: "  + (O.ScrollBars.Width  + 2) + "px;");
-    C.Indicator.Nombre.Current   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-current"   }));
-    C.Indicator.Nombre.Delimiter = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-delimiter" }));
-    C.Indicator.Nombre.Total     = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-total"     }));
-    C.Indicator.Nombre.Percent   = C.Indicator.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-nombre-percent"   }));
-    E.add("bibi:scrolled", C.Indicator.Nombre.flick);
-    E.add("bibi:start", function() { setTimeout(C.Indicator.Nombre.flick, 321); });
-
 };
 
 
@@ -2387,7 +2282,7 @@ C.addButton = function(Param, Fn) {
     C.setState(Button, 0);
     if(typeof Fn == "function") Button.addEventListener("click", Fn);
     else for(EventName in Fn) if(typeof Fn[EventName] == "function") Button.addEventListener(EventName, Fn[EventName]);
-    if(!O.Handheld) {
+    if(!O.Mobile) {
         Button.addEventListener("mouseover", function() {
             C.Panel.Help.Message.innerHTML = this.Labels[this.State][O.Language];
             C.Panel.Help.Message.className = "shown";
@@ -2498,9 +2393,9 @@ U.initialize = function() { // formerly O.readExtras
                     case "autostart":
                     case "play-in-new-window":
                     case "hide-arrows":
-                        if(!/^(true|false|yes|no|desktop|mobile)$/.test(PnV[1])) PnV[1] = undefined;
-                        else if(PnV[1] == "true" ) PnV[1] = "yes";
+                             if(PnV[1] == "true" ) PnV[1] = "yes";
                         else if(PnV[1] == "false") PnV[1] = "no";
+                        else if(!/^(yes|no|mobile|desktop)$/.test(PnV[1])) PnV[1] = undefined;
                         break;
                     case "to":
                         PnV[1] = U.getBibiToDestination(PnV[1]);
@@ -2634,8 +2529,8 @@ S.initialize = function() {
 
 
 S.decide = function(Property, Always) {
-         if(U[Property])                return (U[Property] == "yes" || (U[Property] == "mobile" && O.Handheld) || (U[Property] == "desktop" && !O.Handheld));
-    else if(O.WindowEmbedded || Always) return (S[Property] == "yes" || (S[Property] == "mobile" && O.Handheld) || (S[Property] == "desktop" && !O.Handheld));
+         if(U[Property])                return (U[Property] == "yes" || (U[Property] == "mobile" && O.Mobile) || (U[Property] == "desktop" && !O.Mobile));
+    else if(O.WindowEmbedded || Always) return (S[Property] == "yes" || (S[Property] == "mobile" && O.Mobile) || (S[Property] == "desktop" && !O.Mobile));
     else                                return (Property == "autostart");
 }
 
@@ -2730,7 +2625,7 @@ O.Log = ((!parent || parent == window) && console && console.log);
 
 
 O.log = function(Lv, Msg) {
-    //if(O.Handheld) return;
+    //if(O.Mobile) return;
     if(!O.Log || !Msg || typeof Msg != "string") return;
     switch(Lv) {
         case 0: Msg = "[ERROR] " + Msg; break;
