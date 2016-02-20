@@ -36,14 +36,6 @@ Bibi.x({
         E.dispatch("bibi:indicator:progress");
     };
 
-    // Progress > Bar
-    C.Indicator.Progress.Bar = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar" }));
-    C.Indicator.Progress.Bar.Current = C.Indicator.Progress.Bar.appendChild(sML.create("span", { id: "bibi-indicator-progress-bar-current" }));
-    E.add("bibi:indicator:progress", function() {
-        C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) + "%";
-        C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.PageNumber) / R.Pages.length * 100) + "%";
-    });
-
     // Progress > Nombre
     C.Indicator.Progress.Nombre = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-nombre" }));
     sML.CSS.addRule("html.view-horizontal div#bibi-indicator-progress-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
@@ -57,6 +49,14 @@ Bibi.x({
         C.Indicator.Progress.Nombre.Delimiter.innerHTML = '/';
         C.Indicator.Progress.Nombre.Total.innerHTML     = R.Pages.length;
         C.Indicator.Progress.Nombre.Percent.innerHTML   = '(' + R.Current.Percent + '<span class="unit">%</span>)';
+    });
+
+    // Progress > Bar
+    C.Indicator.Progress.Bar = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar" }));
+    C.Indicator.Progress.Bar.Current = C.Indicator.Progress.Bar.appendChild(sML.create("span", { id: "bibi-indicator-progress-bar-current" }));
+    E.add("bibi:indicator:progress", function() {
+        C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) + "%";
+        C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.PageNumber) / R.Pages.length * 100) + "%";
     });
 
     E.add("bibi:scrolled", C.Indicator.progress);
