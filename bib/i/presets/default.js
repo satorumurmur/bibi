@@ -22,7 +22,7 @@ P.initialize({
 
 "book-background"              : "", // CSS background value or ""
 
-"spread-gap"                   : 2, // px (if you set odd-number, it will be added 1.)
+"spread-gap"                   : 2, // px
 "spread-margin-start"          : 0, // px
 "spread-margin-end"            : 0, // px
 
@@ -33,8 +33,6 @@ P.initialize({
 "item-padding-right"           : 28, // px
 "item-padding-top"             : 36, // px
 "item-padding-bottom"          : 20, // px
-
-"item-column-rule"             : "", // CSS column-rule value or ""
 
 "page-breaking"                : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
 

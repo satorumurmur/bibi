@@ -1123,16 +1123,15 @@ R.resetStage = function() {
     R.Columned = false;
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
     R.Stage.Width   = window.innerWidth;
-    R.Stage.Height  = window.innerHeight;// - 35 * 2;
+    R.Stage.Height  = window.innerHeight;
     if(S.RVM == "paged") {
-        R.Stage[S.SIZE.B] -= C.Indicator.Bar.offsetHeight;
+        if(C.Indicator) R.Stage.Height -= parseFloat(getComputedStyle(C.Indicator.Progress.Bar).height);
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
     } else {
         R.Stage[S.SIZE.B] -= O.ScrollBars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
-        R.Stage[S.SIZE.L] -= S["spread-gap"] * 2;
         R.Stage.PageGap = S["spread-gap"];
-        R.Main.Book.style["padding" + S.BASE.S] = S["spread-margin-start"]/* + 35*/ + "px";
-        R.Main.Book.style["padding" + S.BASE.E] = S["spread-margin-end"] + "px";
+        R.Main.Book.style["padding" + S.BASE.S] = S["spread-margin-start"] + "px";
+        R.Main.Book.style["padding" + S.BASE.E] = S["spread-margin-end"]   + "px";
     }
     R.Stage.Orientation = (R.Stage.Width / R.Stage.Height > 1.4) ? "landscape" : "portrait";
     R.Stage.BunkoLength = Math.floor(R.Stage[S.SIZE.B] * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
@@ -1336,7 +1335,6 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     Item.style.padding = 0;
     var StageB = R.Stage[S.SIZE.B];
     var StageL = R.Stage[S.SIZE.L];
-    var PageGap = R.Stage.PageGap;
     var PageB = StageB;
     var PageL = StageL;
     if(S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
@@ -1344,7 +1342,7 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
         //if(/^tb/.test(S.BWM)) {
         //    PageL = BunkoL;
         //} else {
-            var StageHalfL = Math.floor((StageL - PageGap) / 2);
+            var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
             if(StageHalfL > BunkoL) {
                 Item.Spreaded = true;
                 PageL = StageHalfL;
@@ -1476,7 +1474,6 @@ R.layoutSpread = function(Spread) {
     var SpreadBox = Spread.SpreadBox;
     SpreadBox.style.padding = "";
     var SpreadBoxPaddingBefore = 0, SpreadBoxPaddingAfter = 0;
-    var SpreadGap = (S.RVM == "paged" ? 0 : S["spread-gap"]);
     if(S.SLA == "horizontal") {
         // Set padding-start + padding-end of SpreadBox
         if(SpreadBox.offsetHeight < R.Stage[S.SIZE.B]) {
@@ -1487,24 +1484,14 @@ R.layoutSpread = function(Spread) {
         }
     }
     if(Spread.SpreadIndex == 0) {
-        var Padding = Math.floor((window["inner" + S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
-        SpreadBoxPaddingBefore = Padding;
-        if(S.RVM == "paged") SpreadBoxPaddingAfter = Padding;
-    } else /*if(!Spread.PrePaginated) {
-        if(R.Spreads[Spread.SpreadIndex - 1].PrePaginated) {
-            SpreadBoxPaddingBefore = Math.ceil((window["inner" + S.SIZE.L] - R.Spreads[Spread.SpreadIndex - 1]["offset" + S.SIZE.L]) / 2);
-        } else {
-            SpreadBoxPaddingBefore = S["spread-gap"];
-        }
-    } */if(S.BRL == "reflowable") {
-        SpreadBoxPaddingBefore = SpreadGap;
+        if(S.BRL == "pre-paginated" || S.RVM != "paged") SpreadBoxPaddingBefore = Math.floor((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
     } else {
-        SpreadBoxPaddingBefore = Math.floor(R.Stage[S.SIZE.L] / 4);
+        SpreadBoxPaddingBefore = (S.BRL == "reflowable") ? R.Stage.PageGap : Math.floor(R.Stage[S.SIZE.L] / 4);
     }
-    if(SpreadBoxPaddingBefore < SpreadGap) SpreadBoxPaddingBefore = SpreadGap;
+    //if(SpreadBoxPaddingBefore < R.Stage.PageGap) SpreadBoxPaddingBefore = R.Stage.PageGap;
     if(Spread.SpreadIndex == R.Spreads.length - 1) {
-        SpreadBoxPaddingAfter  += Math.ceil( (R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
-        if(SpreadBoxPaddingAfter  < SpreadGap) SpreadBoxPaddingAfter  = SpreadGap;
+        if(S.BRL == "pre-paginated" || S.RVM != "paged") SpreadBoxPaddingAfter  += Math.ceil((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
+        //if(SpreadBoxPaddingAfter  < R.Stage.PageGap) SpreadBoxPaddingAfter  = R.Stage.PageGap;
     }
     if(SpreadBoxPaddingBefore) SpreadBox.style["padding" + S.BASE.B] = SpreadBoxPaddingBefore + "px";
     if(SpreadBoxPaddingAfter)  SpreadBox.style["padding" + S.BASE.A] = SpreadBoxPaddingAfter  + "px";
@@ -1730,8 +1717,8 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
     if(PageRatio >= 100) return "including";
     var Status = [];
     if(window["inner" + S.SIZE.L] < PageCoord[S.SIZE.L]) Status.push("oversize");
-    var FrameBefore = FrameScrollCoord.Before - S["spread-gap"] / 2;
-    var FrameAfter  = FrameScrollCoord.After  + S["spread-gap"] / 2;
+    var FrameBefore = FrameScrollCoord.Before;
+    var FrameAfter  = FrameScrollCoord.After;
     if(FrameBefore * S.AXIS.PM <  PageCoord.Before * S.AXIS.PM) Status.push("entering");
     if(FrameBefore * S.AXIS.PM == PageCoord.Before * S.AXIS.PM) Status.push("entered");
     if(FrameAfter  * S.AXIS.PM == PageCoord.After  * S.AXIS.PM) Status.push("passsing");
@@ -1751,8 +1738,10 @@ R.getCurrent = function() {
 
 
 R.focus = function(Destination, ScrollOption) {
+    if(R.Moving) return false;
     Destination = R.focus.hatchDestination(Destination);
     if(!Destination) return false;
+    R.Moving = true;
     var FocusPoint = 0;
     if(S["book-rendition-layout"] == "reflowable") {
         if(Destination.Edge == "head") {
@@ -1761,8 +1750,7 @@ R.focus = function(Destination, ScrollOption) {
             FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
         } else {
             FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
-            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] + R.Stage.PageGap - window["inner" + S.SIZE.L]) * S.AXIS.PM;
-            else                            FocusPoint -= R.Stage.PageGap * S.AXIS.PM;
+            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] - window["inner" + S.SIZE.L]) * S.AXIS.PM;
             if(S.SLD == "rtl") FocusPoint += Destination.Page.offsetWidth - window.innerWidth;
         }
     } else {
@@ -1777,8 +1765,9 @@ R.focus = function(Destination, ScrollOption) {
     if(typeof Destination.TextNodeIndex == "number") R.selectTextLocation(Destination); // Colorize Destination with Selection
     var ScrollTo = { X: 0, Y: 0 }; 
     ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
+    var callback = function() { R.Moving = false; };
     if(S.RVM == "paged") {
-        sML.scrollTo(R.Main, ScrollTo, { Duration: 1 });/*
+        sML.scrollTo(R.Main, ScrollTo, { Duration: 1 }, { callback: callback });/*
         var GoAhead = (function() {
             CurrentScrollLength = R.Main["scroll" + (S.SLA == "horizontal" ? "Left" : "Top")];
             if(S.SLD == "rtl") return (FocusPoint < CurrentScrollLength);
@@ -1808,7 +1797,7 @@ R.focus = function(Destination, ScrollOption) {
             });
         }, FlippingDuration);*/
     } else {
-        sML.scrollTo(R.Main, ScrollTo, ScrollOption);
+        sML.scrollTo(R.Main, ScrollTo, ScrollOption, { callback: callback });
     }
     return false;
 };
@@ -1915,8 +1904,8 @@ R.selectTextLocation = function(Destination) {
 };
 
 
-R.move = function(Distance) {
-    if(!R.Started || isNaN(Distance)) return;
+R.move = function(Distance, ScrollOption) {
+    if(R.Moving || !R.Started || isNaN(Distance)) return false;
     Distance *= 1;
     if(Distance != -1) Distance = 1;
     if(Distance > 0) {
@@ -1959,16 +1948,17 @@ R.move = function(Distance) {
                 if(Distance > 0 && DestinationPage.PageIndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
             }
         }
-        R.focus({ Page: DestinationPage, Side: Side });
+        R.focus({ Page: DestinationPage, Side: Side }, ScrollOption);
     } else {
+        R.Moving = true;
         sML.scrollTo(R.Main, (function(ScrollCoord) {
             var ScrollCoord = sML.Coord.getScrollCoord(R.Main);
             switch(S.SLD) {
-                case "ttb": return { Y: ScrollCoord.Y + (window.innerHeight - S["spread-gap"]) * Distance      };
-                case "ltr": return { X: ScrollCoord.X + (window.innerWidth  - S["spread-gap"]) * Distance      };
-                case "rtl": return { X: ScrollCoord.X + (window.innerWidth  - S["spread-gap"]) * Distance * -1 };
+                case "ttb": return { Y: ScrollCoord.Y + (window.innerHeight + R.Stage.PageGap) * Distance      };
+                case "ltr": return { X: ScrollCoord.X + (window.innerWidth  + R.Stage.PageGap) * Distance      };
+                case "rtl": return { X: ScrollCoord.X + (window.innerWidth  + R.Stage.PageGap) * Distance * -1 };
             }
-        })());
+        })(), ScrollOption, { callback: function() { R.Moving = false; } });
     }
     E.dispatch("bibi:move", Distance);
 };
@@ -2441,7 +2431,6 @@ P.initialize = function(Preset) {
     ["spread-gap", "spread-margin-start", "spread-margin-end", "item-padding-left", "item-padding-right",  "item-padding-top",  "item-padding-bottom"].forEach(function(Property) {
         P[Property] = (typeof P[Property] != "number" || P[Property] < 0) ? 0 : Math.round(P[Property]);
     });
-    if(P["spread-gap"] % 2) P["spread-gap"]++;
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
 };
