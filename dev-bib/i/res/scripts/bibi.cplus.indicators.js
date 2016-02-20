@@ -55,10 +55,15 @@ Bibi.x({
     C.Indicator.Progress.Bar = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar" }));
     C.Indicator.Progress.Bar.Current = C.Indicator.Progress.Bar.appendChild(sML.create("span", { id: "bibi-indicator-progress-bar-current" }));
     E.add("bibi:indicator:progress", function() {
-        C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) + "%";
+        C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) * R.Current.Pages.length + "%";
         C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.PageNumber) / R.Pages.length * 100) + "%";
     });
+    C.Indicator.Progress.Bar.addEventListener("click", function(Eve) {
+        var Ratio = (Eve.srcElement.offsetLeft + Eve.offsetX) / C.Indicator.Progress.Bar.offsetWidth; if(S.PPD == "rtl") Ratio = 1 - Ratio;
+        R.focus(R.Pages[Math.ceil(R.Pages.length * Ratio) - 1]);
+    });
 
+    // Set
     E.add("bibi:scrolled", C.Indicator.progress);
     E.add("bibi:start", function() { setTimeout(C.Indicator.progress, 321); });
 

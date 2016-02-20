@@ -154,6 +154,7 @@ Bibi.welcome = function() {
 
     N.note("Welcome!");
 
+    E.add("bibi:scrolled", R.getCurrent);
     E.add("bibi:command:move", function(Distance) { R.move(Distance); });
     E.add("bibi:command:focus", function(Destination) { R.focus(Destination); });
     E.add("bibi:command:changeView", function(RVM) { R.changeView(RVM); });
@@ -1534,7 +1535,8 @@ R.layout = function(Option) {
     if(!Option) Option = {};
 
     if(!Option.Destination) {
-        var CurrentPage = R.getCurrentPages().StartPage;
+        R.getCurrent();
+        var CurrentPage = R.Current.Pages.StartPage;
         Option.Destination = {
             SpreadIndex: CurrentPage.Spread.SpreadIndex,
             PageProgressInSpread: CurrentPage.PageIndexInSpread / CurrentPage.Spread.Pages.length
@@ -1599,7 +1601,8 @@ R.relayout = function(Option) {
     O.stamp("Relayout Start");
     sML.addClass(O.HTML, "layouting");
     R.Relayouting++;
-    var CurrentPages = R.getCurrentPages();
+    R.getCurrent();
+    var CurrentPages = R.Current.Pages;
     var Destination = CurrentPages.StartPage ? {
         SpreadIndex: CurrentPages.StartPage.Spread.SpreadIndex,
         PageProgressInSpread: CurrentPages.StartPage.PageIndexInSpread / CurrentPages.StartPage.Spread.Pages.length
@@ -1633,12 +1636,7 @@ R.relayout = function(Option) {
 R.onscroll = function() {
     if(!R.Started) return;
     clearTimeout(R.Timer_onscroll);
-    R.Timer_onscroll = setTimeout(R.onscrolled, 123);
-};
-
-R.onscrolled = function() {
-    R.getCurrent();
-    E.dispatch("bibi:scrolled");
+    R.Timer_onscroll = setTimeout(function() { E.dispatch("bibi:scrolled"); }, 123);
 };
 
 R.onresize = function() {
@@ -1705,11 +1703,13 @@ R.getCurrentPages = function() {
             Status.push(R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord));
         }
     }
-    return {
-             Pages: Pages,                         Ratio: Ratio,                          Status: Status,
+    var Params = {
+                                                   Ratio: Ratio,                          Status: Status,
         StartPage: Pages[0],              StartPageRatio: Ratio[0],              StartPageStatus: Status[0],
           EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
     };
+    for(var Property in Params) Pages[Property] = Params[Property];
+    return Pages;
 };
 
 R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
@@ -1914,7 +1914,7 @@ R.move = function(Distance, ScrollOption) {
         var CurrentEdge = "StartPage";
         var Side = "after";
     }
-    R.Current.Pages = R.getCurrentPages();
+    R.getCurrent();
     var CurrentPage = R.Current.Pages[CurrentEdge];
     if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
         var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
@@ -1974,7 +1974,7 @@ R.Scale = 1;
 
 R.zoom = function(Scale) {
     if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-    R.Current.Pages = R.getCurrentPages();
+    R.getCurrent();
     var CurrentStartPage = R.Current.Pages.StartPage;
     sML.style(R.Main.Book, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
     if(Scale == 1) {

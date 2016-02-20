@@ -928,6 +928,9 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 // + Indicator
 // --------------------------------------------------------------------------------
 
+div#bibi-indicator {
+}
+
 
 // - Mark (div#bibi-indicator-mark)
 // --------------------------------------------------------------------------------
@@ -938,10 +941,10 @@ $indicator-mark-core-size: 24px; $indicator-mark-core-color: rgba(192,192,192,0.
 $indicator-mark-bits: 12;
 
 div#bibi-indicator-mark {
-	position: absolute;
 	box-sizing: border-box;
 	display: none;
-	z-index: 99999;
+	position: absolute;
+	z-index: 99999999999;
 	left: -100%;
 	right: -100%;
 	top: 48%;
@@ -1031,51 +1034,22 @@ div#bibi-indicator-mark {
 div#bibi-indicator-progress {
 }
 
-
-// - Progress > Bar (div#bibi-indicator-progress-bar)
-// --------------------------------------------------------------------------------
+$indicator-progress-nombre-box-width: 10em;
+$indicator-progress-nombre-box-height: 1.6em;
 
 $indicator-progress-bar-size: $scrollbar-size;
-
-div#bibi-indicator-progress-bar {
-	box-sizing: border-box;
-	display: none; html.view-paged & { display: block; }
-	position: absolute;
-	z-index: 1500;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	height: $scrollbar-size;
-	border-top: solid 1px $scrollbar-track-border-color;
-	background: $scrollbar-track-background-color;;
-	span#bibi-indicator-progress-bar-current {
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-		html.page-ltr & { right: 0; }
-		html.page-rtl & { left: 0; }
-		bottom: 0;
-		height: $scrollbar-size;
-		border-radius: $scrollbar-size * 0.5;
-		border: solid 1px $scrollbar-thumb-border-color;
-		background: $scrollbar-thumb-background-color;
-		transition: 0.125s linear;
-	}
-}
+$indicator-progress-bar-current-size: $scrollbar-size / 2;
 
 
 // - Progress > Nombre (div#bibi-indicator-progress-nombre)
 // --------------------------------------------------------------------------------
 
-$indicator-progress-nombre-box-width: 10em;
-$indicator-progress-nombre-box-height: 1.6em;
-
 div#bibi-indicator-progress-nombre {
 	$color: rgb(64,64,64);
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: 2000;
-	position: fixed;
+	z-index: 99999999999;
+	position: absolute;
 	margin: auto;
 	border-radius: .8em;
 	width: $indicator-progress-nombre-box-width;
@@ -1128,5 +1102,35 @@ div#bibi-indicator-progress-nombre {
 			margin-left: .125em;
 			font-size: .75em;
 		}
+	}
+}
+
+
+// - Progress > Bar (div#bibi-indicator-progress-bar)
+// --------------------------------------------------------------------------------
+
+div#bibi-indicator-progress-bar {
+	box-sizing: border-box;
+	display: none; html.view-paged & { display: block; }
+	position: absolute;
+	z-index: 99999999999;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: $scrollbar-size;
+	border-top: solid 1px $scrollbar-track-border-color;
+	background: $scrollbar-track-background-color;;
+	span#bibi-indicator-progress-bar-current {
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+		html.page-ltr & { right: 0; }
+		html.page-rtl & { left: 0; }
+		bottom: ($indicator-progress-bar-size - $indicator-progress-bar-current-size) * 0.5;
+		height: $indicator-progress-bar-current-size;
+		border-radius: $indicator-progress-bar-current-size * 0.5;
+		border: solid 1px $scrollbar-thumb-border-color;
+		background: $scrollbar-thumb-background-color;
+		transition: 0.125s linear;
 	}
 }
