@@ -25,14 +25,14 @@ Bibi.x({
     E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); N.note('');           });
 
     // Progress
-    C.Indicator.Progress = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-progress", className: "transparentized vanished" }));
+    C.Indicator.Progress = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-progress" }));
     C.Indicator.progress = function() {
         clearTimeout(C.Indicator.Progress.Timer_vanish);
         clearTimeout(C.Indicator.Progress.Timer_transparentize);
-        setTimeout(function() { sML.removeClass(C.Indicator.Progress, "vanished"       ); },  0);
-        setTimeout(function() { sML.removeClass(C.Indicator.Progress, "transparentized"); }, 10);
-        C.Indicator.Progress.Timer_transparentize = setTimeout(function() { sML.addClass(C.Indicator.Progress, "transparentized"); }, 1981      );
-        C.Indicator.Progress.Timer_vanish         = setTimeout(function() { sML.addClass(C.Indicator.Progress, "vanished"       ); }, 1981 + 255);
+        setTimeout(function() { sML.addClass(C.Indicator.Progress, "active"); },  0);
+        setTimeout(function() { sML.addClass(C.Indicator.Progress, "hot"   ); }, 10);
+        C.Indicator.Progress.Timer_transparentize = setTimeout(function() { sML.removeClass(C.Indicator.Progress, "hot"   ); }, 1981      );
+        C.Indicator.Progress.Timer_vanish         = setTimeout(function() { sML.removeClass(C.Indicator.Progress, "active"); }, 1981 + 255);
         E.dispatch("bibi:indicator:progress");
     };
 

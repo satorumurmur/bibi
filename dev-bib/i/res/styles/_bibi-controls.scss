@@ -1029,14 +1029,6 @@ div#bibi-indicator-mark {
 // --------------------------------------------------------------------------------
 
 div#bibi-indicator-progress {
-	transition: 0.125s ease-out;
-	&.transparentized {
-		opacity: 0;
-		transition: 0.250s ease-out;
-	}
-	&.vanished {
-		display: none;
-	}
 }
 
 
@@ -1093,6 +1085,16 @@ div#bibi-indicator-progress-nombre {
 	text-align: center;
 	color: $color;
 	background: rgba(240,240,240,0.9);
+	opacity: 0;
+	transition: 0.250s ease-out;
+	display: none;
+	.active & {
+		display: block;
+	}
+	.hot & {
+		opacity: 1;
+		transition: 0.125s ease-out;
+	}
 	html.view-paged & {
 		left: 0; right: 0;
 		bottom: $indicator-progress-bar-size + 2px;
