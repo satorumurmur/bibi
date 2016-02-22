@@ -72,11 +72,13 @@ Bibi.x({
         click: changeView
     });
 
-    E.add("bibi:updateSetting", function() {
+    var updateState = function() {
         sML.each(document.querySelectorAll("#bibi-panel-menu-alpha-view > li"), function() {
             C.setState(this, (this.id == "bibi-viewmenu-" + S.RVM ? 1 : 0));
         });
-    });
+    };
+    E.add("bibi:updateSetting", updateState);
+    updateState();
 
     E.dispatch("bibi:createViewMenu");
 

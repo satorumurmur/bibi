@@ -36,7 +36,7 @@ S = {}; // Bibi.Settings
 
 U = {}; // Bibi.SettingsInURI
 
-X = {}; // Bibi.Extentions
+X = {}; // Bibi.Extensions
 
 
 
@@ -49,10 +49,18 @@ X = {}; // Bibi.Extentions
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
+document.addEventListener("DOMContentLoaded", function() { Bibi.welcome(); });
+
+
+
 Bibi.welcome = function() {
 
     O.log(1, 'Welcome to BiB/i v' + Bibi["version"] + ' - http://bibi.epub.link/');
     O.stamp("Welcome!");
+
+    U.initialize();
+    S.initialize();
 
     O.Language = (function() {
         if(typeof navigator.language != "string") return "en";
@@ -65,6 +73,7 @@ Bibi.welcome = function() {
     O.Info  = document.getElementById("bibi-info");
     O.Title = document.getElementsByTagName("title")[0];
 
+    // Device
     if(sML.OS.iOS || sML.OS.Android) {
         O.Mobile = true;
         O.HTML.className = O.HTML.className + " Touch";
@@ -80,6 +89,7 @@ Bibi.welcome = function() {
         }
     }
 
+    // Window
     if(window.parent == window) {
         O.WindowEmbedded = 0; // false
         O.WindowEmbeddedDetail = "Direct Opened: " + location.origin + location.pathname + location.search;
@@ -96,14 +106,27 @@ Bibi.welcome = function() {
             O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
         }
     }
+    if(O.WindowEmbedded) {
+        try {
+            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
+        } catch(Err) {}
+    }
+    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
+        O.FullscreenEnabled = true;
+        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
+        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
+        O.HTML.className = O.HTML.className + " fullscreen-enabled";
+    } else {
+        O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
+    }
 
+    // Writing Mode & Font Size
     O.WritingModeProperty = (function() {
         var HTMLCS = getComputedStyle(O.HTML);
         if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
         if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
         else return undefined;
     })();
-
     var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
     Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
     if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
@@ -117,56 +140,46 @@ Bibi.welcome = function() {
     document.body.removeChild(Checker);
     delete Checker;
 
-    R.Main = O.Body.insertBefore(sML.create("div", { id: "main" }), O.Body.firstElementChild);
-    R.Sub  = O.Body.insertBefore(sML.create("div", { id: "sub" }),  R.Main.nextSibling);
-    R.Main.Book = R.Main.appendChild(sML.create("div", { id: "book" }));
+    // Scrollbars
+    O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
 
-    U.initialize();
-    S.initialize();
+    // Reader
+    R.initialize();
 
-    if(O.WindowEmbedded) {
-        try {
-            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
-        } catch(Err) {}
-    }
+    // UI
+    N.initialize();
+    C.initialize();
 
-    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
-        O.FullscreenEnabled = true;
-        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
-        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
-        O.HTML.className = O.HTML.className + " fullscreen-enabled";
-    } else {
-        O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
-    }
-
-    O.ScrollBars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
-
-    var ExtentionNames = [];
-    for(var Property in X) if(X[Property] && typeof X[Property] == "object" && X[Property]["name"]) ExtentionNames.push(X[Property]["name"]);
-    if(ExtentionNames.length) O.log(2, "Extention" + (ExtentionNames.length >= 2 ? "s" : "") + ": " + ExtentionNames.join(", "));
-
-    C.createVeil();
-    C.createPanel();
-
-    N.createBoard();
-
+    // Bye-bye
     if(sML.UA.InternetExplorer < 11) return Bibi.byebye();
 
+    // Welcome!
     N.note("Welcome!");
+    sML.removeClass(O.HTML, "welcome");
+    E.dispatch("bibi:welcome");
+
+    // Ready
+    P.Initialized ? Bibi.ready() : E.add("bibi:initializePreset", Bibi.ready);
+
+};
+
+
+Bibi.ready = function() {
+
+    var ExtensionNames = [];
+    X.Extensions.forEach(function(Extension) { ExtensionNames.push(Extension["name"]) });
+    if(ExtensionNames.length) O.log(2, "Extension" + (ExtensionNames.length >= 2 ? "s" : "") + ": " + ExtensionNames.join(", "));
 
     E.add("bibi:scrolled", R.getCurrent);
     E.add("bibi:command:move", function(Distance) { R.move(Distance); });
     E.add("bibi:command:focus", function(Destination) { R.focus(Destination); });
     E.add("bibi:command:changeView", function(RVM) { R.changeView(RVM); });
     E.add("bibi:command:togglePanel", function() { C.Panel.toggle(); });
+
     window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
-    sML.removeClass(O.HTML, "welcome");
-
-    E.dispatch("bibi:welcome");
     window.addEventListener("message", M.gate, false);
-    //M.post("bibi:welcome");
 
     setTimeout(function() {
         if(U["book"]) {
@@ -189,6 +202,8 @@ Bibi.welcome = function() {
             }
         }
     }, (O.Mobile ? 999 : 1));
+
+    E.dispatch("bibi:ready");
 
 };
 
@@ -274,7 +289,7 @@ B.initialize = function(Book) {
 
 B.load = function() {
     O.startLoading();
-    R.initialize();
+    R.reset();
     if(!B.Zipped) {
         // EPUB Folder (Online)
         O.log(2, 'EPUB: ' + B.Path + " (Online Folder)");
@@ -1106,15 +1121,17 @@ L.start = function() {
 
 
 R.initialize = function() {
+    R.Main      = O.Body.insertBefore(sML.create("div", { id: "main" }), O.Body.firstElementChild);
+    R.Sub       = O.Body.insertBefore(sML.create("div", { id: "sub" }),  R.Main.nextSibling);
+    R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "book" }));
+};
 
+
+R.reset = function() {
     R.Main.Book.innerHTML = R.Sub.innerHTML = "";
-
     R.Spreads = [], R.Items = [], R.Pages = [];
-
     R.CoverImage = { Path: "" };
-
     R.Current = {};
-
 };
 
 
@@ -1128,7 +1145,7 @@ R.resetStage = function() {
         if(C.Indicator) R.Stage.Height -= parseFloat(getComputedStyle(C.Indicator.Progress.Bar).height);
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
     } else {
-        R.Stage[S.SIZE.B] -= O.ScrollBars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
+        R.Stage[S.SIZE.B] -= O.Scrollbars[S.SIZE.B] + S["spread-margin-start"] + S["spread-margin-end"];
         R.Stage.PageGap = S["spread-gap"];
         R.Main.Book.style["padding" + S.BASE.S] = S["spread-margin-start"] + "px";
         R.Main.Book.style["padding" + S.BASE.E] = S["spread-margin-end"]   + "px";
@@ -2036,10 +2053,12 @@ R.observeTap = function(Layer, HEve) {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+N.initialize = function() {
+    N.createBoard();
+};
+
 N.createBoard = function() {
-
     N.Board = O.Body.appendChild(sML.create("div", { className: "hidden", id: "bibi-notifier-board" }));
-
 };
 
 N.note = function(Msg, Time) {
@@ -2075,6 +2094,12 @@ N.note = function(Msg, Time) {
 //-- Controls
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+C.initialize = function() {
+    C.createVeil();
+    C.createPanel();
+};
 
 
 C.createVeil = function() {
@@ -2209,7 +2234,7 @@ C.createPanel = function() {
     C.Panel.Powered = C.Panel.appendChild(sML.create("p", { id: "bibi-panel-powered", innerHTML: O.getLogo({ Color: "black", Linkify: true }) }));
 
     // Optimize to Scrollbar Size
-    sML.CSS.addRule("html.page-rtl div#bibi-panel-help, html.page-rtl div#bibi-panel:after, html.page-rtl p#bibi-panel-powered", "bottom: " + (O.ScrollBars.Height) + "px;");
+    sML.CSS.addRule("html.page-rtl div#bibi-panel-help, html.page-rtl div#bibi-panel:after, html.page-rtl p#bibi-panel-powered", "bottom: " + (O.Scrollbars.Height) + "px;");
 
     C.createPanel.createBookInfo();
     C.createPanel.createSwitch();
@@ -2347,6 +2372,36 @@ P.initialize = function(Preset) {
     });
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
+    P.ExtensionsToLoad = 0, P.LoadedExtensions = 0;
+    var Extensions = {};
+    for(var ExtensionName in P["extensions"]) {
+        if(typeof ExtensionName != "string" || !/^[^\/]+$/.test(ExtensionName) || !P["extensions"][ExtensionName]) continue;
+        switch(ExtensionName) {
+            case "bibi": continue;
+            case "unzipper": if(sML.UA.InternetExplorer) continue;
+        }
+        P.ExtensionsToLoad++;
+        Extensions[ExtensionName] = P["extensions"][ExtensionName];
+    }
+    P["extensions"] = Extensions;
+    if(!P.ExtensionsToLoad) {
+        E.dispatch("bibi:initializePreset");
+        P.Initialized = true;
+        return;
+    }
+    for(var ExtensionName in P["extensions"]) {
+        document.head.appendChild(
+            sML.create("script", { src: "./extensions/" + ExtensionName + "/" + ExtensionName + ".js", async: "async",
+                onload: function() {
+                    P.LoadedExtensions++;
+                    if(P.LoadedExtensions == P.ExtensionsToLoad) {
+                        E.dispatch("bibi:initializePreset");
+                        P.Initialized = true;
+                    }
+                }
+            })
+        );
+    }
 };
 
 
@@ -2929,37 +2984,26 @@ M.gate = function(Eve) {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Extentions - Special Thanks: @shunito
+//-- Extensions - Special Thanks: @shunito
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-X.add = function(Extention) {
-    if(!Extention || typeof Extention != "object") return function() { return false; };
-    if(typeof Extention["name"] != "string")       return function() { E.bind("bibi:welcome", function() { O.error('Extention name is invalid.'); }); };
-    if(X[Extention["name"]])                       return function() { E.bind("bibi:welcome", function() { O.error('Extention name "' + Extention["name"] + '" is reserved or already taken.'); }); };
-    if(typeof Extention["description"] != "string") Extention["decription"] = "";
-    if(typeof Extention["author"] != "string") Extention["author"] = "";
-    if(typeof Extention["version"] != "string") Extention["version"] = "";
-    if(typeof Extention["build"] != "string") Extention["build"] = "";
-    X[Extention["name"]] = Extention;
-    return function(init) { E.bind("bibi:welcome", function() { init.call(Extention); }); };
+X.Extensions = [];
+
+X.add = function(Extension) {
+    if(!Extension || typeof Extension != "object") return function() { return false; };
+    if(typeof Extension["name"] != "string")       return function() { E.bind("bibi:ready", function() { O.error('Extension name is invalid.'); }); };
+    if(X[Extension["name"]])                       return function() { E.bind("bibi:ready", function() { O.error('Extension name "' + Extension["name"] + '" is reserved or already taken.'); }); };
+    if(typeof Extension["description"] != "string") Extension["decription"] = "";
+    if(typeof Extension["author"] != "string") Extension["author"] = "";
+    if(typeof Extension["version"] != "string") Extension["version"] = "";
+    if(typeof Extension["build"] != "string") Extension["build"] = "";
+    X.Extensions.push(Extension);
+    X[Extension["name"]] = Extension;
+    return function(init) { E.bind("bibi:ready", function() { init.call(Extension); }); };
 };
 
 Bibi.x = X.add;
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Ready?
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-sML.ready(Bibi.welcome);
 
 
 
