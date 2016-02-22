@@ -56,7 +56,7 @@ div#bibi-veil {
 	overflow: hidden;
 	display: block;
 	position: fixed;
-	z-index: 4000;
+	z-index: 99999999999 + 1;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -348,7 +348,7 @@ p#bibi-veil-play {
 div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: 5000;
+	z-index: 99999999999 + 10;
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -618,7 +618,7 @@ div#bibi-panel-menu-alpha,
 div#bibi-panel-menu-beta {
 	box-sizing: border-box;
 	position: absolute;
-	z-index: 6000;
+	z-index: 99999999999 + 100;
 	top: 0;
 	height: $icon-height + 4px * 2;
 	color: white;
