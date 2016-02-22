@@ -26,7 +26,7 @@ Bibi.x({
 
     // Progress
     C.Indicator.Progress = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-progress" }));
-    C.Indicator.progress = function() {
+    C.Indicator.Progress.progress = function() {
         clearTimeout(C.Indicator.Progress.Timer_vanish);
         clearTimeout(C.Indicator.Progress.Timer_transparentize);
         setTimeout(function() { sML.addClass(C.Indicator.Progress, "active"); },  0);
@@ -38,14 +38,18 @@ Bibi.x({
 
     // Progress > Nombre
     C.Indicator.Progress.Nombre = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-nombre" }));
-    sML.CSS.addRule("html.view-horizontal div#bibi-indicator-progress-nombre", "bottom: " + (O.ScrollBars.Height + 2) + "px;");
-    sML.CSS.addRule("html.view-vertical   div#bibi-indicator-progress-nombre", "right: "  + (O.ScrollBars.Width  + 2) + "px;");
+    sML.CSS.addRule("html.view-horizontal div#bibi-indicator-progress-nombre", "bottom: " + (O.Scrollbars.Height + 2) + "px;");
+    sML.CSS.addRule("html.view-vertical   div#bibi-indicator-progress-nombre", "right: "  + (O.Scrollbars.Width  + 2) + "px;");
     C.Indicator.Progress.Nombre.Current   = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-current"   }));
     C.Indicator.Progress.Nombre.Delimiter = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-delimiter" }));
     C.Indicator.Progress.Nombre.Total     = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-total"     }));
     C.Indicator.Progress.Nombre.Percent   = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-percent"   }));
     E.add("bibi:indicator:progress", function() {
-        C.Indicator.Progress.Nombre.Current.innerHTML   = R.Current.PageNumber;
+        C.Indicator.Progress.Nombre.Current.innerHTML   = (function() {
+            var PageNumber = R.Current.Pages.StartPage.PageIndex + 1;
+            if(R.Current.Pages.StartPage != R.Current.Pages.EndPage) PageNumber += '<span class="delimiter">-</span>' + (R.Current.Pages.EndPage.PageIndex + 1);
+            return PageNumber;
+        })();
         C.Indicator.Progress.Nombre.Delimiter.innerHTML = '/';
         C.Indicator.Progress.Nombre.Total.innerHTML     = R.Pages.length;
         C.Indicator.Progress.Nombre.Percent.innerHTML   = '(' + R.Current.Percent + '<span class="unit">%</span>)';
@@ -53,18 +57,32 @@ Bibi.x({
 
     // Progress > Bar
     C.Indicator.Progress.Bar = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar" }));
-    C.Indicator.Progress.Bar.Current = C.Indicator.Progress.Bar.appendChild(sML.create("span", { id: "bibi-indicator-progress-bar-current" }));
+    C.Indicator.Progress.Bar.Pages   = C.Indicator.Progress.Bar.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar-pages" }));
+    C.Indicator.Progress.Bar.Current = C.Indicator.Progress.Bar.appendChild(sML.create("div", { id: "bibi-indicator-progress-bar-current" }));
     E.add("bibi:indicator:progress", function() {
+        C.Indicator.Progress.Bar.Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
         C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) * R.Current.Pages.length + "%";
         C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.PageNumber) / R.Pages.length * 100) + "%";
     });
+    E.add("bibi:layout", function() {
+        C.Indicator.Progress.Bar.Pages.innerHTML = "";
+        R.Pages.forEach(function(Page, i) {
+            var PageBox = C.Indicator.Progress.Bar.Pages.appendChild(
+                sML.create("div", { innerHTML: '<div>' + (i + 1) + '</div>' }, { width: (100 / R.Pages.length) + "%" })
+            )
+            PageBox.style[S.PPD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
+            O.setFeedback(PageBox);
+        });
+    });
     C.Indicator.Progress.Bar.addEventListener("click", function(Eve) {
-        var Ratio = (Eve.srcElement.offsetLeft + Eve.offsetX) / C.Indicator.Progress.Bar.offsetWidth; if(S.PPD == "rtl") Ratio = 1 - Ratio;
-        R.focus(R.Pages[Math.ceil(R.Pages.length * Ratio) - 1]);
+        var Ratio = (Eve.srcElement.offsetLeft + Eve.offsetX) / C.Indicator.Progress.Bar.offsetWidth;
+        if(S.PPD == "rtl") Ratio = 1 - Ratio;
+        var TargetPage = R.Pages[Math.ceil(R.Pages.length * Ratio) - 1];
+        if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) R.focus(TargetPage);
     });
 
     // Set
-    E.add("bibi:scrolled", C.Indicator.progress);
-    E.add("bibi:start", function() { setTimeout(C.Indicator.progress, 321); });
+    E.add("bibi:scrolled", C.Indicator.Progress.progress);
+    E.add("bibi:start", function() { setTimeout(C.Indicator.Progress.progress, 321); });
 
 });

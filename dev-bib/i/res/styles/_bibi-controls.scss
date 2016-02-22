@@ -931,8 +931,8 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 // + Indicator
 // --------------------------------------------------------------------------------
 
-div#bibi-indicator {
-}
+
+div#bibi-indicator {}
 
 
 // - Mark (div#bibi-indicator-mark)
@@ -1034,37 +1034,52 @@ div#bibi-indicator-mark {
 // - Progress (div#bibi-indicator-progress)
 // --------------------------------------------------------------------------------
 
-div#bibi-indicator-progress {
-}
+div#bibi-indicator-progress {}
 
-$indicator-progress-nombre-box-width: 10em;
+$indicator-progress-nombre-box-width: 11em;
 $indicator-progress-nombre-box-height: 1.6em;
+$indicator-progress-nombre-box-background-color: rgba(240,240,240,0.9);
 
-$indicator-progress-bar-size: $scrollbar-size;
-$indicator-progress-bar-current-size: $scrollbar-size / 2;
+$indicator-progress-nombre-color: rgb(64,64,64);
+$indicator-progress-nombre-current-color: darken($indicator-progress-nombre-color, 25%);
+$indicator-progress-nombre-percent-color: lighten($indicator-progress-nombre-color, 25%);
 
+$indicator-progress-bar-track-size: $scrollbar-track-size;
+$indicator-progress-bar-track-border-color: $scrollbar-track-border-color;
+$indicator-progress-bar-track-background-color: $scrollbar-track-background-color;
 
-// - Progress > Nombre (div#bibi-indicator-progress-nombre)
-// --------------------------------------------------------------------------------
+$indicator-progress-bar-thumb-size: $scrollbar-thumb-size;
+$indicator-progress-bar-thumb-border-color: $scrollbar-thumb-border-color;
+$indicator-progress-bar-thumb-background-color: $scrollbar-thumb-background-color;
 
-div#bibi-indicator-progress-nombre {
-	$color: rgb(64,64,64);
+@mixin nombre-base() {
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: 99999999999;
 	position: absolute;
 	margin: auto;
-	border-radius: .8em;
-	width: $indicator-progress-nombre-box-width;
+	border-radius: $indicator-progress-nombre-box-height * 0.5;
 	height: $indicator-progress-nombre-box-height;
 	line-height: $indicator-progress-nombre-box-height * 0.94;
 	font-size: 12px;
 	text-align: center;
-	color: $color;
-	background: rgba(240,240,240,0.9);
+	color: $indicator-progress-nombre-color;
+	background: $indicator-progress-nombre-box-background-color;
+	html.view-paged & {
+		bottom: $indicator-progress-bar-track-size + 2px;
+	}
+}
+
+
+// . Nombre (div#bibi-indicator-progress-nombre)
+// --------------------------------------------------------------------------------
+
+div#bibi-indicator-progress-nombre {
+	@include nombre-base();
+	display: none;
+	z-index: 99999999999;
+	width: $indicator-progress-nombre-box-width;
 	opacity: 0;
 	transition: 0.250s ease-out;
-	display: none;
 	.active & {
 		display: block;
 	}
@@ -1074,7 +1089,6 @@ div#bibi-indicator-progress-nombre {
 	}
 	html.view-paged & {
 		left: 0; right: 0;
-		bottom: $indicator-progress-bar-size + 2px;
 	}
 	html.view-horizontal & {
 		left: 0; right: 0;
@@ -1088,10 +1102,11 @@ div#bibi-indicator-progress-nombre {
 	span {
 		display: inline-block;
 	}
+}
 	span#bibi-indicator-progress-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
-		color: darken($color, 25%);
+		color: $indicator-progress-nombre-current-color;
 	}
 	span#bibi-indicator-progress-nombre-delimiter {
 		margin: 0 0.1em 0 0.2em;
@@ -1100,40 +1115,123 @@ div#bibi-indicator-progress-nombre {
 	}
 	span#bibi-indicator-progress-nombre-percent {
 		margin-left: .25em;
-		color: lighten($color, 25%);
+		color: $indicator-progress-nombre-percent-color;
 		span.unit {
 			margin-left: .125em;
 			font-size: .75em;
 		}
 	}
-}
 
 
-// - Progress > Bar (div#bibi-indicator-progress-bar)
+// . Bar (div#bibi-indicator-progress-bar)
 // --------------------------------------------------------------------------------
+
+@mixin bibi-indicator-progress-bar-thumb-base() {
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	bottom: ($indicator-progress-bar-track-size - $indicator-progress-bar-thumb-size) * 0.5;
+	border: solid 1px $indicator-progress-bar-thumb-border-color;
+	border-radius: $indicator-progress-bar-thumb-size * 0.5;
+	width: 100%;
+	height: $indicator-progress-bar-thumb-size;
+}
 
 div#bibi-indicator-progress-bar {
 	box-sizing: border-box;
 	display: none; html.view-paged & { display: block; }
 	position: absolute;
-	z-index: 99999999999;
-	bottom: 0;
-	left: 0;
+	z-index: 99999999999 - 1;
+	left: 0; right: 0; top: auto; bottom: 0;
 	width: 100%;
-	height: $scrollbar-size;
-	border-top: solid 1px $scrollbar-track-border-color;
-	background: $scrollbar-track-background-color;;
-	span#bibi-indicator-progress-bar-current {
+	height: $indicator-progress-bar-track-size;
+	border-top: solid 1px $indicator-progress-bar-track-border-color;
+	background: $indicator-progress-bar-track-background-color;
+}
+	div#bibi-indicator-progress-bar-pages {
+		position: absolute;
+		z-index: 10;
+		left: 0; right: 0; top: auto; bottom: 0;
+		width: 100%;
+		height: $indicator-progress-bar-track-size;
+		>div { // page-box
+			box-sizing: border-box;
+			overflow: hidden;
+			position: absolute;
+			bottom: 0;
+			height: 100%;
+			div, &:before, &:after {
+				display: block;
+				transition: linear 0.1s;
+			}
+			&:before, &:after {
+				content: "";
+			}
+			div {
+				@include nombre-base();
+				left: -100%; right: -100%; 
+				width: 3em;
+				background: gold;
+				opacity: 0;
+			}
+			&:before { // highlighter
+				@include bibi-indicator-progress-bar-thumb-base();
+				border: none 0;
+				background: rgba(gold, 0.5);
+				opacity: 0;
+			}
+			&:after { // ruler
+				box-sizing: border-box;
+				position: absolute;
+				bottom: 0;
+				width: 1px;
+				height: ($indicator-progress-bar-track-size - $indicator-progress-bar-thumb-size) * 0.5;
+				background: rgba($indicator-progress-bar-thumb-background-color, 0.75);
+				html.page-rtl & { left:  0; }
+				html.page-ltr & { right: 0; }
+			}
+			&:last-child:after { display: none; }
+		}
+		>div.hover {
+			overflow: visible;
+			div, &:before {
+				opacity: 1;
+			}
+		}
+	}
+	div#bibi-indicator-progress-bar-current {
 		box-sizing: border-box;
 		display: block;
 		position: absolute;
+		z-index: 1;
 		html.page-ltr & { right: 0; }
 		html.page-rtl & { left: 0; }
-		bottom: ($indicator-progress-bar-size - $indicator-progress-bar-current-size) * 0.5;
-		height: $indicator-progress-bar-current-size;
-		border-radius: $indicator-progress-bar-current-size * 0.5;
-		border: solid 1px $scrollbar-thumb-border-color;
-		background: $scrollbar-thumb-background-color;
-		transition: 0.125s linear;
+		bottom: 0;
+		height: 100%;
+		transition: 0.05s linear;
+		&:before, &:after {
+			@include bibi-indicator-progress-bar-thumb-base();
+			border: none 0;
+			background: rgba($indicator-progress-bar-thumb-background-color, 0.5);
+		}
+		&:before {
+			content: "";
+			display: block;
+			width: 100%;
+		}
+		&.two-pages {
+			&:before, &:after {
+				width: 50%;
+			}
+			&:before {
+				html.page-ltr & { left: 0; }
+				html.page-rtl & { right: 0; }
+			}
+			&:after {
+				content: "";
+				display: block;
+				html.page-ltr & { right: 0; }
+				html.page-rtl & { left: 0; }
+			}
+		}
 	}
-}
