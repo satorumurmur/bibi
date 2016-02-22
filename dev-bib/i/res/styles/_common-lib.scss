@@ -6,39 +6,15 @@
 // - Vars
 // --------------------------------------------------------------------------------
 
-$scrollbar-size: 12px;
-$scrollbar-track-background-color: rgb(240,240,240);
-$scrollbar-track-border-color: rgb(192,192,192);
-$scrollbar-thumb-background-color: rgb(192,192,192);
+$scrollbar-track-size: 15px;
+$scrollbar-track-background-color: rgb(248,248,248);
+$scrollbar-track-border-color: rgb(232,232,232);
+
+$scrollbar-thumb-size: 7px;
+$scrollbar-thumb-background-color: rgb(160,160,160);
 $scrollbar-thumb-border-color: rgb(176,176,176);
 
 $veil-background: rgb(64,64,64);
 $bibi-background: rgb(64,64,64);
 
 $bottom-bar-height: 36px;
-
-
-// - Mix-Ins
-// --------------------------------------------------------------------------------
-
-@mixin scrollbar() {
-	&::-webkit-scrollbar {
-		height: $scrollbar-size;
-		width: $scrollbar-size;
-	}
-	&::-webkit-scrollbar-track {
-		border: solid 0 $scrollbar-track-border-color;
-		background: $scrollbar-track-background-color;
-		&:horizontal {
-			border-top-width: 1px;
-		}
-		&:vertical {
-			border-left-width: 1px;
-		}
-	}
-	&::-webkit-scrollbar-thumb {
-		border: solid 1px $scrollbar-thumb-border-color;
-		border-radius: $scrollbar-size / 2;
-		background: $scrollbar-thumb-background-color;
-	}
-}
