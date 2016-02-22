@@ -2676,6 +2676,21 @@ O.error = function(Msg) {
 };
 
 
+O.setFeedback = function(Ele) {
+    if(!Ele.isAvailable) Ele.isAvailable = function(Eve) { return true; };
+    if(!O.Mobile) {
+        Ele.addEventListener("mouseover", function(Eve) { if(Ele.isAvailable(Eve)) sML.addClass(Ele, "hover"); });
+        Ele.addEventListener("mouseout",  function(Eve) { sML.removeClass(Ele, "hover"); });
+    }
+    Ele.addEventListener("click", function(Eve) {
+        if(!Ele.isAvailable(Eve)) return false;
+        sML.addClass(Ele, "active");
+        if(Ele.Timer_out) clearTimeout(Ele.Timer_out);
+        Ele.Timer_out = setTimeout(function() { sML.removeClass(Ele, "active"); }, 200);
+    });
+};
+
+
 O.apply = function(From, To) {
     for(var Property in From) if(typeof To[Property] != "function" && typeof From[Property] != "function") To[Property] = From[Property];
 };

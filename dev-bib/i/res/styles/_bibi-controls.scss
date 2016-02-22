@@ -788,6 +788,9 @@ p#bibi-veil-powered {
 // --------------------------------------------------------------------------------
 
 
+div#bibi-arrows {}
+
+
 // - Arrow (div#bibi-arrows > div.bibi-arrow)
 // --------------------------------------------------------------------------------
 
@@ -841,13 +844,13 @@ div.bibi-arrow {
 		box-shadow: 0 0 0 2px rgb(128,128,128);
 		@include arrow-transition(.4s);
 	}
-	&.flickering, &.firing, &.glowing {
+	&.hover, &.active, &.glowing {
 		opacity: 1;
 	}
-	&.flickering, &.flickering:after {
+	&.hover, &.hover:after {
 		transition-duration: .2s;
 	}
-	&.firing, &.firing:after {
+	&.active, &.active:after {
 		transition-duration: .1s;
 	}
 }
@@ -859,10 +862,10 @@ html.view-vertical div#bibi-arrow-back {
 		top: ($arrow-bar-length - $arrow-icon-size) / 2; bottom: auto;
 		transform-origin: 50% 0%;
 	}
-	&.flickering, &.firing {
+	&.hover, &.active {
 		cursor: n-resize;
 	}
-	&.firing {
+	&.active {
 		&:after { transform: translateY(-25%); }
 	}
 	@include arrow-bar-background(top);
@@ -875,10 +878,10 @@ html.view-vertical div#bibi-arrow-forward {
 		bottom: ($arrow-bar-length - $arrow-icon-size) / 2; top: auto;
 		transform-origin: 50% 100%;
 	}
-	&.flickering, &.firing {
+	&.hover, &.active {
 		cursor: s-resize;
 	}
-	&.firing {
+	&.active {
 		&:after { transform: translateY(25%); }
 	}
 	@include arrow-bar-background(bottom);
@@ -894,10 +897,10 @@ html.view-paged.page-rtl div#bibi-arrow-forward {
 		left: ($arrow-bar-length - $arrow-icon-size) / 2; right: auto;
 		transform-origin: -50% 50%;
 	}
-	&.flickering, &.firing {
+	&.hover, &.active {
 		cursor: w-resize;
 	}
-	&.firing {
+	&.active {
 		&:after { transform: scale(0.9); }
 	}
 	@include arrow-bar-background(left);
@@ -913,10 +916,10 @@ html.view-paged.page-rtl div#bibi-arrow-back {
 		right: ($arrow-bar-length - $arrow-icon-size) / 2; left: auto;
 		transform-origin: 150% 50%;
 	}
-	&.flickering, &.firing {
+	&.hover, &.active {
 		cursor: e-resize;
 	}
-	&.firing {
+	&.active {
 		&:after { transform: scale(0.9); }
 	}
 	@include arrow-bar-background(right);
