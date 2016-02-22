@@ -1483,18 +1483,29 @@ R.layoutSpread = function(Spread) {
             SpreadBox.style.paddingBottom = SpreadBoxPaddingBottom + "px";
         }
     }
-    if(Spread.SpreadIndex == 0) {
-        if(S.BRL == "pre-paginated" || S.RVM != "paged") SpreadBoxPaddingBefore = Math.floor((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
+    if(S.BRL == "pre-paginated") {
+        var ThePadding = Math.ceil((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
+        Spread.Pages.forEach(function(Page) {
+            var ThePaddingWithPage = Math.ceil((R.Stage[S.SIZE.L] - Page["offset" + S.SIZE.L]) / 4);
+            if(ThePaddingWithPage > ThePadding) ThePadding = ThePaddingWithPage;
+        });
+        SpreadBoxPaddingBefore = SpreadBoxPaddingAfter = ThePadding;
+    } else if(S.RVM == "paged") {
+        if(Spread.SpreadIndex != 0) {
+            SpreadBoxPaddingBefore = R.Stage.PageGap;
+        }
     } else {
-        SpreadBoxPaddingBefore = (S.BRL == "reflowable") ? R.Stage.PageGap : Math.floor(R.Stage[S.SIZE.L] / 4);
+        if(Spread.SpreadIndex == 0) {
+            SpreadBoxPaddingBefore = Math.floor((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
+        } else {
+            SpreadBoxPaddingBefore = R.Stage.PageGap;
+        }
+        if(Spread.SpreadIndex == R.Spreads.length - 1) {
+            SpreadBoxPaddingAfter  = Math.ceil( (R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
+        }
     }
-    //if(SpreadBoxPaddingBefore < R.Stage.PageGap) SpreadBoxPaddingBefore = R.Stage.PageGap;
-    if(Spread.SpreadIndex == R.Spreads.length - 1) {
-        if(S.BRL == "pre-paginated" || S.RVM != "paged") SpreadBoxPaddingAfter  += Math.ceil((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
-        //if(SpreadBoxPaddingAfter  < R.Stage.PageGap) SpreadBoxPaddingAfter  = R.Stage.PageGap;
-    }
-    if(SpreadBoxPaddingBefore) SpreadBox.style["padding" + S.BASE.B] = SpreadBoxPaddingBefore + "px";
-    if(SpreadBoxPaddingAfter)  SpreadBox.style["padding" + S.BASE.A] = SpreadBoxPaddingAfter  + "px";
+    if(SpreadBoxPaddingBefore > 0) SpreadBox.style["padding" + S.BASE.B] = SpreadBoxPaddingBefore + "px";
+    if(SpreadBoxPaddingAfter  > 0) SpreadBox.style["padding" + S.BASE.A] = SpreadBoxPaddingAfter  + "px";
     // Adjust R.Main.Book (div#epub-content-main)
     var MainContentLength = 0;
     R.Spreads.forEach(function(Spread) {
@@ -1916,7 +1927,15 @@ R.move = function(Distance, ScrollOption) {
     }
     R.getCurrent();
     var CurrentPage = R.Current.Pages[CurrentEdge];
-    if(R.Columned || S.BRL == "pre-paginated" || CurrentPage.Item.Pages.length == 1 || CurrentPage.Item.PrePaginated || CurrentPage.Item.Outsourcing) {
+    if(
+        R.Columned ||
+        S.BRL == "pre-paginated" ||
+        CurrentPage.Item.PrePaginated ||
+        CurrentPage.Item.Outsourcing ||
+        CurrentPage.Item.Pages.length == 1 ||
+        (Distance < 0 && CurrentPage.PageIndexInItem == 0) ||
+        (Distance > 0 && CurrentPage.PageIndexInItem == CurrentPage.Item.Pages.length - 1)
+    ) {
         var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
         var CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
         if(/(oversize)/.test(CurrentPageStatus)) {
