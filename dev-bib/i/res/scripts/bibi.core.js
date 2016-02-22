@@ -2131,7 +2131,7 @@ C.createVeil = function() {
     E.add("bibi:wait", function() {
         var Title = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
         C.Veil.PlayButton = C.Veil.appendChild(
-            sML.create("p", { id: "bibi-veil-playbutton", title: Title,
+            sML.create("p", { id: "bibi-veil-play", title: Title,
                 innerHTML: '<span class="non-visual">' + Title + '</span>',
                 play: function(Eve) {
                     Eve.stopPropagation();

@@ -3,14 +3,10 @@
 // --------------------------------------------------------------------------------
 
 
-// - Notifier
-// --------------------------------------------------------------------------------
-
-div#bibi-notifier {
-}
+div#bibi-notifier {}
 
 
-// - Notifier > Board
+// - Board
 // --------------------------------------------------------------------------------
 
 div#bibi-notifier-board {
@@ -31,15 +27,7 @@ div#bibi-notifier-board {
 	background: rgba(252,252,252,0.96);
 	box-shadow: 0 2px 4px rgba(0,0,0,0.125);
 	transition: .15s linear;
-	transform-origin: 50% 0;/*
-	html.wait-please & {
-		display: block;
-		opacity: 1;
-	}
-	html.loading & {
-		opacity: 1;
-		animation: fade .2s linear 0 infinite normal;
-	}*/
+	transform-origin: 50% 0;
 	small {
 		font-size: 0.75em;
 	}
@@ -50,16 +38,10 @@ div#bibi-notifier-board {
 	}
 	&.hidden {
 		opacity: 0;
-		//transform: translateY($height);
 		transform: scaleY(0);
 		transition: .2s linear;
 	}
-}/*
-@include keyframes(fade) {
-	  0% { opacity: 1.00; }
-	 50% { opacity: 0.75; }
-	100% { opacity: 1.00; }
-}*/
+}
 
 
 
@@ -68,9 +50,6 @@ div#bibi-notifier-board {
 // + Veil
 // --------------------------------------------------------------------------------
 
-
-// - Veil
-// --------------------------------------------------------------------------------
 
 div#bibi-veil {
 	box-sizing: border-box;
@@ -93,7 +72,7 @@ div#bibi-veil {
 }
 
 
-// - Veil > Bye Bye
+// - Bye Bye
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
@@ -146,7 +125,7 @@ p#bibi-veil-byebye {
 }
 
 
-// - Veil > Cover
+// - Cover
 // --------------------------------------------------------------------------------
 
 div#bibi-veil-cover {
@@ -223,7 +202,7 @@ div#bibi-veil-cover {
 }
 
 
-// - Veil > Catcher
+// - Catcher
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-catcher {
@@ -287,10 +266,10 @@ p#bibi-veil-catcher {
 }
 
 
-// - Veil > PlayButton
+// - Play
 // --------------------------------------------------------------------------------
 
-p#bibi-veil-playbutton {
+p#bibi-veil-play {
 	$size: 81px;
 	$hover-move: -4px;
 	box-sizing: border-box;
@@ -366,9 +345,6 @@ p#bibi-veil-playbutton {
 // --------------------------------------------------------------------------------
 
 
-// - Panel (div#bibi-panel)
-// --------------------------------------------------------------------------------
-
 div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
@@ -404,7 +380,7 @@ div#bibi-panel {
 }
 
 
-// - Panel > BookInfo (div#bibi-panel-bookinfo)
+// - BookInfo (div#bibi-panel-bookinfo)
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo {
@@ -429,7 +405,7 @@ div#bibi-panel-bookinfo {
 	}
 
 
-// - Panel > BookInfo > Navigation (div#bibi-panel-bookinfo-navigation)
+// . Navigation (div#bibi-panel-bookinfo-navigation)
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-navigation {
@@ -557,7 +533,7 @@ div#bibi-panel-bookinfo-navigation {
 }
 
 
-// - Panel > BookInfo > Cover (div#bibi-panel-bookinfo-cover)
+// . Cover (div#bibi-panel-bookinfo-cover)
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-cover {
@@ -592,7 +568,7 @@ div#bibi-panel-bookinfo-cover {
 }
 
 
-// - Panel > Help (div#bibi-panel-help)
+// - Help (div#bibi-panel-help)
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-help {
@@ -632,7 +608,7 @@ div#bibi-panel-help {
 // --------------------------------------------------------------------------------
 
 
-// - Buttons: div#bibi-switches & div#bibi-panel-menus-alpha & div#bibi-panel-menus-beta
+// - Buttons (div#bibi-switches, div#bibi-panel-menus-alpha, div#bibi-panel-menus-beta)
 // --------------------------------------------------------------------------------
 
 $button-margin: 4px;
@@ -687,11 +663,11 @@ div#bibi-panel-menu-beta {
 
 
 // ================================================================================
-// + Powered
+// + Powered (+ Bottom Bar)
 // --------------------------------------------------------------------------------
 
 
-// - Powered (p#bibi-veil-powered, div#bibi-panel-powered)
+// - Veil > Powered, Panel > Powered (p#bibi-veil-powered, div#bibi-panel-powered)
 // --------------------------------------------------------------------------------
 
 div#bibi-veil:after,
