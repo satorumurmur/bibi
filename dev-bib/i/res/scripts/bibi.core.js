@@ -2335,6 +2335,7 @@ C.addButton = function(Param, Fn) {
             C.Panel.Help.Message.className = "";
         });
     }
+    O.setFeedback(Button);
     C[Param.Category][Param.Group].style.display = "block";
     return Button;
 };

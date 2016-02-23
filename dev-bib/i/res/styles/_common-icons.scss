@@ -212,7 +212,7 @@ $icon-background-color_hover: rgb(128,128,128);
 		height: $image-size;
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_black_48dp.png); /* The Material Icons */
 	}
-	&:hover:before {
+	.bibi-button.hover &:before {
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_white_48dp.png); /* The Material Icons */
 	}
 }
@@ -230,7 +230,7 @@ $icon-background-color_hover: rgb(128,128,128);
 			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
 		}
 	}
-	&:hover:before {
+	.bibi-button.hover &:before {
 		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png); /* The Material Icons */
 		html.fullscreen &,
 		html:fullscreen &,
@@ -302,7 +302,7 @@ html.view-vertical .bibi-icon-vertical {
 
 $icon-label-color_hover: white;
 
-.bibi-icon:hover {
+.bibi-button.hover .bibi-icon {
 	background-color: $icon-background-color_hover !important;
 	//opacity: 1 !important;
 	&:before, &:after {
