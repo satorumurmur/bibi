@@ -20,11 +20,12 @@ P.initialize({
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
+// -------------------------------------------------------------------------------------------------
+
 "book-background"            : "", // CSS background value or ""
 
 "spread-gap"                 : 2, // px
-"spread-margin-start"        : 0, // px
-"spread-margin-end"          : 0, // px
+"spread-margin"              : 0, // px
 
 "spread-border-radius"       : "", // CSS border-radius value or ""
 "spread-box-shadow"          : "", // CSS box-shadow value or ""
@@ -36,15 +37,17 @@ P.initialize({
 
 "page-breaking"              : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
 
-// -------------------------------------------------------------------------------------------------
-
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
 "epub-additional-script"     : "", // path from spine-item or http:// URI or ""
 
+// =================================================================================================
+
 "extensions": {
     "unzipper" : true, // true or false (if the browser is Internet Explorer, this is always false)
-    "epubcfi" : false, // true of false
     "analytics" : "", // Your own Google Analytics tracking id, as "UA-********-*"
+    "epubcfi" : false, // true of false
+    "overreflow" : false, // true of false
+    "jatex" : false, // true of false
     // ------------------------------------------------------------------------------------------
     "bibi" : "4Uw0" // (*'-'*)
 }

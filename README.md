@@ -11,9 +11,9 @@ You can publish EPUB books on the web with a parmalink for each book, and you ca
 
 ### Spec.
 
-+ EPUB 3 and 2 compliant.
-+ Open source. (MIT lisence)
-+ Made with JavaScript, works compatibly with all major web browsers on Mac/PC/smartphones:
+* EPUB 3 and 2 compliant.
+* Open source. (MIT lisence)
+* Made with JavaScript, works compatibly with all major web browsers on Mac/PC/smartphones:
     - Safari
     - Chrome, Android Browser, Opera, Vivaldi
     - Firefox
@@ -39,8 +39,8 @@ Table of Contents
 
 BiB/i supports two ways to read/publish EPUB books:
 
-+ Read in browsers on your local machine, or
-+ Publish on the web, to have your books read by someone.
+* Read in browsers on your local machine, or
+* Publish on the web, to have your books read by someone.
 
 In either case,
 
@@ -126,22 +126,24 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
     - JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
     - JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 2. `$ gulp build`
-    - cleans all the distribution files,
-    - and makes all the distribution files from the source files.
+    1. cleans all the distribution files,
+    2. and makes all the distribution files from the source files.
 
 
 ### Other utilities for development:
 
-+ `$ gulp watch`
-    - watches the changes of source files,
-    - and rebuild the distribution files automatically when the source files are changed.
-+ `$ gulp sync`
-    - runs `build` and `watch` task,
-    - launches a web server listening port 3000 by default,
-    - opens a browser and load `http://localhost:3000/bib/i/?book=`,
-    - reloads your browser automatically when the distribution files are changed,
-    - and syncronizes your browsers on same URI in the web server.
-+ `$ bundle exec rackup`
+* `$ gulp`
+    1. cleans all the distribution files,
+    2. makes all the distribution files from the source files,
+    3.
+        1. watches the changes of source files,
+        2. rebuild the distribution files automatically when the source files are changed,
+    4.
+        1. launches a web server listening port 3000 by default,
+        2. opens a browser and load `http://localhost:3000/bib/i/?book=`,
+        3. reloads your browser automatically when the distribution files are changed,
+        4. and syncronizes your browsers on same URI in the web server.
+* `$ bundle exec rackup`
     - launches a web server listening port 9292 by default,
     - and the server returns compiled CSS dynamically to your browser's request for the SCSS source files.
 
@@ -150,10 +152,10 @@ The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 
 ### Following files are not processed by gulp tasks:
 
-+ `bib/i/index.html` ... as portal
-+ `bib/manifest.json` ... for using as Chrome application
-+ Files in `bib/i/presets/` ... customisable settings and styles
-+ Files in `bib/bookshelf/` .... this directory is including `.gitkeep`
+* `bib/i/index.html` ... as portal
+* `bib/manifest.json` ... for using as Chrome application
+* Files in `bib/i/presets/` ... customisable settings and styles
+* Files in `bib/bookshelf/` .... this directory is including `.gitkeep`
 
 
 
@@ -165,22 +167,23 @@ The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 
 ### BiB/i
 
-+ &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
-+ Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+* Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
 ### BiB/i is including and powered by these open source softwares:
 
-+ [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
-+ [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
-+ [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
-+ [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
+* [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
+* [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
+* [Hammer.JS](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
+* [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
+* [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 
 
 ### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
-+ [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
-+ [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
+* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
+* [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
 
 
 
@@ -188,5 +191,5 @@ The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 4. Special thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-+ KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
-+ Shunsuke ITO ... [@shunito](https://github.com/shunito)
+* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
+* Shunsuke ITO ... [@shunito](https://github.com/shunito)

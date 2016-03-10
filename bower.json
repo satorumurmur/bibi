@@ -26,8 +26,9 @@
     "tests"
   ],
   "devDependencies": {
-    "sML": "sml#^0.999.24",
+    "sML": "sml#^0.999.27",
     "easing": "*",
-    "native-promise-only": "^0.8.0-a"
+    "native-promise-only": "^0.8.0-a",
+    "hammerjs": "hammer.js#^2.0.6"
   }
 }

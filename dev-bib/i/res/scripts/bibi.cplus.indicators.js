@@ -20,9 +20,9 @@ Bibi.x({
 
     // Mark
     C.Indicator.Mark = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-mark" }));
-    for(var i = 1; i <= 12; i++) C.Indicator.Mark.appendChild(sML.create("span"));
-    E.add("bibi:startLoading", function() {    sML.addClass(O.HTML, "loading"); N.note('Loading...'); });
-    E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); N.note('');           });
+    for(var i = 1; i <= 12; i++) C.Indicator.Mark.appendChild(document.createElement("span"));
+    E.add("bibi:startLoading", function() {    sML.addClass(O.HTML, "loading"); C.note('Loading...'); });
+    E.add("bibi:stopLoading",  function() { sML.removeClass(O.HTML, "loading"); });
 
     // Progress
     C.Indicator.Progress = C.Indicator.appendChild(sML.create("div", { id: "bibi-indicator-progress" }));
@@ -38,8 +38,8 @@ Bibi.x({
 
     // Progress > Nombre
     C.Indicator.Progress.Nombre = C.Indicator.Progress.appendChild(sML.create("div", { id: "bibi-indicator-progress-nombre" }));
-    sML.CSS.addRule("html.view-horizontal div#bibi-indicator-progress-nombre", "bottom: " + (O.Scrollbars.Height + 2) + "px;");
-    sML.CSS.addRule("html.view-vertical   div#bibi-indicator-progress-nombre", "right: "  + (O.Scrollbars.Width  + 2) + "px;");
+    sML.appendStyleRule("html.view-horizontal div#bibi-indicator-progress-nombre", "bottom: " + (O.Scrollbars.Height + 2) + "px;");
+    sML.appendStyleRule("html.view-vertical   div#bibi-indicator-progress-nombre", "right: "  + (O.Scrollbars.Width  + 2) + "px;");
     C.Indicator.Progress.Nombre.Current   = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-current"   }));
     C.Indicator.Progress.Nombre.Delimiter = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-delimiter" }));
     C.Indicator.Progress.Nombre.Total     = C.Indicator.Progress.Nombre.appendChild(sML.create("span", { id: "bibi-indicator-progress-nombre-total"     }));
@@ -71,7 +71,7 @@ Bibi.x({
                 sML.create("div", { innerHTML: '<div>' + (i + 1) + '</div>' }, { width: (100 / R.Pages.length) + "%" })
             )
             PageBox.style[S.PPD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
-            O.setFeedback(PageBox);
+            C.setFeedback(PageBox);
         });
     });
     C.Indicator.Progress.Bar.addEventListener("click", function(Eve) {

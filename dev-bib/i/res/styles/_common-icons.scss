@@ -1,40 +1,73 @@
 // ================================================================================
-// + Icons
+// + Vars & Mix Ins
 // --------------------------------------------------------------------------------
 
 
-// - Vars: Size
+// - Size
 // --------------------------------------------------------------------------------
+
+$button-size: 29px;
+$button-group-margin: 4px;
 
 $shape-item-width: 10px;
 $shape-item-height: 17px;
 $shape-spread-width: $shape-item-width * 2 - 1px;
 $shape-spread-height: $shape-item-height;
 
-$icon-size: 29px;
-$icon-width: $icon-size;
-$icon-height: $icon-size;
 
-
-// - Vars: Color
+// - Color
 // --------------------------------------------------------------------------------
 
-$icon-border-color: rgb(192,192,192);
+$button-color_font-paint:    gray;
+$button-color_font-outline:  transparent;
+$button-color_shape-paint:   white;
+$button-color_shape-outline: $button-color_font-paint;
+$button-color_background:    rgba(white, 0.9);
+$button-color_border:        lighten($button-color_font-paint, 20%);
 
-$icon-label-alpha: 0.5;
-$icon-label-inner-color: white;
-$icon-background-color: rgba(248,248,248,0.9);
+$button-color_hover_font-paint:    darken($button-color_font-paint, 15%);
+$button-color_hover_font-outline:  $button-color_font-outline;
+$button-color_hover_shape-paint:   $button-color_shape-paint;
+$button-color_hover_shape-outline: $button-color_hover_font-paint;
+$button-color_hover_background:    darken($button-color_background, 10%);
+$button-color_hover_border:        $button-color_border;
 
-$icon-background-color_chosen: rgb(192,192,192);
+$button-color_active_font-paint:    $button-color_shape-paint;
+$button-color_active_font-outline:  $button-color_font-paint;
+$button-color_active_shape-paint:   $button-color_shape-paint;
+$button-color_active_shape-outline: $button-color_font-paint;
+$button-color_active_background:    darken($button-color_background, 50%);
+$button-color_active_border:        darken($button-color_border, 20%);
 
-$icon-label-inner-color_hover: rgb(144,144,144);
-$icon-background-color_hover: rgb(128,128,128);
+$button-color_active-hover_font-paint:    $button-color_active_font-paint;
+$button-color_active-hover_font-outline:  lighten($button-color_active_font-outline, 10%);
+$button-color_active-hover_shape-paint:   $button-color_active_shape-paint;
+$button-color_active-hover_shape-outline: lighten($button-color_active_shape-outline, 10%);
+$button-color_active-hover_background:    lighten($button-color_active_background, 10%);
+$button-color_active-hover_border:        lighten($button-color_active_border, 10%);
+/*
+$button-color_hover_font-paint: $button-color_shape-paint;
+$button-color_hover_font-outline: $button-color_font-paint;
+$button-color_hover_shape-paint: $button-color_shape-paint;
+$button-color_hover_shape-outline: $button-color_hover_font-outline;
+$button-color_hover_background: rgba($button-color_font-paint, 0.8);
+$button-color_hover_border: $button-color_font-paint;
+
+$button-color_active_font-paint: $button-color_shape-paint;
+$button-color_active_font-outline: darken(pink, 5%);
+$button-color_active_shape-paint: $button-color_shape-paint;
+$button-color_active_shape-outline: darken(pink, 5%);
+$button-color_active_background: lighten(pink, 5%);
+$button-color_active_border: darken(pink, 5%);
+*/
 
 
 
 
-// - BiB/i Logo
+// ================================================================================
+// + BiB/i Logo
 // --------------------------------------------------------------------------------
+
 
 .bibi-logo {
 	.bibi-type {
@@ -64,40 +97,50 @@ $icon-background-color_hover: rgb(128,128,128);
 }
 
 
-// - Draw
+
+
+// ================================================================================
+// + Draw
 // --------------------------------------------------------------------------------
 
-.bibi-icon,
-.bibi-icon:before,
-.bibi-icon:after,
-.bibi-icon * {
+
+.bibi-button,
+.bibi-button *,
+.bibi-button:before,
+.bibi-button:after {
 	box-sizing: border-box;
 	display: block;
-	position: relative;
-	margin: 0;
 	padding: 0;
 	border-style: none;
 	border-width: 0;
 	text-align: center;
 	vertical-align: middle;
 	text-decoration: none;
-	background: transparent;
 }
 
-.bibi-icon {
+.bibi-button {
 	overflow: hidden;
 	position: relative;
 	border: solid 1px;
 	border-radius: 2px;
-	width: $icon-width;
-	height: $icon-height;
-	cursor: pointer;
-	&:before, &:after {
-		content: "";
-	}
+	width: $button-size;
+	height: $button-size;
 	&:before, &:after, * {
 		position: absolute;
+		margin: 0;
 	}
+	&>span.bibi-button-label {
+		font-size: 0;
+	}
+}
+
+
+// - Shapes
+// --------------------------------------------------------------------------------
+
+.bibi-button-view-paged,
+.bibi-button-view-horizontal,
+.bibi-button-view-vertical {
 	span.bibi-shape-spreads {
 		left: 0;
 		right: 0;
@@ -119,69 +162,123 @@ $icon-background-color_hover: rgb(128,128,128);
 				&:first-child { left: 0; }
 				&:last-child  { left: ($shape-item-width - 1px); }
 			}
+			/*
+			span.bibi-shape-item:first-child,
+			span.bibi-shape-item:last-child {
+				&:before, &:after {
+					display: block;
+					position: absolute;
+					left: -100%; right: -100%; top: -100%; bottom: -100%; margin: auto;
+					width: 100%; height: 100%;
+					line-height: $shape-item-height * 1.33;
+					font-size: 10px;
+					text-align: center;
+					vertical-align: middle;
+					transform: scale($shape-item-width / 10px * 0.7);
+				}
+			}
+			&:first-child, &:last-child {
+				span.bibi-shape-item:first-child,
+				span.bibi-shape-item:last-child {
+					&:before, &:after {
+						display: none;
+					}
+				}
+			}
+			*/
 		}
 	}
+}
+
+.bibi-button-view-paged {
 	span.bibi-shape-spreads-paged {
 		span.bibi-shape-spread {
 			&:first-child { display: none; }
 			&:last-child  { display: none; }
+			/*
+			span.bibi-shape-item:first-child {
+				&:before { content: "P"; }
+			}
+			*/
 		}
 	}
+}
+
+.bibi-button-view-horizontal {
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
 			&:first-child { left: ($shape-spread-width + 1px) * -1; }
 			&:last-child  { left: ($shape-spread-width + 1px); }
+			/*
+			span.bibi-shape-item:first-child {
+				&:before { content: "H"; }
+			}
+			span.bibi-shape-item:last-child {
+			//	&:before { content: "S"; }
+			}
+			*/
 		}
 	}
+}
+
+.bibi-button-view-vertical {
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
 			&:first-child { top: ($shape-spread-height + 2px) * -1; }
 			&:last-child  { top: ($shape-spread-height + 2px); }
+			/*
+			span.bibi-shape-item:first-child {
+				&:before { content: "V"; }
+			}
+			span.bibi-shape-item:last-child {
+			//	&:before { content: "S"; }
+			}
+			*/
 		}
 	}
 }
 
 
-// - Write
+// - Bars
 // --------------------------------------------------------------------------------
 
-.bibi-icon-toggle-panel {
+.bibi-button-toggle-panel {
 	$bar-width: 19px;
 	$bar-height: 2px;
 	$bar-isolation: 4px;
 	$bar-block-height: $bar-height + $bar-isolation;
 	$bars-width: $bar-width;
 	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
-	$bars-top: ($icon-height - $bars-height) / 2 - 1px;
-	&:before, span, &:after {
-		left: 0 !important;
-		right: 0 !important;
-		margin: auto !important;
-		//border-bottom: solid 1px !important;
-		width: $bar-width !important;
-		height: $bar-height !important;
+	$bars-top: ($button-size - $bars-height) / 2 - 1px;
+	&:before, &>span.bibi-button-label, &:after {
+		left: 0;
+		right: 0;
+		margin: auto;
+		//border-bottom: solid 1px;
+		width: $bar-width;
+		height: $bar-height;
 		border-radius: 1px;
-		transition: .125s linear !important;
+		transition: .125s linear;
 	}
 	&:before, &:after {
+		content: "";
 		display: block;
 		position: absolute;
 	}
 	&:before {
-		top: $bars-top !important;
+		top: $bars-top;
 	}
-	span {
-		top: $bars-top + $bar-block-height !important;
-		color: transparent !important;
+	&>span.bibi-button-label {
+		top: $bars-top + $bar-block-height;
 	}
 	&:after {
-		top: $bars-top + $bar-block-height * 2 !important;
+		top: $bars-top + $bar-block-height * 2;
 	}
-	html.panel-opened & {
+	&.active {
 		&:before {
 			transform: translateY(($bar-isolation + $bar-height) *  1) rotate(135deg);
 		}
-		span {
+		&>span.bibi-button-label {
 			opacity: 0;
 		}
 		&:after {
@@ -190,142 +287,214 @@ $icon-background-color_hover: rgb(128,128,128);
 	}
 }
 
-.bibi-icon-open-newwindow,
-.bibi-icon-toggle-fullscreen {
-	text-decoration: none !important;
+
+// - Icon Fonts
+// --------------------------------------------------------------------------------
+
+.bibi-button-toggle-touch,
+.bibi-button-share,
+.bibi-button-open-newwindow,
+.bibi-button-toggle-fullscreen {
+	text-decoration: none;
 	&:before {
+		@include font-icon("Material Icons");
 		left: 0;
 		right: 0;
 		top: 0;
 		bottom: 0;
-		margin: auto;
-		background: no-repeat center center;
-		background-size: contain;
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		text-align: center;
+		vertical-align: middle;
 	}
 }
 
-.bibi-icon-open-newwindow {
-	$image-size: ($icon-size - 1) * 0.8;
+.bibi-button-toggle-touch {
 	&:before {
-		//margin: 3.5px auto 0;
-		width: $image-size;
-		height: $image-size;
-		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_black_48dp.png); /* The Material Icons */
-	}
-	.bibi-button.hover &:before {
-		background-image: url(#{$path-res}/images/MaterialIcons/ic_open_in_new_white_48dp.png); /* The Material Icons */
+		content: /*touch_app*/ "\e913";
+		line-height: $button-size * 0.98;
+		font-size: $button-size * 0.72;
 	}
 }
 
-.bibi-icon-toggle-fullscreen {
-	$image-size: ($icon-size - 1) * 1.0;
+.bibi-button-share {
 	&:before {
-		//margin: 1.5px auto 0;
-		width: $image-size;
-		height: $image-size;
-		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_black_48dp.png); /* The Material Icons */
-		html.fullscreen &,
-		html:fullscreen &,
-		span.bibi-holder:fullscreen & {
-			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_black_48dp.png); /* The Material Icons */
-		}
+		content: /*share*/ "\e80d";
+		line-height: $button-size * 0.98;
+		font-size: $button-size * 0.72;
 	}
-	.bibi-button.hover &:before {
-		background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_white_48dp.png); /* The Material Icons */
-		html.fullscreen &,
-		html:fullscreen &,
-		span.bibi-holder:fullscreen & {
-			background-image: url(#{$path-res}/images/MaterialIcons/ic_fullscreen_exit_white_48dp.png); /* The Material Icons */
-		}
+}
+
+.bibi-button-open-newwindow {
+	&:before {
+		content: /*open_in_new*/ "\e89e";
+		line-height: $button-size * 0.98;
+		font-size: $button-size * 0.72;
+	}
+}
+
+.bibi-button-toggle-fullscreen {
+	&:before {
+		line-height: $button-size * 0.96;
+		font-size: $button-size * 0.94;
+	}
+	&:before,
+	&.hover:before {
+		content: /*fullscreen*/ "\e5d0";
+	}
+	&.active:before,
+	&.active.hover:before {
+		content: /*fullscreen_exit*/ "\e5d1";
 	}
 }
 
 
-// - Colour
+
+
+// ================================================================================
+// + Colors & Interaction
 // --------------------------------------------------------------------------------
 
-//.bibi-icon { &, &:before, &:after, & * { transition: 0.15s linear; } }
 
-$icon-label-color: lighten(black, 100% * (1 - $icon-label-alpha));
+// - Mix Ins
+// --------------------------------------------------------------------------------
 
-.bibi-icon {
-	border-color: $icon-border-color !important;
-	background-color: $icon-background-color !important;
-	&.bibi-icon-toggle-panel {
-		background-color: rgba(255,255,255,0.88) !important;
-	}
-	transition: 0.15s linear;
-	html.panel-opened & {
-//		opacity: 1 !important;
-	}
-	&:before, &:after {
-		color: $icon-label-color !important;
-	}
-	&.bibi-icon-toggle-panel:before,
-	&.bibi-icon-toggle-panel span,
-	&.bibi-icon-toggle-panel:after {
-		background-color: $icon-label-color !important;
-	}
-	&.bibi-icon-open-newwindow:before,
-	&.bibi-icon-toggle-fullscreen:before {
-		// image: black version
-		opacity: $icon-label-alpha !important;
+@mixin outline-color($tb, $color) {
+	#{$tb}-shadow:
+		-1px -1px 0px $color,
+		 0px -1px 0px $color,
+		 1px -1px 0px $color,
+		 1px  0px 0px $color,
+		 1px  1px 0px $color,
+		 0px  1px 0px $color,
+		-1px  1px 0px $color,
+		-1px  0px 0px $color,
+		 0px  0px 1px $color;
+}
+
+@mixin colour-buttons(
+	$color_font-paint,
+	$color_font-outline,
+	$color_shape-paint,
+	$color_shape-outline,
+	$color_background,
+	$color_border
+) {
+	border-color: $color_border;
+	background-color: $color_background;
+	&:before {
+		color: $color_font-paint;
+		@include outline-color("text", $color_font-outline);
 	}
 	span.bibi-shape-spreads {
-		//opacity: 0.8 !important;
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: $icon-label-color !important;
-				background-color: $icon-label-inner-color !important;
+				border-color: $color_shape-outline;
+				background-color: $color_shape-paint;
 			}
+			/*
+			span.bibi-shape-item:first-child,
+			span.bibi-shape-item:last-child {
+				&:before, &:after {
+					color: rgba($color_shape-outline, 0.75);
+				}
+			}
+			*/
+		}
+	}
+	&.bibi-button-toggle-panel {
+		&:before, &>span.bibi-button-label, &:after {
+			background-color: $color_font-paint;
+			@include outline-color("box", $color_font-outline);
 		}
 	}
 }
 
-html.view-paged .bibi-icon-paged,
-html.view-horizontal .bibi-icon-horizontal,
-html.view-vertical .bibi-icon-vertical {
-	// ON
-	background-color: $icon-background-color_chosen !important;
-	cursor: default !important;
-	//opacity: 1 !important;
-	span.bibi-shape-spreads {
-		//opacity: 1 !important;
-		span.bibi-shape-spread {
-			span.bibi-shape-item {
-				border-color: $icon-label-color !important;
-				background-color: $icon-label-inner-color !important;
-			}
-		}
+
+// - Default
+// --------------------------------------------------------------------------------
+
+.bibi-button {
+	@include colour-buttons(
+		$button-color_font-paint,
+		$button-color_font-outline,
+		$button-color_shape-paint,
+		$button-color_shape-outline,
+		$button-color_background,
+		$button-color_border
+	);
+	transition: 0.25s linear;
+	&:before, &:after, * {
+		transition: 0.25s linear;
+	}
+}/*
+.bibi-button-toggle {
+	&:before {
+		opacity: 0.5;
+	}
+}
+.bibi-button-toggle-panel {
+	&:before {
+		opacity: 1;
+	}
+}*/
+
+
+// - Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button.hover {
+	@include colour-buttons(
+		$button-color_hover_font-paint,
+		$button-color_hover_font-outline,
+		$button-color_hover_shape-paint,
+		$button-color_hover_shape-outline,
+		$button-color_hover_background,
+		$button-color_hover_border
+	);
+	cursor: pointer;
+	&.bibi-button-radio.active {
+		cursor: default;
+	}
+	transition: 0.125s linear;
+	&:before, &:after, * {
+		transition: 0.125s linear;
 	}
 }
 
-$icon-label-color_hover: white;
 
-.bibi-button.hover .bibi-icon {
-	background-color: $icon-background-color_hover !important;
-	//opacity: 1 !important;
-	&:before, &:after {
-		color: $icon-label-color_hover !important;
+// - Active
+// --------------------------------------------------------------------------------
+
+.bibi-button.active {
+	@include colour-buttons(
+		$button-color_active_font-paint,
+		$button-color_active_font-outline,
+		$button-color_active_shape-paint,
+		$button-color_active_shape-outline,
+		$button-color_active_background,
+		$button-color_active_border
+	);
+}/*
+.bibi-button-toggle.active {
+	&:before {
+		opacity: 1;
 	}
-	&.bibi-icon-toggle-panel:before,
-	&.bibi-icon-toggle-panel span,
-	&.bibi-icon-toggle-panel:after {
-//		border-bottom-color: darken($icon-label-color_hover, 25%) !important;
-		background-color: $icon-label-color_hover !important;
-	}
-	&.bibi-icon-open-newwindow:before,
-	&.bibi-icon-toggle-fullscreen:before {
-		// image: white version
-		opacity: 1 !important;
-	}
-	span.bibi-shape-spreads {
-		//opacity: 1 !important;
-		span.bibi-shape-spread {
-			span.bibi-shape-item {
-				border-color: $icon-label-color_hover !important;
-				background-color: $icon-label-inner-color_hover !important;
-			}
-		}
-	}
+}*/
+
+
+// - Active & Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button-normal.active.hover,
+.bibi-button-toggle.active.hover {
+	@include colour-buttons(
+		$button-color_active-hover_font-paint,
+		$button-color_active-hover_font-outline,
+		$button-color_active-hover_shape-paint,
+		$button-color_active-hover_shape-outline,
+		$button-color_active-hover_background,
+		$button-color_active-hover_border
+	);
 }

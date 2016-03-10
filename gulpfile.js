@@ -14,6 +14,12 @@ $.browserSync = require("browser-sync");
 
 var reload = false;
 
+concat_list = function() {
+    var list = arguments[0];
+    for(var i = 1, l = arguments.length; i < l; i++) list = list.concat(arguments[i]);
+    return list;
+};
+
 
 
 //==============================================================================================================================================
@@ -23,20 +29,33 @@ var reload = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('clean', function() {
-    $.del([
-        './bib/i/res/scripts',
-        './bib/i/res/styles',
-        './bib/i/extensions/analytics',
-        './bib/i/extensions/epubcfi',
-        './bib/i/extensions/jatex',
-        './bib/i/extensions/overreflow',
-        './bib/i/extensions/unzipper',
-        './bib/i.js',
-        './bib/i.css'
-    ]);
+clean = function(list) {
+    $.del(list);
     return gulp;
+};
+
+gulp.task('clean_style', function() {
+    return clean(clean_style_list);
 });
+
+gulp.task('clean_script', function() {
+    return clean(clean_script_list);
+});
+
+var clean_style_list = [
+    './bib/i/res/styles',
+    './bib/i.css'
+];
+
+var clean_script_list = [
+    './bib/i/res/scripts',
+    './bib/i/extensions/analytics',
+    './bib/i/extensions/epubcfi',
+    './bib/i/extensions/jatex',
+    './bib/i/extensions/overreflow',
+    './bib/i/extensions/unzipper',
+    './bib/i.js'
+];
 
 
 
@@ -124,14 +143,14 @@ gulp.task('make_script_bibi', function() {
         src: [
 			'./dev-bib/i/res/scripts/_banner.js',
 			'./bower_components/native-promise-only/lib/npo.src.js',
+			'./bower_components/hammerjs/hammer.js',
 			'./bower_components/easing/easing-min.js',
 			'./bower_components/sML/sML.js',
 			'./dev-bib/i/res/scripts/bibi.core.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.arrows.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.keys.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.mover.js',
 			'./dev-bib/i/res/scripts/bibi.cplus.indicators.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.window-menu.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.view-menu.js'
+			'./dev-bib/i/res/scripts/bibi.cplus.window-utilities.js',
+			'./dev-bib/i/res/scripts/bibi.cplus.view-changer.js'
         ],
         dist: {
             dir: './bib/i/res/scripts',
@@ -247,6 +266,10 @@ gulp.task('watch', function() {
         './dev-bib/i.scss'
     ], ['make_style_pipi']);
     gulp.watch([
+        './bower_components/native-promise-only/lib/npo.src.js',
+        './bower_components/hammerjs/hammer.js',
+        './bower_components/easing/easing-min.js',
+        './bower_components/sML/sML.js',
         './dev-bib/i/res/scripts/**/*.js'
     ], ['make_script_bibi']);
     gulp.watch([
@@ -289,8 +312,8 @@ gulp.task('serve', function() {
             location: true
         }
     });
-    gulp.watch([
-        './bib/**/*.html',
+    return gulp.watch([
+        './bib/i/*.html',
         './bib/i/presets/*.js',
         './bib/i/res/scripts/*.js',
         './bib/i/extensions/**/*.js'
@@ -307,11 +330,24 @@ gulp.task('serve', function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('build', function() {
-    $.runSequence(
-        'clean',
-        make_style_tasks,
+gulp.task('build_style', function() {
+    return $.runSequence(
+        'clean_style',
+        make_style_tasks
+    );
+});
+
+gulp.task('build_script', function() {
+    return $.runSequence(
+        'clean_script',
         make_script_tasks
+    );
+});
+
+gulp.task('build', function() {
+    return $.runSequence(
+        ['clean_style', 'clean_script'],
+        concat_list(make_style_tasks, make_script_tasks)
     );
 });
 
@@ -326,10 +362,9 @@ gulp.task('build', function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 gulp.task('default', function() {
-    $.runSequence(
-        'clean',
-        make_style_tasks,
-        make_script_tasks,
+    return $.runSequence(
+        ['clean_style', 'clean_script'],
+        concat_list(make_style_tasks, make_script_tasks),
         'watch',
         'serve'
     );

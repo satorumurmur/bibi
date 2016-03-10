@@ -10,15 +10,14 @@ div#bibi-notifier {}
 // --------------------------------------------------------------------------------
 
 div#bibi-notifier-board {
-	$height: 41px;
 	box-sizing: border-box;
 	position: fixed;
-	z-index: 10000;
+	z-index: $z-index_notifier-board;
 	top: 0;
 	padding: 0 8px;
 	width: 100%;
-	height: $height;
-	line-height: $height * 1.05;
+	height: $button-size + $button-group-margin * 2;
+	line-height: ($button-size + $button-group-margin * 2) * 1.05;
 	text-indent: .5em;
 	text-align: center;
 	font-size: 12px;
@@ -56,7 +55,7 @@ div#bibi-veil {
 	overflow: hidden;
 	display: block;
 	position: fixed;
-	z-index: 99999999999 + 1;
+	z-index: $z-index_veil;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -77,7 +76,7 @@ div#bibi-veil {
 
 p#bibi-veil-byebye {
 	position: absolute;
-	z-index: 1000;
+	z-index: $z-index_veil-byebye;
 	left: 0;
 	right: 0;
 	top: 69px;
@@ -131,7 +130,7 @@ p#bibi-veil-byebye {
 div#bibi-veil-cover {
 	overflow: hidden;
 	position: absolute;
-	z-index: 10;
+	z-index: $z-index_veil-cover;
 	left: 0;
 	top: 0;
 	box-sizing: border-box;
@@ -146,10 +145,15 @@ div#bibi-veil-cover {
 	p {
 		opacity: 0;
 	}
-	&.without-cover-image{
-		$icon-size: 128px;
+	&.with-cover-image,
+	&.without-cover-image {
 		opacity: 1;
-		p, &:before {
+	}
+	&.with-cover-image {
+	}
+	&.without-cover-image {
+		$button-size: 128px;
+		&:before, p {
 			display: block;
 			position: absolute;
 			margin: auto;
@@ -157,6 +161,19 @@ div#bibi-veil-cover {
 			top: -100%;
 			right: -100%;
 			bottom: -100%;
+		}
+		&:before {
+			@include font-icon("Material Icons");
+			content: /*import_contacts*/ "\e0e0";
+			z-index: 1;
+			width: $button-size;
+			height: $button-size;
+			line-height: 1;
+			font-size: $button-size;
+			text-align: center;
+			vertical-align: middle;
+			color: rgba(255,255,255,0.25);
+			transform: translateY($button-size * -0.2);
 		}
 		p {
 			z-index: 2;
@@ -168,7 +185,7 @@ div#bibi-veil-cover {
 			text-align: center;
 			text-shadow: 0 0 4px rgb(128,128,128);
 			opacity: 1;
-			transform: translateY($icon-size * -0.1);
+			transform: translateY($button-size * -0.1);
 			strong, em, span {
 				display: block;
 			}
@@ -185,19 +202,6 @@ div#bibi-veil-cover {
 				font-size: 10px;
 			}
 		}
-		&:before {
-			@include font-icon("Material Icons");
-			content: /*import_contacts*/ "\e0e0";
-			z-index: 1;
-			width: $icon-size;
-			height: $icon-size;
-			line-height: 1;
-			font-size: $icon-size;
-			text-align: center;
-			vertical-align: middle;
-			color: rgba(255,255,255,0.25);
-			transform: translateY($icon-size * -0.2);
-		}
 	}
 }
 
@@ -209,7 +213,7 @@ p#bibi-veil-catcher {
 	$size: 140px;
 	box-sizing: border-box;
 	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-	z-index: 100;
+	z-index: $z-index_veil-catcher;
 	width: 100%;
 	height: 100%;
 	transition: 0.2s linear;
@@ -271,10 +275,12 @@ p#bibi-veil-catcher {
 
 p#bibi-veil-play {
 	$size: 81px;
+	$offset: 8px;
 	$hover-move: -4px;
+	display: none; html.waiting & { display: block; }
 	box-sizing: border-box;
 	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-	z-index: 100;
+	z-index: $z-index_veil-play;
 	width: 100%;
 	height: 100%;
 	transition: 0.2s linear;
@@ -301,11 +307,13 @@ p#bibi-veil-play {
 		font-size: $size;
 		color: rgb(216,216,216);
 	}
-	&:hover:before  { color: white; }
-	&:active:before {}
-	html.view-vertical.page-ltr &,
-	html.view-vertical.page-rtl & {
-		$offset: 8px;
+	&:hover:before  {
+		color: white;
+		transform: scale(1.1);
+	}
+	&:active:before {
+	}
+	html.appearance-ttb & {
 		&:before {
 			top: auto;
 			bottom: $offset;
@@ -314,9 +322,7 @@ p#bibi-veil-play {
 		&:hover:before  { bottom: $offset + $hover-move; }
 		&:active:before { bottom: $size * -1/3; }
 	}
-	html.view-horizontal.page-rtl &,
-	html.view-paged.page-rtl & {
-		$offset: 8px;
+	html.appearance-rtl & {
 		&:before {
 			left: $offset;
 			right: auto;
@@ -325,9 +331,7 @@ p#bibi-veil-play {
 		&:hover:before  { left: $offset + $hover-move; }
 		&:active:before { left: $size * -1/3; }
 	}
-	html.view-horizontal.page-ltr &,
-	html.view-paged.page-ltr & {
-		$offset: 8px;
+	html.appearance-ltr & {
 		&:before {
 			left: auto;
 			right: $offset;
@@ -348,7 +352,7 @@ p#bibi-veil-play {
 div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: 99999999999 + 10;
+	z-index: $z-index_panel;
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -367,12 +371,12 @@ div#bibi-panel {
 		content: "";
 		display: block;
 		position: absolute;
-		z-index: 1;
+		z-index: $z-index_panel-topbar;
 		top: 0;
 		left: 0;
 		border-bottom: solid 1px rgb(242,242,242);
 		width: 100%;
-		height: $icon-height + 4px * 2;
+		height: $button-size + $button-group-margin * 2;
 		//background: rgba(255,255,255,0.88);
 		//background: white;
 		background: rgba(255,255,255,0.9);
@@ -568,35 +572,42 @@ div#bibi-panel-bookinfo-cover {
 }
 
 
-// - Help (div#bibi-panel-help)
+
+
+// ================================================================================
+// + Help
 // --------------------------------------------------------------------------------
 
-div#bibi-panel-help {
+
+// - Help (div#bibi-help)
+// --------------------------------------------------------------------------------
+
+div#bibi-help {
 	box-sizing: border-box;
-	position: absolute;
-	z-index: 999;
-	margin: auto;
-	padding-left: 8px;
+	position: fixed;
+	z-index: $z-index-help;
+	margin: 0;
+	padding: 0 56px 0 8px;
+	width: 100%;
 	height: $bottom-bar-height;
 	left: 0;
+	bottom: 0;
+	opacity: 0;
+	transition: .2s linear;
 	html.page-rtl & {
 		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
-	html.page-ltr & {
-		bottom: 0;
-	}
 	p {
-		line-height: $bottom-bar-height;
+		line-height: $bottom-bar-height * 1.1;
 		font-size: 12px;
-		color: rgb(64,64,64);
+		font-weight: bold;
+		color: rgb(96,96,96);
+	}
+	&.shown {
+		opacity: 1;
+	}
+	&.hidden {
 		opacity: 0;
-		transition: .2s linear;
-		&.shown {
-			opacity: 1;
-		}
-		&.hidden {
-			opacity: 0;
-		}
 	}
 }
 
@@ -608,43 +619,56 @@ div#bibi-panel-help {
 // --------------------------------------------------------------------------------
 
 
-// - Buttons (div#bibi-switches, div#bibi-panel-menus-alpha, div#bibi-panel-menus-beta)
+// - Buttons (div#bibi-switch-alpha, div#bibi-switch-beta, div#bibi-panel-menus-alpha, div#bibi-panel-menus-beta)
 // --------------------------------------------------------------------------------
 
-$button-margin: 4px;
-
-div#bibi-switch,
+div#bibi-switch-alpha,
+div#bibi-switch-beta,
 div#bibi-panel-menu-alpha,
 div#bibi-panel-menu-beta {
 	box-sizing: border-box;
 	position: absolute;
-	z-index: 99999999999 + 100;
 	top: 0;
-	height: $icon-height + 4px * 2;
+	height: $button-size + $button-group-margin * 2;
 	color: white;
 	transition: opacity 0.75s linear;
 	ul {
-		padding: $button-margin;
+		padding: $button-group-margin;
 		border: solid 0 rgb(234,234,234);
-		height: $icon-height;
+		height: $button-size;
 		li {
-			position: relative;
 			float: left;
-			margin-left: $button-margin / 2; &:first-child { margin-left: 0; }
-			opacity: 1;
+			margin-left: $button-group-margin / 2; &:first-child { margin-left: 0; }
 		}
 	}
 }
 
-div#bibi-switch {
+div#bibi-switch-alpha,
+div#bibi-switch-beta {
+	z-index: $z-index_switch;
+}
+
+div#bibi-switch-alpha {
 	right: 0;
 	ul {
 		float: right;
 	}
 }
 
+div#bibi-switch-beta {
+	left: 0;
+	ul {
+		float: left;
+	}
+}
+
+div#bibi-panel-menu-alpha,
+div#bibi-panel-menu-beta {
+	z-index: $z-index_panel-menu;
+}
+
 div#bibi-panel-menu-alpha {
-	right: $button-margin + $icon-size + $button-margin;
+	right: $button-group-margin + $button-size + $button-group-margin;
 	ul {
 		float: right;
 		border-right-width: 1px;
@@ -655,7 +679,8 @@ div#bibi-panel-menu-beta {
 	left: 0;
 	ul {
 		float: left;
-		border-left-width: 1px; &:first-child { border-left-width: 0; }
+		border-left-width: 1px;
+		&:first-child { border-left-width: 0; }
 	}
 }
 
@@ -672,10 +697,8 @@ div#bibi-panel-menu-beta {
 
 div#bibi-veil:after,
 div#bibi-panel:after,
-p#bibi-veil-powered,
-p#bibi-panel-powered {
+div#bibi-powered {
 	box-sizing: border-box;
-	position: absolute;
 	right: 0;
 	margin: 0 auto;
 	padding: 4px;
@@ -684,19 +707,20 @@ p#bibi-panel-powered {
 
 div#bibi-veil:after,
 div#bibi-panel:after {
+	position: absolute;
+	display: block;
 	content: "";
-	z-index: 1;
 	border-style: solid; border-width: 1px 0;
 	width: 100%;
 }
 
 div#bibi-veil:after,
-p#bibi-veil-powered {
+div#bibi-powered {
 	bottom: 0;
 }
 
 div#bibi-panel:after,
-p#bibi-panel-powered {
+html.panel-opened div#bibi-powered {
 	html.page-rtl & {
 		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
@@ -706,53 +730,99 @@ p#bibi-panel-powered {
 }
 
 div#bibi-veil:after {
+	z-index: $z-index_veil-bottombar;
 	border-color: rgb(104,104,104);
 	background: rgb(96,96,96);
 }
 
 div#bibi-panel:after {
+	z-index: $z-index_panel-bottombar;
 	border-color: rgb(232,232,232);
 	background: rgba(240,240,240,0.9);
 }
 
-p#bibi-veil-powered,
-p#bibi-panel-powered {
-	z-index: 999;
+div#bibi-powered {
+	position: fixed;
+	display: none; html.waiting &, html.panel-opened & { display: block; }
+	z-index: $z-index-powered;
 	text-align: right;
 	font-size: 14px;
-	a {
-		display: block;
-		position: relative;
-		top: 2px;
-		text-decoration: none;
-		color: black;
-		padding: 6px 8px 2px;
-		border-radius: 2px;
-		transition: .15s linear;
-		img {
+	p {
+		a {
 			display: block;
-			opacity: 0.5;
-			width: auto;
+			position: relative;
+			top: 2px;
+			text-decoration: none;
+			color: black;
+			padding: 4px 8px;
+			width: 32px;
 			height: 16px;
-			vertical-align: top;
-			transition: .15s linear;
+			border-radius: 2px;
+			transition: .2s linear;
+			span, img {
+				position: absolute;
+				display: block;
+				opacity: 0;
+			}
+			span {
+				overflow: hidden;
+				width: 0;
+				height: 0;
+			}
+			img {
+				left: 0; right: 0; top: 6px; bottom: auto; margin: 0 auto;
+				width: auto;
+				height: 16px;
+				vertical-align: top;
+				transition: .2s linear;
+			}
 		}
-	}
-	a:hover {
-		transition: .075s linear;
-		img {
-			opacity: 1;
+		a:hover {
 			transition: .075s linear;
+			img {
+				transition: .075s linear;
+			}
 		}
 	}
 }
 
-p#bibi-veil-powered {
-	a {
-		background: rgba(96,96,96,0.9);
+html.waiting div#bibi-powered {
+	p {
+		a {
+			background: rgba(96,96,96,0.9);
+			img.bibi-logo-white {
+				opacity: 0.5;
+			}
+		}
+		a:hover {
+			background: rgba(150,150,150,0.9);
+			img.bibi-logo-white {
+				opacity: 1.0;
+			}
+		}
 	}
-	a:hover {
-		background: rgba(150,150,150,0.9);
+}
+
+html.panel-opened div#bibi-powered {
+	p {
+		a {
+			background: transparent;
+			img.bibi-logo-white {
+				opacity: 0;
+			}
+			img.bibi-logo-black {
+				opacity: 0.5;
+			}
+		}
+		a:hover {
+			background: transparent;
+			img.bibi-logo-white {
+				opacity: 0;
+			}
+			img.bibi-logo-black {
+				opacity: 1.0;
+			}
+		}
 	}
 }
 
@@ -764,53 +834,45 @@ p#bibi-veil-powered {
 // --------------------------------------------------------------------------------
 
 
-div#bibi-arrows {}
-
-
-// - Arrow (div#bibi-arrows > div.bibi-arrow)
-// --------------------------------------------------------------------------------
-
 $arrow-icon-size: 24px;
-$arrow-bar-length: 4px + $icon-size + 4px;
+$arrow-bar-length: $button-size + $button-group-margin * 2;
 $arrow-bar-breadth: 100;
 $arrow-bar-background-base-color: rgb(128,128,128);
 
 @mixin arrow-bar-background($d) {
-	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 69%, rgba($arrow-bar-background-base-color, .25)); }
-	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 34%, rgba($arrow-bar-background-base-color, .25)); }
+//	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 69%, rgba($arrow-bar-background-base-color, .25)); }
+//	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 34%, rgba($arrow-bar-background-base-color, .25)); }
+//	&         { background: rgba($arrow-bar-background-base-color, 0.1); }
+//	&.glowing { background: rgba($arrow-bar-background-base-color, 0.4); }
+	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 25%, rgba($arrow-bar-background-base-color, 0.125)); }
+	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 25%, rgba($arrow-bar-background-base-color, 0.250)); }
 }
 @mixin arrow-transition($d) {
 	transition: $d cubic-bezier(.2,.8,.8,1.6)
 }
 
+
+// - Arrow (div#bibi-arrows > div.bibi-arrow)
+// --------------------------------------------------------------------------------
+
 div.bibi-arrow {
+	html.hide-arrows & { display: none !important; }
 	position: fixed;
-	z-index: 3000;
+	z-index: $z-index_main-arrow;
 	margin: auto;
 	font-size: $arrow-icon-size;
 	line-height: 1;
 	opacity: 0;
 	@include arrow-transition(.4s);
-	html.view-vertical & {
-		// ↑↓
-		left: 0; right: 0;
-		width: 1% * $arrow-bar-breadth; width: 1vw * $arrow-bar-breadth;
-		height: $arrow-bar-length;
-	}
-	html.view-horizontal &,
-	html.view-paged & {
-		// ←→
-		top: 0; bottom: 0;
-		width: $arrow-bar-length;
-		height: 1% * $arrow-bar-breadth; height: 1vh * $arrow-bar-breadth;
-	}
-	&:after {
-		@include font-icon("Material Icons");
+	&:before, &:after {
 		box-sizing: border-box;
 		display: block;
 		position: absolute;
+	}
+	&:before {
+		@include font-icon("Material Icons");
 		z-index: 2;
-		left: -100%; right: -100%; top: -100%; bottom: -100%; margin: auto;
+		margin: auto;
 		width: $arrow-icon-size; height: $arrow-icon-size;
 		text-align: center; vertical-align: middle;
 		line-height: $arrow-icon-size * 1.025;
@@ -820,85 +882,73 @@ div.bibi-arrow {
 		box-shadow: 0 0 0 2px rgb(128,128,128);
 		@include arrow-transition(.4s);
 	}
+	&:after {
+		content: "";
+		z-index: 1;
+	}
+	html.appearance-ttb & { // ↑↓
+		left: 0; right: 0; width: 100%; width: 100vw; height: 0;
+		&:before { left: -100%; right: -100%; }
+		&:after  { left: 0; right: 0; width: 100%; height: $arrow-bar-length; }
+	}
+	html.appearance-ltr &,
+	html.appearance-rtl & { // ←→
+		top: 0; bottom: 0; width: 0; height: 100%; height: 100vh;
+		&:before { top: -100%; bottom: -100%; }
+		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
+	}
 	&.hover, &.active, &.glowing {
 		opacity: 1;
 	}
-	&.hover, &.hover:after {
-		transition-duration: .2s;
-	}
-	&.active, &.active:after {
-		transition-duration: .1s;
-	}
 }
-html.view-vertical div#bibi-arrow-back {
-	// ↑
-	top: 0;
+
+@mixin arrow-variation($dir, $transform-origin, $icon-code, $cursor) {
+	#{$dir}: 0;
+	&:before, &:after {
+		transform-origin: $transform-origin;
+	}
+	&:before {
+		#{$dir}: ($arrow-bar-length - $arrow-icon-size) / 2;
+		content: $icon-code;
+		transform: scale(0.8);
+	}
 	&:after {
-		content: /*keyboard_arrow_up*/ "\e316";
-		top: ($arrow-bar-length - $arrow-icon-size) / 2; bottom: auto;
-		transform-origin: 50% 0%;
+		#{$dir}: $arrow-bar-length * -1;
+		@include arrow-bar-background(#{$dir});
 	}
 	&.hover, &.active {
-		cursor: n-resize;
+		cursor: $cursor;
+	}
+	&.hover {
+		&, &:before, &:after { transition-duration: .2s; }
+		&:before {
+			transform: scale(1.0);
+		}
+		&:after {
+			#{$dir}: 0;
+		}
 	}
 	&.active {
-		&:after { transform: translateY(-25%); }
+		&, &:before, &:after { transition-duration: .1s; }
+		&:before {
+			transform: scale(0.9);
+		}
 	}
-	@include arrow-bar-background(top);
 }
-html.view-vertical div#bibi-arrow-forward {
-	// ↓
-	bottom: 0;
-	&:after {
-		content: /*keyboard_arrow_down*/ "\e313";
-		bottom: ($arrow-bar-length - $arrow-icon-size) / 2; top: auto;
-		transform-origin: 50% 100%;
-	}
-	&.hover, &.active {
-		cursor: s-resize;
-	}
-	&.active {
-		&:after { transform: translateY(25%); }
-	}
-	@include arrow-bar-background(bottom);
+
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward { // ←
+	@include arrow-variation(left, -50% 50%, "\e314", w-resize); /*keyboard_arrow_left*/
 }
-html.view-horizontal.page-ltr div#bibi-arrow-back,
-html.view-horizontal.page-rtl div#bibi-arrow-forward,
-html.view-paged.page-ltr div#bibi-arrow-back,
-html.view-paged.page-rtl div#bibi-arrow-forward {
-	// ←
-	left: 0;
-	&:after {
-		content: /*keyboard_arrow_left*/ "\e314";
-		left: ($arrow-bar-length - $arrow-icon-size) / 2; right: auto;
-		transform-origin: -50% 50%;
-	}
-	&.hover, &.active {
-		cursor: w-resize;
-	}
-	&.active {
-		&:after { transform: scale(0.9); }
-	}
-	@include arrow-bar-background(left);
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back { // →
+	@include arrow-variation(right, 150% 50%, "\e315", e-resize); /*keyboard_arrow_right*/
 }
-html.view-horizontal.page-ltr div#bibi-arrow-forward,
-html.view-horizontal.page-rtl div#bibi-arrow-back,
-html.view-paged.page-ltr div#bibi-arrow-forward,
-html.view-paged.page-rtl div#bibi-arrow-back {
-	// →
-	right: 0;
-	&:after {
-		content: /*keyboard_arrow_right*/ "\e315";
-		right: ($arrow-bar-length - $arrow-icon-size) / 2; left: auto;
-		transform-origin: 150% 50%;
-	}
-	&.hover, &.active {
-		cursor: e-resize;
-	}
-	&.active {
-		&:after { transform: scale(0.9); }
-	}
-	@include arrow-bar-background(right);
+html.appearance-ttb div#bibi-arrow-back { // ↑
+	@include arrow-variation(top, 50% -50%, "\e316", n-resize); /*keyboard_arrow_up*/
+}
+html.appearance-ttb div#bibi-arrow-forward { // ↓
+	@include arrow-variation(bottom, 50% 150%, "\e313", s-resize); /*keyboard_arrow_down*/
 }
 
 
@@ -923,7 +973,7 @@ div#bibi-indicator-mark {
 	box-sizing: border-box;
 	display: none;
 	position: absolute;
-	z-index: 99999999999;
+	z-index: $z-index_indicator-mark;
 	left: -100%;
 	right: -100%;
 	top: 48%;
@@ -1052,7 +1102,7 @@ $indicator-progress-bar-thumb-background-color: $scrollbar-thumb-background-colo
 div#bibi-indicator-progress-nombre {
 	@include nombre-base();
 	display: none;
-	z-index: 99999999999;
+	z-index: $z-index_indicator-nombre;
 	width: $indicator-progress-nombre-box-width;
 	opacity: 0;
 	transition: 0.250s ease-out;
@@ -1117,7 +1167,7 @@ div#bibi-indicator-progress-bar {
 	box-sizing: border-box;
 	display: none; html.view-paged & { display: block; }
 	position: absolute;
-	z-index: 99999999999 - 1;
+	z-index: $z-index_indicator-progress-bar;
 	left: 0; right: 0; top: auto; bottom: 0;
 	width: 100%;
 	height: $indicator-progress-bar-track-size;
@@ -1126,7 +1176,7 @@ div#bibi-indicator-progress-bar {
 }
 	div#bibi-indicator-progress-bar-pages {
 		position: absolute;
-		z-index: 10;
+		z-index: 2;
 		left: 0; right: 0; top: auto; bottom: 0;
 		width: 100%;
 		height: $indicator-progress-bar-track-size;
