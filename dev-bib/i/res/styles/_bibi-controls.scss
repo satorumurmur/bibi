@@ -594,6 +594,7 @@ div#bibi-help {
 	bottom: 0;
 	opacity: 0;
 	transition: .2s linear;
+	background: rgba(240,240,240,0.9);
 	html.page-rtl & {
 		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
