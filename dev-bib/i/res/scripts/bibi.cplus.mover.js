@@ -28,7 +28,7 @@ Bibi.x({
                 X = Eve.pageX;
                 Y = Eve.pageY;
             } else {
-                ItemCoord = sML.getCoord(Eve.srcElement.ownerDocument.documentElement.Item);
+                ItemCoord = O.getElementCoord(Eve.srcElement.ownerDocument.documentElement.Item);
                 HTMLXY = { X: ItemCoord.X + S["item-padding-left"], Y: ItemCoord.Y + S["item-padding-top"] };
                 X = HTMLXY.X + Eve.pageX - R.Main.scrollLeft;
                 Y = HTMLXY.Y + Eve.pageY - R.Main.scrollTop;
@@ -55,6 +55,7 @@ Bibi.x({
     // Arrows
     C.Arrows = {
         createArrows: function() {
+            if(C.Arrows.Back || C.Arrows.Forward) return;
             if(S["hide-arrows"]) sML.addClass(O.HTML, "hide-arrows");
             C.Arrows.Back = C.Arrows["back"] = R.Main.appendChild(
                 sML.create("div", { className: "bibi-arrow", id: "bibi-arrow-back",
@@ -185,6 +186,7 @@ Bibi.x({
         State: 0,
         UserChanged: false,
         createButton: function() {
+            if(C.Touch.Button) return;
             C.Touch.Button = C.addButton({ className: "bibi-button-toggle-touch",
                 Type: "toggle",
                 Area: C.SwitchBeta,
