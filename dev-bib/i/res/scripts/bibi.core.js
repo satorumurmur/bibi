@@ -1101,10 +1101,20 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         });
         if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
             A.setAttribute("data-bibi-original-href", HrefPathInSource);
-            A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + "#" + HrefHash);
-            A.InNav = InNav;
-            A.Destination = U.getEPUBCFIDestination(HrefHash);
-            A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
+            if(X["EPUBCFI"]) {
+                A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + "#" + HrefHash);
+                A.InNav = InNav;
+                A.Destination = R.getEPUBCFIDestination(HrefHash);
+                A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
+            } else {
+                A.removeAttribute("href");
+                sML.style(A, { color: "rgb(192,192,192)", textDecoration: "none" });
+                A.addEventListener("click", function() { return false; });
+                if(!O.Mobile) {
+                    A.addEventListener("mouseover", function() { C.Help.show("EPUBCFI extention is required."); return false; });
+                    A.addEventListener("mouseout",  function() { C.Help.hide(); return false; });
+                }
+            }
         }
         if(InNav && typeof S["nav"] == (i + 1) && A.Destination) S["to"] = A.Destination;
     });
@@ -1953,9 +1963,13 @@ R.focus = function(Destination, ScrollOption) {
 R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edge
     if(!Destination) return null;
     if(typeof Destination == "number" || (typeof Destination == "string" && /^\d+$/.test(Destination))) {
-        Destination = U.getBibiToDestination(Destination);
+        Destination = R.getBibiToDestination(Destination);
     } else if(typeof Destination == "string") {
-        Destination = (Destination == "head" || Destination == "foot") ? { Edge: Destination } : U.getEPUBCFIDestination(Destination);
+        if(Destination == "head" || Destination == "foot") {
+            Destination = { Edge: Destination };
+        } else if(X["EPUBCFI"]) {
+            Destination = R.getEPUBCFIDestination(Destination);
+        }
     } else if(Destination.tagName) {
              if(typeof Destination.PageIndex   == "number") Destination = { Page: Destination };
         else if(typeof Destination.ItemIndex   == "number") Destination = { Item: Destination };
@@ -2128,7 +2142,19 @@ R.page = R.scroll = R.move;
 
 
 R.to = function(BibitoString) {
-    return R.focus(U.getBibiToDestination(BibitoString));
+    return R.focus(R.getBibiToDestination(BibitoString));
+};
+
+R.getBibiToDestination = function(BibitoString) {
+    if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
+    if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
+    var ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
+    if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
+    return {
+        BibitoString: BibitoString,
+        ItemIndexInAll: ItemIndexInAll,
+        ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
+    };
 };
 
 
@@ -2677,11 +2703,6 @@ U.initialize = function() { // formerly O.readExtras
         return Book;
     })();
 
-    if(H["epubcfi"]) {
-        U["epubcfi"] = H["epubcfi"];
-        U["to"] = U.getEPUBCFIDestination(H["epubcfi"]);
-    }
-
     var applyToU = function(DataString) {
         if(typeof DataString != "string") return {};
         DataString.replace(" ", "").split(",").forEach(function(PnV) {
@@ -2720,7 +2741,7 @@ U.initialize = function() { // formerly O.readExtras
                         else if(!/^(yes|no|mobile|desktop)$/.test(PnV[1])) PnV[1] = undefined;
                         break;
                     case "to":
-                        PnV[1] = U.getBibiToDestination(PnV[1]);
+                        PnV[1] = R.getBibiToDestination(PnV[1]);
                         break;
                     case "nav":
                         PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined;
@@ -2735,6 +2756,13 @@ U.initialize = function() { // formerly O.readExtras
             if(PnV[0] && typeof PnV[1] == "string") U[PnV[0]] = PnV[1];
         });
     };
+
+    if(H["epubcfi"]) {
+        U["epubcfi"] = H["epubcfi"];
+        E.add("bibi:ready", function() {
+            if(X["EPUBCFI"]) U["to"] = R.getEPUBCFIDestination(H["epubcfi"]);
+        });
+    }
 
     if(H["bibi"]) {
         applyToU(H["bibi"]);
@@ -2784,50 +2812,6 @@ U.parseHash = function(H) {
         parseFragment();
     }
     return Params;
-};
-
-
-U.getBibiToDestination = function(BibitoString) {
-    if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
-    if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    var ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
-    if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
-    return {
-        BibitoString: BibitoString,
-        ItemIndexInAll: ItemIndexInAll,
-        ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
-    };
-};
-
-
-U.getEPUBCFIDestination = function(CFIString) {
-    if(!X["EPUBCFI"]) return null;
-    var CFI = X["EPUBCFI"].parse(CFIString);
-    if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
-    var ItemIndexInAll = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
-    if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
-        ElementSelector = "";
-        CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
-            if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
-            if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
-            if(Step.Index % 2 == 1) {
-                TextNodeIndex = Step.Index - 1;
-                if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
-            }
-            if(TextNodeIndex === null) ElementSelector = Step.ID ? "#" + Step.ID : ElementSelector + ">*:nth-child(" + (Step.Index / 2) + ")";
-        });
-        if(ElementSelector && /^>/.test(ElementSelector)) ElementSelector = "html" + ElementSelector;
-        if(!ElementSelector) ElementSelector = null;
-    }
-    return {
-        CFI: CFI,
-        CFIString: CFIString,
-        ItemIndexInAll: ItemIndexInAll,
-        ElementSelector: ElementSelector,
-        TextNodeIndex: TextNodeIndex,
-        TermStep: TermStep,
-        IndirectPath: IndirectPath
-    };
 };
 
 
