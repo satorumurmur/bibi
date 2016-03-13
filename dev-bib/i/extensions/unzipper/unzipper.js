@@ -33,7 +33,7 @@ Bibi.x({
         if(!this.Input) this.Input = this.appendChild(
             sML.create("input", { type: "file",
                 onchange: function(Eve) {
-                    B.initialize(Eve.target.files[0]);
+                    L.loadBook(Eve.target.files[0]);
                 }
             })
         );
@@ -96,7 +96,7 @@ B.unzip = function(FileText) {
     B.File = (new JSZip()).load(FileText);
 
     for(var FileName in B.File.files) {
-        if(B.File.files[FileName]._data) {
+        if(!B.isMustToBeIgnore(FileName) && B.File.files[FileName]._data) {
             FileCount.All++;
                  if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTMLs++;
             else if(             /\.(css)$/i.test(FileName)) FileCount.CSSs++;
@@ -221,8 +221,16 @@ B.getDataURI.ContentTypeList = {
 };
 
 
-B.isBin = function(T) {
-    return /\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(T);
+B.isMustToBeIgnore = function(FileName) {
+    if(/\.(git|svn|bundle|sass-cache)\//.test(FileName)) return true;
+    if(/(\.(DS_Store|AppleDouble|LSOverride|Spotlight-V100|Trashes|gitignore)|Thumbs\.db|Gemfile(\.lock)?|config\.(rb|ru))$/.test(FileName)) return true;
+    return false;
+};
+
+
+B.isBin = function(FileName) {
+    if(/\.(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(FileName)) return true;
+    return false;
 };
 
 
