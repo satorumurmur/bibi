@@ -174,6 +174,8 @@ Bibi.ready = function() {
 
     window.addEventListener("message", M.gate, false);
 
+    E.dispatch("bibi:ready");
+
     setTimeout(function() {
         if(U["book"]) {
             L.loadBook(U["book"]);
@@ -189,8 +191,6 @@ Bibi.ready = function() {
             }
         }
     }, (O.Mobile ? 999 : 1));
-
-    E.dispatch("bibi:ready");
 
 
 };
