@@ -2152,23 +2152,6 @@ R.zoom = function(Scale) {
     R.Scale = Scale;
 };
 
-/*
-R.observeTap = function(Layer, HEve) {
-    var L = "", Point = { X: HEve.center.x, Y: HEve.center.y };
-    if(typeof Layer.SpreadIndex != "undefined") {
-        L = "Spread";
-    } else {
-        L = "Item";
-        var FrameScrollCoord = sML.Coord.getScrollCoord(R.Main);
-        var ElementCoord = sML.Coord.getElementCoord(Layer);
-        Point.X = ElementCoord.X + parseInt(R.Items[0].style.paddingLeft) + Point.X - FrameScrollCoord.X;
-        Point.Y = ElementCoord.Y + parseInt(R.Items[0].style.paddingTop)  + Point.Y - FrameScrollCoord.Y;
-    }
-    sML.log(HEve);
-    sML.log(L + ": { X: " + Point.X + ", Y: " + Point.Y + " }");
-};
-*/
-
 
 
 
