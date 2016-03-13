@@ -534,10 +534,11 @@ L.prepareSpine = function() {
     if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
     else               var PairBefore = "left",  PairAfter = "right";
 
+    sML.each(B.Package.Spine["itemrefs"], function() {
+    });
     // Spreads, Boxes, and Items
     sML.each(B.Package.Spine["itemrefs"], function() {
-        var ItemRef = this;
-        if(ItemRef["linear"] != "yes") return;
+        var ItemRef = this, ItemIndex = R.Items.length;
         // Item: A
         var Item = sML.create("iframe", {
             className: "item",
@@ -547,20 +548,25 @@ L.prepareSpine = function() {
         Item.ItemRef = ItemRef;
         Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
         Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
+        R.AllItems.push(Item);
+        if(ItemRef["linear"] != "yes") return R.NonLinearItems.push(Item);
+        R.Items.push(Item);
         // SpreadBox & Spread
-        if(R.Items.length && ItemRef["page-spread"] == PairAfter) {
-            var PrevItem = R.Items[R.Items.length - 1];
-            if(PrevItem.ItemRef["page-spread"] == PairBefore) {
-                Item.Pair = PrevItem;
-                PrevItem.Pair = Item;
+        var SpreadBox, Spread;
+        if(ItemRef["page-spread"] == PairAfter && ItemIndex) {
+            for(var i = ItemIndex - 1; i >= 0; i--) {
+                if(R.Items[i].ItemRef["page-spread"] == PairBefore) {
+                    R.Items[i].Pair = Item;
+                    Item.Pair = R.Items[i];
+                    SpreadBox = Spread.SpreadBox;
+                    Spread = Item.Pair.Spread;
+                    break;
+                }
             }
         }
-        if(Item.Pair) {
-            var Spread = Item.Pair.Spread;
-            var SpreadBox = Spread.SpreadBox;
-        } else {
-            var SpreadBox = R.Main.Book.appendChild(sML.create("div", { className: "spread-box" }));
-            var Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
+        if(!Item.Pair) {
+            SpreadBox = R.Main.Book.appendChild(sML.create("div", { className: "spread-box" }));
+            Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
             Spread.SpreadBox = SpreadBox;
             Spread.Items = [];
             Spread.Pages = [];
@@ -574,7 +580,7 @@ L.prepareSpine = function() {
         Item.ItemBox = ItemBox;
         Item.Pages = [];
         Item.ItemIndexInSpread = Spread.Items.length;
-        Item.ItemIndex         =      R.Items.length;
+        Item.ItemIndex         =           ItemIndex;
         Item.id = "item-" + sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit);
         Spread.Items.push(Item);
         [SpreadBox, Spread, ItemBox, Item].forEach(function(Ele) {
@@ -590,7 +596,6 @@ L.prepareSpine = function() {
                 sML.addClass(Ele, "layout-" + ItemRef["bibi:layout"]);
             }
         });
-        R.Items.push(Item);
     });
 
     B.FileDigit = (R.Items.length + "").length;
@@ -1227,6 +1232,7 @@ R.initialize = function() {
 R.reset = function() {
     R.Main.Book.innerHTML = R.Sub.innerHTML = "";
     L.Loaded = false, R.Started = false;
+    R.AllItems = [], R.NonLinearItems = [];
     R.Spreads = [], R.Items = [], R.Pages = [];
     R.CoverImage = { Path: "" };
     R.Current = {};
@@ -1966,7 +1972,8 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
     } else {
         if(!Destination.Element) {
             if(!Destination.Item) {
-                if(typeof Destination.ItemIndex == "number") Destination.Item = R.Items[Destination.ItemIndex];
+                     if(typeof Destination.ItemIndexInAll == "number") Destination.Item = R.AllItems[Destination.ItemIndexInAll];
+                else if(typeof Destination.ItemIndex      == "number") Destination.Item =    R.Items[Destination.ItemIndex];
                 else {
                     if(!Destination.Spread && typeof Destination.SpreadIndex == "number") Destination.Spread = R.Spreads[Destination.SpreadIndex];
                     if(Destination.Spread) {
@@ -1976,10 +1983,13 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
                     }
                 }
             }
-            if(Destination.Item && typeof Destination.ElementSelector == "string") Destination.Element = Destination.Item.contentDocument.querySelector(Destination.ElementSelector);
+            if(Destination.Item && typeof Destination.ElementSelector == "string") {
+                Destination.Element = Destination.Item.contentDocument.querySelector(Destination.ElementSelector);
+            }
         }
-        if(Destination.Element) Destination.Page = R.focus.getNearestPageOfElement(Destination.Element);
-        else if(!Destination.Page){
+        if(Destination.Element) {
+            Destination.Page = R.focus.getNearestPageOfElement(Destination.Element);
+        } else if(!Destination.Page){
                  if(typeof Destination.PageIndexInSpread    == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
             else if(typeof Destination.PageProgressInSpread == "number") Destination.Page = Destination.Spread.Pages[Math.floor(Destination.Spread.Pages.length * Destination.PageProgressInSpread)];
             else                                                         Destination.Page = Destination.Item.Pages[0];
@@ -2792,11 +2802,11 @@ U.parseHash = function(H) {
 U.getBibiToDestination = function(BibitoString) {
     if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
     if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    var ElementSelector = "", InE = BibitoString.split("-"), ItemIndex = parseInt(InE[0]), ElementIndex = InE[1] ? InE[1] : null;
+    var ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
     if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
     return {
         BibitoString: BibitoString,
-        ItemIndex: ItemIndex - 1,
+        ItemIndexInAll: ItemIndexInAll,
         ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
     };
 };
@@ -2806,7 +2816,7 @@ U.getEPUBCFIDestination = function(CFIString) {
     if(!X["EPUBCFI"]) return null;
     var CFI = X["EPUBCFI"].parse(CFIString);
     if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
-    var ItemIndex = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
+    var ItemIndexInAll = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
     if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
         ElementSelector = "";
         CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
@@ -2824,7 +2834,7 @@ U.getEPUBCFIDestination = function(CFIString) {
     return {
         CFI: CFI,
         CFIString: CFIString,
-        ItemIndex: ItemIndex,
+        ItemIndexInAll: ItemIndexInAll,
         ElementSelector: ElementSelector,
         TextNodeIndex: TextNodeIndex,
         TermStep: TermStep,

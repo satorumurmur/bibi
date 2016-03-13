@@ -158,6 +158,7 @@ div#bibi-main {
 				z-index: 2;
 				left: 0; top: 0; right: 0; bottom: 0; margin: 0; width: 100%; height: 100%;
 			}
+			//&.non-linear-spread-box { display: none; }
 		}
 			div.spread {
 				overflow: hidden;
@@ -168,6 +169,7 @@ div#bibi-main {
 				background: white;
 				&.pre-paginated { background: transparent; }
 				html.view-paged & { box-shadow: none !important; }
+				//&.non-linear-spread { display: none; }
 			}
 				div.item-box {
 					display: block;
@@ -185,6 +187,7 @@ div#bibi-main {
 							filter: none;
 						}
 					}
+					//&.non-linear-item-box { display: none; }
 					&:before {
 						content: "";
 						position: absolute;
@@ -210,6 +213,7 @@ div#bibi-main {
 						vertical-align: top;
 						html.page-ltr & { transform-origin: 0 0; }
 						html.page-rtl & { transform-origin: 100% 0; }
+						//&.non-linear-item { display: none; }
 					}
 					span.page {
 						position: absolute;
