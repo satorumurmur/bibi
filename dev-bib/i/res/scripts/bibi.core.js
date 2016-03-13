@@ -2398,6 +2398,14 @@ C.createHelp = function() {
     C.Help = O.Body.appendChild(sML.create("div", { id: "bibi-help" }));
     C.Help.Message = C.Help.appendChild(sML.create("p", { className: "hidden", id: "bibi-help-message" }));
 
+    C.Help.show = function(HelpText) {
+        C.Help.Message.innerHTML = HelpText;
+        C.Help.className = "shown";
+    };
+    C.Help.hide = function() {
+        C.Help.className = "";
+    };
+
     // Optimize to Scrollbar Size
     sML.appendStyleRule("html.page-rtl div#bibi-help", "bottom: " + (O.Scrollbars.Height) + "px;");
 
@@ -2552,14 +2560,11 @@ C.setFeedback = function(Ele) {
         return Ele;
     };
     Ele.showHelp = function(Eve) {
-        if(Ele.Labels && Ele.Labels[Ele.State]) {
-            C.Help.Message.innerHTML = Ele.Labels[Ele.State];
-            C.Help.className = "shown";
-        }
+        if(Ele.Labels && Ele.Labels[Ele.State]) C.Help.show(Ele.Labels[Ele.State]);
         return Ele;
     };
     Ele.hideHelp = function(Eve) {
-        C.Help.className = "";
+        C.Help.hide();
         return Ele;
     };
     E.add("bibi:tap", Ele.activate, Ele);
