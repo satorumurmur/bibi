@@ -1108,7 +1108,6 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
                 A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
             } else {
                 A.removeAttribute("href");
-                sML.style(A, { color: "rgb(192,192,192)", textDecoration: "none" });
                 A.addEventListener("click", function() { return false; });
                 if(!O.Mobile) {
                     A.addEventListener("mouseover", function() { C.Help.show("EPUBCFI extention is required."); return false; });
