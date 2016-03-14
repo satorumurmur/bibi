@@ -301,6 +301,6 @@ Bibi.x({
             window.addEventListener("keydown", C.Keys.observe, false);
         }
     };
-    E.add("bibi:start", function() { C.Keys.listen(); });
+    E.add("bibi:open", function() { C.Keys.listen(); });
 
 });
