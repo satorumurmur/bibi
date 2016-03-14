@@ -115,6 +115,9 @@ Bibi.welcome = function() {
     U.initialize();
     S.initialize();
 
+    // Loader
+    L.initialize();
+
     // Reader
     R.initialize();
 
@@ -313,6 +316,9 @@ B.loadMimetype = function() {
 L = {}; // Bibi.Loader
 
 
+L.initialize = function() {};
+
+
 L.wait = function() {
     return (new Promise(function(resolve, reject) {
         L.wait.resolve = resolve;
@@ -339,16 +345,10 @@ L.play = function() {
 L.loadBook = function(Book) {
     O.log("Loading Book...", "*:");
     B.initialize(Book).then(function() {
-        L.loadBookContent();
+        E.dispatch("bibi:startLoading");
+        R.reset();
+        L.loadContainer();
     });
-};
-
-
-L.loadBookContent = function() {
-    O.log('Loading Book Content...', "*:");
-    E.dispatch("bibi:startLoading");
-    R.reset();
-    L.loadContainer();
 };
 
 
@@ -378,9 +378,17 @@ L.loadPackageDocument = function() {
 
     O.openDocument(B.Package.Path).then(L.loadPackageDocument.read).then(function() {
         O.log('Package Document Loaded.', "/*");
-        L.prepareSpine();
         L.createCover();
-        L.loadNavigation();
+        L.prepareItemsInSpreads();
+        L.loadNavigation().then(function() {
+            E.dispatch("bibi:prepareSpine");
+            if(S["autostart"] || L.Played) {
+                L.loadItemsInSpreads();
+            } else {
+                E.dispatch("bibi:stopLoading");
+                L.wait().then(L.loadItemsInSpreads);
+            }
+        });
     });
 
 };
@@ -526,88 +534,6 @@ L.loadPackageDocument.read = function(Doc) {
 };
 
 
-L.prepareSpine = function() {
-
-    O.log('Preparing Spine...', "*:");
-
-    // For Pairing of Pre-Paginated
-    if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
-    else               var PairBefore = "left",  PairAfter = "right";
-
-    sML.each(B.Package.Spine["itemrefs"], function() {
-    });
-    // Spreads, Boxes, and Items
-    sML.each(B.Package.Spine["itemrefs"], function() {
-        var ItemRef = this, ItemIndex = R.Items.length;
-        // Item: A
-        var Item = sML.create("iframe", {
-            className: "item",
-            scrolling: "no",
-            allowtransparency: "true"
-        });
-        Item.ItemRef = ItemRef;
-        Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
-        Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
-        R.AllItems.push(Item);
-        if(ItemRef["linear"] != "yes") return R.NonLinearItems.push(Item);
-        R.Items.push(Item);
-        // SpreadBox & Spread
-        var SpreadBox, Spread;
-        if(ItemRef["page-spread"] == PairAfter && ItemIndex) {
-            for(var i = ItemIndex - 1; i >= 0; i--) {
-                if(R.Items[i].ItemRef["page-spread"] == PairBefore) {
-                    R.Items[i].Pair = Item;
-                    Item.Pair = R.Items[i];
-                    SpreadBox = Spread.SpreadBox;
-                    Spread = Item.Pair.Spread;
-                    break;
-                }
-            }
-        }
-        if(!Item.Pair) {
-            SpreadBox = R.Main.Book.appendChild(sML.create("div", { className: "spread-box" }));
-            Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
-            Spread.SpreadBox = SpreadBox;
-            Spread.Items = [];
-            Spread.Pages = [];
-            Spread.SpreadIndex = R.Spreads.length;
-            R.Spreads.push(Spread);
-        }
-        // ItemBox
-        var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
-        // Item: B
-        Item.Spread = Spread;
-        Item.ItemBox = ItemBox;
-        Item.Pages = [];
-        Item.ItemIndexInSpread = Spread.Items.length;
-        Item.ItemIndex         =           ItemIndex;
-        Item.id = "item-" + sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit);
-        Spread.Items.push(Item);
-        [SpreadBox, Spread, ItemBox, Item].forEach(function(Ele) {
-            Ele.RenditionLayout = ItemRef["rendition:layout"];
-            Ele.PrePaginated = (Ele.RenditionLayout == "pre-paginated");
-            sML.addClass(Ele, ItemRef["rendition:layout"]);
-        });
-        [ItemBox, Item].forEach(function(Ele) {
-            if(ItemRef["page-spread"]) {
-                sML.addClass(Ele, "page-spread-" + ItemRef["page-spread"]);
-            }
-            if(ItemRef["bibi:layout"]) {
-                sML.addClass(Ele, "layout-" + ItemRef["bibi:layout"]);
-            }
-        });
-    });
-
-    B.FileDigit = (R.Items.length + "").length;
-
-    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''), "-*");
-
-    O.log('Spine Prepared.', "/*");
-    E.dispatch("bibi:prepareSpine");
-
-};
-
-
 L.createCover = function() {
 
     O.log('Creating Cover...', "*:");
@@ -676,6 +602,83 @@ L.createCover = function() {
 };
 
 
+L.prepareItemsInSpreads = function() {
+
+    O.log('Preparing Items and Spread...', "*:");
+
+    // For Pairing of Pre-Paginated
+    if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
+    else               var PairBefore = "left",  PairAfter = "right";
+
+    sML.each(B.Package.Spine["itemrefs"], function() {
+    });
+    // Spreads, Boxes, and Items
+    sML.each(B.Package.Spine["itemrefs"], function() {
+        var ItemRef = this, ItemIndex = R.Items.length;
+        // Item: A
+        var Item = sML.create("iframe", {
+            className: "item",
+            scrolling: "no",
+            allowtransparency: "true"
+        });
+        Item.ItemRef = ItemRef;
+        Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
+        Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
+        R.AllItems.push(Item);
+        if(ItemRef["linear"] != "yes") return R.NonLinearItems.push(Item);
+        R.Items.push(Item);
+        // SpreadBox & Spread
+        var SpreadBox, Spread;
+        if(ItemRef["page-spread"] == PairAfter && ItemIndex > 0) {
+            var PreviousItem = R.Items[ItemIndex - 1];
+            if(PreviousItem.ItemRef["page-spread"] == PairBefore) {
+                PreviousItem.Pair = Item;
+                Item.Pair = PreviousItem;
+                Spread = Item.Pair.Spread;
+                SpreadBox = Spread.SpreadBox;
+            }
+        }
+        if(!Item.Pair) {
+            SpreadBox = R.Main.Book.appendChild(sML.create("div", { className: "spread-box" }));
+            Spread = SpreadBox.appendChild(sML.create("div", { className: "spread" }));
+            Spread.SpreadBox = SpreadBox;
+            Spread.Items = [];
+            Spread.Pages = [];
+            Spread.SpreadIndex = R.Spreads.length;
+            R.Spreads.push(Spread);
+        }
+        // ItemBox
+        var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
+        // Item: B
+        Item.Spread = Spread;
+        Item.ItemBox = ItemBox;
+        Item.Pages = [];
+        Item.ItemIndexInSpread = Spread.Items.length;
+        Item.ItemIndex         =           ItemIndex;
+        Item.id = "item-" + sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit);
+        Spread.Items.push(Item);
+        [SpreadBox, Spread, ItemBox, Item].forEach(function(Ele) {
+            Ele.RenditionLayout = ItemRef["rendition:layout"];
+            Ele.PrePaginated = (Ele.RenditionLayout == "pre-paginated");
+            sML.addClass(Ele, ItemRef["rendition:layout"]);
+        });
+        [ItemBox, Item].forEach(function(Ele) {
+            if(ItemRef["page-spread"]) {
+                sML.addClass(Ele, "page-spread-" + ItemRef["page-spread"]);
+            }
+            if(ItemRef["bibi:layout"]) {
+                sML.addClass(Ele, "layout-" + ItemRef["bibi:layout"]);
+            }
+        });
+    });
+
+    B.FileDigit = (R.Items.length + "").length;
+
+    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Prepared.', "/*");
+
+};
+
+
 L.loadNavigation = function() {
 
     if(B.Package.Manifest["nav"].Path) {
@@ -686,10 +689,10 @@ L.loadNavigation = function() {
         C.Panel.BookInfo.Navigation.Type = "TOC-NCX";
     } 
 
-    (function(next) {
+    return new Promise(function(resolve, reject) {
         if(!C.Panel.BookInfo.Navigation.Type) {
             O.log('No Navigation Document or TOC-NCX.', "-*");
-            return next();
+            resolve();
         } else {
             O.log('Loading Navigation: ' + B.Path + B.PathDelimiter + C.Panel.BookInfo.Navigation.Path + ' ...', "*:");
             O.openDocument(C.Panel.BookInfo.Navigation.Path).then(function(Doc) {
@@ -731,18 +734,12 @@ L.loadNavigation = function() {
                 delete NavContent; delete Doc;
                 L.postprocessItem.coordinateLinkages(C.Panel.BookInfo.Navigation, "InNav");
                 R.resetNavigation();
-                O.log('Navigation Loaded.', "/*");
-                next();
+                O.log('Navigation Loaded', "/*");
+                resolve();
             });
         }
-    })(function() {
+    }).then(function() {
         E.dispatch("bibi:loadNavigation", C.Panel.BookInfo.Navigation.Path);
-        if(S["autostart"] || L.Played) {
-            L.loadItemsInSpreads();
-        } else {
-            E.dispatch("bibi:stopLoading");
-            L.wait().then(L.loadItemsInSpreads);
-        }
     });
 
 };
@@ -762,9 +759,6 @@ L.loadItemsInSpreads = function() {
     L.listenResizingWhileLoading = function() { R.ToRelayout = true; };
     window.addEventListener("resize", L.listenResizingWhileLoading);
 
-    E.remove("bibi:postprocessItem", L.onLoadItem);
-    E.add(   "bibi:postprocessItem", L.onLoadItem);
-
     R.Spreads.forEach(L.loadSpread);
 
 };
@@ -778,7 +772,7 @@ L.loadSpread = function(Spread) {
 
 
 L.loadItem = function(Item) {
-    O.log(sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit) + '/' + sML.String.pad(B.Package.Spine["itemrefs"].length, 0, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'), "-*");
+    O.log(sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit) + '/' + sML.String.pad(R.Items.length, 0, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'), "-*");
     Item.Loaded = false;
     Item.TimeCard = {};
     Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
@@ -826,80 +820,6 @@ L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
         '</html>'
     ].join(""));
     Item.contentDocument.close();
-};
-
-
-L.onLoadItem = function(Item) {
-    Item.Loaded = true;
-    L.LoadedItems++;
-    if(Item.ImageItem) {
-        sML.addClass(Item.ItemBox, "image-item-box");
-        sML.addClass(Item, "image-item");
-    }
-    E.dispatch("bibi:loadItem", Item);
-    Item.stamp("Loaded");
-    var Spread = Item.Spread;
-    Spread.LoadedItems++;
-    if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
-    C.note("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
-};
-
-
-L.onLoadSpread = function(Spread) {
-    L.LoadedSpreads++;
-    Spread.ImageSpread = true;
-    Spread.Items.forEach(function(Item) {
-        if(!Item.ImageItem) Spread.ImageSpread = false;
-    });
-    if(Spread.ImageSpread) {
-        sML.addClass(Spread.SpreadBox, "image-spread-box");
-        sML.addClass(Spread, "image-spread");
-    }
-    E.dispatch("bibi:loadSpread", Spread);
-    if(!R.ToRelayout) R.resetSpread(Spread);
-    if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
-};
-
-
-L.onLoadItemsInSpreads = function() {
-
-    delete B.Files;
-    document.body.style.display = "";
-    R.resetPages();
-    E.remove("bibi:postprocessItem", L.onLoadItem);
-
-    O.stamp("Items in Spreads Loaded");
-    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Loaded.', "/*");
-    E.dispatch("bibi:loadItems");
-    E.dispatch("bibi:loadSpreads");
-    E.dispatch("bibi:loadItemsInSpreads");
-
-    L.onLoadBookContent();
-
-};
-
-
-L.onLoadBookContent = function() {
-
-    O.stamp("Book Content Loaded");
-    O.log("Book Content Loaded.", "/*");
-    E.dispatch("bibi:loadBookContent");
-
-    L.onLoadBook();
-
-};
-
-
-L.onLoadBook = function() {
-
-    L.Loaded = true;
-
-    O.stamp("Book Loaded");
-    O.log("Book Loaded.", "/*");
-    E.dispatch("bibi:loadBook");
-
-    L.open();
-
 };
 
 
@@ -980,6 +900,7 @@ L.postprocessItem = function(Item) {
         L.postprocessItem.applyBackgroundStyle(Item);
         E.dispatch("bibi:postprocessItemContent", Item);
         E.dispatch("bibi:postprocessItem", Item);
+        L.onLoadItem(Item);
     }, 100);
 
     // Tap Scroller
@@ -1110,7 +1031,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
                 A.removeAttribute("href");
                 A.addEventListener("click", function() { return false; });
                 if(!O.Mobile) {
-                    A.addEventListener("mouseover", function() { C.Help.show("EPUBCFI extention is required."); return false; });
+                    A.addEventListener("mouseover", function() { C.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)"); return false; });
                     A.addEventListener("mouseout",  function() { C.Help.hide(); return false; });
                 }
             }
@@ -1179,6 +1100,7 @@ L.postprocessItem.applyBackgroundStyle = function(Item) {
     if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
     if(Item.Body.style) { sML.style(Item,         L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
 };
+
 L.postprocessItem.applyBackgroundStyle.getBackgroundStyle = function(Ele) {
     var ComputedStyle = getComputedStyle(Ele);
     return {
@@ -1191,15 +1113,78 @@ L.postprocessItem.applyBackgroundStyle.getBackgroundStyle = function(Ele) {
 };
 
 
+L.onLoadItem = function(Item) {
+    Item.Loaded = true;
+    L.LoadedItems++;
+    if(Item.ImageItem) {
+        sML.addClass(Item.ItemBox, "image-item-box");
+        sML.addClass(Item, "image-item");
+    }
+    E.dispatch("bibi:loadItem", Item);
+    Item.stamp("Loaded");
+    var Spread = Item.Spread;
+    Spread.LoadedItems++;
+    if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
+    C.note("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
+};
+
+
+L.onLoadSpread = function(Spread) {
+    L.LoadedSpreads++;
+    Spread.ImageSpread = true;
+    Spread.Items.forEach(function(Item) {
+        if(!Item.ImageItem) Spread.ImageSpread = false;
+    });
+    if(Spread.ImageSpread) {
+        sML.addClass(Spread.SpreadBox, "image-spread-box");
+        sML.addClass(Spread, "image-spread");
+    }
+    E.dispatch("bibi:loadSpread", Spread);
+    if(!R.ToRelayout) R.resetSpread(Spread);
+    if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
+};
+
+
+L.onLoadItemsInSpreads = function() {
+
+    delete B.Files;
+    document.body.style.display = "";
+    R.resetPages();
+
+    O.stamp("Items in Spreads Loaded");
+    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Loaded.', "/*");
+    E.dispatch("bibi:loadItems");
+    E.dispatch("bibi:loadSpreads");
+    E.dispatch("bibi:loadItemsInSpreads");
+
+    L.onLoadBook();
+
+};
+
+
+L.onLoadBook = function() {
+
+    L.Loaded = true;
+
+    O.stamp("Book Loaded");
+    O.log("Book Loaded.", "/*");
+    E.dispatch("bibi:loadBook");
+
+    L.open();
+
+};
+
+
 L.open = function() {
 
     E.dispatch("bibi:stopLoading");
 
+    window.removeEventListener("resize", L.listenResizingWhileLoading);
+    delete L.listenResizingWhileLoading;
+
     R.layout({
         Destination: (S["to"] ? S["to"] : "head")
     });
-    window.removeEventListener("resize", L.listenResizingWhileLoading);
-    delete L.listenResizingWhileLoading;
 
     setTimeout(function() {
         C.Veil.close(function() {
@@ -1659,19 +1644,23 @@ R.layout = function(Option) {
 
     /*
         Option: {
-            Destination: BibiDestination (Required),
-            Reset: Boolean (Required),
-            Setting: BibiSetting (Optional)
+            Destination: BibiDestination,
+            Reset: Boolean,
+            Setting: BibiSetting (Optional),
+            callback: Function (Optional)
         }
     */
 
-    if(!R.OnceLayouted || !R.ToRelayout) O.log('Laying out...', "*:");
-    O.stamp("Layout Start");
+    if(R.Layouting) return false;
+    R.Layouting = true;
 
-    R.OnceLayouted = true;
+    O.log('Laying out...', "*:");
+    O.stamp("Layout Start");
 
     window.removeEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
+
+    sML.addClass(O.HTML, "layouting");
 
     if(!Option) Option = {};
 
@@ -1716,14 +1705,16 @@ R.layout = function(Option) {
         }
     }
 
-    //R.layoutStage();
-
     R.focus(Option.Destination, { Duration: 0 });
 
-    if(typeof doAfter == "function") doAfter();
+    sML.removeClass(O.HTML, "layouting");
 
     window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
+
+    R.Layouting = false;
+
+    if(typeof Option.callback == "function") Option.callback();
 
     O.stamp("Layout End");
     O.log('Laid out.', "/*");
@@ -1731,47 +1722,6 @@ R.layout = function(Option) {
 
     return S;
 
-};
-
-
-R.Relayouting = 0;
-
-R.relayout = function(Option) {
-    if(R.Relayouting) return;
-    C.note("Relaying Out...");
-    O.stamp("Relayout Start");
-    sML.addClass(O.HTML, "layouting");
-    R.Relayouting++;
-    R.getCurrent();
-    var CurrentPages = R.Current.Pages;
-    var Destination = CurrentPages.StartPage ? {
-        SpreadIndex: CurrentPages.StartPage.Spread.SpreadIndex,
-        PageProgressInSpread: CurrentPages.StartPage.PageIndexInSpread / CurrentPages.StartPage.Spread.Pages.length
-    } : {
-        SpreadIndex: 0,
-        PageProgressInSpread: 0
-    };
-    setTimeout(function() {
-        window.removeEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
-        R.Main.removeEventListener("scroll", R.onscroll);
-        setTimeout(function() {
-            R.layout({
-                Destination: Destination,
-                Reset: true,
-                Setting: Option && Option.Setting ? Option.Setting : undefined
-            });
-            R.Relayouting--;
-            if(!R.Relayouting) setTimeout(function() {
-                window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
-                R.Main.addEventListener("scroll", R.onscroll);
-                if(Option && typeof Option.callback == "function") Option.callback();
-                sML.removeClass(O.HTML, "layouting");
-                O.stamp("Relayout End");
-                E.dispatch("bibi:relayout");
-                C.note("");
-            }, 100);
-        }, 100);
-    }, 222);
 };
 
 R.onscroll = function() {
@@ -1783,11 +1733,14 @@ R.onscroll = function() {
 R.onresize = function() {
     if(!L.Opened) return;
     clearTimeout(R.Timer_onresize);
-    R.Timer_onresize = setTimeout(R.onresized, O.Mobile ? 888 : 8);
+    R.Timer_onresize = setTimeout(R.onresized, O.Mobile ? 888 : 222);
 };
 
 R.onresized = function() {
-    R.relayout();
+    R.layout({
+        Reset: true,
+        Setting: (Option && Option.Setting ? Option.Setting : undefined)
+    });
     E.dispatch("bibi:resized");
 };
 
@@ -1799,7 +1752,8 @@ R.changeView = function(RVM) {
                 Spread.style.opacity = "";
             });
         }
-        R.relayout({
+        R.layout({
+            Reset: true,
             Setting: { "reader-view-mode": RVM },
             callback: function() {
                 //Option["page-progression-direction"] = S.PPD;
@@ -2432,7 +2386,8 @@ C.createHelp = function() {
     };
 
     // Optimize to Scrollbar Size
-    sML.appendStyleRule("html.page-rtl div#bibi-help", "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule("html.appearance-ltr div#bibi-help, html.appearance-rtl div#bibi-help", "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule("html.appearance-ttb div#bibi-help, html.page-ltr.panel-opened div#bibi-help", "bottom: 0;");
 
 };
 
@@ -2940,25 +2895,28 @@ O = {}; // Bibi.Operator
 O.log = function(Msg, Depth) {
     var Pre = 'BiB/i: ';
     switch(Depth) {
-        case  "-*": Depth = "-" + (O.log.Depth);         break;
-        case  "*:": Depth =       (O.log.Depth) + ":";   break;
-        case "/*" : Depth = "/" + (O.log.Depth - 1);     break;
+        case  "-*": Depth = "-" + (O.log.Depth);           break;
+        case  "*:": Depth =       (O.log.Depth) + ":";     break;
+        case "/*" : Depth = "/" + (O.log.Depth - 1);       break;
     }
     switch(Depth) {
-        case "-x" : Pre += "[ERROR] ";                   break;
-        case "-0" : Pre += "━━━━━━━━━━━━ ";  break;
-        case "-1" : Pre += " - ";       O.log.Depth = 1; break;
-        case  "1:": Pre += "┌ ";       O.log.Depth = 2; break;
-        case "-2" : Pre += "│ - ";     O.log.Depth = 2; break;
-        case  "2:": Pre += "│┌ ";     O.log.Depth = 3; break;
-        case "-3" : Pre += "││ - ";   O.log.Depth = 3; break;
-        case  "3:": Pre += "││┌ ";   O.log.Depth = 4; break;
-        case "-4" : Pre += "│││ - "; O.log.Depth = 4; break;
-        case  "4:": Pre += "│││┌ "; O.log.Depth = 5; break;
-        case "/4" : Pre += "│││└ "; O.log.Depth = 4; break;
-        case "/3" : Pre += "││└ ";   O.log.Depth = 3; break;
-        case "/2" : Pre += "│└ ";     O.log.Depth = 2; break;
-        case "/1" : Pre += "└ ";       O.log.Depth = 1; break;
+        case "-x" : Pre += "[ERROR] ";                     break;
+        case "-0" : Pre += "━━━━━━━━━━━━ ";    break;
+        case "-1" : Pre += " - ";         O.log.Depth = 1; break;
+        case  "1:": Pre += "┌ ";         O.log.Depth = 2; break;
+        case "-2" : Pre += "│ - ";       O.log.Depth = 2; break;
+        case  "2:": Pre += "│┌ ";       O.log.Depth = 3; break;
+        case "-3" : Pre += "││ - ";     O.log.Depth = 3; break;
+        case  "3:": Pre += "││┌ ";     O.log.Depth = 4; break;
+        case "-4" : Pre += "│││ - ";   O.log.Depth = 4; break;
+        case  "4:": Pre += "│││┌ ";   O.log.Depth = 5; break;
+        case "-5" : Pre += "││││ - "; O.log.Depth = 5; break;
+        case  "5:": Pre += "││││┌ "; O.log.Depth = 6; break;
+        case "/5" : Pre += "││││└ "; O.log.Depth = 5; break;
+        case "/4" : Pre += "│││└ ";   O.log.Depth = 4; break;
+        case "/3" : Pre += "││└ ";     O.log.Depth = 3; break;
+        case "/2" : Pre += "│└ ";       O.log.Depth = 2; break;
+        case "/1" : Pre += "└ ";         O.log.Depth = 1; break;
     }
     console.log(Pre + Msg);
 };
