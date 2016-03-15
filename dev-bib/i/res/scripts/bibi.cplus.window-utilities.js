@@ -19,6 +19,19 @@ Bibi.x({
     var ButtonGroup = C.addButtonGroup({ Area: C.Panel.MenuAlpha });
 
     // Fullscreen
+    if(O.WindowEmbedded) {
+        try {
+            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
+        } catch(Err) {}
+    }
+    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
+        O.FullscreenEnabled = true;
+        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
+        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
+        O.HTML.className = O.HTML.className + " fullscreen-enabled";
+    } else {
+        O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
+    }
     if(O.FullscreenEnabled) C.addButton({ className: "bibi-button-toggle-fullscreen",
         Type: "toggle",
         Group: ButtonGroup,

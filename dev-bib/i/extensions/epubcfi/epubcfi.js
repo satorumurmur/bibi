@@ -135,38 +135,38 @@ Bibi.x({
         else if(Lv == 3) Message = " - " + Message;
         else if(Lv == 4) Message = "   . " + Message;
         console.log('BiB/i EPUBCFI: ' + Message);
+    },
+
+    getDestination: function(CFIString) {
+        var CFI = X["EPUBCFI"].parse(CFIString);
+        if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
+        var ItemIndexInAll = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
+        if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
+            ElementSelector = "";
+            CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
+                if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
+                if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
+                if(Step.Index % 2 == 1) {
+                    TextNodeIndex = Step.Index - 1;
+                    if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
+                }
+                if(TextNodeIndex === null) ElementSelector = Step.ID ? "#" + Step.ID : ElementSelector + ">*:nth-child(" + (Step.Index / 2) + ")";
+            });
+            if(ElementSelector && /^>/.test(ElementSelector)) ElementSelector = "html" + ElementSelector;
+            if(!ElementSelector) ElementSelector = null;
+        }
+        return {
+            CFI: CFI,
+            CFIString: CFIString,
+            ItemIndexInAll: ItemIndexInAll,
+            ElementSelector: ElementSelector,
+            TextNodeIndex: TextNodeIndex,
+            TermStep: TermStep,
+            IndirectPath: IndirectPath
+        };
     }
 
 });
-
-R.getEPUBCFIDestination = function(CFIString) {
-    var CFI = X["EPUBCFI"].parse(CFIString);
-    if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
-    var ItemIndexInAll = CFI.Path.Steps[1].Index / 2 - 1, ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
-    if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
-        ElementSelector = "";
-        CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
-            if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
-            if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
-            if(Step.Index % 2 == 1) {
-                TextNodeIndex = Step.Index - 1;
-                if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
-            }
-            if(TextNodeIndex === null) ElementSelector = Step.ID ? "#" + Step.ID : ElementSelector + ">*:nth-child(" + (Step.Index / 2) + ")";
-        });
-        if(ElementSelector && /^>/.test(ElementSelector)) ElementSelector = "html" + ElementSelector;
-        if(!ElementSelector) ElementSelector = null;
-    }
-    return {
-        CFI: CFI,
-        CFIString: CFIString,
-        ItemIndexInAll: ItemIndexInAll,
-        ElementSelector: ElementSelector,
-        TextNodeIndex: TextNodeIndex,
-        TermStep: TermStep,
-        IndirectPath: IndirectPath
-    };
-};
 
 /* -----------------------------------------------------------------------------------------------------------------
 

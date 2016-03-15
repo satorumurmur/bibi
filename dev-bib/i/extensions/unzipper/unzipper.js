@@ -19,16 +19,14 @@ Bibi.x({
 
 })(function() {
 
-    if(!window.File) return;
-
+    if(!window.File || !window.FileReader || sML.UA.InternetExplorer) return;
     O.ZippedEPUBAvailable = true;
 
+    // Catcher
     var CatcherLabel = "Drop me an EPUB file or click me...";
-
     C.Veil.Catcher = C.Veil.appendChild(
         sML.create("p", { id: "bibi-veil-catcher", title: CatcherLabel, innerHTML: '<span>' + CatcherLabel + '</span>' }, { display: "none" })
     );
-
     C.Veil.Catcher.addEventListener("click", function() {
         if(!this.Input) this.Input = this.appendChild(
             sML.create("input", { type: "file",
@@ -39,9 +37,12 @@ Bibi.x({
         );
         this.Input.click();
     });
-
+    C.Veil.Catcher.dropOrClick = function() {
+        C.Veil.Catcher.style.display = "block";
+        C.note('Drop an EPUB file into this window. Or click and select EPUB file.');
+    };
     if(!O.Mobile) {
-        document.body.addEventListener("dragenter", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; sML.addClass(O.HTML, "dragenter"); }, 1);
+        document.body.addEventListener("dragenter", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9;    sML.addClass(O.HTML, "dragenter"); }, 1);
         document.body.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
         document.body.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
         document.body.addEventListener("drop",      function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0;
@@ -52,16 +53,10 @@ Bibi.x({
 });
 
 
-B.dropOrClick = function() {
-    C.Veil.Catcher.style.display = "block";
-    C.note('Drop an EPUB file into this window. Or click and select EPUB file.');
-};
-
-
-B.loadZippedEPUB = function() {
+B.loadEPUB = function() {
     if(B.Online) {
         O.download(B.Path, "text/plain;charset=x-user-defined").then(function(XHR) {
-            B.unzip(XHR.responseText);
+            B.loadEPUB.unzip(XHR.responseText);
             B.initialize.resolve();
         }).catch(function() {
             B.loadMimetype().then(function() {
@@ -73,7 +68,7 @@ B.loadZippedEPUB = function() {
     } else {
         sML.edit(new FileReader(), {
             onload  : function() {
-                B.unzip(this.result);
+                B.loadEPUB.unzip(this.result);
                 B.initialize.resolve();
             },
             onerror : function() {
@@ -86,51 +81,60 @@ B.loadZippedEPUB = function() {
 };
 
 
-B.unzip = function(FileText) {
-
+B.loadEPUB.unzip = function(FileText) {
     O.log("Unzipping EPUB: " + B.Path + " ...", "*:");
+    B.loadEPUB.unzip.extract(FileText);
+    B.loadEPUB.unzip.preprocess();
+    O.log("EPUB Unzipped.", "/*");
+};
+
+
+B.loadEPUB.unzip.extract = function(FileText) {
 
     B.Files = {};
     var FileCount = { All: 0, HTMLs: 0, CSSs: 0, SVGs: 0, Images: 0, Fonts: 0, Audios: 0, Videos: 0, PDFs: 0, Etc: 0 };
 
     B.File = (new JSZip()).load(FileText);
-
     for(var FileName in B.File.files) {
-        if(!B.isMustToBeIgnore(FileName) && B.File.files[FileName]._data) {
-            FileCount.All++;
-                 if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTMLs++;
-            else if(             /\.(css)$/i.test(FileName)) FileCount.CSSs++;
-            else if(             /\.(svg)$/i.test(FileName)) FileCount.SVGs++;
-            else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Images++;
-            else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Fonts++;
-            else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audios++;
-            else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Videos++;
-            else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDFs++;
-            else                                             FileCount.Etc++;
-            B.Files[FileName] = B.isBin(FileName) ? B.File.file(FileName).asBinary() : Base64.btou(B.File.file(FileName).asText());
-        }
+        if(B.isMustToBeIgnore(FileName) || !B.File.files[FileName]._data) continue;
+        FileCount.All++;
+             if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTMLs++;
+        else if(             /\.(css)$/i.test(FileName)) FileCount.CSSs++;
+        else if(             /\.(svg)$/i.test(FileName)) FileCount.SVGs++;
+        else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Images++;
+        else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Fonts++;
+        else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audios++;
+        else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Videos++;
+        else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDFs++;
+        else                                             FileCount.Etc++;
+        B.Files[FileName] = B.isBin(FileName) ? B.File.file(FileName).asBinary() : Base64.btou(B.File.file(FileName).asText().trim());
+        delete B.File.files[FileName];
     }
     delete B.File;
 
     B.FileDigit = (FileCount.All + "").length;
 
     if(FileCount.All) {
-        var FileNumbers =                              sML.String.pad(FileCount.All,    0, B.FileDigit) + ' File'  + (FileCount.All    >= 2 ? 's' : '');
-        var FileNumbersBreakdown = [];
-        if(FileCount.HTMLs)  FileNumbersBreakdown.push(sML.String.pad(FileCount.HTMLs,  0, B.FileDigit) + ' HTML'  + (FileCount.HTMLs  >= 2 ? 's' : ''));
-        if(FileCount.CSSs)   FileNumbersBreakdown.push(sML.String.pad(FileCount.CSSs,   0, B.FileDigit) + ' CSS'   + (FileCount.CSSs   >= 2 ? 's' : ''));
-        if(FileCount.SVGs)   FileNumbersBreakdown.push(sML.String.pad(FileCount.SVGs,   0, B.FileDigit) + ' SVG'   + (FileCount.SVGs   >= 2 ? 's' : ''));
-        if(FileCount.Images) FileNumbersBreakdown.push(sML.String.pad(FileCount.Images, 0, B.FileDigit) + ' Image' + (FileCount.Images >= 2 ? 's' : ''));
-        if(FileCount.Fonts)  FileNumbersBreakdown.push(sML.String.pad(FileCount.Fonts,  0, B.FileDigit) + ' Font'  + (FileCount.Fonts  >= 2 ? 's' : ''));
-        if(FileCount.Audios) FileNumbersBreakdown.push(sML.String.pad(FileCount.Audios, 0, B.FileDigit) + ' Audio' + (FileCount.Audios >= 2 ? 's' : ''));
-        if(FileCount.Videos) FileNumbersBreakdown.push(sML.String.pad(FileCount.Videos, 0, B.FileDigit) + ' Video' + (FileCount.Videos >= 2 ? 's' : ''));
-        if(FileCount.PDFs)   FileNumbersBreakdown.push(sML.String.pad(FileCount.PDFs,   0, B.FileDigit) + ' PDF'   + (FileCount.PDFs   >= 2 ? 's' : ''));
-        if(FileCount.Etc)    FileNumbersBreakdown.push(sML.String.pad(FileCount.Etc,    0, B.FileDigit) + ' etc.');
-        if(FileNumbersBreakdown.length) FileNumbers += ' (' + FileNumbersBreakdown.join(', ') + ')';
-        O.log(FileNumbers, "-*");
+        var FileNumbers =                   FileCount.All    + ' File'  + (FileCount.All    >= 2 ? 's' : ''), Breakdown = [];
+        if(FileCount.HTMLs)  Breakdown.push(FileCount.HTMLs  + ' HTML'  + (FileCount.HTMLs  >= 2 ? 's' : ''));
+        if(FileCount.CSSs)   Breakdown.push(FileCount.CSSs   + ' CSS'   + (FileCount.CSSs   >= 2 ? 's' : ''));
+        if(FileCount.SVGs)   Breakdown.push(FileCount.SVGs   + ' SVG'   + (FileCount.SVGs   >= 2 ? 's' : ''));
+        if(FileCount.Images) Breakdown.push(FileCount.Images + ' Image' + (FileCount.Images >= 2 ? 's' : ''));
+        if(FileCount.Fonts)  Breakdown.push(FileCount.Fonts  + ' Font'  + (FileCount.Fonts  >= 2 ? 's' : ''));
+        if(FileCount.Audios) Breakdown.push(FileCount.Audios + ' Audio' + (FileCount.Audios >= 2 ? 's' : ''));
+        if(FileCount.Videos) Breakdown.push(FileCount.Videos + ' Video' + (FileCount.Videos >= 2 ? 's' : ''));
+        if(FileCount.PDFs)   Breakdown.push(FileCount.PDFs   + ' PDF'   + (FileCount.PDFs   >= 2 ? 's' : ''));
+        if(FileCount.Etc)    Breakdown.push(FileCount.Etc    + ' etc.');
+        if(Breakdown.length) FileNumbers += ' (' + Breakdown.join(', ') + ')';
+        O.log('Unzipped ' + FileNumbers, "-*");
     }
 
-    var Preprocessed = { CSS: 0, SVG: 0, HTML: 0 };
+};
+
+
+B.loadEPUB.unzip.preprocess = function() {
+
+    var Preprocessed = { CSS: 0, SVG: 0, HTML: 0 }, Log = [];
 
     // CSS
     for(var FilePath in B.Files) {
@@ -154,7 +158,7 @@ B.unzip = function(FileText) {
         })(FilePath);
         Preprocessed.CSS++;
     }
-    if(Preprocessed.CSS) O.log(sML.String.pad(Preprocessed.CSS, 0, B.FileDigit) + ' CSS' + (Preprocessed.CSS >= 2 ? "s" : "") + " Preprocessed.", "-*");
+    if(Preprocessed.CSS) Log.push(Preprocessed.CSS + ' CSS' + (Preprocessed.CSS >= 2 ? "s" : ""));
 
     // SVG
     for(var FilePath in B.Files) {
@@ -166,7 +170,7 @@ B.unzip = function(FileText) {
         });
         Preprocessed.SVG++;
     }
-    if(Preprocessed.SVG) O.log(sML.String.pad(Preprocessed.SVG, 0, B.FileDigit) + ' SVG' + (Preprocessed.SVG >= 2 ? "s" : "") + " Preprocessed.", "-*");
+    if(Preprocessed.SVG) Log.push(Preprocessed.SVG + ' SVG' + (Preprocessed.SVG >= 2 ? "s" : ""));
 
     // HTML
     for(var FilePath in B.Files) {
@@ -184,9 +188,9 @@ B.unzip = function(FileText) {
         });
         Preprocessed.HTML++;
     }
-    if(Preprocessed.HTML) O.log(sML.String.pad(Preprocessed.HTML, 0, B.FileDigit) + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : "") + " Preprocessed.", "-*");
+    if(Preprocessed.HTML) Log.push(Preprocessed.HTML + ' HTML' + (Preprocessed.HTML >= 2 ? "s" : ""));
 
-    O.log("EPUB Unzipped.", "/*");
+    if(Log.length) O.log('Preprocessed ' + Log.join(', '), "-*");
 
 };
 
@@ -222,8 +226,7 @@ B.getDataURI.ContentTypeList = {
 
 
 B.isMustToBeIgnore = function(FileName) {
-    if(/\.(git|svn|bundle|sass-cache)\//.test(FileName)) return true;
-    if(/(\.(DS_Store|AppleDouble|LSOverride|Spotlight-V100|Trashes|gitignore)|Thumbs\.db|Gemfile(\.lock)?|config\.(rb|ru))$/.test(FileName)) return true;
+    if(/\.(git|svn|bundle|sass-cache)\/|(\.(DS_Store|AppleDouble|LSOverride|Spotlight-V100|Trashes|gitignore)|Thumbs\.db|Gemfile(\.lock)?|config\.(rb|ru))$/.test(FileName)) return true;
     return false;
 };
 

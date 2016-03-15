@@ -11,10 +11,13 @@ Bibi.x({
 
     name: "Analytics",
     description: "Track and Log",
+    author: "Satoru MATSUSHIMA (@satorumurmur)",
     version: Bibi["version"],
     build: Bibi["build"]
 
 })(function() {
+
+    if(!X["Analytics"]["tracking-id"]) return;
 
     var BookPath = location.origin + location.pathname + location.search;
 
@@ -23,7 +26,7 @@ Bibi.x({
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-    ga('create', S["extensions"]["analytics"]["setting"], 'auto', { 'allowLinker': true });
+    ga('create', X["Analytics"]["tracking-id"], 'auto', { 'allowLinker': true });
     ga('require', 'linker'); 
     ga('linker:autoLink', (function(Hosts) {
         S["trustworthy-origins"].forEach(function(Origin) {

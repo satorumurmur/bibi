@@ -1,4 +1,4 @@
-P.initialize({
+Bibi.Preset = {
 
 // =================================================================================================
 
@@ -42,16 +42,16 @@ P.initialize({
 
 // =================================================================================================
 
-"extensions": {
-    "unzipper" : true, // true or false (if the browser is Internet Explorer, this is always false)
-    "analytics" : "", // Your own Google Analytics tracking id, as "UA-********-*"
-    "epubcfi" : false, // true of false
-    "overreflow" : false, // true of false
-    "jatex" : false, // true of false
+"extensions": [
+    { "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" }, // if the browser is Internet Explorer, this is always inactive
+    { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
+    //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
+    //{ "name": "OverReflow", "src": "extensions/overreflow/overreflow.js" },
+    //{ "name": "JaTEx", "src": "extensions/jatex/jatex.js" },
     // ------------------------------------------------------------------------------------------
-    "bibi" : "4Uw0" // (*'-'*)
-}
+    { "name": "Bibi", "4U" : "w0" } // (*'-'*)
+]
 
 // =================================================================================================
 
-});
+};

@@ -74,19 +74,6 @@ Bibi.welcome = function() {
             O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
         }
     }
-    if(O.WindowEmbedded) {
-        try {
-            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
-        } catch(Err) {}
-    }
-    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
-        O.FullscreenEnabled = true;
-        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
-        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
-        O.HTML.className = O.HTML.className + " fullscreen-enabled";
-    } else {
-        O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
-    }
 
     // Writing Mode & Font Size
     O.WritingModeProperty = (function() {
@@ -111,7 +98,11 @@ Bibi.welcome = function() {
     // Scrollbars
     O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
 
+    // Extensions
+    X.initialize();
+
     // Setting
+    P.initialize();
     U.initialize();
     S.initialize();
 
@@ -133,7 +124,7 @@ Bibi.welcome = function() {
     E.dispatch("bibi:welcome");
 
     // Ready
-    P.Initialized ? Bibi.ready() : E.add("bibi:initializePreset", Bibi.ready);
+    P.Initialized.then(Bibi.ready);
 
 };
 
@@ -172,19 +163,14 @@ Bibi.ready = function() {
     E.add("bibi:command:focus",       function(Des) { R.focus(Des); });
     E.add("bibi:command:changeView",  function(RVM) { R.changeView(RVM); });
 
-    window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
-    R.Main.addEventListener("scroll", R.onscroll);
-
     window.addEventListener("message", M.gate, false);
 
-    E.dispatch("bibi:ready");
-
-    setTimeout(function() {
+    E.add("bibi:ready", function() {
         if(U["book"]) {
             L.loadBook(U["book"]);
         } else {
-            if(O.ZippedEPUBAvailable && window.File && !O.Mobile) {
-                B.dropOrClick();
+            if(X["Unzipper"] && window.File && !O.Mobile) {
+                C.Veil.Catcher.dropOrClick();
             } else {
                 if(O.WindowEmbedded) {
                     C.note('Tell me EPUB name via embedding tag.', 99999999999);
@@ -193,7 +179,9 @@ Bibi.ready = function() {
                 }
             }
         }
-    }, (O.Mobile ? 999 : 1));
+    });
+
+    setTimeout(function() { E.dispatch("bibi:ready"); }, (O.Mobile ? 999 : 1));
 
 
 };
@@ -250,20 +238,20 @@ B.initialize = function(Book) {
                 return P["bookshelf"] + B["name"];
             })();
             if(/\.epub$/i.test(B["name"])) { // ends with ".epub" -> Zipped
-                B.initialize.asZippedEPUB();
+                B.initialize.asZipped();
             } else { // Unzipped ?
                 B.Path = B.Path.replace(/\/+$/, "");
                 B.loadMimetype().then(function() {
                     B.initialize.resolve();
                 }).catch(function() {
-                    B.initialize.asZippedEPUB();
+                    B.initialize.asZipped();
                 });
             }
         } else if(typeof Book == "object" && Book) { // Local
             if(Book.size && typeof Book.name == "string" && /\.epub$/i.test(Book.name)) {
                 B["name"] = B.Path = "[Local] " + Book.name;
                 B.File = Book;
-                B.initialize.asZippedEPUB();
+                B.initialize.asZipped();
             } else {
                 B.initialize.reject('EPUB File Is Not Valid.');
             }
@@ -283,12 +271,12 @@ B.initialize = function(Book) {
 };
 
 
-B.initialize.asZippedEPUB = function() {
-    if(!O.ZippedEPUBAvailable) return B.initialize.reject('Zipped EPUB Unavailable.');
+B.initialize.asZipped = function() {
+    if(!X["Unzipper"]) return B.initialize.reject('Zipped EPUB Unavailable.');
     if(S["autostart"]) {
-        B.loadZippedEPUB();
+        B.loadEPUB();
     } else {
-        L.wait().then(B.loadZippedEPUB);
+        L.wait().then(B.loadEPUB);
     }
 };
 
@@ -1024,7 +1012,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
             if(X["EPUBCFI"]) {
                 A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + "#" + HrefHash);
                 A.InNav = InNav;
-                A.Destination = R.getEPUBCFIDestination(HrefHash);
+                A.Destination = X["EPUBCFI"].getDestination(HrefHash);
                 A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
             } else {
                 A.removeAttribute("href");
@@ -1920,7 +1908,7 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
         if(Destination == "head" || Destination == "foot") {
             Destination = { Edge: Destination };
         } else if(X["EPUBCFI"]) {
-            Destination = R.getEPUBCFIDestination(Destination);
+            Destination = X["EPUBCFI"].getDestination(Destination);
         }
     } else if(Destination.tagName) {
              if(typeof Destination.PageIndex   == "number") Destination = { Page: Destination };
@@ -2583,8 +2571,8 @@ C.setState = function(Ele, State) {
 P = {}; // Bibi.Preset
 
 
-P.initialize = function(Preset) {
-    O.apply(Preset, P);
+P.initialize = function() {
+    O.apply(Bibi.Preset, P);
     if(!/^([\w\d]+:)?\/+/.test(P["bookshelf"])) P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
     ["reader-view-mode-fided", "autostart", "play-in-new-window"].forEach(function(Property) {
@@ -2596,36 +2584,14 @@ P.initialize = function(Preset) {
     });
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(P["trustworthy-origins"][0] != location.origin) P["trustworthy-origins"].unshift(location.origin);
-    P.ExtensionsToLoad = 0, P.LoadedExtensions = 0;
-    var Extensions = {};
-    for(var ExtensionName in P["extensions"]) {
-        if(typeof ExtensionName != "string" || !/^[^\/]+$/.test(ExtensionName) || !P["extensions"][ExtensionName]) continue;
-        switch(ExtensionName) {
-            case "bibi": continue;
-            case "unzipper": if(sML.UA.InternetExplorer) continue;
-        }
-        P.ExtensionsToLoad++;
-        Extensions[ExtensionName] = P["extensions"][ExtensionName];
-    }
-    P["extensions"] = Extensions;
-    if(!P.ExtensionsToLoad) {
-        E.dispatch("bibi:initializePreset");
-        P.Initialized = true;
-        return;
-    }
-    for(var ExtensionName in P["extensions"]) {
-        document.head.appendChild(
-            sML.create("script", { src: "./extensions/" + ExtensionName + "/" + ExtensionName + ".js", async: "async",
-                onload: function() {
-                    P.LoadedExtensions++;
-                    if(P.LoadedExtensions == P.ExtensionsToLoad) {
-                        E.dispatch("bibi:initializePreset");
-                        P.Initialized = true;
-                    }
-                }
-            })
-        );
-    }
+    P["extensions"].forEach(function(Extension) {
+        if(typeof Extension["src"] != "string" || !Extension["src"]) return;
+        X.ExtensionsInPreset.push(Extension);
+    });
+    P.Initialized = new Promise(function(resolve, reject) {
+        if(X.ExtensionsInPreset.length) return X.loadExtensionsInPreset().then(resolve);
+        resolve();
+    });
 };
 
 
@@ -2710,13 +2676,6 @@ U.initialize = function() { // formerly O.readExtras
         });
     };
 
-    if(H["epubcfi"]) {
-        U["epubcfi"] = H["epubcfi"];
-        E.add("bibi:ready", function() {
-            if(X["EPUBCFI"]) U["to"] = R.getEPUBCFIDestination(H["epubcfi"]);
-        });
-    }
-
     if(H["bibi"]) {
         applyToU(H["bibi"]);
     }
@@ -2725,6 +2684,13 @@ U.initialize = function() { // formerly O.readExtras
         applyToU(H["pipi"]);
         if(U["parent-origin"] && U["parent-origin"] != location.origin) P["trustworthy-origins"].push(U["parent-origin"]);
         if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ""));　
+    }
+
+    if(H["epubcfi"]) {
+        U["epubcfi"] = H["epubcfi"];
+        E.add("bibi:ready", function() {
+            if(X["EPUBCFI"]) S["to"] = U["to"] = X["EPUBCFI"].getDestination(H["epubcfi"]);
+        });
     }
 
 };
@@ -3148,17 +3114,38 @@ M.gate = function(Eve) {
 X = {}; // Bibi.Extensions
 
 
-X.Extensions = [];
+X.initialize = function() {
+    X.ExtensionsInPreset = [];
+    X.LoadedExtensionsInPreset = 0;
+};
+
+
+X.loadExtensionsInPreset = function() {
+    return new Promise(function(resolve, reject) {
+        if(!X.ExtensionsInPreset.length) return resolve();
+        X.ExtensionsInPreset.forEach(function(Extension) {
+            document.head.appendChild(
+                sML.create("script", { src: Extension["src"],// async: "async",
+                    onload: function() {
+                        X.LoadedExtensionsInPreset++;
+                        if(X.LoadedExtensionsInPreset == X.ExtensionsInPreset.length) resolve();
+                    }
+                })
+            );
+        });
+    });
+};
 
 
 X.add = function(Extension) {
     if(!Extension || typeof Extension != "object") return function() { return false; };
-    if(typeof Extension["name"] != "string")       return function() { E.bind("bibi:ready", function() { O.error('Extension name is invalid.'); }); };
-    if(X[Extension["name"]])                       return function() { E.bind("bibi:ready", function() { O.error('Extension name "' + Extension["name"] + '" is reserved or already taken.'); }); };
-    if(typeof Extension["description"] != "string") Extension["decription"] = "";
-    if(typeof Extension["author"] != "string") Extension["author"] = "";
-    if(typeof Extension["version"] != "string") Extension["version"] = "";
-    if(typeof Extension["build"] != "string") Extension["build"] = "";
+    if(typeof Extension["name"] != "string")       return function() { E.bind("bibi:ready", function() { O.log('Extension name is invalid.', "-*"); }); };
+    if(X[Extension["name"]])                       return function() { E.bind("bibi:ready", function() { O.log('Extension name "' + Extension["name"] + '" is reserved or already taken.', "-*"); }); };
+    if(typeof Extension["description"] != "string") Extension["decription"] = undefined;
+    if(typeof Extension["author"] != "string") Extension["author"] = undefined;
+    if(typeof Extension["version"] != "string") Extension["version"] = undefined;
+    if(typeof Extension["build"] != "number") Extension["build"] = undefined;
+    if(!(X.Extensions instanceof Array)) X.Extensions = [];
     X.Extensions.push(Extension);
     X[Extension["name"]] = Extension;
     return function(init) { E.bind("bibi:ready", function() { init.call(Extension); }); };

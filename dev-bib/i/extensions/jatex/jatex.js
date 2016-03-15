@@ -11,6 +11,7 @@ Bibi.x({
 
     name: "JaTEx",
     description: "Japanese Typesetting Extra",
+    author: "Satoru MATSUSHIMA (@satorumurmur)",
     version: "0.1.0",
     build: 20150722.1424,
 
@@ -159,7 +160,7 @@ Bibi.x({
 })(function() {
 
     // Markup
-    E.bind("bibi:before:postprocessItem", function(Item) {
+    E.bind("bibi:before:postprocessItemContent", function(Item) {
         X.JaTEx.defineMode(Item);
         if(!Item.JaTEx.Markup) return;
         Item.stamp("JaTEx Preprocess Start");
@@ -291,14 +292,14 @@ Bibi.x({
     // Layout
     E.bind("bibi:postprocessItem", function(Item) {
         if(!Item.JaTEx.Layout) return;
-        sML.CSS.addRule(".jatex-checker", "display: block;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-checker >span", "display: block;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-checker >span:last-child", "text-align: right;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-checker >span:first-child", "text-align: left;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-checker >span >span", "display: inline-block; width: 0; height: 0;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-test", "display: inline-block; text-indent: 0;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-burasage-tate", "display: inline-block; position: relative; margin-top: -1em; top: 1em;", Item.contentDocument);
-        sML.CSS.addRule(".jatex-burasage-yoko", "display: inline-block; position: relative; margin-left: -1em; left: 1em;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-checker", "display: block;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-checker >span", "display: block;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-checker >span:last-child", "text-align: right;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-checker >span:first-child", "text-align: left;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-checker >span >span", "display: inline-block; width: 0; height: 0;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-test", "display: inline-block; text-indent: 0;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-burasage-tate", "display: inline-block; position: relative; margin-top: -1em; top: 1em;", Item.contentDocument);
+        sML.appendStyleRule(".jatex-burasage-yoko", "display: inline-block; position: relative; margin-left: -1em; left: 1em;", Item.contentDocument);
     });
 
     // Ruby
@@ -309,7 +310,7 @@ Bibi.x({
             RubyParent.style.cssText = RubyParent.OriginalCSSText;
             RubyParentsLengthWithRubys.push(RubyParent["offset" + RubyParent.LiningLength]);
         });
-        var RubyHidingStyleSheetIndex = sML.CSS.addRule("rt", "display: none !important;", Item.contentDocument);
+        var RubyHidingStyleSheetIndex = sML.appendStyleRule("rt", "display: none !important;", Item.contentDocument);
         Item.RubyParents.forEach(function(RubyParent, i) {
             var Gap = RubyParentsLengthWithRubys[i] - RubyParent["offset" + RubyParent.LiningLength];
             if(Gap > 0 && Gap < RubyParent.DefaultFontSize) {
@@ -317,7 +318,7 @@ Bibi.x({
                 RubyParent.style["margin" + RubyParent.LiningBefore] = parseFloat(RubyParentComputedStyle["margin" + RubyParent.LiningBefore]) - Gap + "px";
             }
         });
-        sML.CSS.removeRule(RubyHidingStyleSheetIndex, Item.contentDocument);
+        sML.deleteStyleRule(RubyHidingStyleSheetIndex, Item.contentDocument);
     });
 
     // Layout
