@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() { Bibi.welcome(); });
 Bibi.welcome = function() {
 
     O.stamp("Welcome!");
-    O.log('Welcome to BiB/i v' + Bibi["version"] + ' - (ja) http://bibi.epub.link - (en) https://github.com/satorumurmur/bibi', "-0");
+    O.log('Welcome! - BiB/i v' + Bibi["version"] + ' - (ja) http://bibi.epub.link - (en) https://github.com/satorumurmur/bibi', "-0");
 
     O.Language = (function() {
         if(typeof navigator.language != "string") return "en";
@@ -141,20 +141,20 @@ Bibi.welcome = function() {
 Bibi.byebye = function() {
 
     var Msg = {
-        En: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
-        Ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
+        "en": '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
+        "ja": '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
     };
 
     C.Veil.ByeBye = C.Veil.appendChild(
         sML.create("p", { id: "bibi-veil-byebye",
             innerHTML: [
-                '<span lang="en">', Msg.En, '</span>',
-                '<span lang="ja">', Msg.Ja, '</span>',
+                '<span lang="en">', Msg["en"], '</span>',
+                '<span lang="ja">', Msg["ja"], '</span>',
             ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
         })
     );
 
-    O.log(Msg.En.replace(/<[^>]*>/g, ""), "-*");
+    O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
     E.dispatch("bibi:byebye");
 
 
@@ -238,7 +238,7 @@ B.initialize = function(Book) {
         },
         FileDigit: 0
     }, B);
-    return (new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
         B.initialize.resolve = resolve;
         B.initialize.reject  = reject;
         if(typeof Book == "string") { // Online
@@ -270,7 +270,7 @@ B.initialize = function(Book) {
         } else {
             B.initialize.reject('Something Trouble.');
         }
-    })).then(function() {
+    }).then(function() {
         delete B.initialize.resolve;
         delete B.initialize.reject;
         B.PathDelimiter = B.Unzipped ? "/" : " > ";
@@ -320,12 +320,12 @@ L.initialize = function() {};
 
 
 L.wait = function() {
-    return (new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
         L.wait.resolve = resolve;
         L.wait.reject  = reject;
         sML.addClass(O.HTML, "waiting");
         O.log('(waiting)', '-*'); 
-    })).then(function() {
+    }).then(function() {
         delete L.wait.resolve;
         delete L.wait.reject;
         sML.removeClass(O.HTML, "waiting");
@@ -692,52 +692,51 @@ L.loadNavigation = function() {
     return new Promise(function(resolve, reject) {
         if(!C.Panel.BookInfo.Navigation.Type) {
             O.log('No Navigation Document or TOC-NCX.', "-*");
-            resolve();
-        } else {
-            O.log('Loading Navigation: ' + B.Path + B.PathDelimiter + C.Panel.BookInfo.Navigation.Path + ' ...', "*:");
-            O.openDocument(C.Panel.BookInfo.Navigation.Path).then(function(Doc) {
-                C.Panel.BookInfo.Navigation.innerHTML = "";
-                var NavContent = document.createDocumentFragment();
-                if(C.Panel.BookInfo.Navigation.Type == "Navigation Document") {
-                    sML.each(Doc.querySelectorAll("nav"), function() {
-                        switch(this.getAttribute("epub:type")) {
-                            case "toc":       sML.addClass(this, "bibi-nav-toc"); break;
-                            case "landmarks": sML.addClass(this, "bibi-nav-landmarks"); break;
-                            case "page-list": sML.addClass(this, "bibi-nav-page-list"); break;
-                        }
-                        sML.each(this.querySelectorAll("*"), function() { this.removeAttribute("style"); });
-                        NavContent.appendChild(this);
-                    });
-                } else {
-                    var TempTOCNCX = Doc.getElementsByTagName("navMap")[0];
-                    sML.each(TempTOCNCX.getElementsByTagName("navPoint"), function() {
-                        var FirstNavLabel = this.getElementsByTagName("navLabel")[0];
-                        FirstNavLabel.parentNode.insertBefore(
-                            sML.create("a", { href: this.getElementsByTagName("content")[0].getAttribute("src"), innerHTML: this.getElementsByTagName("text")[0].innerHTML }),
-                            FirstNavLabel
-                        );
-                        sML.removeElement(this.getElementsByTagName("navLabel")[0]);
-                        sML.removeElement(this.getElementsByTagName("content")[0]);
-                        var LI = sML.create("li", { id: this.getAttribute("id") });
-                        LI.setAttribute("playorder", this.getAttribute("playorder"));
-                        this.parentNode.insertBefore(LI, this).appendChild(this);
-                        if(!LI.previousSibling || !LI.previousSibling.tagName || /^a$/i.test(LI.previousSibling.tagName)) {
-                            LI.parentNode.insertBefore(document.createElement("ul"), LI).appendChild(LI);
-                        } else {
-                            LI.previousSibling.appendChild(LI);
-                        }
-                    });
-                    NavContent.appendChild(document.createElement("nav")).innerHTML = TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "");
-                }
-                C.Panel.BookInfo.Navigation.appendChild(NavContent);
-                C.Panel.BookInfo.Navigation.Body = C.Panel.BookInfo.Navigation;
-                delete NavContent; delete Doc;
-                L.postprocessItem.coordinateLinkages(C.Panel.BookInfo.Navigation, "InNav");
-                R.resetNavigation();
-                O.log('Navigation Loaded', "/*");
-                resolve();
-            });
+            return resolve();
         }
+        O.log('Loading Navigation: ' + B.Path + B.PathDelimiter + C.Panel.BookInfo.Navigation.Path + ' ...', "*:");
+        O.openDocument(C.Panel.BookInfo.Navigation.Path).then(function(Doc) {
+            C.Panel.BookInfo.Navigation.innerHTML = "";
+            var NavContent = document.createDocumentFragment();
+            if(C.Panel.BookInfo.Navigation.Type == "Navigation Document") {
+                sML.each(Doc.querySelectorAll("nav"), function() {
+                    switch(this.getAttribute("epub:type")) {
+                        case "toc":       sML.addClass(this, "bibi-nav-toc"); break;
+                        case "landmarks": sML.addClass(this, "bibi-nav-landmarks"); break;
+                        case "page-list": sML.addClass(this, "bibi-nav-page-list"); break;
+                    }
+                    sML.each(this.querySelectorAll("*"), function() { this.removeAttribute("style"); });
+                    NavContent.appendChild(this);
+                });
+            } else {
+                var TempTOCNCX = Doc.getElementsByTagName("navMap")[0];
+                sML.each(TempTOCNCX.getElementsByTagName("navPoint"), function() {
+                    var FirstNavLabel = this.getElementsByTagName("navLabel")[0];
+                    FirstNavLabel.parentNode.insertBefore(
+                        sML.create("a", { href: this.getElementsByTagName("content")[0].getAttribute("src"), innerHTML: this.getElementsByTagName("text")[0].innerHTML }),
+                        FirstNavLabel
+                    );
+                    sML.removeElement(this.getElementsByTagName("navLabel")[0]);
+                    sML.removeElement(this.getElementsByTagName("content")[0]);
+                    var LI = sML.create("li", { id: this.getAttribute("id") });
+                    LI.setAttribute("playorder", this.getAttribute("playorder"));
+                    this.parentNode.insertBefore(LI, this).appendChild(this);
+                    if(!LI.previousSibling || !LI.previousSibling.tagName || /^a$/i.test(LI.previousSibling.tagName)) {
+                        LI.parentNode.insertBefore(document.createElement("ul"), LI).appendChild(LI);
+                    } else {
+                        LI.previousSibling.appendChild(LI);
+                    }
+                });
+                NavContent.appendChild(document.createElement("nav")).innerHTML = TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "");
+            }
+            C.Panel.BookInfo.Navigation.appendChild(NavContent);
+            C.Panel.BookInfo.Navigation.Body = C.Panel.BookInfo.Navigation;
+            delete NavContent; delete Doc;
+            L.postprocessItem.coordinateLinkages(C.Panel.BookInfo.Navigation, "InNav");
+            R.resetNavigation();
+            O.log('Navigation Loaded', "/*");
+            resolve();
+        });
     }).then(function() {
         E.dispatch("bibi:loadNavigation", C.Panel.BookInfo.Navigation.Path);
     });
