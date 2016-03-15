@@ -27,8 +27,10 @@ Bibi.x({
 
     var changeView = function() {
         var Button = this;
-        C.Panel.toggle(function() {
-            R.changeView(Button.Value);
+        C.Panel.toggle({
+            callback: function() {
+                R.changeView(Button.Value);
+            }
         });
     };
 

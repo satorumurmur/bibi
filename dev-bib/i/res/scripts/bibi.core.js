@@ -55,6 +55,13 @@ Bibi.welcome = function() {
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "white" }));
         }
+        O["resize"] = "orientationchange";
+        O["touchstart"] = "touchstart";
+        O["touchend"] = "touchend";
+    } else {
+        O["resize"] = "resize";
+        O["touchstart"] = "mousedown";
+        O["touchend"] = "mouseup";
     }
 
     // Window
@@ -971,8 +978,8 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         var A = this;
         if(InNav) {
             A.NavANumber = i + 1;
-            A.addEventListener(S["touchstart"], function(Eve) { Eve.stopPropagation(); });
-            A.addEventListener(S["touchend"],   function(Eve) { Eve.stopPropagation(); });
+            A.addEventListener(O["touchstart"], function(Eve) { Eve.stopPropagation(); });
+            A.addEventListener(O["touchend"],   function(Eve) { Eve.stopPropagation(); });
         }
         var HrefPathInSource = A.getAttribute("href");
         if(!HrefPathInSource) {
@@ -1644,7 +1651,7 @@ R.layout = function(Option) {
     O.log('Laying out...', "*:");
     O.stamp("Layout Start");
 
-    window.removeEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
+    window.removeEventListener(O["resize"], R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
 
     sML.addClass(O.HTML, "layouting");
@@ -1696,7 +1703,7 @@ R.layout = function(Option) {
 
     sML.removeClass(O.HTML, "layouting");
 
-    window.addEventListener(O.Mobile ? "orientationchange" : "resize", R.onresize);
+    window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
     R.Layouting = false;
@@ -2260,51 +2267,22 @@ C.createVeil = function() {
 
 C.createPanel = function() {
 
-    C.Panel = O.Body.appendChild(
-        sML.create("div", { id: "bibi-panel",
-            Locked: false,
-            State: 0,
-            open: function(Cb) {
-                if(this.State == 1) {
-                    if(typeof Cb == "function") Cb();
-                    return 1;
-                }
-                C.Panel.Locked = true;
-                this.State = 1;
-                sML.addClass(O.HTML, "panel-opened");
-                E.dispatch("bibi:openPanel");
-                this.callback(Cb);
-                setTimeout(function() { C.Panel.Locked = false; }, 1);
-                return this.State;
-            },
-            close: function(Cb) {
-                if(this.State == 0) {
-                    if(typeof Cb == "function") Cb();
-                    return 0;
-                }
-                C.Panel.Locked = true;
-                this.State = 0;
-                sML.removeClass(O.HTML, "panel-opened");
-                E.dispatch("bibi:closePanel");
-                this.callback(Cb);
-                setTimeout(function() { C.Panel.Locked = false; }, 1);
-                return this.State;
-            },
-            toggle: function(Cb) {
-                this.State ? this.close() : this.open();
-                this.callback(Cb);
-                return this.State;
-            },
-            callback: function(Cb) {
-                if(typeof Cb == "function") setTimeout(Cb, 250);
-            }
-        })
-    );
-    E.add("bibi:command:openPanel",   function() { C.Panel.open(); });
-    E.add("bibi:command:closePanel",  function() { C.Panel.close(); });
-    E.add("bibi:command:togglePanel", function() { C.Panel.toggle(); });
+    C.Panel = O.Body.appendChild(sML.create("div", { id: "bibi-panel" }));
+    C.setToggleAction(C.Panel, {
+        open: function(Opt) {
+            sML.addClass(O.HTML, "panel-opened");
+            E.dispatch("bibi:openPanel");
+        },
+        close: function(Opt) {
+            sML.removeClass(O.HTML, "panel-opened");
+            E.dispatch("bibi:closePanel");
+        }
+    });
+    E.add("bibi:command:openPanel",   function(Opt) { C.Panel.open(Opt); });
+    E.add("bibi:command:closePanel",  function(Opt) { C.Panel.close(Opt); });
+    E.add("bibi:command:togglePanel", function(Opt) { C.Panel.toggle(Opt); });
     C.observeTap(C.Panel).addTapEventListener(function() {
-        if(!C.Panel.Locked) E.dispatch("bibi:command:togglePanel");
+        if(!this.Locked) E.dispatch("bibi:command:togglePanel");
     });
 
     // Optimize to Scrollbar Size
@@ -2330,6 +2308,48 @@ C.createPanel = function() {
 
     E.dispatch("bibi:createPanel");
 
+};
+
+
+C.setToggleAction = function(Ele, Funs) {
+    return sML.edit(Ele, {
+        Locked: false,
+        State: "default",
+        open: function(Opt) {
+            var This = this;
+            if(!Opt) Opt = {};
+            if(This.State == "active") {
+                This.callback(Opt.callback, 0);
+                return This.State;
+            }
+            This.Locked = true;
+            This.State = "active";
+            Funs.open.apply(This, arguments);
+            This.callback(Opt.callback);
+            setTimeout(function() { This.Locked = false; }, 1);
+            return This.State;
+        },
+        close: function(Opt) {
+            var This = this;
+            if(!Opt) Opt = {};
+            if(This.State == "default") {
+                This.callback(Opt.callback, 0);
+                return This.State;
+            }
+            This.Locked = true;
+            This.State = "default";
+            Funs.close.apply(This, arguments);
+            This.callback(Opt.callback);
+            setTimeout(function() { This.Locked = false; }, 1);
+            return This.State;
+        },
+        toggle: function(Opt) {
+            return (this.State == "default" ? this.open(Opt) : this.close(Opt));
+        },
+        callback: function(callback, Time) {
+            if(typeof callback == "function") setTimeout(callback, (typeof Time == "number" ? Time : 250));
+        }
+    });
 };
 
 
@@ -2464,12 +2484,12 @@ C.setLabels = function(Ele) {
 
 
 C.observeTap = function(Ele) {
-    Ele.addEventListener(S["touchstart"], function(Eve) {
+    Ele.addEventListener(O["touchstart"], function(Eve) {
         clearTimeout(Ele.TapCounter);
         Ele.TouchStart = { Time: new Date(), X: Eve.pageX, Y: Eve.pageY };
         Ele.TapCounter = setTimeout(function() { Ele.TouchStart = undefined; }, 300);
     });
-    Ele.addEventListener(S["touchend"], function(Eve) {
+    Ele.addEventListener(O["touchend"], function(Eve) {
         Ele.TouchEnd   = { Time: new Date(), X: Eve.pageX, Y: Eve.pageY };
         if(Ele.TouchStart && (Ele.TouchEnd.Time - Ele.TouchStart.Time) < 300 && Math.abs(Ele.TouchEnd.X - Ele.TouchStart.X) < 5 && Math.abs(Ele.TouchEnd.Y - Ele.TouchStart.Y) < 5) E.dispatch("bibi:tap", Eve, Ele);
     });
@@ -2483,20 +2503,20 @@ C.observeTap = function(Ele) {
 
 C.setFeedback = function(Ele) {
     if(!Ele.isAvailable) Ele.isAvailable = function() { return true; };
-    Ele.changeState = (function() {
+    Ele.ontap = (function() {
         switch(Ele.Type) {
-            case "toggle": return function(Eve) {
+            case "toggle": return function() {
                 var This = this;
                 C.setState(This, This.State == "default" ? "active" : "default");
             };
-            case "radio": return function(Eve) {
+            case "radio": return function() {
                 var This = this;
                 C.setState(This, "active");
                 This.Group.Buttons.forEach(function(Button) {
                     if(Button != This) C.setState(Button, "");
                 });
             };
-            default: return function(Eve) {
+            default: return function() {
                 var This = this;
                 C.setState(This, "active");
                 clearTimeout(This.Timer_deactivate);
@@ -2506,35 +2526,35 @@ C.setFeedback = function(Ele) {
             };
         }
     })();
-    Ele.activate = function(Eve) {
+    Ele.tap = function(Eve) {
         if(!Ele.isAvailable(Eve)) return Ele;
-        Ele.changeState(Eve);
-        Ele.hideHelp(Eve);
+        Ele.ontap();
+        Ele.hideHelp();
         return Ele;
     };
     Ele.hover = function(Eve) {
         if(Ele.Hover || !Ele.isAvailable(Eve)) return Ele;
         Ele.Hover = true;
         sML.addClass(Ele, "hover");
-        Ele.showHelp(Eve);
+        Ele.showHelp();
         return Ele;
     };
     Ele.unhover = function(Eve) {
         if(!Ele.Hover) return Ele;
         Ele.Hover = false;
         sML.removeClass(Ele, "hover");
-        Ele.hideHelp(Eve);
+        Ele.hideHelp();
         return Ele;
     };
-    Ele.showHelp = function(Eve) {
+    Ele.showHelp = function() {
         if(Ele.Labels && Ele.Labels[Ele.State]) C.Help.show(Ele.Labels[Ele.State]);
         return Ele;
     };
-    Ele.hideHelp = function(Eve) {
+    Ele.hideHelp = function() {
         C.Help.hide();
         return Ele;
     };
-    E.add("bibi:tap", Ele.activate, Ele);
+    E.add("bibi:tap", Ele.tap, Ele);
     if(!O.Mobile) {
         Ele.addEventListener("mouseover", function(Eve) { Ele.hover(Eve); });
         Ele.addEventListener("mouseout",  function(Eve) { Ele.unhover(Eve); });
@@ -2753,8 +2773,6 @@ S.initialize = function() {
     S["autostart"]              = S.decide("autostart");
     S["play-in-new-window"]     = S.decide("play-in-new-window");
     S["hide-arrows"]            = S.decide("hide-arrows", "Always");
-    if(O.Mobile) S["touchstart"] = "touchstart", S["touchend"] = "touchend";
-    else         S["touchstart"] = "mousedown",  S["touchend"] = "mouseup";
 };
 
 

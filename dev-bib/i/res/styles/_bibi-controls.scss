@@ -364,8 +364,8 @@ div#bibi-panel {
 	transform: translateY(-100%);
 	html.panel-opened & {
 		transform: none !important;
-		transition: 0.15s ease-in;
 		opacity: 1 !important;
+		transition: 0.15s ease-in !important;
 	}
 	&:before {
 		content: "";
@@ -389,6 +389,8 @@ div#bibi-panel {
 
 div#bibi-panel-bookinfo {
 	box-sizing: border-box;
+	position: relative;
+	z-index: $z-index_panel-bookinfo;
 	width: 100%;
 	height: 100%;
 }

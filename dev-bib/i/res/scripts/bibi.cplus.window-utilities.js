@@ -32,7 +32,7 @@ Bibi.x({
     } else {
         O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
     }
-    if(O.FullscreenEnabled) C.addButton({ className: "bibi-button-toggle-fullscreen",
+    if(O.FullscreenEnabled) var FullscreenButton = C.addButton({ className: "bibi-button-toggle-fullscreen",
         Type: "toggle",
         Group: ButtonGroup,
         Labels: {
@@ -46,22 +46,24 @@ Bibi.x({
             } else {
                 sML.exitFullscreen(O.FullscreenDocument);
             }
-            C.Panel.toggle(function() {
-                if(!O.FullscreenElement.Fullscreen) {
-                    O.FullscreenElement.Fullscreen = true;
-                    E.dispatch("bibi:requestFullscreen");
-                    sML.addClass(O.HTML, "fullscreen");
-                } else {
-                    O.FullscreenElement.Fullscreen = false;
-                    E.dispatch("bibi:exitFullscreen");
-                    sML.removeClass(O.HTML, "fullscreen");
+            C.Panel.toggle({
+                callback: function() {
+                    if(!O.FullscreenElement.Fullscreen) {
+                        O.FullscreenElement.Fullscreen = true;
+                        E.dispatch("bibi:requestFullscreen");
+                        sML.addClass(O.HTML, "fullscreen");
+                    } else {
+                        O.FullscreenElement.Fullscreen = false;
+                        E.dispatch("bibi:exitFullscreen");
+                        sML.removeClass(O.HTML, "fullscreen");
+                    }
                 }
             });
         }
     });
 
     // New Window
-    if(O.WindowEmbedded) C.addButton({ tagName: "a", className: "bibi-button-open-newwindow", href: location.href, target: "_blank",
+    if(O.WindowEmbedded) var NewWindowButton = C.addButton({ tagName: "a", className: "bibi-button-open-newwindow", href: location.href, target: "_blank",
         Group: ButtonGroup,
         Labels: {
             "default": { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }
