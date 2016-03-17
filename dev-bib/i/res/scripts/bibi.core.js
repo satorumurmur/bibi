@@ -1187,11 +1187,7 @@ L.open = function() {
     });
 
     setTimeout(function() {
-        C.Veil.close(function() {
-            setTimeout(function() {
-                document.body.click(); // Making iOS browsers to responce for user scrolling immediately
-            }, 500);
-        });
+        C.Veil.close({ callback: function() { document.body.click(); } }); // Making iOS browsers to responce for user scrolling immediately
         L.Opened = true;
         C.note('');
         O.stamp("Enjoy");
@@ -2150,12 +2146,17 @@ C = {}; // Bibi.Controls
 
 
 C.initialize = function() {
+
     C.createNotifier();
     C.createVeil();
     C.createPanel();
     C.createSwitches();
     C.createHelp();
     C.createPowered();
+
+    C.SubPanels = [];
+    C.Shade = O.Body.appendChild(sML.create("div", { id: "bibi-shade" }));
+
 };
 
 
@@ -2198,53 +2199,21 @@ C.createNotifier = function() {
 
 C.createVeil = function() {
 
-    C.Veil = O.Body.appendChild(
-        sML.create("div", { id: "bibi-veil",
-            State: 1, // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
-            open: function(Cb) {
-                if(this.State == 1) return (typeof Cb == "function" ? Cb() : this.State);
-                this.State = 1;
-                this.style.display = "block";
-                this.style.zIndex = 100;
-                sML.style(this, {
-                    transition: "0.5s ease-out",
-                    transform: "",
-                    opacity: 0.75
-                }, function() {
-                    if(typeof Cb == "function") Cb();
-                });
-                return this.State;
-            },
-            close: function(Cb) {
-                if(this.State == 0) return (typeof Cb == "function" ? Cb() : this.State);
-                this.State = 0;
-                var getTranslate = function(Percent) {
-                    if(S.RVM != "vertical") var Axis = "X", PM = (S.PPD == "ltr") ? -1 : 1;
-                    else                    var Axis = "Y", PM = -1;
-                    return "translate" + Axis + "(" + (Percent * PM) + "%)";
-                };
-                sML.style(this, {
-                    transition: "0.5s ease-in",
-                    transform: getTranslate(240),
-                    opacity: 0
-                }, function() {
-                    sML.style(this, {
-                        transition: "none",
-                        transform: getTranslate(-240)
-                    });
-                    this.style.zIndex = 1;
-                    this.style.display = "none";
-                    if(typeof Cb == "function") Cb();
-                });
-                return this.State;
-            },
-            toggle: function(Cb) {
-                return (this.State == 0 ? this.open(Cb) : this.close(Cb));
-            }
-        })
-    );
+    C.Veil = C.setToggleAction(O.Body.appendChild(sML.create("div", { id: "bibi-veil" })), {
+        // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
+        open:  function() {
+            sML.addClass(O.HTML, "veil-opened");
+            sML.removeClass(this, "closed");
+        },
+        close: function() {
+            sML.addClass(this, "closed");
+            sML.removeClass(O.HTML, "veil-opened");
+        }
+    });
 
-    C.Veil.Cover   = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
+    C.Veil.open();
+
+    C.Veil.Cover = C.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
 
     var PlayButtonTitle = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
     C.Veil.PlayButton = C.Veil.appendChild(
@@ -2277,8 +2246,7 @@ C.createVeil = function() {
 
 C.createPanel = function() {
 
-    C.Panel = O.Body.appendChild(sML.create("div", { id: "bibi-panel" }));
-    C.setToggleAction(C.Panel, {
+    C.Panel = C.setToggleAction(O.Body.appendChild(sML.create("div", { id: "bibi-panel" })), {
         open: function(Opt) {
             sML.addClass(O.HTML, "panel-opened");
             E.dispatch("bibi:openPanel");
@@ -2321,45 +2289,37 @@ C.createPanel = function() {
 };
 
 
-C.setToggleAction = function(Ele, Funs) {
-    return sML.edit(Ele, {
-        Locked: false,
-        State: "default",
-        open: function(Opt) {
-            var This = this;
-            if(!Opt) Opt = {};
-            if(This.State == "active") {
-                This.callback(Opt.callback, 0);
-                return This.State;
-            }
-            This.Locked = true;
-            This.State = "active";
-            Funs.open.apply(This, arguments);
-            This.callback(Opt.callback);
-            setTimeout(function() { This.Locked = false; }, 1);
-            return This.State;
+C.createSubPanel = function(Opt) {
+
+    if(!Opt) return null;
+
+    var SubPanel = C.setToggleAction(O.Body.appendChild(sML.create("div", { className: "bibi-panel-subpanel" })), {
+        open: function() {
+            C.SubPanels.forEach(function(SP) {
+                if(SP == SubPanel) return;
+                SP.close();
+            });
+            sML.addClass(this, "opened");
+            Opt.open.apply(SubPanel, arguments);
         },
-        close: function(Opt) {
-            var This = this;
-            if(!Opt) Opt = {};
-            if(This.State == "default") {
-                This.callback(Opt.callback, 0);
-                return This.State;
-            }
-            This.Locked = true;
-            This.State = "default";
-            Funs.close.apply(This, arguments);
-            This.callback(Opt.callback);
-            setTimeout(function() { This.Locked = false; }, 1);
-            return This.State;
-        },
-        toggle: function(Opt) {
-            return (this.State == "default" ? this.open(Opt) : this.close(Opt));
-        },
-        callback: function(callback, Time) {
-            if(typeof callback == "function") setTimeout(callback, (typeof Time == "number" ? Time : 250));
+        close: function() {
+            sML.removeClass(this, "opened");
+            Opt.close.apply(SubPanel, arguments);
         }
     });
+    C.observeTap(SubPanel).addTapEventListener(function() {
+        if(!this.Locked) SubPanel.toggle();
+    });
+
+    if(Opt.id)        SubPanel.id = Opt.id;
+    if(Opt.className) SubPanel.className += " " + Opt.className;
+    SubPanel.Bit = SubPanel.appendChild(sML.create("span", { className: "bibi-panel-subpanel-bit" }));
+    C.SubPanels.push(SubPanel);
+
+    E.add("bibi:closePanel", function() { SubPanel.close(); });
+
+    return SubPanel;
+
 };
 
 
@@ -2441,6 +2401,48 @@ C.createPowered = function() {
         "html.veil-opened div#bibi-powered"
     ].join(", "), "bottom: 0;");
 
+};
+
+
+C.setToggleAction = function(Ele, Funs) {
+    return sML.edit(Ele, {
+        Locked: false,
+        State: "default",
+        open: function(Opt) {
+            var This = this;
+            if(!Opt) Opt = {};
+            if(This.State == "active") {
+                This.callback(Opt.callback, 0);
+                return This.State;
+            }
+            This.Locked = true;
+            This.State = "active";
+            Funs.open.apply(This, arguments);
+            This.callback(Opt.callback);
+            setTimeout(function() { This.Locked = false; }, 1);
+            return This.State;
+        },
+        close: function(Opt) {
+            var This = this;
+            if(!Opt) Opt = {};
+            if(This.State == "default") {
+                This.callback(Opt.callback, 0);
+                return This.State;
+            }
+            This.Locked = true;
+            This.State = "default";
+            Funs.close.apply(This, arguments);
+            This.callback(Opt.callback);
+            setTimeout(function() { This.Locked = false; }, 1);
+            return This.State;
+        },
+        toggle: function(Opt) {
+            return (this.State == "default" ? this.open(Opt) : this.close(Opt));
+        },
+        callback: function(callback, Time) {
+            if(typeof callback == "function") setTimeout(callback, (typeof Time == "number" ? Time : 250));
+        }
+    });
 };
 
 
