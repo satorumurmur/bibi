@@ -2155,9 +2155,6 @@ C.initialize = function() {
     C.createPowered();
     C.createIndicator();
 
-    C.SubPanels = [];
-    C.Shade = O.Body.appendChild(sML.create("div", { id: "bibi-shade" }));
-
 };
 
 
@@ -2285,35 +2282,54 @@ C.createPanel = function() {
     C.Panel.MenuAlpha = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-alpha", on: { "click": function(Eve) { Eve.stopPropagation(); } } }));
     C.Panel.MenuBeta  = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-menu-beta",  on: { "click": function(Eve) { Eve.stopPropagation(); } } }));
 
+    // Sub Panels & Shade
+    C.SubPanels = [];
+    C.Shade = C.setToggleAction(C.Panel.appendChild(sML.create("div", { id: "bibi-panel-shade" })), {
+        open:  function() {
+            var This = this;
+            sML.addClass(This, "visible");
+            setTimeout(function() { sML.addClass(This, "shown"); }, 0);
+        },
+        close: function() {
+            var This = this;
+            sML.removeClass(This, "shown");
+            setTimeout(function() { sML.removeClass(This, "visible"); }, 150);
+        }
+    });
+    C.observeTap(C.Shade).addTapEventListener(function() {
+        C.SubPanels.forEach(function(SubPanel) {
+            SubPanel.close();
+        });
+    });
+    C.Shade.addEventListener(O["touchstart"], function(Eve) { Eve.stopPropagation(); });
+    C.Shade.addEventListener(O["touchend"],   function(Eve) { Eve.stopPropagation(); });
+
     E.dispatch("bibi:createPanel");
 
 };
 
 
-C.createSubPanel = function(Opt) {
+C.createSubPanel = function(Funs) {
 
-    if(!Opt) return null;
-
-    var SubPanel = C.setToggleAction(O.Body.appendChild(sML.create("div", { className: "bibi-panel-subpanel" })), {
-        open: function() {
+    var SubPanel = C.setToggleAction(C.Panel.appendChild(sML.create("div", { className: "bibi-panel-subpanel" })), {
+        open: function(Opt) {
             C.SubPanels.forEach(function(SP) {
                 if(SP == SubPanel) return;
-                SP.close();
+                SP.close({ ForAnotherSubPanel: true });
             });
+            C.Shade.open();
             sML.addClass(this, "opened");
-            Opt.open.apply(SubPanel, arguments);
+            Funs.open.apply(SubPanel, arguments);
         },
-        close: function() {
+        close: function(Opt) {
             sML.removeClass(this, "opened");
-            Opt.close.apply(SubPanel, arguments);
+            if(!Opt || !Opt.ForAnotherSubPanel) C.Shade.close();
+            Funs.close.apply(SubPanel, arguments);
         }
     });
-    C.observeTap(SubPanel).addTapEventListener(function() {
-        if(!this.Locked) SubPanel.toggle();
-    });
+    SubPanel.addEventListener(O["touchstart"], function(Eve) { Eve.stopPropagation(); });
+    SubPanel.addEventListener(O["touchend"],   function(Eve) { Eve.stopPropagation(); });
 
-    if(Opt.id)        SubPanel.id = Opt.id;
-    if(Opt.className) SubPanel.className += " " + Opt.className;
     SubPanel.Bit = SubPanel.appendChild(sML.create("span", { className: "bibi-panel-subpanel-bit" }));
     C.SubPanels.push(SubPanel);
 
