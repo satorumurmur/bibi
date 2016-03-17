@@ -15,7 +15,6 @@
  * 5. BiB/i (core)
  * 6. BiB/i Extensions: C+
  *     1. BiB/i Extension: C+Mover
- *     2. BiB/i Extension: C+Indicators
- *     3. BiB/i Extension: C+WindowUtilities
- *     4. BiB/i Extension: C+ViewChanger
+ *     2. BiB/i Extension: C+WindowUtilities
+ *     3. BiB/i Extension: C+ViewChanger
  */

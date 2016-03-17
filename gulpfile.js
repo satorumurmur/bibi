@@ -148,7 +148,6 @@ gulp.task('make_script_bibi', function() {
 			'./bower_components/sML/sML.js',
 			'./dev-bib/i/res/scripts/bibi.core.js',
 			'./dev-bib/i/res/scripts/bibi.cplus.mover.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.indicators.js',
 			'./dev-bib/i/res/scripts/bibi.cplus.window-utilities.js',
 			'./dev-bib/i/res/scripts/bibi.cplus.view-changer.js'
         ],
