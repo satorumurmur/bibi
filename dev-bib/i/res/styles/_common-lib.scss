@@ -23,26 +23,32 @@ $z-index_main: 1;
 	$z-index_main-book: 1;
 	$z-index_main-arrow: 100;
 	$z-index_main-touchpanel: 10;
+
 $z-index_scrollbar: $z-index_main + 1;
 $z-index_indicator-progress-bar: $z-index_main + 1;
 $z-index_indicator-nombre: $z-index_main + 1;
 
-$z-index_veil: 10;
+$z-index_sub: 10;
+
+$z-index_veil: 100;
 	$z-index_veil-bottombar: 1;
 	$z-index_veil-cover: 10;
 	$z-index_veil-catcher: 10;
 	$z-index_veil-play: 10;
 	$z-index_veil-byebye: 10;
-$z-index_panel: $z-index_veil + 1;
+
+$z-index_panel: 1000;
 	$z-index_panel-topbar: 100;
 	$z-index_panel-menu: $z-index_panel-topbar + 1;
 	$z-index_panel-bookinfo: 1;
 	$z-index_panel-bottombar: 10;
-$z-index_switch: $z-index_veil + 1;
-$z-index-help: $z-index_panel + 1;
-$z-index-powered: $z-index_panel + 10;
 
-$z-index_sub: 100;
+$z-index_switch: $z-index_panel + 1;
+$z-index-help: $z-index_panel + 1;
+$z-index-powered: $z-index_panel + 1;
+
+$z-index_subpanel: 10000;
 
 $z-index_notifier-board: 99999999999;
 $z-index_indicator-mark: $z-index_notifier-board - 1;
+

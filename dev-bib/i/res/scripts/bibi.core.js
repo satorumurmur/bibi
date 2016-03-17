@@ -161,6 +161,8 @@ Bibi.byebye = function() {
 
 Bibi.ready = function() {
 
+    sML.addClass(O.HTML, "ready");
+
     var ExtensionNames = [];
     X.Extensions.forEach(function(Extension) { ExtensionNames.push(Extension["name"]) });
     if(ExtensionNames.length) O.log("Extension" + (ExtensionNames.length >= 2 ? "s" : "") + ": " + ExtensionNames.join(", "), "-*");
@@ -174,6 +176,7 @@ Bibi.ready = function() {
 
     E.add("bibi:ready", function() {
         if(U["book"]) {
+            sML.removeClass(O.HTML, "ready");
             L.loadBook(U["book"]);
         } else {
             if(X["Unzipper"] && window.File && !O.Mobile) {
@@ -318,12 +321,16 @@ L.wait = function() {
     return new Promise(function(resolve, reject) {
         L.wait.resolve = resolve;
         L.wait.reject  = reject;
+        sML.removeClass(O.HTML, "busy");
         sML.addClass(O.HTML, "waiting");
-        O.log('(waiting)', '-*'); 
+        O.log('(waiting)', '-*');
+        C.note('');
     }).then(function() {
         delete L.wait.resolve;
         delete L.wait.reject;
         sML.removeClass(O.HTML, "waiting");
+        sML.addClass(O.HTML, "busy");
+        C.note('Loading...');
     });
 };
 
@@ -332,15 +339,16 @@ L.play = function() {
     if(S["play-in-new-window"]) return window.open(location.href);
     L.Played = true;
     L.wait.resolve();
-    E.dispatch("bibi:startLoading");
     E.dispatch("bibi:play");
 };
 
 
 L.loadBook = function(Book) {
     O.log("Loading Book...", "*:");
+    sML.addClass(O.HTML, "loading");
+    sML.addClass(O.HTML, "busy");
+    C.note('Loading...');
     B.initialize(Book).then(function() {
-        E.dispatch("bibi:startLoading");
         R.reset();
         L.loadContainer();
     });
@@ -376,11 +384,9 @@ L.loadPackageDocument = function() {
         L.createCover();
         L.prepareItemsInSpreads();
         L.loadNavigation().then(function() {
-            E.dispatch("bibi:prepareSpine");
             if(S["autostart"] || L.Played) {
                 L.loadItemsInSpreads();
             } else {
-                E.dispatch("bibi:stopLoading");
                 L.wait().then(L.loadItemsInSpreads);
             }
         });
@@ -1159,6 +1165,8 @@ L.onLoadItemsInSpreads = function() {
 L.onLoadBook = function() {
 
     L.Loaded = true;
+    sML.removeClass(O.HTML, "loading");
+    sML.removeClass(O.HTML, "busy");
 
     O.stamp("Book Loaded");
     O.log("Book Loaded.", "/*");
@@ -1170,8 +1178,6 @@ L.onLoadBook = function() {
 
 
 L.open = function() {
-
-    E.dispatch("bibi:stopLoading");
 
     window.removeEventListener("resize", L.listenResizingWhileLoading);
     delete L.listenResizingWhileLoading;
@@ -1654,7 +1660,9 @@ R.layout = function(Option) {
     window.removeEventListener(O["resize"], R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
 
+    sML.addClass(O.HTML, "busy");
     sML.addClass(O.HTML, "layouting");
+    C.note('Layouting...');
 
     if(!Option) Option = {};
 
@@ -1702,6 +1710,8 @@ R.layout = function(Option) {
     R.focus(Option.Destination, { Duration: 0 });
 
     sML.removeClass(O.HTML, "layouting");
+    sML.removeClass(O.HTML, "busy");
+    C.note('');
 
     window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
@@ -2393,8 +2403,16 @@ C.createHelp = function() {
     };
 
     // Optimize to Scrollbar Size
-    sML.appendStyleRule("html.appearance-ltr div#bibi-help, html.appearance-rtl div#bibi-help", "bottom: " + (O.Scrollbars.Height) + "px;");
-    sML.appendStyleRule("html.appearance-ttb div#bibi-help, html.page-ltr.panel-opened div#bibi-help", "bottom: 0;");
+    sML.appendStyleRule([
+        "html.appearance-ltr div#bibi-help",
+        "html.appearance-rtl div#bibi-help",
+        "html.page-rtl.panel-opened div#bibi-help"
+    ].join(", "), "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule([
+        "html.appearance-ttb div#bibi-help",
+        "html.page-ltr.panel-opened div#bibi-help",
+        "html.veil-opened div#bibi-help"
+    ].join(", "), "bottom: 0;");
 
 };
 
@@ -2412,7 +2430,16 @@ C.createPowered = function() {
     ].join("") }));
 
     // Optimize to Scrollbar Size
-    sML.appendStyleRule("html.page-rtl div#bibi-powered", "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule([
+        "html.appearance-ltr div#bibi-powered",
+        "html.appearance-rtl div#bibi-powered",
+        "html.page-rtl.panel-opened div#bibi-powered"
+    ].join(", "), "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule([
+        "html.appearance-ttb div#bibi-powered",
+        "html.page-ltr.panel-opened div#bibi-powered",
+        "html.veil-opened div#bibi-powered"
+    ].join(", "), "bottom: 0;");
 
 };
 
@@ -2855,7 +2882,6 @@ S.update = function(Settings) { // formerly O.updateSetting
     if(PrevSLA != S.SLA) { sML.replaceClass(O.HTML, "spread-"     + PrevSLA, "spread-"     + S.SLA); }
     if(PrevSLD != S.SLD) { sML.replaceClass(O.HTML, "spread-"     + PrevSLD, "spread-"     + S.SLD); }
     if(PrevARD != S.ARD) { sML.replaceClass(O.HTML, "appearance-" + PrevARD, "appearance-" + S.ARD); }
-    
 
     E.dispatch("bibi:updateSetting", S);
 
@@ -2875,42 +2901,43 @@ S.update = function(Settings) { // formerly O.updateSetting
 O = {}; // Bibi.Operator
 
 
-O.log = function(Msg, Depth) {
+O.log = function(Msg, Tag) {
     var Pre = 'BiB/i: ';
-    switch(Depth) {
-        case  "-*": Depth = "-" + (O.log.Depth);           break;
-        case  "*:": Depth =       (O.log.Depth) + ":";     break;
-        case "/*" : Depth = "/" + (O.log.Depth - 1);       break;
+    switch(Tag) {
+        case  "-*": Tag  = "-" + (O.log.Depth);              break;
+        case  "*:": Tag  =       (O.log.Depth) + ":";        break;
+        case "/*" : Tag  = "/" + (O.log.Depth - 1);          break;
     }
-    switch(Depth) {
-        case "-x" : Pre += "[ERROR] ";                     break;
-        case "-0" : Pre += "━━━━━━━━━━━━ ";    break;
-        case "-1" : Pre += " - ";         O.log.Depth = 1; break;
-        case  "1:": Pre += "┌ ";         O.log.Depth = 2; break;
-        case "-2" : Pre += "│ - ";       O.log.Depth = 2; break;
-        case  "2:": Pre += "│┌ ";       O.log.Depth = 3; break;
-        case "-3" : Pre += "││ - ";     O.log.Depth = 3; break;
-        case  "3:": Pre += "││┌ ";     O.log.Depth = 4; break;
-        case "-4" : Pre += "│││ - ";   O.log.Depth = 4; break;
-        case  "4:": Pre += "│││┌ ";   O.log.Depth = 5; break;
-        case "-5" : Pre += "││││ - "; O.log.Depth = 5; break;
-        case  "5:": Pre += "││││┌ "; O.log.Depth = 6; break;
-        case "/5" : Pre += "││││└ "; O.log.Depth = 5; break;
-        case "/4" : Pre += "│││└ ";   O.log.Depth = 4; break;
-        case "/3" : Pre += "││└ ";     O.log.Depth = 3; break;
-        case "/2" : Pre += "│└ ";       O.log.Depth = 2; break;
-        case "/1" : Pre += "└ ";         O.log.Depth = 1; break;
+    switch(Tag) {
+        case "-x" : Pre += "[ERROR] ";                       break;
+        case "-0" : Pre += "━━━━━━━━━━━━ ";      break;
+        case "-1" : Pre += " - ";           O.log.Depth = 1; break;
+        case  "1:": Pre += "┌ ";           O.log.Depth = 2; break;
+        case "-2" : Pre += "│ - ";         O.log.Depth = 2; break;
+        case  "2:": Pre += "│┌ ";         O.log.Depth = 3; break;
+        case "-3" : Pre += "││ - ";       O.log.Depth = 3; break;
+        case  "3:": Pre += "││┌ ";       O.log.Depth = 4; break;
+        case "-4" : Pre += "│││ - ";     O.log.Depth = 4; break;
+        case  "4:": Pre += "│││┌ ";     O.log.Depth = 5; break;
+        case "-5" : Pre += "││││ - ";   O.log.Depth = 5; break;
+        case  "5:": Pre += "││││┌ ";   O.log.Depth = 6; break;
+        case "-6" : Pre += "│││││ - "; O.log.Depth = 6; break;
+        case "/5" : Pre += "││││└ ";   O.log.Depth = 5; break;
+        case "/4" : Pre += "│││└ ";     O.log.Depth = 4; break;
+        case "/3" : Pre += "││└ ";       O.log.Depth = 3; break;
+        case "/2" : Pre += "│└ ";         O.log.Depth = 2; break;
+        case "/1" : Pre += "└ ";           O.log.Depth = 1; break;
     }
     console.log(Pre + Msg);
 };
+O.log.Depth = 1;
 if((parent && parent != window) || !console || !console.log) O.log = function() { return false; };
 
 
-O.log.Depth = 1;
-
-
 O.error = function(Msg) {
-    E.dispatch("bibi:stopLoading");
+    sML.removeClass(O.HTML, "busy");
+    sML.removeClass(O.HTML, "loading");
+    sML.removeClass(O.HTML, "waiting");
     E.dispatch("bibi:error", Msg);
     O.log(Msg, "-x");
 };

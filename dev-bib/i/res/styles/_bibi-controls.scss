@@ -750,6 +750,7 @@ div#bibi-powered {
 	z-index: $z-index-powered;
 	text-align: right;
 	font-size: 14px;
+	transition: .2s linear;
 	p {
 		a {
 			display: block;
@@ -1022,8 +1023,7 @@ div#bibi-indicator-mark {
 			}
 		}
 	}
-	html.loading &,
-	html.layouting & {
+	html.busy & {
 		display: block;
 		animation: SPIN 1s linear 0s infinite normal;
 		&:before, &:after {
