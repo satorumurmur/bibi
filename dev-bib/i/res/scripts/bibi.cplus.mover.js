@@ -17,10 +17,6 @@ Bibi.x({
 })(function() {
 
     C.Mover = {
-        Borders: {
-            "default": 37,
-            "touch": 0.4
-        },
         getArea: function(Eve) {
             if(!Eve) return {};
             var X, Y, XBorders = [], YBorders = [];
@@ -28,16 +24,17 @@ Bibi.x({
                 X = Eve.pageX;
                 Y = Eve.pageY;
             } else {
-                ItemCoord = O.getElementCoord(Eve.srcElement.ownerDocument.documentElement.Item);
-                HTMLXY = { X: ItemCoord.X + S["item-padding-left"], Y: ItemCoord.Y + S["item-padding-top"] };
+                var Item = Eve.srcElement.ownerDocument.documentElement.Item;
+                ItemCoord = O.getElementCoord(Item);
+                HTMLXY = { X: ItemCoord.X, Y: ItemCoord.Y };
+                if(!Item.PrePaginated && !Item.Outsourcing) HTMLXY.X += S["item-padding-left"], HTMLXY.Y += S["item-padding-top"];
                 X = HTMLXY.X + Eve.pageX - R.Main.scrollLeft;
                 Y = HTMLXY.Y + Eve.pageY - R.Main.scrollTop;
             }
-            var Border = C.Mover.Borders[O.TouchActive ? "touch" : "default"];
+            var Border = O.TouchActive ? S["flipper-width-for-touch"] : S["flipper-width"];
             XBorders[0] = YBorders[0] = Border;
             if(Border < 1) X = X / window.innerWidth, Y = Y / window.innerHeight, XBorders[1] = YBorders[1] = 1 - Border; // Ratio
             else           XBorders[1] = window.innerWidth - XBorders[0], YBorders[1] = window.innerHeight - YBorders[0]; // Pixel
-            var XNum = X, YNum = Y;
                  if(X < XBorders[0]) X = "left";
             else if(XBorders[1] < X) X = "right";
             else                     X = "center";
@@ -128,18 +125,18 @@ Bibi.x({
                 }, 1234);
             }, 420);
         },
-        activate: function(Dis) {
+        tap: function(Dis) {
             var Dir = ""
             switch(Dis) {
                 case -1 : Dir = "back"; break;
                 case  1 : Dir = "forward"; break;
             }
             if(Dir && C.Arrows[Dir]) {
-                return C.Arrows[Dir].activate();
+                return C.Arrows[Dir].tap();
             }
         },
         isAvailable: function(Eve) {
-            if(C.Panel.State == 1) return false;
+            if(C.Panel.State == "active") return false;
             if(Eve.srcElement.ownerDocument.documentElement == O.HTML) {
                 if(Eve.srcElement == R.Main.Book || /^(spread|item|bibi-arrow)/.test(Eve.srcElement.className)) return true;
             } else {
@@ -179,7 +176,7 @@ Bibi.x({
     E.add("bibi:open",          function()    { C.Arrows.createArrows(); C.Arrows.update(); C.Arrows.navigate(); });
     E.add("bibi:updateSetting", function()    { C.Arrows.update(); });
     E.add("bibi:relayout",      function()    { C.Arrows.navigate(); });
-    E.add("bibi:command:move",  function(Dis) { C.Arrows.activate(Dis); });
+    E.add("bibi:command:move",  function(Dis) { C.Arrows.tap(Dis); });
 
     // Touch
     C.Touch = {

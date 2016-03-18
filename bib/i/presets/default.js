@@ -35,6 +35,9 @@ Bibi.Preset = {
 "item-padding-top"           : 36, // px
 "item-padding-bottom"        : 20, // px
 
+"flipper-width"              : 37,
+"flipper-width-for-touch"    : 0.4,
+
 "page-breaking"              : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
