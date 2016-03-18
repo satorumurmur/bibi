@@ -1,9 +1,5 @@
 @charset "utf-8";
 
-@import "_lib/_mixins";
-
-$path-res: "../../../../bib/i/res";
-
 
 /*!
  *
@@ -13,8 +9,31 @@ $path-res: "../../../../bib/i/res";
  *  - Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0) - http://creativecommons.org/licenses/by/4.0/
  *
  */
-@include at-font-face("Material Icons", "#{$path-res}/fonts/MaterialIcons/MaterialIcons-Regular");
+@font-face {
+	font-family: "Material Icons";
+	src: url("../../../../bib/i/res/fonts/MaterialIcons/MaterialIcons-Regular.woff") format("woff"),
+		 url("../../../../bib/i/res/fonts/MaterialIcons/MaterialIcons-Regular.ttf")  format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
 
+
+/*!
+ *
+ *  # Font Awesome
+ *
+ *  - by Dave Gandy - https://fortawesome.github.io/Font-Awesome/
+ *  - Licensed under SIL Open Font License (OFL) 1.1 - http://scripts.sil.org/OFL
+ *
+ */
+@font-face {
+	font-family: "Font Awesome";
+	src: url("../../../../bib/i/res/fonts/FontAwesome/fontawesome-webfont.woff2") format("woff2"),
+	     url("../../../../bib/i/res/fonts/FontAwesome/fontawesome-webfont.woff")  format("woff"),
+		 url("../../../../bib/i/res/fonts/FontAwesome/fontawesome-webfont.ttf")   format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
 
 /*!
  *
@@ -26,7 +45,6 @@ $path-res: "../../../../bib/i/res";
  *
  */
 
-@import "_lib/_distiller";
 @import "_common-lib";
 @import "_common-icons";
 @import "_bibi-stage";

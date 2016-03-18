@@ -255,13 +255,9 @@ var make_script_tasks = [
 gulp.task('watch', function() {
     reload = true;
     gulp.watch([
-        './dev-bib/i/res/styles/_lib/*.scss',
-        './dev-bib/i/res/styles/_+(common|bibi)-*.scss',
-        './dev-bib/i/res/styles/bibi.scss'
+        './dev-bib/i/res/styles/*.scss',
     ], ['make_style_bibi']);
     gulp.watch([
-        './dev-bib/i/res/styles/_lib/*.scss',
-        './dev-bib/i/res/styles/_+(common|pipi)-*.scss',
         './dev-bib/i.scss'
     ], ['make_style_pipi']);
     gulp.watch([

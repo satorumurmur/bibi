@@ -401,5 +401,9 @@ div#checker {
 	@include writing-mode(vertical-rl);
 }
 
+div#__bs_notify__ {
+	opacity: 0.75;
+}
+
 
 
