@@ -12,7 +12,7 @@ You can publish EPUB books on the web with a parmalink for each book, and you ca
 ### Spec.
 
 * EPUB 3 and 2 compliant.
-* Open source. (MIT lisence)
+* Open source. (MIT license)
 * Made with JavaScript, works compatibly with all major web browsers on Mac/PC/smartphones:
     - Safari
     - Chrome, Android Browser, Opera, Vivaldi
