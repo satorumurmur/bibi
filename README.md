@@ -13,9 +13,9 @@ You can publish EPUB books on the web with a parmalink for each book, and you ca
 
 * EPUB 3 and 2 compliant.
 * Open source. (MIT license)
-* Made with JavaScript, works compatibly with all major web browsers on Mac/PC/smartphones:
+* Made with JavaScript. Works compatibly with all major web browsers on Mac/PC/smartphones:
     - Safari
-    - Chrome, Android Browser, Opera, Vivaldi
+    - Chrome, Opera, Vivaldi
     - Firefox
     - Microsoft Edge
     - Internet Explorer 11 (except opening zipped EPUB archive)
@@ -174,7 +174,7 @@ The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 ### BiB/i is including and powered by these open source softwares:
 
 * [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
-* [Font Awesome](https://fortawesome.github.io/Font-Awesome/) ... &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
+* [Font Awesome](http://fontawesome.io) ... &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
 * [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
 * [Hammer.JS](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
