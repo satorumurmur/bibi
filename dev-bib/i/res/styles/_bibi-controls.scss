@@ -291,57 +291,52 @@ p#bibi-veil-play {
 	cursor: pointer;
 	&:hover  { background: rgba(0,0,0,0.5); }
 	&:active { background: rgba(0,0,0,0.25); }
-	&:before, &:after, span {
+	span, &:before, &:after {
 		box-sizing: border-box;
 		display: block;
 		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 		vertical-align: middle;
 		text-align: center;
-		color: rgb(128,128,128);
 		transition: .2s cubic-bezier(.2,.8,.8,1.6);
 	}
-	&:before, &:after {
-		@include font-icon("Material Icons");
+	span {
+		color: rgb(128,128,128);
 	}
-	&:before { // icon
-		content: /*play_circle_filled*/ "\e038";
+	&:before, &:after { // icon
 		width: $size;
 		height: $size;
-		line-height: $size;
+		color: rgb(64,64,64);
+	}
+	&:before { // icon
+		@include font-icon("Font Awesome");
+		z-index: 10;
+		line-height: $size * 0.98;
 		font-size: $size;
-		color: rgb(216,216,216);
 	}
-	&:hover:before  {
-		color: white;
-		transform: scale(1.1);
+	&:after { // circle
+		content: "";
+		z-index: 1;
+		border-radius: 50%;
+		background: rgba(240,240,240, 0.8);
 	}
-	&:active:before {
+	&:hover {
+		&:before, &:after { transform: scale(1.1); }
+		&:after  { background: white; }
 	}
-	html.appearance-ttb & {
-		&:before {
-			top: auto;
-			bottom: $offset;
-			transform: rotate(90deg);
-		}
-		&:hover:before  { bottom: $offset + $hover-move; }
-		&:active:before { bottom: $size * -1/3; }
+	html.appearance-ttb & { // ↓
+		&:before { content: "\f107"; }
+		&:before, &:after { top: auto; bottom: $offset; margin-bottom: -.06em; transform-origin: 50% 100%; }
+		&:active { &:before, &:after { bottom: $size * -1/3; } }
 	}
-	html.appearance-rtl & {
-		&:before {
-			left: $offset;
-			right: auto;
-			transform: rotate(180deg);
-		}
-		&:hover:before  { left: $offset + $hover-move; }
-		&:active:before { left: $size * -1/3; }
+	html.appearance-rtl & { // ←
+		&:before { content: "\f104"; }
+		&:before, &:after { left: $offset; right: auto; margin-left:   -.06em; transform-origin: 0 50%; }
+		&:active { &:before, &:after { left: $size * -1/3; } }
 	}
-	html.appearance-ltr & {
-		&:before {
-			left: auto;
-			right: $offset;
-		}
-		&:hover:before  { right: $offset + $hover-move; }
-		&:active:before { right: $size * -1/3; }
+	html.appearance-ltr & { // →
+		&:before { content: "\f105"; }
+		&:before, &:after { left: auto; right: $offset; margin-right:  -.06em; transform-origin: 100% 50%; }
+		&:active { &:before, &:after { right: $size * -1/3; } }
 	}
 }
 
@@ -383,7 +378,7 @@ div#bibi-panel {
 		height: $button-size + $button-group-margin * 2;
 		//background: rgba(255,255,255,0.88);
 		//background: white;
-		background: rgba(255,255,255,0.9);
+		background: rgba(255,255,255,0.96);
 	}
 }
 
@@ -644,6 +639,13 @@ div.bibi-panel-subpanel {
 	ul {
 		font-size: 12px;
 		li {
+			line-height: 1.5;
+			span.bibi-icon {
+				//display: none;
+				position: relative;
+				font-size: 1.4em;
+				top: .1em;
+			}
 		}
 	}
 }
@@ -658,7 +660,7 @@ div#bibi-panel-shade {
 	z-index: $z-index_panel-shade;
 	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
 	width: 100%; height: 100%;
-	background: rgba(black, 0.8);
+	background: rgba(black, 0.5);
 	opacity: 0;
 	transition: linear .15s;
 	&.visible {
@@ -934,8 +936,8 @@ html.panel-opened div#bibi-powered {
 // --------------------------------------------------------------------------------
 
 
-$arrow-icon-size: 24px;
-$arrow-bar-length: $button-size + $button-group-margin * 2;
+$arrow-icon-size: $button-size;
+$arrow-bar-length: $arrow-icon-size + $button-group-margin * 2;
 $arrow-bar-breadth: 100;
 $arrow-bar-background-base-color: rgb(128,128,128);
 
@@ -1004,13 +1006,11 @@ div.bibi-arrow {
 
 @mixin arrow-variation($dir, $transform-origin, $icon-code, $cursor) {
 	#{$dir}: 0;
-	&:before, &:after {
-		transform-origin: $transform-origin;
-	}
+	&:before, &:after { transform-origin: $transform-origin; }
 	&:before {
-		#{$dir}: ($arrow-bar-length - $arrow-icon-size) / 2;
+		#{$dir}: $button-group-margin;
 		content: $icon-code;
-		transform: scale(0.8);
+		transform: scale(0.9);
 	}
 	&:after {
 		#{$dir}: $arrow-bar-length * -1;
@@ -1021,34 +1021,28 @@ div.bibi-arrow {
 	}
 	&.hover {
 		&, &:before, &:after { transition-duration: .2s; }
-		&:before {
-			transform: scale(1.0);
-		}
-		&:after {
-			#{$dir}: 0;
-		}
+		&:before { transform: scale(1.0); }
+		&:after { #{$dir}: 0; }
 	}
 	&.active {
 		&, &:before, &:after { transition-duration: .1s; }
-		&:before {
-			transform: scale(0.9);
-		}
+		&:before { #{$dir}: $button-group-margin / 2; transform: scale(0.9); }
 	}
 }
 
 html.appearance-ltr div#bibi-arrow-back,
 html.appearance-rtl div#bibi-arrow-forward { // ←
-	@include arrow-variation(left, -50% 50%, "\e314", w-resize); /*keyboard_arrow_left*/
+	@include arrow-variation(left, 0% 50%, "\e314", w-resize); /*keyboard_arrow_left*/
 }
 html.appearance-ltr div#bibi-arrow-forward,
 html.appearance-rtl div#bibi-arrow-back { // →
-	@include arrow-variation(right, 150% 50%, "\e315", e-resize); /*keyboard_arrow_right*/
+	@include arrow-variation(right, 100% 50%, "\e315", e-resize); /*keyboard_arrow_right*/
 }
 html.appearance-ttb div#bibi-arrow-back { // ↑
-	@include arrow-variation(top, 50% -50%, "\e316", n-resize); /*keyboard_arrow_up*/
+	@include arrow-variation(top, 50% 0%, "\e316", n-resize); /*keyboard_arrow_up*/
 }
 html.appearance-ttb div#bibi-arrow-forward { // ↓
-	@include arrow-variation(bottom, 50% 150%, "\e313", s-resize); /*keyboard_arrow_down*/
+	@include arrow-variation(bottom, 50% 100%, "\e313", s-resize); /*keyboard_arrow_down*/
 }
 
 

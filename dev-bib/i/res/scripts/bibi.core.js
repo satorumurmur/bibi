@@ -41,6 +41,8 @@ Bibi.welcome = function() {
     O.Info  = document.getElementById("bibi-info");
     O.Title = document.getElementsByTagName("title")[0];
 
+    O.RequestedURL = location.href;
+
     // Device
     if(sML.OS.iOS || sML.OS.Android) {
         O.Mobile = true;
@@ -71,14 +73,12 @@ Bibi.welcome = function() {
         O.HTML.className = O.HTML.className + " window-not-embedded";
     } else {
         O.HTML.className = O.HTML.className + " window-embedded";
-        if(location.host == parent.location.host) {
+        if(location.host == parent.location.host || parent.location.href) {
             O.WindowEmbedded = 1; // true
             O.WindowEmbeddedDetail = "Embedded in: " + parent.location.origin + parent.location.pathname + parent.location.search;
-            O.HTML.className = O.HTML.className + " window-embedded-sameorigin";
         } else {
             O.WindowEmbedded = -1; // true
-            O.WindowEmbeddedDetail = "Embedded in: Cross-Origin Parent";
-            O.HTML.className = O.HTML.className + " window-embedded-crossorigin";
+            O.WindowEmbeddedDetail = "Embedded in: Unreachable Cross-Origin Parent";
         }
     }
 
