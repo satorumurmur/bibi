@@ -2,26 +2,23 @@
 // + Icons
 // --------------------------------------------------------------------------------
 
-.bibi-icon {
+@mixin icon() {
+	@include font-icon("Font Awesome");
 	display: inline-block;
-	width: 1em;
+	width: 1.2em;
 	height: 1em;
-	&:before {
-		@include font-icon("Font Awesome");
-	}
 }
 
-.bibi-icon-twitter       { &:before { content: "\f099"; } }
-.bibi-icon-twitter-sq    { &:before { content: "\f081"; } }
-.bibi-icon-facebook      { &:before { content: "\f09a"; } }
-.bibi-icon-facebook-sq   { &:before { content: "\f082"; } }
-.bibi-icon-googleplus    { &:before { content: "\f0d5"; } }
-.bibi-icon-googleplus-sq { &:before { content: "\f0d4"; } }
+*[class^="bibi-with-icon"] { &:before { @include icon(); } }
 
-.bibi-icon-code          { &:before { content: "\f121"; } }
-.bibi-icon-anchor        { &:before { content: "\f13d"; } }
+.bibi-with-icon-Twitter    { &:before { content: "\f081"; color: rgb(29,161,242); } }
+.bibi-with-icon-Facebook   { &:before { content: "\f082"; color: rgb(58,89,153); } }
+.bibi-with-icon-GooglePlus { &:before { content: "\f0d4"; color: rgb(219,68,55); } }
 
+.bibi-with-icon-code       { &:before { content: "\f121"; color: gray; } } 
+.bibi-with-icon-anchor     { &:before { content: "\f13d"; color: navy; } }
 
+.bibi-with-icon-colorless  { &:before {                   color: inherit; } }
 
 
 // ================================================================================
@@ -340,14 +337,14 @@ $button-color_font-paint:    gray;
 $button-color_font-outline:  transparent;
 $button-color_shape-paint:   white;
 $button-color_shape-outline: $button-color_font-paint;
-$button-color_background:    rgba(246,246,246, 0.9);
+$button-color_background:    rgba(248,248,248, 0.9);
 $button-color_border:        lighten($button-color_font-paint, 20%);
 
 $button-color_hover_font-paint:    darken($button-color_font-paint, 15%);
 $button-color_hover_font-outline:  $button-color_font-outline;
 $button-color_hover_shape-paint:   $button-color_shape-paint;
 $button-color_hover_shape-outline: $button-color_hover_font-paint;
-$button-color_hover_background:    darken($button-color_background, 10%);
+$button-color_hover_background:    darken($button-color_background, 15%);
 $button-color_hover_border:        $button-color_border;
 
 $button-color_active_font-paint:    $button-color_shape-paint;
@@ -361,7 +358,7 @@ $button-color_active-hover_font-paint:    $button-color_active_font-paint;
 $button-color_active-hover_font-outline:  lighten($button-color_active_font-outline, 10%);
 $button-color_active-hover_shape-paint:   $button-color_active_shape-paint;
 $button-color_active-hover_shape-outline: lighten($button-color_active_shape-outline, 10%);
-$button-color_active-hover_background:    lighten($button-color_active_background, 10%);
+$button-color_active-hover_background:    lighten($button-color_active_background, 15%);
 $button-color_active-hover_border:        lighten($button-color_active_border, 10%);
 /*
 $button-color_hover_font-paint: $button-color_shape-paint;

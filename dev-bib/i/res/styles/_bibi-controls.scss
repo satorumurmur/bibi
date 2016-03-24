@@ -578,7 +578,7 @@ div#bibi-panel-bookinfo-cover {
 
 div.bibi-panel-subpanel {
 	$bar-height: $button-size + $button-group-margin * 2;
-	$subpanel-color: rgba(white, 0.96);
+	$subpanel-color: rgba(white, 0.9);
 	$subpanel-margin: $button-group-margin;
 	$subpanel-triangle-size: $subpanel-margin * 1.5;
 	&,
@@ -590,11 +590,11 @@ div.bibi-panel-subpanel {
 	}
 	& {
 		position: fixed;
+		//overflow: auto; -webkit-overflow-scrolling: touch;
 		z-index: $z-index_panel-subpanel;
 		right: $subpanel-margin;
 		top: $bar-height + $subpanel-margin;
 		margin: auto;
-		padding: $button-group-margin * 2;
 		width: calc(100% - #{$subpanel-margin * 2});
 		max-width: 320px - $subpanel-margin * 2;
 		max-height: calc(100% - #{$bar-height + $subpanel-margin * 2});
@@ -624,27 +624,74 @@ div.bibi-panel-subpanel {
 	}
 	&.opened span.bibi-panel-subpanel-bit {
 	}
-	strong {
-		font-weight: bold;
-	}
-	div.hgroup {
-		font-size: 14px;
-		padding-bottom: .25em;
-		border-bottom: solid .5px rgb(192,192,192);
-		margin-bottom: .5em;
-		p {
-			color: rgb(96,96,96);
+	div.bibi-subpanel-section {
+		margin: ($button-group-margin * 3) 0;
+		strong {
+			font-weight: bold;
 		}
-	}
-	ul {
-		font-size: 12px;
-		li {
-			line-height: 1.5;
-			span.bibi-icon {
-				//display: none;
-				position: relative;
-				font-size: 1.4em;
-				top: .1em;
+		div.bibi-subpanel-hgroup, div.bibi-subpanel-pgroup, ul.bibi-subpanel-menu, ol.bibi-subpanel-menu {
+		}
+			p, li {
+				>a, >span {
+					display: block;
+					box-sizing: border-box;
+					padding-left: ($button-group-margin * 4);
+					padding-right: ($button-group-margin * 2);
+					width: 100%;
+					height: 100%;
+				}
+				>a {
+					text-decoration: none;
+				}
+			}
+		div.bibi-subpanel-hgroup, {
+			p.bibi-subpanel-heading {
+				>span {
+					padding-bottom: ($button-group-margin * 1);
+					line-height: 1.2;
+					font-size: 11px;
+					font-weight: bold;
+					color: rgb(64,64,64);
+				}
+			}
+		}
+		ul {
+			border: solid rgb(216,216,216); border-width: 1px 0;
+			li {
+				border-bottom: solid 1px rgb(236,236,236); &:last-child { border-bottom: none 0; }
+				height: 2.5em;
+				line-height: 2.6;
+				font-size: 14px;
+				>a, >span {
+					color: rgb(64,64,64);
+					cursor: pointer;
+					background: rgba(white, 0.64);
+					&:after {
+						@include icon();
+						position: absolute;
+						right: 0;
+						content: "\f105";
+						color: rgb(160,160,160);
+					}
+					&:hover {
+						color: steelblue;
+						background: rgba(white, 0.96);
+						&:after {
+							color: inherit;
+						}
+					}
+					&:active {
+						color: orange;
+						background: rgba(255,255,240, 0.96);
+						&:before {
+							color: inherit;
+						}
+					}
+					&.unavailable, &.unavailable:hover, &.unavailable:active {
+						color: rgb(128,128,128);
+						background: rgba(white, 0.32);
+					}
+				}
 			}
 		}
 	}
@@ -660,7 +707,7 @@ div#bibi-panel-shade {
 	z-index: $z-index_panel-shade;
 	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
 	width: 100%; height: 100%;
-	background: rgba(black, 0.5);
+	background: rgba(black, 0.64);
 	opacity: 0;
 	transition: linear .15s;
 	&.visible {
@@ -760,7 +807,7 @@ div#bibi-help {
 	position: fixed;
 	z-index: $z-index-help;
 	margin: 0;
-	padding: 0 56px 0 8px;
+	padding: 0 8px 0 56px;
 	width: 100%;
 	height: $bottom-bar-height;
 	left: 0;
@@ -773,6 +820,7 @@ div#bibi-help {
 	}
 	p {
 		line-height: $bottom-bar-height * 1.1;
+		text-align: right;
 		font-size: 12px;
 		font-weight: bold;
 		color: rgb(96,96,96);
@@ -789,18 +837,18 @@ div#bibi-help {
 
 
 // ================================================================================
-// + Powered (+ Bottom Bar)
+// + PoweredBy (+ Bottom Bar)
 // --------------------------------------------------------------------------------
 
 
-// - Veil > Powered, Panel > Powered (p#bibi-veil-powered, div#bibi-panel-powered)
+// - Veil > PoweredBy, Panel > PoweredBy (p#bibi-veil-poweredby, div#bibi-panel-poweredby)
 // --------------------------------------------------------------------------------
 
 div#bibi-veil:after,
 div#bibi-panel:after,
-div#bibi-powered {
+div#bibi-poweredby {
 	box-sizing: border-box;
-	right: 0;
+	left: 0;
 	margin: 0 auto;
 	padding: 4px;
 	height: $bottom-bar-height;
@@ -816,12 +864,12 @@ div#bibi-panel:after {
 }
 
 div#bibi-veil:after,
-div#bibi-powered {
+div#bibi-poweredby {
 	bottom: 0;
 }
 
 div#bibi-panel:after,
-html.panel-opened div#bibi-powered {
+html.panel-opened div#bibi-poweredby {
 	html.page-rtl & {
 		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
@@ -842,10 +890,10 @@ div#bibi-panel:after {
 	background: rgba(240,240,240,0.9);
 }
 
-div#bibi-powered {
+div#bibi-poweredby {
 	position: fixed;
-	display: none; html.waiting &, html.panel-opened & { display: block; }
-	z-index: $z-index-powered;
+	display: none; html.waiting &, html.panel-opened & { display: block; } html.subpanel-opened & { display: none; }
+	z-index: $z-index-poweredby;
 	text-align: right;
 	font-size: 14px;
 	transition: .2s linear;
@@ -888,7 +936,7 @@ div#bibi-powered {
 	}
 }
 
-html.waiting div#bibi-powered {
+html.waiting div#bibi-poweredby {
 	p {
 		a {
 			background: rgba(96,96,96,0.9);
@@ -905,7 +953,7 @@ html.waiting div#bibi-powered {
 	}
 }
 
-html.panel-opened div#bibi-powered {
+html.panel-opened div#bibi-poweredby {
 	p {
 		a {
 			background: transparent;

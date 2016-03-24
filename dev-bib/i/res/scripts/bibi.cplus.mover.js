@@ -79,7 +79,7 @@ Bibi.x({
             C.Arrows.Back.Pair = C.Arrows.Forward;
             C.Arrows.Forward.Pair = C.Arrows.Back;
             [C.Arrows.Back, C.Arrows.Forward].forEach(function(Arrow) {
-                C.setLabels(Arrow);
+                Arrow.Labels = C.distillLabels(Arrow.Labels);
                 C.setFeedback(Arrow);
                 Arrow.showHelp = Arrow.hideHelp = function() {};
                 if(!O.Mobile) {
@@ -188,8 +188,8 @@ Bibi.x({
                 Type: "toggle",
                 Area: C.SwitchBeta,
                 Labels: {
-                    "default": { ja: "タップ／スワイプ操作を切り替え（現在はオフ）", en: "Toggle Tap/Swipe Availability (Current: OFF)"  },
-                    "active":  { ja: "タップ／スワイプ操作を切り替え（現在はオン）", en: "Toggle Tap/Swipe Availability (Current: ON)" }
+                    "default": { ja: "スワイプ操作をオン（現在はオフ）", en: "Swipe: ON (Current: OFF)"  },
+                    "active":  { ja: "スワイプ操作をオフ（現在はオン）", en: "Swipe: OFF (Current: ON)" }
                 },
                 execute: function() {
                     C.Touch.toggle();

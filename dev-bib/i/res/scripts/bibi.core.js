@@ -2152,7 +2152,7 @@ C.initialize = function() {
     C.createPanel();
     C.createSwitches();
     C.createHelp();
-    C.createPowered();
+    C.createPoweredBy();
     C.createIndicator();
 
 };
@@ -2244,7 +2244,8 @@ C.createVeil = function() {
 
 C.createPanel = function() {
 
-    C.Panel = C.setToggleAction(O.Body.appendChild(sML.create("div", { id: "bibi-panel" })), {
+    C.Panel = O.Body.appendChild(sML.create("div", { id: "bibi-panel" }));
+    C.setToggleAction(C.Panel, {
         open: function(Opt) {
             sML.addClass(O.HTML, "panel-opened");
             E.dispatch("bibi:openPanel");
@@ -2284,7 +2285,8 @@ C.createPanel = function() {
 
     // Sub Panels & Shade
     C.SubPanels = [];
-    C.Shade = C.setToggleAction(C.Panel.appendChild(sML.create("div", { id: "bibi-panel-shade" })), {
+    C.Shade = C.Panel.appendChild(sML.create("div", { id: "bibi-panel-shade" }));
+    C.setToggleAction(C.Shade, {
         open:  function() {
             var This = this;
             sML.addClass(This, "visible");
@@ -2309,9 +2311,52 @@ C.createPanel = function() {
 };
 
 
-C.createSubPanel = function(Funs) {
+C.createSubPanel = function(Par) {
 
-    var SubPanel = C.setToggleAction(C.Panel.appendChild(sML.create("div", { className: "bibi-panel-subpanel" })), {
+    if(!Par) Par = {};
+
+    var SubPanel = C.Panel.appendChild(
+        sML.create("div", { className: "bibi-panel-subpanel",
+            appendSection: function(Opt) {
+                var Section = sML.create("div", { className: "bibi-subpanel-section" });
+                // HGroup
+                if(Opt.Label) {
+                    Section
+                        .appendChild(sML.create("div",  { className: "bibi-subpanel-hgroup" }))
+                        .appendChild(sML.create("p",    { className: "bibi-subpanel-heading" }))
+                        .appendChild(sML.create("span", { className: "bibi-with-icon", innerHTML: C.distilLabel(Opt.Label) }));
+                }
+                // Menu
+                if(Opt.Items && Opt.Items.length) {
+                    var Menu = Section.appendChild(sML.create("ul", { className: "bibi-subpanel-menu" }));
+                    Opt.Items.forEach(function(ItemOpt) {
+                        var MenuItem = Menu.appendChild(sML.create("li", { className: "bibi-subpanel-menu-item" }));
+                        if(ItemOpt.Href || ItemOpt.SNS) {
+                            var MenuItemContent = MenuItem.appendChild(sML.create("a", { innerHTML: C.distilLabel(ItemOpt.Label) }));
+                            if(ItemOpt.SNS) {
+                                switch(ItemOpt.SNS) {
+                                    case "Twitter":    ItemOpt.Href = "https://twitter.com/intent/tweet?text="; break;
+                                    case "Facebook":   ItemOpt.Href = "https://www.facebook.com/share.php?u=";  break;
+                                    case "GooglePlus": ItemOpt.Href = "https://plus.google.com/share?url=";     break;
+                                }
+                                if(ItemOpt.URI) ItemOpt.Href += encodeURIComponent(ItemOpt.URI);
+                                ItemOpt.Icon = ItemOpt.SNS;
+                            }
+                            MenuItemContent.href = ItemOpt.Href;
+                            MenuItemContent.target = "_blank";
+                        } else {
+                            var MenuItemContent = MenuItem.appendChild(sML.create("span", { innerHTML: C.distilLabel(ItemOpt.Label) }));
+                        }
+                        if(ItemOpt.Icon) MenuItemContent.className = "bibi-with-icon-" + ItemOpt.Icon;
+                    });
+                }
+                this.appendChild(Section);
+                return Section;
+            },
+            Opener: (Par.Opener ? Par.Opener : undefined)
+        })
+    );
+    C.setToggleAction(SubPanel, {
         open: function(Opt) {
             C.SubPanels.forEach(function(SP) {
                 if(SP == SubPanel) return;
@@ -2319,12 +2364,18 @@ C.createSubPanel = function(Funs) {
             });
             C.Shade.open();
             sML.addClass(this, "opened");
-            Funs.open.apply(SubPanel, arguments);
+            sML.addClass(O.HTML, "subpanel-opened");
+            if(SubPanel.Opener) C.setState(SubPanel.Opener, "active");
+            Par.open.apply(SubPanel, arguments);
         },
         close: function(Opt) {
             sML.removeClass(this, "opened");
-            if(!Opt || !Opt.ForAnotherSubPanel) C.Shade.close();
-            Funs.close.apply(SubPanel, arguments);
+            if(!Opt || !Opt.ForAnotherSubPanel) {
+                C.Shade.close();
+                sML.removeClass(O.HTML, "subpanel-opened");
+            }
+            if(SubPanel.Opener) C.setState(SubPanel.Opener, "default");
+            Par.close.apply(SubPanel, arguments);
         }
     });
     SubPanel.addEventListener(O["touchstart"], function(Eve) { Eve.stopPropagation(); });
@@ -2394,9 +2445,9 @@ C.createHelp = function() {
 };
 
 
-C.createPowered = function() {
+C.createPoweredBy = function() {
 
-    C.Powered = O.Body.appendChild(sML.create("div", { id: "bibi-powered", innerHTML: [
+    C.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
         '<p>',
             '<a href="http://bibi.epub.link" target="_blank" title="BiB/i | Web Site">',
                 '<span>BiB/i</span>',
@@ -2408,14 +2459,14 @@ C.createPowered = function() {
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule([
-        "html.appearance-ltr div#bibi-powered",
-        "html.appearance-rtl div#bibi-powered",
-        "html.page-rtl.panel-opened div#bibi-powered"
+        "html.appearance-ltr div#bibi-poweredby",
+        "html.appearance-rtl div#bibi-poweredby",
+        "html.page-rtl.panel-opened div#bibi-poweredby"
     ].join(", "), "bottom: " + (O.Scrollbars.Height) + "px;");
     sML.appendStyleRule([
-        "html.appearance-ttb div#bibi-powered",
-        "html.page-ltr.panel-opened div#bibi-powered",
-        "html.veil-opened div#bibi-powered"
+        "html.appearance-ttb div#bibi-poweredby",
+        "html.page-ltr.panel-opened div#bibi-poweredby",
+        "html.veil-opened div#bibi-poweredby"
     ].join(", "), "bottom: 0;");
 
 };
@@ -2493,7 +2544,7 @@ C.createIndicator = function() {
 };
 
 
-C.setToggleAction = function(Ele, Funs) {
+C.setToggleAction = function(Ele, Par) {
     return sML.edit(Ele, {
         Locked: false,
         State: "default",
@@ -2506,7 +2557,7 @@ C.setToggleAction = function(Ele, Funs) {
             }
             This.Locked = true;
             This.State = "active";
-            Funs.open.apply(This, arguments);
+            Par.open.apply(This, arguments);
             This.callback(Opt.callback);
             setTimeout(function() { This.Locked = false; }, 1);
             return This.State;
@@ -2520,7 +2571,7 @@ C.setToggleAction = function(Ele, Funs) {
             }
             This.Locked = true;
             This.State = "default";
-            Funs.close.apply(This, arguments);
+            Par.close.apply(This, arguments);
             This.callback(Opt.callback);
             setTimeout(function() { This.Locked = false; }, 1);
             return This.State;
@@ -2561,9 +2612,9 @@ C.addButton = function(Param, Fun) {
             default: Button[Attribute] = Param[Attribute];
         }
     }
+    Button.Labels = C.distillLabels(Button.Labels);
     Button.Label = Button.appendChild(sML.create("span", { className: "bibi-button-label" }));
     if(typeof Param.extraHTML == "string") Button.innerHTML = Button.innerHTML + Param.extraHTML;
-    C.setLabels(Button);
     C.observeTap(Button);
     C.setFeedback(Button);
     if(typeof Fun != "function") {
@@ -2587,17 +2638,21 @@ C.addButton = function(Param, Fun) {
 };
 
 
-C.setLabels = function(Ele) {
-    if(!Ele.Labels || !Ele.Labels["default"]) Ele.Labels = { "default": "" };
-    else for(var State in Ele.Labels) {
-             if(!Ele.Labels[State])                   Ele.Labels[State] = "";
-        else if(typeof Ele.Labels[State] == "string") Ele.Labels[State] = Ele.Labels[State];
-        else if(Ele.Labels[State][O.Language])        Ele.Labels[State] = Ele.Labels[State][O.Language];
-        else if(Ele.Labels[State]["default"])         Ele.Labels[State] = Ele.Labels[State]["default"];
-        else if(Ele.Labels[State]["en"])              Ele.Labels[State] = Ele.Labels[State]["en"];
-        else                                          Ele.Labels[State] = "";
-    }
-    return Ele;
+C.distilLabel = function(Label) {
+         if(!Label)                   return "";
+    else if(typeof Label == "string") return Label;
+    else if(Label[O.Language])        return Label[O.Language];
+    else if(Label["default"])         return Label["default"];
+    else if(Label["en"])              return Label["en"];
+    else                              return "";
+};
+
+
+C.distillLabels = function(Labels) {
+    if(!Labels || !Labels["default"]) return { "default": "" };
+    var DistilledLabels = {};
+    for(var State in Labels) DistilledLabels[State] = C.distilLabel(Labels[State]);
+    return DistilledLabels;
 };
 
 
