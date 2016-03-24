@@ -710,25 +710,26 @@ L.loadNavigation = function() {
                     NavContent.appendChild(this);
                 });
             } else {
-                var TempTOCNCX = Doc.getElementsByTagName("navMap")[0];
-                sML.each(TempTOCNCX.getElementsByTagName("navPoint"), function() {
-                    var FirstNavLabel = this.getElementsByTagName("navLabel")[0];
-                    FirstNavLabel.parentNode.insertBefore(
-                        sML.create("a", { href: this.getElementsByTagName("content")[0].getAttribute("src"), innerHTML: this.getElementsByTagName("text")[0].innerHTML }),
-                        FirstNavLabel
-                    );
-                    sML.removeElement(this.getElementsByTagName("navLabel")[0]);
-                    sML.removeElement(this.getElementsByTagName("content")[0]);
-                    var LI = sML.create("li", { id: this.getAttribute("id") });
-                    LI.setAttribute("playorder", this.getAttribute("playorder"));
-                    this.parentNode.insertBefore(LI, this).appendChild(this);
-                    if(!LI.previousSibling || !LI.previousSibling.tagName || /^a$/i.test(LI.previousSibling.tagName)) {
-                        LI.parentNode.insertBefore(document.createElement("ul"), LI).appendChild(LI);
-                    } else {
-                        LI.previousSibling.appendChild(LI);
+                var NavUL = (function(Ele) {
+                    var ChildNodes = Ele.childNodes;
+                    var UL = undefined;
+                    for(var i = 0, L = ChildNodes.length; i < L; i++) {
+                        if(ChildNodes[i].nodeType == 1 && /^navPoint$/i.test(ChildNodes[i].tagName)) {
+                            var NavPoint = ChildNodes[i];
+                            var NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
+                            var Content = NavPoint.getElementsByTagName("content")[0];
+                            var Text = NavPoint.getElementsByTagName("text")[0];
+                            if(!UL) UL = document.createElement("ul");
+                            var LI = sML.create("li", { id: NavPoint.getAttribute("id") }); LI.setAttribute("playorder", NavPoint.getAttribute("playorder"));
+                            var A = sML.create("a", { href: Content.getAttribute("src"), innerHTML: Text.innerHTML.trim() });
+                            UL.appendChild(LI).appendChild(A);
+                            var ChildUL = arguments.callee(NavPoint);
+                            if(ChildUL) LI.appendChild(ChildUL);
+                        }
                     }
-                });
-                NavContent.appendChild(document.createElement("nav")).innerHTML = TempTOCNCX.innerHTML.replace(/<(bibi_)?navPoint( [^>]+)?>/ig, "").replace(/<\/(bibi_)?navPoint>/ig, "");
+                    return UL;
+                })(Doc.getElementsByTagName("navMap")[0]);
+                if(NavUL) NavContent.appendChild(document.createElement("nav")).appendChild(NavUL);
             }
             C.Panel.BookInfo.Navigation.appendChild(NavContent);
             C.Panel.BookInfo.Navigation.Body = C.Panel.BookInfo.Navigation;
