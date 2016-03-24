@@ -30,6 +30,8 @@ Bibi.welcome = function() {
     O.stamp("Welcome!");
     O.log('Welcome! - BiB/i v' + Bibi["version"] + ' - (ja) http://bibi.epub.link - (en) https://github.com/satorumurmur/bibi', "-0");
 
+    O.RequestedURL = location.href;
+
     O.Language = (function() {
         if(typeof navigator.language != "string") return "en";
         return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
@@ -40,8 +42,6 @@ Bibi.welcome = function() {
     O.Body  = document.body;
     O.Info  = document.getElementById("bibi-info");
     O.Title = document.getElementsByTagName("title")[0];
-
-    O.RequestedURL = location.href;
 
     // Device
     if(sML.OS.iOS || sML.OS.Android) {
@@ -162,6 +162,8 @@ Bibi.byebye = function() {
 Bibi.ready = function() {
 
     sML.addClass(O.HTML, "ready");
+
+    O.ReadiedURL = location.href;
 
     var ExtensionNames = [];
     X.Extensions.forEach(function(Extension) { ExtensionNames.push(Extension["name"]) });
@@ -2840,8 +2842,11 @@ U.initialize = function() { // formerly O.readExtras
                 }
             } else {
                 switch(PnV[0]) {
+                    case "parent-title":
                     case "parent-uri":
                     case "parent-origin":
+                    case "parent-pipi-path":
+                    case "parent-bibi-label":
                         PnV[1] = U.decode(PnV[1]);
                         break;
                     case "reader-view-mode":
@@ -2862,7 +2867,7 @@ U.initialize = function() { // formerly O.readExtras
                         PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined;
                         break;
                     case "preset":
-                    case "pipi-id":
+                    case "parent-holder-id":
                         break;
                     default:
                         PnV[0] = undefined;

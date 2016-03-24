@@ -21,7 +21,7 @@ Bibi.x({
     // Fullscreen
     if(O.WindowEmbedded) {
         try {
-            O.ParentHolder = window.parent.document.getElementById(U["pipi-id"]);
+            O.ParentHolder = window.parent.document.getElementById(U["parent-holder-id"]);
         } catch(Err) {}
     }
     if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
@@ -63,7 +63,7 @@ Bibi.x({
     });
 
     // New Window
-    if(O.WindowEmbedded) C.addButton({ tagName: "a", className: "bibi-button-open-newwindow", href: location.href, target: "_blank",
+    if(O.WindowEmbedded) C.addButton({ tagName: "a", className: "bibi-button-open-newwindow", href: O.RequestedURL, target: "_blank",
         Group: ButtonGroup,
         Labels: {
             "default": { ja: 'あたらしいウィンドウで開く', en: 'Open in New Window' }

@@ -18,7 +18,11 @@
         TrustworthyOrigins: [location.origin],
         Loaded: 0
     };
-    Pipi.BibiPath = document.querySelector('script[src$="bib/i.js"]').src.replace(/\.js$/, "");
+    Pipi.Path = (function() {
+        if(document.currentScript) return document.currentScript.src;
+        var Scripts = document.getElementsByTagName("script");
+        return Scripts[Scripts.length - 1].src;
+    })();
     Pipi.embed = function() {
         Pipi.Status = "Started";
         var As = document.body.querySelectorAll('a[data-bibi]');
@@ -39,6 +43,7 @@
             var HideArrows = Anchor.getAttribute("data-bibi-hide-arrows");
             var To         = Anchor.getAttribute("data-bibi-to");
             var Nav        = Anchor.getAttribute("data-bibi-nav");
+            var BibiLabel  = Anchor.innerHTML;
             if(Anchor.origin != location.origin) Pipi.TrustworthyOrigins.push(Anchor.origin);
             Anchor.addEventListener("bibi:load", function(Eve) { console.log("BiB/i: Loaded. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
             Pipi.Anchors.push(Anchor);
@@ -54,9 +59,12 @@
             Pipi.Holders.push(Holder);
             // Fragment
             var Fragment = new Pipi.Fragment();
-            Fragment.add("pipi-id", Holder.id);
+            Fragment.add("parent-title", Pipi.encode(document.title));
             Fragment.add("parent-uri", Pipi.encode(location.href));
             Fragment.add("parent-origin", Pipi.encode(location.origin));
+            Fragment.add("parent-pipi-path", Pipi.encode(Pipi.Path));
+            Fragment.add("parent-bibi-label",  Pipi.encode(BibiLabel));
+            Fragment.add("parent-holder-id", Holder.id);
             if(/^(horizontal|vertical|paged)$/.test(RVM)) Fragment.add("reader-view-mode", RVM);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(RVMFixed  )) Fragment.add("reader-view-mode-fixed", RVMFixed);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart )) Fragment.add("autostart", Autostart);
@@ -158,7 +166,7 @@
             return false;
         }
     }, false);
-    document.getElementsByTagName("head")[0].appendChild(Pipi.create("link", { rel: "stylesheet", id: "bibi-css", href: Pipi.BibiPath + ".css" }));
+    document.getElementsByTagName("head")[0].appendChild(Pipi.create("link", { rel: "stylesheet", id: "bibi-css", href: Pipi.Path.replace(/\.js$/, ".css") }));
     document.addEventListener("bibi:ready",       function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
     document.addEventListener("bibi:load",        function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
     document.addEventListener("bibi:timeout",     function(Eve) { console.log("BiB/i: Timeouted.");                                            }, false);
