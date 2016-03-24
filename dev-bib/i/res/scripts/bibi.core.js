@@ -2367,7 +2367,7 @@ C.createSubPanel = function(Par) {
             sML.addClass(this, "opened");
             sML.addClass(O.HTML, "subpanel-opened");
             if(SubPanel.Opener) C.setState(SubPanel.Opener, "active");
-            Par.open.apply(SubPanel, arguments);
+            if(Par.open) Par.open.apply(SubPanel, arguments);
         },
         close: function(Opt) {
             sML.removeClass(this, "opened");
@@ -2376,7 +2376,7 @@ C.createSubPanel = function(Par) {
                 sML.removeClass(O.HTML, "subpanel-opened");
             }
             if(SubPanel.Opener) C.setState(SubPanel.Opener, "default");
-            Par.close.apply(SubPanel, arguments);
+            if(Par.close) Par.close.apply(SubPanel, arguments);
         }
     });
     SubPanel.addEventListener(O["touchstart"], function(Eve) { Eve.stopPropagation(); });
