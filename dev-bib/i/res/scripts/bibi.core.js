@@ -2336,22 +2336,15 @@ C.createSubPanel = function(Par) {
                     var Menu = Section.appendChild(sML.create("ul", { className: "bibi-subpanel-menu" }));
                     Opt.Items.forEach(function(ItemOpt) {
                         var MenuItem = Menu.appendChild(sML.create("li", { className: "bibi-subpanel-menu-item" }));
-                        if(ItemOpt.Href || ItemOpt.SNS) {
-                            var MenuItemContent = MenuItem.appendChild(sML.create("a", { innerHTML: C.distilLabel(ItemOpt.Label) }));
-                            if(ItemOpt.SNS) {
-                                switch(ItemOpt.SNS) {
-                                    case "Twitter":    ItemOpt.Href = "https://twitter.com/intent/tweet?text="; break;
-                                    case "Facebook":   ItemOpt.Href = "https://www.facebook.com/share.php?u=";  break;
-                                    case "GooglePlus": ItemOpt.Href = "https://plus.google.com/share?url=";     break;
-                                }
-                                if(ItemOpt.URI) ItemOpt.Href += encodeURIComponent(ItemOpt.URI);
-                                ItemOpt.Icon = ItemOpt.SNS;
-                            }
+                        var MenuItemContent;
+                        if(ItemOpt.Href || /^a$/i.test(ItemOpt.TagName)) {
+                            MenuItemContent = MenuItem.appendChild(sML.create("a", { innerHTML: C.distilLabel(ItemOpt.Label) }));
                             MenuItemContent.href = ItemOpt.Href;
                             MenuItemContent.target = "_blank";
                         } else {
-                            var MenuItemContent = MenuItem.appendChild(sML.create("span", { innerHTML: C.distilLabel(ItemOpt.Label) }));
+                            MenuItemContent = MenuItem.appendChild(sML.create("span", { innerHTML: C.distilLabel(ItemOpt.Label) }));
                         }
+                        if(ItemOpt.on) sML.edit(MenuItemContent, { on: ItemOpt.on });
                         if(ItemOpt.Icon) MenuItemContent.className = "bibi-with-icon-" + ItemOpt.Icon;
                     });
                 }
