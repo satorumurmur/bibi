@@ -382,7 +382,7 @@ L.loadPackageDocument = function() {
     O.openDocument(B.Package.Path).then(L.loadPackageDocument.read).then(function() {
         O.log('Package Document Loaded.', "/*");
         L.createCover();
-        L.prepareItemsInSpreads();
+        L.prepareSpine();
         L.loadNavigation().then(function() {
             if(S["autostart"] || L.Played) {
                 L.loadItemsInSpreads();
@@ -603,9 +603,9 @@ L.createCover = function() {
 };
 
 
-L.prepareItemsInSpreads = function() {
+L.prepareSpine = function() {
 
-    O.log('Preparing Items and Spread...', "*:");
+    O.log('Preparing Spine...', "*:");
 
     // For Pairing of Pre-Paginated
     if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
@@ -675,7 +675,9 @@ L.prepareItemsInSpreads = function() {
 
     B.FileDigit = (R.Items.length + "").length;
 
-    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Prepared.', "/*");
+    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''), "-*");
+
+    O.log('Spine Prepared.', "/*");
 
 };
 
@@ -736,7 +738,7 @@ L.loadNavigation = function() {
             delete NavContent; delete Doc;
             L.postprocessItem.coordinateLinkages(C.Panel.BookInfo.Navigation, "InNav");
             R.resetNavigation();
-            O.log('Navigation Loaded', "/*");
+            O.log('Navigation Loaded.', "/*");
             resolve();
         });
     }).then(function() {
