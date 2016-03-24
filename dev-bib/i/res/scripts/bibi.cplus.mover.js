@@ -216,11 +216,11 @@ Bibi.x({
             for(var i = 0, L = R.Items.length; i < L; i++) this.activateElement(R.Items[i].HTML);
             E.dispatch("bibi:activateTouch");
             if(typeof Cb == "function") setTimeout(Cb, 0);
-            O.log('Touch Activated.', "-*");
+            O.log('Swipe Activated.', "-*");
             return this.State;
         },
         activateElement: function(Ele) {
-            sML.addClass(Ele, "touch-active");
+            sML.addClass(Ele, "swipe-active");
             sML.observeTouch(Ele).addTouchEventListener("swipe", C.Touch.swipe);
             if(!O.Mobile) sML.each(Ele.querySelectorAll("img"), function(){ this.addEventListener("mousedown", C.Mover.preventDefault); });
         },
@@ -235,11 +235,11 @@ Bibi.x({
             for(var i = 0, L = R.Items.length; i < L; i++) this.deactivateElement(R.Items[i].HTML);
             E.dispatch("bibi:deactivateTouch");
             if(typeof Cb == "function") setTimeout(Cb, 0);
-            O.log('Touch Deactivated.', "-*");
+            O.log('Swipe Deactivated.', "-*");
             return this.State;
         },
         deactivateElement: function(Ele) {
-            sML.removeClass(Ele, "touch-active");
+            sML.removeClass(Ele, "swipe-active");
             sML.unobserveTouch(Ele);
             if(!O.Mobile) sML.each(Ele.querySelectorAll("img"), function(){ this.removeEventListener("mousedown", C.Mover.preventDefault); });
         },

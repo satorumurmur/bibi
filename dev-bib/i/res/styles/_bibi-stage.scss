@@ -151,7 +151,7 @@ div#bibi-main {
 			position: relative;
 			html.spread-ltr & { float: left; }
 			html.spread-rtl & { float: right; }
-			html.touch-active &.image-spread-box:after {
+			html.swipe-active &.image-spread-box:after {
 				content: "";
 				display: block;
 				position: absolute;
