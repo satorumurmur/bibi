@@ -9,7 +9,7 @@
 
 // requires: Native Promiss Only & Hammer.js & easing.js & sML
 
-Bibi = { "version": "0.999.0", "build": 20160309.1453 };
+Bibi = { "version": "0.999.0", "build": 20160324.2259 };
 
 
 
