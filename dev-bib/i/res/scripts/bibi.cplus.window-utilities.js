@@ -2,7 +2,7 @@
  *
  * # BiB/i Extension: C+WindowUtilities
  *
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 
@@ -105,19 +105,19 @@ Bibi.x({
     ShareButton.SubPanel = C.createSubPanel({ Opener: ShareButton });
     ShareButton.SubPanel.id = "bibi-subpanel_share";
     if(U["parent-uri"]) ShareButton.SubPanel.appendSection({
-        Label: { ja: '埋め込まれたページのURLを', en: 'To Share the Embedded Webpage\'s URL:' },
+        Label: { ja: '埋め込まれたページのURLを', en: 'Share the Embedded Webpage\'s URL:' },
         Items: [
-            { Label: { ja: 'Twitter でツイート', en: 'Tweet on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Parent", "Twitter") } },
-            { Label: { ja: 'Facebook でシェア',  en: 'Share on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Parent", "Facebook") } },
-            { Label: { ja: 'Google+ で共有',     en: 'Share on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Parent", "GooglePlus") } }
+            { Label: { ja: 'Twitter でツイート', en: 'on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Parent", "Twitter") } },
+            { Label: { ja: 'Facebook でシェア',  en: 'on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Parent", "Facebook") } },
+            { Label: { ja: 'Google+ で共有',     en: 'on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Parent", "GooglePlus") } }
         ]
     });
     ShareButton.SubPanel.appendSection({
-        Label: { ja: 'この本のURLを', en: "To Share This Book\'s URL:" },
+        Label: { ja: 'この本のURLを', en: "Share This Book\'s URL:" },
         Items: [
-            { Label: { ja: 'Twitter でツイート', en: 'Tweet on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Book", "Twitter") } },
-            { Label: { ja: 'Facebook でシェア',  en: 'Share on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Book", "Facebook") } },
-            { Label: { ja: 'Google+ で共有',     en: 'Share on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Book", "GooglePlus") } }
+            { Label: { ja: 'Twitter でツイート', en: 'on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Book", "Twitter") } },
+            { Label: { ja: 'Facebook でシェア',  en: 'on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Book", "Facebook") } },
+            { Label: { ja: 'Google+ で共有',     en: 'on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Book", "GooglePlus") } }
         ]
     });/*
     ShareButton.SubPanel.appendSection({

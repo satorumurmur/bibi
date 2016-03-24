@@ -3,13 +3,13 @@
  * # BiB/i (core)
  *
  * - "Heart of BiB/i"
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 
 // requires: Native Promiss Only & Hammer.js & easing.js & sML
 
-Bibi = { "version": "0.999.0", "build": 20160324.2259 };
+Bibi = { "version": "0.999.0", "build": 20160324.2308 };
 
 
 

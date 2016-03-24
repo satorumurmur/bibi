@@ -3,7 +3,7 @@
  *  # Pipi: BiB/i Putter
  *
  *  - "Putting EPUBs in a Web Page with BiB/i."
- *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link/
+ *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
  *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 
