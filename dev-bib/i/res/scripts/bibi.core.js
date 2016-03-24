@@ -1010,7 +1010,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         R.Items.forEach(function(rItem) {
             if(HrefFile == rItem.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
-                A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + HrefPathInSource);
+                A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + HrefPath);
                 A.InNav = InNav;
                 A.Destination = {
                     Item: rItem,
@@ -1045,14 +1045,14 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
     Eve.stopPropagation();
     if(this.Destination) {
         var This = this;
-        var Go = (!This.InNav || L.Opened) ? function() {
+        var Go = L.Opened ? function() {
             R.focus(This.Destination);
         } : function() {
             if(S["play-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + This.NavANumber + ")");
             S["to"] = This.Destination;
             L.play();
         };
-        This.InNav ? C.Panel.toggle(Go) : Go();
+        This.InNav ? C.Panel.toggle({ callback: Go }) : Go();
     }
     return false;
 };
