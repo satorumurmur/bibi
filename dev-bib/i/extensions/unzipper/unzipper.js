@@ -115,7 +115,7 @@ B.loadEPUB.unzip.extract = function(FileText) {
     B.FileDigit = (FileCount.All + "").length;
 
     if(FileCount.All) {
-        var FileNumbers =                   FileCount.All    + ' File'  + (FileCount.All    >= 2 ? 's' : ''), Breakdown = [];
+        var FileNumbers =                   FileCount.All    + ' File'  + (FileCount.All    >= 2 ? 's' : '') + '.', Breakdown = [];
         if(FileCount.HTMLs)  Breakdown.push(FileCount.HTMLs  + ' HTML'  + (FileCount.HTMLs  >= 2 ? 's' : ''));
         if(FileCount.CSSs)   Breakdown.push(FileCount.CSSs   + ' CSS'   + (FileCount.CSSs   >= 2 ? 's' : ''));
         if(FileCount.SVGs)   Breakdown.push(FileCount.SVGs   + ' SVG'   + (FileCount.SVGs   >= 2 ? 's' : ''));
