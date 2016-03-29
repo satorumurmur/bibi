@@ -89,43 +89,61 @@ Bibi.x({
     ShareButton.addEventListener(O["touchend"],   function(Eve) { Eve.stopPropagation(); });
 
     // Share SubPanel
-    var getShareFunction = function(ParentOrBook, SNS) {
-        var getTitle = function() { return ""; }, getURI = function() { return ""; }, getHref = function() { return ""; };
+    var getShareURI = function(ParentOrBook, SNS) {
+        var ShareTitle = "", ShareURI = "";
         switch(ParentOrBook) {
-            case "Parent": getTitle = function() { return U["parent-title"]; }, getURI = function() { return U["parent-uri"]; }; break;
-            case "Book":   getTitle = function() { return document.title; },    getURI = function() { return O.ReadiedURL; };    break;
+            case "P": ShareTitle = U["parent-title"], ShareURI = U["parent-uri"]; break;
+            case "B": ShareTitle = document.title,    ShareURI = O.ReadiedURL;    break;
         }
         switch(SNS) {
-            case "Twitter":    getHref = function() { return "https://twitter.com/intent/tweet?text=" + encodeURIComponent(getTitle() + " - " + getURI()); }; break;
-            case "Facebook":   getHref = function() { return "https://www.facebook.com/share.php?u="  + encodeURIComponent(                     getURI()); }; break;
-            case "GooglePlus": getHref = function() { return "https://plus.google.com/share?url="     + encodeURIComponent(                     getURI()); }; break;
+            case "T": return "https://twitter.com/intent/tweet?url="  + encodeURIComponent(ShareURI) + "&text=" + encodeURIComponent(ShareTitle) + "&hashtags=bibipub"; break;
+            case "F": return "https://www.facebook.com/sharer.php?u=" + encodeURIComponent(ShareURI); break;
+            case "G": return "https://plus.google.com/share?url="     + encodeURIComponent(ShareURI); break;
         }
-        return function() { this.href = getHref(); };
+        return "";
     };
-    ShareButton.SubPanel = C.createSubPanel({ Opener: ShareButton });
-    ShareButton.SubPanel.id = "bibi-subpanel_share";
-    if(U["parent-uri"]) ShareButton.SubPanel.appendSection({
-        Label: { ja: '埋め込まれたページのURLを', en: 'Share the Embedded Webpage\'s URL:' },
-        Items: [
-            { Label: { ja: 'Twitter でツイート', en: 'on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Parent", "Twitter") } },
-            { Label: { ja: 'Facebook でシェア',  en: 'on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Parent", "Facebook") } },
-            { Label: { ja: 'Google+ で共有',     en: 'on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Parent", "GooglePlus") } }
-        ]
+    ShareButton.SubPanel = C.createSubPanel({ Opener: ShareButton,
+        open: function() {
+            sML.each(this.querySelectorAll(".parent-title"), function() {
+                this.innerHTML = U["parent-title"];
+            });
+            sML.each(this.querySelectorAll(".book-title"), function() {
+                this.innerHTML = document.title;
+            });
+        }
     });
-    ShareButton.SubPanel.appendSection({
-        Label: { ja: 'この本のURLを', en: "Share This Book\'s URL:" },
-        Items: [
-            { Label: { ja: 'Twitter でツイート', en: 'on Twitter'  }, Icon: "Twitter",    TagName: "a", on: { click: getShareFunction("Book", "Twitter") } },
-            { Label: { ja: 'Facebook でシェア',  en: 'on Facebook' }, Icon: "Facebook",   TagName: "a", on: { click: getShareFunction("Book", "Facebook") } },
-            { Label: { ja: 'Google+ で共有',     en: 'on Google+'  }, Icon: "GooglePlus", TagName: "a", on: { click: getShareFunction("Book", "GooglePlus") } }
-        ]
-    });/*
-    ShareButton.SubPanel.appendSection({
-        Items: [
-            { Label: { ja: 'この本の埋め込みコードを取得', en: 'Get the Embed-Code of This Book' }, Icon: "code", on: { click: function() {
-                console.log('<a href="' + O.ReadiedURL + '" data-bibi="embed">' + U["parent-bibi-label"] + '</a><script src="' + U["parent-pipi-path"] + '"></script>');
-            } } }
-        ]
-    });*/
+    ShareButton.SubPanel.id = "bibi-subpanel_share";
+    if(U["parent-uri"]) {
+        ShareButton.SubPanel.appendSection({
+            Label: { ja: '埋め込まれたページをシェア', en: 'Share the Embedded Webpage' },
+            Tiled: true,
+            Items: [
+                { Label: { default: 'Twitter'  }, Icon: "Twitter",    Href: getShareURI("P", "T"), on: { click: function() { this.href = getShareURI("P", "T"); } } },
+                { Label: { default: 'Facebook' }, Icon: "Facebook",   Href: getShareURI("P", "F"), on: { click: function() { this.href = getShareURI("P", "F"); } } },
+                { Label: { default: 'Google+'  }, Icon: "GooglePlus", Href: getShareURI("P", "G"), on: { click: function() { this.href = getShareURI("P", "G"); } } }
+            ]
+        }).querySelector(".bibi-subpanel-h-label").appendChild(sML.create("small", { className: "parent-title" }));
+    }
+    if(true) {
+        ShareButton.SubPanel.appendSection({
+            Label: { ja: 'この本をシェア', en: 'Share This Book' },
+            Tiled: true,
+            Items: [
+                { Label: { default: 'Twitter'  }, Icon: "Twitter",    Href: getShareURI("B", "T"), on: { click: function() { this.href = getShareURI("B", "T"); } } },
+                { Label: { default: 'Facebook' }, Icon: "Facebook",   Href: getShareURI("B", "F"), on: { click: function() { this.href = getShareURI("B", "F"); } } },
+                { Label: { default: 'Google+'  }, Icon: "GooglePlus", Href: getShareURI("B", "G"), on: { click: function() { this.href = getShareURI("B", "G"); } } }
+            ]
+        }).querySelector(".bibi-subpanel-h-label").appendChild(sML.create("small", { className: "book-title" }));
+    }/*
+    if(true) {
+        ShareButton.SubPanel.appendSection({
+            Items: [
+                { Label: { ja: 'この本の埋め込みコードを取得', en: 'Get the Embed-Code of This Book' }, Icon: "code", on: { click: function() {
+                    console.log('<a href="' + O.ReadiedURL + '" data-bibi="embed">' + U["parent-bibi-label"] + '</a><script src="' + U["parent-pipi-path"] + '"></script>');
+                } } }
+            ]
+        });
+    }*/
+    O.Head.appendChild(sML.create("script", { async: "async", src: "//platform.twitter.com/widgets.js" }));
 
 });

@@ -624,15 +624,19 @@ div.bibi-panel-subpanel {
 	}
 	&.opened span.bibi-panel-subpanel-bit {
 	}
-	div.bibi-subpanel-section {
-		margin: ($button-group-margin * 3) 0;
+	.bibi-subpanel-section {
+		margin: ($button-group-margin * 4) 0;
 		strong {
 			font-weight: bold;
 		}
-		div.bibi-subpanel-hgroup, div.bibi-subpanel-pgroup, ul.bibi-subpanel-menu, ol.bibi-subpanel-menu {
+	}
+		.bibi-subpanel-hgroup, .bibi-subpanel-itemgroup {
 		}
-			p, li {
-				>a, >span {
+			.bibi-subpanel-h, .bibi-subpanel-item {
+				box-sizing: border-box;
+			}
+				.bibi-subpanel-h-label,
+				.bibi-subpanel-item-label {
 					display: block;
 					box-sizing: border-box;
 					padding-left: ($button-group-margin * 4);
@@ -640,32 +644,62 @@ div.bibi-panel-subpanel {
 					width: 100%;
 					height: 100%;
 				}
-				>a {
+				a.bibi-subpanel-item-label {
 					text-decoration: none;
 				}
+		.bibi-subpanel-hgroup, {
+		}
+			.bibi-subpanel-h {
 			}
-		div.bibi-subpanel-hgroup, {
-			p.bibi-subpanel-heading {
-				>span {
+				.bibi-subpanel-h-label {
 					padding-bottom: ($button-group-margin * 1);
 					line-height: 1.2;
-					font-size: 11px;
+					font-size: 12px;
 					font-weight: bold;
 					color: rgb(64,64,64);
+					>small {
+						display: block;
+						position: relative;
+						overflow: hidden;
+						padding: .2em 0 0 .9em;
+						text-overflow: ellipsis;
+						word-break: keep-all;
+						white-space: nowrap;
+						font-size: 10px;
+						color: rgb(128,128,128);
+						&:before {
+							@include icon();
+							position: absolute;
+							left: .2em;
+							top: .25em;
+							content: "\f105";
+							color: rgb(160,160,160);
+						}
+					}
 				}
-			}
-		}
-		ul {
+		.bibi-subpanel-itemgroup {
 			border: solid rgb(216,216,216); border-width: 1px 0;
-			li {
-				border-bottom: solid 1px rgb(236,236,236); &:last-child { border-bottom: none 0; }
+		}
+			.bibi-subpanel-item {
+				border: solid 0 rgb(236,236,236);
+				border-width: 1px 0 0 0; &:first-child { border-top-width: 0; }
 				height: 2.5em;
 				line-height: 2.6;
 				font-size: 14px;
-				>a, >span {
+			}
+				.bibi-subpanel-item-label {
+					position: relative;
 					color: rgb(64,64,64);
 					cursor: pointer;
 					background: rgba(white, 0.64);
+					&:before {
+						position: relative;
+						top: .05em;
+						margin-left: -.2em;
+						margin-right: .05em;
+						line-height: 0;
+						font-size: 1.2em;
+					}
 					&:after {
 						@include icon();
 						position: absolute;
@@ -687,14 +721,34 @@ div.bibi-panel-subpanel {
 							color: inherit;
 						}
 					}
-					&.unavailable, &.unavailable:hover, &.unavailable:active {
+				}
+			.bibi-subpanel-item.unavailable {
+				.bibi-subpanel-item-label {
+					&, &:hover, &:active {
 						color: rgb(128,128,128);
 						background: rgba(white, 0.32);
 					}
 				}
 			}
+		.bibi-subpanel-tileditemgroup {
+			display: flex;
+			align-items: stretch;
+			align-content: center;
+			flex: auto;
+			width: 100%;
+			.bibi-subpanel-item {
+				width: 100%;
+				border: solid 0 rgb(216,216,216);
+				border-width: 0 0 0 1px; &:first-child { border-left-width: 0; }
+				.bibi-subpanel-item-label {
+					padding-left: ($button-group-margin * 2);
+					text-align: center;
+					&:after {
+						display: none;
+					}
+				}
+			}
 		}
-	}
 }
 
 

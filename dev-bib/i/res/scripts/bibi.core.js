@@ -2326,24 +2326,26 @@ C.createSubPanel = function(Par) {
                 if(Opt.Label) {
                     Section
                         .appendChild(sML.create("div",  { className: "bibi-subpanel-hgroup" }))
-                        .appendChild(sML.create("p",    { className: "bibi-subpanel-heading" }))
-                        .appendChild(sML.create("span", { className: "bibi-with-icon", innerHTML: C.distilLabel(Opt.Label) }));
+                        .appendChild(sML.create("p",    { className: "bibi-subpanel-h" }))
+                        .appendChild(sML.create("span", { className: "bibi-subpanel-h-label", innerHTML: C.distilLabel(Opt.Label) }));
                 }
-                // Menu
+                // ItemGroup
                 if(Opt.Items && Opt.Items.length) {
-                    var Menu = Section.appendChild(sML.create("ul", { className: "bibi-subpanel-menu" }));
+                    var ItemGroup = Section.appendChild(sML.create("ul", { className: "bibi-subpanel-itemgroup" }));
+                    if(Opt.Tiled) ItemGroup.className += " bibi-subpanel-tileditemgroup";
                     Opt.Items.forEach(function(ItemOpt) {
-                        var MenuItem = Menu.appendChild(sML.create("li", { className: "bibi-subpanel-menu-item" }));
-                        var MenuItemContent;
-                        if(ItemOpt.Href || /^a$/i.test(ItemOpt.TagName)) {
-                            MenuItemContent = MenuItem.appendChild(sML.create("a", { innerHTML: C.distilLabel(ItemOpt.Label) }));
-                            MenuItemContent.href = ItemOpt.Href;
-                            MenuItemContent.target = "_blank";
+                        var Item = ItemGroup.appendChild(sML.create("li", { className: "bibi-subpanel-item" }));
+                        var ItemLabel;
+                        if(ItemOpt.Href) {
+                            ItemLabel = Item.appendChild(sML.create("a", { innerHTML: C.distilLabel(ItemOpt.Label) }));
+                            ItemLabel.href = ItemOpt.Href;
+                            ItemLabel.target = "_blank";
                         } else {
-                            MenuItemContent = MenuItem.appendChild(sML.create("span", { innerHTML: C.distilLabel(ItemOpt.Label) }));
+                            ItemLabel = Item.appendChild(sML.create("span", { innerHTML: C.distilLabel(ItemOpt.Label) }));
                         }
-                        if(ItemOpt.on) sML.edit(MenuItemContent, { on: ItemOpt.on });
-                        if(ItemOpt.Icon) MenuItemContent.className = "bibi-with-icon-" + ItemOpt.Icon;
+                        ItemLabel.className = "bibi-subpanel-item-label";
+                        if(ItemOpt.on) sML.edit(ItemLabel, { on: ItemOpt.on });
+                        if(ItemOpt.Icon) ItemLabel.className += " bibi-with-icon-" + ItemOpt.Icon;
                     });
                 }
                 this.appendChild(Section);

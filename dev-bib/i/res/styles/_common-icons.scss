@@ -9,7 +9,7 @@
 	height: 1em;
 }
 
-*[class^="bibi-with-icon"] { &:before { @include icon(); } }
+*[class*="bibi-with-icon"] { &:before { @include icon(); } }
 
 .bibi-with-icon-Twitter    { &:before { content: "\f081"; color: rgb(29,161,242); } }
 .bibi-with-icon-Facebook   { &:before { content: "\f082"; color: rgb(58,89,153); } }
