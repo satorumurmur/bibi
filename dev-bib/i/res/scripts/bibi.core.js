@@ -31,6 +31,7 @@ Bibi.welcome = function() {
     O.log('Welcome! - BiB/i v' + Bibi["version"] + ' - (ja) http://bibi.epub.link - (en) https://github.com/satorumurmur/bibi', "-0");
 
     O.RequestedURL = location.href;
+    O.BookURL = location.origin + location.pathname + location.search;
 
     O.Language = (function() {
         if(typeof navigator.language != "string") return "en";
@@ -162,7 +163,6 @@ Bibi.byebye = function() {
 Bibi.ready = function() {
 
     sML.addClass(O.HTML, "ready");
-
     O.ReadiedURL = location.href;
 
     var ExtensionNames = [];
@@ -3174,8 +3174,18 @@ O.stamp = function(What, TimeCard) {
     TimeCard[Time] = What;
 };
 
-O.TimeCard = { Origin: Date.now(), getNow: function() { return ((Date.now() - O.TimeCard.Origin) / 1000) + "sec"; } };
+O.TimeCard = {
+    Origin: Date.now(),
+    getNow: function() {
+        return ((Date.now() - O.TimeCard.Origin) / 1000) + "sec";
+    }
+};
 
+O.Path = (function() {
+    if(document.currentScript) return document.currentScript.src;
+    var Scripts = document.getElementsByTagName("script");
+    return Scripts[Scripts.length - 1].src;
+})();
 
 
 
