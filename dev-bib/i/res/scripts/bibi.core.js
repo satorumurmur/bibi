@@ -232,7 +232,7 @@ B.initialize = function(Book) {
         Mimetype:  { Path: "mimetype" },
         Container: { Path: "META-INF/container.xml" },
         Package:   { Path: "", Dir: "",
-            Metadata: { "titles": [], "creators": [], "publishers": [], "languages": [] },
+            Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
             Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {} },
             Spine:    { "itemrefs": [] }
         },
@@ -413,24 +413,28 @@ L.loadPackageDocument.read = function(Doc) {
     sML.each(Metadata.getElementsByTagName("meta"), function() {
         if(this.getAttribute("refines")) return;
         if(this.getAttribute("property")) {
+            // DCTerms
             var Property = this.getAttribute("property").replace(/^dcterms:/, "");
-            if(/^(title|creator|publisher|language)$/.test(Property)) B.Package.Metadata[Property + "s"].push(this.textContent);
+                 if(/^(identifier|title)$/.test(Property)) B.Package.Metadata[Property] = this.textContent;
+            else if(/^(creator|publisher|language)$/.test(Property)) B.Package.Metadata[Property + "s"].push(this.textContent);
             else if(!B.Package.Metadata[Property]) B.Package.Metadata[Property] = this.textContent;
         }
         if(this.getAttribute("name") && this.getAttribute("content")) {
+            // Others
             B.Package.Metadata[this.getAttribute("name")] = this.getAttribute("content");
         }
     });
-    if(!B.Package.Metadata["titles"    ].length) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "title"),     function() { B.Package.Metadata["titles"    ].push(this.textContent); return false; });
+    if(!B.Package.Metadata["identifier"]) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "identifier"), function() { B.Package.Metadata["identifier"] = this.textContent; return false; });
+    if(!B.Package.Metadata["identifier"]) B.Package.Metadata["identifier"] = Date.now();
+    if(!B.Package.Metadata["title"     ]) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "title"     ), function() { B.Package.Metadata["title"     ] = this.textContent; return false; });
     if(!B.Package.Metadata["creators"  ].length) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "creator"),   function() { B.Package.Metadata["creators"  ].push(this.textContent); });
     if(!B.Package.Metadata["publishers"].length) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "publisher"), function() { B.Package.Metadata["publishers"].push(this.textContent); });
     if(!B.Package.Metadata["languages" ].length) sML.each(Doc.getElementsByTagNameNS(XMLNS["dc"], "language"),  function() { B.Package.Metadata["languages" ].push(this.textContent); });
     if(!B.Package.Metadata["languages" ].length) B.Package.Metadata["languages"][0] = "en";
-    if(!B.Package.Metadata["cover"])                 B.Package.Metadata["cover"]                 = "";
-    if(!B.Package.Metadata["rendition:layout"])      B.Package.Metadata["rendition:layout"]      = "reflowable";
-    if(!B.Package.Metadata["rendition:orientation"]) B.Package.Metadata["rendition:orientation"] = "auto";
-    if(!B.Package.Metadata["rendition:spread"])      B.Package.Metadata["rendition:spread"]      = "auto";
-
+    if(!B.Package.Metadata["cover"])                           B.Package.Metadata["cover"]                 = "";
+    if(!B.Package.Metadata["rendition:layout"])                B.Package.Metadata["rendition:layout"]      = "reflowable";
+    if(!B.Package.Metadata["rendition:orientation"])           B.Package.Metadata["rendition:orientation"] = "auto";
+    if(!B.Package.Metadata["rendition:spread"])                B.Package.Metadata["rendition:spread"]      = "auto";
     if( B.Package.Metadata["rendition:orientation"] == "auto") B.Package.Metadata["rendition:orientation"] = "portrait";
     if( B.Package.Metadata["rendition:spread"]      == "auto") B.Package.Metadata["rendition:spread"]      = "landscape";
 
@@ -495,7 +499,8 @@ L.loadPackageDocument.read = function(Doc) {
         B.Package.Spine["itemrefs"].push(SpineItemref);
     });
 
-    B.Title     = B.Package.Metadata["titles"].join(    ", ");
+    B.ID        = B.Package.Metadata["identifier"];
+    B.Title     = B.Package.Metadata["title"];
     B.Creator   = B.Package.Metadata["creators"].join(  ", ");
     B.Publisher = B.Package.Metadata["publishers"].join(", ");
     B.Language  = B.Package.Metadata["languages"][0].split("-")[0];
@@ -514,8 +519,8 @@ L.loadPackageDocument.read = function(Doc) {
     if(B.Creator)   IDFragments.push(B.Creator);
     if(B.Publisher) IDFragments.push(B.Publisher);
     if(IDFragments.length) {
-        O.Title.innerHTML = "BiB/i";
-        O.Title.appendChild(document.createTextNode(" | " + IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, "*:")));
+        O.Title.innerHTML = "";
+        O.Title.appendChild(document.createTextNode(IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, "*:") + " | BiB/i"));
     }
 
     var IDLogs = [];
