@@ -170,6 +170,9 @@ Bibi.ready = function() {
     if(ExtensionNames.length) O.log("Extension" + (ExtensionNames.length >= 2 ? "s" : "") + ": " + ExtensionNames.join(", "), "-*");
 
     E.add("bibi:scrolled", R.getCurrent);
+    E.add("bibi:scrolled", function() {
+        O.Cookie.eat(B.ID, { "Position": { SpreadIndex: R.Current.Page.Spread.SpreadIndex, PageIndexInSpread: R.Current.Page.PageIndexInSpread } });
+    });
     E.add("bibi:command:move",        function(Dis) { R.move(Dis); });
     E.add("bibi:command:focus",       function(Des) { R.focus(Des); });
     E.add("bibi:command:changeView",  function(RVM) { R.changeView(RVM); });
@@ -538,6 +541,11 @@ L.loadPackageDocument.read = function(Doc) {
     O.log(MetaLogs.join(' / '), "-*");
 
     S.update();
+
+    if(!S["to"]) {
+        var BookCookie = O.Cookie.remember(B.ID);
+        if(BookCookie && BookCookie.Position) S["to"] = BookCookie.Position;
+    }
 
 };
 
@@ -3191,6 +3199,29 @@ O.Path = (function() {
     return Scripts[Scripts.length - 1].src;
 })();
 
+O.Cookie = {
+    remember: function(Group) {
+        var Cookie = JSON.parse(sML.Cookies.read("bibi") || '{}');
+        if(typeof Group != "string" || !Group) return Cookie;
+        return Cookie[Group];
+    },
+    eat: function(Group, KeyVal, Opt) {
+        if(typeof Group != "string" || !Group) return false;
+        if(typeof KeyVal != "object") return false;
+        var Cookie = this.remember();
+        if(typeof Cookie[Group] != "object") Cookie[Group] = {};
+        for(var Key in KeyVal) {
+            var Val = KeyVal[Key];
+            if(typeof Key != "string"   || !Key) continue;
+            if(typeof Val == "function" || !Val) continue;
+            Cookie[Group][Key] = Val;
+        }
+        if(!Opt) Opt = {};
+        Opt.Path = location.pathname.replace(/[^\/]+$/, "");
+        if(!Opt.Expires) Opt.Expires = 1000 * 60; // test code: 1 minute
+        sML.Cookies.write("bibi", JSON.stringify(Cookie), Opt);
+    }
+};
 
 
 //==============================================================================================================================================
