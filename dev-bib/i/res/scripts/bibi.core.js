@@ -2868,7 +2868,7 @@ U.initialize = function() { // formerly O.readExtras
                         PnV[0] = undefined;
                 }
             }
-            if(PnV[0] && typeof PnV[1] == "string") U[PnV[0]] = PnV[1];
+            if(PnV[0] && (PnV[1] || typeof PnV[1] == "string" || typeof PnV[1] == "number")) U[PnV[0]] = PnV[1];
         });
     };
 
