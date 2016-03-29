@@ -613,8 +613,8 @@ L.prepareSpine = function() {
     if(B.PPD == "rtl") var PairBefore = "right", PairAfter = "left";
     else               var PairBefore = "left",  PairAfter = "right";
 
-    sML.each(B.Package.Spine["itemrefs"], function() {
-    });
+    B.FileDigit = (B.Package.Spine["itemrefs"].length + "").length;
+
     // Spreads, Boxes, and Items
     sML.each(B.Package.Spine["itemrefs"], function() {
         var ItemRef = this, ItemIndex = R.Items.length;
@@ -674,8 +674,6 @@ L.prepareSpine = function() {
             }
         });
     });
-
-    B.FileDigit = (R.Items.length + "").length;
 
     O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''), "-*");
 
