@@ -1833,10 +1833,7 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
 R.getCurrent = function() {
     R.Current.Pages = R.getCurrentPages();
     R.Current.Page = R.Current.Pages.EndPage;
-    R.Current.PageNumber = R.Current.Page.PageIndex + 1;
-    R.Current.Item = R.Current.Page.Item;
-    R.Current.ItemNumber = R.Current.Item.ItemIndex + 1;
-    R.Current.Percent = Math.round(R.Current.PageNumber / R.Pages.length * 100);
+    R.Current.Percent = Math.round(R.Current.Page.PageIndex + 1 / R.Pages.length * 100);
     R.Pages.forEach(function(Page) {
         [Page, Page.Item, Page.Item.ItemBox, Page.Spread, Page.Spread.SpreadBox].forEach(function(Ele) {
             sML.removeClass(Ele, "current");
@@ -2521,7 +2518,7 @@ C.createIndicator = function() {
     E.add("bibi:indicator:progress", function() {
         C.Indicator.Progress.Bar.Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
         C.Indicator.Progress.Bar.Current.style.width = (100 / R.Pages.length) * R.Current.Pages.length + "%";
-        C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.PageNumber) / R.Pages.length * 100) + "%";
+        C.Indicator.Progress.Bar.Current.style[S.PPD == "ltr" ? "right" : "left"] = ((R.Pages.length - R.Current.Page.PageIndex + 1) / R.Pages.length * 100) + "%";
     });
     E.add("bibi:layout", function() {
         C.Indicator.Progress.Bar.Pages.innerHTML = "";
