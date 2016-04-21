@@ -9,7 +9,7 @@
 
 (function() {
     if(window["bibi:pipi"]) return;
-    var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 20160324.2259,
+    var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 201604150238,
         Status: "",
         Bibis: [],
         Anchors: [],
@@ -37,15 +37,19 @@
             var ID         = Anchor.getAttribute("data-bibi-id");
             var Style      = Anchor.getAttribute("data-bibi-style");
             var RVM        = Anchor.getAttribute("data-bibi-reader-view-mode");
-            var RVMFixed   = Anchor.getAttribute("data-bibi-reader-view-mode-fixed");
+            var FixRVM     = Anchor.getAttribute("data-bibi-fix-reader-view-mode");
             var Autostart  = Anchor.getAttribute("data-bibi-autostart");
-            var NewWindow  = Anchor.getAttribute("data-bibi-play-in-new-window");
-            var HideArrows = Anchor.getAttribute("data-bibi-hide-arrows");
+            var NewWindow  = Anchor.getAttribute("data-bibi-start-in-new-window");
+            var UseSlider  = Anchor.getAttribute("data-bibi-use-slider");
+            var UseArrows  = Anchor.getAttribute("data-bibi-use-arrows");
+            var UseKeys    = Anchor.getAttribute("data-bibi-use-keys");
+            var UseSwipe   = Anchor.getAttribute("data-bibi-use-swipe");
+            var UseCookie  = Anchor.getAttribute("data-bibi-use-cookie");
             var To         = Anchor.getAttribute("data-bibi-to");
             var Nav        = Anchor.getAttribute("data-bibi-nav");
             var BibiLabel  = Anchor.innerHTML;
             if(Anchor.origin != location.origin) Pipi.TrustworthyOrigins.push(Anchor.origin);
-            Anchor.addEventListener("bibi:load", function(Eve) { console.log("BiB/i: Loaded. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
+            Anchor.addEventListener("bibi:loaded", function(Eve) { console.log("BiB/i: Loaded. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
             Pipi.Anchors.push(Anchor);
             // Holder
             var Holder = Bibi.Holder = Pipi.create("span", {
@@ -65,13 +69,17 @@
             Fragment.add("parent-pipi-path", Pipi.encode(Pipi.Path));
             Fragment.add("parent-bibi-label",  Pipi.encode(BibiLabel));
             Fragment.add("parent-holder-id", Holder.id);
-            if(/^(horizontal|vertical|paged)$/.test(RVM)) Fragment.add("reader-view-mode", RVM);
-            if(/^(true|false|yes|no|mobile|desktop)?$/.test(RVMFixed  )) Fragment.add("reader-view-mode-fixed", RVMFixed);
-            if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart )) Fragment.add("autostart", Autostart);
-            if(/^(true|false|yes|no|mobile|desktop)?$/.test(NewWindow )) Fragment.add("play-in-new-window", NewWindow);
-            if(/^(true|false|yes|no|mobile|desktop)?$/.test(HideArrows)) Fragment.add("hide-arrows", HideArrows);
-            if(/^[1-9][\d\-\.]*$/.test(To)) Fragment.add("to", To);
-            if(/^[1-9]\d*$/.test(Nav)) Fragment.add("nav", Nav);
+            if(/^(horizontal|vertical|paged)$/.test(RVM))               Fragment.add("reader-view-mode", RVM);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(FixRVM))    Fragment.add("fix-reader-view-mode", FixRVM);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart)) Fragment.add("autostart", Autostart);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(NewWindow)) Fragment.add("start-in-new-window", NewWindow);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseSlider)) Fragment.add("use-slider", UseSlider);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseArrows)) Fragment.add("use-arrows", UseArrows);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseKeys))   Fragment.add("use-keys", UseKeys);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseSwipe))  Fragment.add("use-swipe", UseSwipe);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseCookie)) Fragment.add("use-cookie", UseCookie);
+            if(/^[1-9][\d\-\.]*$/.test(To))                             Fragment.add("to", To);
+            if(/^[1-9]\d*$/.test(Nav))                                  Fragment.add("nav", Nav);
             // Frame
             var Frame = Bibi.Frame = Holder.appendChild(
                 Pipi.create("iframe", {
@@ -84,10 +92,10 @@
             );
             Frame.addEventListener("load", function() {
                 Pipi.Loaded++;
-                this.Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:load", { detail: this.Bibi }));
+                this.Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:loaded", { detail: this.Bibi }));
                 if(Pipi.Status != "Timeouted" && Pipi.Loaded == Pipi.Bibis.length) {
                     Pipi.Status = "Loaded";
-                    document.dispatchEvent(new CustomEvent("bibi:load", { detail: Pipi }));
+                    document.dispatchEvent(new CustomEvent("bibi:loaded", { detail: Pipi }));
                 }
             }, false);
             Pipi.Frames.push(Frame);
@@ -101,30 +109,30 @@
             var Bibi = Pipi.Bibis[i];
             Bibi.move = function(Distance) {
                 if(typeof Target != "number") return;
-                this.Frame.contentWindow.postMessage('{"bibi:command:move":"' + Distance + '"}', this.Anchor.origin);
+                this.Frame.contentWindow.postMessage('{"bibi:commands:move":"' + Distance + '"}', this.Anchor.origin);
             };
             Bibi.focus = function(Target) {
                 if(typeof Target != "string" && typeof Target != "number") return;
-                this.Frame.contentWindow.postMessage('{"bibi:command:focus":"' + Target + '"}', this.Anchor.origin);
+                this.Frame.contentWindow.postMessage('{"bibi:commands:focus":"' + Target + '"}', this.Anchor.origin);
             };
             Bibi.changeView = function(BDM) {
                 if(typeof Target != "string") return;
-                this.Frame.contentWindow.postMessage('{"bibi:command:changeView":"' + BDM + '"}', this.Anchor.origin);
+                this.Frame.contentWindow.postMessage('{"bibi:commands:change-view":"' + BDM + '"}', this.Anchor.origin);
             };
             Bibi.togglePanel = function() {
-                this.Frame.contentWindow.postMessage('{"bibi:command:togglePanel":""}', this.Anchor.origin);
+                this.Frame.contentWindow.postMessage('{"bibi:command:toggle-panel":""}', this.Anchor.origin);
             };
             Bibi.Anchor.style.display = "none";
             Bibi.Anchor.parentNode.insertBefore(Bibi.Holder, Bibi.Anchor);
-            Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:ready", { detail: Bibi }));
+            Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:readied", { detail: Bibi }));
         }
         setTimeout(function() {
             if(Pipi.Status == "Loaded") return;
             Pipi.Status = "Timeouted";
-            document.dispatchEvent(new CustomEvent("bibi:timeout", { detail: Pipi }));
+            document.dispatchEvent(new CustomEvent("bibi:timed-out", { detail: Pipi }));
         }, 12000);
         Pipi.Status = "Readied";
-        document.dispatchEvent(new CustomEvent("bibi:ready", { detail: Pipi }));
+        document.dispatchEvent(new CustomEvent("bibi:readied", { detail: Pipi }));
         return Pipi.Bibis;
     };
     Pipi.encode = function(Str) { return encodeURIComponent(Str).replace("(", "_BibiKakkoOpen_").replace(")", "_BibiKakkoClose_"); };
@@ -160,15 +168,15 @@
             try {
                 Data = JSON.parse(Data);
                 if(typeof Data != "object" || !Data) return false;
-                for(var EventName in Data) if(/^bibi:command:/.test(EventName)) document.dispatchEvent(new CustomEvent(EventName, { detail: Data[EventName] }));
+                for(var EventName in Data) if(/^bibi:commands:/.test(EventName)) document.dispatchEvent(new CustomEvent(EventName, { detail: Data[EventName] }));
                 return true;
             } catch(Err) {}
             return false;
         }
     }, false);
     document.getElementsByTagName("head")[0].appendChild(Pipi.create("link", { rel: "stylesheet", id: "bibi-css", href: Pipi.Path.replace(/\.js$/, ".css") }));
-    document.addEventListener("bibi:ready",       function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
-    document.addEventListener("bibi:load",        function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
-    document.addEventListener("bibi:timeout",     function(Eve) { console.log("BiB/i: Timeouted.");                                            }, false);
+    document.addEventListener("bibi:readied",     function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
+    document.addEventListener("bibi:loaded",      function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi(s)."); }, false);
+    document.addEventListener("bibi:timed-out",   function(Eve) { console.log("BiB/i: Timed Out.");                                            }, false);
     document.addEventListener("DOMContentLoaded", Pipi.embed,                                                                                     false);
 })();

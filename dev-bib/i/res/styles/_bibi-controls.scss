@@ -16,29 +16,33 @@ div#bibi-notifier-board {
 	top: 0;
 	padding: 0 8px;
 	width: 100%;
-	height: $button-size + $button-group-margin * 2;
-	line-height: ($button-size + $button-group-margin * 2) * 1.05;
-	text-indent: .5em;
-	text-align: center;
-	font-size: 12px;
-	font-weight: bold;
+	height: $top-bar-height;
 	color: rgb(69,69,69);
 	background: rgba(252,252,252,0.96);
 	box-shadow: 0 2px 4px rgba(0,0,0,0.125);
 	transition: .15s linear;
 	transform-origin: 50% 0;
-	small {
-		font-size: 0.75em;
+	p {
+		text-align: center;
+		font-size: 12px;
+		font-weight: bold;
+		line-height: ($icon-size + $button-group-margin * 2) * 1.05;
+		&.error {
+			color: rgb(192,64,0);
+		}
+		small {
+			font-size: 0.875em;
+		}
 	}
-	&.shown {
-		opacity: 1;
-		transform: none;
-		transition: .15s linear;
-	}
-	&.hidden {
+	& {
 		opacity: 0;
 		transform: scaleY(0);
 		transition: .2s linear;
+	}
+	html.notifier-shown & {
+		opacity: 1;
+		transform: none;
+		transition: .15s linear;
 	}
 }
 
@@ -139,7 +143,7 @@ div#bibi-veil-cover {
 	top: 0;
 	box-sizing: border-box;
 	border: solid transparent;
-	border-width: 4px;
+	border-width: 4px; border-top-width: $top-bar-height + 4px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
@@ -167,8 +171,10 @@ div#bibi-veil-cover {
 			bottom: -100%;
 		}
 		&:before {
-			@include font-icon("Material Icons");
-			content: /*import_contacts*/ "\e0e0";
+		//	@include font-icon("Material Icons");
+		//	content: /*import_contacts*/ "\e0e0";
+			@include font-icon("Elegant Icons");
+			content: "\e086"; // book
 			z-index: 1;
 			width: $button-size;
 			height: $button-size;
@@ -214,61 +220,71 @@ div#bibi-veil-cover {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-catcher {
-	$size: 140px;
+	$size: 128px;
 	box-sizing: border-box;
 	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 	z-index: $z-index_veil-catcher;
-	width: 100%;
-	height: 100%;
-	transition: 0.2s linear;
+	border: dashed 10px rgba(white, 0.125);
+	border-radius: 30px;
+	width: 88%;
+	height: 80%;
+	color: rgba(white, 0.75);
+	transform: translateY(-2.5%);
 	cursor: pointer;
-	&:before, &:after, span {
+	transition: .25s ease;
+	&:before, >span {
 		box-sizing: border-box;
 		display: block;
 		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 		vertical-align: middle;
 		text-align: center;
-		color: rgba(255,255,255,0.5);
-		transition: .2s cubic-bezier(.2,.8,.8,1.6);
-	}
-	&:before, &:after {
-		@include font-icon("Material Icons");
 	}
 	&:before { // icon
-		content: /*import_contacts*/ "\e0e0";
+	//	@include font-icon("Material Icons");
+	//	content: /*import_contacts*/ "\e0e0";
+		@include font-icon("Elegant Icons");
+		content: "\e022"; // book_alt
 		width: $size;
 		height: $size;
 		line-height: $size;
+		text-indent: .05em;
 		font-size: $size;
-		transform: translateY($size * -0.1);
+		transform: translateY($size * -0.4);
 	}
-	&:after { // frame
-		content: "";
-		border: dashed 10px;
-		border-radius: 30px;
-		width: 88%;
-		height: 80%;
-	}
-	span {
+	>span {
 		width: 100%;
 		height: 1.5em;
-		font-size: 12px;
-		font-weight: bold;
-		transform: translateY($size * 0.5);
+		transform: translateY($size * 0.4);
+		strong, span, small {
+			display: block;
+		}
+		strong {
+			font-weight: bold;
+			font-size: 18px;
+		}
+		span {
+			margin-top: .5em;
+			font-size: 16px;
+		}
+		small {
+			margin-top: .5em;
+			font-size: 14px;
+		}
 	}
 	input {
 		visibility: hidden;
 	}
 	html.dragenter &,
+	&:hover {
+		transition: .25s ease;
+		border-color: rgba(white, 0.25);
+		color: rgba(white, 1);
+
+	}
 	&:active {
-		&:before, &:after, span {
-			color: white;
-		}
 		&:before {
-			transform: translateY($size * -0.1) scale(1.1);
-		}
-		span {
-			transform: translateY($size * 0.5) scale(0.9);
+			transform: translateY($size * -0.4) scale(1.1);
+			transition: .125s cubic-bezier(.2,.8,.8,1.6);
 		}
 	}
 }
@@ -280,63 +296,88 @@ p#bibi-veil-catcher {
 p#bibi-veil-play {
 	$size: 81px;
 	$offset: 8px;
-	$hover-move: -4px;
 	display: none; html.waiting & { display: block; }
 	box-sizing: border-box;
 	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
 	z-index: $z-index_veil-play;
 	width: 100%;
 	height: 100%;
-	transition: 0.2s linear;
 	cursor: pointer;
-	&:hover  { background: rgba(0,0,0,0.5); }
-	&:active { background: rgba(0,0,0,0.25); }
-	span, &:before, &:after {
-		box-sizing: border-box;
-		display: block;
-		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-		vertical-align: middle;
-		text-align: center;
-		transition: .2s cubic-bezier(.2,.8,.8,1.6);
-	}
-	span {
-		color: rgb(128,128,128);
-	}
-	&:before, &:after { // icon
-		width: $size;
-		height: $size;
-		color: rgb(64,64,64);
+	background: rgba(black, 0);
+	&, &:before {
+		$transition-duration: .2s;
+		$transition-timing-function_color: ease;
+		$transition-timing-function_form: cubic-bezier(.2,.8,.8,1.6);
+		transition:
+			color $transition-duration $transition-timing-function_color,
+			background-color $transition-duration $transition-timing-function_color,
+			left $transition-duration $transition-timing-function_form,
+			right $transition-duration $transition-timing-function_form,
+			bottom $transition-duration $transition-timing-function_form,
+			transform $transition-duration $transition-timing-function_form;
 	}
 	&:before { // icon
-		@include font-icon("Font Awesome");
+		//@include font-icon("Font Awesome");
+		@include font-icon("Elegant Icons");
+		box-sizing: border-box;
+		display: block;
 		z-index: 10;
+		position: absolute;
+		margin: auto;
+		width: $size;
+		height: $size;
 		line-height: $size * 0.98;
+		text-align: center;
+		vertical-align: middle;
+		text-indent: -.05em;
 		font-size: $size;
-	}
-	&:after { // circle
-		content: "";
-		z-index: 1;
-		border-radius: 50%;
-		background: rgba(240,240,240, 0.8);
+		color: rgb(128,128,128);
 	}
 	&:hover {
-		&:before, &:after { transform: scale(1.1); }
-		&:after  { background: white; }
+		background: rgba(black, 0.4);
+		&:before {
+			color: white;
+			transform: scale(1.1);
+		}
 	}
 	html.appearance-ttb & { // ↓
-		&:before { content: "\f107"; }
-		&:before, &:after { top: auto; bottom: $offset; margin-bottom: -.06em; transform-origin: 50% 100%; }
-		&:active { &:before, &:after { bottom: $size * -1/3; } }
+		&:before {
+		//	content: "\f107";
+			content: "\e044"; // arrow_carrot-dowm_alt
+			bottom: $offset; top: auto; left: 0; right: 0;
+			transform-origin: 50% 100%;
+		}
+		&:active {
+			&:before {
+				bottom: $size * -1/3;
+			}
+		}
 	}
 	html.appearance-rtl & { // ←
-		&:before { content: "\f104"; }
-		&:before, &:after { left: $offset; right: auto; margin-left:   -.06em; transform-origin: 0 50%; }
-		&:active { &:before, &:after { left: $size * -1/3; } }
+		&:before {
+		//	content: "\f104";
+			content: "\e045"; // arrow_carrot-left_alt
+			left: $offset; right: auto; top: 0; bottom: 0;
+			transform-origin: 0 50%;
+		}
+		&:active {
+			&:before {
+				left: $size * -1/3;
+			}
+		}
 	}
 	html.appearance-ltr & { // →
-		&:before { content: "\f105"; }
-		&:before, &:after { left: auto; right: $offset; margin-right:  -.06em; transform-origin: 100% 50%; }
-		&:active { &:before, &:after { right: $size * -1/3; } }
+		&:before {
+		//	content: "\f105"; // arrow_carrot-right_alt
+			content: "\e046";
+			right: $offset; left: auto; top: 0; bottom: 0;
+			transform-origin: 100% 50%;
+		}
+		&:active {
+			&:before {
+				right: $size * -1/3;
+			}
+		}
 	}
 }
 
@@ -366,24 +407,10 @@ div#bibi-panel {
 		opacity: 1 !important;
 		transition: 0.15s ease-in !important;
 	}
-	&:before {
-		content: "";
-		display: block;
-		position: absolute;
-		z-index: $z-index_panel-topbar;
-		top: 0;
-		left: 0;
-		border-bottom: solid 1px rgb(242,242,242);
-		width: 100%;
-		height: $button-size + $button-group-margin * 2;
-		//background: rgba(255,255,255,0.88);
-		//background: white;
-		background: rgba(255,255,255,0.96);
-	}
 }
 
 
-// - BookInfo (div#bibi-panel-bookinfo)
+// - BookInfo
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo {
@@ -395,22 +422,18 @@ div#bibi-panel-bookinfo {
 }
 	div#bibi-panel-bookinfo-box {
 		box-sizing: border-box;
-		padding: 65px 35px 35px;
+		margin-top: $top-bar-height;
+		padding: 20px 30px;
 		width: 100%;
-		height: 100%;
+		height: calc(100% - #{$top-bar-height});
 		-webkit-overflow-scrolling: touch;
-		html.page-ltr & { overflow-x: hidden; overflow-y: scroll; }
-		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; }
-		&::-webkit-scrollbar { width: 8px; height: 8px; }
-		&::-webkit-scrollbar-track { background: transparent; }
-		&::-webkit-scrollbar-thumb { background: rgb(128,128,128); border-radius: 3px; }
-		html.page-rtl & {
-			@include writing-mode(vertical-rl);
-		}
+		html.iOS &, html.Android & { height: calc(100% - #{$top-bar-height + $bottom-bar-height}); }
+		html.page-ltr &, html.Android.page-rtl & { overflow-x: hidden; overflow-y: scroll; @include writing-mode(horizontal-tb); }
+		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; @include writing-mode(vertical-rl); }
 	}
 
 
-// . Navigation (div#bibi-panel-bookinfo-navigation)
+// . Navigation
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-navigation {
@@ -425,7 +448,7 @@ div#bibi-panel-bookinfo-navigation {
 			@include text-combine-upright_all();
 		}
 	}
-	html.page-ltr & {
+	html.page-ltr &, html.Android.page-rtl & {
 		>*:first-child,
 		>*:first-child >*:first-child,
 		>*:first-child >*:first-child >*:first-child {
@@ -437,13 +460,13 @@ div#bibi-panel-bookinfo-navigation {
 		$margin-after: 1em;
 		line-height: 1.2;
 		font-size: 20px;
-		html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+		html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 		html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 		h1, h2, h3, h4, h5, h6 {
 			$margin-before: 0;
 			$margin-after: 1em;
 			font-weight: bold;
-			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 		}
 		small {
@@ -451,25 +474,25 @@ div#bibi-panel-bookinfo-navigation {
 		}
 		br +small {
 			$margin-start: 2em;
-			html.page-ltr & { margin: 0 0 0 $margin-start; }
+			html.page-ltr &, html.Android.page-rtl & { margin: 0 0 0 $margin-start; }
 			html.page-rtl & { margin: $margin-start 0 0 0; }
 		}
 		ul, ol {
 			$margin-before: 0;
 			$margin-after: 1em;
 			font-size: .9em;
-			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 			li {
 				$margin-before: 1em;
 				$margin-after: 0;
-				html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+				html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 				html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 				ul, ol {
 					position: relative;
 					$margin-before: 0;
 					$margin-after: 0;
-					html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+					html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 					html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 					&:before {
 						content: "";
@@ -480,14 +503,14 @@ div#bibi-panel-bookinfo-navigation {
 						$breadth: 4px;
 						$length: 100%;
 						background: white;
-						html.page-ltr & { left: $start; top: $before; width: $breadth; height: $length; }
+						html.page-ltr &, html.Android.page-rtl & { left: $start; top: $before; width: $breadth; height: $length; }
 						html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
 					}
 					li {
 						$margin-before: .5em;
 						$margin-after: 0;
 						$margin-start: 1em;
-						html.page-ltr & { margin: $margin-before 0 $margin-after $margin-start; }
+						html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after $margin-start; }
 						html.page-rtl & { margin: $margin-start $margin-before 0 $margin-after; }
 					}
 				}
@@ -500,7 +523,7 @@ div#bibi-panel-bookinfo-navigation {
 			&:hover {
 				color: steelblue;
 				transition: none;
-				html.page-ltr & { text-decoration: underline; }
+				html.page-ltr &, html.Android.page-rtl & { text-decoration: underline; }
 				html.page-rtl & { text-decoration: overline; }
 			}
 			&.bibi-bookinfo-inactive-link {
@@ -519,45 +542,45 @@ div#bibi-panel-bookinfo-navigation {
 		h1, h2, h3, h4, h5, h6 {
 			$margin-before: 0;
 			$margin-after: .25em;
-			html.page-ltr & { margin: $margin-before 0 $margin-after 0; }
+			html.page-ltr &, html.Android.page-rtl & { margin: $margin-before 0 $margin-after 0; }
 			html.page-rtl & { margin: 0 $margin-before 0 $margin-after; }
 		}
 		ul, ol {
 			overflow: hidden;
 			$padding-after: .25em;
-			html.page-ltr & { padding-bottom: $padding-after; }
-			html.page-rtl & { padding-left: $padding-after; }
+			html.page-ltr &, html.Android.page-rtl & { padding: 0 0 $padding-after 0; }
+			html.page-rtl & { padding: 0 0 0 $padding-after; }
 			li {
 				float: left;
 				$padding-end: 1em;
-				html.page-ltr & { padding-right: $padding-end; &:last-child { padding-right: 0; } }
-				html.page-rtl & { padding-bottom: $padding-end; &:last-child { padding-bottom: 0; } }
+				html.page-ltr &, html.Android.page-rtl & { padding: 0 $padding-end 0 0; &:last-child { padding: 0; } }
+				html.page-rtl & { padding: 0 0 $padding-end 0; &:last-child { padding: 0; } }
 			}
 		}
 	}
 }
 
 
-// . Cover (div#bibi-panel-bookinfo-cover)
+// . Cover
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-cover {
 	border: solid 0 rgb(232,232,232);
-	html.page-ltr & { margin-top: 2em; border-top-width: 1px; padding-top: 2em; padding-bottom: 2em; margin-right: 30px; }
-	html.page-rtl & { margin-right: 2em; border-right-width: 1px; padding-right: 2em; padding-left: 2em; margin-bottom: 30px; }
+	html.page-ltr &, html.Android.page-rtl & { margin: 2em 30px 0 0; padding: 2em 0; border-width: 1px 0 0 0; }
+	html.page-rtl & { margin: 0 2em 30px 0; padding: 0 2em; border-width: 0 1px 0 0; }
 	img {
 		max-width:  40%; max-width:  40vw;
 		max-height: 40%; max-height: 40vh;
-		html.page-ltr & { margin-bottom: .75em; }
-		html.page-rtl & { margin-left: .75em; }
+		html.page-ltr &, html.Android.page-rtl & { margin: 0 0 .75em 0; }
+		html.page-rtl & { margin: 0 0 0 .75em; }
 	}
 	p#bibi-panel-bookinfo-cover-info {
 		color: rgb(160,160,160);
 		strong, em, span {
 			display: block;
 			line-height: 1.2;
-			html.page-ltr & { margin-bottom: .5rem; }
-			html.page-rtl & { margin-left: .5rem; }
+			html.page-ltr &, html.Android.page-rtl & { margin: 0 0 .5rem 0; }
+			html.page-rtl & { margin: 0 0 0 .5rem; }
 		}
 		strong {
 			font-size: 16px;
@@ -573,16 +596,19 @@ div#bibi-panel-bookinfo-cover {
 }
 
 
-// . Sub Panel (div.bibi-panel-subpanel)
+
+
+// ================================================================================
+// + Sub Panel (& Shade)
 // --------------------------------------------------------------------------------
 
-div.bibi-panel-subpanel {
-	$bar-height: $button-size + $button-group-margin * 2;
-	$subpanel-color: rgba(white, 0.9);
-	$subpanel-margin: $button-group-margin;
-	$subpanel-triangle-size: $subpanel-margin * 1.5;
+$subpanel-background-color: rgba(white, 0.9);
+$subpanel-margin: $button-group-margin;
+$subpanel-triangle-size: $subpanel-margin * 1.5;
+
+div.bibi-subpanel {
 	&,
-	& span.bibi-panel-subpanel-bit {
+	& span.bibi-subpanel-bit {
 		box-sizing: border-box;
 		opacity: 0.25;
 		transform: translateY($subpanel-margin * -2) scale(0);
@@ -591,17 +617,17 @@ div.bibi-panel-subpanel {
 	& {
 		position: fixed;
 		//overflow: auto; -webkit-overflow-scrolling: touch;
-		z-index: $z-index_panel-subpanel;
+		z-index: $z-index_subpanel;
 		right: $subpanel-margin;
-		top: $bar-height + $subpanel-margin;
+		top: $top-bar-height + $subpanel-margin;
 		margin: auto;
 		width: calc(100% - #{$subpanel-margin * 2});
 		max-width: 320px - $subpanel-margin * 2;
-		max-height: calc(100% - #{$bar-height + $subpanel-margin * 2});
+		max-height: calc(100% - #{$top-bar-height + $subpanel-margin * 2});
 		border-radius: 4px;
-		background: $subpanel-color;
+		background: $subpanel-background-color;
 	}
-	& span.bibi-panel-subpanel-bit {
+	& span.bibi-subpanel-bit {
 		display: block;
 		position: absolute;
 		top: $subpanel-triangle-size * -2;
@@ -610,165 +636,231 @@ div.bibi-panel-subpanel {
 		display: block;
 		width: 0; height: 0;
 		border: solid $subpanel-triangle-size transparent;
-		border-bottom-color: $subpanel-color;
+		border-bottom-color: $subpanel-background-color;
 		transform-origin: 50% 0;
 	}
 	&.opened,
-	&.opened span.bibi-panel-subpanel-bit {
+	&.opened span.bibi-subpanel-bit {
 		opacity: 1;
 		transform: none;
-		transition: transform 0.15s ease-in;
+		transition: transform 0.2s cubic-bezier(.2,.8,.8,1.1);
 	}
 	&.opened {
 		box-shadow: rgba(0,0,0, 0.05) 0 2px 2px;
 	}
-	&.opened span.bibi-panel-subpanel-bit {
+	&.opened span.bibi-subpanel-bit {
 	}
-	.bibi-subpanel-section {
-		margin: ($button-group-margin * 4) 0;
-		strong {
-			font-weight: bold;
-		}
-	}
-		.bibi-subpanel-hgroup, .bibi-subpanel-itemgroup {
-		}
-			.bibi-subpanel-h, .bibi-subpanel-item {
-				box-sizing: border-box;
-			}
-				.bibi-subpanel-h-label,
-				.bibi-subpanel-item-label {
-					display: block;
-					box-sizing: border-box;
-					padding-left: ($button-group-margin * 4);
-					padding-right: ($button-group-margin * 2);
-					width: 100%;
-					height: 100%;
-				}
-				a.bibi-subpanel-item-label {
-					text-decoration: none;
-				}
-		.bibi-subpanel-hgroup, {
-		}
-			.bibi-subpanel-h {
-			}
-				.bibi-subpanel-h-label {
-					padding-bottom: ($button-group-margin * 1);
-					line-height: 1.2;
-					font-size: 12px;
-					font-weight: bold;
-					color: rgb(64,64,64);
-					>small {
-						display: block;
-						position: relative;
-						overflow: hidden;
-						padding: .2em 0 0 .9em;
-						text-overflow: ellipsis;
-						word-break: keep-all;
-						white-space: nowrap;
-						font-size: 10px;
-						color: rgb(128,128,128);
-						&:before {
-							@include icon();
-							position: absolute;
-							left: .2em;
-							top: .25em;
-							content: "\f105";
-							color: rgb(160,160,160);
-						}
-					}
-				}
-		.bibi-subpanel-itemgroup {
-			border: solid rgb(216,216,216); border-width: 1px 0;
-		}
-			.bibi-subpanel-item {
-				border: solid 0 rgb(236,236,236);
-				border-width: 1px 0 0 0; &:first-child { border-top-width: 0; }
-				height: 2.5em;
-				line-height: 2.6;
-				font-size: 14px;
-			}
-				.bibi-subpanel-item-label {
-					position: relative;
-					color: rgb(64,64,64);
-					cursor: pointer;
-					background: rgba(white, 0.64);
-					&:before {
-						position: relative;
-						top: .05em;
-						margin-left: -.2em;
-						margin-right: .05em;
-						line-height: 0;
-						font-size: 1.2em;
-					}
-					&:after {
-						@include icon();
-						position: absolute;
-						right: 0;
-						content: "\f105";
-						color: rgb(160,160,160);
-					}
-					&:hover {
-						color: steelblue;
-						background: rgba(white, 0.96);
-						&:after {
-							color: inherit;
-						}
-					}
-					&:active {
-						color: orange;
-						background: rgba(255,255,240, 0.96);
-						&:before {
-							color: inherit;
-						}
-					}
-				}
-			.bibi-subpanel-item.unavailable {
-				.bibi-subpanel-item-label {
-					&, &:hover, &:active {
-						color: rgb(128,128,128);
-						background: rgba(white, 0.32);
-					}
-				}
-			}
-		.bibi-subpanel-tileditemgroup {
-			display: flex;
-			align-items: stretch;
-			align-content: center;
-			flex: auto;
-			width: 100%;
-			.bibi-subpanel-item {
-				width: 100%;
-				border: solid 0 rgb(216,216,216);
-				border-width: 0 0 0 1px; &:first-child { border-left-width: 0; }
-				.bibi-subpanel-item-label {
-					padding-left: ($button-group-margin * 2);
-					text-align: center;
-					&:after {
-						display: none;
-					}
-				}
-			}
-		}
 }
 
 
-// . Shade (div#bibi-shade)
+// - Sub Panel > Section
 // --------------------------------------------------------------------------------
 
-div#bibi-panel-shade {
+.bibi-subpanel-section {
+	margin: ($button-group-margin * 4) 0;
+	strong {
+		font-weight: bold;
+	}
+	.bibi-hgroup, .bibi-buttongroup {
+	}
+		.bibi-h, .bibi-buttonbox,
+		.bibi-h-label,
+		.bibi-button {
+			display: block;
+			box-sizing: border-box;
+		}
+			.bibi-h-label,
+			.bibi-button {
+				padding-left: ($button-group-margin * 2);
+				padding-right: ($button-group-margin * 2);
+			}
+			a.bibi-button {
+				text-decoration: none;
+			}
+	.bibi-hgroup, {
+	}
+		.bibi-h {
+		}
+			.bibi-h-label {
+				padding-bottom: ($button-group-margin * 1);
+				line-height: 1.2;
+				font-size: 12px;
+				font-weight: bold;
+				color: rgb(64,64,64);
+				>small {
+					display: block;
+					position: relative;
+					overflow: hidden;
+					padding: .2em 0 0 .9em;
+					text-overflow: ellipsis;
+					word-break: keep-all;
+					white-space: nowrap;
+					font-size: 10px;
+					color: rgb(128,128,128);
+					&:before {
+						@include font-icon("Font Awesome");
+						position: absolute;
+						left: .2em;
+						top: .25em;
+						content: "\f105";
+						color: rgb(160,160,160);
+					}
+				}
+			}
+	.bibi-buttongroup {
+		border: solid rgba(black, 0.1); border-width: 1px 0;
+		overflow: hidden;
+	}
+		.bibi-buttonbox {
+			line-height: 1.2;
+			font-size: 14px;
+		}
+			.bibi-button {
+				position: relative;
+				z-index: 1;
+				margin: -1px 0;
+				border: solid rgba(black, 0.1); border-width: 1px 0; &.bibi-button-radio { border-style: dashed; }// &:first-child { border-top-width: 0; }
+				min-height: $top-bar-height;
+				color: rgb(64,64,64);
+				background: rgba(white, 0.8);
+				.bibi-button-iconbox,
+				.bibi-button-label {
+					display: inline-block;
+					vertical-align: top;
+				}
+				.bibi-button-iconbox {
+					margin-top: ($top-bar-height - $icon-size_in-subpanel) / 2;
+					margin-right: 6px;
+				}
+				.bibi-button-label {
+					margin-top: 11px;
+					font-size: 13px;
+					line-height: 1.2;
+					small {
+						font-size: .875em;
+					}
+				}
+				&:after {
+					@include font-icon("Font Awesome");
+					display: block;
+					position: absolute;
+					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
+					//width: 0.9em;
+					height: 0.9em;
+					line-height: 1;
+					text-align: right;
+					color: rgb(160,160,160);
+					transition: .2s ease-in-out;
+				}
+				&.default.hover,
+				&.default:hover,
+				&.bibi-button-toggle.active.hover,
+				&.bibi-button-toggle.active:hover {
+					border-style: solid;
+					border-color: rgba($color_blue-hilight, 0.1);
+					background: rgba(244,248,252, 0.8);
+					cursor: pointer;
+					color: $color_blue-hilight;
+					z-index: 2;
+					&:after {
+						color: $color_blue-hilight;
+					}
+				}
+			}
+			.bibi-button-link {
+				&:after {
+					//content: "\f054"; // chevron-right
+					content: "\f105"; // angle-right
+					text-align: center;
+				}
+			}
+			.bibi-button-toggle,
+			.bibi-button-radio {
+				&:after {
+					color: rgb(160,160,160);
+				}
+				&.active {
+					.bibi-button-label {
+						font-weight: bold;
+					}
+					&:after {
+						color: $color_blue-hilight;
+					}
+				}
+			}
+			.bibi-button-toggle {
+				&:after {
+					margin-right: -.1em;
+					font-size: 1.2em;
+					content: "\f204"; // toggle-off
+				}
+				&.active {
+					&:after {
+						content: "\f205"; // toggle-on
+					}
+				}
+			}
+			.bibi-button-radio {
+				&:after {
+					content: "\f1db"; // circle-thin
+				}
+				&.active {
+					&:after {
+						margin-right: -.1em;
+						font-size: 1.2em;
+						content: "\f058"; // check-circle
+					//	content: "\f192"; // dot-circle-o
+					}
+				}
+			}
+	.bibi-tiledbuttongroup {
+		display: flex;
+		align-items: stretch;
+		align-content: center;
+		flex: auto;
+		width: 100%;
+		.bibi-buttonbox {
+			width: 100%;
+			margin: 0;
+			.bibi-button {
+				margin: 0 -1px;
+				border-width: 0 1px;
+				padding-right: $button-group-margin;
+				.bibi-button-iconbox {
+					
+				}
+				.bibi-button-label {
+					margin-top: 12.5px;
+					font-size: 12px;
+				}
+			}
+			.bibi-button-link {
+				&:after {
+					text-align: right;
+				}
+			}
+		}
+	}
+}
+
+
+// - Shade
+// --------------------------------------------------------------------------------
+
+div#bibi-shade {
 	display: none;
 	position: fixed;
-	z-index: $z-index_panel-shade;
+	z-index: $z-index_shade;
 	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
 	width: 100%; height: 100%;
-	background: rgba(black, 0.64);
+	background: rgba($bibi-background, 0.81);
 	opacity: 0;
-	transition: linear .15s;
-	&.visible {
+	transition: .2s ease;
+	html.shade-opened & {
 		display: block;
-		&.shown {
-			opacity: 1;
-		}
+	}
+	html.shade-visible & {
+		opacity: 1;
 	}
 }
 
@@ -777,27 +869,96 @@ div#bibi-panel-shade {
 
 
 // ================================================================================
-// + Buttons
+// + Menu
 // --------------------------------------------------------------------------------
 
-
-// - Buttons (div#bibi-switch-alpha, div#bibi-switch-beta, div#bibi-panel-menus-alpha, div#bibi-panel-menus-beta)
-// --------------------------------------------------------------------------------
-
-div#bibi-switch-alpha,
-div#bibi-switch-beta,
-div#bibi-panel-menu-alpha,
-div#bibi-panel-menu-beta {
+div#bibi-menu {
 	box-sizing: border-box;
-	position: absolute;
-	top: 0;
-	height: $button-size + $button-group-margin * 2;
+	position: fixed; html.waiting-file & { display: none; }
+	z-index: $z-index_menu;
+	left: 0; right: auto; top: 0; bottom: auto;
+	border: solid 0 rgba(128,128,128, 0); border-bottom-width: 1px;
+	height: $top-bar-height;
+	width: 100%;
+	background: rgba(255,255,255, 0);
+	&.hover,
+	html.menu-opened & {
+		border-color: rgba(128,128,128, 0.1);
+		background: rgba(255,255,255, 0.9);
+		transition: .125s linear;
+	}
+	html.panel-opened &, html.subpanel-opened & {
+		border-color: rgba(128,128,128, 0.1);
+		background: rgba(255,255,255, 1);
+		transition: .125s linear;
+	}
+	&.hover {
+//		box-shadow: 0 0 ($top-bar-height / 2) rgba(128,128,128, 0.1);
+	}
+	&, & ul {
+		transition: .125s linear;
+	}
+}
+
+
+// - Menu-L & Menu-R
+// --------------------------------------------------------------------------------
+
+div#bibi-menu-l,
+div#bibi-menu-r {
+	position: relative;
+	z-index: 1;
+	box-sizing: border-box;
+	height: 100%;
 	color: white;
 	transition: opacity 0.75s linear;
 	ul {
+		position: relative;
 		padding: $button-group-margin;
-		border: solid 0 rgb(234,234,234);
-		height: $button-size;
+		height: $icon-size;
+		opacity: 0;
+		&.sticky {
+			opacity: 0.69;
+		}
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			top: $button-group-margin;
+			width: 1px;
+			height: $icon-size;
+			background: rgba(64,64,64,0.1);
+		}
+		li {
+			width: $icon-size;
+			height: $icon-size;
+			.bibi-button {
+				span.bibi-button-label {
+					font-size: 0;
+					color: transparent;
+				}
+			}
+		}
+		div#bibi-menu.hover &, html.menu-opened &, html.panel-opened &, html.subpanel-opened & {
+			opacity: 1;
+		}
+	}
+}
+
+div#bibi-menu-l {
+	float: left;
+	ul {
+		float: left;
+		padding-left: $button-group-margin + 1px;
+		&:before {
+			left: 0;
+		}
+		&:first-child {
+			padding-left: $button-group-margin;
+			&:before {
+				display: none;
+			}
+		}
 		li {
 			float: left;
 			margin-left: $button-group-margin / 2; &:first-child { margin-left: 0; }
@@ -805,44 +966,24 @@ div#bibi-panel-menu-beta {
 	}
 }
 
-div#bibi-switch-alpha,
-div#bibi-switch-beta {
-	z-index: $z-index_switch;
-}
-
-div#bibi-switch-alpha {
-	right: 0;
+div#bibi-menu-r {
+	float: right;
 	ul {
 		float: right;
-	}
-}
-
-div#bibi-switch-beta {
-	left: 0;
-	ul {
-		float: left;
-	}
-}
-
-div#bibi-panel-menu-alpha,
-div#bibi-panel-menu-beta {
-	z-index: $z-index_panel-menu;
-}
-
-div#bibi-panel-menu-alpha {
-	right: $button-group-margin + $button-size + $button-group-margin;
-	ul {
-		float: right;
-		border-right-width: 1px;
-	}
-}
-
-div#bibi-panel-menu-beta {
-	left: 0;
-	ul {
-		float: left;
-		border-left-width: 1px;
-		&:first-child { border-left-width: 0; }
+		padding-right: $button-group-margin + 1px;
+		&:before {
+			right: 0;
+		}
+		&:first-child {
+			padding-right: $button-group-margin;
+			&:before {
+				display: none;
+			}
+		}
+		li {
+			float: right;
+			margin-right: $button-group-margin / 2; &:first-child { margin-right: 0; }
+		}
 	}
 }
 
@@ -853,11 +994,9 @@ div#bibi-panel-menu-beta {
 // --------------------------------------------------------------------------------
 
 
-// - Help (div#bibi-help)
-// --------------------------------------------------------------------------------
-
 div#bibi-help {
 	box-sizing: border-box;
+	display: none;
 	position: fixed;
 	z-index: $z-index-help;
 	margin: 0;
@@ -868,9 +1007,14 @@ div#bibi-help {
 	bottom: 0;
 	opacity: 0;
 	transition: .2s linear;
-	background: rgba(240,240,240,0.9);
-	html.page-rtl & {
-		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	background: rgba(240,240,240,0.96);
+	html.view-horizontal &,
+	html.page-rtl.panel-opened & {
+		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.veil-opened &,
+	html.subpanel-opened & {
+		bottom: 0 !important;
 	}
 	p {
 		line-height: $bottom-bar-height * 1.1;
@@ -878,12 +1022,15 @@ div#bibi-help {
 		font-size: 12px;
 		font-weight: bold;
 		color: rgb(96,96,96);
+		small {
+			font-size: .875em;
+		}
 	}
-	&.shown {
-		opacity: 1;
-	}
-	&.hidden {
-		opacity: 0;
+	&.active {
+		display: block;
+		&.shown {
+			opacity: 1;
+		}
 	}
 }
 
@@ -891,11 +1038,11 @@ div#bibi-help {
 
 
 // ================================================================================
-// + PoweredBy (+ Bottom Bar)
+// + PoweredBy (& Bottom Bar)
 // --------------------------------------------------------------------------------
 
 
-// - Veil > PoweredBy, Panel > PoweredBy (p#bibi-veil-poweredby, div#bibi-panel-poweredby)
+// - Veil > Powered By, Panel > Powered By
 // --------------------------------------------------------------------------------
 
 div#bibi-veil:after,
@@ -917,15 +1064,13 @@ div#bibi-panel:after {
 	width: 100%;
 }
 
-div#bibi-veil:after,
-div#bibi-poweredby {
+div#bibi-veil:after {
 	bottom: 0;
 }
 
-div#bibi-panel:after,
-html.panel-opened div#bibi-poweredby {
+div#bibi-panel:after {
 	html.page-rtl & {
-		bottom: 15px; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 	html.page-ltr & {
 		bottom: 0;
@@ -946,11 +1091,16 @@ div#bibi-panel:after {
 
 div#bibi-poweredby {
 	position: fixed;
-	display: none; html.waiting &, html.panel-opened & { display: block; } html.subpanel-opened & { display: none; }
+	display: block;
+	transform: scale(0); html.waiting &, html.panel-opened & { transform: none; }
 	z-index: $z-index-poweredby;
 	text-align: right;
 	font-size: 14px;
-	transition: .2s linear;
+	transition: .1s linear;
+	bottom: 0;
+    html.page-rtl.panel-opened & {
+		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
 	p {
 		a {
 			display: block;
@@ -1038,145 +1188,180 @@ html.panel-opened div#bibi-poweredby {
 // --------------------------------------------------------------------------------
 
 
-$arrow-icon-size: $button-size;
-$arrow-bar-length: $arrow-icon-size + $button-group-margin * 2;
-$arrow-bar-breadth: 100;
-$arrow-bar-background-base-color: rgb(128,128,128);
-
-@mixin arrow-bar-background($d) {
-//	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 69%, rgba($arrow-bar-background-base-color, .25)); }
-//	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 34%, rgba($arrow-bar-background-base-color, .25)); }
-//	&         { background: rgba($arrow-bar-background-base-color, 0.1); }
-//	&.glowing { background: rgba($arrow-bar-background-base-color, 0.4); }
-	&         { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 25%, rgba($arrow-bar-background-base-color, 0.125)); }
-	&.glowing { background: linear-gradient(to $d, rgba($arrow-bar-background-base-color, 0), rgba($arrow-bar-background-base-color, 0) 25%, rgba($arrow-bar-background-base-color, 0.250)); }
-}
-@mixin arrow-transition($d) {
-	transition: $d cubic-bezier(.2,.8,.8,1.6)
-}
+$arrow-bar-length: $top-bar-height;
+$offset_glowing: 8px;
 
 
-// - Arrow (div#bibi-arrows > div.bibi-arrow)
-// --------------------------------------------------------------------------------
-
-div.bibi-arrow {
-	html.hide-arrows & { display: none !important; }
+div#bibi-arrow-back,
+div#bibi-arrow-forward {
+	display: none; html.arrows-active & { display: block; }
 	position: fixed;
-	z-index: $z-index_main-arrow;
+	z-index: $z-index_arrow;
 	margin: auto;
-	font-size: $arrow-icon-size;
 	line-height: 1;
-	opacity: 0;
-	@include arrow-transition(.4s);
+	&, &:before {
+		transition: .4s cubic-bezier(.2,.8,.8,1.6);
+		html.busy & {
+			transition: none;
+		}
+	}
 	&:before, &:after {
 		box-sizing: border-box;
 		display: block;
 		position: absolute;
 	}
-	&:before {
-		@include font-icon("Material Icons");
+	&:before { // icon
+	//	@include font-icon("Material Icons");
+		@include font-icon("Elegant Icons");
 		z-index: 2;
 		margin: auto;
-		width: $arrow-icon-size; height: $arrow-icon-size;
-		text-align: center; vertical-align: middle;
-		line-height: $arrow-icon-size * 1.025;
-		color: rgb(128,128,128);
-		background: rgba(255,255,255,0.8);
+		width: $arrow-bar-length;
+		height: $arrow-bar-length;
+		text-align: center;
+		vertical-align: middle;
+		line-height: $arrow-bar-length * 1.025;
+		text-indent: -.05em;
+		font-size: $arrow-bar-length;
 		border-radius: 50%;
-		box-shadow: 0 0 0 2px rgb(128,128,128);
-		@include arrow-transition(.4s);
 	}
-	&:after {
+	&:after { // edge shadow
 		content: "";
 		z-index: 1;
 	}
 	html.appearance-ttb & { // ↑↓
 		left: 0; right: 0; width: 100%; width: 100vw; height: 0;
-		&:before { left: -100%; right: -100%; }
+		&:before { left: 0; right: 0; }
 		&:after  { left: 0; right: 0; width: 100%; height: $arrow-bar-length; }
 	}
 	html.appearance-ltr &,
 	html.appearance-rtl & { // ←→
 		top: 0; bottom: 0; width: 0; height: 100%; height: 100vh;
-		&:before { top: -100%; bottom: -100%; }
+		&:before { top: 0; bottom: 0; }
 		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
-	}
-	&.hover, &.active, &.glowing {
-		opacity: 1;
 	}
 }
 
-@mixin arrow-variation($dir, $transform-origin, $icon-code, $cursor) {
+@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing, $cursor) {
 	#{$dir}: 0;
 	&:before, &:after { transform-origin: $transform-origin; }
 	&:before {
-		#{$dir}: $button-group-margin;
+		#{$dir}: 0;//$button-group-margin;
 		content: $icon-code;
+		color: rgb(128,128,128);
 		transform: scale(0.9);
+		opacity: 0;
 	}
 	&:after {
 		#{$dir}: $arrow-bar-length * -1;
-		@include arrow-bar-background(#{$dir});
+		opacity: 0;
+		&         { background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		&.glowing { background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.250)); }
 	}
-	&.hover, &.active {
-		cursor: $cursor;
-	}
-	&.hover {
-		&, &:before, &:after { transition-duration: .2s; }
-		&:before { transform: scale(1.0); }
-		&:after { #{$dir}: 0; }
-	}
-	&.active {
-		&, &:before, &:after { transition-duration: .1s; }
-		&:before { #{$dir}: $button-group-margin / 2; transform: scale(0.9); }
+	&.available {
+		&:before {
+			opacity: 0;
+		}
+		&.hover, &.active, &.glowing {
+			&:before, &:after {
+				opacity: 1;
+			}
+		}
+		&.hover, &.active {
+			cursor: $cursor;
+		}
+		&.hover {
+			&:before, &:after { transition-duration: .2s; }
+			&:before {
+				transform: scale(1);
+			}
+			&:after { #{$dir}: 0; }
+		}
+		&.active {
+			&:before, &:after { transition-duration: .1s; }
+			&:before { #{$dir}: $button-group-margin / 2; transform: scale(0.9); }
+		}
+		&.glowing {
+			&:before {
+				//content: $icon-code_glowing;
+				color: white;
+				background: rgba(black, 0.69);
+//				box-shadow: 0 0 0 4px rgba(white, 0.8);
+				transform: scale(1);
+			}
+		}
 	}
 }
 
 html.appearance-ltr div#bibi-arrow-back,
 html.appearance-rtl div#bibi-arrow-forward { // ←
-	@include arrow-variation(left, 0% 50%, "\e314", w-resize); /*keyboard_arrow_left*/
+//	@include arrow-variation(left, 0% 50%, "\e314", "", pointer); /*keyboard_arrow_left*/
+	@include arrow-variation(left, 0% 50%, "\34", "\e045", pointer); // arrow_carrot-left, arrow_carrot-left_alt
+	&.glowing {
+		&:before {
+			margin-left: $offset_glowing;
+		}
+	}
 }
 html.appearance-ltr div#bibi-arrow-forward,
 html.appearance-rtl div#bibi-arrow-back { // →
-	@include arrow-variation(right, 100% 50%, "\e315", e-resize); /*keyboard_arrow_right*/
+//	@include arrow-variation(right, 100% 50%, "\e315", "", pointer); /*keyboard_arrow_right*/
+	@include arrow-variation(right, 100% 50%, "\35", "\e046", pointer); // arrow_carrot-right, arrow_carrot-right_alt
+	&.glowing {
+		&:before {
+			margin-right: $offset_glowing;
+		}
+	}
 }
 html.appearance-ttb div#bibi-arrow-back { // ↑
-	@include arrow-variation(top, 50% 0%, "\e316", n-resize); /*keyboard_arrow_up*/
+//	@include arrow-variation(top, 50% 0%, "\e316", "", pointer); /*keyboard_arrow_up*/
+	@include arrow-variation(top, 50% 0%, "\32", "\e043", pointer); // arrow_carrot-up, arrow_carrot-up_alt
+	&.glowing {
+		&:before {
+			margin-top: $offset_glowing;
+		}
+	}
+}
+html.appearance-ttb.notifier-shown div#bibi-arrow-back { // ↑
+	&.glowing {
+		&:before {
+			margin-top: $top-bar-height + $offset_glowing;
+		}
+	}
 }
 html.appearance-ttb div#bibi-arrow-forward { // ↓
-	@include arrow-variation(bottom, 50% 100%, "\e313", s-resize); /*keyboard_arrow_down*/
+//	@include arrow-variation(bottom, 50% 100%, "\e313", "", pointer); /*keyboard_arrow_down*/
+	@include arrow-variation(bottom, 50% 100%, "\33", "\e044", pointer); // arrow_carrot-down, arrow_carrot-down_alt
+	&.glowing {
+		&:before {
+			margin-bottom: $offset_glowing;
+		}
+	}
 }
 
 
 
 // ================================================================================
-// + Indicator
+// + Spinner
 // --------------------------------------------------------------------------------
 
 
-div#bibi-indicator {}
+$spinner-size: 56px;
+$spinner-halo-size: 32px; $spinner-halo-color: rgba(144,144,144,0.5);
+$spinner-core-size: 24px; $spinner-core-color: rgba(192,192,192,0.5);
+$spinner-bits: 12;
 
-
-// - Mark (div#bibi-indicator-mark)
-// --------------------------------------------------------------------------------
-
-$indicator-mark-size: 56px;
-$indicator-mark-halo-size: 32px; $indicator-mark-halo-color: rgba(144,144,144,0.5);
-$indicator-mark-core-size: 24px; $indicator-mark-core-color: rgba(192,192,192,0.5);
-$indicator-mark-bits: 12;
-
-div#bibi-indicator-mark {
+div#bibi-spinner {
 	box-sizing: border-box;
 	display: none;
 	position: absolute;
-	z-index: $z-index_indicator-mark;
+	z-index: $z-index_spinner;
 	left: -100%;
 	right: -100%;
 	top: 48%;
 	bottom: auto;
 	margin: auto;
-	width: $indicator-mark-size;
-	height: $indicator-mark-size;
+	width: $spinner-size;
+	height: $spinner-size;
 	&:before, &:after {
 		content: "";
 		position: absolute;
@@ -1186,14 +1371,14 @@ div#bibi-indicator-mark {
 		border-radius: 50%;
 	}
 	&:before { // core
-		width: $indicator-mark-core-size;
-		height: $indicator-mark-core-size;
-		background: $indicator-mark-core-color;
+		width: $spinner-core-size;
+		height: $spinner-core-size;
+		background: $spinner-core-color;
 	}
 	&:after { // halo
-		width: $indicator-mark-halo-size;
-		height: $indicator-mark-halo-size;
-		border: solid 1.5px $indicator-mark-halo-color;
+		width: $spinner-halo-size;
+		height: $spinner-halo-size;
+		border: solid 1.5px $spinner-halo-color;
 	}
 	span {
 		display: block;
@@ -1206,23 +1391,23 @@ div#bibi-indicator-mark {
 		border-radius: 50%;
 		width: 3px;
 		height: 3px;
-		transform-origin: 50% ($indicator-mark-size * 0.5);
+		transform-origin: 50% ($spinner-size * 0.5);
 		//background: rgba(128,128,128,0.5);
-		@for $i from 1 through $indicator-mark-bits {
+		@for $i from 1 through $spinner-bits {
 			&:nth-child(#{$i}) {
-				background: darken(rgba(255,255,255,0.75), (72% / $indicator-mark-bits * $i));
-				transform: rotate(360deg / $indicator-mark-bits * $i);
+				background: darken(rgb(255,255,255), (72% / $spinner-bits * $i));
+				transform: rotate(360deg / $spinner-bits * $i);
 			}
 		}
 	}
 	html.busy & {
 		display: block;
-		animation: SPIN 1s linear 0s infinite normal;
+		animation: SPIN 2s linear 0s infinite normal;
 		&:before, &:after {
 			animation: BEAT 2s ease 0s infinite normal;
 		}
 		span {
-			animation: GLOW 4s ease-in-out 0s infinite normal;
+			//animation: GLOW 4s ease-in-out 0s infinite normal;
 		}
 	}
 }
@@ -1246,97 +1431,75 @@ div#bibi-indicator-mark {
 @include keyframes(GLOW) {
 	  0% { width: 3px; height: 3px; opacity: 1.0; }
 	 25% { width: 1px; height: 1px; }
-	 50% { width: 1px; height: ($indicator-mark-size - $indicator-mark-core-size) / 2 + 8px; opacity: 0.5; }
+//	 50% { width: 1px; height: ($spinner-size - $spinner-core-size) / 2 + 8px; opacity: 0.5; }
+	 50% { width: 1px; height: 6px; opacity: 1.0; }
 	 75% { width: 1px; height: 1px; }
 	100% { width: 3px; height: 3px; opacity: 1.0; }
 }
 
 
-// - Progress (div#bibi-indicator-progress)
+
+// ================================================================================
+// + Nombre
 // --------------------------------------------------------------------------------
 
-div#bibi-indicator-progress {}
-
-$indicator-progress-nombre-box-width: 11em;
-$indicator-progress-nombre-box-height: 1.6em;
-$indicator-progress-nombre-box-background-color: rgba(240,240,240,0.9);
-
-$indicator-progress-nombre-color: rgb(64,64,64);
-$indicator-progress-nombre-current-color: darken($indicator-progress-nombre-color, 25%);
-$indicator-progress-nombre-percent-color: lighten($indicator-progress-nombre-color, 25%);
-
-$indicator-progress-bar-track-size: $scrollbar-track-size;
-$indicator-progress-bar-track-border-color: $scrollbar-track-border-color;
-$indicator-progress-bar-track-background-color: $scrollbar-track-background-color;
-
-$indicator-progress-bar-thumb-size: $scrollbar-thumb-size;
-$indicator-progress-bar-thumb-border-color: $scrollbar-thumb-border-color;
-$indicator-progress-bar-thumb-background-color: $scrollbar-thumb-background-color;
-
-@mixin nombre-base() {
+div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
-	position: absolute;
+	position: fixed;
+	z-index: $z-index_nombre;
 	margin: auto;
-	border-radius: $indicator-progress-nombre-box-height * 0.5;
-	height: $indicator-progress-nombre-box-height;
-	line-height: $indicator-progress-nombre-box-height * 0.94;
+	border-radius: $nombre-box-height * 0.5;
+	width: $nombre-box-width;
+	height: $nombre-box-height;
+	line-height: $nombre-box-height;
 	font-size: 12px;
 	text-align: center;
-	color: $indicator-progress-nombre-color;
-	background: $indicator-progress-nombre-box-background-color;
-	html.view-paged & {
-		bottom: $indicator-progress-bar-track-size + 2px;
-	}
-}
-
-
-// . Nombre (div#bibi-indicator-progress-nombre)
-// --------------------------------------------------------------------------------
-
-div#bibi-indicator-progress-nombre {
-	@include nombre-base();
-	display: none;
-	z-index: $z-index_indicator-nombre;
-	width: $indicator-progress-nombre-box-width;
+	color: $nombre-color;
+	background: $nombre-box-background-color;
 	opacity: 0;
-	transition: 0.250s ease-out;
-	.active & {
-		display: block;
-	}
-	.hot & {
-		opacity: 1;
-		transition: 0.125s ease-out;
-	}
+	transition: 0.125s ease-out;
 	html.view-paged & {
-		left: 0; right: 0;
+		left: -100%; right: -100%; bottom: 2px;
 	}
 	html.view-horizontal & {
-		left: 0; right: 0;
-		bottom: 15px + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
+		left: -100%; right: -100%; bottom: $scrollbar-track-size + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
 	}
 	html.view-vertical & {
-		top: 0; bottom: 0;
-		right: 15px + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
-		transform: rotate(90deg) translateY(($indicator-progress-nombre-box-width - $indicator-progress-nombre-box-height) * -0.5);
+		right: $scrollbar-track-size + 2px; top: -100%; bottom: -100%; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
+		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
+	}
+	html.view-paged.slider-opened &,
+	html.view-horizontal.slider-opened & {
+		bottom: $slider-size + 2px !important;
+	}
+	& {
+		display: none;
+	}
+	&.active {
+		display: block;
+	}
+	&.hot {
+		opacity: 1;
+		transition: 0.125s ease-out;
 	}
 	span {
 		display: inline-block;
 	}
 }
-	span#bibi-indicator-progress-nombre-current {
+	span#bibi-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
-		color: $indicator-progress-nombre-current-color;
+		color: $nombre-current-color;
 	}
-	span#bibi-indicator-progress-nombre-delimiter {
+	span#bibi-nombre-delimiter {
 		margin: 0 0.1em 0 0.2em;
 	}
-	span#bibi-indicator-progress-nombre-total {
+	span#bibi-nombre-total {
 	}
-	span#bibi-indicator-progress-nombre-percent {
+	span#bibi-nombre-percent {
 		margin-left: .25em;
-		color: $indicator-progress-nombre-percent-color;
+		color: $nombre-percent-color;
 		span.unit {
 			margin-left: .125em;
 			font-size: .75em;
@@ -1344,115 +1507,173 @@ div#bibi-indicator-progress-nombre {
 	}
 
 
-// . Bar (div#bibi-indicator-progress-bar)
+
+// ================================================================================
+// + Slider
 // --------------------------------------------------------------------------------
 
-@mixin bibi-indicator-progress-bar-thumb-base() {
+@mixin slider-thumb-base() {
+	content: "";
+	display: block;
 	box-sizing: border-box;
 	display: block;
 	position: absolute;
-	bottom: ($indicator-progress-bar-track-size - $indicator-progress-bar-thumb-size) * 0.5;
-	border: solid 1px $indicator-progress-bar-thumb-border-color;
-	border-radius: $indicator-progress-bar-thumb-size * 0.5;
+	top: 0; bottom: 0;
+	margin: auto;
+	border: solid 1px;
+	border-radius: $scrollbar-thumb-size * 0.5;
 	width: 100%;
-	height: $indicator-progress-bar-thumb-size;
+	height: $scrollbar-thumb-size;
+	html.slider-opened & {
+		border-radius: 2px;
+		height: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
+		height: 75%;
+	}
 }
 
-div#bibi-indicator-progress-bar {
+div#bibi-slider {
 	box-sizing: border-box;
-	display: none; html.view-paged & { display: block; }
-	position: absolute;
-	z-index: $z-index_indicator-progress-bar;
-	left: 0; right: 0; top: auto; bottom: 0;
+	display: block;
+	overflow: hidden;
+	position: fixed;
+	z-index: $z-index_slider;
+	bottom: 0;
 	width: 100%;
-	height: $indicator-progress-bar-track-size;
-	border-top: solid 1px $indicator-progress-bar-track-border-color;
-	background: $indicator-progress-bar-track-background-color;
+	border-top: solid 0 $scrollbar-track-border-color;
+	background: $scrollbar-track-background-color;
+	cursor: pointer;
+	&,
+	#bibi-slider-currentpagebits:before,
+	#bibi-slider-currentpagebits:after {
+		transition: linear .1s;
+		html.slider-sliding & {
+			transition: none;
+		}
+	}
+	html.view-paged & {
+		border-top-width: 1px;
+		height: $scrollbar-track-size;
+	}
+	html.view-horizontal &,
+	html.view-vertical &,
+	html.iOS &,
+	html.Android & {
+		border-top-width: 0;
+		height: 0;
+	}
+	html.slider-opened & {
+		border-top-width: 1px !important;
+		height: $slider-size !important;
+		background: rgba($scrollbar-track-background-color, 0.98);
+	}
 }
-	div#bibi-indicator-progress-bar-pages {
-		position: absolute;
-		z-index: 2;
-		left: 0; right: 0; top: auto; bottom: 0;
-		width: 100%;
-		height: $indicator-progress-bar-track-size;
-		>div { // page-box
+	div#bibi-slider-spreads,
+	div#bibi-slider-pages,
+	div#bibi-slider-currentpages {
+		div {
 			box-sizing: border-box;
-			overflow: hidden;
+			display: block;
 			position: absolute;
 			bottom: 0;
 			height: 100%;
-			div, &:before, &:after {
-				display: block;
-				transition: linear 0.1s;
-			}
-			&:before, &:after {
-				content: "";
-			}
-			div {
-				@include nombre-base();
-				left: -100%; right: -100%; 
-				width: 3em;
-				background: gold;
-				opacity: 0;
-			}
-			&:before { // highlighter
-				@include bibi-indicator-progress-bar-thumb-base();
-				border: none 0;
-				background: rgba(gold, 0.5);
-				opacity: 0;
-			}
-			&:after { // ruler
-				box-sizing: border-box;
-				position: absolute;
-				bottom: 0;
-				width: 1px;
-				height: ($indicator-progress-bar-track-size - $indicator-progress-bar-thumb-size) * 0.5;
-				background: rgba($indicator-progress-bar-thumb-background-color, 0.75);
-				html.page-rtl & { left:  0; }
-				html.page-ltr & { right: 0; }
-			}
-			&:last-child:after { display: none; }
-		}
-		>div.hover {
-			overflow: visible;
-			div, &:before {
-				opacity: 1;
-			}
+			//transition: 0.05s linear;
 		}
 	}
-	div#bibi-indicator-progress-bar-current {
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-		z-index: 1;
-		html.page-ltr & { right: 0; }
-		html.page-rtl & { left: 0; }
-		bottom: 0;
-		height: 100%;
-		transition: 0.05s linear;
-		&:before, &:after {
-			@include bibi-indicator-progress-bar-thumb-base();
-			border: none 0;
-			background: rgba($indicator-progress-bar-thumb-background-color, 0.5);
-		}
-		&:before {
-			content: "";
-			display: block;
-			width: 100%;
-		}
-		&.two-pages {
-			&:before, &:after {
-				width: 50%;
-			}
+	div#bibi-slider-spreads {
+		div {
+			z-index: 1;
+			//overflow: hidden;
 			&:before {
-				html.page-ltr & { left: 0; }
-				html.page-rtl & { right: 0; }
-			}
-			&:after {
 				content: "";
 				display: block;
-				html.page-ltr & { right: 0; }
-				html.page-rtl & { left: 0; }
+				position: absolute;
+				top: 0; bottom: 0; margin: auto;
+				width: 1px;
+				height: 4px;
+				background: rgba($scrollbar-thumb-background-color, 0.8);
+				html.appearance-rtl & { right: -0.5px; }
+				html.appearance-ltr & { left: -0.5px; }
+				html.slider-opened & {
+					height: 10%;
+				}
+			}
+			&:first-child:before {
+				display: none;
+			}
+			/*
+			html.appearance-rtl & { background: linear-gradient(to left,  $scrollbar-track-border-color, $scrollbar-track-background-color); }
+			html.appearance-ltr & { background: linear-gradient(to right, $scrollbar-track-border-color, $scrollbar-track-background-color); }
+			*/
+			/*
+			&:nth-child(2n) {
+				background: darken($scrollbar-track-background-color, 5%);
+			}
+			*/
+		}
+	}
+	div#bibi-slider-pages {
+		div {
+			z-index: 2;
+			&:before {
+				@include slider-thumb-base();
+				border-color: transparent;
+				background: transparent;
+			}
+			&.hover {
+				&:before {
+					border-color: rgba($scrollbar-thumb-background-color_hover, 0.4);
+					background: rgba(white, 0.5);
+					html.slider-sliding & {
+						border-color: transparent !important;
+						background: transparent !important;
+					}
+				}
 			}
 		}
 	}
+	div#bibi-slider-currentpages {
+	}
+		div#bibi-slider-currentpagebits {
+			z-index: 3;
+			cursor: pointer;
+			&:before, &:after {
+				@include slider-thumb-base();
+				border-color: $scrollbar-thumb-background-color;
+				background: $scrollbar-thumb-background-color;
+				html.slider-opened & {
+					background: rgba($scrollbar-thumb-background-color, 0.5);
+				}
+			}
+			&.hover {
+				&:before, &:after {
+					border-color: $scrollbar-thumb-background-color_hover !important;
+					background: rgba($scrollbar-thumb-background-color_hover, 0.5) !important;
+				}
+			}
+			&:active,
+			&.active {
+				&:before, &:after {
+					border-color: $scrollbar-thumb-background-color_active !important;
+					background: rgba($scrollbar-thumb-background-color_active, 0.5) !important;
+				}
+			}
+			&.two-pages {
+				&:before {
+					html.page-ltr & { left: 0; }
+					html.page-rtl & { right: 0; }
+				}
+				&:after {
+					html.page-ltr & { right: 0; }
+					html.page-rtl & { left: 0; }
+				}
+				html.slider-opened & {
+					&:before, &:after {
+						width: 50%;
+					}
+					&:after {
+						content: "";
+						display: block;
+					}
+				}
+			}
+		}

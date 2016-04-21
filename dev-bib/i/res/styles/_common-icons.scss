@@ -1,27 +1,4 @@
 // ================================================================================
-// + Icons
-// --------------------------------------------------------------------------------
-
-@mixin icon() {
-	@include font-icon("Font Awesome");
-	display: inline-block;
-	width: 1.2em;
-	height: 1em;
-}
-
-*[class*="bibi-with-icon"] { &:before { @include icon(); } }
-
-.bibi-with-icon-Twitter    { &:before { content: "\f081"; color: rgb(29,161,242); } }
-.bibi-with-icon-Facebook   { &:before { content: "\f082"; color: rgb(58,89,153); } }
-.bibi-with-icon-GooglePlus { &:before { content: "\f0d4"; color: rgb(219,68,55); } }
-
-.bibi-with-icon-code       { &:before { content: "\f121"; color: gray; } } 
-.bibi-with-icon-anchor     { &:before { content: "\f13d"; color: navy; } }
-
-.bibi-with-icon-colorless  { &:before {                   color: inherit; } }
-
-
-// ================================================================================
 // + BiB/i Logo
 // --------------------------------------------------------------------------------
 
@@ -61,49 +38,39 @@
 // --------------------------------------------------------------------------------
 
 
-// - Vars
-// --------------------------------------------------------------------------------
-
-$button-size: 29px;
-$button-group-margin: 4px;
-
-$shape-item-width: 10px;
-$shape-item-height: 17px;
-$shape-spread-width: $shape-item-width * 2 - 1px;
-$shape-spread-height: $shape-item-height;
-
-
 
 // - Base
 // --------------------------------------------------------------------------------
 
-.bibi-button,
-.bibi-button *,
-.bibi-button:before,
-.bibi-button:after {
-	box-sizing: border-box;
-	display: block;
-	padding: 0;
-	border-style: none;
-	border-width: 0;
-	text-align: center;
-	vertical-align: middle;
-	text-decoration: none;
-}
-
-.bibi-button {
-	overflow: hidden;
-	position: relative;
-	border: solid 1px;
-	border-radius: 2px;
-	width: $button-size;
-	height: $button-size;
-	&:before, &:after, * {
+.bibi-icon {
+	&,
+	& *,
+	&:before {
+		box-sizing: border-box;
+		display: inline-block;
+		padding: 0;
+		border-style: none;
+		border-width: 0;
+		text-align: center;
+		vertical-align: middle;
+		text-decoration: none;
+	}
+	& {
+		overflow: hidden;
+		position: relative;
+		border: solid 1px;
+		border-radius: 3px;
+		width: $icon-size;
+		height: $icon-size;
+	}
+	.bibi-subpanel & {
+		width: $icon-size_in-subpanel;
+		height: $icon-size_in-subpanel;
+	}
+	& *,
+	&:before {
 		position: absolute;
 		margin: 0;
-	}
-	&>span.bibi-button-label {
-		font-size: 0;
 	}
 }
 
@@ -111,9 +78,19 @@ $shape-spread-height: $shape-item-height;
 // - Shapes
 // --------------------------------------------------------------------------------
 
-.bibi-button-view-paged,
-.bibi-button-view-horizontal,
-.bibi-button-view-vertical {
+$shape-item-width: 9px;
+$shape-item-height: 16px;
+$shape-spread-width: $shape-item-width * 2 - 1px;
+$shape-spread-height: $shape-item-height;
+
+$shape-item-width_in-subpanel: 7px;
+$shape-item-height_in-subpanel: 11px;
+$shape-spread-width_in-subpanel: $shape-item-width_in-subpanel * 2 - 1px;
+$shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
+
+.bibi-icon-view-paged,
+.bibi-icon-view-horizontal,
+.bibi-icon-view-vertical {
 	span.bibi-shape-spreads {
 		left: 0;
 		right: 0;
@@ -135,78 +112,56 @@ $shape-spread-height: $shape-item-height;
 				&:first-child { left: 0; }
 				&:last-child  { left: ($shape-item-width - 1px); }
 			}
-			/*
-			span.bibi-shape-item:first-child,
-			span.bibi-shape-item:last-child {
-				&:before, &:after {
-					display: block;
-					position: absolute;
-					left: -100%; right: -100%; top: -100%; bottom: -100%; margin: auto;
-					width: 100%; height: 100%;
-					line-height: $shape-item-height * 1.33;
-					font-size: 10px;
-					text-align: center;
-					vertical-align: middle;
-					transform: scale($shape-item-width / 10px * 0.7);
-				}
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		width: $shape-spread-width_in-subpanel;
+		height: $shape-spread-height_in-subpanel;
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				width: $shape-item-width_in-subpanel;
+				height: $shape-item-height_in-subpanel;
+				&:last-child  { left: ($shape-item-width_in-subpanel - 1px); }
 			}
-			&:first-child, &:last-child {
-				span.bibi-shape-item:first-child,
-				span.bibi-shape-item:last-child {
-					&:before, &:after {
-						display: none;
-					}
-				}
-			}
-			*/
 		}
 	}
 }
 
-.bibi-button-view-paged {
+.bibi-icon-view-paged {
 	span.bibi-shape-spreads-paged {
 		span.bibi-shape-spread {
 			&:first-child { display: none; }
 			&:last-child  { display: none; }
-			/*
-			span.bibi-shape-item:first-child {
-				&:before { content: "P"; }
-			}
-			*/
 		}
 	}
 }
 
-.bibi-button-view-horizontal {
+.bibi-icon-view-horizontal {
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
 			&:first-child { left: ($shape-spread-width + 1px) * -1; }
 			&:last-child  { left: ($shape-spread-width + 1px); }
-			/*
-			span.bibi-shape-item:first-child {
-				&:before { content: "H"; }
-			}
-			span.bibi-shape-item:last-child {
-			//	&:before { content: "S"; }
-			}
-			*/
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			&:first-child { left: ($shape-spread-width_in-subpanel + 1px) * -1; }
+			&:last-child  { left: ($shape-spread-width_in-subpanel + 1px); }
 		}
 	}
 }
 
-.bibi-button-view-vertical {
+.bibi-icon-view-vertical {
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
-			&:first-child { top: ($shape-spread-height + 2px) * -1; }
-			&:last-child  { top: ($shape-spread-height + 2px); }
-			/*
-			span.bibi-shape-item:first-child {
-				&:before { content: "V"; }
-			}
-			span.bibi-shape-item:last-child {
-			//	&:before { content: "S"; }
-			}
-			*/
+			&:first-child { top: ($shape-spread-height + 1px) * -1; }
+			&:last-child  { top: ($shape-spread-height + 1px); }
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			&:first-child { top: ($shape-spread-height_in-subpanel + 1px) * -1; }
+			&:last-child  { top: ($shape-spread-height_in-subpanel + 1px); }
 		}
 	}
 }
@@ -215,46 +170,44 @@ $shape-spread-height: $shape-item-height;
 // - Bars
 // --------------------------------------------------------------------------------
 
-.bibi-button-toggle-panel {
+.bibi-icon-toggle-panel {
 	$bar-width: 19px;
 	$bar-height: 2px;
 	$bar-isolation: 4px;
 	$bar-block-height: $bar-height + $bar-isolation;
 	$bars-width: $bar-width;
 	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
-	$bars-top: ($button-size - $bars-height) / 2 - 1px;
-	&:before, &>span.bibi-button-label, &:after {
+	$bars-top: ($icon-size - $bars-height) / 2 - 0.5px;
+	>span {
 		left: 0;
 		right: 0;
 		margin: auto;
-		//border-bottom: solid 1px;
 		width: $bar-width;
 		height: $bar-height;
 		border-radius: 1px;
-		transition: .125s linear;
 	}
-	&:before, &:after {
-		content: "";
-		display: block;
-		position: absolute;
+	& {
+		>span.bar-1 {
+			top: $bars-top;
+		}
+		>span.bar-2 {
+			top: $bars-top + $bar-block-height;
+		}
+		>span.bar-3 {
+			top: $bars-top + $bar-block-height * 2;
+		}
 	}
-	&:before {
-		top: $bars-top;
-	}
-	&>span.bibi-button-label {
-		top: $bars-top + $bar-block-height;
-	}
-	&:after {
-		top: $bars-top + $bar-block-height * 2;
-	}
-	&.active {
-		&:before {
+	.bibi-button.active & {
+		>span.bar-1 {
+			opacity: 1;
 			transform: translateY(($bar-isolation + $bar-height) *  1) rotate(135deg);
 		}
-		&>span.bibi-button-label {
+		>span.bar-2 {
 			opacity: 0;
+			transform: rotate(-360deg);
 		}
-		&:after {
+		>span.bar-3 {
+			opacity: 1;
 			transform: translateY(($bar-isolation + $bar-height) * -1) rotate(225deg);
 		}
 	}
@@ -264,13 +217,12 @@ $shape-spread-height: $shape-item-height;
 // - Icon Fonts
 // --------------------------------------------------------------------------------
 
-.bibi-button-toggle-touch,
-.bibi-button-share,
-.bibi-button-open-newwindow,
-.bibi-button-toggle-fullscreen {
+.bibi-icon-setting,
+.bibi-icon-share,
+.bibi-icon-toggle-fullscreen,
+.bibi-icon-open-newwindow {
 	text-decoration: none;
 	&:before {
-		@include font-icon("Material Icons");
 		left: 0;
 		right: 0;
 		top: 0;
@@ -280,45 +232,70 @@ $shape-spread-height: $shape-item-height;
 		height: 100%;
 		text-align: center;
 		vertical-align: middle;
+		line-height: $icon-size * 0.98;
+		.bibi-subpanel & {
+			line-height: $icon-size_in-subpanel * 0.98;
+		}
 	}
 }
 
-.bibi-button-toggle-touch {
+.bibi-icon-setting {
 	&:before {
-		content: /*touch_app*/ "\e913";
-		line-height: $button-size * 0.98;
-		font-size: $button-size * 0.72;
+	//	@include font-icon("Material Icons");
+	//	content: /*touch_app*/ "\e8b8";
+	//	@include font-icon("Font Awesome");
+	//	content: "\f013"; // cog
+	//	font-size: $icon-size * 23/31;
+		@include font-icon("Elegant Icons");
+		content: "\e037"; // icon_cog
+		font-size: $icon-size * 19/31;
 	}
 }
 
-.bibi-button-share {
+.bibi-icon-share {
 	&:before {
-		content: /*share*/ "\e80d";
-		line-height: $button-size * 0.98;
-		font-size: $button-size * 0.72;
+	//	@include font-icon("Material Icons");
+	//	content: /*share*/ "\e80d";
+	//	@include font-icon("Font Awesome");
+	//	content: "\f064"; // share
+	//	content: "\f045"; // share-square-o
+	//	content: "\f1e0"; // share-alt
+		@include font-icon("Elegant Icons");
+		content: "\e0a0"; // social_share
+		font-size: $icon-size * 16/31;
 	}
 }
 
-.bibi-button-open-newwindow {
+.bibi-icon-toggle-fullscreen {
 	&:before {
-		content: /*open_in_new*/ "\e89e";
-		line-height: $button-size * 0.98;
-		font-size: $button-size * 0.72;
+		//@include font-icon("Material Icons");
+		@include font-icon("Font Awesome");
+		.bibi-subpanel & {
+			font-size: $icon-size_in-subpanel * 5/7;
+		}
+	}
+	&:before {
+		//content: /*fullscreen*/ "\e5d0";
+		content: "\f065"; // expand
+	}
+	*:fullscreen &:before {
+		//content: /*fullscreen_exit*/ "\e5d1";
+		content: "\f066"; // compress
 	}
 }
 
-.bibi-button-toggle-fullscreen {
+.bibi-icon-open-newwindow {
 	&:before {
-		line-height: $button-size * 0.96;
-		font-size: $button-size * 0.94;
-	}
-	&:before,
-	&.hover:before {
-		content: /*fullscreen*/ "\e5d0";
-	}
-	&.active:before,
-	&.active.hover:before {
-		content: /*fullscreen_exit*/ "\e5d1";
+	//	@include font-icon("Material Icons");
+	//	content: /*open_in_new*/ "\e89e";
+		@include font-icon("Font Awesome");
+		content: "\f08e"; // external-link
+		font-size: $icon-size * 21/31;
+		.bibi-subpanel & {
+			margin-top: .06em;
+			margin-left: .09em;
+			font-size: $icon-size_in-subpanel * 13/21;
+		}
 	}
 }
 
@@ -333,47 +310,83 @@ $shape-spread-height: $shape-item-height;
 // - Vars
 // --------------------------------------------------------------------------------
 
-$button-color_font-paint:    gray;
-$button-color_font-outline:  transparent;
-$button-color_shape-paint:   white;
-$button-color_shape-outline: $button-color_font-paint;
-$button-color_background:    rgba(248,248,248, 0.9);
-$button-color_border:        lighten($button-color_font-paint, 20%);
+// Default
+$icon-color_font-paint:    rgb(144,144,144);
+$icon-color_font-outline:  transparent;
+$icon-color_shape-paint:   white;
+$icon-color_shape-outline: $icon-color_font-paint;
+$icon-color_background:    rgba(white, 0.9);
+$icon-color_border:        rgb(236,236,236);
 
-$button-color_hover_font-paint:    darken($button-color_font-paint, 15%);
-$button-color_hover_font-outline:  $button-color_font-outline;
-$button-color_hover_shape-paint:   $button-color_shape-paint;
-$button-color_hover_shape-outline: $button-color_hover_font-paint;
-$button-color_hover_background:    darken($button-color_background, 15%);
-$button-color_hover_border:        $button-color_border;
+// Default in Sub Panel
+$icon-color_font-paint_in-subpanel:    rgb(128,128,128);
+$icon-color_font-outline_in-subpanel:  transparent;
+$icon-color_shape-paint_in-subpanel:   white;
+$icon-color_shape-outline_in-subpanel: rgb(144,144,144);
+$icon-color_background_in-subpanel:    rgb(248,248,248);
+$icon-color_border_in-subpanel:        rgb(192,192,192);
 
-$button-color_active_font-paint:    $button-color_shape-paint;
-$button-color_active_font-outline:  $button-color_font-paint;
-$button-color_active_shape-paint:   $button-color_shape-paint;
-$button-color_active_shape-outline: $button-color_font-paint;
-$button-color_active_background:    darken($button-color_background, 50%);
-$button-color_active_border:        darken($button-color_border, 20%);
+// Default:Hover
+$icon-color_default-hover_font-paint:    rgb(64,64,64);
+$icon-color_default-hover_font-outline:  $icon-color_font-outline;
+$icon-color_default-hover_shape-paint:   $icon-color_shape-paint;
+$icon-color_default-hover_shape-outline: $icon-color_default-hover_font-paint;
+$icon-color_default-hover_background:    $icon-color_background;
+$icon-color_default-hover_border:        rgb(192,192,192);
 
-$button-color_active-hover_font-paint:    $button-color_active_font-paint;
-$button-color_active-hover_font-outline:  lighten($button-color_active_font-outline, 10%);
-$button-color_active-hover_shape-paint:   $button-color_active_shape-paint;
-$button-color_active-hover_shape-outline: lighten($button-color_active_shape-outline, 10%);
-$button-color_active-hover_background:    lighten($button-color_active_background, 15%);
-$button-color_active-hover_border:        lighten($button-color_active_border, 10%);
+// Default:Hover in Sub Panel
+$icon-color_default-hover_font-paint_in-subpanel:    $color_blue-hilight;
+$icon-color_default-hover_font-outline_in-subpanel:  transparent;
+$icon-color_default-hover_shape-paint_in-subpanel:   white;
+$icon-color_default-hover_shape-outline_in-subpanel: $color_blue-hilight;
+$icon-color_default-hover_background_in-subpanel:    lighten($color_blue-hilight, 45%);
+$icon-color_default-hover_border_in-subpanel:        $color_blue-hilight;
+
+// Active
+$icon-color_active_font-paint:    $icon-color_background;
+$icon-color_active_font-outline:  transparent;
+$icon-color_active_shape-paint:   $icon-color_shape-paint;
+$icon-color_active_shape-outline: $icon-color_font-paint;
+$icon-color_active_background:    $icon-color_font-paint;
+$icon-color_active_border:        darken($icon-color_border, 30%);
+
+// Active in Sub Panel
+$icon-color_active_font-paint_in-subpanel:    white;
+$icon-color_active_font-outline_in-subpanel:  transparent;
+$icon-color_active_shape-paint_in-subpanel:   white;
+$icon-color_active_shape-outline_in-subpanel: $color_blue-hilight;
+$icon-color_active_background_in-subpanel:    $color_blue-hilight;
+$icon-color_active_border_in-subpanel:        $color_blue-hilight;
+
+// Active:Hover
+$icon-color_active-hover_font-paint:    $icon-color_active_font-paint;
+$icon-color_active-hover_font-outline:  transparent;
+$icon-color_active-hover_shape-paint:   $icon-color_active_shape-paint;
+$icon-color_active-hover_shape-outline: lighten($icon-color_active_shape-outline, 10%);
+$icon-color_active-hover_background:    rgb(96,96,96);
+$icon-color_active-hover_border:        lighten($icon-color_active_border, 10%);
+
+// Active:Hover in Sub Panel
+$icon-color_active-hover_font-paint_in-subpanel:    white;
+$icon-color_active-hover_font-outline_in-subpanel:  transparent;
+$icon-color_active-hover_shape-paint_in-subpanel:   white;
+$icon-color_active-hover_shape-outline_in-subpanel: $color_blue-hilight;
+$icon-color_active-hover_background_in-subpanel:    lighten($color_blue-hilight, 20%);
+$icon-color_active-hover_border_in-subpanel:        $color_blue-hilight;
 /*
-$button-color_hover_font-paint: $button-color_shape-paint;
-$button-color_hover_font-outline: $button-color_font-paint;
-$button-color_hover_shape-paint: $button-color_shape-paint;
-$button-color_hover_shape-outline: $button-color_hover_font-outline;
-$button-color_hover_background: rgba($button-color_font-paint, 0.8);
-$button-color_hover_border: $button-color_font-paint;
+$icon-color_default-hover_font-paint: $icon-color_shape-paint;
+$icon-color_default-hover_font-outline: $icon-color_font-paint;
+$icon-color_default-hover_shape-paint: $icon-color_shape-paint;
+$icon-color_default-hover_shape-outline: $icon-color_hover_font-outline;
+$icon-color_default-hover_background: rgba($icon-color_font-paint, 0.8);
+$icon-color_default-hover_border: $icon-color_font-paint;
 
-$button-color_active_font-paint: $button-color_shape-paint;
-$button-color_active_font-outline: darken(pink, 5%);
-$button-color_active_shape-paint: $button-color_shape-paint;
-$button-color_active_shape-outline: darken(pink, 5%);
-$button-color_active_background: lighten(pink, 5%);
-$button-color_active_border: darken(pink, 5%);
+$icon-color_active_font-paint: $icon-color_shape-paint;
+$icon-color_active_font-outline: darken(pink, 5%);
+$icon-color_active_shape-paint: $icon-color_shape-paint;
+$icon-color_active_shape-outline: darken(pink, 5%);
+$icon-color_active_background: lighten(pink, 5%);
+$icon-color_active_border: darken(pink, 5%);
 */
 
 
@@ -393,7 +406,7 @@ $button-color_active_border: darken(pink, 5%);
 		 0px  0px 1px $color;
 }
 
-@mixin colour-buttons(
+@mixin colour-icons(
 	$color_font-paint,
 	$color_font-outline,
 	$color_shape-paint,
@@ -401,6 +414,7 @@ $button-color_active_border: darken(pink, 5%);
 	$color_background,
 	$color_border
 ) {
+	color: $color_border;
 	border-color: $color_border;
 	background-color: $color_background;
 	&:before {
@@ -413,18 +427,10 @@ $button-color_active_border: darken(pink, 5%);
 				border-color: $color_shape-outline;
 				background-color: $color_shape-paint;
 			}
-			/*
-			span.bibi-shape-item:first-child,
-			span.bibi-shape-item:last-child {
-				&:before, &:after {
-					color: rgba($color_shape-outline, 0.75);
-				}
-			}
-			*/
 		}
 	}
-	&.bibi-button-toggle-panel {
-		&:before, &>span.bibi-button-label, &:after {
+	&.bibi-icon-toggle-panel {
+		>span {
 			background-color: $color_font-paint;
 			@include outline-color("box", $color_font-outline);
 		}
@@ -435,86 +441,170 @@ $button-color_active_border: darken(pink, 5%);
 // - Default
 // --------------------------------------------------------------------------------
 
-.bibi-button {
-	@include colour-buttons(
-		$button-color_font-paint,
-		$button-color_font-outline,
-		$button-color_shape-paint,
-		$button-color_shape-outline,
-		$button-color_background,
-		$button-color_border
+.bibi-icon {
+	@include colour-icons(
+		$icon-color_font-paint,
+		$icon-color_font-outline,
+		$icon-color_shape-paint,
+		$icon-color_shape-outline,
+		$icon-color_background,
+		$icon-color_border
 	);
-	transition: 0.25s linear;
-	&:before, &:after, * {
-		transition: 0.25s linear;
+	.bibi-subpanel & {
+		@include colour-icons(
+			$icon-color_font-paint_in-subpanel,
+			$icon-color_font-outline_in-subpanel,
+			$icon-color_shape-paint_in-subpanel,
+			$icon-color_shape-outline_in-subpanel,
+			$icon-color_background_in-subpanel,
+			$icon-color_border_in-subpanel
+		);
 	}
-}/*
-.bibi-button-toggle {
-	&:before {
-		opacity: 0.5;
+	&, &:before, * {
+		transition:
+			color 0.125s linear,
+			background-color 0.125s linear,
+			border-color 0.125s linear,
+			text-shadow 0.125s linear,
+			box-shadow 0.125s linear,
+			transform 0.25s ease
+		;
 	}
 }
-.bibi-button-toggle-panel {
-	&:before {
-		opacity: 1;
-	}
-}*/
 
 
-// - Hover
+// - Default:Hover
 // --------------------------------------------------------------------------------
 
-.bibi-button.hover {
-	@include colour-buttons(
-		$button-color_hover_font-paint,
-		$button-color_hover_font-outline,
-		$button-color_hover_shape-paint,
-		$button-color_hover_shape-outline,
-		$button-color_hover_background,
-		$button-color_hover_border
+.bibi-button.default.hover .bibi-icon,
+.bibi-button.default:hover .bibi-icon {
+	@include colour-icons(
+		$icon-color_default-hover_font-paint,
+		$icon-color_default-hover_font-outline,
+		$icon-color_default-hover_shape-paint,
+		$icon-color_default-hover_shape-outline,
+		$icon-color_default-hover_background,
+		$icon-color_default-hover_border
 	);
+	.bibi-subpanel & {
+		@include colour-icons(
+			$icon-color_default-hover_font-paint_in-subpanel,
+			$icon-color_default-hover_font-outline_in-subpanel,
+			$icon-color_default-hover_shape-paint_in-subpanel,
+			$icon-color_default-hover_shape-outline_in-subpanel,
+			$icon-color_default-hover_background_in-subpanel,
+			$icon-color_default-hover_border_in-subpanel
+		);
+		transition: inherit;
+	}
 	cursor: pointer;
-	&.bibi-button-radio.active {
-		cursor: default;
-	}
-	transition: 0.125s linear;
-	&:before, &:after, * {
-		transition: 0.125s linear;
-	}
+}
+
+.bibi-button-radio.active .bibi-icon {
+	cursor: default;
 }
 
 
 // - Active
 // --------------------------------------------------------------------------------
 
-.bibi-button.active {
-	@include colour-buttons(
-		$button-color_active_font-paint,
-		$button-color_active_font-outline,
-		$button-color_active_shape-paint,
-		$button-color_active_shape-outline,
-		$button-color_active_background,
-		$button-color_active_border
+.bibi-button.active .bibi-icon {
+	@include colour-icons(
+		$icon-color_active_font-paint,
+		$icon-color_active_font-outline,
+		$icon-color_active_shape-paint,
+		$icon-color_active_shape-outline,
+		$icon-color_active_background,
+		$icon-color_active_border
 	);
-}/*
-.bibi-button-toggle.active {
 	&:before {
-		opacity: 1;
+		transform: rotate(360deg);
 	}
-}*/
+	.bibi-subpanel & {
+		@include colour-icons(
+			$icon-color_active_font-paint_in-subpanel,
+			$icon-color_active_font-outline_in-subpanel,
+			$icon-color_active_shape-paint_in-subpanel,
+			$icon-color_active_shape-outline_in-subpanel,
+			$icon-color_active_background_in-subpanel,
+			$icon-color_active_border_in-subpanel
+		);
+	}
+}
 
 
-// - Active & Hover
+// - Active:Hover
 // --------------------------------------------------------------------------------
 
-.bibi-button-normal.active.hover,
-.bibi-button-toggle.active.hover {
-	@include colour-buttons(
-		$button-color_active-hover_font-paint,
-		$button-color_active-hover_font-outline,
-		$button-color_active-hover_shape-paint,
-		$button-color_active-hover_shape-outline,
-		$button-color_active-hover_background,
-		$button-color_active-hover_border
+.bibi-button-normal.active.hover .bibi-icon,
+.bibi-button-normal.active:hover .bibi-icon,
+.bibi-button-toggle.active.hover .bibi-icon,
+.bibi-button-toggle.active:hover .bibi-icon {
+	@include colour-icons(
+		$icon-color_active-hover_font-paint,
+		$icon-color_active-hover_font-outline,
+		$icon-color_active-hover_shape-paint,
+		$icon-color_active-hover_shape-outline,
+		$icon-color_active-hover_background,
+		$icon-color_active-hover_border
 	);
+	.bibi-subpanel & {
+		@include colour-icons(
+			$icon-color_active-hover_font-paint_in-subpanel,
+			$icon-color_active-hover_font-outline_in-subpanel,
+			$icon-color_active-hover_shape-paint_in-subpanel,
+			$icon-color_active-hover_shape-outline_in-subpanel,
+			$icon-color_active-hover_background_in-subpanel,
+			$icon-color_active-hover_border_in-subpanel
+		);
+	}
+	cursor: pointer;
 }
+
+
+
+
+// ================================================================================
+// + Font Icons
+// --------------------------------------------------------------------------------
+
+@mixin fa-icon($content, $color) {
+	margin-top: .05em;
+	margin-right: -.1em;
+	background: transparent !important;
+	font-size: $icon-size * .6;
+	line-height: $icon-size * .96;
+	.bibi-subpanel & {
+		font-size: $icon-size_in-subpanel * .6;
+		line-height: $icon-size_in-subpanel * .96;
+	}
+	&:before {
+		@include font-icon("Font Awesome");
+		display: inline-block;
+		content: $content;
+		color: $color !important;
+		left: 0; right: 0; top: 0; bottom: 0; margin: auto;
+		box-shadow: none !important;
+	}
+}
+
+@mixin fa-icon-SNS($content, $color) {
+	@include fa-icon($content, $color);
+	border: none 0;
+	border-radius: 0;
+	font-size: $icon-size;
+	.bibi-subpanel & {
+		font-size: $icon-size_in-subpanel;
+	}
+}
+
+.bibi-icon-Twitter    { @include fa-icon-SNS("\f081", rgb(29,161,242)); }
+.bibi-icon-Facebook   { @include fa-icon-SNS("\f082", rgb(58,89,153)); }
+.bibi-icon-GooglePlus { @include fa-icon-SNS("\f0d4", rgb(219,68,55)); }
+
+.bibi-icon-code       { @include fa-icon("\f121", rgb(128,160,0)); } 
+.bibi-icon-anchor     { @include fa-icon("\f13d", navy); }
+
+.bibi-icon-colorless  { &:before { color: inherit; } }
+
+

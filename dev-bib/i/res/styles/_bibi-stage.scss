@@ -16,11 +16,15 @@ html {
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	background: $bibi-background;
+	background: $bibi-background;/*
 	&[data-bibi-cursor="left"]   { cursor: w-resize; }
 	&[data-bibi-cursor="right"]  { cursor: e-resize; }
 	&[data-bibi-cursor="top"]    { cursor: n-resize; }
-	&[data-bibi-cursor="bottom"] { cursor: s-resize; }
+	&[data-bibi-cursor="bottom"] { cursor: s-resize; }*/
+	&[data-bibi-cursor="left"],
+	&[data-bibi-cursor="right"],
+	&[data-bibi-cursor="top"],
+	&[data-bibi-cursor="bottom"] { cursor: pointer; }
 }
 
 body {
@@ -36,33 +40,43 @@ body {
 }
 
 html.WebKit, html.Blink {
-	::-webkit-scrollbar {
+	::-webkit-scrollbar { // scrollbar
 		height: $scrollbar-track-size;
 		width: $scrollbar-track-size;
 	}
-	::-webkit-scrollbar-track {
+	::-webkit-scrollbar-track { // scrollbar track
 		background: $scrollbar-track-background-color;
 	}
-	::-webkit-scrollbar-thumb {
+	::-webkit-scrollbar-thumb { // scrollbar thumb
 		border-radius: $scrollbar-track-size * 0.5;
 		border: solid (($scrollbar-track-size - $scrollbar-thumb-size) * 0.5) $scrollbar-track-background-color;
 		background: $scrollbar-thumb-background-color;
 		&:hover {
-			background: lighten($scrollbar-thumb-background-color, 10%);
+			background: $scrollbar-thumb-background-color_hover;
+		}
+		&:active {
+			background: $scrollbar-thumb-background-color_active;
 		}
 	}
 	&.view-horizontal, &.view-vertical {
-		body:after {
+		body:after { // scrollbar border
 			content: "";
 			display: block;
 			position: fixed;
 			z-index: $z-index_scrollbar;
 			margin: auto;
 			background: $scrollbar-track-border-color;
+			transition: opacity .1s linear;
+			opacity: 1;
+		}
+	}
+	&.busy {
+		body:after { // scrollbar border
+			opacity: 0;
 		}
 	}
 	&.view-horizontal {
-		body:after {
+		body:after { // scrollbar border
 			left: 0; right: 0; top: auto;
 			bottom: $scrollbar-track-size - 1px;
 			width: 100%;
@@ -70,7 +84,7 @@ html.WebKit, html.Blink {
 		}
 	}
 	&.view-vertical {
-		body:after {
+		body:after { // scrollbar border
 			top: 0; bottom: 0; left: auto;
 			right: $scrollbar-track-size - 1px;
 			width: 1px;
@@ -78,7 +92,7 @@ html.WebKit, html.Blink {
 		}
 	}
 	&.iOS, &.Android {
-		body:after {
+		body:after { // scrollbar border
 			display: none !important;
 		}
 	}
@@ -115,11 +129,16 @@ div#bibi-main {
 	//transition: .2s ease-out;
 	position: fixed;
 	z-index: $z-index_main;
-	width: 100%; height: 100%;
+	//padding-top: $top-bar-height;
+	width: 100%;
+	height: 100%;
+	transition: .2s ease;
 	html.view-horizontal & { overflow-x: scroll; }
 	html.view-vertical   & { overflow-y: scroll; }
+	html.busy & {
+		opacity: 0.19;
+	}
 	html.panel-opened & {
-		transition: .2s ease-in;
 		//filter: blur(4px);
 		opacity: 0.75;
 	}
@@ -141,6 +160,7 @@ div#bibi-main {
 		position: relative;
 		z-index: $z-index_main-book;
 		width: 100%;
+		//height: calc(100% - #{$top-bar-height});
 		height: 100%;
 		transition: 0.5s ease-in-out;
 		transition-property: transform;
@@ -180,8 +200,8 @@ div#bibi-main {
 					div.spread-box.pre-paginated &.page-spread-right { float: right; }
 					html.book-pre-paginated.view-paged & {
 						//transition: opacity 0.05s linear;
-						opacity: 0.6;
-						//filter: blur(2px);
+						//opacity: 0.4;
+						//filter: blur(1px);
 						&.current {
 							opacity: 1;
 							filter: none;

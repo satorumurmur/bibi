@@ -23,11 +23,11 @@ Bibi.x({
     O.ZippedEPUBAvailable = true;
 
     // Catcher
-    var CatcherLabel = "Drop me an EPUB file or click me...";
-    C.Veil.Catcher = C.Veil.appendChild(
-        sML.create("p", { id: "bibi-veil-catcher", title: CatcherLabel, innerHTML: '<span>' + CatcherLabel + '</span>' }, { display: "none" })
+    var CatcherLabel = "<strong>Give Me an EPUB File!</strong> <span>Please Drop Me It.</span> <small>(or Click Me and Select)</small>";
+    I.Veil.Catcher = I.Veil.appendChild(
+        sML.create("p", { id: "bibi-veil-catcher", title: CatcherLabel.replace(/<[^>]+>/g, ""), innerHTML: '<span>' + CatcherLabel + '</span>' }, { display: "none" })
     );
-    C.Veil.Catcher.addEventListener("click", function() {
+    I.Veil.Catcher.addEventListener("click", function() {
         if(!this.Input) this.Input = this.appendChild(
             sML.create("input", { type: "file",
                 onchange: function(Eve) {
@@ -37,15 +37,16 @@ Bibi.x({
         );
         this.Input.click();
     });
-    C.Veil.Catcher.dropOrClick = function() {
-        C.Veil.Catcher.style.display = "block";
-        C.note('Drop an EPUB file into this window. Or click and select EPUB file.');
+    I.Veil.Catcher.dropOrClick = function() {
+        sML.addClass(O.HTML, "waiting-file");
+        I.Veil.Catcher.style.display = "block";
+        I.note('Drop an EPUB file into this window. Or click and select an EPUB file.');
     };
     if(!O.Mobile) {
-        document.body.addEventListener("dragenter", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9;    sML.addClass(O.HTML, "dragenter"); }, 1);
-        document.body.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 0.9; }, 1);
-        document.body.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0; sML.removeClass(O.HTML, "dragenter"); }, 1);
-        document.body.addEventListener("drop",      function(Eve) { Eve.preventDefault(); O.Body.style.opacity = 1.0;
+        I.Veil.Catcher.addEventListener("dragenter", function(Eve) { Eve.preventDefault();    sML.addClass(O.HTML, "dragenter"); }, 1);
+        I.Veil.Catcher.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); }, 1);
+        I.Veil.Catcher.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); sML.removeClass(O.HTML, "dragenter"); }, 1);
+        I.Veil.Catcher.addEventListener("drop",      function(Eve) { Eve.preventDefault();
             L.loadBook(Eve.dataTransfer.files[0]);
         }, 1);
     }
@@ -59,7 +60,7 @@ B.loadEPUB = function() {
             B.loadEPUB.unzip(XHR.responseText);
             B.initialize.resolve();
         }).catch(function() {
-            B.loadMimetype().then(function() {
+            B.checkContainerXML().then(function() {
                 B.initialize.resolve();
             }).catch(function() {
                 B.initialize.reject('EPUB Not Found.');
@@ -70,13 +71,14 @@ B.loadEPUB = function() {
             onload  : function() {
                 B.loadEPUB.unzip(this.result);
                 B.initialize.resolve();
+                sML.removeClass(O.HTML, "waiting-file");
             },
             onerror : function() {
                 O.Body.style.opacity = 1;
-                B.initialize.reject('Error. Something trouble...');
+                B.initialize.reject('Something trouble...');
             }
         }).readAsArrayBuffer(B.File);
-        C.Veil.Catcher.style.opacity = 0;
+        I.Veil.Catcher.style.opacity = 0;
     }
 };
 

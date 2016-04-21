@@ -17,7 +17,7 @@ Bibi.x({
 
 })(function() {
 
-    if(!X["Analytics"]["tracking-id"]) return;
+    if(typeof X["Analytics"].Options["tracking-id"] != "string" || !X["Analytics"].Options["tracking-id"]) return;
 
     var BookPath = location.origin + location.pathname + location.search;
 
@@ -26,7 +26,7 @@ Bibi.x({
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-    ga('create', X["Analytics"]["tracking-id"], 'auto', { 'allowLinker': true });
+    ga('create', X["Analytics"].Options["tracking-id"], 'auto', { 'allowLinker': true });
     ga('require', 'linker'); 
     ga('linker:autoLink', (function(Hosts) {
         S["trustworthy-origins"].forEach(function(Origin) {
@@ -35,11 +35,11 @@ Bibi.x({
         return Hosts;
     })([]));
 
-    E.add("bibi:createNavigation", function() {
-        sML.each(C.Panel.BookInfo.Navigation.querySelectorAll("a"), function() {
+    E.add("bibi:created-navigation", function() {
+        sML.each(I.Panel.BookInfo.Navigation.querySelectorAll("a"), function() {
             this.addEventListener("click", function() {
                 ga('send', { hitType: 'event',
-                    eventCategory: 'BiB/i: Navigation Clicked',
+                    eventCategory: 'BiB/i: Clicked Navigation',
                     eventAction: BookPath,
                     eventLabel: this.innerHTML.replace(/<[^>]*>/g, "") + ' - "' + this.getAttribute("data-bibi-original-href") + '"',
                     eventValue: undefined
@@ -48,9 +48,9 @@ Bibi.x({
         });
     });
 
-    E.add("bibi:play:button", function() {
+    E.add("bibi:played:by-button", function() {
         ga('send', { hitType: 'event',
-            eventCategory: 'BiB/i: Play by Button',
+            eventCategory: 'BiB/i: Played by Button',
             eventAction: BookPath,
             eventLabel: "on: " + S["parent-uri"].replace(/#.+$/, ""),
             eventValue: undefined

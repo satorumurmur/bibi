@@ -30,32 +30,29 @@ concat_list = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 clean = function(list) {
-    $.del(list);
+    $.del.sync(list);
     return gulp;
 };
 
 gulp.task('clean_style', function() {
-    return clean(clean_style_list);
+    return clean([
+        './bib/i/res/styles',
+        './bib/i.css'
+    ]);
 });
 
 gulp.task('clean_script', function() {
-    return clean(clean_script_list);
+    return clean([
+        './bib/i/res/scripts',
+        './bib/i/extensions/analytics',
+        './bib/i/extensions/epubcfi',
+        './bib/i/extensions/jatex',
+        './bib/i/extensions/overreflow',
+        './bib/i/extensions/share',
+        './bib/i/extensions/unzipper',
+        './bib/i.js'
+    ]);
 });
-
-var clean_style_list = [
-    './bib/i/res/styles',
-    './bib/i.css'
-];
-
-var clean_script_list = [
-    './bib/i/res/scripts',
-    './bib/i/extensions/analytics',
-    './bib/i/extensions/epubcfi',
-    './bib/i/extensions/jatex',
-    './bib/i/extensions/overreflow',
-    './bib/i/extensions/unzipper',
-    './bib/i.js'
-];
 
 
 
@@ -110,11 +107,6 @@ gulp.task('make_style_pipi', function() {
     });
 });
 
-var make_style_tasks = [
-    'make_style_bibi',
-    'make_style_pipi'
-];
-
 
 
 
@@ -146,10 +138,7 @@ gulp.task('make_script_bibi', function() {
 			'./bower_components/hammerjs/hammer.js',
 			'./bower_components/easing/easing-min.js',
 			'./bower_components/sML/sML.js',
-			'./dev-bib/i/res/scripts/bibi.core.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.mover.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.window-utilities.js',
-			'./dev-bib/i/res/scripts/bibi.cplus.view-changer.js'
+			'./dev-bib/i/res/scripts/bibi.core.js'
         ],
         dist: {
             dir: './bib/i/res/scripts',
@@ -218,6 +207,18 @@ gulp.task('make_script_extension_overreflow', function() {
     });
 });
 
+gulp.task('make_script_extension_share', function() {
+    return make_script({
+        src: [
+			'./dev-bib/i/extensions/share/share.js'
+        ],
+        dist: {
+            dir: './bib/i/extensions/share',
+            name: 'share.js'
+        }
+    });
+});
+
 gulp.task('make_script_extension_unzipper', function() {
     return make_script({
         src: [
@@ -232,16 +233,6 @@ gulp.task('make_script_extension_unzipper', function() {
         }
     });
 });
-
-var make_script_tasks = [
-    'make_script_bibi',
-    'make_script_pipi',
-    'make_script_extension_analytics',
-    'make_script_extension_unzipper',
-    'make_script_extension_epubcfi',
-    'make_script_extension_jatex',
-    'make_script_extension_overreflow'
-];
 
 
 
@@ -283,6 +274,9 @@ gulp.task('watch', function() {
         './dev-bib/i/extensions/overreflow/**/*.js'
     ], ['make_script_extension_overreflow']);
     gulp.watch([
+        './dev-bib/i/extensions/share/**/*.js'
+    ], ['make_script_extension_share']);
+    gulp.watch([
         './dev-bib/i/extensions/unzipper/**/*.js'
     ], ['make_script_extension_unzipper']);
     return gulp;
@@ -301,14 +295,15 @@ gulp.task('watch', function() {
 gulp.task('serve', function() {
     $.browserSync({
         server: {
-            baseDir: './'
+            baseDir: './',
+            index: 'index.html'
         },
         ghostMode: {
             location: true
         }
     });
     return gulp.watch([
-        './bib/i/*.html',
+        './bib/i/index.html',
         './bib/i/presets/*.js',
         './bib/i/res/scripts/*.js',
         './bib/i/extensions/**/*.js'
@@ -324,6 +319,22 @@ gulp.task('serve', function() {
 //-- Build
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
+
+var make_style_tasks = [
+    'make_style_bibi',
+    'make_style_pipi'
+];
+
+var make_script_tasks = [
+    'make_script_bibi',
+    'make_script_pipi',
+    'make_script_extension_analytics',
+    'make_script_extension_epubcfi',
+    'make_script_extension_jatex',
+    'make_script_extension_overreflow',
+    'make_script_extension_share',
+    'make_script_extension_unzipper'
+];
 
 gulp.task('build_style', function() {
     return $.runSequence(

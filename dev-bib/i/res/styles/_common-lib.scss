@@ -3,30 +3,66 @@
 // --------------------------------------------------------------------------------
 
 
-// - Vars
+// ================================================================================
+// + Vars
 // --------------------------------------------------------------------------------
 
-$scrollbar-track-size: 15px;
-$scrollbar-track-background-color: rgb(248,248,248);
-$scrollbar-track-border-color: rgb(232,232,232);
 
-$scrollbar-thumb-size: 7px;
-$scrollbar-thumb-background-color: rgb(160,160,160);
-$scrollbar-thumb-border-color: rgb(176,176,176);
+// - Colors
+// --------------------------------------------------------------------------------
 
 $veil-background: rgb(64,64,64);
 $bibi-background: rgb(64,64,64);
 
-$bottom-bar-height: 36px;
+$color_blue-hilight: saturate(steelblue, 20%);
+
+$scrollbar-track-background-color: rgb(248,248,248);
+$scrollbar-track-border-color: rgb(216,216,216);
+
+$scrollbar-thumb-background-color: rgb(128,128,128);
+$scrollbar-thumb-background-color_hover: rgb(80,80,80);
+$scrollbar-thumb-background-color_active: rgb(32,32,32);
+$scrollbar-thumb-border-color: rgb(176,176,176);
+
+$nombre-box-background-color: rgba(240,240,240,0.9);
+$nombre-box-background-color: rgb(240,240,240);
+
+$nombre-color: rgb(64,64,64);
+$nombre-current-color: darken($nombre-color, 25%);
+$nombre-percent-color: lighten($nombre-color, 25%);
+
+
+// - Sizes
+// --------------------------------------------------------------------------------
+
+$scrollbar-track-size: 16px;
+$scrollbar-thumb-size: 8px;
+
+$icon-size: 31px;
+$icon-size_in-subpanel: 21px;
+
+$button-group-margin: 4px;
+
+$top-bar-height: $icon-size + $button-group-margin * 2;
+$bottom-bar-height: $top-bar-height;
+
+$slider-size: $bottom-bar-height * 2;
+
+$nombre-box-width: 120px;
+$nombre-box-height: 20px;
+
+
+// - Z-Indexes
+// --------------------------------------------------------------------------------
 
 $z-index_main: 1;
 	$z-index_main-book: 1;
-	$z-index_main-arrow: 100;
 	$z-index_main-touchpanel: 10;
 
 $z-index_scrollbar: $z-index_main + 1;
-$z-index_indicator-progress-bar: $z-index_main + 1;
-$z-index_indicator-nombre: $z-index_main + 1;
+$z-index_progress: $z-index_main + 1;
+$z-index_nombre: $z-index_main + 1;
+$z-index_slider: $z-index_main + 10;
 
 $z-index_sub: 10;
 
@@ -40,21 +76,24 @@ $z-index_veil: 100;
 $z-index_panel: 1000;
 	$z-index_panel-bookinfo: 1;
 	$z-index_panel-bottombar: $z-index_panel-bookinfo + 1;
-	$z-index_panel-shade: 100;
 	$z-index_panel-topbar: 1000;
-	$z-index_panel-menu: $z-index_panel-topbar + 1;
-	$z-index_panel-subpanel: 10000;
+
+$z-index_menu: $z-index_panel + 1;
 
 $z-index-help: $z-index_panel + 1;
 $z-index-poweredby: $z-index_panel + 1;
 
-$z-index_switch: 10000;
+$z-index_arrow: $z-index_panel + 1;
+
+$z-index_shade: $z-index_menu - 1;
+$z-index_subpanel: $z-index_menu + 1;
 
 $z-index_notifier-board: 99999999999;
-$z-index_indicator-mark: $z-index_notifier-board - 1;
+$z-index_spinner: $z-index_notifier-board - 1;
 
 
-// - Mix-Ins
+// ================================================================================
+// + Mix-Ins
 // --------------------------------------------------------------------------------
 
 @mixin keyframes($N) { @-webkit-keyframes #{$N} { @content; } @-epub-keyframes #{$N} { @content; } @-moz-keyframes #{$N} { @content; } @-ms-keyframes #{$N} { @content; } @keyframes #{$N} { @content; } }
@@ -86,8 +125,9 @@ $z-index_indicator-mark: $z-index_notifier-board - 1;
 }
 
 
-// - reset
-// -------------------------------------------------------------------------------------------------
+// ================================================================================
+// + Reset
+// --------------------------------------------------------------------------------
 
 * {
     margin: 0;
@@ -110,8 +150,9 @@ figure, figcaption {
 }
 
 
-// - common classes
-// -------------------------------------------------------------------------------------------------
+// ================================================================================
+// + Common Classes
+// --------------------------------------------------------------------------------
 
 .non-visual {
 	display: block !important;

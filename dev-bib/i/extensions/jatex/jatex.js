@@ -160,7 +160,7 @@ Bibi.x({
 })(function() {
 
     // Markup
-    E.bind("bibi:before:postprocessItemContent", function(Item) {
+    E.bind("bibi:is-going-to:postprocess-item-content", function(Item) {
         X.JaTEx.defineMode(Item);
         if(!Item.JaTEx.Markup) return;
         Item.stamp("JaTEx Preprocess Start");
@@ -273,7 +273,7 @@ Bibi.x({
     });
 
     // Ruby
-    E.bind("bibi:postprocessItem", function(Item) {
+    E.bind("bibi:postprocessed-item", function(Item) {
         Item.RubyParents = [];
         sML.each(Item.Body.querySelectorAll("ruby"), function() {
             var RubyParent = this.parentNode;
@@ -290,7 +290,7 @@ Bibi.x({
     });
 
     // Layout
-    E.bind("bibi:postprocessItem", function(Item) {
+    E.bind("bibi:postprocessed-item", function(Item) {
         if(!Item.JaTEx.Layout) return;
         sML.appendStyleRule(".jatex-checker", "display: block;", Item.contentDocument);
         sML.appendStyleRule(".jatex-checker >span", "display: block;", Item.contentDocument);
@@ -303,7 +303,7 @@ Bibi.x({
     });
 
     // Ruby
-    E.bind("bibi:before:resetItem.asReflowableItem.adjustContent", function(Item) {
+    E.bind("bibi:is-going-to:adjust-content", function(Item) {
         if(!sML.UA.Safari && !sML.UA.Chrome) return;
         var RubyParentsLengthWithRubys = [];
         Item.RubyParents.forEach(function(RubyParent) {
@@ -322,7 +322,7 @@ Bibi.x({
     });
 
     // Layout
-    E.bind("bibi:before:resetItem", function(Item) {
+    E.bind("bibi:is-going-to:reset-item", function(Item) {
         if(!Item.JaTEx.Layout) return;
         Item.stamp("JaTEx Reset Start");
         var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);
@@ -334,7 +334,7 @@ Bibi.x({
     });
 
     // Layout
-    E.bind("bibi:resetItem", function(Item) {
+    E.bind("bibi:reset-item", function(Item) {
         if(!Item.JaTEx.Layout) return;
         Item.stamp("JaTEx Layout Start");
         var VerticalWritingMode = /^tb/.test(Item.HTML.WritingMode);

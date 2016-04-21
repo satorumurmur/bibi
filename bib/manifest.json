@@ -3,7 +3,7 @@
 	"version": "0.999.0",
 	"manifest_version": 2,
 	"description": "Chrome Web App of BiB/i",
-	"homepage_url": "http://bibi.epub.link/",
+	"homepage_url": "http://bibi.epub.link",
 	"app": {
 		"launch": {
 			"local_path": "./i/index.html"

@@ -101,61 +101,38 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 ### Requirements
 
-1. [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
-2. [Ruby](https://www.ruby-lang.org/) (+ [RubyGems](http://guides.rubygems.org/)) - guide: “[Installing Ruby](https://www.ruby-lang.org/en/installation/)” (+ “[RubyGems Basics](http://guides.rubygems.org/rubygems-basics/)”)
-3. [Bundler](http://bundler.io/) - how to install: `$ gem update --system` and `$ gem install bundler`
-4. [Bower](http://bower.io) - how to install: `$ npm install -g bower`
-5. [gulp](http://gulpjs.com/) - how to install: `$ npm install -g gulp`
+* [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
 
 
 ### Arrangements
 
 1. Clone [this repository](https://github.com/satorumurmur/bibi/). 
 2. `$ cd <the local repository>`
-3. `$ bundle install --path=vendor/bundle` -> make `vendor/bundle` directory and install RubyGems in it.
-4. `$ npm install` -> make `npm-modules` directory and install modules in it.
-5. `$ bower install` -> make `bower_components` directory and install modules in it.
+3. `$ npm install`
+    - installs modules in `npm-modules` and `bower_components` directories.
 
 
 ### Development
 
-1. Edit source files:
-    - SCSS source files of `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`.
-    - SCSS source files of `bib/i.css` is `dev-bib/i.scss`.
-    - JavaScript source files of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`).
-    - JavaScript source file of `bib/i.js` is `dev-bib/i.js`.
-    - JavaScript source files of the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
-2. `$ gulp build`
-    1. cleans all the distribution files,
-    2. and makes all the distribution files from the source files.
+1. `$ npm start` (or `$ $(npm bin)/gulp`)
+    - builds distribution files,
+    - launches a webserver and opens `http://localhost:3000/bib/i/?book=` in your browser,
+    - watches/rebuilds changed files,
+    - reloads/syncronizes browser(s).
+2. Edit:
+    - SCSS source file(s) of:
+        - `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`,
+        - `bib/i.css` is `dev-bib/i.scss`.
+    - JavaScript source file(s) of:
+        - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`).
+        - `bib/i.js` is `dev-bib/i.js`.
+        - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 
-
-### Other utilities for development:
-
-* `$ gulp`
-    1. cleans all the distribution files,
-    2. makes all the distribution files from the source files,
-    3.
-        1. watches the changes of source files,
-        2. rebuild the distribution files automatically when the source files are changed,
-    4.
-        1. launches a web server listening port 3000 by default,
-        2. opens a browser and load `http://localhost:3000/bib/i/?book=`,
-        3. reloads your browser automatically when the distribution files are changed,
-        4. and syncronizes your browsers on same URI in the web server.
-* `$ bundle exec rackup`
-    - launches a web server listening port 9292 by default,
-    - and the server returns compiled CSS dynamically to your browser's request for the SCSS source files.
-
-The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
-
-
-### Following files are not processed by gulp tasks:
-
-* `bib/i/index.html` ... as portal
-* `bib/manifest.json` ... for using as Chrome application
-* Files in `bib/i/presets/` ... customisable settings and styles
-* Files in `bib/bookshelf/` .... this directory is including `.gitkeep`
+* Following files are not processed by gulp tasks:
+    - `bib/i/index.html`
+    - `bib/manifest.json`
+    - Files in `bib/i/presets/`
+    - Files in `bib/bookshelf/`
 
 
 
@@ -173,7 +150,7 @@ The default task of gulp is `sync`. (`$ gulp` is same as `$ gulp sync`)
 
 ### BiB/i is including and powered by these open source softwares:
 
-* [The Material Icons](https://www.google.com/design/icons/) ... &copy; Google Inc. ([Licensed under the Creative Common Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/))
+* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and MIT license.)
 * [Font Awesome](http://fontawesome.io) ... &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
 * [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
 * [Hammer.JS](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)

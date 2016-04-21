@@ -16,7 +16,7 @@ Bibi.x({
 
 })(function() {
 
-    E.bind("bibi:readPackageDocument", function() {
+    E.bind("bibi:loaded-package-document", function() {
         X.OverReflow.Layer = R.Sub.appendChild(
             sML.create("div", { className: "overreflow-layer hidden",
                 Frames: [],
@@ -50,7 +50,7 @@ Bibi.x({
         });
     });
 
-    E.bind("bibi:loadItem", function(Item) {
+    E.bind("bibi:loaded-item", function(Item) {
         if(!Item.ItemRef["bibi:overreflow"] || !/^idref:/.test(Item.ItemRef["bibi:overreflow"])) return;
         Item.stamp("OverReflow Prepare Start");
         Item.OverReflow = {};

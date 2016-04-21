@@ -21,14 +21,12 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ],
   "devDependencies": {
-    "sML": "sml#^0.999.29",
-    "easing": "*",
     "native-promise-only": "^0.8.0-a",
-    "hammerjs": "hammer.js#^2.0.6"
+    "hammer.js": "^2.0.6",
+    "easing": "*",
+    "sML": "sml#^0.999.31"
   }
 }
