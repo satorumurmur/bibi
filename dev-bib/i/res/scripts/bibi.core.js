@@ -9,7 +9,7 @@
 
 // requires: Native Promiss Only & Hammer.js & easing.js & sML
 
-Bibi = { "version": "0.999.0", "build": 201604210000 };
+Bibi = { "version": "0.999.2", "build": 201604261719 };
 
 
 
@@ -89,22 +89,19 @@ Bibi.welcome = function() {
         O.WindowEmbeddedDetail = "Direct Opened: " + location.origin + location.pathname + location.search;
         O.HTML.className = O.HTML.className + " window-not-embedded";
     } else {
+        O.WindowEmbedded = -1; // true
         O.HTML.className = O.HTML.className + " window-embedded";
-        if(location.host == parent.location.host || parent.location.href) {
-            O.WindowEmbedded = 1; // true
-            O.WindowEmbeddedDetail = "Embedded in: " + parent.location.origin + parent.location.pathname + parent.location.search;
-        } else {
-            O.WindowEmbedded = -1; // true
-            O.WindowEmbeddedDetail = "Embedded in: Unreachable Cross-Origin Parent";
-        }
+        try {
+            if(location.host == parent.location.host || parent.location.href) {
+                O.WindowEmbedded = 1; // true
+                O.WindowEmbeddedDetail = "Embedded in: " + parent.location.origin + parent.location.pathname + parent.location.search;
+                O.ParentHolder = window.parent.document.getElementById(U["parent-holder-id"]);
+            }
+        } catch(e) {}
+        if(O.WindowEmbedded == -1) O.WindowEmbeddedDetail = "Embedded in: Unreachable Parent";
     }
 
     // Fullscreen
-    if(O.WindowEmbedded) {
-        try {
-            O.ParentHolder = window.parent.document.getElementById(U["parent-holder-id"]);
-        } catch(Err) {}
-    }
     if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
         O.FullscreenEnabled = true;
         O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
@@ -3926,7 +3923,7 @@ O.download = function(URI, MimeType) {
         var XHR = new XMLHttpRequest();
         if(MimeType) XHR.overrideMimeType(MimeType);
         XHR.open('GET', URI, true);
-        if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
+        //if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
         XHR.onloadend = function() {
             if(XHR.status !== 200) return reject(XHR);
             else                   return resolve(XHR);
@@ -3936,16 +3933,21 @@ O.download = function(URI, MimeType) {
 };
 
 
+O.parseDocument = function(Path, ResponseText) {
+    return (new DOMParser()).parseFromString(ResponseText, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
+};
+
+
 O.openDocument = function(Path) {
     if(B.Unzipped) {
         return O.download(B.Path + "/" +  Path).then(function(XHR) {
-            return XHR.responseXML;
+            return O.parseDocument(Path, XHR.responseText);
         }).catch(function(XHR) {
             O.error('XHR HTTP status: ' + XHR.status + ' "' + XHR.responseURL + '"');
         });
     } else {
         return Promise.resolve().then(function() {
-            return (new DOMParser()).parseFromString(B.Files[Path], /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
+            return O.parseDocument(Path, B.Files[Path]);
         });
     }
 };
