@@ -41,8 +41,7 @@ Bibi.Preset = {
 "item-padding-top"           : 40, // px
 "item-padding-bottom"        : 20, // px
 
-"flipper-width"              : 0.33, // ratio (lower than 1) or px (1 or higher)
-"flipper-width-for-touch"    : 0.33, // ratio (lower than 1) or px (1 or higher)
+"flipper-width"              : 0.3, // ratio (lower than 1) or px (1 or higher)
 
 "page-breaking"              : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
 

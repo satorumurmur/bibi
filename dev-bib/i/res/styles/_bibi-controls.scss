@@ -877,20 +877,19 @@ div#bibi-menu {
 	position: fixed; html.waiting-file & { display: none; }
 	z-index: $z-index_menu;
 	left: 0; right: auto; top: 0; bottom: auto;
-	border: solid 0 rgba(128,128,128, 0); border-bottom-width: 1px;
+	border-bottom: solid 1px rgba(128,128,128, 0);;
 	height: $top-bar-height;
 	width: 100%;
 	background: rgba(255,255,255, 0);
 	&.hover,
 	html.menu-opened & {
-		border-color: rgba(128,128,128, 0.1);
+		border-bottom-color: rgba(128,128,128, 0.1);
 		background: rgba(255,255,255, 0.9);
-		transition: .125s linear;
 	}
-	html.panel-opened &, html.subpanel-opened & {
-		border-color: rgba(128,128,128, 0.1);
+	html.panel-opened &,
+	html.subpanel-opened & {
+		border-bottom-color: rgba(128,128,128, 0.1);
 		background: rgba(255,255,255, 1);
-		transition: .125s linear;
 	}
 	&.hover {
 //		box-shadow: 0 0 ($top-bar-height / 2) rgba(128,128,128, 0.1);
@@ -918,7 +917,7 @@ div#bibi-menu-r {
 		height: $icon-size;
 		opacity: 0;
 		&.sticky {
-			opacity: 0.69;
+			opacity: 0.5;
 		}
 		&:before {
 			content: "";
@@ -939,7 +938,11 @@ div#bibi-menu-r {
 				}
 			}
 		}
-		div#bibi-menu.hover &, html.menu-opened &, html.panel-opened &, html.subpanel-opened & {
+		div#bibi-menu.hover &,
+		div#bibi-menu.hot &,
+		html.menu-opened &,
+		html.panel-opened &,
+		html.subpanel-opened & {
 			opacity: 1;
 		}
 	}
@@ -1179,6 +1182,247 @@ html.panel-opened div#bibi-poweredby {
 		}
 	}
 }
+
+
+
+// ================================================================================
+// + Nombre
+// --------------------------------------------------------------------------------
+
+div#bibi-nombre {
+	box-sizing: border-box;
+	overflow: hidden;
+	position: fixed;
+	z-index: $z-index_nombre;
+	margin: auto;
+	border-radius: $nombre-box-height * 0.5;
+	width: $nombre-box-width;
+	height: $nombre-box-height;
+	line-height: $nombre-box-height;
+	font-size: 12px;
+	text-align: center;
+	color: $nombre-color;
+	background: $nombre-box-background-color;
+	opacity: 0;
+	transition: 0.125s ease-out;
+	html.view-paged & {
+		left: -100%; right: -100%; bottom: 2px;
+	}
+	html.view-horizontal & {
+		left: -100%; right: -100%; bottom: $scrollbar-track-size + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
+	}
+	html.view-vertical & {
+		right: $scrollbar-track-size + 2px; top: -100%; bottom: -100%; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
+		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
+	}
+	html.view-paged.slider-opened &,
+	html.view-horizontal.slider-opened & {
+		bottom: $slider-size + 2px !important;
+	}
+	& {
+		display: none;
+	}
+	&.active {
+		display: block;
+	}
+	&.hot {
+		opacity: 1;
+		transition: 0.125s ease-out;
+	}
+	span {
+		display: inline-block;
+	}
+}
+	span#bibi-nombre-current {
+		font-size: 1.2em;
+		font-weight: bold;
+		color: $nombre-current-color;
+	}
+	span#bibi-nombre-delimiter {
+		margin: 0 0.1em 0 0.2em;
+	}
+	span#bibi-nombre-total {
+	}
+	span#bibi-nombre-percent {
+		margin-left: .25em;
+		color: $nombre-percent-color;
+		span.unit {
+			margin-left: .125em;
+			font-size: .75em;
+		}
+	}
+
+
+
+// ================================================================================
+// + Slider
+// --------------------------------------------------------------------------------
+
+@mixin slider-thumb-base() {
+	content: "";
+	display: block;
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	top: 0; bottom: 0;
+	margin: auto;
+	border: solid 1px;
+	border-radius: $scrollbar-thumb-size * 0.5;
+	width: 100%;
+	height: $scrollbar-thumb-size;
+	html.slider-opened & {
+		border-radius: 2px;
+		height: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
+		//height: 75%;
+	}
+}
+
+div#bibi-slider {
+	box-sizing: border-box;
+	display: block;
+	overflow: hidden;
+	position: fixed;
+	z-index: $z-index_slider;
+	bottom: 0;
+	width: 100%;
+	border-top: solid 0 $scrollbar-track-border-color;
+	background: $scrollbar-track-background-color;
+	cursor: pointer;
+	&,
+	#bibi-slider-currentpagebits:before,
+	#bibi-slider-currentpagebits:after {
+		transition: linear .1s;
+		html.slider-sliding & {
+			transition: none;
+		}
+	}
+	html.view-paged & {
+		border-top-width: 1px;
+		height: $scrollbar-track-size;
+	}
+	html.view-horizontal &,
+	html.view-vertical &,
+	html.iOS &,
+	html.Android & {
+		border-top-width: 0;
+		height: 0;
+	}
+	html.slider-opened & {
+		border-top-width: 1px !important;
+		height: $slider-size !important;
+		background: rgba($scrollbar-track-background-color, 0.98);
+	}
+}
+	div#bibi-slider-spreads,
+	div#bibi-slider-pages,
+	div#bibi-slider-currentpages {
+		div {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+			bottom: 0;
+			height: 100%;
+			//transition: 0.05s linear;
+		}
+	}
+	div#bibi-slider-spreads {
+		div {
+			z-index: 1;
+			//overflow: hidden;
+			&:before {
+				content: "";
+				display: block;
+				position: absolute;
+				top: 0; bottom: 0; margin: auto;
+				width: 1px;
+				height: 4px;
+				background: rgba($scrollbar-thumb-background-color, 0.33);
+				html.appearance-rtl & { right: -0.5px; }
+				html.appearance-ltr & { left: -0.5px; }
+				html.slider-opened & {
+					height: 8px;
+				}
+			}
+			&:first-child:before {
+				display: none;
+			}
+			/*
+			html.appearance-rtl & { background: linear-gradient(to left,  $scrollbar-track-border-color, $scrollbar-track-background-color); }
+			html.appearance-ltr & { background: linear-gradient(to right, $scrollbar-track-border-color, $scrollbar-track-background-color); }
+			*/
+			/*
+			&:nth-child(2n) {
+				background: darken($scrollbar-track-background-color, 5%);
+			}
+			*/
+		}
+	}
+	div#bibi-slider-pages {
+		div {
+			z-index: 2;
+			&:before {
+				@include slider-thumb-base();
+				border-color: transparent;
+				background: transparent;
+			}
+			&.hover {
+				&:before {
+					border-color: rgba($scrollbar-thumb-background-color_hover, 0.4);
+					background: rgba(white, 0.5);
+					html.slider-sliding & {
+						border-color: transparent !important;
+						background: transparent !important;
+					}
+				}
+			}
+		}
+	}
+	div#bibi-slider-currentpages {
+	}
+		div#bibi-slider-currentpagebits {
+			z-index: 3;
+			cursor: pointer;
+			&:before, &:after {
+				@include slider-thumb-base();
+				border-color: $scrollbar-thumb-background-color;
+				background: $scrollbar-thumb-background-color;
+				html.slider-opened & {
+					background: rgba($scrollbar-thumb-background-color, 0.5);
+				}
+			}
+			&.hover {
+				&:before, &:after {
+					border-color: $scrollbar-thumb-background-color_hover !important;
+					background: rgba($scrollbar-thumb-background-color_hover, 0.5) !important;
+				}
+			}
+			&:active,
+			&.active {
+				&:before, &:after {
+					border-color: $scrollbar-thumb-background-color_active !important;
+					background: rgba($scrollbar-thumb-background-color_active, 0.5) !important;
+				}
+			}
+			&.two-pages {
+				&:before {
+					html.page-ltr & { left: 0; }
+					html.page-rtl & { right: 0; }
+				}
+				&:after {
+					html.page-ltr & { right: 0; }
+					html.page-rtl & { left: 0; }
+				}
+				html.slider-opened & {
+					&:before, &:after {
+						width: 50%;
+					}
+					&:after {
+						content: "";
+						display: block;
+					}
+				}
+			}
+		}
 
 
 
@@ -1436,244 +1680,3 @@ div#bibi-spinner {
 	 75% { width: 1px; height: 1px; }
 	100% { width: 3px; height: 3px; opacity: 1.0; }
 }
-
-
-
-// ================================================================================
-// + Nombre
-// --------------------------------------------------------------------------------
-
-div#bibi-nombre {
-	box-sizing: border-box;
-	overflow: hidden;
-	position: fixed;
-	z-index: $z-index_nombre;
-	margin: auto;
-	border-radius: $nombre-box-height * 0.5;
-	width: $nombre-box-width;
-	height: $nombre-box-height;
-	line-height: $nombre-box-height;
-	font-size: 12px;
-	text-align: center;
-	color: $nombre-color;
-	background: $nombre-box-background-color;
-	opacity: 0;
-	transition: 0.125s ease-out;
-	html.view-paged & {
-		left: -100%; right: -100%; bottom: 2px;
-	}
-	html.view-horizontal & {
-		left: -100%; right: -100%; bottom: $scrollbar-track-size + 2px; // to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
-	}
-	html.view-vertical & {
-		right: $scrollbar-track-size + 2px; top: -100%; bottom: -100%; // to be overwritten by JavaScript ... (O.ScrollBars.Width + 2) + "px"
-		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
-	}
-	html.view-paged.slider-opened &,
-	html.view-horizontal.slider-opened & {
-		bottom: $slider-size + 2px !important;
-	}
-	& {
-		display: none;
-	}
-	&.active {
-		display: block;
-	}
-	&.hot {
-		opacity: 1;
-		transition: 0.125s ease-out;
-	}
-	span {
-		display: inline-block;
-	}
-}
-	span#bibi-nombre-current {
-		font-size: 1.2em;
-		font-weight: bold;
-		color: $nombre-current-color;
-	}
-	span#bibi-nombre-delimiter {
-		margin: 0 0.1em 0 0.2em;
-	}
-	span#bibi-nombre-total {
-	}
-	span#bibi-nombre-percent {
-		margin-left: .25em;
-		color: $nombre-percent-color;
-		span.unit {
-			margin-left: .125em;
-			font-size: .75em;
-		}
-	}
-
-
-
-// ================================================================================
-// + Slider
-// --------------------------------------------------------------------------------
-
-@mixin slider-thumb-base() {
-	content: "";
-	display: block;
-	box-sizing: border-box;
-	display: block;
-	position: absolute;
-	top: 0; bottom: 0;
-	margin: auto;
-	border: solid 1px;
-	border-radius: $scrollbar-thumb-size * 0.5;
-	width: 100%;
-	height: $scrollbar-thumb-size;
-	html.slider-opened & {
-		border-radius: 2px;
-		height: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
-		height: 75%;
-	}
-}
-
-div#bibi-slider {
-	box-sizing: border-box;
-	display: block;
-	overflow: hidden;
-	position: fixed;
-	z-index: $z-index_slider;
-	bottom: 0;
-	width: 100%;
-	border-top: solid 0 $scrollbar-track-border-color;
-	background: $scrollbar-track-background-color;
-	cursor: pointer;
-	&,
-	#bibi-slider-currentpagebits:before,
-	#bibi-slider-currentpagebits:after {
-		transition: linear .1s;
-		html.slider-sliding & {
-			transition: none;
-		}
-	}
-	html.view-paged & {
-		border-top-width: 1px;
-		height: $scrollbar-track-size;
-	}
-	html.view-horizontal &,
-	html.view-vertical &,
-	html.iOS &,
-	html.Android & {
-		border-top-width: 0;
-		height: 0;
-	}
-	html.slider-opened & {
-		border-top-width: 1px !important;
-		height: $slider-size !important;
-		background: rgba($scrollbar-track-background-color, 0.98);
-	}
-}
-	div#bibi-slider-spreads,
-	div#bibi-slider-pages,
-	div#bibi-slider-currentpages {
-		div {
-			box-sizing: border-box;
-			display: block;
-			position: absolute;
-			bottom: 0;
-			height: 100%;
-			//transition: 0.05s linear;
-		}
-	}
-	div#bibi-slider-spreads {
-		div {
-			z-index: 1;
-			//overflow: hidden;
-			&:before {
-				content: "";
-				display: block;
-				position: absolute;
-				top: 0; bottom: 0; margin: auto;
-				width: 1px;
-				height: 4px;
-				background: rgba($scrollbar-thumb-background-color, 0.8);
-				html.appearance-rtl & { right: -0.5px; }
-				html.appearance-ltr & { left: -0.5px; }
-				html.slider-opened & {
-					height: 10%;
-				}
-			}
-			&:first-child:before {
-				display: none;
-			}
-			/*
-			html.appearance-rtl & { background: linear-gradient(to left,  $scrollbar-track-border-color, $scrollbar-track-background-color); }
-			html.appearance-ltr & { background: linear-gradient(to right, $scrollbar-track-border-color, $scrollbar-track-background-color); }
-			*/
-			/*
-			&:nth-child(2n) {
-				background: darken($scrollbar-track-background-color, 5%);
-			}
-			*/
-		}
-	}
-	div#bibi-slider-pages {
-		div {
-			z-index: 2;
-			&:before {
-				@include slider-thumb-base();
-				border-color: transparent;
-				background: transparent;
-			}
-			&.hover {
-				&:before {
-					border-color: rgba($scrollbar-thumb-background-color_hover, 0.4);
-					background: rgba(white, 0.5);
-					html.slider-sliding & {
-						border-color: transparent !important;
-						background: transparent !important;
-					}
-				}
-			}
-		}
-	}
-	div#bibi-slider-currentpages {
-	}
-		div#bibi-slider-currentpagebits {
-			z-index: 3;
-			cursor: pointer;
-			&:before, &:after {
-				@include slider-thumb-base();
-				border-color: $scrollbar-thumb-background-color;
-				background: $scrollbar-thumb-background-color;
-				html.slider-opened & {
-					background: rgba($scrollbar-thumb-background-color, 0.5);
-				}
-			}
-			&.hover {
-				&:before, &:after {
-					border-color: $scrollbar-thumb-background-color_hover !important;
-					background: rgba($scrollbar-thumb-background-color_hover, 0.5) !important;
-				}
-			}
-			&:active,
-			&.active {
-				&:before, &:after {
-					border-color: $scrollbar-thumb-background-color_active !important;
-					background: rgba($scrollbar-thumb-background-color_active, 0.5) !important;
-				}
-			}
-			&.two-pages {
-				&:before {
-					html.page-ltr & { left: 0; }
-					html.page-rtl & { right: 0; }
-				}
-				&:after {
-					html.page-ltr & { right: 0; }
-					html.page-rtl & { left: 0; }
-				}
-				html.slider-opened & {
-					&:before, &:after {
-						width: 50%;
-					}
-					&:after {
-						content: "";
-						display: block;
-					}
-				}
-			}
-		}

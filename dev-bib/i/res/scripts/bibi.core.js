@@ -1825,15 +1825,21 @@ R.layout = function(Option) {
 
 R.onscroll = function() {
     if(!L.Opened) return;
+    if(!R.Scrolling) sML.addClass(O.HTML, "scrolling");
+    R.Scrolling = true;
     E.dispatch("bibi:scroll");
     clearTimeout(R.Timer_onscrolled);
     R.Timer_onscrolled = setTimeout(function() {
+        R.Scrolling = false;
+        sML.removeClass(O.HTML, "scrolling");
         E.dispatch("bibi:scrolled");
     }, 123);
 };
 
 R.onresize = function() {
     if(!L.Opened) return;
+    if(!R.Resizing) sML.addClass(O.HTML, "resizing");
+    R.Resizing = true;
     E.dispatch("bibi:resize");
     clearTimeout(R.Timer_onresized);
     clearTimeout(R.Timer_afterresized);
@@ -1843,7 +1849,9 @@ R.onresize = function() {
         R.Timer_afterresized = setTimeout(function() {
             E.dispatch("bibi:resized");
             O.Busy = false;
+            R.Resizing = false;
             sML.removeClass(O.HTML, "busy");
+            sML.removeClass(O.HTML, "resizing");
         }, 100);
     }, O.Mobile ? 444 : 222);
 };
@@ -2452,6 +2460,15 @@ I.createMenu = function() {
     E.add("bibi:commands:open-menu",   function(Opt) { I.Menu.open(Opt); });
     E.add("bibi:commands:close-menu",  function(Opt) { I.Menu.close(Opt); });
     E.add("bibi:commands:toggle-menu", function(Opt) { I.Menu.toggle(Opt); });
+    E.add("bibi:scroll", function() {
+        clearTimeout(I.Menu.Timer_cool);
+        if(!I.Menu.Hot) sML.addClass(I.Menu, "hot");
+        I.Menu.Hot = true;
+        I.Menu.Timer_cool = setTimeout(function() {
+            I.Menu.Hot = false;
+            sML.removeClass(I.Menu, "hot");
+        }, 1234);
+    });
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) {
             var BibiEvent = O.getBibiEvent(Eve);
@@ -2905,7 +2922,7 @@ I.createNombre = function() {
             I.Nombre.Total.innerHTML     = R.Pages.length;
             I.Nombre.Percent.innerHTML   = '(' + Math.floor((PageInfo.Pages.EndPage.PageIndex + 1) / R.Pages.length * 100) + '<span class="unit">%</span>)';
             I.Nombre.show();
-            I.Nombre.Timer_hide = setTimeout(I.Nombre.hide, 1981);
+            I.Nombre.Timer_hide = setTimeout(I.Nombre.hide, 1234);
         }
     }));
     I.Nombre.Current   = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-current"   }));
@@ -2966,14 +2983,19 @@ I.createSlider = function() {
             },
             slide: function(Eve) {
                 var BibiEvent = O.getBibiEvent(Eve);
-                I.Slider.slide.SlidedX = BibiEvent.Coord.X - I.Slider.slide.PreviousX;
+                I.Slider.slide.SlidedX = BibiEvent.Coord.X - I.Slider.slide.StartX;
                 sML.style(I.Slider.Current, { transform: "translateX(" + I.Slider.slide.SlidedX + "px)" });
             },
             startSliding: function(Eve) {
-                if(Eve.target != I.Slider.Current) return;
                 Eve.preventDefault();
                 I.Slider.Sliding = true;
-                I.Slider.slide.PreviousX = Eve.pageX;
+                if(Eve.target == I.Slider.Current) {
+                    I.Slider.slide.StartX = Eve.pageX;
+                    I.Slider.slide.SlidedX = 0;
+                } else {
+                    I.Slider.slide.StartX = I.Slider.Current.offsetLeft + I.Slider.Current.offsetWidth / 2;
+                    I.Slider.slide.SlidedX = Eve.pageX - I.Slider.slide.StartX;
+                }
                 clearTimeout(I.Slider.Timer_endSliding);
                 sML.addClass(O.HTML, "slider-sliding");
                 I.Slider.addEventListener(O["pointermove"], I.Slider.onpointermove);
@@ -3029,7 +3051,7 @@ I.createSlider = function() {
     I.Slider.CurrentPages = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-currentpages" }));
     I.Slider.Current      = I.Slider.CurrentPages.appendChild(sML.create("div", { id: "bibi-slider-currentpagebits" }));
     I.setFeedback(I.Slider.Current);
-    I.setFeedback(I.Slider);
+    //I.setFeedback(I.Slider);
     I.setToggleAction(I.Slider, {
         onopened: function() {
             sML.addClass(O.HTML, "slider-opened");
@@ -4031,7 +4053,7 @@ O.getBibiEventCoord = function(Eve) {
 O.getBibiEvent = function(Eve) {
     if(!Eve) return {};
     var Coord = O.getBibiEventCoord(Eve);
-    var FlipperWidth = (S.RVM == "paged") ? S["flipper-width-for-touch"] : S["flipper-width"];
+    var FlipperWidth = S["flipper-width"];
     var Ratio = {
         X: Coord.X / window.innerWidth,
         Y: Coord.Y / window.innerHeight
@@ -4122,8 +4144,7 @@ O.SettingTypes = {
     ],
     Number: [
         "cookie-expires",
-        "flipper-width",
-        "flipper-width-for-touch"
+        "flipper-width"
     ],
     Boolean: [
         "page-breaking"
