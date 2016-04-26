@@ -944,8 +944,7 @@ L.postprocessItem = function(Item) {
 
     setTimeout(function() {
         if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
-        L.postprocessItem.patchWritingModeStyle(Item);
-        L.postprocessItem.applyBackgroundStyle(Item);
+        L.postprocessItem.patchStyles(Item);
         E.dispatch("bibi:postprocessed-item-content", Item);
         E.dispatch("bibi:postprocessed-item", Item);
         L.onLoadItem(Item);
@@ -1103,22 +1102,27 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 };
 
 
-L.postprocessItem.patchWritingModeStyle = function(Item) {
-    if(sML.UA.InternetExplorer) {
-        sML.each(Item.contentDocument.styleSheets, function () {
-            var StyleSheet = this;
-            for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
-                var CSSRule = this.cssRules[i];
-                /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
-                else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-                else {
+L.postprocessItem.patchStyles = function(Item) {
+
+    sML.each(Item.contentDocument.styleSheets, function () {
+        var StyleSheet = this;
+        for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+            var CSSRule = this.cssRules[i];
+            /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+            else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+            else {
+                if(/(-(webkit|epub)-)?column-count: 1; /.test(CSSRule.cssText)) {
+                    CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
+                }
+                if(sML.UA.InternetExplorer) {
                     /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
                     else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
                     else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
                 }
             }
-        });
-    }
+        }
+    });
+
     var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
     var ItemBodyComputedStyle = getComputedStyle(Item.Body);
     if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) {
@@ -1138,15 +1142,13 @@ L.postprocessItem.patchWritingModeStyle = function(Item) {
          if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
     else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
     else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
+
+    if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.patchStyles.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
+    if(Item.Body.style) { sML.style(Item,         L.postprocessItem.patchStyles.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
+
 };
 
-
-L.postprocessItem.applyBackgroundStyle = function(Item) {
-    if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
-    if(Item.Body.style) { sML.style(Item,         L.postprocessItem.applyBackgroundStyle.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
-};
-
-L.postprocessItem.applyBackgroundStyle.getBackgroundStyle = function(Ele) {
+L.postprocessItem.patchStyles.getBackgroundStyle = function(Ele) {
     var ComputedStyle = getComputedStyle(Ele);
     return {
         backgroundColor: ComputedStyle.backgroundColor,
