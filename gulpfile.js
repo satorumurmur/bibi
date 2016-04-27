@@ -8,6 +8,7 @@
 var gulp = require('gulp');
 
 var $ = require("gulp-load-plugins")();
+$.fs = require("fs");
 $.del = require("del");
 $.runSequence = require("run-sequence");
 $.browserSync = require("browser-sync");
@@ -18,6 +19,24 @@ concat_list = function() {
     var list = arguments[0];
     for(var i = 1, l = arguments.length; i < l; i++) list = list.concat(arguments[i]);
     return list;
+};
+
+getVersion = function() {
+    return JSON.parse($.fs.readFileSync('./package.json')).version;
+};
+
+getNow = function() {
+    var now = "", date = new Date();
+    [
+        date.getYear() + 1900,
+        date.getMonth() + 1,
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes()
+    ].forEach(function(d) {
+        now += (d < 10 ? "0" : "") + d;
+    });
+    return now;
 };
 
 
@@ -34,14 +53,14 @@ clean = function(list) {
     return gulp;
 };
 
-gulp.task('clean_style', function() {
+gulp.task('clean_styles', function() {
     return clean([
         './bib/i/res/styles',
         './bib/i.css'
     ]);
 });
 
-gulp.task('clean_script', function() {
+gulp.task('clean_scripts', function() {
     return clean([
         './bib/i/res/scripts',
         './bib/i/extensions/analytics',
@@ -54,12 +73,26 @@ gulp.task('clean_script', function() {
     ]);
 });
 
+gulp.task('clean_metafiles', function() {
+    return clean([
+        './bib/LICENSE',
+        './bib/README.md'
+    ]);
+});
+
+gulp.task('clean_distribution', function() {
+    return clean([
+        './archives/bibi-' + getVersion(),
+        './archives/bibi-' + getVersion() + '.zip'
+    ]);
+});
+
 
 
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Make Style
+//-- Make Styles
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +146,7 @@ gulp.task('make_style_pipi', function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Make Script
+//-- Make Scripts
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -124,6 +157,8 @@ make_script = function(param) {
         .pipe($.uglify({
             preserveComments: 'some'
          }))
+        .pipe($.replace('0.000.0', getVersion()))
+        .pipe($.replace('198106091234', getNow()))
         .pipe(gulp.dest(param.dist.dir));
     return reload ? g.pipe($.browserSync.reload({
             stream: true
@@ -239,6 +274,43 @@ gulp.task('make_script_extension_unzipper', function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+//-- Update Metafiles
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+gulp.task('update_metafile_json', function() {
+    return gulp.src([
+        './bower.json',
+        './bib/manifest.json'
+    ], {
+        base: './'
+    })
+        .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
+        .pipe($.replace(/"version"(\s*:\s*)".+?"/, '"version"$1"' + getVersion() + '"'))
+        .pipe(gulp.dest('./'));
+});
+
+gulp.task('update_metafile_readme', function() {
+    return gulp.src([
+        './README.md'
+    ])
+        .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
+        .pipe(gulp.dest('./bib'));
+});
+
+gulp.task('update_metafile_license', function() {
+    return gulp.src([
+        './LICENSE'
+    ])
+        .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
+        .pipe(gulp.dest('./bib'));
+});
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 //-- Watch
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
@@ -252,6 +324,7 @@ gulp.task('watch', function() {
         './dev-bib/i.scss'
     ], ['make_style_pipi']);
     gulp.watch([
+        './package.json',
         './bower_components/native-promise-only/lib/npo.src.js',
         './bower_components/hammerjs/hammer.js',
         './bower_components/easing/easing-min.js',
@@ -279,6 +352,15 @@ gulp.task('watch', function() {
     gulp.watch([
         './dev-bib/i/extensions/unzipper/**/*.js'
     ], ['make_script_extension_unzipper']);
+    gulp.watch([
+        './package.json'
+    ], ['update_metafile_json']);
+    gulp.watch([
+        './README.md'
+    ], ['update_metafile_readme']);
+    gulp.watch([
+        './LICENSE'
+    ], ['update_metafile_license']);
     return gulp;
 });
 
@@ -320,12 +402,12 @@ gulp.task('serve', function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-var make_style_tasks = [
+var make_styles_tasks = [
     'make_style_bibi',
     'make_style_pipi'
 ];
 
-var make_script_tasks = [
+var make_scripts_tasks = [
     'make_script_bibi',
     'make_script_pipi',
     'make_script_extension_analytics',
@@ -336,27 +418,87 @@ var make_script_tasks = [
     'make_script_extension_unzipper'
 ];
 
-gulp.task('build_style', function() {
+var make_metafiles_tasks = [
+    'update_metafile_json',
+    'update_metafile_readme',
+    'update_metafile_license'
+];
+
+gulp.task('build_styles', function() {
     return $.runSequence(
-        'clean_style',
-        make_style_tasks
+        'clean_styles',
+        make_styles_tasks
     );
 });
 
-gulp.task('build_script', function() {
+gulp.task('build_scripts', function() {
     return $.runSequence(
-        'clean_script',
-        make_script_tasks
+        'clean_scripts',
+        make_scripts_tasks
+    );
+});
+
+gulp.task('build_metafiles', function() {
+    return $.runSequence(
+        'clean_metafiles',
+        make_metafiles_tasks
     );
 });
 
 gulp.task('build', function() {
     return $.runSequence(
-        ['clean_style', 'clean_script'],
-        concat_list(make_style_tasks, make_script_tasks)
+        ['clean_metafiles', 'clean_styles', 'clean_scripts'],
+        concat_list(make_metafiles_tasks, make_styles_tasks, make_scripts_tasks)
     );
 });
 
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Make Distribution
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+gulp.task('make_distribution_copy', function() {
+    return gulp.src([
+        './bib/i/**/*.*',
+        './bib/*'
+    ], {
+        base: './'
+    })
+        .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
+        .pipe(gulp.dest('./archives/bibi-' + getVersion()));
+});
+
+gulp.task('make_distribution_zip', function() {
+    var version = getVersion();
+    return gulp.src([
+        './archives/bibi-' + version + '/bib/**/*.*',
+        './archives/bibi-' + version + '/bib/*'
+    ], {
+        base: './archives'
+    })
+        .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
+        .pipe($.zip('bibi-' + version + '.zip'))
+        .pipe(gulp.dest('./archives'));
+});
+
+gulp.task('make_distribution', function() {
+    return $.runSequence(
+        'make_distribution_copy',
+        'make_distribution_zip'
+    );
+});
+
+gulp.task('distribute', function() {
+    return $.runSequence(
+        'clean_distribution',
+        'make_distribution'
+    );
+});
 
 
 
@@ -369,8 +511,8 @@ gulp.task('build', function() {
 
 gulp.task('default', function() {
     return $.runSequence(
-        ['clean_style', 'clean_script'],
-        concat_list(make_style_tasks, make_script_tasks),
+        ['clean_metafiles', 'clean_styles', 'clean_scripts'],
+        concat_list(make_metafiles_tasks, make_styles_tasks, make_scripts_tasks),
         'watch',
         'serve'
     );

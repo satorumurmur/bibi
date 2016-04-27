@@ -9,7 +9,7 @@
 
 // requires: Native Promiss Only & Hammer.js & easing.js & sML
 
-Bibi = { "version": "0.999.2", "build": 201604261719 };
+Bibi = { "version": "0.000.0", "build": 198106091234 };
 
 
 
@@ -2987,6 +2987,7 @@ I.createSlider = function() {
                 sML.style(I.Slider.Current, { transform: "translateX(" + I.Slider.slide.SlidedX + "px)" });
             },
             startSliding: function(Eve) {
+                if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
                 Eve.preventDefault();
                 I.Slider.Sliding = true;
                 if(Eve.target == I.Slider.Current) {
