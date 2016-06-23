@@ -1,6 +1,6 @@
 {
   "name": "bibi",
-  "version": "0.999.3",
+  "version": "0.999.4",
   "authors": [
     "Satoru MATSUSHIMA"
   ],
@@ -12,7 +12,7 @@
     "Books-in-Browsers"
   ],
   "license": "MIT",
-  "homepage": "http://bibi.epub.link/",
+  "homepage": "http://bibi.epub.link",
   "repository": {
     "type": "git",
     "url": "git://github.com/satorumurmur/bibi.git"
@@ -21,12 +21,14 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components"
+    "bower_components",
+    "test",
+    "tests"
   ],
   "devDependencies": {
     "native-promise-only": "^0.8.0-a",
-    "hammer.js": "^2.0.6",
+    "hammerjs": "^2.0.8",
     "easing": "*",
-    "sML": "sml#^0.999.31"
+    "sML": "sml#^0.999.38"
   }
 }

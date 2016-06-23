@@ -79,6 +79,26 @@ div#bibi-veil {
 }
 
 
+// - Bottombar
+// --------------------------------------------------------------------------------
+
+div#bibi-veil:after {
+	content: "";
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	z-index: $z-index_veil-bottombar;
+	left: 0; right: 0; bottom: 0;
+	margin: 0 auto;
+	padding: 4px;
+	border-style: solid; border-width: 1px 0;
+	width: 100%;
+	height: $bottom-bar-height;
+	border-color: transparent;//rgb(104,104,104);
+	background: rgb(128,128,128);
+}
+
+
 // - Bye Bye
 // --------------------------------------------------------------------------------
 
@@ -143,7 +163,7 @@ div#bibi-veil-cover {
 	top: 0;
 	box-sizing: border-box;
 	border: solid transparent;
-	border-width: 4px; border-top-width: $top-bar-height + 4px;
+	border-width: 4px; //border-top-width: $top-bar-height + 4px;
 	width: 100%;
 	height: 100%;
 	opacity: 0;
@@ -228,10 +248,10 @@ p#bibi-veil-catcher {
 	border-radius: 30px;
 	width: 88%;
 	height: 80%;
-	color: rgba(white, 0.75);
+	color: rgba(white, 0.67);
 	transform: translateY(-2.5%);
 	cursor: pointer;
-	transition: .25s ease;
+	transition: .125s ease;
 	&:before, >span {
 		box-sizing: border-box;
 		display: block;
@@ -276,8 +296,8 @@ p#bibi-veil-catcher {
 	}
 	html.dragenter &,
 	&:hover {
-		transition: .25s ease;
-		border-color: rgba(white, 0.25);
+		transition: .2s ease;
+		border-color: rgba(white, 0.5);
 		color: rgba(white, 1);
 
 	}
@@ -331,7 +351,8 @@ p#bibi-veil-play {
 		vertical-align: middle;
 		text-indent: -.05em;
 		font-size: $size;
-		color: rgb(128,128,128);
+		color: rgba(236,236,236, 0.9);
+		//text-shadow: 0 0 4px rgb(160,160,160)
 	}
 	&:hover {
 		background: rgba(black, 0.4);
@@ -406,6 +427,29 @@ div#bibi-panel {
 		transform: none !important;
 		opacity: 1 !important;
 		transition: 0.15s ease-in !important;
+	}
+}
+
+
+// - Bottombar
+// --------------------------------------------------------------------------------
+
+div#bibi-panel:after {
+	content: "";
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	z-index: $z-index_panel-bottombar;
+	left: 0; right: 0; bottom: 0;
+	margin: 0 auto;
+	padding: 4px;
+	border-style: solid; border-width: 1px 0;
+	width: 100%;
+	height: $bottom-bar-height;
+	border-color: rgb(232,232,232);
+	background: rgba(240,240,240,0.9);
+	html.page-rtl & {
+		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 }
 
@@ -877,7 +921,7 @@ div#bibi-menu {
 	position: fixed; html.waiting-file & { display: none; }
 	z-index: $z-index_menu;
 	left: 0; right: auto; top: 0; bottom: auto;
-	border-bottom: solid 1px rgba(128,128,128, 0);;
+	border-bottom: solid 1px rgba(128,128,128, 0);
 	height: $top-bar-height;
 	width: 100%;
 	background: rgba(255,255,255, 0);
@@ -885,6 +929,10 @@ div#bibi-menu {
 	html.menu-opened & {
 		border-bottom-color: rgba(128,128,128, 0.1);
 		background: rgba(255,255,255, 0.9);
+	}
+	html.veil-opened & {
+		border-bottom-color: rgba(128,128,128, 0);
+		background: rgba(255,255,255, 0);
 	}
 	html.panel-opened &,
 	html.subpanel-opened & {
@@ -926,7 +974,7 @@ div#bibi-menu-r {
 			top: $button-group-margin;
 			width: 1px;
 			height: $icon-size;
-			background: rgba(64,64,64,0.1);
+			background: rgba(216,216,216, 0.5);
 		}
 		li {
 			width: $icon-size;
@@ -1041,66 +1089,27 @@ div#bibi-help {
 
 
 // ================================================================================
-// + PoweredBy (& Bottom Bar)
+// + PoweredBy
 // --------------------------------------------------------------------------------
 
 
-// - Veil > Powered By, Panel > Powered By
-// --------------------------------------------------------------------------------
-
-div#bibi-veil:after,
-div#bibi-panel:after,
 div#bibi-poweredby {
 	box-sizing: border-box;
-	left: 0;
-	margin: 0 auto;
+	display: block;
+	position: fixed;
+	z-index: $z-index-poweredby;
+	top: auto; right: 0; bottom: 0; left: 0; margin: 0 auto;
 	padding: 4px;
 	height: $bottom-bar-height;
-}
-
-div#bibi-veil:after,
-div#bibi-panel:after {
-	position: absolute;
-	display: block;
-	content: "";
-	border-style: solid; border-width: 1px 0;
-	width: 100%;
-}
-
-div#bibi-veil:after {
-	bottom: 0;
-}
-
-div#bibi-panel:after {
-	html.page-rtl & {
-		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
-	}
-	html.page-ltr & {
-		bottom: 0;
-	}
-}
-
-div#bibi-veil:after {
-	z-index: $z-index_veil-bottombar;
-	border-color: rgb(104,104,104);
-	background: rgb(96,96,96);
-}
-
-div#bibi-panel:after {
-	z-index: $z-index_panel-bottombar;
-	border-color: rgb(232,232,232);
-	background: rgba(240,240,240,0.9);
-}
-
-div#bibi-poweredby {
-	position: fixed;
-	display: block;
-	transform: scale(0); html.waiting &, html.panel-opened & { transform: none; }
-	z-index: $z-index-poweredby;
 	text-align: right;
 	font-size: 14px;
 	transition: .1s linear;
-	bottom: 0;
+	transform: scale(0);
+	html.waiting-file &,
+	html.waiting &,
+	html.panel-opened & {
+		transform: none;
+	}
     html.page-rtl.panel-opened & {
 		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
@@ -1108,7 +1117,7 @@ div#bibi-poweredby {
 		a {
 			display: block;
 			position: relative;
-			top: 2px;
+			top: ($bottom-bar-height - (4px + 16px + 4px)) / 2 - 4px;
 			text-decoration: none;
 			color: black;
 			padding: 4px 8px;
@@ -1143,16 +1152,17 @@ div#bibi-poweredby {
 	}
 }
 
+html.waiting-file div#bibi-poweredby,
 html.waiting div#bibi-poweredby {
 	p {
 		a {
-			background: rgba(96,96,96,0.9);
+			background: rgba(128,128,128, 0.5);
 			img.bibi-logo-white {
-				opacity: 0.5;
+				opacity: 1;
 			}
 		}
 		a:hover {
-			background: rgba(150,150,150,0.9);
+			background: rgba(160,160,160, 0.9);
 			img.bibi-logo-white {
 				opacity: 1.0;
 			}
@@ -1310,7 +1320,7 @@ div#bibi-slider {
 	html.slider-opened & {
 		border-top-width: 1px !important;
 		height: $slider-size !important;
-		background: rgba($scrollbar-track-background-color, 0.98);
+		background: rgba($scrollbar-track-background-color, 0.96);
 	}
 }
 	div#bibi-slider-spreads,
@@ -1590,8 +1600,8 @@ html.appearance-ttb div#bibi-arrow-forward { // ↓
 
 
 $spinner-size: 56px;
-$spinner-halo-size: 32px; $spinner-halo-color: rgba(144,144,144,0.5);
-$spinner-core-size: 24px; $spinner-core-color: rgba(192,192,192,0.5);
+$spinner-halo-size: 32px; $spinner-halo-color: rgba(192,192,192,0.50);
+$spinner-core-size: 24px; $spinner-core-color: rgba(192,192,192,0.75);
 $spinner-bits: 12;
 
 div#bibi-spinner {
@@ -1613,6 +1623,7 @@ div#bibi-spinner {
 		left: 0; right: 0; top: 0; bottom: 0;
 		margin: auto;
 		border-radius: 50%;
+		opacity: 0.75;
 	}
 	&:before { // core
 		width: $spinner-core-size;
@@ -1646,9 +1657,9 @@ div#bibi-spinner {
 	}
 	html.busy & {
 		display: block;
-		animation: SPIN 2s linear 0s infinite normal;
+		animation: SPIN 1.5s linear 0s infinite normal;
 		&:before, &:after {
-			animation: BEAT 2s ease 0s infinite normal;
+			animation: BEAT 2.25s ease 0s infinite normal;
 		}
 		span {
 			//animation: GLOW 4s ease-in-out 0s infinite normal;
@@ -1656,27 +1667,23 @@ div#bibi-spinner {
 	}
 }
 
-@include keyframes(SPIN) {
+@keyframes SPIN {
 	  0% { transform: rotate(  0deg); }
-	 25% { transform: rotate(180deg); }
-	 50% { transform: rotate(360deg); }
-	 75% { transform: rotate(540deg); }
-	100% { transform: rotate(720deg); }
+	100% { transform: rotate(360deg); }
 }
 
-@include keyframes(BEAT) {
-	  0% { transform: scale(1.0); opacity: 1.0; }
-	 25% { transform: scale(0.8); }
-	 50% { transform: scale(1.0); opacity: 0.5; }
-	 75% { transform: scale(1.2); }
-	100% { transform: scale(1.0); opacity: 1.0; }
+@keyframes BEAT {
+	  0% { transform: scale(1.00); opacity: 0.75; }
+	 25% { transform: scale(1.25); opacity: 0.50; }
+	 50% { transform: scale(1.00); opacity: 0.75; }
+	 75% { transform: scale(0.80); opacity: 1.00; }
+	100% { transform: scale(1.00); opacity: 0.75; }
 }
-
-@include keyframes(GLOW) {
+/*
+@keyframes GLOW {
 	  0% { width: 3px; height: 3px; opacity: 1.0; }
 	 25% { width: 1px; height: 1px; }
-//	 50% { width: 1px; height: ($spinner-size - $spinner-core-size) / 2 + 8px; opacity: 0.5; }
 	 50% { width: 1px; height: 6px; opacity: 1.0; }
 	 75% { width: 1px; height: 1px; }
 	100% { width: 3px; height: 3px; opacity: 1.0; }
-}
+}*/

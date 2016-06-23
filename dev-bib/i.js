@@ -9,7 +9,7 @@
 
 (function() {
     if(window["bibi:pipi"]) return;
-    var Pipi = window["bibi:pipi"] = { "version": "0.999.0", "build": 201604150238,
+    var Pipi = window["bibi:pipi"] = { "version": "0.000.0", "build": 198106091234,
         Status: "",
         Bibis: [],
         Anchors: [],

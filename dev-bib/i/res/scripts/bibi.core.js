@@ -1106,6 +1106,7 @@ L.postprocessItem.patchStyles = function(Item) {
 
     sML.each(Item.contentDocument.styleSheets, function () {
         var StyleSheet = this;
+        if(!StyleSheet.cssRules) return;
         for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
             var CSSRule = this.cssRules[i];
             /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
@@ -1233,6 +1234,8 @@ L.open = function() {
     R.layout({
         Destination: (S["to"] ? S["to"] : "head")
     });
+
+    R.getCurrent();
 
     E.dispatch("bibi:laid-out:for-the-first-time");
 
@@ -2008,7 +2011,7 @@ R.getCurrent = function() {
 };
 
 
-R.focus = function(Destination, ScrollOption) {
+R.focus = function(Destination, ScrollParam) {
     if(R.Moving) return false;
     Destination = R.focus.hatchDestination(Destination);
     if(!Destination) return false;
@@ -2034,47 +2037,20 @@ R.focus = function(Destination, ScrollOption) {
         }
     }
     if(typeof Destination.TextNodeIndex == "number") R.selectTextLocation(Destination); // Colorize Destination with Selection
-    var ScrollTo = { X: 0, Y: 0 }; 
-    ScrollTo[S.AXIS.L] = FocusPoint * R.Scale;
-    if(!ScrollOption) ScrollOption = {};
-    var callback = function() {
-        R.getCurrent();
-        R.Moving = false;
-        if(ScrollOption.callback) ScrollOption.callback();
+    var ScrollTarget = {
+        Frame: R.Main,
+        X: 0, Y: 0
     };
-    if(S.RVM == "paged") {
-        sML.scrollTo(R.Main, ScrollTo, { Duration: 0, callback: callback });/*
-        var GoAhead = (function() {
-            CurrentScrollLength = R.Main["scroll" + (S.SLA == "horizontal" ? "Left" : "Top")];
-            if(S.SLD == "rtl") return (FocusPoint < CurrentScrollLength);
-            else               return (FocusPoint > CurrentScrollLength);
-        })();
-        var FlippingDuration = 50;
-        sML.style(R.Main, {
-            transition: "ease-out " + (FlippingDuration / 1000) + "s"
-        });
-        sML.addClass(O.HTML, "flipping-" + (GoAhead ? "ahead" : "astern"));
-        setTimeout(function() {
-            sML.style(R.Main, {
-                transition: "none"
-            });
-            sML.scrollTo(R.Main, ScrollTo, { Duration: 1,
-                callback: function() {
-                    if(S.RVM == "paged") {
-                        R.Spreads.forEach(function(Spread) {
-                            if(Spread == Destination.Item.Spread) Spread.style.opacity = 1;
-                            //else                                Spread.style.opacity = 0;
-                        });
-                        sML.removeClass(O.HTML, "flipping-ahead");
-                        sML.removeClass(O.HTML, "flipping-astern");
-                    }
-                    E.dispatch("bibi:focused", Destination);
-                }
-            });
-        }, FlippingDuration);*/
-    } else {
-        sML.scrollTo(R.Main, ScrollTo, { Duration: ScrollOption.Duration, callback: callback });
-    }
+    ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
+    if(!ScrollParam) ScrollParam = {};
+    sML.scrollTo(ScrollTarget, {
+        Duration: ((S.RVM == "paged") ? 0 : ScrollParam.Duration),
+        callback: function() {
+            R.getCurrent();
+            R.Moving = false;
+            if(ScrollParam.callback) ScrollParam.callback();
+        }
+    });
     return false;
 };
 
@@ -2243,16 +2219,22 @@ R.move = function(Distance, ScrollOption) {
         R.focus({ Page: DestinationPage, Side: Side }, ScrollOption);
     } else {
         R.Moving = true;
-        if(!ScrollOption) ScrollOption = {};
-        ScrollOption.callback = function() { R.getCurrent(); R.Moving = false; };
-        sML.scrollTo(R.Main, (function(ScrollCoord) {
-            var ScrollCoord = sML.Coord.getScrollCoord(R.Main);
-            switch(S.SLD) {
-                case "ttb": return { Y: ScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Distance      };
-                case "ltr": return { X: ScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance      };
-                case "rtl": return { X: ScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance * -1 };
+        var ScrollTarget = {
+            Frame: R.Main,
+            X: 0, Y: 0
+        };
+        var CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
+        switch(S.SLD) {
+            case "ttb": ScrollTarget.Y = CurrentScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Distance;      break;
+            case "ltr": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance;      break;
+            case "rtl": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance * -1; break;
+        }
+        sML.scrollTo(ScrollTarget, {
+            callback: function() {
+                R.getCurrent();
+                R.Moving = false;
             }
-        })(), ScrollOption);
+        });
     }
     E.dispatch("bibi:moved", Distance);
 };

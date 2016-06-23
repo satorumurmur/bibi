@@ -1,6 +1,6 @@
 {
   "name": "bibi",
-  "version": "0.999.3",
+  "version": "0.999.4",
   "author": {
     "name": "Satoru MATSUSHIMA"
   },
@@ -12,7 +12,7 @@
     "Books-in-Browsers"
   ],
   "license": "MIT",
-  "homepage": "http://bibi.epub.link/",
+  "homepage": "http://bibi.epub.link",
   "repository": {
     "type": "git",
     "url": "git://github.com/satorumurmur/bibi.git"
@@ -25,21 +25,24 @@
   },
   "devDependencies": {
     "bower": "^1.7.9",
-    "browser-sync": "^2.11.2",
+    "browser-sync": "^2.12.8",
+    "cssnano": "^3.6.2",
     "del": "^2.2.0",
     "fs": "0.0.2",
     "gulp": "^3.9.1",
     "gulp-combine-mq": "^0.4.0",
     "gulp-concat": "^2.6.0",
-    "gulp-cssnext": "^1.0.1",
-    "gulp-load-plugins": "^1.2.0",
+    "gulp-if": "^2.0.1",
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",
+    "gulp-postcss": "^6.1.1",
+    "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
-    "gulp-sass": "^2.2.0",
+    "gulp-sass": "^2.3.1",
     "gulp-uglify": "^1.5.3",
     "gulp-zip": "^3.2.0",
-    "run-sequence": "^1.1.5"
+    "postcss-cssnext": "^2.5.2",
+    "run-sequence": "^1.2.1"
   },
   "dependencies": {}
 }
