@@ -7,7 +7,7 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a parmalink for each book, and you can embed it in other webpages (just like a YouTube video).
+You can publish EPUB books on the web with a permalink for each book, and you can embed it in other webpages (just like a YouTube video).
 
 ### Spec.
 
@@ -65,7 +65,7 @@ You can publish both unzipped folder and zipped EPUB archive. But using unzipped
 
 #### Publish unzipped folders (Recommended)
 
-This is recommended. It accelarates reading experience of your readers, and is more compatible with many browsers.
+This is recommended. It accelerates reading experience of your readers, and is more compatible with many browsers.
 
 1. Upload `bib` directory into some directory on your web server.
 2. Unzip an EPUB book,
