@@ -157,7 +157,9 @@ gulp.task('update: bower_components', function() {
     return $.bower.commands.install().on('end', S.update_bower_components_js);
 });
 
-gulp.task('update: bower_components.js', S.update_bower_components_js);
+gulp.task('update: bower_components.js', function() {
+    return S.update_bower_components_js();
+});
 
 S.update_bower_components_js = function() {
     return gulp.src([
