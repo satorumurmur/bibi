@@ -22,8 +22,10 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "test",
-    "tests"
+    "dev-bib",
+    "gulpfile.js",
+    "manifest.json",
+    "package.json"
   ],
   "devDependencies": {
     "native-promise-only": "^0.8.0-a",
