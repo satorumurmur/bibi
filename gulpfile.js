@@ -17,6 +17,7 @@ var gulp = require('gulp'), S = {}, $ = {
     sass:            require("gulp-sass"),
     uglify:          require("gulp-uglify"),
     zip:             require("gulp-zip"),
+    merge:           require("merge-stream"),
     bower:           require("bower"),
     browserSync:     require("browser-sync"),
     cssnano:         require("cssnano"),
@@ -153,14 +154,6 @@ var Tasks_updateMetafiles = [
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('update: bower_components', function() {
-    return $.bower.commands.install().on('end', S.update_bower_components_js);
-});
-
-gulp.task('update: bower_components.js', function() {
-    return S.update_bower_components_js();
-});
-
 S.update_bower_components_js = function() {
     return gulp.src([
         'bower_components/native-promise-only/lib/npo.src.js',
@@ -173,6 +166,14 @@ S.update_bower_components_js = function() {
         .pipe($.uglify({ preserveComments: 'some' }))
         .pipe(gulp.dest(''));
 };
+
+gulp.task('update: bower_components', function() {
+    return $.bower.commands.install().on('end', S.update_bower_components_js);
+});
+
+gulp.task('update: bower_components.js', function() {
+    return S.update_bower_components_js();
+});
 
 
 //==============================================================================================================================================
@@ -198,7 +199,7 @@ gulp.task('make: bibi.js', function() {
         src: [
 			'dev-bib/i/res/scripts/_banner.js',
 			'dev-bib/i/res/scripts/_lib/bower_components.js',
-			'dev-bib/i/res/scripts/bibi.core.js'
+			'dev-bib/i/res/scripts/bibi.heart.js'
         ],
         dist: 'bib/i/res/scripts/bibi.js'
     });
@@ -244,10 +245,10 @@ S.makeExtensionScript = function(ExtensionName) {
 var Tasks_makeExtensionScripts = [];
 
 S.Extensions.forEach(function(ExtensionName) {
-    gulp.task('make: ex ' + ExtensionName + '.js', function() {
+    gulp.task('make: extension: ' + ExtensionName + '.js', function() {
         return S.makeExtensionScript(ExtensionName);
     });
-    Tasks_makeExtensionScripts.push('make: ex ' + ExtensionName + '.js');
+    Tasks_makeExtensionScripts.push('make: extension: ' + ExtensionName + '.js');
 });
 
 
@@ -259,10 +260,14 @@ S.Extensions.forEach(function(ExtensionName) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 S.makeStyle = function(Param) {
-    return gulp.src(Param.src)
+    return $.merge(
+        gulp.src(Param.header),
+        gulp.src(Param.src)
+    )
         .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
         .pipe($.sass())
         .pipe($.combineMq())
+        .pipe($.concat(Param.dist))
         .pipe($.postcss([
             $.postcss_cssnext({
                 browsers: 'last 2 versions',
@@ -270,13 +275,15 @@ S.makeStyle = function(Param) {
             }),
             $.cssnano()
         ]))
-        .pipe($.rename(Param.dist))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
 };
 
 gulp.task('make: bibi.css', function() {
     return S.makeStyle({
+        header: [
+            'dev-bib/i/res/styles/-header.scss'
+        ],
         src: [
             'dev-bib/i/res/styles/bibi.scss'
         ],
@@ -286,6 +293,8 @@ gulp.task('make: bibi.css', function() {
 
 gulp.task('make: i.css', function() {
     return S.makeStyle({
+        header: [
+        ],
         src: [
             'dev-bib/i.scss'
         ],
@@ -336,7 +345,7 @@ gulp.task('watch', function() {
     gulp.watch(['dev-bib/i/res/scripts/**/*.js'], ['make: bibi.js']);
     gulp.watch(['dev-bib/i.js'], ['make: i.js']);
     S.Extensions.forEach(function(ExtensionName) {
-        gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.js'], ['make: ex ' + ExtensionName + '.js']);
+        gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.js'], ['make: extension: ' + ExtensionName + '.js']);
     });
     gulp.watch(['dev-bib/i/res/styles/*.scss',], ['make: bibi.css']);
     gulp.watch(['dev-bib/i.scss'], ['make: i.css']);

@@ -1,6 +1,6 @@
 {
   "name": "bibi",
-  "version": "0.999.5",
+  "version": "0.999.6",
   "author": {
     "name": "Satoru MATSUSHIMA"
   },
@@ -24,15 +24,15 @@
     "start": "gulp"
   },
   "devDependencies": {
-    "bower": "^1.7.9",
-    "browser-sync": "^2.17.3",
-    "cssnano": "^3.7.7",
+    "bower": "^1.8.0",
+    "browser-sync": "^2.18.2",
+    "cssnano": "^3.8.0",
     "del": "^2.2.2",
     "fs": "0.0.2",
     "gulp": "^3.9.1",
     "gulp-combine-mq": "^0.4.0",
-    "gulp-concat": "^2.6.0",
-    "gulp-if": "^2.0.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-if": "^2.0.2",
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",
     "gulp-postcss": "^6.2.0",
@@ -41,6 +41,7 @@
     "gulp-sass": "^2.3.2",
     "gulp-uglify": "^1.5.4",
     "gulp-zip": "^3.2.0",
+    "merge-stream": "^1.0.0",
     "postcss-cssnext": "^2.8.0",
     "run-sequence": "^1.2.2"
   },

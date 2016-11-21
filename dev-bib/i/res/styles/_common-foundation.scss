@@ -1,0 +1,23 @@
+// ================================================================================
+// + Foundation / Reset
+// --------------------------------------------------------------------------------
+
+* {
+    margin: 0;
+    padding: 0;
+    border-style: none;
+    border: 0;
+    font-size: 100%;
+	font-weight: normal;
+	font-style: normal;
+}
+
+li {
+	list-style: none outside;
+}
+
+section, article, nav, aside,
+header, footer,
+figure, figcaption { 
+    display: block;
+}

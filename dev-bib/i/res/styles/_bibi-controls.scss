@@ -193,7 +193,7 @@ div#bibi-veil-cover {
 		&:before {
 		//	@include font-icon("Material Icons");
 		//	content: /*import_contacts*/ "\e0e0";
-			@include font-icon("Elegant Icons");
+			@include font-icon("ElegantIcons");
 			content: "\e086"; // book
 			z-index: 1;
 			width: $button-size;
@@ -262,7 +262,7 @@ p#bibi-veil-catcher {
 	&:before { // icon
 	//	@include font-icon("Material Icons");
 	//	content: /*import_contacts*/ "\e0e0";
-		@include font-icon("Elegant Icons");
+		@include font-icon("ElegantIcons");
 		content: "\e022"; // book_alt
 		width: $size;
 		height: $size;
@@ -337,8 +337,8 @@ p#bibi-veil-play {
 			transform $transition-duration $transition-timing-function_form;
 	}
 	&:before { // icon
-		//@include font-icon("Font Awesome");
-		@include font-icon("Elegant Icons");
+		//@include font-icon("FontAwesome");
+		@include font-icon("ElegantIcons");
 		box-sizing: border-box;
 		display: block;
 		z-index: 10;
@@ -742,7 +742,7 @@ div.bibi-subpanel {
 					font-size: 10px;
 					color: rgb(128,128,128);
 					&:before {
-						@include font-icon("Font Awesome");
+						@include font-icon("FontAwesome");
 						position: absolute;
 						left: .2em;
 						top: .25em;
@@ -785,7 +785,7 @@ div.bibi-subpanel {
 					}
 				}
 				&:after {
-					@include font-icon("Font Awesome");
+					@include font-icon("FontAwesome");
 					display: block;
 					position: absolute;
 					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
@@ -1466,7 +1466,7 @@ div#bibi-arrow-forward {
 	}
 	&:before { // icon
 	//	@include font-icon("Material Icons");
-		@include font-icon("Elegant Icons");
+		@include font-icon("ElegantIcons");
 		z-index: 2;
 		margin: auto;
 		width: $arrow-bar-length;

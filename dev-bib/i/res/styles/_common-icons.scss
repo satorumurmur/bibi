@@ -243,10 +243,10 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	&:before {
 	//	@include font-icon("Material Icons");
 	//	content: /*touch_app*/ "\e8b8";
-	//	@include font-icon("Font Awesome");
+	//	@include font-icon("FontAwesome");
 	//	content: "\f013"; // cog
 	//	font-size: $icon-size * 23/31;
-		@include font-icon("Elegant Icons");
+		@include font-icon("ElegantIcons");
 		content: "\e037"; // icon_cog
 		font-size: $icon-size * 19/31;
 	}
@@ -256,11 +256,11 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	&:before {
 	//	@include font-icon("Material Icons");
 	//	content: /*share*/ "\e80d";
-	//	@include font-icon("Font Awesome");
+	//	@include font-icon("FontAwesome");
 	//	content: "\f064"; // share
 	//	content: "\f045"; // share-square-o
 	//	content: "\f1e0"; // share-alt
-		@include font-icon("Elegant Icons");
+		@include font-icon("ElegantIcons");
 		content: "\e0a0"; // social_share
 		font-size: $icon-size * 16/31;
 	}
@@ -269,7 +269,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 .bibi-icon-toggle-fullscreen {
 	&:before {
 		//@include font-icon("Material Icons");
-		@include font-icon("Font Awesome");
+		@include font-icon("FontAwesome");
 		.bibi-subpanel & {
 			font-size: $icon-size_in-subpanel * 5/7;
 		}
@@ -288,7 +288,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	&:before {
 	//	@include font-icon("Material Icons");
 	//	content: /*open_in_new*/ "\e89e";
-		@include font-icon("Font Awesome");
+		@include font-icon("FontAwesome");
 		content: "\f08e"; // external-link
 		font-size: $icon-size * 21/31;
 		.bibi-subpanel & {
@@ -579,7 +579,7 @@ $icon-color_active_border: darken(pink, 5%);
 		line-height: $icon-size_in-subpanel * .96;
 	}
 	&:before {
-		@include font-icon("Font Awesome");
+		@include font-icon("FontAwesome");
 		display: inline-block;
 		content: $content;
 		color: $color !important;
