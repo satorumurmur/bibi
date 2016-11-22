@@ -3,6 +3,8 @@
 // --------------------------------------------------------------------------------
 
 
+
+
 // ================================================================================
 // + Vars
 // --------------------------------------------------------------------------------
@@ -92,9 +94,19 @@ $z-index_notifier-board: 99999999999;
 $z-index_spinner: $z-index_notifier-board - 1;
 
 
+
+
 // ================================================================================
 // + Mix-Ins
 // --------------------------------------------------------------------------------
+
+
+@mixin trbl($t: auto, $r: $t, $b: $t, $l: $r) { top: $t; right: $r; bottom: $b; left: $l; }
+
+@mixin min($min) { @media screen and (min-width: #{$min}) { @content; } }
+@mixin max($max) { @media screen and (max-width: #{$max}) { @content; } }
+@mixin min-max($min, $max) { @media screen and (min-width: #{$min}) and (max-width: #{$max}) { @content; } }
+@mixin max-min($max, $min) { @include min-max($min, $max) { @content; } }
 
 @mixin keyframes($N) { @-webkit-keyframes #{$N} { @content; } @-epub-keyframes #{$N} { @content; } @-moz-keyframes #{$N} { @content; } @-ms-keyframes #{$N} { @content; } @keyframes #{$N} { @content; } }
 
@@ -114,31 +126,32 @@ $z-index_spinner: $z-index_notifier-board - 1;
 }
 
 @mixin font-icon($FamilyName) {
+	display: inline-block;
+	direction: ltr;
+	letter-spacing: normal;
+	text-transform: none;
+	text-rendering: optimizeLegibility;
+	white-space: nowrap;
+	word-wrap: normal;
 	font-family: $FamilyName;
 	font-style: normal;
 	font-weight: normal;
 	font-variant: normal;
-	text-transform: none;
+	-ms-font-feature-settings: 'liga' 1;
+	font-feature-settings: 'liga';
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	speak: none;
 }
 
-@mixin trbl($t, $r, $b, $l) {
-	@if $t {} @else { $t: auto; }
-	@if $r {} @else { $r: auto; }
-	@if $b {} @else { $b: $t; }
-	@if $l {} @else { $l: $r; }
-	top: $t;
-	right: $r;
-	bottom: $b;
-	left: $l;
-}
+
+
 
 
 // ================================================================================
 // + Common Classes
 // --------------------------------------------------------------------------------
+
 
 .non-visual {
 	display: block !important;

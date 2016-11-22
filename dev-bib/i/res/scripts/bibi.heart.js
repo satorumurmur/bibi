@@ -3546,7 +3546,7 @@ I.setButtonState = function(Ele, ButtonState) {
     if(ButtonState == Ele.ButtonState) return;
     Ele.ButtonState = ButtonState;
     if(Ele.Labels && Ele.Labels[Ele.ButtonState]) {
-        Ele.title = Ele.Labels[Ele.ButtonState];
+        Ele.title = Ele.Labels[Ele.ButtonState].replace(/<[^>]+>/g, "");
         if(Ele.Label) Ele.Label.innerHTML = Ele.Labels[Ele.ButtonState];
     }
     sML.replaceClass(Ele, Ele.PreviousButtonState, Ele.ButtonState);

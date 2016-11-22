@@ -37,6 +37,26 @@
 
 /*!
  *
+ *  # Material Icons
+ *
+ *  - by Material Design Authors / Google Inc. - https://material.io/icons/
+ *  - Licensed under the Apache License Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
+ *
+ */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../fonts/MaterialIcons/MaterialIcons-Regular.eot); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url(../fonts/MaterialIcons/MaterialIcons-Regular.woff2) format('woff2'),
+       url(../fonts/MaterialIcons/MaterialIcons-Regular.woff) format('woff'),
+       url(../fonts/MaterialIcons/MaterialIcons-Regular.ttf) format('truetype');
+}
+
+/*!
+ *
  *  # BiB/i Style
  *
  *  - "Styles for BiB/i"
