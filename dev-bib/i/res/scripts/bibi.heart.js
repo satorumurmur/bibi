@@ -2723,7 +2723,7 @@ I.createButtonGroup.addButton = function(Opt) {
         StopPropagation: true,
         PreventDefault: (Button.href ? false : true)
     });
-    if(typeof Button.execute == "function") Button.addTapEventListener(function() { setTimeout(function() { Button.execute.apply(Button, arguments); }, 0); });
+    if(typeof Button.execute == "function") Button.addTapEventListener(function() { /*setTimeout(function() {*/ Button.execute.apply(Button, arguments); /*}, 0);*/ });
     Button.ButtonGroup.Buttons.push(Button);
     return Button;
 };
