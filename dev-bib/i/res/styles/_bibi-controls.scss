@@ -784,10 +784,20 @@ div.bibi-subpanel {
 						font-size: .875em;
 					}
 				}
-				&:after {
-					@include font-icon("FontAwesome");
+				&:before, &:after {
 					display: block;
 					position: absolute;
+				}
+				&:before {
+					content: "";
+					z-index: 10;
+					@include trbl(0);
+					width: 100%;
+					height: 100%;
+				}
+				&:after {
+					z-index: 1;
+					@include font-icon("FontAwesome");
 					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
 					//width: 0.9em;
 					height: 0.9em;
