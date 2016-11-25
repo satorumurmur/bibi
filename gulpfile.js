@@ -360,13 +360,21 @@ gulp.task('watch', function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Build, Default
+//-- Build, Update, Default
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 gulp.task('build', function() {
     return $.runSequence(
         ['clean: All'],
+        Tasks_updateMetafiles,
+        ['update: bower_components.js'],
+        S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles)
+    );
+});
+
+gulp.task('update', function() {
+    return $.runSequence(
         Tasks_updateMetafiles,
         ['update: bower_components.js'],
         S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles)
