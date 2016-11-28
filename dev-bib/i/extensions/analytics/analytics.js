@@ -17,7 +17,7 @@ Bibi.x({
 
 })(function() {
 
-    if(typeof X["Analytics"].Options["tracking-id"] != "string" || !X["Analytics"].Options["tracking-id"]) return;
+    if(typeof X.Presets["Analytics"]["tracking-id"] != "string" || !X.Presets["Analytics"]["tracking-id"]) return;
 
     var BookPath = location.origin + location.pathname + location.search;
 
