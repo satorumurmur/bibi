@@ -188,10 +188,6 @@ Bibi.ready = function() {
     sML.addClass(O.HTML, "ready");
     O.ReadiedURL = location.href;
 
-    var ExtensionNames = [];
-    X.Extensions.forEach(function(Extension) { ExtensionNames.push(Extension["name"]) });
-    if(ExtensionNames.length) O.log("Extension" + (ExtensionNames.length >= 2 ? "s" : "") + ": " + ExtensionNames.join(", "), "-*");
-
     E.add("bibi:commands:move",        function(Dis) { R.move(Dis); });
     E.add("bibi:commands:focus",       function(Des) { R.focus(Des); });
     E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
