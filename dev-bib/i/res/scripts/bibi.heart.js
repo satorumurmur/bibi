@@ -179,7 +179,6 @@ Bibi.byebye = function() {
     O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
     E.dispatch("bibi:says-byebye");
 
-
 };
 
 
@@ -799,8 +798,8 @@ L.loadItemsInSpreads = function() {
     L.LoadedItems = 0;
     L.LoadedSpreads = 0;
 
-    R.ToRelayout = false;
-    L.listenResizingWhileLoading = function() { R.ToRelayout = true; };
+    R.ToBeLaidOutLater = false;
+    L.listenResizingWhileLoading = function() { R.ToBeLaidOutLater = true; };
     window.addEventListener("resize", L.listenResizingWhileLoading);
 
     R.Spreads.forEach(L.loadSpread);
@@ -1174,7 +1173,7 @@ L.onLoadSpread = function(Spread) {
         sML.addClass(Spread, "image-spread");
     }
     E.dispatch("bibi:loaded-spread", Spread);
-    if(!R.ToRelayout) R.resetSpread(Spread);
+    if(!R.ToBeLaidOutLater) R.resetSpread(Spread);
     if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
 };
 
@@ -1217,7 +1216,7 @@ L.open = function() {
     window.removeEventListener("resize", L.listenResizingWhileLoading);
     delete L.listenResizingWhileLoading;
 
-    R.layout({
+    R.layOut({
         Destination: (S["to"] ? S["to"] : "head")
     });
 
@@ -1275,7 +1274,7 @@ R.initialize = function() {
         }
     });
     E.add("bibi:resized", function() {
-        R.layout({
+        R.layOut({
             Reset: true,
             Setting: (Option && Option.Setting ? Option.Setting : undefined)
         });
@@ -1660,8 +1659,8 @@ R.resetNavigation = function() {/*
 */};
 
 
-R.layoutSpread = function(Spread) {
-    O.stamp("Layout Spread " + Spread.SpreadIndex + " Start");
+R.layOutSpread = function(Spread) {
+    O.stamp("Lay Out Spread " + Spread.SpreadIndex + " Start");
     var SpreadBox = Spread.SpreadBox;
     SpreadBox.style.padding = "";
     SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = 0;
@@ -1716,19 +1715,19 @@ R.layoutSpread = function(Spread) {
     });
     R.Main.Book.style[S.SIZE.b] = "";
     R.Main.Book.style[S.SIZE.l] = MainContentLength + "px";
-    O.stamp("Layout Spread " + Spread.SpreadIndex + " End");
+    O.stamp("Lay Out Spread " + Spread.SpreadIndex + " End");
 };
 
 
 /*
-R.layoutStage = function() {
+R.layOutStage = function() {
     for(var L = R.Spreads.length, i = 0, StageLength = 0; i < L; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
     R.Main.Book.style[S.SIZE.l] = StageLength + "px";
 };
 */
 
 
-R.layout = function(Option) {
+R.layOut = function(Option) {
 
     /*
         Option: {
@@ -1739,19 +1738,19 @@ R.layout = function(Option) {
         }
     */
 
-    if(R.Layouting) return false;
-    R.Layouting = true;
+    if(R.LayingOut) return false;
+    R.LayingOut = true;
 
     O.log('Laying out...', "*:");
-    O.stamp("Layout Start");
+    O.stamp("Lay Out Start");
 
     window.removeEventListener(O["resize"], R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
 
     O.Busy = true;
     sML.addClass(O.HTML, "busy");
-    sML.addClass(O.HTML, "layouting");
-    I.note('Layouting...');
+    sML.addClass(O.HTML, "laying-out");
+    I.note('Laying Out...');
 
     if(!Option) Option = {};
 
@@ -1772,14 +1771,14 @@ R.layout = function(Option) {
         'apparent-reading-direction: "' + S.ARD + '"'
     ].join(' / '), "-*");
 
-    if(Option.Reset || R.ToRelayout) {
-        R.ToRelayout = false;
+    if(Option.Reset || R.ToBeLaidOutLater) {
+        R.ToBeLaidOutLater = false;
         R.resetStage();
         R.Spreads.forEach(function(Spread) { R.resetSpread(Spread); });
         R.resetPages();
         R.resetNavigation();
     }
-    R.Spreads.forEach(function(Spread) { R.layoutSpread(Spread); });
+    R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
     for(var i = 0, L = R.Items.length; i < L; i++) {
@@ -1794,19 +1793,19 @@ R.layout = function(Option) {
 
     O.Busy = false;
     sML.removeClass(O.HTML, "busy");
-    sML.removeClass(O.HTML, "layouting");
+    sML.removeClass(O.HTML, "laying-out");
     I.note('');
 
     window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
-    R.Layouting = false;
+    R.LayingOut = false;
 
     if(typeof Option.callback == "function") Option.callback();
 
-    O.stamp("Layout End");
-    O.log('Laid out.', "/*");
     E.dispatch("bibi:laid-out");
+    O.stamp("Lay Out End");
+    O.log('Laid out.', "/*");
 
     return S;
 
@@ -1902,7 +1901,7 @@ R.changeView = function(RVM) {
                     Spread.style.opacity = "";
                 });
             }
-            R.layout({
+            R.layOut({
                 Reset: true,
                 Setting: { "reader-view-mode": RVM },
                 callback: function() {
