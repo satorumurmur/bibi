@@ -132,17 +132,6 @@ Bibi.welcome = function() {
     // Scrollbars
     O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
 
-    // Extensions
-    X.initialize();
-
-    // Settings
-    P.initialize();
-    U.initialize();
-    S.initialize();
-
-    // Reader
-    R.initialize();
-
     // UI
     I.initialize();
 
@@ -153,6 +142,17 @@ Bibi.welcome = function() {
     I.note("Welcome!");
     sML.removeClass(O.HTML, "welcome");
     E.dispatch("bibi:says-welcome");
+
+    // Reader
+    R.initialize();
+
+    // Extensions
+    X.initialize();
+
+    // Settings
+    P.initialize();
+    U.initialize();
+    S.initialize();
 
     // Ready
     P.Initialized.then(Bibi.ready);
@@ -2286,16 +2286,22 @@ I.initialize = function() {
 
     I.createNotifier();
     I.createVeil();
-    I.createPanel();
-    I.createMenu();
-    I.createHelp();
-    I.createPoweredBy();
-    I.createNombre();
-    I.createSlider();
-    I.createArrows();
-    I.createKeyListener();
-    I.createSwiper();
-    I.createSpinner();
+
+    E.bind("bibi:readied", function() {
+        I.createPanel();
+        I.createMenu();
+        I.createHelp();
+        I.createPoweredBy();
+    });
+
+    E.bind("bibi:prepared", function() {
+        I.createNombre();
+        I.createSlider();
+        I.createArrows();
+        I.createKeyListener();
+        I.createSwiper();
+        I.createSpinner();
+    });
 
 };
 
