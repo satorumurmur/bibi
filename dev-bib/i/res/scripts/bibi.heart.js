@@ -408,6 +408,7 @@ L.loadPackageDocument = function() {
         L.createCover();
         L.prepareSpine();
         L.loadNavigation().then(function() {
+            E.dispatch("bibi:prepared");
             if(S["autostart"] || L.Played) {
                 L.loadItemsInSpreads();
             } else {
@@ -1292,9 +1293,6 @@ R.initialize = function() {
     I.observeTap(O.HTML).addTapEventListener(R.ontap);
     E.add("bibi:loaded-item", function(Item) { I.observeTap(Item.HTML).addTapEventListener(R.ontap); });
 
-
-    E.dispatch("bibi:initialized-reader");
-
 };
 
 
@@ -1330,6 +1328,7 @@ R.resetStage = function() {
 
 R.resetSpread = function(Spread) {
     O.stamp("Reset Spread " + Spread.SpreadIndex + " Start");
+    E.dispatch("bibi:is-going-to:reset-spread", Spread);
     Spread.Items.forEach(function(Item) {
         R.resetItem(Item);
     });
@@ -1363,6 +1362,7 @@ R.resetSpread = function(Spread) {
     SpreadBox.style.height = Math.ceil(Height) + "px";
     Spread.style["border-radius"] = S["spread-border-radius"];
     Spread.style["box-shadow"]    = S["spread-box-shadow"];
+    E.dispatch("bibi:reset-spread", Spread);
     O.stamp("Reset Spread " + Spread.SpreadIndex + " End");
 };
 
@@ -1456,6 +1456,7 @@ R.resetItem.asReflowableItem.adjustContent = function(Item, PageB, PageL, PageGa
     R.resetItem.asReflowableItem.adjustContent.columify(Item, PageB, PageL, PageGap);
     if(S["page-breaking"]) R.resetItem.asReflowableItem.adjustContent.breakPages(Item, PageB);
     sML.deleteStyleRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
+    E.dispatch("bibi:adjusted-content", Item);
 };
 R.resetItem.asReflowableItem.adjustContent.fitImages = function(Item, PageB, PageL) {
     sML.each(Item.Body.getElementsByTagName("img"), function() {
@@ -1661,6 +1662,7 @@ R.resetNavigation = function() {/*
 
 R.layOutSpread = function(Spread) {
     O.stamp("Lay Out Spread " + Spread.SpreadIndex + " Start");
+    E.dispatch("bibi:is-going-to:lay-out-spread", Spread);
     var SpreadBox = Spread.SpreadBox;
     SpreadBox.style.padding = "";
     SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = 0;
@@ -1715,6 +1717,7 @@ R.layOutSpread = function(Spread) {
     });
     R.Main.Book.style[S.SIZE.b] = "";
     R.Main.Book.style[S.SIZE.l] = MainContentLength + "px";
+    E.dispatch("bibi:laid-out-spread", Spread);
     O.stamp("Lay Out Spread " + Spread.SpreadIndex + " End");
 };
 
@@ -1743,6 +1746,7 @@ R.layOut = function(Option) {
 
     O.log('Laying out...', "*:");
     O.stamp("Lay Out Start");
+    E.dispatch("bibi:is-going-to:lay-out");
 
     window.removeEventListener(O["resize"], R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
@@ -3051,6 +3055,8 @@ I.createSlider = function() {
     E.add("bibi:closed-panel", I.Slider.close);
     sML.appendStyleRule("html.view-paged div#bibi-slider", "height: " + (O.Scrollbars.Height) + "px;");
 
+    E.dispatch("bibi:created-slider");
+
 };
 
 
@@ -3212,6 +3218,8 @@ I.createArrows = function() {
     E.add("bibi:scrolled",         function()    { I.Arrows.check(); });
     E.add("bibi:commands:move",    function(Dis) { I.Arrows.ontap(Dis); });
 
+    E.dispatch("bibi:created-arrows");
+
 };
 
 
@@ -3338,6 +3346,8 @@ I.createSwiper = function() {
     E.add("bibi:commands:activate-swipe",   function() { I.Swiper.open(); });
     E.add("bibi:commands:deactivate-swipe", function() { I.Swiper.close(); });
     E.add("bibi:commands:toggle-swipe",     function() { I.Swiper.toggle(); });
+
+    E.dispatch("bibi:created-swiper");
 
 };
 
@@ -4210,6 +4220,7 @@ E.unbind = function(Param) { // or E.unbined(Name, Fn);
 
 
 E.dispatch = function(Name, Detail, Ele) {
+    //console.log('//////// ' + Name);
     if(E.Binded[Name] instanceof Array) {
         for(var i = 0, L = E.Binded[Name].length; i < L; i++) {
             if(typeof E.Binded[Name][i] == "function") E.Binded[Name][i].call(Bibi, Detail);
