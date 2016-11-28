@@ -3581,12 +3581,18 @@ P.initialize = function() {
     }
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(!P["trustworthy-origins"].includes(location.origin)) P["trustworthy-origins"].unshift(location.origin);
-    P["extensions"].forEach(function(Extension) {
-        if(typeof Extension["src"] != "string" || !Extension["src"]) return;
-        X.ExtensionsInPreset.push(Extension);
+    var ExtensionsToBeLoaded = [];
+    P["extensions"].forEach(function(FileInfo) {
+        if(
+            typeof FileInfo["name"] != "string" || !FileInfo["name"] || FileInfo["name"] == "Bibi" ||
+            typeof FileInfo["src"]  != "string" || !FileInfo["src"]
+        ) return;
+        FileInfo.FileIndexInPreset = ExtensionsToBeLoaded.length;
+        ExtensionsToBeLoaded.push(FileInfo);
     });
+    P["extensions"] = ExtensionsToBeLoaded;
     P.Initialized = new Promise(function(resolve, reject) {
-        return (X.ExtensionsInPreset.length) ? X.loadExtensionsInPreset().then(resolve) : resolve();
+        return (P["extensions"].length) ? X.loadFilesInPreset().then(resolve) : resolve();
     });
 };
 
@@ -4270,33 +4276,68 @@ X = {}; // Bibi.Extensions
 
 
 X.initialize = function() {
-    X.ExtensionsInPreset = [];
-    X.LoadedExtensionsInPreset = 0;
+    X.Files = {};
+    X.Presets = {};
+    X.Loaded = [];
+    X.Added = [];
 };
 
 
-X.loadExtensionsInPreset = function() {
+X.loadFilesInPreset = function() {
     return new Promise(function(resolve, reject) {
-        if(!X.ExtensionsInPreset.length) return resolve();
-        X.ExtensionsInPreset.forEach(function(Extension) {
+        O.log('Loading Extension File' + (P["extensions"].length > 1 ? 's' : '') + '...', "*:");
+        var loadFile = function(FileInfo) {
+            if(X.Files[FileInfo["name"]]) {
+                O.log('"name" of Extension File "' + FileInfo["name"] + '" is already taken.', "-*");
+                loadFile(P["extensions"][FileInfo.FileIndexInPreset + 1]);
+                return false;
+            }
+            X.Files[FileInfo["name"]] = FileInfo;
+            X.Presets[FileInfo["name"]] = {};
+            for(var Option in FileInfo) X.Presets[FileInfo["name"]][Option] = FileInfo[Option];
             document.head.appendChild(
-                sML.create("script", { className: "bibi-extension-script", id: "bibi-extension-script_" + Extension["name"], name: Extension["name"], src: Extension["src"],// async: "async",
+                sML.create("script", { className: "bibi-extension-script", id: "bibi-extension-script_" + FileInfo["name"], name: FileInfo["name"], src: FileInfo["src"],// async: "async",
                     onload: function() {
-                        X.LoadedExtensionsInPreset++;
-                        if(X.LoadedExtensionsInPreset == X.ExtensionsInPreset.length) resolve();
-                    },
-                    Options: Extension
+                        X.Loaded.push(FileInfo);
+                        if(FileInfo.FileIndexInPreset + 1 == P["extensions"].length) {
+                            /*
+                            if(X.Loaded.length) {
+                                var LoadedExtensionFiles = "";
+                                X.Loaded.forEach(function(LoadedExtension) { LoadedExtensionFiles += ", " + LoadedExtension["name"]; });
+                                LoadedExtensionFiles = LoadedExtensionFiles.replace(/^, /, "");
+                                O.log('Extension File' + (X.Loaded.length > 1 ? 's' : '') + ': ' + LoadedExtensionFiles, "-*");
+                            }
+                            */
+                            if(X.Added.length) {
+                                var AddedExtensions = "";
+                                X.Added.forEach(function(AddedExtension) { AddedExtensions += ", " + AddedExtension["name"]; });
+                                AddedExtensions = AddedExtensions.replace(/^, /, "");
+                                O.log('Extension' + (X.Added.length > 1 ? 's' : '') + ': ' + AddedExtensions, "-*");
+                            }
+                            O.log('Extension File' + (X.Loaded.length > 1 ? 's' : '') + ' Loaded.', "/*");
+                            return resolve();
+                        }
+                        loadFile(P["extensions"][FileInfo.FileIndexInPreset + 1]);
+                    }
                 })
             );
-        });
+        };
+        loadFile(P["extensions"][0]);
     });
 };
 
-
 X.add = function(Extension) {
-    if(!Extension || typeof Extension != "object") return function() { return false; };
-    if(typeof Extension["name"] != "string")       return function() { E.bind("bibi:readied", function() { O.log('Extension name is invalid.', "-*"); }); };
-    if(X[Extension["name"]])                       return function() { E.bind("bibi:readied", function() { O.log('Extension name "' + Extension["name"] + '" is reserved or already taken.', "-*"); }); };
+    if(!Extension || typeof Extension != "object") {
+        return function() { return false };
+    }
+    if(typeof Extension["name"] != "string" || !Extension["name"]) {
+        O.log('Extension name is invalid.', "-*");
+        return function() { return false };
+    }
+    if(X[Extension["name"]]) {
+        O.log('Extension name "' + Extension["name"] + '" is reserved or already taken.', "-*");
+        return function() { return false };
+    }
     if(typeof Extension["description"] != "string") Extension["decription"] = undefined;
     if(typeof Extension["author"] != "string") Extension["author"] = undefined;
     if(typeof Extension["version"] != "string") Extension["version"] = undefined;
@@ -4305,11 +4346,17 @@ X.add = function(Extension) {
     X.Extensions.push(Extension);
     X[Extension["name"]] = Extension;
     X[Extension["name"]].Options = {};
-    if(document.getElementById("bibi-extension-script_" + Extension["name"])) X[Extension["name"]].Options = document.getElementById("bibi-extension-script_" + Extension["name"]).Options;
-    return function(init) { E.bind("bibi:readied", function() { init.call(Extension); }); };
+    X.Added.push(Extension);
+    return function(onReadied) {
+        if(typeof onReadied == "function") E.bind("bibi:readied", function() { return onReadied.call(Extension); });
+        return function(onPrepared) {
+            if(typeof onPrepared == "function") E.bind("bibi:prepared", function() { return onPrepared.call(Extension); });
+            return function(onOpened) {
+                if(typeof onOpened == "function") E.bind("bibi:opened", function() { return onOpened.call(Extension); });
+            };
+        };
+    };
 };
 
 Bibi.x = X.add;
-
-
 
