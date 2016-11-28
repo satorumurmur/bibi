@@ -936,7 +936,7 @@ L.postprocessItem = function(Item) {
 
     E.dispatch("bibi:is-going-to:postprocess-item-content", Item);
 
-    L.postprocessItem.processImages(Item);
+    L.postprocessItem.processSVGs(Item);
     L.postprocessItem.defineViewport(Item);
     L.postprocessItem.coordinateLinkages(Item);
 
@@ -951,19 +951,7 @@ L.postprocessItem = function(Item) {
 };
 
 
-L.postprocessItem.processImages = function(Item) {
-    sML.each(Item.Body.getElementsByTagName("img"), function() {
-        this.Bibi = {
-            DefaultStyle: {
-                "margin":            (this.style.margin          ? this.style.margin          : ""),
-                "width":             (this.style.width           ? this.style.width           : ""),
-                "height":            (this.style.height          ? this.style.height          : ""),
-                "vertical-align":    (this.style.verticalAlign   ? this.style.verticalAlign   : ""),
-                "page-break-before": (this.style.pageBreakBefore ? this.style.pageBreakBefore : ""),
-                "page-break-after":  (this.style.pageBreakAfter  ? this.style.pageBreakAfter  : "")
-            }
-        }
-    });
+L.postprocessItem.processSVGs = function(Item) {
     if(sML.UA.InternetExplorer) {
         sML.each(Item.Body.getElementsByTagName("svg"), function() {
             var ChildImages = this.getElementsByTagName("image");
@@ -1102,23 +1090,14 @@ L.postprocessItem.coordinateLinkages.jump = function(Eve) {
 
 L.postprocessItem.patchStyles = function(Item) {
 
-    sML.each(Item.contentDocument.styleSheets, function () {
-        var StyleSheet = this;
-        if(!StyleSheet.cssRules) return;
-        for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
-            var CSSRule = this.cssRules[i];
-            /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
-            else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-            else {
-                if(/(-(webkit|epub)-)?column-count: 1; /.test(CSSRule.cssText)) {
-                    CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
-                }
-                if(sML.UA.InternetExplorer) {
-                    /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-                    else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-                    else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-                }
-            }
+    O.editCSSRules(Item.contentDocument, function(CSSRule) {
+        if(/(-(webkit|epub)-)?column-count: 1; /.test(CSSRule.cssText)) {
+            CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
+        }
+        if(sML.UA.InternetExplorer) {
+            /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+            else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+            else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
         }
     });
 
@@ -1144,6 +1123,19 @@ L.postprocessItem.patchStyles = function(Item) {
 
     if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.patchStyles.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
     if(Item.Body.style) { sML.style(Item,         L.postprocessItem.patchStyles.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
+
+    sML.each(Item.Body.getElementsByTagName("img"), function() {
+        this.Bibi = {
+            DefaultStyle: {
+                "margin":            (this.style.margin          ? this.style.margin          : ""),
+                "width":             (this.style.width           ? this.style.width           : ""),
+                "height":            (this.style.height          ? this.style.height          : ""),
+                "vertical-align":    (this.style.verticalAlign   ? this.style.verticalAlign   : ""),
+                "page-break-before": (this.style.pageBreakBefore ? this.style.pageBreakBefore : ""),
+                "page-break-after":  (this.style.pageBreakAfter  ? this.style.pageBreakAfter  : "")
+            }
+        }
+    });
 
 };
 
@@ -3955,6 +3947,25 @@ O.openDocument = function(Path) {
             return O.parseDocument(Path, B.Files[Path]);
         });
     }
+};
+
+
+O.editCSSRules = function() {
+    var Doc, Fun;
+         if(typeof arguments[0] == "function") Doc = arguments[1], Fun = arguments[0];
+    else if(typeof arguments[1] == "function") Doc = arguments[0], Fun = arguments[1];
+    if(!Doc) Doc = document;
+    if(!Doc.styleSheets || typeof Fun != "function") return;
+    sML.each(Doc.styleSheets, function() {
+        var StyleSheet = this;
+        if(!StyleSheet.cssRules) return;
+        for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+            var CSSRule = this.cssRules[i];
+            /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
+            else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
+            else Fun(CSSRule);
+        }
+    });
 };
 
 
