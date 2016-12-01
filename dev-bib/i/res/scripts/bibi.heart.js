@@ -3993,6 +3993,19 @@ O.editCSSRules = function() {
 };
 
 
+O.appendStyleSheetLink = function(Opt, Doc) {
+    if(!Opt || !Opt.href) return false;
+    if(!Doc) Doc = document;
+    var Link = Doc.createElement("link");
+    Link.rel = "stylesheet";
+    if(typeof Opt.className == "string") Link.className = Opt.className;
+    if(typeof Opt.id        == "string") Link.id = Opt.id;
+    if(typeof Opt.media     == "string") Link.media = Opt.media;
+    Link.href = Opt.href;
+    return Doc.head.appendChild(Link);
+};
+
+
 O.getWritingMode = function(Ele) {
     var CS = getComputedStyle(Ele);
          if(!O.WritingModeProperty)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
@@ -4113,6 +4126,8 @@ O.Path = (function() {
     var Scripts = document.getElementsByTagName("script");
     return Scripts[Scripts.length - 1].src;
 })();
+
+O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "/");
 
 O.Cookie = {
     remember: function(Group) {
