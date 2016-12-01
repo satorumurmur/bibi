@@ -144,24 +144,25 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 ### BiB/i
 
-* &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+* Copyright &copy; Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
 * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
 
 
 ### BiB/i is including and powered by these open source softwares:
 
-* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and MIT license.)
-* [Font Awesome](http://fontawesome.io) ... &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
-* [Native Promise Only](https://github.com/getify/native-promise-only) ... &copy; Kyle Simpson (Licensed under the MIT license.)
-* [Hammer.JS](http://hammerjs.github.io/) ... &copy; Jorik Tangelder (Licensed under the MIT license.)
-* [easing.js](https://github.com/danro/easing-js) ... &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
-* [sML](https://github.com/satorumurmur/sML) ... &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
+* [The Elegant Icon Font](http://www.elegantthemes.com/blog/resources/elegant-icon-font) ... Copyright &copy; Elegant Themes, Inc. (Dual licensed under the GPL 2.0 and MIT license.)
+* [Font Awesome](http://fontawesome.io) ... Copyright &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
+* [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. ([Licensed under the Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0))
+* [Native Promise Only](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under the MIT license.)
+* [Hammer.JS](http://hammerjs.github.io/) ... Copyright &copy; Jorik Tangelder (Licensed under the MIT license.)
+* [easing.js](https://github.com/danro/easing-js) ... Copyright &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
+* [sML](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 
 
 ### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
-* [JSZip](http://stuartk.com/jszip) ... &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
-* [base64.js](https://github.com/dankogai/js-base64) ... &copy; dankogai (Licensed under the MIT license.)
+* [JSZip](http://stuartk.com/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
+* [base64.js](https://github.com/dankogai/js-base64) ... Copyright &copy; dankogai (Licensed under the MIT license.)
 
 
 
