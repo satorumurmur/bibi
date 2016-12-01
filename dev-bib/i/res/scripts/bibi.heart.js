@@ -1310,8 +1310,8 @@ R.resetStage = function() {
     R.Stage = {};
     R.Columned = false;
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
-    R.Stage.Width   = window.innerWidth;
-    R.Stage.Height  = window.innerHeight;
+    R.Stage.Width   = O.HTML.clientWidth;
+    R.Stage.Height  = O.HTML.clientHeight;
     if(S.RVM == "paged") {
         if(I.Slider) R.Stage.Height -= O.Scrollbars.Height;
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
