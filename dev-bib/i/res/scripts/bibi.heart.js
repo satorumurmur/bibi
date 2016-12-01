@@ -27,6 +27,7 @@ Bibi.welcome = function() {
 
     O.stamp("Welcome!");
     O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi', "-0");
+    E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
     O.BookURL = location.origin + location.pathname + location.search;
@@ -36,7 +37,7 @@ Bibi.welcome = function() {
         return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
     })();
 
-    O.HTML  = document.documentElement; O.HTML.className = "welcome " + sML.Environments.join(" ");
+    O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " welcome";
     O.Head  = document.head;
     O.Body  = document.body;
     O.Info  = document.getElementById("bibi-info");
@@ -75,10 +76,6 @@ Bibi.welcome = function() {
             O["pointerover"] = "mouseover";
             O["pointerout"]  = "mouseout";
         }
-    }
-    O.Compatible = true;
-    if(sML.UA.InternetExplorer < 11) {
-        O.Compatible = false;
     }
 
     // Window
@@ -135,13 +132,32 @@ Bibi.welcome = function() {
     // UI
     I.initialize();
 
-    // Bye-bye
-    if(!O.Compatible) return Bibi.byebye();
-
-    // Welcome!
-    I.note("Welcome!");
-    sML.removeClass(O.HTML, "welcome");
-    E.dispatch("bibi:says-welcome");
+    O.Compatible = true;
+    if(sML.UA.InternetExplorer < 11) {
+        O.Compatible = false;
+    }
+    if(!O.Compatible) {
+        // Bye-bye
+        var Msg = {
+            en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
+            ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
+        };
+        I.Veil.ByeBye = I.Veil.appendChild(
+            sML.create("p", { id: "bibi-veil-byebye",
+                innerHTML: [
+                    '<span lang="en">', Msg["en"], '</span>',
+                    '<span lang="ja">', Msg["ja"], '</span>',
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
+            })
+        );
+        O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
+        E.dispatch("bibi:says-byebye");
+        return false;
+    } else {
+        // Welcome!
+        I.note("Welcome!");
+        sML.removeClass(O.HTML, "welcome");
+    }
 
     // Reader
     R.initialize();
@@ -156,28 +172,6 @@ Bibi.welcome = function() {
 
     // Ready
     P.Initialized.then(Bibi.ready);
-
-};
-
-
-Bibi.byebye = function() {
-
-    var Msg = {
-        en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
-        ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
-    };
-
-    I.Veil.ByeBye = I.Veil.appendChild(
-        sML.create("p", { id: "bibi-veil-byebye",
-            innerHTML: [
-                '<span lang="en">', Msg["en"], '</span>',
-                '<span lang="ja">', Msg["ja"], '</span>',
-            ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
-        })
-    );
-
-    O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
-    E.dispatch("bibi:says-byebye");
 
 };
 
@@ -1234,9 +1228,9 @@ L.open = function() {
         document.body.click(); // To responce for user scrolling/keypressing immediately
         L.Opened = true;
         I.note('');
+        E.dispatch("bibi:opened");
         O.stamp("Enjoy");
         O.log('Enjoy Readings!', "-0");
-        E.dispatch("bibi:opened");
     }, 1);
 
 };
@@ -2037,10 +2031,11 @@ R.focus = function(Destination, ScrollParam) {
         callback: function() {
             R.getCurrent();
             R.Moving = false;
+            E.dispatch("bibi:focused");
             if(ScrollParam.callback) ScrollParam.callback();
         }
     });
-    return false;
+    return true;
 };
 
 
@@ -2328,6 +2323,8 @@ I.createNotifier = function() {
         }
     };
 
+    E.dispatch("bibi:created-notifier");
+
 };
 
 
@@ -2433,7 +2430,7 @@ I.createMenu = function() {
             E.dispatch("bibi:closed-menu");
         }
     });
-    E.add("bibi:closed-slider",      function(   ) { I.Menu.close(); });
+    E.add("bibi:closed-slider",        function(   ) { I.Menu.close(); });
     E.add("bibi:commands:open-menu",   function(Opt) { I.Menu.open(Opt); });
     E.add("bibi:commands:close-menu",  function(Opt) { I.Menu.close(Opt); });
     E.add("bibi:commands:toggle-menu", function(Opt) { I.Menu.toggle(Opt); });
@@ -2478,7 +2475,7 @@ I.createMenu = function() {
     });
     I.Menu.L = I.Menu.appendChild(sML.create("div", { id: "bibi-menu-l" }));
     I.Menu.R = I.Menu.appendChild(sML.create("div", { id: "bibi-menu-r" }));
-    I.Menu.open();
+    //I.Menu.open();
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule([
@@ -3056,7 +3053,7 @@ I.createSlider = function() {
         }
     });
     E.add("bibi:opened",   I.Slider.activate);
-//    E.add("bibi:opened",   I.Slider.open);
+    //E.add("bibi:opened",   I.Slider.open);
     E.add("bibi:laid-out", I.Slider.reset);
     E.add("bibi:closed-panel", I.Slider.close);
     sML.appendStyleRule("html.view-paged div#bibi-slider", "height: " + (O.Scrollbars.Height) + "px;");
@@ -3264,6 +3261,8 @@ I.createKeyListener = function() {
     };
     E.add("bibi:updated-settings", function() { I.KeyListener.update(); });
     E.add("bibi:opened",           function() { I.KeyListener.listen(); });
+
+    E.dispatch("bibi:created-keylistener");
 
 };
 
