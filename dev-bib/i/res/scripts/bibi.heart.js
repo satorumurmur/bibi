@@ -2731,7 +2731,15 @@ I.createButtonGroup.addButton = function(Opt) {
         StopPropagation: true,
         PreventDefault: (Button.href ? false : true)
     });
-    if(typeof Button.execute == "function") Button.addTapEventListener(function() { /*setTimeout(function() {*/ Button.execute.apply(Button, arguments); /*}, 0);*/ });
+    Button.Busy = false;
+    Button.ButtonGroup.Busy = false;
+    Button.isAvailable = function() { return (!Button.Busy && !Button.ButtonGroup.Busy); };
+    if(typeof Button.execute == "function") Button.addTapEventListener(function() {
+        //setTimeout(function() {
+            if(!Button.isAvailable()) return false;
+            return Button.execute.apply(Button, arguments);
+        //}, 0);
+    });
     Button.ButtonGroup.Buttons.push(Button);
     return Button;
 };
