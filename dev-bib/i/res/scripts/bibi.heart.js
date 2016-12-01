@@ -1036,7 +1036,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
                     Item: rItem,
                     ElementSelector: (HrefHash ? "#" + HrefHash : undefined)
                 };
-                A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
+                L.postprocessItem.coordinateLinkages.setJump(A);
                 return;
             }
         });
@@ -1046,7 +1046,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
                 A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + "#" + HrefHash);
                 A.InNav = InNav;
                 A.Destination = X["EPUBCFI"].getDestination(HrefHash);
-                A.addEventListener("click", L.postprocessItem.coordinateLinkages.jump);
+                L.postprocessItem.coordinateLinkages.setJump(A);
             } else {
                 A.removeAttribute("href");
                 A.addEventListener("click", function() { return false; });
@@ -1060,22 +1060,28 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
     });
 };
 
-L.postprocessItem.coordinateLinkages.jump = function(Eve) {
-    Eve.preventDefault(); 
-    Eve.stopPropagation();
-    if(this.Destination) {
-        var This = this;
-        var Go = L.Opened ? function() {
-            R.focus(This.Destination, { Duration: 0 });
-        } : function() {
-            if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + This.NavANumber + ")");
-            S["to"] = This.Destination;
-            L.play();
-        };
-        This.InNav ? I.Panel.toggle({ callback: Go }) : Go();
-    }
-    return false;
-};
+L.postprocessItem.coordinateLinkages.setJump = function(A) {
+    A.addEventListener("click", function(Eve) {
+        Eve.preventDefault(); 
+        Eve.stopPropagation();
+        if(A.Destination) {
+            var Go = L.Opened ? function() {
+                R.focus(A.Destination, { Duration: 0 });
+            } : function() {
+                if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
+                S["to"] = A.Destination;
+                L.play();
+            };
+            A.InNav ? I.Panel.toggle({ callback: Go }) : Go();
+        }
+        return false;
+    });
+    A.addEventListener(O["pointerdown"], function(Eve) {
+        Eve.preventDefault(); 
+        Eve.stopPropagation();
+        return false;
+    });
+}
 
 
 L.postprocessItem.patchStyles = function(Item) {
