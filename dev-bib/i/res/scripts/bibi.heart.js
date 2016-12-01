@@ -1212,7 +1212,13 @@ L.open = function() {
     delete L.listenResizingWhileLoading;
 
     R.layOut({
-        Destination: (S["to"] ? S["to"] : "head")
+        Destination: (function() {
+            if(S["to"]) {
+                var HatchedDestination = R.focus.hatchDestination(S["to"]);
+                if(HatchedDestination) return HatchedDestination;
+            }
+            return "head";
+        })()
     });
 
     R.getCurrent();
@@ -2083,9 +2089,11 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
         if(Destination.Element) {
             Destination.Page = R.focus.getNearestPageOfElement(Destination.Element);
         } else if(!Destination.Page){
-                 if(typeof Destination.PageIndexInSpread    == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
-            else if(typeof Destination.PageProgressInSpread == "number") Destination.Page = Destination.Spread.Pages[Math.floor(Destination.Spread.Pages.length * Destination.PageProgressInSpread)];
-            else                                                         Destination.Page = Destination.Item.Pages[0];
+            if(Destination.Spread) {
+                     if(typeof Destination.PageIndexInSpread    == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
+                else if(typeof Destination.PageProgressInSpread == "number") Destination.Page = Destination.Spread.Pages[Math.floor(Destination.Spread.Pages.length * Destination.PageProgressInSpread)];
+            }
+            if(!Destination.Page && Destination.Item) Destination.Page = Destination.Item.Pages[0];
         }
     }
     if(!Destination.Page) return null;
