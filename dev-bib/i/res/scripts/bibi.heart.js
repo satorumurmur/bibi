@@ -2651,6 +2651,17 @@ I.createMenu.createSettingMenu.createWindowMenu = function() {
 
     var WindowButtonGroup = I.Menu.Config.SubPanel.WindowSection.ButtonGroup;
 
+    // New Window
+    if(O.WindowEmbedded) WindowButtonGroup.addButton({
+        Type: "link",
+        Labels: {
+            default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+        href: O.RequestedURL,
+        target: "_blank"
+    });
+
     // Fullscreen
     if(!O.Mobile && O.FullscreenEnabled) WindowButtonGroup.addButton({
         Type: "toggle",
@@ -2675,17 +2686,6 @@ I.createMenu.createSettingMenu.createWindowMenu = function() {
                 sML.removeClass(O.HTML, "fullscreen");
             }
         }
-    });
-
-    // New Window
-    if(O.WindowEmbedded) WindowButtonGroup.addButton({
-        Type: "link",
-        Labels: {
-            default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
-        },
-        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
-        href: O.RequestedURL,
-        target: "_blank"
     });
 
     E.dispatch("bibi:created-window-menu");
@@ -3493,22 +3493,19 @@ I.setTapAction = function(Ele) {
     var ontapped = (function() {
         switch(Ele.Type) {
             case "toggle": return function(Eve) {
-                var This = this;
-                I.setButtonState(This, This.ButtonState == "default" ? "active" : "default");
+                I.setButtonState(Ele, Ele.ButtonState == "default" ? "active" : "default");
             };
             case "radio": return function(Eve) {
-                var This = this;
-                I.setButtonState(This, "active");
-                This.ButtonGroup.Buttons.forEach(function(Button) {
-                    if(Button != This) I.setButtonState(Button, "");
+                I.setButtonState(Ele, "active");
+                Ele.ButtonGroup.Buttons.forEach(function(Button) {
+                    if(Button != Ele) I.setButtonState(Button, "");
                 });
             };
             default: return function(Eve) {
-                var This = this;
-                I.setButtonState(This, "active");
-                clearTimeout(This.Timer_deactivate);
+                I.setButtonState(Ele, "active");
+                clearTimeout(Ele.Timer_deactivate);
                 Ele.Timer_deactivate = setTimeout(function() {
-                    I.setButtonState(This, "");
+                    I.setButtonState(Ele, "");
                 }, 200);
             };
         }
