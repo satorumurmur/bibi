@@ -1747,6 +1747,8 @@ R.layOut = function(Option) {
         }
     */
 
+    if(!Option) Option = {};
+
     if(R.LayingOut) return false;
     R.LayingOut = true;
 
@@ -1760,9 +1762,7 @@ R.layOut = function(Option) {
     O.Busy = true;
     sML.addClass(O.HTML, "busy");
     sML.addClass(O.HTML, "laying-out");
-    I.note('Laying Out...');
-
-    if(!Option) Option = {};
+    if(!Option.NoNotification) I.note('Laying Out...');
 
     if(!Option.Destination) {
         R.getCurrent();
@@ -1804,7 +1804,7 @@ R.layOut = function(Option) {
     O.Busy = false;
     sML.removeClass(O.HTML, "busy");
     sML.removeClass(O.HTML, "laying-out");
-    I.note('');
+    if(!Option.NoNotification) I.note('');
 
     window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
@@ -2321,7 +2321,7 @@ I.createNotifier = function() {
 
     I.Notifier.Board = I.Notifier.appendChild(sML.create("div", { id: "bibi-notifier-board" }));
 
-    I.note = function(Msg, Time, IsError) {
+    I.note = I.Notifier.note = function(Msg, Time, IsError) {
         clearTimeout(I.note.Timer);
         if(!Msg) I.note.Time = 0;
         else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
@@ -3504,10 +3504,10 @@ I.setTapAction = function(Ele) {
                 I.setButtonState(Ele, Ele.ButtonState == "default" ? "active" : "default");
             };
             case "radio": return function(Eve) {
-                I.setButtonState(Ele, "active");
                 Ele.ButtonGroup.Buttons.forEach(function(Button) {
                     if(Button != Ele) I.setButtonState(Button, "");
                 });
+                I.setButtonState(Ele, "active");
             };
             default: return function(Eve) {
                 I.setButtonState(Ele, "active");
