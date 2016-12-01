@@ -3268,7 +3268,7 @@ I.createKeyListener = function() {
         }
     };
     E.add("bibi:updated-settings", function() { I.KeyListener.update(); });
-    E.add("bibi:opened",           function() { I.KeyListener.listen(); });
+    E.add("bibi:opened",           function() { I.KeyListener.update(); I.KeyListener.listen(); });
 
     E.dispatch("bibi:created-keylistener");
 
