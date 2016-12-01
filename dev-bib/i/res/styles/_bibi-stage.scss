@@ -70,7 +70,8 @@ html.WebKit, html.Blink {
 			opacity: 1;
 		}
 	}
-	&.busy {
+	&.busy,
+	&.shade-opened {
 		body:after { // scrollbar border
 			opacity: 0;
 		}
@@ -135,8 +136,9 @@ div#bibi-main {
 	transition: .2s ease;
 	html.view-horizontal & { overflow-x: scroll; }
 	html.view-vertical   & { overflow-y: scroll; }
-	html.busy & {
-		opacity: 0.19;
+	html.busy &,
+	html.shade-opened & {
+		opacity: 0.33;
 	}
 	html.panel-opened & {
 		//filter: blur(4px);

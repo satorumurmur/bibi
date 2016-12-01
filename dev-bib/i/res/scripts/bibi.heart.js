@@ -2770,7 +2770,7 @@ I.createSubPanel = function(Par) {
             sML.addClass(O.HTML, "shade-opened");
             clearTimeout(I.Timer_openShade);
             clearTimeout(I.Timer_closeShade);
-            I.Timer_openShade = setTimeout(function() { sML.addClass(O.HTML, "shade-visible"); }, 0);
+            //I.Timer_openShade = setTimeout(function() { sML.addClass(O.HTML, "shade-visible"); }, 0);
             if(SubPanel.Opener) {
                 SubPanel.Bit.adjust(SubPanel.Opener);
                 I.setButtonState(SubPanel.Opener, "active");
@@ -2782,10 +2782,10 @@ I.createSubPanel = function(Par) {
             if(!Opt || !Opt.ForAnotherSubPanel) {
                 //I.Shade.close();
                 sML.removeClass(O.HTML, "subpanel-opened");
-                sML.removeClass(O.HTML, "shade-visible");
-                clearTimeout(I.Timer_openShade);
+                //sML.removeClass(O.HTML, "shade-visible");
+                //clearTimeout(I.Timer_openShade);
                 clearTimeout(I.Timer_closeShade);
-                I.Timer_closeShade = setTimeout(function() { sML.removeClass(O.HTML, "shade-opened"); }, 200);
+                I.Timer_closeShade = setTimeout(function() { sML.removeClass(O.HTML, "shade-opened"); }, 0);
             }
             if(SubPanel.Opener) {
                 I.setButtonState(SubPanel.Opener, "default");
