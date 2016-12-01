@@ -4127,8 +4127,7 @@ O.Cookie = {
         if(typeof Cookie[Group] != "object") Cookie[Group] = {};
         for(var Key in KeyVal) {
             var Val = KeyVal[Key];
-            if(typeof Key != "string"   || !Key) continue;
-            if(typeof Val == "function" || !Val) continue;
+            if(typeof Val == "function") continue;
             Cookie[Group][Key] = Val;
         }
         if(!Opt) Opt = {};
