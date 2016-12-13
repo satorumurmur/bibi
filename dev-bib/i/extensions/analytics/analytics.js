@@ -26,7 +26,7 @@ Bibi.x({
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-    ga('create', X["Analytics"].Options["tracking-id"], 'auto', { 'allowLinker': true });
+    ga('create', X.Presets["Analytics"]["tracking-id"], 'auto', { 'allowLinker': true });
     ga('require', 'linker'); 
     ga('linker:autoLink', (function(Hosts) {
         S["trustworthy-origins"].forEach(function(Origin) {

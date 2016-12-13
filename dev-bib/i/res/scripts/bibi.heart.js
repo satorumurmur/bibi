@@ -3760,9 +3760,9 @@ P.initialize = function() {
         FileInfo.FileIndexInPreset = ExtensionsToBeLoaded.length;
         ExtensionsToBeLoaded.push(FileInfo);
     });
-    P["extensions"] = ExtensionsToBeLoaded;
+    P.X = P["extensions"] = ExtensionsToBeLoaded;
     P.Initialized = new Promise(function(resolve, reject) {
-        return (P["extensions"].length) ? X.loadFilesInPreset().then(resolve) : resolve();
+        return (P.X.length) ? X.loadFilesInPreset().then(resolve) : resolve();
     });
 };
 
@@ -4478,21 +4478,21 @@ X.initialize = function() {
 
 X.loadFilesInPreset = function() {
     return new Promise(function(resolve, reject) {
-        O.log('Loading Extension File' + (P["extensions"].length > 1 ? 's' : '') + '...', "*:");
+        O.log('Loading Extension File' + (P.X.length > 1 ? 's' : '') + '...', "*:");
         var loadFile = function(FileInfo) {
             if(X.Files[FileInfo["name"]]) {
                 O.log('"name" of Extension File "' + FileInfo["name"] + '" is already taken.', "-*");
-                loadFile(P["extensions"][FileInfo.FileIndexInPreset + 1]);
+                loadFile(P.X[FileInfo.FileIndexInPreset + 1]);
                 return false;
             }
             X.Files[FileInfo["name"]] = FileInfo;
-            X.Presets[FileInfo["name"]] = {};
-            for(var Option in FileInfo) X.Presets[FileInfo["name"]][Option] = FileInfo[Option];
+            X.Presets[FileInfo["name"]] = P.X[FileInfo["name"]] = {};
+            for(var Option in FileInfo) P.X[FileInfo["name"]][Option] = FileInfo[Option];
             document.head.appendChild(
                 sML.create("script", { className: "bibi-extension-script", id: "bibi-extension-script_" + FileInfo["name"], name: FileInfo["name"], src: FileInfo["src"],// async: "async",
                     onload: function() {
                         X.Loaded.push(FileInfo);
-                        if(FileInfo.FileIndexInPreset + 1 == P["extensions"].length) {
+                        if(FileInfo.FileIndexInPreset + 1 == P.X.length) {
                             /*
                             if(X.Loaded.length) {
                                 var LoadedExtensionFiles = "";
@@ -4510,12 +4510,12 @@ X.loadFilesInPreset = function() {
                             O.log('Extension File' + (X.Loaded.length > 1 ? 's' : '') + ' Loaded.', "/*");
                             return resolve();
                         }
-                        loadFile(P["extensions"][FileInfo.FileIndexInPreset + 1]);
+                        loadFile(P.X[FileInfo.FileIndexInPreset + 1]);
                     }
                 })
             );
         };
-        loadFile(P["extensions"][0]);
+        loadFile(P.X[0]);
     });
 };
 
