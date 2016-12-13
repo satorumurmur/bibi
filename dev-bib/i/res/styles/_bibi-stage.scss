@@ -71,6 +71,7 @@ html.WebKit, html.Blink {
 		}
 	}
 	&.busy,
+	&.laying-out,
 	&.shade-opened {
 		body:after { // scrollbar border
 			opacity: 0;
@@ -133,12 +134,16 @@ div#bibi-main {
 	//padding-top: $top-bar-height;
 	width: 100%;
 	height: 100%;
-	transition: .2s ease;
+	transition: .15s ease;
 	html.view-horizontal & { overflow-x: scroll; }
 	html.view-vertical   & { overflow-y: scroll; }
+	html.laying-out & {
+		opacity: 0;
+	}
 	html.busy &,
-	html.shade-opened & {
+	html.shade-visible & {
 		opacity: 0.33;
+		//filter: blur(2px);
 	}
 	html.panel-opened & {
 		//filter: blur(4px);
@@ -423,8 +428,29 @@ div#checker {
 	@include writing-mode(vertical-rl);
 }
 
+
+// ================================================================================
+// + Dev.
+// --------------------------------------------------------------------------------
+
 div#__bs_notify__ {
-	opacity: 0.75;
+	box-sizing: border-box !important;
+	display: table-cell !important;
+	position: fixed !important;
+	@include trbl(0 !important);
+	margin: auto !important;
+	border-radius: 1.5em !important;
+	padding: 0 !important;
+	width: 16em !important;
+	height: 3em !important;
+	line-height: 3em !important;
+	font-size: 14px !important;
+	font-weight: bold !important;
+	text-indent: -.25em !important;
+	text-shadow: 0 0 2px black !important;
+	background: rgba(black, 0.5) !important;
+	//transform-origin: 0 100% !important;
+	//transform: translateY(-2em) rotate(90deg) !important;
 }
 
 

@@ -58,76 +58,82 @@ Bibi.x({
     if(U["parent-uri"]) {
         ShareSubPanel.addSection({
             Labels: { default: { default: 'Share the Embedded Webpage', ja: '埋め込まれたページをシェア' } },
-            Tiled: true,
-            Buttons: [
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Twitter' } },
-                    Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
-                    href: ShareSubPanel.getShareURI("P", "T"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("P", "T"); },
-                    on: { click: function() { return false; } }
-                },
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Facebook' } },
-                    Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
-                    href: ShareSubPanel.getShareURI("P", "F"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("P", "F"); },
-                    on: { click: function() { return false; } }
-                },
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Google+' } },
-                    Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
-                    href: ShareSubPanel.getShareURI("P", "G"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("P", "G"); },
-                    on: { click: function() { return false; } }
-                }
-            ]
+            ButtonGroup: {
+                Tiled: true,
+                Buttons: [
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Twitter' } },
+                        Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
+                        href: ShareSubPanel.getShareURI("P", "T"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "T"); },
+                        on: { click: function() { return false; } }
+                    },
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Facebook' } },
+                        Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
+                        href: ShareSubPanel.getShareURI("P", "F"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "F"); },
+                        on: { click: function() { return false; } }
+                    },
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Google+' } },
+                        Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
+                        href: ShareSubPanel.getShareURI("P", "G"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "G"); },
+                        on: { click: function() { return false; } }
+                    }
+                ]
+            }
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "parent-title" }));
     }
     if(true) {
         ShareSubPanel.addSection({
             Labels: { default: { default: 'Share This Book', ja: 'この本をシェア' } },
-            Tiled: true,
-            Buttons: [
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Twitter' } },
-                    Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
-                    href: ShareSubPanel.getShareURI("B", "T"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("B", "T"); },
-                    on: { click: function() { return false; } }
-                },
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Facebook' } },
-                    Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
-                    href: ShareSubPanel.getShareURI("B", "F"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("B", "F"); },
-                    on: { click: function() { return false; } }
-                },
-                {
-                    Type: "link",
-                    Labels: { default: { default: 'Google+' } },
-                    Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
-                    href: ShareSubPanel.getShareURI("B", "G"),
-                    execute: function() { this.href = ShareSubPanel.getShareURI("B", "G"); },
-                    on: { click: function() { return false; } }
-                }
-            ]
+            ButtonGroup: {
+                Tiled: true,
+                Buttons: [
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Twitter' } },
+                        Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
+                        href: ShareSubPanel.getShareURI("B", "T"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "T"); },
+                        on: { click: function() { return false; } }
+                    },
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Facebook' } },
+                        Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
+                        href: ShareSubPanel.getShareURI("B", "F"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "F"); },
+                        on: { click: function() { return false; } }
+                    },
+                    {
+                        Type: "link",
+                        Labels: { default: { default: 'Google+' } },
+                        Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
+                        href: ShareSubPanel.getShareURI("B", "G"),
+                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "G"); },
+                        on: { click: function() { return false; } }
+                    }
+                ]
+            }
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "book-title" }));
     }
     if(0 && true) {
         ShareSubPanel.addSection({
-            Buttons: [
-                {
-                    Labels: { default: { default: 'Get the Embed-Code of This Book', ja: 'この本の埋め込みコードを取得' } },
-                    Icon: '<span class="bibi-icon bibi-icon-code"></span>',
-                    on: { click: function() { console.log('<a href="' + O.ReadiedURL + '" data-bibi="embed">' + U["parent-bibi-label"] + '</a><script src="' + U["parent-pipi-path"] + '"></script>'); } }
-                }
-            ]
+            ButtonGroup: {
+                Buttons: [
+                    {
+                        Labels: { default: { default: 'Get the Embed-Code of This Book', ja: 'この本の埋め込みコードを取得' } },
+                        Icon: '<span class="bibi-icon bibi-icon-code"></span>',
+                        on: { click: function() { console.log('<a href="' + O.ReadiedURL + '" data-bibi="embed">' + U["parent-bibi-label"] + '</a><script src="' + U["parent-pipi-path"] + '"></script>'); } }
+                    }
+                ]
+            }
         });
     }
     O.Head.appendChild(sML.create("script", { async: "async", src: "//platform.twitter.com/widgets.js" }));

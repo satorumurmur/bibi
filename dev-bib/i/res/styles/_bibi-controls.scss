@@ -424,9 +424,9 @@ div#bibi-panel {
 	transition: 0.15s ease-out;
 	transform: translateY(-100%);
 	html.panel-opened & {
-		transform: none !important;
-		opacity: 1 !important;
-		transition: 0.15s ease-in !important;
+		transform: none;
+		opacity: 1;
+		transition: 0.15s ease-in;
 	}
 }
 
@@ -448,8 +448,14 @@ div#bibi-panel:after {
 	height: $bottom-bar-height;
 	border-color: rgb(232,232,232);
 	background: rgba(240,240,240,0.9);
-	html.page-rtl & {
+	html.view-horizontal &,
+	html.page-rtl.panel-opened & {
 		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.veil-opened &,
+	html.panel-opened &,
+	html.subpanel-opened & {
+		bottom: 0 !important;
 	}
 }
 
@@ -909,15 +915,13 @@ div#bibi-shade {
 	width: 100%; height: 100%;
 	background: $bibi-background;
 	opacity: 0;
-	transition: .2s ease;
+	transition: .15s ease;
 	html.shade-opened & {
 		display: block;
 	}
-	/*
-	html.shade-visible & {
-		opacity: 0;
+	html.shade-visible.panel-opened & {
+		opacity: 0.67;
 	}
-	*/
 }
 
 
@@ -1063,6 +1067,7 @@ div#bibi-help {
 	position: fixed;
 	z-index: $z-index-help;
 	margin: 0;
+	border-top: solid 1px rgb(240,240,240);
 	padding: 0 8px 0 56px;
 	width: 100%;
 	height: $bottom-bar-height;
@@ -1076,8 +1081,12 @@ div#bibi-help {
 		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
+	html.panel-opened &,
 	html.subpanel-opened & {
 		bottom: 0 !important;
+	}
+	html.slider-opened & {
+		bottom: $slider-size !important;
 	}
 	p {
 		line-height: $bottom-bar-height * 1.1;
@@ -1122,8 +1131,14 @@ div#bibi-poweredby {
 	html.panel-opened & {
 		transform: none;
 	}
+	html.view-horizontal &,
     html.page-rtl.panel-opened & {
 		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.veil-opened &,
+	html.panel-opened &,
+	html.subpanel-opened & {
+		bottom: 0 !important;
 	}
 	p {
 		a {

@@ -37,11 +37,14 @@ Bibi.welcome = function() {
         return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
     })();
 
-    O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " welcome";
-    O.Head  = document.head;
-    O.Body  = document.body;
-    O.Info  = document.getElementById("bibi-info");
-    O.Title = document.getElementsByTagName("title")[0];
+    O.contentWindow = window;
+    O.contentDocument = document;
+
+    O.HTML   = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " welcome";
+    O.Head   = document.head;
+    O.Body   = document.body;
+    O.Info   = document.getElementById("bibi-info");
+    O.Title  = document.getElementsByTagName("title")[0];
 
     // Device & Event
     if(sML.OS.iOS || sML.OS.Android) {
@@ -181,8 +184,9 @@ Bibi.ready = function() {
     sML.addClass(O.HTML, "ready");
     O.ReadiedURL = location.href;
 
-    E.add("bibi:commands:move",        function(Dis) { R.move(Dis); });
-    E.add("bibi:commands:focus",       function(Des) { R.focus(Des); });
+    E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
+    E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
+    E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
     E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
 
     window.addEventListener("message", M.gate, false);
@@ -555,10 +559,13 @@ L.loadPackageDocument.read = function(Doc) {
     O.log(MetaLogs.join(' / '), "-*");
 
     if(S["use-cookie"]) {
+        var BibiCookie = O.Cookie.remember(O.RootPath);
         var BookCookie = O.Cookie.remember(B.ID);
+        if(BibiCookie) {
+            if(!U["reader-view-mode"] && BibiCookie.RVM) S["reader-view-mode"] = BibiCookie.RVM;
+        }
         if(BookCookie) {
-            if(!U["to"] && BookCookie["Position"]) S["to"] = BookCookie.Position;
-            if(!U["reader-view-mode"] && BookCookie["RVM"]) S["reader-view-mode"] = BookCookie.RVM;
+            if(!U["to"] && BookCookie.Position) S["to"] = BookCookie.Position;
         }
     }
 
@@ -854,7 +861,7 @@ L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
     Item.contentDocument.write(HTML ? HTML : [
         '<html>',
             '<head>' + Head + '</head>',
-            '<body onload="parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false;">' + Body + '</body>',
+            '<body onload="setTimeout(function() { parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false; }, 0);">' + Body + '</body>',
         '</html>'
     ].join(""));
     Item.contentDocument.close();
@@ -1066,7 +1073,7 @@ L.postprocessItem.coordinateLinkages.setJump = function(A) {
         Eve.stopPropagation();
         if(A.Destination) {
             var Go = L.Opened ? function() {
-                R.focus(A.Destination, { Duration: 0 });
+                E.dispatch("bibi:commands:focus-on", { Destination: A.Destination, Duration: 0 });
             } : function() {
                 if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
                 S["to"] = A.Destination;
@@ -1220,7 +1227,7 @@ L.open = function() {
     R.layOut({
         Destination: (function() {
             if(S["to"]) {
-                var HatchedDestination = R.focus.hatchDestination(S["to"]);
+                var HatchedDestination = R.focusOn.hatchDestination(S["to"]);
                 if(HatchedDestination) return HatchedDestination;
             }
             return "head";
@@ -1296,8 +1303,12 @@ R.initialize = function() {
             //Item.HTML.addEventListener(O["pointerout"],  R.onpointermove);
         });
     //}
-    I.observeTap(O.HTML).addTapEventListener(R.ontap);
-    E.add("bibi:loaded-item", function(Item) { I.observeTap(Item.HTML).addTapEventListener(R.ontap); });
+    I.observeTap(O.HTML);
+    O.HTML.addTapEventListener("tap", R.ontap);
+    E.add("bibi:loaded-item", function(Item) {
+        I.observeTap(Item.HTML);
+        Item.HTML.addTapEventListener("tap", R.ontap);
+    });
 
 };
 
@@ -1736,10 +1747,10 @@ R.layOutStage = function() {
 */
 
 
-R.layOut = function(Option) {
+R.layOut = function(Opt) {
 
     /*
-        Option: {
+        Opt: {
             Destination: BibiDestination,
             Reset: Boolean,
             Setting: BibiSetting (Optional),
@@ -1747,7 +1758,7 @@ R.layOut = function(Option) {
         }
     */
 
-    if(!Option) Option = {};
+    if(!Opt) Opt = {};
 
     if(R.LayingOut) return false;
     R.LayingOut = true;
@@ -1762,18 +1773,18 @@ R.layOut = function(Option) {
     O.Busy = true;
     sML.addClass(O.HTML, "busy");
     sML.addClass(O.HTML, "laying-out");
-    if(!Option.NoNotification) I.note('Laying Out...');
+    if(!Opt.NoNotification) I.note('Laying Out...');
 
-    if(!Option.Destination) {
+    if(!Opt.Destination) {
         R.getCurrent();
         var CurrentPage = R.Current.Pages.StartPage;
-        Option.Destination = {
+        Opt.Destination = {
             SpreadIndex: CurrentPage.Spread.SpreadIndex,
             PageProgressInSpread: CurrentPage.PageIndexInSpread / CurrentPage.Spread.Pages.length
         }
     }
 
-    if(Option.Setting) S.update(Option.Setting);
+    if(Opt.Setting) S.update(Opt.Setting);
 
     O.log([
         'reader-view-mode: "' + S.RVM + '"',
@@ -1781,7 +1792,11 @@ R.layOut = function(Option) {
         'apparent-reading-direction: "' + S.ARD + '"'
     ].join(' / '), "-*");
 
-    if(Option.Reset || R.ToBeLaidOutLater) {
+    if(typeof Opt.before == "function") Opt.before();
+
+    //setTimeout(function() {
+
+    if(Opt.Reset || R.ToBeLaidOutLater) {
         R.ToBeLaidOutLater = false;
         R.resetStage();
         R.Spreads.forEach(function(Spread) { R.resetSpread(Spread); });
@@ -1799,33 +1814,37 @@ R.layOut = function(Option) {
         }
     }
 
-    R.focus(Option.Destination, { Duration: 0 });
+    E.dispatch("bibi:commands:focus-on", { Destination: Opt.Destination, Duration: 0 });
 
     O.Busy = false;
     sML.removeClass(O.HTML, "busy");
     sML.removeClass(O.HTML, "laying-out");
-    if(!Option.NoNotification) I.note('');
+    if(!Opt.NoNotification) I.note('');
 
     window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
     R.LayingOut = false;
 
-    if(typeof Option.callback == "function") Option.callback();
+    if(typeof Opt.callback == "function") Opt.callback();
 
     E.dispatch("bibi:laid-out");
     O.stamp("Lay Out End");
     O.log('Laid out.', "/*");
 
-    return S;
+    //}, 1);
 
 };
 
 R.onscroll = function() {
     if(!L.Opened) return;
-    if(!R.Scrolling) sML.addClass(O.HTML, "scrolling");
-    R.Scrolling = true;
-    E.dispatch("bibi:scroll");
+    if(!R.Scrolling) {
+        sML.addClass(O.HTML, "scrolling");
+        R.Scrolling = true;
+        E.dispatch("bibi:scroll", "Begun");
+    } else {
+        E.dispatch("bibi:scroll");
+    }
     clearTimeout(R.Timer_onscrolled);
     R.Timer_onscrolled = setTimeout(function() {
         R.Scrolling = false;
@@ -1855,6 +1874,7 @@ R.onresize = function() {
 };
 
 R.ontap = function(Eve) {
+    E.dispatch("bibi:tap", Eve);
     E.dispatch("bibi:tapped", Eve);
 }
 
@@ -1870,13 +1890,13 @@ R.onwheel = function(Eve) {
     Eve.preventDefault();
     if(Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY)) {
         var CW = {}, PWs = R.onwheel.PreviousWheels, PWl = PWs.length, Wheeled = false;
-        CW.Dir   = (Eve.deltaX < 0 ? -1 : 1) * (S.ARD == "rtl" ? -1 : 1);
+        CW.Distance = (Eve.deltaX < 0 ? -1 : 1) * (S.ARD == "rtl" ? -1 : 1);
         CW.Delta = Math.abs(Eve.deltaX);
         if(!PWs[PWl - 1]) {
             CW.Accel = 1, CW.Wheeled = "start";
-        } else if(CW.Dir != PWs[PWl - 1].Dir) {
+        } else if(CW.Distance != PWs[PWl - 1].Distance) {
             CW.Accel = 1;
-            if(PWl >= 3 && PWs[PWl - 2].Dir != CW.Dir && PWs[PWl - 3].Dir != CW.Dir) CW.Wheeled = "reverse";
+            if(PWl >= 3 && PWs[PWl - 2].Distance != CW.Distance && PWs[PWl - 3].Distance != CW.Distance) CW.Wheeled = "reverse";
         } else if(CW.Delta > PWs[PWl - 1].Delta) {
             CW.Accel =  1;
             if(PWl >= 3 && PWs[PWl - 1].Accel == -1 && PWs[PWl - 2].Accel == -1 && PWs[PWl - 3].Accel == -1) CW.Wheeled = "serial";
@@ -1927,7 +1947,7 @@ R.changeView = function(RVM) {
         L.play();
     }
     if(S["use-cookie"]) {
-        O.Cookie.eat(B.ID, { "RVM": RVM });
+        O.Cookie.eat(O.RootPath, { "RVM": RVM });
     }
 };
 
@@ -2006,52 +2026,52 @@ R.getCurrent = function() {
 };
 
 
-R.focus = function(Destination, ScrollParam) {
-    if(R.Moving) return false;
-    Destination = R.focus.hatchDestination(Destination);
-    if(!Destination) return false;
+R.focusOn = function(Par) {
+    if(!Par || R.Moving) return false;
+    Par.Destination = R.focusOn.hatchDestination(Par.Destination);
+    if(!Par.Destination) return false;
+    E.dispatch("bibi:is-going-to:focus-on", Par);
     R.Moving = true;
     var FocusPoint = 0;
     if(S["book-rendition-layout"] == "reflowable") {
-        if(Destination.Edge == "head") {
+        if(Par.Destination.Edge == "head") {
             FocusPoint = (S.SLD != "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
-        } else if(Destination.Edge == "foot") {
+        } else if(Par.Destination.Edge == "foot") {
             FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
         } else {
-            FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
-            if(Destination.Side == "after") FocusPoint += (Destination.Page["offset" + S.SIZE.L] - R.Stage[S.SIZE.L]) * S.AXIS.PM;
-            if(S.SLD == "rtl") FocusPoint += Destination.Page.offsetWidth - R.Stage.Width;
+            FocusPoint = O.getElementCoord(Par.Destination.Page)[S.AXIS.L];
+            if(Par.Destination.Side == "after") FocusPoint += (Par.Destination.Page["offset" + S.SIZE.L] - R.Stage[S.SIZE.L]) * S.AXIS.PM;
+            if(S.SLD == "rtl") FocusPoint += Par.Destination.Page.offsetWidth - R.Stage.Width;
         }
     } else {
-        if(R.Stage[S.SIZE.L] > Destination.Page.Spread["offset" + S.SIZE.L]) {
-            FocusPoint = O.getElementCoord(Destination.Page.Spread)[S.AXIS.L];
-            FocusPoint -= Math.floor((R.Stage[S.SIZE.L] - Destination.Page.Spread["offset" + S.SIZE.L]) / 2);
+        if(R.Stage[S.SIZE.L] > Par.Destination.Page.Spread["offset" + S.SIZE.L]) {
+            FocusPoint = O.getElementCoord(Par.Destination.Page.Spread)[S.AXIS.L];
+            FocusPoint -= Math.floor((R.Stage[S.SIZE.L] - Par.Destination.Page.Spread["offset" + S.SIZE.L]) / 2);
         } else {
-            FocusPoint = O.getElementCoord(Destination.Page)[S.AXIS.L];
-            if(R.Stage[S.SIZE.L] > Destination.Page["offset" + S.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.SIZE.L] - Destination.Page["offset" + S.SIZE.L]) / 2);
+            FocusPoint = O.getElementCoord(Par.Destination.Page)[S.AXIS.L];
+            if(R.Stage[S.SIZE.L] > Par.Destination.Page["offset" + S.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.SIZE.L] - Par.Destination.Page["offset" + S.SIZE.L]) / 2);
         }
     }
-    if(typeof Destination.TextNodeIndex == "number") R.selectTextLocation(Destination); // Colorize Destination with Selection
+    if(typeof Par.Destination.TextNodeIndex == "number") R.selectTextLocation(Par.Destination); // Colorize Destination with Selection
     var ScrollTarget = {
         Frame: R.Main,
         X: 0, Y: 0
     };
     ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
-    if(!ScrollParam) ScrollParam = {};
     sML.scrollTo(ScrollTarget, {
-        Duration: ((S.RVM == "paged") ? 0 : ScrollParam.Duration),
+        Duration: ((S.RVM == "paged") ? 0 : Par.Duration),
         callback: function() {
             R.getCurrent();
             R.Moving = false;
-            E.dispatch("bibi:focused");
-            if(ScrollParam.callback) ScrollParam.callback();
+            if(Par.callback) Par.callback(Par);
+            E.dispatch("bibi:focused-on", Par);
         }
     });
     return true;
 };
 
 
-R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edge
+R.focusOn.hatchDestination = function(Destination) { // from Page, Element, or Edge
     if(!Destination) return null;
     if(typeof Destination == "number" || (typeof Destination == "string" && /^\d+$/.test(Destination))) {
         Destination = R.getBibiToDestination(Destination);
@@ -2093,7 +2113,7 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
             }
         }
         if(Destination.Element) {
-            Destination.Page = R.focus.getNearestPageOfElement(Destination.Element);
+            Destination.Page = R.focusOn.getNearestPageOfElement(Destination.Element);
         } else if(!Destination.Page){
             if(Destination.Spread) {
                      if(typeof Destination.PageIndexInSpread    == "number") Destination.Page = Destination.Spread.Pages[Destination.PageIndexInSpread];
@@ -2108,7 +2128,7 @@ R.focus.hatchDestination = function(Destination) { // from Page, Element, or Edg
     return Destination;
 };
 
-R.focus.getNearestPageOfElement = function(Ele) {
+R.focusOn.getNearestPageOfElement = function(Ele) {
     var Item = Ele.ownerDocument.body.Item;
     if(!Item) return R.Pages[0];
     if(Item.Columned) {
@@ -2162,86 +2182,92 @@ R.selectTextLocation = function(Destination) {
 };
 
 
-R.move = function(Distance, ScrollOption) {
-    if(R.Moving || !L.Opened || isNaN(Distance)) return false;
-    Distance *= 1;
-    if(Distance != -1) Distance = 1;
-    if(Distance > 0) {
-        var CurrentEdge = "EndPage";
-        var Side = "before";
-    } else {
-        var CurrentEdge = "StartPage";
-        var Side = "after";
-    }
+R.moveBy = function(Par) {
+    if(R.Moving || !L.Opened) return false;
+    if(!Par || !Par.Distance) return;
+    Par.Distance *= 1;
+    if(Par.Distance == 0 || isNaN(Par.Distance)) return false;
+    Par.Distance = Par.Distance < 0 ? -1 : 1;
+    E.dispatch("bibi:is-going-to:move-by", Par);
+    var CurrentEdge = "", Side = "";
+    if(Par.Distance > 0) CurrentEdge = "EndPage",   Side = "before";
+    else                 CurrentEdge = "StartPage", Side = "after";
     R.getCurrent();
     var CurrentPage = R.Current.Pages[CurrentEdge];
-    if(
+    var ToScroll = !(
         R.Columned ||
         S.BRL == "pre-paginated" ||
         CurrentPage.Item.PrePaginated ||
         CurrentPage.Item.Outsourcing ||
         CurrentPage.Item.Pages.length == 1 ||
-        (Distance < 0 && CurrentPage.PageIndexInItem == 0) ||
-        (Distance > 0 && CurrentPage.PageIndexInItem == CurrentPage.Item.Pages.length - 1)
-    ) {
+        (Par.Distance < 0 && CurrentPage.PageIndexInItem == 0) ||
+        (Par.Distance > 0 && CurrentPage.PageIndexInItem == CurrentPage.Item.Pages.length - 1)
+    );
+    var callback = Par.callback;
+    Par.callback = function(Par) {
+        if(typeof callback == "function") callback(Par);
+        E.dispatch("bibi:moved-by", Par);
+    };
+    if(ToScroll) {
+        E.dispatch("bibi:commands:scroll-by", Par);
+    } else {
         var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
         var CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
         if(/(oversize)/.test(CurrentPageStatus)) {
-            if(Distance > 0) {
+            if(Par.Distance > 0) {
                      if(CurrentPageRatio >= 90)             Side = "before";
-                else if(/entering/.test(CurrentPageStatus)) Side = "before", Distance =  0;
-                else if( /entered/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
+                else if(/entering/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
+                else if( /entered/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             } else {
                      if(CurrentPageRatio >= 90)             Side = "after";
-                else if( /passing/.test(CurrentPageStatus)) Side = "before", Distance =  0;
-                else if(  /passed/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
+                else if( /passing/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
+                else if(  /passed/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             }
         } else {
-            if(Distance > 0) {
-                     if(   /enter/.test(CurrentPageStatus)) Side = "before", Distance =  0;
+            if(Par.Distance > 0) {
+                     if(   /enter/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
             } else {
-                     if(    /pass/.test(CurrentPageStatus)) Side = "after",  Distance =  0;
+                     if(    /pass/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             }
         }
-        //sML.log([CurrentPageStatus, CurrentPageRatio, Distance, Side].join(" / "));
-        var DestinationPageIndex = CurrentPage.PageIndex + Distance;
+        //sML.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
+        var DestinationPageIndex = CurrentPage.PageIndex + Par.Distance;
              if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
         else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
         var DestinationPage = R.Pages[DestinationPageIndex];
         if(S.BRL == "pre-paginated" && DestinationPage.Item.SpreadPair) {
             if(S.SLA == "horizontal" && R.Stage[S.SIZE.L] > DestinationPage.Spread["offset" + S.SIZE.L]) {
-                if(Distance < 0 && DestinationPage.PageIndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
-                if(Distance > 0 && DestinationPage.PageIndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
+                if(Par.Distance < 0 && DestinationPage.PageIndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
+                if(Par.Distance > 0 && DestinationPage.PageIndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
             }
         }
-        R.focus({ Page: DestinationPage, Side: Side }, ScrollOption);
-    } else {
-        R.Moving = true;
-        var ScrollTarget = {
-            Frame: R.Main,
-            X: 0, Y: 0
-        };
-        var CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
-        switch(S.SLD) {
-            case "ttb": ScrollTarget.Y = CurrentScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Distance;      break;
-            case "ltr": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance;      break;
-            case "rtl": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Distance * -1; break;
-        }
-        sML.scrollTo(ScrollTarget, {
-            callback: function() {
-                R.getCurrent();
-                R.Moving = false;
-            }
-        });
+        Par.Destination = { Page: DestinationPage, Side: Side };
+        E.dispatch("bibi:commands:focus-on", Par);
     }
-    E.dispatch("bibi:moved", Distance);
 };
 
-R.page = R.scroll = R.move;
-
-
-R.to = function(BibitoString) {
-    return R.focus(R.getBibiToDestination(BibitoString));
+R.scrollBy = function(Par) {
+    if(!Par || !Par.Distance) return;
+    E.dispatch("bibi:is-going-to:scroll-by", Par);
+    R.Moving = true;
+    var ScrollTarget = {
+        Frame: R.Main,
+        X: 0, Y: 0
+    };
+    var CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
+    switch(S.SLD) {
+        case "ttb": ScrollTarget.Y = CurrentScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
+        case "ltr": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
+        case "rtl": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
+    }
+    sML.scrollTo(ScrollTarget, {
+        callback: function() {
+            R.getCurrent();
+            R.Moving = false;
+            if(Par.callback) Par.callback(Par);
+            E.dispatch("bibi:scrolled-by", Par);
+        }
+    });
 };
 
 R.getBibiToDestination = function(BibitoString) {
@@ -2272,7 +2298,7 @@ R.zoom = function(Scale) {
         O.HTML.style.overflow = "auto";
     }
     setTimeout(function() {
-        R.focus({ Page: CurrentStartPage }, { Duration: 0 });
+        E.dispatch("bibi:commands:focus-on", { Destination: { Page: CurrentStartPage }, Duration: 0 });
     }, 0);
     R.Scale = Scale;
 };
@@ -2405,7 +2431,12 @@ I.createPanel = function() {
     E.add("bibi:commands:open-panel",   function(Opt) { I.Panel.open(Opt); });
     E.add("bibi:commands:close-panel",  function(Opt) { I.Panel.close(Opt); });
     E.add("bibi:commands:toggle-panel", function(Opt) { I.Panel.toggle(Opt); });
-    I.observeTap(I.Panel, { StopPropagation: true }).addTapEventListener(function() { E.dispatch("bibi:commands:toggle-panel"); });
+    I.Panel.Labels = {
+        default: { default: "Opoen this Index", ja: "この目次を開く" },
+        active: { default: "Close this Index", ja: "この目次を閉じる" }
+    };
+    I.setFeedback(I.Panel, { StopPropagation: true });
+    I.Panel.addTapEventListener("tapped", function() { E.dispatch("bibi:commands:toggle-panel"); });
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule("html.page-rtl div#bibi-panel:after", "bottom: " + (O.Scrollbars.Height) + "px;");
@@ -2424,7 +2455,41 @@ I.createPanel = function() {
         sML.create("div", { id: "bibi-panel-bookinfo-cover" })
     );
 
+    I.SubPanels = [];
+    I.createPanel.createShade();
+
     E.dispatch("bibi:created-panel");
+
+};
+
+
+I.createPanel.createShade = function() {
+
+    I.Shade = O.Body.appendChild(
+        sML.create("div", { id: "bibi-shade",
+            open: function() {
+                sML.addClass(O.HTML, "shade-opened");
+                clearTimeout(I.Timer_openShade);
+                clearTimeout(I.Timer_closeShade);
+                I.Timer_openShade = setTimeout(function() { sML.addClass(O.HTML, "shade-visible"); }, 0);
+            },
+            close: function() {
+                sML.removeClass(O.HTML, "shade-visible");
+                clearTimeout(I.Timer_openShade);
+                clearTimeout(I.Timer_closeShade);
+                I.Timer_closeShade = setTimeout(function() { sML.removeClass(O.HTML, "shade-opened"); }, 150);
+            }
+        })
+    );
+
+    I.observeTap(I.Shade, { StopPropagation: true });
+
+    I.Shade.addTapEventListener("tapped", function() {
+        I.SubPanels.forEach(function(SubPanel) {
+            SubPanel.close();
+        });
+        I.Panel.close();
+    });
 
 };
 
@@ -2462,10 +2527,10 @@ I.createMenu = function() {
             var BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
-                I.Menu.onhover();
+                E.dispatch("bibi:hover", Eve, I.Menu);
             } else if(I.Menu.Hover) {
                 I.Menu.Timer_close = setTimeout(function() {
-                    I.Menu.onunhover();
+                    E.dispatch("bibi:unhover", Eve, I.Menu);
                 }, 123);
             }
         });
@@ -2500,12 +2565,22 @@ I.createMenu = function() {
         "html.view-vertical.subpanel-opened div#bibi-menu"
     ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
 
+    I.createMenu.createPanelSwitch();
+    I.createMenu.createSettingMenu();
+
+    E.dispatch("bibi:created-menu");
+
+};
+
+
+I.createMenu.createPanelSwitch = function() {
+
     // Panel Switch
     I.PanelSwitch = I.createButtonGroup({ Area: I.Menu.L, Sticky: true }).addButton({
         Type: "toggle",
         Labels: {
-            default: { default: 'Open Menu', ja: '目次パネルを開く' },
-            active:  { default: 'Close Menu', ja: '目次パネルを閉じる' }
+            default: { default: 'Open Index', ja: '目次を開く' },
+            active:  { default: 'Close Index', ja: '目次を閉じる' }
         },
         Help: true,
         Icon: '<span class="bibi-icon bibi-icon-toggle-panel"><span class="bar-1"></span><span class="bar-2"></span><span class="bar-3"></span></span>',
@@ -2513,36 +2588,21 @@ I.createMenu = function() {
             I.Panel.toggle();
         }
     });
-    E.add("bibi:opened-panel",  function() { I.setButtonState(I.PanelSwitch, "active"); });
-    E.add("bibi:closed-panel", function() { I.setButtonState(I.PanelSwitch, ""); });
+    E.add("bibi:opened-panel",  function() { I.setUIState(I.PanelSwitch, "active"); });
+    E.add("bibi:closed-panel", function() { I.setUIState(I.PanelSwitch, ""); });
     E.add("bibi:started", function() {
         sML.style(I.PanelSwitch, { display: "block" });
-    });
-
-    E.dispatch("bibi:created-menu");
-
-    I.createMenu.prepareSubPanels();
-    I.createMenu.createSettingMenu();
-
-};
-
-
-I.createMenu.prepareSubPanels = function() {
-
-    I.SubPanels = [];
-
-    I.Shade = O.Body.appendChild(sML.create("div", { id: "bibi-shade" }));
-    I.observeTap(I.Shade, { StopPropagation: true }).addTapEventListener(function() {
-        I.SubPanels.forEach(function(SubPanel) {
-            SubPanel.close();
-        });
-        I.Panel.close();
     });
 
 };
 
 
 I.createMenu.createSettingMenu = function() {
+
+    var CreateViewModeSection = (!S["fix-reader-view-mode"]);
+    var CreateWindowSection   = (O.WindowEmbedded || (!O.Mobile && O.FullscreenEnabled));
+
+    if(!CreateViewModeSection && !CreateWindowSection) return false;
 
     I.Menu.Config = {};
 
@@ -2560,15 +2620,13 @@ I.createMenu.createSettingMenu = function() {
     // Sub Panel
     I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_change-view" });
 
-    I.createMenu.createSettingMenu.createViewModeMenu();
-    I.createMenu.createSettingMenu.createWindowMenu();
+    if(CreateViewModeSection) I.createMenu.createSettingMenu.createViewModeSection();
+    if(CreateWindowSection)   I.createMenu.createSettingMenu.createWindowSection();
 
 };
 
 
-I.createMenu.createSettingMenu.createViewModeMenu = function() {
-
-    if(S["fix-reader-view-mode"]) return;
+I.createMenu.createSettingMenu.createViewModeSection = function() {
 
     // Shapes
     var Shape = {};
@@ -2587,72 +2645,69 @@ I.createMenu.createSettingMenu.createViewModeMenu = function() {
 
     I.Menu.Config.SubPanel.ViewModeSection = I.Menu.Config.SubPanel.addSection({
         Labels: { default: { default: 'Choose Layout', ja: 'レイアウトを選択' } },
-        Buttons: [
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: 'Each Page <small>(Flip with ' + (O.Mobile ? 'Tap/Swipe' : 'Click/Wheel') + ')</small>',
-                        ja: 'ページ単位表示<small>（' + (O.Mobile ? 'タップ／スワイプ' : 'クリック／ホイール') + 'で移動）</small>'
-                    }
+        ButtonGroup: {
+            Buttons: [
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Layout:</span> Each Page <small>(Flip with ' + (O.Mobile ? 'Tap/Swipe' : 'Click/Wheel') + ')</small>',
+                            ja: 'ページ単位表示<small>（' + (O.Mobile ? 'タップ／スワイプ' : 'クリック／ホイール') + 'で移動）</small>'
+                        }
+                    },
+                    Notes: true,
+                    Icon: Icon["paged"],
+                    Value: "paged",
+                    execute: changeView
                 },
-                Notes: true,
-                Icon: Icon["paged"],
-                Value: "paged",
-                execute: changeView
-            },
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: 'All Pages <small>(Horizontal Scroll)</small>',
-                        ja: '全ページ表示<small>（横スクロール移動）</small>'
-                    }
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Layout:</span> All Pages <small>(Horizontal Scroll)</small>',
+                            ja: '全ページ表示<small>（横スクロール移動）</small>'
+                        }
+                    },
+                    Notes: true,
+                    Icon: Icon["horizontal"],
+                    Value: "horizontal",
+                    execute: changeView
                 },
-                Notes: true,
-                Icon: Icon["horizontal"],
-                Value: "horizontal",
-                execute: changeView
-            },
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: 'All Pages <small>(Vertical Scroll)</small>',
-                        ja: '全ページ表示<small>（縦スクロール移動）</small>'
-                    }
-                },
-                Notes: true,
-                Icon: Icon["vertical"],
-                Value: "vertical",
-                execute: changeView
-            }
-        ]
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Layout:</span> All Pages <small>(Vertical Scroll)</small>',
+                            ja: '全ページ表示<small>（縦スクロール移動）</small>'
+                        }
+                    },
+                    Notes: true,
+                    Icon: Icon["vertical"],
+                    Value: "vertical",
+                    execute: changeView
+                }
+            ]
+        }
     });
 
     E.add("bibi:updated-settings", function() {
         I.Menu.Config.SubPanel.ViewModeSection.ButtonGroup.Buttons.forEach(function(Button) {
-            I.setButtonState(Button, (Button.Value == S.RVM ? "active" : "default"));
+            I.setUIState(Button, (Button.Value == S.RVM ? "active" : "default"));
         });
     });
-
-    E.dispatch("bibi:created-view-mode-menu");
 
 };
 
 
-I.createMenu.createSettingMenu.createWindowMenu = function() {
-
-    if((O.Mobile || !O.FullscreenEnabled) && !O.WindowEmbedded) return;
+I.createMenu.createSettingMenu.createWindowSection = function() {
 
     I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
-        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } }
+        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
+        ButtonGroup: {}
     });
 
-    var WindowButtonGroup = I.Menu.Config.SubPanel.WindowSection.ButtonGroup;
-
     // New Window
-    if(O.WindowEmbedded) WindowButtonGroup.addButton({
+    if(O.WindowEmbedded) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
         Type: "link",
         Labels: {
             default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
@@ -2663,10 +2718,11 @@ I.createMenu.createSettingMenu.createWindowMenu = function() {
     });
 
     // Fullscreen
-    if(!O.Mobile && O.FullscreenEnabled) WindowButtonGroup.addButton({
+    if(!O.Mobile && O.FullscreenEnabled) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
         Type: "toggle",
         Labels: {
-            default: { default: 'Fullscreen View', ja: 'フルスクリーンモード' }
+            default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
+            active:  { default: 'Exit Fullscreen', ja: 'フルスクリーンモード解除' }
         },
         Icon: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>',
         execute: function() {
@@ -2688,71 +2744,88 @@ I.createMenu.createSettingMenu.createWindowMenu = function() {
         }
     });
 
-    E.dispatch("bibi:created-window-menu");
-
 };
 
 
-I.createButtonGroup = function(Par) {
+I.createButtonGroup = function(Par) { // classifies ButtonGroup
     if(!Par || typeof Par != "object" || !Par.Area || !Par.Area.tagName) return null;
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
     if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
-    Par.className = "bibi-buttongroup" + (Par.className ? " " + Par.className : "") + (Par.Sticky ? " sticky" : "");
-    Par.Buttons = [];
-    Par.addButton = I.createButtonGroup.addButton;
-    return Par.Area.appendChild(sML.create("ul", Par));
+    var ClassName = ["bibi-buttongroup"];
+    if(Par.Tiled) ClassName.push("bibi-tiledbuttongroup");
+    if(Par.Sticky) ClassName.push("sticky");
+    Par.className = ClassName.join(" ");
+    Par.IsButtonGroup = true;
+    var ButtonGroup = Par.Area.appendChild(sML.create("ul", Par));
+    ButtonGroup.addButton = I.createButtonGroup.addButton;
+    if(ButtonGroup.Buttons instanceof Array) {
+        ButtonGroup.Buttons.forEach(function(Button, i) {
+            ButtonGroup.addButton(Button, i);
+        });
+    }
+    return ButtonGroup;
 };
 
 
-I.createButtonGroup.addButton = function(Opt) {
-    if(!Opt || typeof Opt != "object") return null;
-    if(typeof Opt.className != "string" || !Opt.className) delete Opt.className;
-    if(typeof Opt.id        != "string" || !Opt.id)        delete Opt.id;
-    Opt.ButtonGroup = this;
-    Opt.Type = (typeof Opt.Type == "string" && /^(normal|toggle|radio|link)$/.test(Opt.Type)) ? Opt.Type : "normal";
-    Opt.BibiButton = true;
-    Opt.className = "bibi-button bibi-button-" + Opt.Type + (Opt.className ? " " + Opt.className : "");
-    Opt.Labels = I.distillPhrases(Opt.Labels);
-    if(typeof Opt.Icon != "undefined" && !Opt.Icon.tagName) {
-        if(typeof Opt.Icon == "string" && Opt.Icon) {
-            Opt.Icon = sML.hatch(Opt.Icon);
+I.createButtonGroup.addButton = function(Par, i) { // classifies Button
+    // i: optional
+    if(!Par || typeof Par != "object") return null;
+    if(!Par.ButtonGroup) Par.ButtonGroup = this;
+    if(!Par.ButtonGroup.IsButtonGroup) return null;
+    if(typeof Par.className != "string" || !Par.className) delete Par.className;
+    if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
+    Par.Type = (typeof Par.Type == "string" && /^(normal|toggle|radio|link)$/.test(Par.Type)) ? Par.Type : "normal";
+    Par.className = "bibi-button bibi-button-" + Par.Type + (Par.className ? " " + Par.className : "");
+    if(typeof Par.Icon != "undefined" && !Par.Icon.tagName) {
+        if(typeof Par.Icon == "string" && Par.Icon) {
+            Par.Icon = sML.hatch(Par.Icon);
         } else {
-            delete Opt.Icon;
+            delete Par.Icon;
         }
     }
-    var Button = Opt.ButtonGroup.appendChild(sML.create("li", { className: "bibi-buttonbox bibi-buttonbox-" + Opt.Type })).appendChild(sML.create((typeof Opt.href == "string" ? "a" : "span"), Opt));
+    Par.IsBibiButton = true;
+    var Button = Par.ButtonGroup.appendChild(
+        sML.create("li", { className: "bibi-buttonbox bibi-buttonbox-" + Par.Type })
+    ).appendChild(
+        sML.create((typeof Par.href == "string" ? "a" : "span"), Par)
+    );
     if(Button.Icon) {
         Button.IconBox = Button.appendChild(sML.create("span", { className: "bibi-button-iconbox" }));
         Button.IconBox.appendChild(Button.Icon);
+        Button.Icon = Button.IconBox.firstChild;
+        Button.IconBox.Button = Button.Icon.Button = Button;
     }
     Button.Label = Button.appendChild(sML.create("span", { className: "bibi-button-label" }));
     I.setFeedback(Button, {
-        Help: Opt.Help,
+        Help: Par.Help,
         StopPropagation: true,
         PreventDefault: (Button.href ? false : true)
     });
-    Button.Busy = false;
     Button.ButtonGroup.Busy = false;
-    Button.isAvailable = function() { return (!Button.Busy && !Button.ButtonGroup.Busy); };
-    if(typeof Button.execute == "function") Button.addTapEventListener(function() {
-        //setTimeout(function() {
+    Button.Busy = false;
+    Button.isAvailable = function() {
+        return (!Button.Busy && !Button.ButtonGroup.Busy);
+    };
+    if(typeof Button.execute == "function") {
+        Button.addTapEventListener("tapped", function(Eve) {
             if(!Button.isAvailable()) return false;
-            return Button.execute.apply(Button, arguments);
-        //}, 0);
-    });
-    Button.ButtonGroup.Buttons.push(Button);
+            Button.execute.apply(Button, arguments);
+        });
+    }
+    if(!(Button.ButtonGroup.Buttons instanceof Array)) Button.ButtonGroup.Buttons = [];
+    if(typeof i == "number") Button.ButtonGroup.Buttons[i] = Button;
+    else                     Button.ButtonGroup.Buttons.push(Button);
     return Button;
 };
 
 
-I.createSubPanel = function(Par) {
+I.createSubPanel = function(Par) { // classifies SubPanel
 
     if(!Par) Par = {};
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
     if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
     Par.className = "bibi-subpanel" + (Par.className ? " " + Par.className : "");
     Par.Sections = [];
-    Par.addSection = I.createSubPanel.addSection;
 
     var SubPanel = O.Body.appendChild(sML.create("div", Par));
     SubPanel.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
@@ -2764,36 +2837,28 @@ I.createSubPanel = function(Par) {
                 if(SP == SubPanel) return;
                 SP.close({ ForAnotherSubPanel: true });
             });
-            //I.Shade.open();
             sML.addClass(this, "opened");
             sML.addClass(O.HTML, "subpanel-opened");
-            sML.addClass(O.HTML, "shade-opened");
-            clearTimeout(I.Timer_openShade);
-            clearTimeout(I.Timer_closeShade);
-            //I.Timer_openShade = setTimeout(function() { sML.addClass(O.HTML, "shade-visible"); }, 0);
+            I.Shade.open();
             if(SubPanel.Opener) {
                 SubPanel.Bit.adjust(SubPanel.Opener);
-                I.setButtonState(SubPanel.Opener, "active");
+                I.setUIState(SubPanel.Opener, "active");
             }
             if(Par.onopened) Par.onopened.apply(SubPanel, arguments);
         },
         onclosed: function(Opt) {
             sML.removeClass(this, "opened");
             if(!Opt || !Opt.ForAnotherSubPanel) {
-                //I.Shade.close();
                 sML.removeClass(O.HTML, "subpanel-opened");
-                //sML.removeClass(O.HTML, "shade-visible");
-                //clearTimeout(I.Timer_openShade);
-                clearTimeout(I.Timer_closeShade);
-                I.Timer_closeShade = setTimeout(function() { sML.removeClass(O.HTML, "shade-opened"); }, 0);
+                I.Shade.close();
             }
             if(SubPanel.Opener) {
-                I.setButtonState(SubPanel.Opener, "default");
+                I.setUIState(SubPanel.Opener, "default");
             }
             if(Par.onclosed) Par.onclosed.apply(SubPanel, arguments);
         }
     });
-    if(SubPanel.Opener) SubPanel.Opener.addTapEventListener(function() { SubPanel.toggle(); });
+    if(SubPanel.Opener) SubPanel.Opener.addTapEventListener("tapped", function() { SubPanel.toggle(); });
     E.add("bibi:opened-panel",  function() { SubPanel.close(); });
     E.add("bibi:closed-panel", function() { SubPanel.close(); });
 
@@ -2808,33 +2873,41 @@ I.createSubPanel = function(Par) {
     }));
     I.SubPanels.push(SubPanel);
 
+    SubPanel.addSection = I.createSubPanel.addSection;
+
     return SubPanel;
 
 };
 
 
-I.createSubPanel.addSection = function(Opt) {
-    var SubPanel = this;
-    var Section = sML.create("div", { className: "bibi-subpanel-section" });
+I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classify SubPanelSection
+    if(!Par) Par = {};
+    Par.className = "bibi-subpanel-section";
+    var SubPanelSection = sML.create("div", Par);
     // HGroup
-    if(Opt.Labels) {
-        Section.Label = Section.appendChild(
+    if(SubPanelSection.Labels) {
+        SubPanelSection.Labels = I.distillLabels(SubPanelSection.Labels);
+        SubPanelSection.Label = SubPanelSection.appendChild(
             sML.create("div",  { className: "bibi-hgroup" })
         ).appendChild(
             sML.create("p",    { className: "bibi-h" })
         ).appendChild(
-            sML.create("span", { className: "bibi-h-label", innerHTML: I.distillPhrases(Opt.Labels)["default"] })
+            sML.create("span", { className: "bibi-h-label", innerHTML: SubPanelSection.Labels["default"][O.Language] })
         );
     }
     // ButtonGroup
-    Section.ButtonGroup = I.createButtonGroup({ Area: Section });
-    if(Opt.Buttons && Opt.Buttons.length) {
-        if(Opt.Tiled) Section.ButtonGroup.className += " bibi-tiledbuttongroup";
-        Opt.Buttons.forEach(function(ButtonOpt) { Section.ButtonGroup.addButton(ButtonOpt); });
-    }
-    SubPanel.appendChild(Section);
-    SubPanel.Sections.push(Section);
-    return Section;
+    SubPanelSection.addButtonGroup = I.createSubPanel.addSection.addButtonGroup;
+    if(SubPanelSection.ButtonGroup) SubPanelSection.addButtonGroup(SubPanelSection.ButtonGroup);
+    this.appendChild(SubPanelSection);
+    this.Sections.push(SubPanelSection);
+    return SubPanelSection;
+};
+
+I.createSubPanel.addSection.addButtonGroup = function(Par) {
+    if(!Par) return;
+    Par.Area = this;
+    this.ButtonGroup = I.createButtonGroup(Par);
+    return this.ButtonGroup;
 };
 
 
@@ -2863,6 +2936,7 @@ I.createHelp = function() {
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule([
+        "html.view-paged div#bibi-help",
         "html.view-horizontal div#bibi-help",
         "html.page-rtl.panel-opened div#bibi-help"
     ].join(", "), "bottom: " + (O.Scrollbars.Height) + "px;");
@@ -2884,6 +2958,8 @@ I.createPoweredBy = function() {
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule([
+        "html.view-paged div#bibi-poweredby",
+        "html.view-horizontal div#bibi-poweredby",
         "html.page-rtl.panel-opened div#bibi-poweredby"
     ].join(", "), "bottom: " + (O.Scrollbars.Height) + "px;");
 
@@ -2908,7 +2984,7 @@ I.createNombre = function() {
         },
         progress: function(PageInfo) {
             clearTimeout(I.Nombre.Timer_hide);
-            if(!PageInfo) PageInfo = R.getCurrent();
+            if(!PageInfo || !PageInfo.Pages) PageInfo = R.getCurrent();
             I.Nombre.Current.innerHTML = (function() {
                 var PageNumber = PageInfo.Pages.StartPage.PageIndex + 1;
                 if(PageInfo.Pages.StartPage != PageInfo.Pages.EndPage) PageNumber += '<span class="delimiter">-</span>' + (PageInfo.Pages.EndPage.PageIndex + 1);
@@ -2936,6 +3012,8 @@ I.createNombre = function() {
         sML.appendStyleRule("html.view-vertical div#bibi-nombre",    "right: " + (O.Scrollbars.Height + 2) + "px;");
     }
 
+    E.dispatch("bibi:created-nombre");
+
 };
 
 
@@ -2953,8 +3031,8 @@ I.createSlider = function() {
                     SpreadBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
                 });
                 R.Pages.forEach(function(Page, i) {
-                    var PageNumber = i + 1;
                     var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }, { width: (1 / R.Pages.length * 100) + "%" }));
+                    PageBit.PageNumber = i + 1;
                     PageBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
                     PageBit.addEventListener(O["pointerover"], function() {
                         if(I.Slider.Sliding) return;
@@ -2968,6 +3046,7 @@ I.createSlider = function() {
                             I.Nombre.hide();
                         }, 200);
                     });
+                    PageBit.Labels = { default: { default: "Slider Page" } };
                     I.setFeedback(PageBit);
                 });
             },
@@ -3009,8 +3088,12 @@ I.createSlider = function() {
                     sML.style(I.Slider.Current, { transform: "" });
                     I.Slider.Timer_endSliding = setTimeout(function() { sML.removeClass(O.HTML, "slider-sliding"); }, 125);
                 };
-                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) R.focus(TargetPage, { Duration: 0, callback: callback });
-                else callback();
+                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
+                    //E.dispatch("bibi:commands:focus-on", 0);
+                    E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0, callback: callback });
+                } else {
+                    callback();
+                }
             },
             activate: function() {
                 I.Slider.Current.addEventListener(O["pointerover"], I.Nombre.show);
@@ -3032,23 +3115,25 @@ I.createSlider = function() {
                 if(S.PPD == "rtl") Ratio = 1 - Ratio;
                 return R.Pages[Math.ceil(R.Pages.length * Ratio) - 1];
             },
-            ontap: function(Eve) {
-                var TargetPage = I.Slider.getTargetPage(Eve);
-                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) R.focus(TargetPage, { Duration: 0 });
-            },
             onpointermove: function(Eve) {
                 clearTimeout(I.Nombre.Timer_hide);
                 var TargetPage = I.Slider.getTargetPage(Eve);
                 I.Nombre.progress({ Pages: { StartPage: TargetPage, EndPage: TargetPage } });
-            }
+            }/*,
+            ontap: function(Eve) {
+                var TargetPage = I.Slider.getTargetPage(Eve);
+                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
+                    E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0 });
+                }
+            }*/
         })
     );
     I.Slider.Spreads      = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-spreads" }));
     I.Slider.Pages        = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-pages" }));
     I.Slider.CurrentPages = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-currentpages" }));
     I.Slider.Current      = I.Slider.CurrentPages.appendChild(sML.create("div", { id: "bibi-slider-currentpagebits" }));
+    I.Slider.Current.Labels = { default: { default: "Slider Current" } };
     I.setFeedback(I.Slider.Current);
-    //I.setFeedback(I.Slider);
     I.setToggleAction(I.Slider, {
         onopened: function() {
             sML.addClass(O.HTML, "slider-opened");
@@ -3068,6 +3153,7 @@ I.createSlider = function() {
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
             if(/^a$/i.test(BibiEvent.Target.tagName)) return false;
+            if(S.RVM == "horizontal" && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
         }
         switch(S.ARD) {
             case "ttb": return (BibiEvent.Division.Y == "middle") ? E.dispatch("bibi:commands:toggle-slider") : false;
@@ -3118,24 +3204,50 @@ I.createArrows = function() {
             I.Arrows.Back.Pair = I.Arrows.Forward;
             I.Arrows.Forward.Pair = I.Arrows.Back;
             [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-                Arrow.Labels = I.distillPhrases(Arrow.Labels);
-                I.setHoverActions(Arrow);
-                I.setTapAction(Arrow);
-                ////////////////
-                I.observeTap(Arrow, { StopPropagation: true }).addTapEventListener(function(Eve) {
-                    //console.log("ARROW");
-                    E.dispatch("bibi:commands:move", Arrow.Distance);
-                });
-                ////////////////
+                I.setFeedback(Arrow);
+                Arrow.addTapEventListener("tap", function(Eve) { E.dispatch("bibi:commands:move-by", { Distance: Arrow.Distance }); });
                 Arrow.showHelp = Arrow.hideHelp = function() {};
             });
             if(!O.Mobile) {
-                E.add("bibi:moved-pointer", I.Arrows.onhover);
+                E.add("bibi:moved-pointer", function(Eve) { // try hovering
+                    var BibiEvent = O.getBibiEvent(Eve);
+                    if(I.Arrows.isAvailable(BibiEvent)) {
+                        var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+                        if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
+                            E.dispatch("bibi:hover",   Eve, I.Arrows[Dir]);
+                            E.dispatch("bibi:unhover", Eve, I.Arrows[Dir].Pair);
+                            BibiEvent.Target.ownerDocument.documentElement.setAttribute("data-bibi-cursor", Dir);
+                            return;
+                        }
+                    }
+                    E.dispatch("bibi:unhover", Eve, I.Arrows.Back);
+                    E.dispatch("bibi:unhover", Eve, I.Arrows.Forward);
+                    R.Items.concat(O).forEach(function(Item) {
+                        Item.HTML.removeAttribute("data-bibi-cursor");
+                    });
+                });
                 R.Items.concat(O).forEach(function(Item) {
                     sML.each(Item.Body.querySelectorAll("img"), function(){ this.addEventListener(O["pointerdown"], O.preventDefault); });
                 });
             }
-            E.add("bibi:tapped", I.Arrows.go);
+            E.add("bibi:tapped", function(Eve) { // try moving
+                var BibiEvent = O.getBibiEvent(Eve);
+                if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
+                if(!I.Arrows.isAvailable(BibiEvent)) return false;
+                var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+                if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
+                    E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
+                }
+            });
+            E.add("bibi:commands:move-by", function(Par) { // indicate direction
+                if(!Par || !Par.Distance) return false;
+                var Dir = "";
+                switch(Par.Distance) {
+                    case -1 : Dir = "back";    break;
+                    case  1 : Dir = "forward"; break;
+                }
+                if(Dir && I.Arrows[Dir]) return E.dispatch("bibi:tapped", null, I.Arrows[Dir]);
+            });
         },
         update: function() {
             if(S.RVM == "vertical") {
@@ -3166,17 +3278,9 @@ I.createArrows = function() {
                 else                    sML.replaceClass(Arrow,   "available", "unavailable");
             });
         },
-        ontap: function(Dis) {
-            var Dir = "";
-            switch(Dis) {
-                case -1 : Dir = "back"; break;
-                case  1 : Dir = "forward"; break;
-            }
-            if(Dir && I.Arrows[Dir]) return I.Arrows[Dir].ontap();
-        },
         isAvailable: function(BibiEvent) {
             var Target = BibiEvent.Target;
-            if(I.Panel.ToggleState == "active") return false;
+            if(I.Panel.UIState == "active") return false;
             if(S.RVM == "vertical") {
                 if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false;
             } else if(S.RVM == "horizontal") {
@@ -3195,35 +3299,6 @@ I.createArrows = function() {
                 if(!/^a$/i.test(Target.tagName)) return true;
             }
             return false;
-        },
-        go: function(Eve) {
-            var BibiEvent = O.getBibiEvent(Eve);
-            if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
-            if(!I.Arrows.isAvailable(BibiEvent)) return false;
-            var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
-            if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                E.dispatch("bibi:commands:move", I.Arrows[Dir].Distance);
-            }
-        },
-        onhover: function(Eve) {
-            if(O.Mobile) return;
-            var BibiEvent = O.getBibiEvent(Eve);
-            if(!I.Arrows.isAvailable(BibiEvent)) return I.Arrows.onunhover();
-            var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
-            if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                I.Arrows[Dir].onhover();
-                I.Arrows[Dir].Pair.onunhover();
-                BibiEvent.Target.ownerDocument.documentElement.setAttribute("data-bibi-cursor", Dir);
-            } else {
-                I.Arrows.onunhover();
-            }
-        },
-        onunhover: function() {
-            I.Arrows.Back.onunhover();
-            I.Arrows.Forward.onunhover();
-            R.Items.concat(O).forEach(function(Item) {
-                Item.HTML.removeAttribute("data-bibi-cursor");
-            });
         }
     };
 
@@ -3239,9 +3314,8 @@ I.createArrows = function() {
 
     E.add("bibi:opened",           function()    { I.Arrows.createArrows(); I.Arrows.update(); I.Arrows.check(); I.Arrows.navigate(); });
     E.add("bibi:updated-settings", function()    { I.Arrows.update(); });
-    E.add("bibi:laid-out",         function()    { I.Arrows.navigate(); });
+    E.add("bibi:changed-view",     function()    { I.Arrows.navigate(); });
     E.add("bibi:scrolled",         function()    { I.Arrows.check(); });
-    E.add("bibi:commands:move",    function(Dis) { I.Arrows.ontap(Dis); });
 
     E.dispatch("bibi:created-arrows");
 
@@ -3254,35 +3328,83 @@ I.createKeyListener = function() {
 
     // Keys
     I.KeyListener = {
-        observe: function(Eve) {
-            if(!L.Opened) return;
-            var Dir = "";
-            switch(Eve.keyCode) {
-                case 37: Dir = "left"; break;
-                case 38: Dir = "top"; break;
-                case 39: Dir = "right"; break;
-                case 40: Dir = "bottom"; break;
-                default: return;
-            }
-            Eve.preventDefault();
-            if(I.KeyListener.Directions[Dir]) E.dispatch("bibi:commands:move", I.KeyListener.Directions[Dir]);
+        MovingParameters: {
+            "Page Up":       1,    "Page Down":      -1,    "Space":       1,
+            "PAGE UP":  "foot",    "PAGE DOWN":  "head",    "SPACE":      -1
         },
         update: function() {
             switch(S.ARD) {
-                case "ttb": I.KeyListener.Directions = { "top": -1, "bottom": 1 }; break;
-                case "ltr": I.KeyListener.Directions = { "left": -1, "right": 1 }; break;
-                case "rtl": I.KeyListener.Directions = { "right": -1, "left": 1 }; break;
+                case "ttb": return sML.edit(I.KeyListener.MovingParameters, {
+                    "Up Arrow":     -1,    "Right Arrow":      0,    "Down Arrow":      1,    "Left Arrow":      0,
+                    "UP ARROW": "head",    "RIGHT ARROW":     "",    "DOWN ARROW": "foot",    "LEFT ARROW":     ""
+                });
+                case "ltr": return sML.edit(I.KeyListener.MovingParameters, {
+                    "Up Arrow":      0,    "Right Arrow":      1,    "Down Arrow":      0,    "Left Arrow":     -1,
+                    "UP ARROW":     "",    "RIGHT ARROW": "foot",    "DOWN ARROW":     "",    "LEFT ARROW": "head"
+                });
+                case "rtl": return sML.edit(I.KeyListener.MovingParameters, {
+                    "Up Arrow":      0,    "Right Arrow":     -1,    "Down Arrow":      0,    "Left Arrow":      1,
+                    "UP ARROW":     "",    "RIGHT ARROW": "head",    "DOWN ARROW":     "",    "LEFT ARROW": "foot"
+                });
+                default: return sML.edit(I.KeyListener.MovingParameters, {
+                    "Up Arrow":      0,    "Right Arrow":      0,    "Down Arrow":      0,    "Left Arrow":      0,
+                    "UP ARROW":     "",    "RIGHT ARROW":     "",    "DOWN ARROW":     "",    "LEFT ARROW":     ""
+                });
             }
         },
-        listen: function() {
-            R.Items.forEach(function(Item) {
-                Item.contentWindow.addEventListener("keydown", I.KeyListener.observe, false);
+        observe: function() {
+            var EventNames = ["keydown", /*"keypress",*/ "keyup"];
+            [O].concat(R.Items).forEach(function(Item) {
+                EventNames.forEach(function(EventName) {
+                    Item.contentDocument.addEventListener(EventName, I.KeyListener["on" + EventName], false);
+                });
             });
-            window.addEventListener("keydown", I.KeyListener.observe, false);
+        },
+        getKeyName: function(Eve) {
+            switch(Eve.keyCode) {
+                case  32: return "Space";
+                case  33: return "Page Up";
+                case  34: return "Page Down";
+                case  37: return "Left Arrow";
+                case  38: return "Up Arrow";
+                case  39: return "Right Arrow";
+                case  40: return "Down Arrow";
+                default: return "";
+            }
+        },
+        ontouch: function(Eve) {
+            if(!L.Opened) return false;
+            Eve.KeyName = I.KeyListener.getKeyName(Eve);
+            //if(!Eve.KeyName) return false;
+            return true;
+        },
+        onkeydown:  function(Eve) {
+            if(!I.KeyListener.ontouch(Eve)) return false;
+            E.dispatch("bibi:down-key", Eve);
+        },/*
+        onkeypress:  function(Eve) {
+            if(!I.KeyListener.ontouch(Eve)) return false;
+            E.dispatch("bibi:press-key", Eve);
+        },*/
+        onkeyup:    function(Eve) {
+            if(!I.KeyListener.ontouch(Eve)) return false;
+            E.dispatch("bibi:up-key", Eve);
+        },
+        tryMoving: function(Eve) {
+            if(!Eve.KeyName) return false;
+            if(Eve.shiftKey) Eve.KeyName = Eve.KeyName.toUpperCase();
+            var MovingParameter = I.KeyListener.MovingParameters[Eve.KeyName];
+            if(!MovingParameter) return false;
+                Eve.preventDefault();
+                 if(typeof MovingParameter == "number") E.dispatch("bibi:commands:move-by",  { Distance:    MovingParameter });
+            else if(typeof MovingParameter == "string") E.dispatch("bibi:commands:focus-on", { Destination: MovingParameter });
         }
     };
     E.add("bibi:updated-settings", function() { I.KeyListener.update(); });
-    E.add("bibi:opened",           function() { I.KeyListener.update(); I.KeyListener.listen(); });
+    E.add("bibi:opened",           function() { I.KeyListener.update(); I.KeyListener.observe(); });
+    E.add("bibi:up-key",      function(Eve) {
+        I.KeyListener.tryMoving(Eve);
+    });
 
     E.dispatch("bibi:created-keylistener");
 
@@ -3318,14 +3440,14 @@ I.createSwiper = function() {
             else if( 60 <= Angle && Angle <= 120) From = "left",   To = "right";
             else if(150 <= Angle && Angle <= 210) From = "top",    To = "bottom";
             else if(240 <= Angle && Angle <= 300) From = "right",  To = "left";
-            if(I.Arrows[From] && I.Arrows[From].isAvailable()) E.dispatch("bibi:commands:move", I.Arrows[From].Distance);
+            if(I.Arrows[From] && I.Arrows[From].isAvailable()) E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[From].Distance });
         },
         onwheeled: function(Wheel) {
             clearTimeout(I.Swiper.onwheeled.Timer_cooldown);
             I.Swiper.onwheeled.Timer_cooldown = setTimeout(function() { I.Swiper.onwheeled.hot = false; }, 248);
             if(!I.Swiper.onwheeled.hot) {
                 I.Swiper.onwheeled.hot = true;
-                E.dispatch("bibi:commands:move", Wheel.Dir);
+                E.dispatch("bibi:commands:move-by", { Distance: Wheel.Distance });
             }
         }/*,
         addButton: function() {
@@ -3391,34 +3513,32 @@ I.createSpinner = function() {
 I.setToggleAction = function(Ele, Par) {
     if(!Par) Par = {}; // { open: Function, close: Function }
     return sML.edit(Ele, {
-        ToggleState: "default",
+        UIState: "default",
         open: function(Opt) {
             if(!Opt) Opt = {}; // { callback: Function, CallbackTime: Number }
-            if(Ele.ToggleState == "default") {
+            if(Ele.UIState == "default") {
                 //Ele.Locked = true;
-                Ele.ToggleState = "active";
-                Ele.Opened = true;
+                I.setUIState(Ele, "active");
                 if(Par.onopened) Par.onopened.apply(Ele, arguments);
             } else {
                 Opt.CallbackTime = 0;
             }
             Ele.callback(Opt);
-            return Ele.ToggleState;
+            return Ele.UIState;
         },
         close: function(Opt) {
             if(!Opt) Opt = {}; // { callback: Function, CallbackTime: Number }
-            if(Ele.ToggleState == "active") {
-                Ele.ToggleState = "default";
-                Ele.Opened = false;
+            if(Ele.UIState == "active") {
+                I.setUIState(Ele, "default");
                 if(Par.onclosed) Par.onclosed.apply(Ele, arguments);
             } else {
                 Opt.CallbackTime = 0;
             }
             Ele.callback(Opt);
-            return Ele.ToggleState;
+            return Ele.UIState;
         },
         toggle: function(Opt) {
-            return (Ele.ToggleState == "default" ? Ele.open(Opt) : Ele.close(Opt));
+            return (Ele.UIState == "default" ? Ele.open(Opt) : Ele.close(Opt));
         },
         callback: function(Opt) {
             if(Opt && typeof Opt.callback == "function") setTimeout(function() { Opt.callback.call(Ele); }, (typeof Opt.CallbackTime == "number" ? Opt.CallbackTime : 250));
@@ -3427,72 +3547,87 @@ I.setToggleAction = function(Ele, Par) {
 };
 
 
-I.distillPhrase = function(Phrase) {
-         if(!Phrase)                   return "";
-    else if(typeof Phrase == "string") return Phrase;
-    else if(Phrase[O.Language])        return Phrase[O.Language];
-    else if(Phrase["default"])         return Phrase["default"];
-    else if(Phrase["en"])              return Phrase["en"];
-    else                               return "";
+I.distillLabels = function(Labels) {
+    if(typeof Labels != "object" || !Labels) Labels = {};
+    for(var State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
+    if(!Labels["default"])                      Labels["default"] = I.distillLabels.distillLanguage();
+    if(!Labels["active"]  && Labels["default"]) Labels["active"] = Labels["default"];
+    return Labels;
+};
+
+I.distillLabels.distillLanguage = function(Label) {
+    if(typeof Label != "object" || !Label) Label = { default: Label };
+    if(typeof Label["default"] != "string")  {
+             if(typeof Label["en"] == "string")       Label["default"]  = Label["en"];
+        else if(typeof Label[O.Language] == "string") Label["default"]  = Label[O.Language];
+        else                                          Label["default"]  = "";
+    }
+    if(typeof Label[O.Language] != "string") {
+             if(typeof Label["default"] == "string")  Label[O.Language] = Label["default"];
+        else if(typeof Label["en"]      == "string")  Label[O.Language] = Label["en"];
+        else                                          Label[O.Language] = "";
+    }
+    return Label;
 };
 
 
-I.distillPhrases = function(Phrases) {
-    if(!Phrases) return {};
-    var DistilledPhrases = {};
-    for(var State in Phrases) DistilledPhrases[State] = I.distillPhrase(Phrases[State]);
-    if(DistilledPhrases["default"] && !DistilledPhrases["active"]) DistilledPhrases["active"] = DistilledPhrases["default"];
-    return DistilledPhrases;
-};
-
-
-I.observeTap = function(Ele, Opt) {
-    if(!Opt) Opt = {};
-    Ele.addEventListener(O["pointerdown"], function(Eve) {
-        if(Opt.PreventDefault) Eve.preventDefault();
-        if(Opt.StopPropagation) Eve.stopPropagation();
-        clearTimeout(Ele.Timer_tap);
-        Ele.TouchStart = { Time: new Date(), Event: Eve };
-        Ele.Timer_tap = setTimeout(function() {
-            Ele.TouchStart = undefined;
-        }, 300);
-    });
-    Ele.addEventListener(O["pointerup"], function(Eve) {
-        if(Opt.PreventDefault) Eve.preventDefault();
-        if(Opt.StopPropagation) Eve.stopPropagation();
-        if(!Ele.TouchStart) return;
-        var TouchEndTime = new Date();
-        if((TouchEndTime - Ele.TouchStart.Time) < 300 && Math.abs(Eve.pageX - Ele.TouchStart.Event.pageX) < 5 && Math.abs(Eve.pageY - Ele.TouchStart.Event.pageY) < 5) {
-            E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
-        }
-    });
-    Ele.addTapEventListener = function(Fun) {
-        E.add("bibi:tapped", function(Eve) {
-            return Fun.call(Ele, Eve);
-        }, Ele);
-        return Ele;
-    };
-    if(Opt.ontap) Ele.addTapEventListener(Opt.ontap);
+I.observeHover = function(Ele) {
+    Ele.addEventListener(O["pointerover"], function(Eve) { E.dispatch("bibi:hover",   Eve, Ele) });
+    Ele.addEventListener(O["pointerout"],  function(Eve) { E.dispatch("bibi:unhover", Eve, Ele) });
     return Ele;
 };
 
 
 I.setHoverActions = function(Ele) {
-    Ele.onhover = function(Eve) {
+    E.add("bibi:hover", function(Eve) {
         if(Ele.Hover) return Ele;
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         Ele.Hover = true;
         sML.addClass(Ele, "hover");
         if(Ele.showHelp) Ele.showHelp();
         return Ele;
-    };
-    Ele.onunhover = function(Eve) {
+    }, Ele);
+    E.add("bibi:unhover", function(Eve) {
         if(!Ele.Hover) return Ele;
         Ele.Hover = false;
         sML.removeClass(Ele, "hover");
         if(Ele.hideHelp) Ele.hideHelp();
         return Ele;
-    };
+    }, Ele);
+    return Ele;
+};
+
+
+
+I.observeTap = function(Ele, Opt) {
+    if(!Opt) Opt = {};
+    if(!Ele.addTapEventListener) {
+        Ele.addTapEventListener = function(EN, Fun) {
+            E.add("bibi:" + EN, function(Eve) {
+                return Fun.call(Ele, Eve);
+            }, Ele);
+            return Ele;
+        };
+        Ele.addEventListener(O["pointerdown"], function(Eve) {
+            if(Opt.PreventDefault) Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
+            clearTimeout(Ele.Timer_tap);
+            Ele.TouchStart = { Time: new Date(), Event: Eve };
+            Ele.Timer_tap = setTimeout(function() {
+                Ele.TouchStart = undefined;
+            }, 300);
+        });
+        Ele.addEventListener(O["pointerup"], function(Eve) {
+            if(Opt.PreventDefault) Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
+            if(!Ele.TouchStart) return;
+            var TouchEndTime = new Date();
+            if((TouchEndTime - Ele.TouchStart.Time) < 300 && Math.abs(Eve.pageX - Ele.TouchStart.Event.pageX) < 5 && Math.abs(Eve.pageY - Ele.TouchStart.Event.pageY) < 5) {
+                E.dispatch("bibi:tap",    Ele.TouchStart.Event, Ele);
+                E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
+            }
+        });
+    }
     return Ele;
 };
 
@@ -3501,77 +3636,83 @@ I.setTapAction = function(Ele) {
     var ontapped = (function() {
         switch(Ele.Type) {
             case "toggle": return function(Eve) {
-                I.setButtonState(Ele, Ele.ButtonState == "default" ? "active" : "default");
+                I.setUIState(Ele, Ele.UIState == "default" ? "active" : "default");
             };
             case "radio": return function(Eve) {
                 Ele.ButtonGroup.Buttons.forEach(function(Button) {
-                    if(Button != Ele) I.setButtonState(Button, "");
+                    if(Button != Ele) I.setUIState(Button, "");
                 });
-                I.setButtonState(Ele, "active");
+                I.setUIState(Ele, "active");
             };
             default: return function(Eve) {
-                I.setButtonState(Ele, "active");
+                I.setUIState(Ele, "active");
                 clearTimeout(Ele.Timer_deactivate);
                 Ele.Timer_deactivate = setTimeout(function() {
-                    I.setButtonState(Ele, "");
+                    I.setUIState(Ele, "");
                 }, 200);
             };
         }
     })();
-    Ele.ontap = function(Eve) {
+    Ele.addTapEventListener("tapped", function(Eve) {
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
-        if(Ele.Type == "radio" && Ele.ButtonState == "active") return Ele;
+        if(Ele.Type == "radio" && Ele.UIState == "active") return Ele;
         ontapped.call(Ele, Eve);
         if(Ele.hideHelp) Ele.hideHelp();
         if(Ele.note) Ele.note();
         return Ele;
-    };
+    });
     return Ele;
 };
 
 
 I.setFeedback = function(Ele, Opt) {
     if(!Opt) Opt = {};
-    if(Opt.Help) {
-        Ele.showHelp = function() {
-            if(Ele.Labels && Ele.Labels[Ele.ButtonState]) I.Help.show(Ele.Labels[Ele.ButtonState]);
+    Ele.Labels = I.distillLabels(Ele.Labels);
+    if(Ele.Labels) {
+        if(Opt.Help) {
+            Ele.showHelp = function() {
+                if(Ele.Labels[Ele.UIState]) I.Help.show(Ele.Labels[Ele.UIState][O.Language]);
+                return Ele;
+            };
+            Ele.hideHelp = function() {
+                I.Help.hide();
+                return Ele;
+            };
+        }
+        if(Ele.Notes) Ele.note = function() {
+            if(Ele.Labels[Ele.UIState]) setTimeout(function() { I.note(Ele.Labels[Ele.UIState][O.Language]); }, 0);
             return Ele;
-        };
-        Ele.hideHelp = function() {
-            I.Help.hide();
-            return Ele;
-        };
+        }
     }
-    Ele.note = function() {
-        if(Ele.Notes && Ele.Labels && Ele.Labels[Ele.ButtonState]) setTimeout(function() { I.note(Ele.Labels[Ele.ButtonState]); }, 0);
-        return Ele;
-    };
-    I.setHoverActions(Ele, Opt);
-    if(!O.Mobile) {
-        Ele.addEventListener(O["pointerover"], Ele.onhover);
-        Ele.addEventListener(O["pointerout"],  Ele.onunhover);
-    }
-    if(typeof Opt.ontap == "undefined") {
-        if(!Ele.ontap) I.setTapAction(Ele);
-        Opt.ontap = Ele.ontap;
-    }
+    if(!O.Mobile) I.observeHover(Ele);
+    I.setHoverActions(Ele);
     I.observeTap(Ele, Opt);
-    I.setButtonState(Ele, "default");
+    I.setTapAction(Ele);
+    Ele.addTapEventListener("tap", function(Eve) {
+        if(Ele.isAvailable && !Ele.isAvailable()) return false;
+        E.dispatch("bibi:is-going-to:tap:ui", Ele);
+    });
+    Ele.addTapEventListener("tapped", function(Eve) {
+        E.dispatch("bibi:tapped:ui", Ele);
+    });
+    I.setUIState(Ele, "default");
     return Ele;
 };
 
 
-I.setButtonState = function(Ele, ButtonState) {
-    if(!ButtonState) ButtonState = "default";
-    Ele.PreviousButtonState = Ele.ButtonState;
-    if(ButtonState == Ele.ButtonState) return;
-    Ele.ButtonState = ButtonState;
-    if(Ele.Labels && Ele.Labels[Ele.ButtonState]) {
-        Ele.title = Ele.Labels[Ele.ButtonState].replace(/<[^>]+>/g, "");
-        if(Ele.Label) Ele.Label.innerHTML = Ele.Labels[Ele.ButtonState];
+I.setUIState = function(UI, UIState) {
+    if(!UIState) UIState = "default";
+    UI.PreviousUIState = UI.UIState;
+    if(UIState == UI.UIState) return;
+    UI.UIState = UIState;
+    if(UI.tagName) {
+        if(UI.Labels && UI.Labels[UI.UIState] && UI.Labels[UI.UIState][O.Language]) {
+            UI.title = UI.Labels[UI.UIState][O.Language].replace(/<[^>]+>/g, "");
+            if(UI.Label) UI.Label.innerHTML = UI.Labels[UI.UIState][O.Language];
+        }
+        sML.replaceClass(UI, UI.PreviousUIState, UI.UIState);
     }
-    sML.replaceClass(Ele, Ele.PreviousButtonState, Ele.ButtonState);
-    return Ele.ButtonState;
+    return UI.UIState;
 };
 
 
@@ -4063,9 +4204,9 @@ O.getPath = function() {
 
 O.stamp = function(What, TimeCard) {
     if(!TimeCard) TimeCard = O.TimeCard;
-    var Time = Date.now() - O.TimeCard.Origin;
-    if(TimeCard[Time]) What = TimeCard[Time] + " -&- " + What;
-    TimeCard[Time] = What;
+    var HMS = O.TimeCard.getHMS(O.TimeCard.getElapsed());
+    if(TimeCard[HMS]) What = TimeCard[HMS] + " -&- " + What;
+    TimeCard[HMS] = What;
 };
 
 O.stopPropagation = function(Eve) { Eve.stopPropagation(); return false; };
@@ -4127,8 +4268,17 @@ O.getBibiEvent = function(Eve) {
 
 O.TimeCard = {
     Origin: Date.now(),
-    getNow: function() {
-        return ((Date.now() - O.TimeCard.Origin) / 1000) + "sec";
+    getElapsed: function(Time) {
+        return ((Time ? Time : Date.now()) - O.TimeCard.Origin);
+    },
+    getHMS: function(Milliseconds) {
+        return [
+            Milliseconds / 1000 / 60 / 60,
+            Milliseconds / 1000 / 60 % 60,
+            Milliseconds / 1000 % 60
+        ].map(function(Val) {
+            return sML.String.pad(Math.floor(Val), 0, 2);
+        }).join(":");
     }
 };
 
@@ -4204,8 +4354,6 @@ O.SettingTypes = {
 E = {}; // Bibi.Events
 
 
-E.Binded = {};
-
 
 E.add = function(Name, Listener, Ele) {
     if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
@@ -4222,49 +4370,50 @@ E.remove = function(Name, Listener, Ele) {
 };
 
 
-E.bind = function(Name, Fn) {
-    if(typeof Name != "string" || typeof Fn != "function") return false;
-    if(!(E.Binded[Name] instanceof Array)) E.Binded[Name] = [];
-    E.Binded[Name].push(Fn);
-    return {
-        Name: Name,
-        Index: E.Binded[Name].length - 1,
-        Function: Fn
-    };
+E.bind = function(Name, Listener, Ele) {
+    if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
+    Ele = (Ele ? Ele : document);
+    if(!Ele.BibiEventBinded) Ele.BibiEventBinded = {};
+    if(!(Ele.BibiEventBinded[Name] instanceof Array)) Ele.BibiEventBinded[Name] = [];
+    Ele.BibiEventBinded[Name] = Ele.BibiEventBinded[Name].filter(function(Binded) {
+        if(Binded != Listener) return true;
+        return false;
+    });
+    Ele.BibiEventBinded[Name].push(Listener);
+    return Ele.BibiEventBinded[Name].length - 1;
 };
 
 
-E.unbind = function(Param) { // or E.unbined(Name, Fn);
-    if(!Param) return false;
-    if(typeof arguments[0] == "string" && typeof arguments[1] == "function") Param = { Name: arguments[0], Function: arguments[1] };
-    if(typeof Param != "object" || typeof Param.Name != "string" || !(E.Binded[Param.Name] instanceof Array)) return false;
-    if(typeof Param.Index == "number") {
-        if(typeof E.Binded[Param.Name][Param.Index] != "function") return false;
-        E.Binded[Param.Name][Param.Index] = undefined;
-        return true;
+E.unbind = function(Name, Listener, Ele) {
+    if(typeof Name != "string") return false;
+    Ele = (Ele ? Ele : document);
+    if(!Ele.BibiEventBinded || !(Ele.BibiEventBinded[Name] instanceof Array)) return false;
+    if(typeof Listener == "undefined") {
+        delete Ele.BibiEventBinded[Name];
+        return 0;
     }
-    if(typeof Param.Function == "function") {
-        var Deleted = false;
-        for(var i = 0, L = E.Binded[Param.Name].length; i < L; i++) {
-            if(E.Binded[Param.Name][i] == Param.Function) {
-                E.Binded[Param.Name][i] = undefined;
-                Deleted = true;
-            }
-        }
-        return Deleted;
+    if(typeof Listener == "number") {
+        if(typeof Ele.BibiEventBinded[Name][Listener] != "function") return false;
+        Listener = Ele.BibiEventBinded[Name][Listener];
     }
-    return (delete E.Binded[Param.Name]);
+    Ele.BibiEventBinded[Name] = Ele.BibiEventBinded[Name].filter(function(Binded) {
+        if(Binded != Listener) return true;
+        return false;
+    });
+    return Ele.BibiEventBinded[Name].length;
 };
 
 
 E.dispatch = function(Name, Detail, Ele) {
     //console.log('//////// ' + Name);
-    if(E.Binded[Name] instanceof Array) {
-        for(var i = 0, L = E.Binded[Name].length; i < L; i++) {
-            if(typeof E.Binded[Name][i] == "function") E.Binded[Name][i].call(Bibi, Detail);
-        }
+    if(typeof Name != "string") return false;
+    Ele = (Ele ? Ele : document);
+    if(Ele.BibiEventBinded && Ele.BibiEventBinded[Name] instanceof Array) {
+        Ele.BibiEventBinded[Name].forEach(function(Binded) {
+            if(typeof Binded == "function") Binded.call(Ele, Detail);
+        });
     }
-    return (Ele ? Ele : document).dispatchEvent(new CustomEvent(Name, { detail: Detail }));
+    return Ele.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
 };
 
 
