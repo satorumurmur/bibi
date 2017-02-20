@@ -2061,6 +2061,7 @@ R.focusOn = function(Par) {
     };
     ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
     sML.scrollTo(ScrollTarget, {
+        ForceScroll: true,
         Duration: ((S.RVM == "paged") ? 0 : Par.Duration),
         callback: function() {
             R.getCurrent();
@@ -2263,6 +2264,8 @@ R.scrollBy = function(Par) {
         case "rtl": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
     }
     sML.scrollTo(ScrollTarget, {
+        ForceScroll: true,
+        Duration: ((S.RVM == "paged") ? 0 : Par.Duration),
         callback: function() {
             R.getCurrent();
             R.Moving = false;
