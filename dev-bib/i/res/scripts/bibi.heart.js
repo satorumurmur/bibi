@@ -3328,83 +3328,95 @@ I.createKeyListener = function() {
 
     // Keys
     I.KeyListener = {
-        MovingParameters: {
-            "Page Up":       1,    "Page Down":      -1,    "Space":       1,
-            "PAGE UP":  "foot",    "PAGE DOWN":  "head",    "SPACE":      -1
+        KeyCodes: { "keydown": {}, "keyup": {}, "keypress": {} },
+        updateKeyCodes: function(EventTypes, KeyCodesToUpdate) {
+            if(typeof EventTypes.join != "function")  EventTypes = [EventTypes];
+            if(typeof KeyCodesToUpdate == "function") KeyCodesToUpdate = KeyCodesToUpdate();
+            EventTypes.forEach(function(EventType) {
+                I.KeyListener.KeyCodes[EventType] = sML.edit(I.KeyListener.KeyCodes[EventType], KeyCodesToUpdate);
+            });
         },
-        update: function() {
+        MovingParameters: {
+            "Space":  1,  "Page Up":     -1,  "Page Down":      1,  "End": "foot",  "Home": "head",
+            "SPACE": -1,  "PAGE UP": "head",  "PAGE DOWN": "foot",  "END": "foot",  "HOME": "head"
+        },
+        updateMovingParameters: function() {
             switch(S.ARD) {
                 case "ttb": return sML.edit(I.KeyListener.MovingParameters, {
-                    "Up Arrow":     -1,    "Right Arrow":      0,    "Down Arrow":      1,    "Left Arrow":      0,
-                    "UP ARROW": "head",    "RIGHT ARROW":     "",    "DOWN ARROW": "foot",    "LEFT ARROW":     ""
+                    "Up Arrow":     -1,  "Right Arrow":      0,  "Down Arrow":      1,  "Left Arrow":      0,
+                    "UP ARROW": "head",  "RIGHT ARROW":     "",  "DOWN ARROW": "foot",  "LEFT ARROW":     ""
                 });
                 case "ltr": return sML.edit(I.KeyListener.MovingParameters, {
-                    "Up Arrow":      0,    "Right Arrow":      1,    "Down Arrow":      0,    "Left Arrow":     -1,
-                    "UP ARROW":     "",    "RIGHT ARROW": "foot",    "DOWN ARROW":     "",    "LEFT ARROW": "head"
+                    "Up Arrow":      0,  "Right Arrow":      1,  "Down Arrow":      0,  "Left Arrow":     -1,
+                    "UP ARROW":     "",  "RIGHT ARROW": "foot",  "DOWN ARROW":     "",  "LEFT ARROW": "head"
                 });
                 case "rtl": return sML.edit(I.KeyListener.MovingParameters, {
-                    "Up Arrow":      0,    "Right Arrow":     -1,    "Down Arrow":      0,    "Left Arrow":      1,
-                    "UP ARROW":     "",    "RIGHT ARROW": "head",    "DOWN ARROW":     "",    "LEFT ARROW": "foot"
+                    "Up Arrow":      0,  "Right Arrow":     -1,  "Down Arrow":      0,  "Left Arrow":      1,
+                    "UP ARROW":     "",  "RIGHT ARROW": "head",  "DOWN ARROW":     "",  "LEFT ARROW": "foot"
                 });
                 default: return sML.edit(I.KeyListener.MovingParameters, {
-                    "Up Arrow":      0,    "Right Arrow":      0,    "Down Arrow":      0,    "Left Arrow":      0,
-                    "UP ARROW":     "",    "RIGHT ARROW":     "",    "DOWN ARROW":     "",    "LEFT ARROW":     ""
+                    "Up Arrow":      0,  "Right Arrow":      0,  "Down Arrow":      0,  "Left Arrow":      0,
+                    "UP ARROW":     "",  "RIGHT ARROW":     "",  "DOWN ARROW":     "",  "LEFT ARROW":     ""
                 });
             }
         },
+        getBibiKeyName: function(Eve) {
+            var KeyName = I.KeyListener.KeyCodes[Eve.type][Eve.keyCode];
+            return KeyName ? KeyName : "";
+        },
+        onEvent: function(Eve) {
+            if(!L.Opened) return false;
+            Eve.BibiKeyName = I.KeyListener.getBibiKeyName(Eve);
+            Eve.BibiModifierKeys = [];
+            if(Eve.shiftKey) Eve.BibiModifierKeys.push("Shift");
+            if(Eve.ctrlKey)  Eve.BibiModifierKeys.push("Control");
+            if(Eve.altKey)   Eve.BibiModifierKeys.push("Alt");
+            if(Eve.metaKey)  Eve.BibiModifierKeys.push("Meta");
+            //if(!Eve.BibiKeyName) return false;
+            return true;
+        },
+        onkeydown:  function(Eve) {
+            if(!I.KeyListener.onEvent(Eve)) return false;
+            E.dispatch("bibi:down-key", Eve);
+        },
+        onkeyup:    function(Eve) {
+            if(!I.KeyListener.onEvent(Eve)) return false;
+            E.dispatch("bibi:up-key", Eve);
+        },
+        onkeypress:  function(Eve) {
+            if(!I.KeyListener.onEvent(Eve)) return false;
+            E.dispatch("bibi:press-key", Eve);
+        },
         observe: function() {
-            var EventNames = ["keydown", /*"keypress",*/ "keyup"];
             [O].concat(R.Items).forEach(function(Item) {
-                EventNames.forEach(function(EventName) {
+                ["keydown", "keyup", "keypress"].forEach(function(EventName) {
                     Item.contentDocument.addEventListener(EventName, I.KeyListener["on" + EventName], false);
                 });
             });
         },
-        getKeyName: function(Eve) {
-            switch(Eve.keyCode) {
-                case  32: return "Space";
-                case  33: return "Page Up";
-                case  34: return "Page Down";
-                case  37: return "Left Arrow";
-                case  38: return "Up Arrow";
-                case  39: return "Right Arrow";
-                case  40: return "Down Arrow";
-                default: return "";
-            }
-        },
-        ontouch: function(Eve) {
-            if(!L.Opened) return false;
-            Eve.KeyName = I.KeyListener.getKeyName(Eve);
-            //if(!Eve.KeyName) return false;
-            return true;
-        },
-        onkeydown:  function(Eve) {
-            if(!I.KeyListener.ontouch(Eve)) return false;
-            E.dispatch("bibi:down-key", Eve);
-        },/*
-        onkeypress:  function(Eve) {
-            if(!I.KeyListener.ontouch(Eve)) return false;
-            E.dispatch("bibi:press-key", Eve);
-        },*/
-        onkeyup:    function(Eve) {
-            if(!I.KeyListener.ontouch(Eve)) return false;
-            E.dispatch("bibi:up-key", Eve);
-        },
         tryMoving: function(Eve) {
-            if(!Eve.KeyName) return false;
-            if(Eve.shiftKey) Eve.KeyName = Eve.KeyName.toUpperCase();
-            var MovingParameter = I.KeyListener.MovingParameters[Eve.KeyName];
+            if(!Eve.BibiKeyName) return false;
+            if(Eve.shiftKey) Eve.BibiKeyName = Eve.BibiKeyName.toUpperCase();
+            var MovingParameter = I.KeyListener.MovingParameters[Eve.BibiKeyName];
             if(!MovingParameter) return false;
-                Eve.preventDefault();
+            Eve.preventDefault();
                  if(typeof MovingParameter == "number") E.dispatch("bibi:commands:move-by",  { Distance:    MovingParameter });
             else if(typeof MovingParameter == "string") E.dispatch("bibi:commands:focus-on", { Destination: MovingParameter });
         }
     };
-    E.add("bibi:updated-settings", function() { I.KeyListener.update(); });
-    E.add("bibi:opened",           function() { I.KeyListener.update(); I.KeyListener.observe(); });
-    E.add("bibi:up-key",      function(Eve) {
-        I.KeyListener.tryMoving(Eve);
+
+    I.KeyListener.updateKeyCodes(["keydown", "keyup", "keypress"], {
+        32: "Space"
     });
+    I.KeyListener.updateKeyCodes(["keydown", "keyup"], {
+        33: "Page Up",     34: "Page Down",
+        35: "End",         36: "Home",
+        37: "Left Arrow",  38: "Up Arrow",  39: "Right Arrow",  40: "Down Arrow"
+    });
+
+    E.add("bibi:updated-settings", function(   ) { I.KeyListener.updateMovingParameters(); });
+    E.add("bibi:opened",           function(   ) { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(); });
+    E.add("bibi:up-key",           function(Eve) { I.KeyListener.tryMoving(Eve); });
 
     E.dispatch("bibi:created-keylistener");
 
