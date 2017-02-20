@@ -3238,7 +3238,9 @@ I.createArrows = function() {
                 if(!I.Arrows.isAvailable(BibiEvent)) return false;
                 var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
                 if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                    E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
+                    //E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
+                    E.dispatch("bibi:tap",    Eve, I.Arrows[Dir]);
+                    E.dispatch("bibi:tapped", Eve, I.Arrows[Dir]);
                 }
             });
             E.add("bibi:commands:move-by", function(Par) { // indicate direction
