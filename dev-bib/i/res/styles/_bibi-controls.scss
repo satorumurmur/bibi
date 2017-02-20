@@ -1441,14 +1441,6 @@ div#bibi-slider {
 				}
 			}
 			&.two-pages {
-				&:before {
-					html.page-ltr & { left: 0; }
-					html.page-rtl & { right: 0; }
-				}
-				&:after {
-					html.page-ltr & { right: 0; }
-					html.page-rtl & { left: 0; }
-				}
 				html.slider-opened & {
 					&:before, &:after {
 						width: 50%;
@@ -1457,6 +1449,24 @@ div#bibi-slider {
 						content: "";
 						display: block;
 					}
+				}
+				html.page-ltr &:before,
+				html.page-rtl &:after {
+					left:  0;
+				}
+				html.page-rtl &:before,
+				html.page-ltr &:after {
+					right: 0;
+				}
+				html.slider-opened.page-ltr &:before,
+				html.slider-opened.page-rtl &:after {
+					border-top-right-radius: 0;
+					border-bottom-right-radius: 0;
+				}
+				html.slider-opened.page-rtl &:before,
+				html.slider-opened.page-ltr &:after {
+					border-top-left-radius: 0;
+					border-bottom-left-radius: 0;
 				}
 			}
 		}
