@@ -1836,35 +1836,34 @@ R.layOut = function(Opt) {
 
 };
 
-R.onscroll = function() {
+R.onscroll = function(Eve) {
     if(!L.Opened) return;
     if(!R.Scrolling) {
         sML.addClass(O.HTML, "scrolling");
         R.Scrolling = true;
-        E.dispatch("bibi:scroll", "Begun");
-    } else {
-        E.dispatch("bibi:scroll");
+        Eve.BibiScrollingBegun = true;
     }
+    E.dispatch("bibi:scroll", Eve);
     clearTimeout(R.Timer_onscrolled);
     R.Timer_onscrolled = setTimeout(function() {
         R.Scrolling = false;
         sML.removeClass(O.HTML, "scrolling");
-        E.dispatch("bibi:scrolled");
+        E.dispatch("bibi:scrolled", Eve);
     }, 123);
 };
 
-R.onresize = function() {
+R.onresize = function(Eve) {
     if(!L.Opened) return;
     if(!R.Resizing) sML.addClass(O.HTML, "resizing");
     R.Resizing = true;
-    E.dispatch("bibi:resize");
+    E.dispatch("bibi:resize", Eve);
     clearTimeout(R.Timer_onresized);
     clearTimeout(R.Timer_afterresized);
     R.Timer_onresized = setTimeout(function() {
         O.Busy = true;
         sML.addClass(O.HTML, "busy");
         R.Timer_afterresized = setTimeout(function() {
-            E.dispatch("bibi:resized");
+            E.dispatch("bibi:resized", Eve);
             O.Busy = false;
             R.Resizing = false;
             sML.removeClass(O.HTML, "busy");
@@ -1905,7 +1904,10 @@ R.onwheel = function(Eve) {
         } else {
             CW.Accel = PWs[PWl - 1].Accel;
         }
-        if(CW.Wheeled) E.dispatch("bibi:wheeled", CW);
+        if(CW.Wheeled) {
+            Eve.BibiSwiperWheel = CW;
+            E.dispatch("bibi:wheeled", Eve);
+        }
         if(PWl >= 3) PWs.shift();
         PWs.push(CW);
     }
@@ -3454,12 +3456,13 @@ I.createSwiper = function() {
             else if(240 <= Angle && Angle <= 300) From = "right",  To = "left";
             if(I.Arrows[From] && I.Arrows[From].isAvailable()) E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[From].Distance });
         },
-        onwheeled: function(Wheel) {
+        onwheeled: function(Eve) {
+            if(!Eve.BibiSwiperWheel) return;
             clearTimeout(I.Swiper.onwheeled.Timer_cooldown);
             I.Swiper.onwheeled.Timer_cooldown = setTimeout(function() { I.Swiper.onwheeled.hot = false; }, 248);
             if(!I.Swiper.onwheeled.hot) {
                 I.Swiper.onwheeled.hot = true;
-                E.dispatch("bibi:commands:move-by", { Distance: Wheel.Distance });
+                E.dispatch("bibi:commands:move-by", { Distance: Eve.BibiSwiperWheel.Distance });
             }
         }/*,
         addButton: function() {
