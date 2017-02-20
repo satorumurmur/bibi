@@ -430,7 +430,7 @@ L.loadPackageDocument.read = function(Doc) {
     if(SpineItemrefs.length <= 0) return O.error('"' + B.Package.Path + '" has no <itemref> in <spine>.');
 
     // METADATA
-    XMLNS = { "dc": Metadata.getAttribute("xmlns:dc") };
+    var XMLNS = { "dc": Metadata.getAttribute("xmlns:dc") };
     sML.each(Metadata.getElementsByTagName("meta"), function() {
         if(this.getAttribute("refines")) return;
         if(this.getAttribute("property")) {
@@ -4363,6 +4363,8 @@ O.SettingTypes = {
 };
 
 
+
+
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4393,34 +4395,34 @@ E.remove = function(Name, Listener, Ele) {
 E.bind = function(Name, Listener, Ele) {
     if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
     Ele = (Ele ? Ele : document);
-    if(!Ele.BibiEventBinded) Ele.BibiEventBinded = {};
-    if(!(Ele.BibiEventBinded[Name] instanceof Array)) Ele.BibiEventBinded[Name] = [];
-    Ele.BibiEventBinded[Name] = Ele.BibiEventBinded[Name].filter(function(Binded) {
+    if(!Ele.BibiBindedEventListeners) Ele.BibiBindedEventListeners = {};
+    if(!(Ele.BibiBindedEventListeners[Name] instanceof Array)) Ele.BibiBindedEventListeners[Name] = [];
+    Ele.BibiBindedEventListeners[Name] = Ele.BibiBindedEventListeners[Name].filter(function(Binded) {
         if(Binded != Listener) return true;
         return false;
     });
-    Ele.BibiEventBinded[Name].push(Listener);
-    return Ele.BibiEventBinded[Name].length - 1;
+    Ele.BibiBindedEventListeners[Name].push(Listener);
+    return Ele.BibiBindedEventListeners[Name].length - 1;
 };
 
 
 E.unbind = function(Name, Listener, Ele) {
     if(typeof Name != "string") return false;
     Ele = (Ele ? Ele : document);
-    if(!Ele.BibiEventBinded || !(Ele.BibiEventBinded[Name] instanceof Array)) return false;
+    if(!Ele.BibiBindedEventListeners || !(Ele.BibiBindedEventListeners[Name] instanceof Array)) return false;
     if(typeof Listener == "undefined") {
-        delete Ele.BibiEventBinded[Name];
+        delete Ele.BibiBindedEventListeners[Name];
         return 0;
     }
     if(typeof Listener == "number") {
-        if(typeof Ele.BibiEventBinded[Name][Listener] != "function") return false;
-        Listener = Ele.BibiEventBinded[Name][Listener];
+        if(typeof Ele.BibiBindedEventListeners[Name][Listener] != "function") return false;
+        Listener = Ele.BibiBindedEventListeners[Name][Listener];
     }
-    Ele.BibiEventBinded[Name] = Ele.BibiEventBinded[Name].filter(function(Binded) {
+    Ele.BibiBindedEventListeners[Name] = Ele.BibiBindedEventListeners[Name].filter(function(Binded) {
         if(Binded != Listener) return true;
         return false;
     });
-    return Ele.BibiEventBinded[Name].length;
+    return Ele.BibiBindedEventListeners[Name].length;
 };
 
 
@@ -4428,9 +4430,9 @@ E.dispatch = function(Name, Detail, Ele) {
     //console.log('//////// ' + Name);
     if(typeof Name != "string") return false;
     Ele = (Ele ? Ele : document);
-    if(Ele.BibiEventBinded && Ele.BibiEventBinded[Name] instanceof Array) {
-        Ele.BibiEventBinded[Name].forEach(function(Binded) {
-            if(typeof Binded == "function") Binded.call(Ele, Detail);
+    if(Ele.BibiBindedEventListeners && Ele.BibiBindedEventListeners[Name] instanceof Array) {
+        Ele.BibiBindedEventListeners[Name].forEach(function(bindedEventListener) {
+            if(typeof bindedEventListener == "function") bindedEventListener.call(Ele, Detail);
         });
     }
     return Ele.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
