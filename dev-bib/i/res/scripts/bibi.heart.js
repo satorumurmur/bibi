@@ -23,10 +23,13 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 document.addEventListener("DOMContentLoaded", function() { Bibi.welcome(); });
 
 
+Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi';
+
+
 Bibi.welcome = function() {
 
     O.stamp("Welcome!");
-    O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi', "-0");
+    O.log(Bibi.WelcomeMessage, "-0");
     E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
@@ -40,7 +43,7 @@ Bibi.welcome = function() {
     O.contentWindow = window;
     O.contentDocument = document;
 
-    O.HTML   = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " welcome";
+    O.HTML   = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " bibi welcome";
     O.Head   = document.head;
     O.Body   = document.body;
     O.Info   = document.getElementById("bibi-info");
@@ -50,12 +53,6 @@ Bibi.welcome = function() {
     if(sML.OS.iOS || sML.OS.Android) {
         O.Mobile = true;
         O.HTML.className = O.HTML.className + " Touch";
-        O.setOrientation = function() {
-            sML.removeClass(O.HTML, "orientation-" + (window.orientation == 0 ? "landscape" : "portrait" ));
-            sML.addClass(   O.HTML, "orientation-" + (window.orientation == 0 ? "portrait"  : "landscape"));
-        }
-        O.setOrientation();
-        window.addEventListener("orientationchange", O.setOrientation);
         if(sML.OS.iOS) {
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "white" }));
@@ -81,7 +78,7 @@ Bibi.welcome = function() {
         }
     }
 
-    // Window
+    // Window Embedding
     if(window.parent == window) {
         O.WindowEmbedded = 0; // false
         O.WindowEmbeddedDetail = "Direct Opened: " + location.origin + location.pathname + location.search;
@@ -116,21 +113,36 @@ Bibi.welcome = function() {
         if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
         else return undefined;
     })();
-    var Checker = document.body.appendChild(sML.create("div", { id: "checker" }));
-    Checker.Child = Checker.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
-    if(Checker.Child.offsetWidth < Checker.Child.offsetHeight) {
+    var SRI4VTC = sML.appendStyleRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
+    var VTC = document.body.appendChild(sML.create("div", { id: "bibi-vtc" })); // VerticalTextChecker
+    VTC.Child = VTC.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
+    if(VTC.Child.offsetWidth < VTC.Child.offsetHeight) {
         O.HTML.className = O.HTML.className + " vertical-text-enabled";
         O.VerticalTextEnabled = true;
     } else {
         O.HTML.className = O.HTML.className + " vertical-text-not-enabled";
         O.VerticalTextEnabled = false;
     };
-    O.DefaultFontSize = Math.min(Checker.Child.offsetWidth, Checker.Child.offsetHeight);
-    document.body.removeChild(Checker);
-    delete Checker;
+    O.DefaultFontSize = Math.min(VTC.Child.offsetWidth, VTC.Child.offsetHeight);
+    document.body.removeChild(VTC);
+    delete VTC;
+    sML.deleteStyleRule(SRI4VTC);
+
+    setTimeout(Bibi.initialize, 0);
+
+};
+
+
+Bibi.initialize = function() {
 
     // Scrollbars
-    O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
+    O.Scrollbars = {
+        Width: window.innerWidth - O.HTML.offsetWidth,
+        Height: window.innerHeight - O.HTML.offsetHeight
+    };
+
+    // Reader
+    R.initialize();
 
     // UI
     I.initialize();
@@ -162,9 +174,6 @@ Bibi.welcome = function() {
         sML.removeClass(O.HTML, "welcome");
     }
 
-    // Reader
-    R.initialize();
-
     // Extensions
     X.initialize();
 
@@ -174,7 +183,15 @@ Bibi.welcome = function() {
     S.initialize();
 
     // Ready
-    P.Initialized.then(Bibi.ready);
+    P.Initialized.then(function() {
+        E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
+        E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
+        E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
+        E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
+        window.addEventListener("message", M.gate, false);
+        Bibi.ready();
+        O.ReadiedURL = location.href;
+    });
 
 };
 
@@ -182,14 +199,6 @@ Bibi.welcome = function() {
 Bibi.ready = function() {
 
     sML.addClass(O.HTML, "ready");
-    O.ReadiedURL = location.href;
-
-    E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
-    E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
-    E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
-    E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
-
-    window.addEventListener("message", M.gate, false);
 
     E.add("bibi:readied", function() {
         if(U["book"]) {
@@ -252,6 +261,11 @@ B.initialize = function(Book) {
         },
         FileDigit: 0
     });
+    return B.initialize.promise(Book);
+};
+
+
+B.initialize.promise = function(Book) {
     return new Promise(function(resolve, reject) {
         B.initialize.resolve = resolve;
         B.initialize.reject  = reject;
@@ -270,7 +284,7 @@ B.initialize = function(Book) {
                 B.initialize.asZipped();
             } else { // Unzipped ?
                 B.Path = B.Path.replace(/\/+$/, "");
-                B.checkContainerXML().then(function() {
+                B.checkContainer().then(function() {
                     B.initialize.resolve();
                 }).catch(function() {
                     B.initialize.asZipped();
@@ -310,7 +324,7 @@ B.initialize.asZipped = function() {
 };
 
 
-B.checkContainerXML = function() {
+B.checkContainer = function() {
     return O.download(B.Path + "/" + B.Container.Path).then(function(XHR) {
         if(XHR.responseText) { // Unzipped
             B.Unzipped = true;
@@ -362,6 +376,13 @@ L.play = function() {
 };
 
 
+L.resetReader = function() {
+    R.Main.Book.innerHTML = "";
+    R.Sub.innerHTML = "";
+    R.initializeParameters();
+};
+
+
 L.loadBook = function(Book) {
     //O.log("Loading Book...", "*:");
     O.Busy = true;
@@ -370,7 +391,7 @@ L.loadBook = function(Book) {
     I.note('Loading...');
     B.initialize(Book).then(function(ERROR) {
         if(ERROR) return;
-        R.reset();
+        L.Loaded = false;
         L.loadContainer();
     });
 };
@@ -380,19 +401,20 @@ L.loadContainer = function() {
 
     O.log('Loading Container XML: ' + B.Path + B.PathDelimiter + B.Container.Path + ' ...', "*:");
 
-    O.openDocument(B.Container.Path).then(L.loadContainer.read).then(function() {
-        O.log('Container XML Loaded.', "/*");
-        L.loadPackageDocument();
-    });
+    O.openDocument(B.Container.Path).then(L.processContainer).then(L.onLoadContainer);
 
 };
 
 
-L.loadContainer.read = function(Doc) {
-
+L.processContainer = function(Doc) {
     B.Package.Path = Doc.getElementsByTagName("rootfile")[0].getAttribute("full-path");
     B.Package.Dir  = B.Package.Path.replace(/\/?[^\/]+$/, "");
+};
 
+
+L.onLoadContainer = function() {
+    O.log('Container XML Loaded.', "/*");
+    L.loadPackageDocument();
 };
 
 
@@ -400,25 +422,12 @@ L.loadPackageDocument = function() {
 
     O.log('Loading Package Document: ' + B.Path + B.PathDelimiter + B.Package.Path + ' ...', "*:");
 
-    O.openDocument(B.Package.Path).then(L.loadPackageDocument.read).then(function() {
-        E.dispatch("bibi:loaded-package-document");
-        O.log('Package Document Loaded.', "/*");
-        L.createCover();
-        L.prepareSpine();
-        L.loadNavigation().then(function() {
-            E.dispatch("bibi:prepared");
-            if(S["autostart"] || L.Played) {
-                L.loadItemsInSpreads();
-            } else {
-                L.wait().then(L.loadItemsInSpreads);
-            }
-        });
-    });
+    O.openDocument(B.Package.Path).then(L.processPackageDocument).then(L.onLoadPackageDocument);
 
 };
 
 
-L.loadPackageDocument.read = function(Doc) {
+L.processPackageDocument = function(Doc) {
 
     // Package
     var Metadata = Doc.getElementsByTagName("metadata")[0];
@@ -574,6 +583,22 @@ L.loadPackageDocument.read = function(Doc) {
 };
 
 
+L.onLoadPackageDocument = function() {
+    E.dispatch("bibi:loaded-package-document");
+    O.log('Package Document Loaded.', "/*");
+    L.createCover();
+    L.prepareSpine();
+    L.loadNavigation().then(function() {
+        E.dispatch("bibi:prepared");
+        if(S["autostart"] || L.Played) {
+            L.loadItemsInSpreads();
+        } else {
+            L.wait().then(L.loadItemsInSpreads);
+        }
+    });
+};
+
+
 L.createCover = function() {
 
     O.log('Creating Cover...', "*:");
@@ -642,7 +667,7 @@ L.createCover = function() {
 };
 
 
-L.prepareSpine = function() {
+L.prepareSpine = function(ItemMaker) {
 
     O.log('Preparing Spine...', "*:");
 
@@ -651,16 +676,21 @@ L.prepareSpine = function() {
     else               var SpreadPairBefore = "left",  SpreadPairAfter = "right";
 
     B.FileDigit = (B.Package.Spine["itemrefs"].length + "").length;
+    if(B.FileDigit < 3) B.FileDigit = 3;
+
+    if(typeof ItemMaker != "function") ItemMaker = function() {
+        return sML.create("iframe", {
+            scrolling: "no",
+            allowtransparency: "true"
+        });
+    };
 
     // Spreads, Boxes, and Items
     sML.each(B.Package.Spine["itemrefs"], function() {
         var ItemRef = this, ItemIndex = R.Items.length;
         // Item: A
-        var Item = sML.create("iframe", {
-            className: "item",
-            scrolling: "no",
-            allowtransparency: "true"
-        });
+        var Item = ItemMaker(this);
+        sML.addClass(Item, "item");
         Item.ItemRef = ItemRef;
         Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
         Item.Dir = Item.Path.replace(/\/?[^\/]+$/, "");
@@ -1189,7 +1219,6 @@ L.onLoadSpread = function(Spread) {
 L.onLoadItemsInSpreads = function() {
 
     delete B.Files;
-    document.body.style.display = "";
     R.resetPages();
 
     O.stamp("Items in Spreads Loaded");
@@ -1224,6 +1253,8 @@ L.open = function() {
     window.removeEventListener("resize", L.listenResizingWhileLoading);
     delete L.listenResizingWhileLoading;
 
+    R.updateOrientation();
+
     R.layOut({
         Destination: (function() {
             if(S["to"]) {
@@ -1239,9 +1270,9 @@ L.open = function() {
     E.dispatch("bibi:laid-out:for-the-first-time");
 
     setTimeout(function() {
-        I.Veil.close();
+        if(I.Veil) I.Veil.close();
         setTimeout(function() {
-            I.Menu.close();
+            if(I.Menu) I.Menu.close();
             if(I.Slider) I.Slider.close();
         }, 888);
         document.body.click(); // To responce for user scrolling/keypressing immediately
@@ -1270,15 +1301,36 @@ R = {}; // Bibi.Reader
 
 R.initialize = function() {
 
-    // Elements
+    R.initializeParameters();
+    R.initializeElements();
+    R.initializeEventListeners();
+
+};
+
+
+R.initializeParameters = function() {
+    R.Started = false;
+    R.AllItems = [], R.NonLinearItems = [];
+    R.Spreads = [], R.Items = [], R.Pages = [];
+    R.CoverImage = { Path: "" };
+    R.Current = {};
+};
+
+
+R.initializeElements = function() {
+
     R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main" }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create("div", { id: "bibi-sub" }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "bibi-main-book" }));
 
-    // Default EventListeners
+};
+
+
+R.initializeEventListeners = function() {
+
     E.add("bibi:scrolled", function() {
         R.getCurrent();
-        if(S["use-cookie"]) {
+        if(S["use-cookie"] && R.Current.Page) {
             O.Cookie.eat(B.ID, {
                 "Position": {
                     SpreadIndex: R.Current.Pages.StartPage.Spread.SpreadIndex,
@@ -1287,12 +1339,14 @@ R.initialize = function() {
             });
         }
     });
+
     E.add("bibi:resized", function() {
         R.layOut({
             Reset: true,
             Setting: (Option && Option.Setting ? Option.Setting : undefined)
         });
     });
+
     //if(!O.Mobile) {
         O.HTML.addEventListener(O["pointermove"], R.onpointermove);
         //O.HTML.addEventListener(O["pointerover"], R.onpointermove);
@@ -1303,6 +1357,7 @@ R.initialize = function() {
             //Item.HTML.addEventListener(O["pointerout"],  R.onpointermove);
         });
     //}
+
     I.observeTap(O.HTML);
     O.HTML.addTapEventListener("tap", R.ontap);
     E.add("bibi:loaded-item", function(Item) {
@@ -1310,16 +1365,6 @@ R.initialize = function() {
         Item.HTML.addTapEventListener("tap", R.ontap);
     });
 
-};
-
-
-R.reset = function() {
-    R.Main.Book.innerHTML = R.Sub.innerHTML = "";
-    L.Loaded = false, R.Started = false;
-    R.AllItems = [], R.NonLinearItems = [];
-    R.Spreads = [], R.Items = [], R.Pages = [];
-    R.CoverImage = { Path: "" };
-    R.Current = {};
 };
 
 
@@ -1836,6 +1881,23 @@ R.layOut = function(Opt) {
 
 };
 
+R.updateOrientation = function() {
+    var PreviousOrientation = R.Orientation;
+    if(typeof window.orientation != "undefined") {
+        R.Orientation = (window.orientation == 0 || window.orientation == 180) ? "portrait" : "landscape";
+    } else {
+        var W = window.innerWidth  - (S.SLA == "vertical"   ? O.Scrollbars.Width  : 0);
+        var H = window.innerHeight - (S.SLA == "horizontal" ? O.Scrollbars.Height : 0);
+        R.Orientation = W / H < 1.4 /* Math.floor(Math.sqrt(2) * 10) / 10 */ ? "portrait" : "landscape";
+    }
+    if(R.Orientation != PreviousOrientation) {
+        E.dispatch("bibi:orientationchange", R.Orientation);
+        sML.removeClass(O.HTML, "orientation-" + PreviousOrientation);
+        sML.addClass(   O.HTML, "orientation-" + R.Orientation);
+        E.dispatch("bibi:orientationchanged", R.Orientation);
+    }
+};
+
 R.onscroll = function(Eve) {
     if(!L.Opened) return;
     if(!R.Scrolling) {
@@ -1857,11 +1919,12 @@ R.onresize = function(Eve) {
     if(!R.Resizing) sML.addClass(O.HTML, "resizing");
     R.Resizing = true;
     E.dispatch("bibi:resize", Eve);
-    clearTimeout(R.Timer_onresized);
     clearTimeout(R.Timer_afterresized);
+    clearTimeout(R.Timer_onresized);
     R.Timer_onresized = setTimeout(function() {
         O.Busy = true;
         sML.addClass(O.HTML, "busy");
+        R.updateOrientation();
         R.Timer_afterresized = setTimeout(function() {
             E.dispatch("bibi:resized", Eve);
             O.Busy = false;
@@ -1954,9 +2017,18 @@ R.changeView = function(RVM) {
 };
 
 
+R.getFrameState = function() {
+    return {
+        Coord: sML.Coord.getScrollCoord(R.Main),
+        Size: sML.Coord.getClientSize(R.Main)
+    };
+};
+
+
 R.getCurrentPages = function() {
-    var FrameScrollCoord = sML.Coord.getScrollCoord(R.Main);
-    var FrameClientSize  = sML.Coord.getClientSize(R.Main);
+    var FrameState = R.getFrameState();
+    var FrameScrollCoord = FrameState.Coord;
+    var FrameClientSize  = FrameState.Size;
     FrameScrollCoord = {
         Left:   FrameScrollCoord.X,
         Right:  FrameScrollCoord.X + FrameClientSize.Width,
@@ -1966,7 +2038,7 @@ R.getCurrentPages = function() {
     FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B] / R.Scale;
     FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A] / R.Scale;
     var Pages = [], Ratio = [], Status = [], BiggestRatio = 0, Done = false;
-    R.Pages.forEach(function(Page) {
+    R.Pages.forEach(function(Page, i) {
         if(!Done) {
             var PageCoord = sML.getCoord(Page);
             PageCoord.Before = PageCoord[S.BASE.B];
@@ -2012,19 +2084,34 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
 R.getCurrent = function() {
     R.Current.Pages = R.getCurrentPages();
     R.Current.Page = R.Current.Pages.EndPage;
-    R.Pages.forEach(function(Page) {
-        [Page, Page.Item, Page.Item.ItemBox, Page.Spread, Page.Spread.SpreadBox].forEach(function(Ele) {
-            sML.removeClass(Ele, "current");
-            sML.addClass(Ele, "not-current");
-        });
-    });
-    R.Current.Pages.forEach(function(Page) {
-        [Page, Page.Item, Page.Item.ItemBox, Page.Spread, Page.Spread.SpreadBox].forEach(function(Ele) {
-            sML.removeClass(Ele, "not-current");
-            sML.addClass(Ele, "current");
-        });
-    });
+    R.classifyCurrent();
     return R.Current;
+};
+
+
+R.classifyCurrent = function() {
+    R.Spreads.forEach(function(Spread) {
+        Spread.IsCurrent = false;
+        Spread.Items.forEach(function(Item) {
+            Item.IsCurrent = false;
+            Item.Pages.forEach(function(Page) {
+                Page.IsCurrent = false;
+                R.Current.Pages.forEach(function(CurrentPage) {
+                    if(Page == CurrentPage) {
+                        Page.IsCurrent = true;
+                        Item.IsCurrent = true;
+                        Spread.IsCurrent = true;
+                    }
+                });
+                if(Page.IsCurrent) sML.replaceClass(Page, "not-current", "current");
+                else               sML.replaceClass(Page, "current", "not-current");
+            });
+            if(Item.IsCurrent) [Item, Item.ItemBox].forEach(function(Ele) { sML.replaceClass(Ele, "not-current", "current"); });
+            else               [Item, Item.ItemBox].forEach(function(Ele) { sML.replaceClass(Ele, "current", "not-current"); });
+        });
+        if(Spread.IsCurrent) [Spread, Spread.SpreadBox].forEach(function(Ele) { sML.replaceClass(Ele, "not-current", "current"); });
+        else                 [Spread, Spread.SpreadBox].forEach(function(Ele) { sML.replaceClass(Ele, "current", "not-current"); });
+    });
 };
 
 
@@ -2055,11 +2142,7 @@ R.focusOn = function(Par) {
         }
     }
     if(typeof Par.Destination.TextNodeIndex == "number") R.selectTextLocation(Par.Destination); // Colorize Destination with Selection
-    var ScrollTarget = {
-        Frame: R.Main,
-        X: 0, Y: 0
-    };
-    ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
+    var ScrollTarget = R.focusOn.getScrollTarget(FocusPoint);
     sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
         Duration: ((S.RVM == "paged") ? 0 : Par.Duration),
@@ -2159,6 +2242,12 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
     return NearestPage;
 };
 
+R.focusOn.getScrollTarget = function(FocusPoint) {
+    var ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
+    ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
+    return ScrollTarget;
+};
+
 
 R.selectTextLocation = function(Destination) {
     if(typeof Destination.TextNodeIndex != "number") return;
@@ -2187,7 +2276,7 @@ R.selectTextLocation = function(Destination) {
 
 R.moveBy = function(Par) {
     if(R.Moving || !L.Opened) return false;
-    if(!Par || !Par.Distance) return;
+    if(!Par || !Par.Distance) return false;
     Par.Distance *= 1;
     if(Par.Distance == 0 || isNaN(Par.Distance)) return false;
     Par.Distance = Par.Distance < 0 ? -1 : 1;
@@ -2197,7 +2286,7 @@ R.moveBy = function(Par) {
     else                 CurrentEdge = "StartPage", Side = "after";
     R.getCurrent();
     var CurrentPage = R.Current.Pages[CurrentEdge];
-    var ToScroll = !(
+    var ToFocus = (
         R.Columned ||
         S.BRL == "pre-paginated" ||
         CurrentPage.Item.PrePaginated ||
@@ -2211,7 +2300,7 @@ R.moveBy = function(Par) {
         if(typeof callback == "function") callback(Par);
         E.dispatch("bibi:moved-by", Par);
     };
-    if(ToScroll) {
+    if(!ToFocus) {
         E.dispatch("bibi:commands:scroll-by", Par);
     } else {
         var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
@@ -2346,27 +2435,28 @@ I.initialize = function() {
 };
 
 
+I.note = function(Msg, Time, IsError) {
+    clearTimeout(I.note.Timer);
+    if(!Msg) I.note.Time = 0;
+    else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
+    if(I.Notifier) {
+        I.Notifier.Board.innerHTML = '<p' + (IsError ? ' class="error"' : '') + '>' + Msg + '</p>';
+        sML.addClass(O.HTML, "notifier-shown");
+        I.note.Timer = setTimeout(function() { sML.removeClass(O.HTML, "notifier-shown"); }, I.note.Time);
+    }
+    if(!O.Mobile) {
+        if(O.statusClearer) clearTimeout(O.statusClearer);
+        window.status = 'BiB/i: ' + Msg;
+        O.statusClearer = setTimeout(function() { window.status = ""; }, I.note.Time);
+    }
+};
+
+
 I.createNotifier = function() {
 
     I.Notifier = O.Body.appendChild(sML.create("div", { id: "bibi-notifier" }));
 
     I.Notifier.Board = I.Notifier.appendChild(sML.create("div", { id: "bibi-notifier-board" }));
-
-    I.note = I.Notifier.note = function(Msg, Time, IsError) {
-        clearTimeout(I.note.Timer);
-        if(!Msg) I.note.Time = 0;
-        else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
-        I.Notifier.Board.innerHTML = '<p' + (IsError ? ' class="error"' : '') + '>' + Msg + '</p>';
-//        I.note.Timer = setTimeout(function() {
-            sML.addClass(O.HTML, "notifier-shown");
-            I.note.Timer = setTimeout(function() { sML.removeClass(O.HTML, "notifier-shown"); }, I.note.Time);
-//        }, 0);
-        if(!O.Mobile) {
-            if(O.statusClearer) clearTimeout(O.statusClearer);
-            window.status = 'BiB/i: ' + Msg;
-            O.statusClearer = setTimeout(function() { window.status = ""; }, I.note.Time);
-        }
-    };
 
     E.dispatch("bibi:created-notifier");
 
@@ -2955,8 +3045,8 @@ I.createPoweredBy = function() {
         '<p>',
             '<a href="http://bibi.epub.link" target="_blank" title="BiB/i | Web Site">',
                 '<span>BiB/i</span>',
-                '<img class="bibi-logo-white" alt="" src="../../bib/i/res/images/bibi-logo_white.png" />',
-                '<img class="bibi-logo-black" alt="" src="../../bib/i/res/images/bibi-logo_black.png" />',
+                '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
+                '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
             '</a>',
         '</p>'
     ].join("") }));
@@ -2972,6 +3062,8 @@ I.createPoweredBy = function() {
 
 
 I.createNombre = function() {
+
+    if(!S["use-nombre"]) return;
 
     // Progress > Nombre
     I.Nombre = O.Body.appendChild(sML.create("div", { id: "bibi-nombre",
@@ -2990,6 +3082,7 @@ I.createNombre = function() {
         progress: function(PageInfo) {
             clearTimeout(I.Nombre.Timer_hide);
             if(!PageInfo || !PageInfo.Pages) PageInfo = R.getCurrent();
+            if(!R.Current.Page) return;
             I.Nombre.Current.innerHTML = (function() {
                 var PageNumber = PageInfo.Pages.StartPage.PageIndex + 1;
                 if(PageInfo.Pages.StartPage != PageInfo.Pages.EndPage) PageNumber += '<span class="delimiter">-</span>' + (PageInfo.Pages.EndPage.PageIndex + 1);
@@ -3039,18 +3132,20 @@ I.createSlider = function() {
                     var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }, { width: (1 / R.Pages.length * 100) + "%" }));
                     PageBit.PageNumber = i + 1;
                     PageBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
-                    PageBit.addEventListener(O["pointerover"], function() {
-                        if(I.Slider.Sliding) return;
-                        clearTimeout(I.Slider.Timer_PageBitPointerOut);
-                        I.Nombre.progress({ Pages: { StartPage: R.Pages[i], EndPage: R.Pages[i] } });
-                    });
-                    PageBit.addEventListener(O["pointerout"], function() {
-                        if(I.Slider.Sliding) return;
-                        I.Slider.Timer_PageBitPointerOut = setTimeout(function() {
-                            clearTimeout(I.Nombre.Timer_hide);
-                            I.Nombre.hide();
-                        }, 200);
-                    });
+                    if(I.Nombre) {
+                        PageBit.addEventListener(O["pointerover"], function() {
+                            if(I.Slider.Sliding) return;
+                            clearTimeout(I.Slider.Timer_PageBitPointerOut);
+                            I.Nombre.progress({ Pages: { StartPage: R.Pages[i], EndPage: R.Pages[i] } });
+                        });
+                        PageBit.addEventListener(O["pointerout"], function() {
+                            if(I.Slider.Sliding) return;
+                            I.Slider.Timer_PageBitPointerOut = setTimeout(function() {
+                                clearTimeout(I.Nombre.Timer_hide);
+                                I.Nombre.hide();
+                            }, 200);
+                        });
+                    }
                     PageBit.Labels = { default: { default: "Slider Page" } };
                     I.setFeedback(PageBit);
                 });
@@ -3063,6 +3158,8 @@ I.createSlider = function() {
             },
             slide: function(Eve) {
                 var BibiEvent = O.getBibiEvent(Eve);
+                     if(BibiEvent.Coord.X < I.Slider.offsetLeft)                        BibiEvent.Coord.X = I.Slider.offsetLeft;
+                else if(BibiEvent.Coord.X > I.Slider.offsetLeft + I.Slider.offsetWidth) BibiEvent.Coord.X = I.Slider.offsetLeft + I.Slider.offsetWidth;
                 I.Slider.slide.SlidedX = BibiEvent.Coord.X - I.Slider.slide.StartX;
                 sML.style(I.Slider.Current, { transform: "translateX(" + I.Slider.slide.SlidedX + "px)" });
             },
@@ -3074,7 +3171,7 @@ I.createSlider = function() {
                     I.Slider.slide.StartX = Eve.pageX;
                     I.Slider.slide.SlidedX = 0;
                 } else {
-                    I.Slider.slide.StartX = I.Slider.Current.offsetLeft + I.Slider.Current.offsetWidth / 2;
+                    I.Slider.slide.StartX = I.Slider.offsetLeft + I.Slider.Current.offsetLeft + I.Slider.Current.offsetWidth / 2;
                     I.Slider.slide.SlidedX = Eve.pageX - I.Slider.slide.StartX;
                 }
                 clearTimeout(I.Slider.Timer_endSliding);
@@ -3087,8 +3184,10 @@ I.createSlider = function() {
                 I.Slider.Sliding = false;
                 E.remove("bibi:moved-pointer", I.Slider.slide);
                 I.Slider.removeEventListener(O["pointermove"], I.Slider.onpointermove);
-                var SlidedPages = Math.round(R.Pages.length * I.Slider.slide.SlidedX / I.Slider.offsetWidth) * (S.ARD == "rtl" ? -1 : 1);
-                var TargetPage = R.Pages[R.Current.Pages.StartPage.PageIndex + SlidedPages];
+                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.ceil(R.Pages.length * I.Slider.slide.SlidedX / I.Slider.offsetWidth * (S.ARD == "rtl" ? -1 : 1));
+                     if(TargetPageIndex < 0)                  TargetPageIndex = 0;
+                else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
+                var TargetPage = R.Pages[TargetPageIndex];
                 var callback = function() {
                     sML.style(I.Slider.Current, { transform: "" });
                     I.Slider.Timer_endSliding = setTimeout(function() { sML.removeClass(O.HTML, "slider-sliding"); }, 125);
@@ -3101,26 +3200,31 @@ I.createSlider = function() {
                 }
             },
             activate: function() {
-                I.Slider.Current.addEventListener(O["pointerover"], I.Nombre.show);
-                I.Slider.Current.addEventListener(O["pointerout"],  I.Nombre.hide);
+                if(I.Nombre) {
+                    I.Slider.Current.addEventListener(O["pointerover"], I.Nombre.show);
+                    I.Slider.Current.addEventListener(O["pointerout"],  I.Nombre.hide);
+                }
                 O.HTML.addEventListener(O["pointerdown"], I.Slider.startSliding);
                 R.Items.concat(O).forEach(function(Item) { Item.HTML.addEventListener(O["pointerup"], I.Slider.endSliding); });
                 E.add("bibi:scroll", I.Slider.progress);
                 I.Slider.progress();
             },
             deactivate: function() {
-                I.Slider.Current.removeEventListener(O["pointerover"], I.Nombre.show);
-                I.Slider.Current.removeEventListener(O["pointerout"],  I.Nombre.hide);
+                if(I.Nombre) {
+                    I.Slider.Current.removeEventListener(O["pointerover"], I.Nombre.show);
+                    I.Slider.Current.removeEventListener(O["pointerout"],  I.Nombre.hide);
+                }
                 O.HTML.removeEventListener(O["pointerdown"], I.Slider.startSliding);
                 R.Items.concat(O).forEach(function(Item) { Item.HTML.removeEventListener(O["pointerup"], I.Slider.endSliding); });
                 E.remove("bibi:scroll", I.Slider.progress);
             },
             getTargetPage: function(Eve) {
-                var Ratio = O.getBibiEvent(Eve).Coord.X / I.Slider.offsetWidth;
+                var Ratio = O.getBibiEvent(Eve).Coord.X / window.innerWidth;
                 if(S.PPD == "rtl") Ratio = 1 - Ratio;
                 return R.Pages[Math.ceil(R.Pages.length * Ratio) - 1];
             },
             onpointermove: function(Eve) {
+                if(!I.Nombre) return;
                 clearTimeout(I.Nombre.Timer_hide);
                 var TargetPage = I.Slider.getTargetPage(Eve);
                 I.Nombre.progress({ Pages: { StartPage: TargetPage, EndPage: TargetPage } });
@@ -3181,81 +3285,6 @@ I.createArrows = function() {
     if(!S["use-arrows"]) return;
 
     I.Arrows = {
-        createArrows: function() {
-            if(I.Arrows.Back || I.Arrows.Forward) return;
-            sML.addClass(O.HTML, "arrows-active");
-            I.Arrows.Back = I.Arrows["back"] = R.Main.appendChild(
-                sML.create("div", { id: "bibi-arrow-back",
-                    Distance: -1,
-                    Labels: {
-                        default: { default: 'Back', ja: '戻る' }
-                    },
-                    isAvailable: function() {
-                        return (R.Current.Pages.StartPage != R.Pages[0] || R.Current.Pages.StartPageRatio != 100);
-                    }
-                })
-            );
-            I.Arrows.Forward = I.Arrows["forward"] = R.Main.appendChild(
-                sML.create("div", { id: "bibi-arrow-forward",
-                    Distance: +1,
-                    Labels: {
-                        default: { default: 'Forward', ja: '進む' }
-                    },
-                    isAvailable: function() {
-                        return (R.Current.Pages.EndPage != R.Pages[R.Pages.length - 1] || R.Current.Pages.EndPageRatio != 100);
-                    }
-                })
-            );
-            I.Arrows.Back.Pair = I.Arrows.Forward;
-            I.Arrows.Forward.Pair = I.Arrows.Back;
-            [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-                I.setFeedback(Arrow);
-                Arrow.addTapEventListener("tap", function(Eve) { E.dispatch("bibi:commands:move-by", { Distance: Arrow.Distance }); });
-                Arrow.showHelp = Arrow.hideHelp = function() {};
-            });
-            if(!O.Mobile) {
-                E.add("bibi:moved-pointer", function(Eve) { // try hovering
-                    var BibiEvent = O.getBibiEvent(Eve);
-                    if(I.Arrows.isAvailable(BibiEvent)) {
-                        var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
-                        if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                            E.dispatch("bibi:hover",   Eve, I.Arrows[Dir]);
-                            E.dispatch("bibi:unhover", Eve, I.Arrows[Dir].Pair);
-                            BibiEvent.Target.ownerDocument.documentElement.setAttribute("data-bibi-cursor", Dir);
-                            return;
-                        }
-                    }
-                    E.dispatch("bibi:unhover", Eve, I.Arrows.Back);
-                    E.dispatch("bibi:unhover", Eve, I.Arrows.Forward);
-                    R.Items.concat(O).forEach(function(Item) {
-                        Item.HTML.removeAttribute("data-bibi-cursor");
-                    });
-                });
-                R.Items.concat(O).forEach(function(Item) {
-                    sML.each(Item.Body.querySelectorAll("img"), function(){ this.addEventListener(O["pointerdown"], O.preventDefault); });
-                });
-            }
-            E.add("bibi:tapped", function(Eve) { // try moving
-                var BibiEvent = O.getBibiEvent(Eve);
-                if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
-                if(!I.Arrows.isAvailable(BibiEvent)) return false;
-                var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
-                if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                    //E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
-                    E.dispatch("bibi:tap",    Eve, I.Arrows[Dir]);
-                    E.dispatch("bibi:tapped", Eve, I.Arrows[Dir]);
-                }
-            });
-            E.add("bibi:commands:move-by", function(Par) { // indicate direction
-                if(!Par || !Par.Distance) return false;
-                var Dir = "";
-                switch(Par.Distance) {
-                    case -1 : Dir = "back";    break;
-                    case  1 : Dir = "forward"; break;
-                }
-                if(Dir && I.Arrows[Dir]) return E.dispatch("bibi:tapped", null, I.Arrows[Dir]);
-            });
-        },
         update: function() {
             if(S.RVM == "vertical") {
                 I.Arrows["top"] = I.Arrows.Back, I.Arrows["bottom"] = I.Arrows.Forward;
@@ -3285,19 +3314,18 @@ I.createArrows = function() {
                 else                    sML.replaceClass(Arrow,   "available", "unavailable");
             });
         },
-        isAvailable: function(BibiEvent) {
+        areAvailable: function(BibiEvent) {
+            if(!L.Opened) return false;
             var Target = BibiEvent.Target;
-            if(I.Panel.UIState == "active") return false;
+            if(I.Panel && I.Panel.UIState == "active") return false;
+            if(I.Menu && BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
             if(S.RVM == "vertical") {
                 if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false;
             } else if(S.RVM == "horizontal") {
                 if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
             } else {
-                if(I.Slider) {
-                    if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
-                }
+                if(I.Slider && BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
             }
-            if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
             if(Target.ownerDocument.documentElement == O.HTML) {
                 if(Target == O.HTML || Target == O.Body) return true;
                 if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(Target.id)) return true;
@@ -3309,6 +3337,90 @@ I.createArrows = function() {
         }
     };
 
+    sML.addClass(O.HTML, "arrows-active");
+
+    I.Arrows.Back = I.Arrows["back"] = R.Main.appendChild(
+        sML.create("div", { id: "bibi-arrow-back",
+            Distance: -1,
+            Labels: {
+                default: { default: 'Back', ja: '戻る' }
+            },
+            isAvailable: function() {
+                return (L.Opened && (R.Current.Pages.StartPage != R.Pages[0] || R.Current.Pages.StartPageRatio != 100));
+            }
+        })
+    );
+    I.Arrows.Forward = I.Arrows["forward"] = R.Main.appendChild(
+        sML.create("div", { id: "bibi-arrow-forward",
+            Distance: +1,
+            Labels: {
+                default: { default: 'Forward', ja: '進む' }
+            },
+            isAvailable: function() {
+                return (L.Opened && (R.Current.Pages.EndPage != R.Pages[R.Pages.length - 1] || R.Current.Pages.EndPageRatio != 100));
+            }
+        })
+    );
+    I.Arrows.Back.Pair = I.Arrows.Forward;
+    I.Arrows.Forward.Pair = I.Arrows.Back;
+    [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
+        I.setFeedback(Arrow);
+        Arrow.addTapEventListener("tap", function(Eve) {
+            if(L.Opened) E.dispatch("bibi:commands:move-by", { Distance: Arrow.Distance });
+        });
+        Arrow.showHelp = Arrow.hideHelp = function() {};
+    });
+
+    if(!O.Mobile) {
+        E.add("bibi:moved-pointer", function(Eve) { // try hovering
+            if(!L.Opened) return false;
+            var BibiEvent = O.getBibiEvent(Eve);
+            if(I.Arrows.areAvailable(BibiEvent)) {
+                var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+                if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
+                    E.dispatch("bibi:hover",   Eve, I.Arrows[Dir]);
+                    E.dispatch("bibi:unhover", Eve, I.Arrows[Dir].Pair);
+                    BibiEvent.Target.ownerDocument.documentElement.setAttribute("data-bibi-cursor", Dir);
+                    return;
+                }
+            }
+            E.dispatch("bibi:unhover", Eve, I.Arrows.Back);
+            E.dispatch("bibi:unhover", Eve, I.Arrows.Forward);
+            R.Items.concat(O).forEach(function(Item) {
+                Item.HTML.removeAttribute("data-bibi-cursor");
+            });
+        });
+        E.add("bibi:opened", function() {
+            R.Items.concat(O).forEach(function(Item) {
+                sML.each(Item.Body.querySelectorAll("img"), function(){ this.addEventListener(O["pointerdown"], O.preventDefault); });
+            });
+        });
+    }
+
+    E.add("bibi:tapped", function(Eve) { // try moving
+        if(!L.Opened) return false;
+        var BibiEvent = O.getBibiEvent(Eve);
+        if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
+        if(!I.Arrows.areAvailable(BibiEvent)) return false;
+        var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+        if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
+            //E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
+            E.dispatch("bibi:tap",    Eve, I.Arrows[Dir]);
+            E.dispatch("bibi:tapped", Eve, I.Arrows[Dir]);
+        }
+    });
+
+    E.add("bibi:commands:move-by", function(Par) { // indicate direction
+        if(!L.Opened) return false;
+        if(!Par || !Par.Distance) return false;
+        var Dir = "";
+        switch(Par.Distance) {
+            case -1 : Dir = "back";    break;
+            case  1 : Dir = "forward"; break;
+        }
+        if(Dir && I.Arrows[Dir]) return E.dispatch("bibi:tapped", null, I.Arrows[Dir]);
+    });
+
     E.add("bibi:loaded-item", function(Item) {
         /*
         sML.appendStyleRule('html[data-bibi-cursor="left"]',   "cursor: w-resize;", Item.contentDocument);
@@ -3319,7 +3431,7 @@ I.createArrows = function() {
         sML.appendStyleRule('html[data-bibi-cursor]', "cursor: pointer;", Item.contentDocument);
     });
 
-    E.add("bibi:opened",           function()    { I.Arrows.createArrows(); I.Arrows.update(); I.Arrows.check(); I.Arrows.navigate(); });
+    E.add("bibi:opened",           function()    { I.Arrows.update(); I.Arrows.check(); I.Arrows.navigate(); });
     E.add("bibi:updated-settings", function()    { I.Arrows.update(); });
     E.add("bibi:changed-view",     function()    { I.Arrows.navigate(); });
     E.add("bibi:scrolled",         function()    { I.Arrows.check(); });
@@ -3691,11 +3803,11 @@ I.setFeedback = function(Ele, Opt) {
     if(Ele.Labels) {
         if(Opt.Help) {
             Ele.showHelp = function() {
-                if(Ele.Labels[Ele.UIState]) I.Help.show(Ele.Labels[Ele.UIState][O.Language]);
+                if(I.Help && Ele.Labels[Ele.UIState]) I.Help.show(Ele.Labels[Ele.UIState][O.Language]);
                 return Ele;
             };
             Ele.hideHelp = function() {
-                I.Help.hide();
+                if(I.Help) I.Help.hide();
                 return Ele;
             };
         }
@@ -4045,7 +4157,7 @@ O.log = function(Msg, Tag) {
     }
     switch(Tag) {
         case "-x" : Pre += "[ERROR] ";                  console.info(Pre + Msg); return;
-        case "-0" : Pre += "━━━━━━━━━━━━ "; console.info(Pre + Msg); return;
+        case "-0" : Pre += "━━ "; console.info(Pre + Msg); return;
         case "-1" : Pre += " - ";                       O.log.Depth = 1; break;
         case  "1:": Pre += "┌ ";                       O.log.Depth = 2; break;
         case "-2" : Pre += "│ - ";                     O.log.Depth = 2; break;
@@ -4339,6 +4451,7 @@ O.SettingTypes = {
         "wait",
         "autostart",
         "start-in-new-window",
+        "use-nombre",
         "use-slider",
         "use-arrows",
         "use-keys",

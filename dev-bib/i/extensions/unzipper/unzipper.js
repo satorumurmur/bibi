@@ -47,6 +47,7 @@ Bibi.x({
         I.Veil.Catcher.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); }, 1);
         I.Veil.Catcher.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); sML.removeClass(O.HTML, "dragenter"); }, 1);
         I.Veil.Catcher.addEventListener("drop",      function(Eve) { Eve.preventDefault();
+            L.resetReader();
             L.loadBook(Eve.dataTransfer.files[0]);
         }, 1);
     }
