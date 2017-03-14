@@ -3175,12 +3175,13 @@ I.createSlider = function() {
                 if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
                 Eve.preventDefault();
                 I.Slider.Sliding = true;
+                var EventCoord = O.getBibiEventCoord(Eve);
                 if(Eve.target == I.Slider.Current) {
-                    I.Slider.slide.StartX = Eve.pageX;
+                    I.Slider.slide.StartX = EventCoord.X;
                     I.Slider.slide.SlidedX = 0;
                 } else {
                     I.Slider.slide.StartX = I.Slider.offsetLeft + I.Slider.Current.offsetLeft + I.Slider.Current.offsetWidth / 2;
-                    I.Slider.slide.SlidedX = Eve.pageX - I.Slider.slide.StartX;
+                    I.Slider.slide.SlidedX = EventCoord.X - I.Slider.slide.StartX;
                 }
                 clearTimeout(I.Slider.Timer_endSliding);
                 sML.addClass(O.HTML, "slider-sliding");
@@ -3753,7 +3754,8 @@ I.observeTap = function(Ele, Opt) {
             if(Opt.PreventDefault) Eve.preventDefault();
             if(Opt.StopPropagation) Eve.stopPropagation();
             clearTimeout(Ele.Timer_tap);
-            Ele.TouchStart = { Time: new Date(), Event: Eve };
+            Ele.TouchStart = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
+            Ele.TouchEnd = undefined;
             Ele.Timer_tap = setTimeout(function() {
                 Ele.TouchStart = undefined;
             }, 300);
@@ -3762,8 +3764,8 @@ I.observeTap = function(Ele, Opt) {
             if(Opt.PreventDefault) Eve.preventDefault();
             if(Opt.StopPropagation) Eve.stopPropagation();
             if(!Ele.TouchStart) return;
-            var TouchEndTime = new Date();
-            if((TouchEndTime - Ele.TouchStart.Time) < 300 && Math.abs(Eve.pageX - Ele.TouchStart.Event.pageX) < 5 && Math.abs(Eve.pageY - Ele.TouchStart.Event.pageY) < 5) {
+            Ele.TouchEnd = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
+            if((Ele.TouchEnd.Time - Ele.TouchStart.Time) < 300 && Math.abs(Ele.TouchEnd.Coord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(Ele.TouchEnd.Coord.Y - Ele.TouchStart.Coord.Y) < 5) {
                 E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
                 E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
             }
@@ -4356,8 +4358,8 @@ O.preventDefault = function(Eve) { Eve.preventDefault(); return false; };
 O.getBibiEventCoord = function(Eve) {
     var Coord = { X:0, Y:0 };
     if(/^touch/.test(Eve.type)) {
-        Coord.X = Eve.targetTouches[0].pageX;
-        Coord.Y = Eve.targetTouches[0].pageY;
+        Coord.X = Eve.changedTouches[0].pageX;
+        Coord.Y = Eve.changedTouches[0].pageY;
     } else {
         Coord.X = Eve.pageX;
         Coord.Y = Eve.pageY;
