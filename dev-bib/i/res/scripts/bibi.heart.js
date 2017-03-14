@@ -1810,7 +1810,7 @@ R.layOut = function(Opt) {
 
     O.log('Laying out...', "*:");
     O.stamp("Lay Out Start");
-    E.dispatch("bibi:is-going-to:lay-out");
+    E.dispatch("bibi:is-going-to:lay-out", Opt);
 
     window.removeEventListener(O["resize"], R.onresize);
     R.Main.removeEventListener("scroll", R.onscroll);
