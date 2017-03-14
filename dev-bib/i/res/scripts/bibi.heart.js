@@ -1905,7 +1905,7 @@ R.onscroll = function(Eve) {
         R.Scrolling = true;
         Eve.BibiScrollingBegun = true;
     }
-    E.dispatch("bibi:scroll", Eve);
+    E.dispatch("bibi:scrolls", Eve);
     clearTimeout(R.Timer_onscrolled);
     R.Timer_onscrolled = setTimeout(function() {
         R.Scrolling = false;
@@ -1918,7 +1918,7 @@ R.onresize = function(Eve) {
     if(!L.Opened) return;
     if(!R.Resizing) sML.addClass(O.HTML, "resizing");
     R.Resizing = true;
-    E.dispatch("bibi:resize", Eve);
+    E.dispatch("bibi:resizes", Eve);
     clearTimeout(R.Timer_afterresized);
     clearTimeout(R.Timer_onresized);
     R.Timer_onresized = setTimeout(function() {
@@ -1936,7 +1936,7 @@ R.onresize = function(Eve) {
 };
 
 R.ontap = function(Eve) {
-    E.dispatch("bibi:tap", Eve);
+    E.dispatch("bibi:taps",   Eve);
     E.dispatch("bibi:tapped", Eve);
 }
 
@@ -2608,7 +2608,7 @@ I.createMenu = function() {
     E.add("bibi:commands:open-menu",   function(Opt) { I.Menu.open(Opt); });
     E.add("bibi:commands:close-menu",  function(Opt) { I.Menu.close(Opt); });
     E.add("bibi:commands:toggle-menu", function(Opt) { I.Menu.toggle(Opt); });
-    E.add("bibi:scroll", function() {
+    E.add("bibi:scrolls", function() {
         clearTimeout(I.Menu.Timer_cool);
         if(!I.Menu.Hot) sML.addClass(I.Menu, "hot");
         I.Menu.Hot = true;
@@ -2622,10 +2622,10 @@ I.createMenu = function() {
             var BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
-                E.dispatch("bibi:hover", Eve, I.Menu);
+                E.dispatch("bibi:hovers", Eve, I.Menu);
             } else if(I.Menu.Hover) {
                 I.Menu.Timer_close = setTimeout(function() {
-                    E.dispatch("bibi:unhover", Eve, I.Menu);
+                    E.dispatch("bibi:unhovers", Eve, I.Menu);
                 }, 123);
             }
         });
@@ -3099,8 +3099,8 @@ I.createNombre = function() {
     I.Nombre.Delimiter = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-delimiter" }));
     I.Nombre.Total     = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-total"     }));
     I.Nombre.Percent   = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-percent"   }));
-    E.add("bibi:scroll", I.Nombre.progress);
-    E.add("bibi:resized",  I.Nombre.progress);
+    E.add("bibi:scrolls", I.Nombre.progress);
+    E.add("bibi:resized", I.Nombre.progress);
     E.add("bibi:opened", function() { setTimeout(I.Nombre.progress, 321); });
     if(S["use-slider"]) {
         sML.appendStyleRule("html.view-paged div#bibi-nombre",      "bottom: " + (O.Scrollbars.Height + 2) + "px;");
@@ -3206,7 +3206,7 @@ I.createSlider = function() {
                 }
                 O.HTML.addEventListener(O["pointerdown"], I.Slider.startSliding);
                 R.Items.concat(O).forEach(function(Item) { Item.HTML.addEventListener(O["pointerup"], I.Slider.endSliding); });
-                E.add("bibi:scroll", I.Slider.progress);
+                E.add("bibi:scrolls", I.Slider.progress);
                 I.Slider.progress();
             },
             deactivate: function() {
@@ -3216,7 +3216,7 @@ I.createSlider = function() {
                 }
                 O.HTML.removeEventListener(O["pointerdown"], I.Slider.startSliding);
                 R.Items.concat(O).forEach(function(Item) { Item.HTML.removeEventListener(O["pointerup"], I.Slider.endSliding); });
-                E.remove("bibi:scroll", I.Slider.progress);
+                E.remove("bibi:scrolls", I.Slider.progress);
             },
             getTargetPage: function(Eve) {
                 var Ratio = O.getBibiEvent(Eve).Coord.X / window.innerWidth;
@@ -3378,14 +3378,14 @@ I.createArrows = function() {
             if(I.Arrows.areAvailable(BibiEvent)) {
                 var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
                 if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
-                    E.dispatch("bibi:hover",   Eve, I.Arrows[Dir]);
-                    E.dispatch("bibi:unhover", Eve, I.Arrows[Dir].Pair);
+                    E.dispatch("bibi:hovers",   Eve, I.Arrows[Dir]);
+                    E.dispatch("bibi:unhovers", Eve, I.Arrows[Dir].Pair);
                     BibiEvent.Target.ownerDocument.documentElement.setAttribute("data-bibi-cursor", Dir);
                     return;
                 }
             }
-            E.dispatch("bibi:unhover", Eve, I.Arrows.Back);
-            E.dispatch("bibi:unhover", Eve, I.Arrows.Forward);
+            E.dispatch("bibi:unhovers", Eve, I.Arrows.Back);
+            E.dispatch("bibi:unhovers", Eve, I.Arrows.Forward);
             R.Items.concat(O).forEach(function(Item) {
                 Item.HTML.removeAttribute("data-bibi-cursor");
             });
@@ -3405,7 +3405,7 @@ I.createArrows = function() {
         var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
         if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
             //E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
-            E.dispatch("bibi:tap",    Eve, I.Arrows[Dir]);
+            E.dispatch("bibi:taps",   Eve, I.Arrows[Dir]);
             E.dispatch("bibi:tapped", Eve, I.Arrows[Dir]);
         }
     });
@@ -3496,15 +3496,15 @@ I.createKeyListener = function() {
         },
         onkeydown:  function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
-            E.dispatch("bibi:down-key", Eve);
+            E.dispatch("bibi:downs-key", Eve);
         },
         onkeyup:    function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
-            E.dispatch("bibi:up-key", Eve);
+            E.dispatch("bibi:ups-key", Eve);
         },
         onkeypress:  function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
-            E.dispatch("bibi:press-key", Eve);
+            E.dispatch("bibi:presses-key", Eve);
         },
         observe: function() {
             [O].concat(R.Items).forEach(function(Item) {
@@ -3535,7 +3535,7 @@ I.createKeyListener = function() {
 
     E.add("bibi:updated-settings", function(   ) { I.KeyListener.updateMovingParameters(); });
     E.add("bibi:opened",           function(   ) { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(); });
-    E.add("bibi:up-key",           function(Eve) { I.KeyListener.tryMoving(Eve); });
+    E.add("bibi:ups-key",          function(Eve) { I.KeyListener.tryMoving(Eve); });
 
     E.dispatch("bibi:created-keylistener");
 
@@ -3704,14 +3704,14 @@ I.distillLabels.distillLanguage = function(Label) {
 
 
 I.observeHover = function(Ele) {
-    Ele.addEventListener(O["pointerover"], function(Eve) { E.dispatch("bibi:hover",   Eve, Ele) });
-    Ele.addEventListener(O["pointerout"],  function(Eve) { E.dispatch("bibi:unhover", Eve, Ele) });
+    Ele.addEventListener(O["pointerover"], function(Eve) { E.dispatch("bibi:hovers",   Eve, Ele) });
+    Ele.addEventListener(O["pointerout"],  function(Eve) { E.dispatch("bibi:unhovers", Eve, Ele) });
     return Ele;
 };
 
 
 I.setHoverActions = function(Ele) {
-    E.add("bibi:hover", function(Eve) {
+    E.add("bibi:hovers", function(Eve) {
         if(Ele.Hover) return Ele;
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         Ele.Hover = true;
@@ -3719,7 +3719,7 @@ I.setHoverActions = function(Ele) {
         if(Ele.showHelp) Ele.showHelp();
         return Ele;
     }, Ele);
-    E.add("bibi:unhover", function(Eve) {
+    E.add("bibi:unhovers", function(Eve) {
         if(!Ele.Hover) return Ele;
         Ele.Hover = false;
         sML.removeClass(Ele, "hover");
@@ -3735,6 +3735,7 @@ I.observeTap = function(Ele, Opt) {
     if(!Opt) Opt = {};
     if(!Ele.addTapEventListener) {
         Ele.addTapEventListener = function(EN, Fun) {
+            if(EN == "tap") EN = "taps";
             E.add("bibi:" + EN, function(Eve) {
                 return Fun.call(Ele, Eve);
             }, Ele);
@@ -3755,7 +3756,7 @@ I.observeTap = function(Ele, Opt) {
             if(!Ele.TouchStart) return;
             var TouchEndTime = new Date();
             if((TouchEndTime - Ele.TouchStart.Time) < 300 && Math.abs(Eve.pageX - Ele.TouchStart.Event.pageX) < 5 && Math.abs(Eve.pageY - Ele.TouchStart.Event.pageY) < 5) {
-                E.dispatch("bibi:tap",    Ele.TouchStart.Event, Ele);
+                E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
                 E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
             }
         });
