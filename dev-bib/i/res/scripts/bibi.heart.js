@@ -2116,7 +2116,9 @@ R.classifyCurrent = function() {
 
 
 R.focusOn = function(Par) {
-    if(!Par || R.Moving) return false;
+    if(R.Moving) return false;
+    if(!Par) return false;
+    if(typeof Par == "number") Par = { Destination: Par };
     Par.Destination = R.focusOn.hatchDestination(Par.Destination);
     if(!Par.Destination) return false;
     E.dispatch("bibi:is-going-to:focus-on", Par);
@@ -2276,7 +2278,9 @@ R.selectTextLocation = function(Destination) {
 
 R.moveBy = function(Par) {
     if(R.Moving || !L.Opened) return false;
-    if(!Par || !Par.Distance) return false;
+    if(!Par) return false;
+    if(typeof Par == "number") Par = { Distance: Par };
+    if(!Par.Distance || typeof Par.Distance != "number") return false;
     Par.Distance *= 1;
     if(Par.Distance == 0 || isNaN(Par.Distance)) return false;
     Par.Distance = Par.Distance < 0 ? -1 : 1;
@@ -2336,10 +2340,13 @@ R.moveBy = function(Par) {
         Par.Destination = { Page: DestinationPage, Side: Side };
         E.dispatch("bibi:commands:focus-on", Par);
     }
+    return true;
 };
 
 R.scrollBy = function(Par) {
-    if(!Par || !Par.Distance) return;
+    if(!Par) return false;
+    if(typeof Par == "number") Par = { Distance: Par };
+    if(!Par.Distance || typeof Par.Distance != "number") return false;
     E.dispatch("bibi:is-going-to:scroll-by", Par);
     R.Moving = true;
     var ScrollTarget = {
@@ -2362,6 +2369,7 @@ R.scrollBy = function(Par) {
             E.dispatch("bibi:scrolled-by", Par);
         }
     });
+    return true;
 };
 
 R.getBibiToDestination = function(BibitoString) {
