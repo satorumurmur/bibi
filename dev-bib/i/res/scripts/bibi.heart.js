@@ -4346,6 +4346,14 @@ O.getPath = function() {
     return Path;
 };
 
+O.isAnchorContent = function(Ele) {
+    while(Ele) {
+        if(/^a$/i.test(Ele.tagName)) return true;
+        Ele = Ele.parentElement;
+    }
+    return false;
+};
+
 O.stamp = function(What, TimeCard) {
     if(!TimeCard) TimeCard = O.TimeCard;
     var HMS = O.TimeCard.getHMS(O.TimeCard.getElapsed());
