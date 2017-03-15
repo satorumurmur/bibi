@@ -279,7 +279,7 @@ B.initialize.promise = function(Book) {
             }
             B.Online = true;
             B["name"] = Book;
-            B.Path = P["bookshelf"] + B["name"];
+            B.Path = P["bookshelf"] + "/" + B["name"];
             if(/\.epub$/i.test(B["name"])) { // ends with ".epub" -> Zipped
                 B.initialize.asZipped();
             } else { // Unzipped ?
@@ -3891,6 +3891,7 @@ P.initialize = function() {
     if(!/^([\w\d]+:)?\/\//.test(P["bookshelf"])) {
         if(/^\//.test(P["bookshelf"])) P["bookshelf"] = location.origin + P["bookshelf"];
         else                           P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
+        P["bookshelf"] = P["bookshelf"].replace(/\/$/, "");
     }
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
     if(!P["trustworthy-origins"].includes(location.origin)) P["trustworthy-origins"].unshift(location.origin);
