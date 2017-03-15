@@ -4353,7 +4353,7 @@ O.stamp = function(What, TimeCard) {
 };
 
 O.stopPropagation = function(Eve) { Eve.stopPropagation(); return false; };
-O.preventDefault = function(Eve) { Eve.preventDefault(); return false; };
+O.preventDefault  = function(Eve) { Eve.preventDefault();  return false; };
 
 O.getBibiEventCoord = function(Eve) {
     var Coord = { X:0, Y:0 };
