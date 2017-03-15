@@ -2648,7 +2648,7 @@ I.createMenu = function() {
         }
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.className + BibiEvent.Target.id)) return false;
-            if(/^a$/i.test(BibiEvent.Target.tagName)) return false;
+            if(O.isAnchorContent(BibiEvent.Target)) return false;
         }
         switch(S.ARD) {
             case "ttb": return (BibiEvent.Division.Y == "middle") ? E.dispatch("bibi:commands:toggle-menu") : false;
@@ -3270,7 +3270,7 @@ I.createSlider = function() {
         var BibiEvent = O.getBibiEvent(Eve);
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
-            if(/^a$/i.test(BibiEvent.Target.tagName)) return false;
+            if(O.isAnchorContent(BibiEvent.Target)) return false;
             if(S.RVM == "horizontal" && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
         }
         switch(S.ARD) {
@@ -3325,7 +3325,6 @@ I.createArrows = function() {
         },
         areAvailable: function(BibiEvent) {
             if(!L.Opened) return false;
-            var Target = BibiEvent.Target;
             if(I.Panel && I.Panel.UIState == "active") return false;
             if(I.Menu && BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
             if(S.RVM == "vertical") {
@@ -3335,12 +3334,12 @@ I.createArrows = function() {
             } else {
                 if(I.Slider && BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
             }
-            if(Target.ownerDocument.documentElement == O.HTML) {
-                if(Target == O.HTML || Target == O.Body) return true;
-                if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(Target.id)) return true;
-                if(/^(spread|item)/.test(Target.className)) return true;
+            if(BibiEvent.Target.ownerDocument.documentElement == O.HTML) {
+                if(BibiEvent.Target == O.HTML || BibiEvent.Target == O.Body) return true;
+                if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.Target.id)) return true;
+                if(/^(spread|item)/.test(BibiEvent.Target.className)) return true;
             } else {
-                if(!/^a$/i.test(Target.tagName)) return true;
+                if(O.isAnchorContent(BibiEvent.Target)) return false;
             }
             return false;
         }
