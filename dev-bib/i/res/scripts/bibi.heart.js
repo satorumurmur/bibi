@@ -1891,10 +1891,10 @@ R.updateOrientation = function() {
         R.Orientation = W / H < 1.4 /* Math.floor(Math.sqrt(2) * 10) / 10 */ ? "portrait" : "landscape";
     }
     if(R.Orientation != PreviousOrientation) {
-        E.dispatch("bibi:orientationchange", R.Orientation);
+        E.dispatch("bibi:changes-orientation", R.Orientation);
         sML.removeClass(O.HTML, "orientation-" + PreviousOrientation);
         sML.addClass(   O.HTML, "orientation-" + R.Orientation);
-        E.dispatch("bibi:orientationchanged", R.Orientation);
+        E.dispatch("bibi:changed-orientation", R.Orientation);
     }
 };
 
