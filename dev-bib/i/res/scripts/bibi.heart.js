@@ -33,7 +33,7 @@ Bibi.welcome = function() {
     E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
-    O.BookURL = location.origin + location.pathname + location.search;
+    O.BookURL = O.Origin + location.pathname + location.search;
 
     O.Language = (function() {
         if(typeof navigator.language != "string") return "en";
@@ -81,7 +81,7 @@ Bibi.welcome = function() {
     // Window Embedding
     if(window.parent == window) {
         O.WindowEmbedded = 0; // false
-        O.WindowEmbeddedDetail = "Direct Opened: " + location.origin + location.pathname + location.search;
+        O.WindowEmbeddedDetail = "Direct Opened: " + O.Origin + location.pathname + location.search;
         O.HTML.className = O.HTML.className + " window-not-embedded";
     } else {
         O.WindowEmbedded = -1; // true
@@ -89,7 +89,7 @@ Bibi.welcome = function() {
         try {
             if(location.host == parent.location.host || parent.location.href) {
                 O.WindowEmbedded = 1; // true
-                O.WindowEmbeddedDetail = "Embedded in: " + parent.location.origin + parent.location.pathname + parent.location.search;
+                O.WindowEmbeddedDetail = "Embedded in: " + O.getOrigin(parent) + parent.location.pathname + parent.location.search;
                 O.ParentHolder = window.parent.document.getElementById(U["parent-holder-id"]);
             }
         } catch(e) {}
@@ -3888,12 +3888,12 @@ P.initialize = function() {
     });
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
     if(!/^([\w\d]+:)?\/\//.test(P["bookshelf"])) {
-        if(/^\//.test(P["bookshelf"])) P["bookshelf"] = location.origin + P["bookshelf"];
+        if(/^\//.test(P["bookshelf"])) P["bookshelf"] = O.Origin + P["bookshelf"];
         else                           P["bookshelf"] = O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, "") + P["bookshelf"]);
         P["bookshelf"] = P["bookshelf"].replace(/\/$/, "");
     }
     if(!(P["trustworthy-origins"] instanceof Array)) P["trustworthy-origins"] = [];
-    if(!P["trustworthy-origins"].includes(location.origin)) P["trustworthy-origins"].unshift(location.origin);
+    if(!P["trustworthy-origins"].includes(O.Origin)) P["trustworthy-origins"].unshift(O.Origin);
     var ExtensionsToBeLoaded = [];
     P["extensions"].forEach(function(FileInfo) {
         if(
@@ -3992,7 +3992,7 @@ U.initialize = function() { // formerly O.readExtras
 
     if(H["pipi"]) {
         applyToU(H["pipi"]);
-        if(U["parent-origin"] && U["parent-origin"] != location.origin) P["trustworthy-origins"].push(U["parent-origin"]);
+        if(U["parent-origin"] && U["parent-origin"] != O.Origin) P["trustworthy-origins"].push(U["parent-origin"]);
         if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ""));　
     }
 
@@ -4432,6 +4432,12 @@ O.TimeCard = {
         }).join(":");
     }
 };
+
+O.getOrigin = function(Win) {
+    var Loc = (Win ? Win : window).location;
+    return Loc.origin || Loc.protocol + "//" + (Loc.host || Loc.hostname + (Loc.port ? ":" + Loc.port : ""))
+};
+O.Origin = O.getOrigin();
 
 O.Path = (function() {
     if(document.currentScript) return document.currentScript.src;
