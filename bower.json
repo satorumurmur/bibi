@@ -31,6 +31,6 @@
     "native-promise-only": "^0.8.0-a",
     "hammerjs": "^2.0.8",
     "easing": "*",
-    "sML": "sml#^0.999.40"
+    "sML": "sml#^0.999.44"
   }
 }

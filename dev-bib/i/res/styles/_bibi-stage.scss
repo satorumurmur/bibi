@@ -11,7 +11,7 @@ html {
 	width: 100%;
 	height: 100%;
 	font-family: sans-serif;
-	&.OSX     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
+	&.macOS   { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
 	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
@@ -416,21 +416,8 @@ div#bibi-sub {
 }
 
 
-// - Factory
-// --------------------------------------------------------------------------------
-
-div#checker {
-	position: absolute;
-	left: -100px;
-	top: -100px;
-	width: 100px;
-	height: 100px;
-	@include writing-mode(vertical-rl);
-}
-
-
 // ================================================================================
-// + Dev.
+// + Factory / Dev.
 // --------------------------------------------------------------------------------
 
 div#__bs_notify__ {
