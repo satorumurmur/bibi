@@ -61,7 +61,7 @@ B.loadEPUB = function() {
             B.loadEPUB.unzip(XHR.responseText);
             B.initialize.resolve();
         }).catch(function() {
-            B.checkContainerXML().then(function() {
+            B.checkContainer().then(function() {
                 B.initialize.resolve();
             }).catch(function() {
                 B.initialize.reject('EPUB Not Found.');
