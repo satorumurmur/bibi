@@ -1113,11 +1113,13 @@ L.postprocessItem.coordinateLinkages.setJump = function(A) {
         }
         return false;
     });
+    /*
     A.addEventListener(O["pointerdown"], function(Eve) {
         Eve.preventDefault(); 
         Eve.stopPropagation();
         return false;
     });
+    */
 }
 
 
