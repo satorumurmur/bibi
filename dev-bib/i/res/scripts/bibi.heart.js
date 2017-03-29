@@ -3562,6 +3562,7 @@ I.createSwiper = function() {
             return this.State;
         },
         activateElement: function(Ele) {
+            Ele.addEventListener("touchstart", I.Swiper.ontouchstart);
             sML.observeTouch(Ele).addTouchEventListener("swipe", I.Swiper.onswiped);
             if(!O.Mobile) {
                 Ele.addEventListener('wheel', R.onwheel);
@@ -3569,6 +3570,7 @@ I.createSwiper = function() {
             }
         },
         deactivateElement: function(Ele) {
+            Ele.removeEventListener("touchstart", I.Swiper.ontouchstart);
             sML.unobserveTouch(Ele);
             if(!O.Mobile) {
                 Ele.removeEventListener('wheel', R.onwheel);
@@ -3590,6 +3592,20 @@ I.createSwiper = function() {
             if(!I.Swiper.onwheeled.hot) {
                 I.Swiper.onwheeled.hot = true;
                 E.dispatch("bibi:commands:move-by", { Distance: Eve.BibiSwiperWheel.Distance });
+            }
+        },
+        ontouchstart: function(Eve) {
+            if(Eve.touches.length < 2) return;
+            I.Swiper.close();
+            R.Main.addEventListener("touchend", I.Swiper.ontouchend);
+            R.Items.forEach(function(Item) { Item.HTML.addEventListener("touchend", I.Swiper.ontouchend); });
+        },
+        ontouchend: function(Eve) {
+            // if(Eve.changedTouches.length < 2) return; // ピンチ中に指を減らしたりすると取りこぼすので判定しない
+            if(document.body.clientWidth / window.innerWidth <= 1) {
+                R.Main.removeEventListener("touchend", I.Swiper.ontouchend);
+                R.Items.forEach(function(Item) { Item.HTML.removeEventListener("touchend", I.Swiper.ontouchend); });
+                I.Swiper.open();
             }
         }/*,
         addButton: function() {
@@ -3618,13 +3634,13 @@ I.createSwiper = function() {
         onopened: function() {
             sML.addClass(O.HTML, "swipe-active");
             if(!O.Mobile) E.add("bibi:wheeled", I.Swiper.onwheeled);
-            this.activateElement(R.Main);
+            I.Swiper.activateElement(R.Main);
             R.Items.forEach(function(Item) { I.Swiper.activateElement(Item.HTML); });
         },
         onclosed: function() {
             sML.removeClass(O.HTML, "swipe-active");
             if(!O.Mobile) E.remove("bibi:wheeled", I.Swiper.onwheeled);
-            this.deactivateElement(R.Main);
+            I.Swiper.deactivateElement(R.Main);
             R.Items.forEach(function(Item) { I.Swiper.deactivateElement(Item.HTML); });
         }
     });
