@@ -27,7 +27,14 @@ var gulp = require('gulp'), S = {}, $ = {
     runSequence:     require("run-sequence")
 };
 
-S.Extensions = ["analytics", "epubcfi", "jatex", "overreflow", "share", "unzipper"];
+S.Extensions = [
+    "analytics",
+    "epubcfi",
+    "jatex",
+    "overreflow",
+    "share",
+    "unzipper"
+];
 
 S.concat = function() {
     var list = arguments[0];
@@ -86,12 +93,6 @@ gulp.task('clean: All', function() {
 var ToBeCleaned = {
     Scripts: [
         'bib/i/res/scripts',
-        'bib/i/extensions/analytics',
-        'bib/i/extensions/epubcfi',
-        'bib/i/extensions/jatex',
-        'bib/i/extensions/overreflow',
-        'bib/i/extensions/share',
-        'bib/i/extensions/unzipper',
         'bib/i.js'
     ],
     Styles: [
@@ -103,6 +104,10 @@ var ToBeCleaned = {
         'bib/README.md'
     ]
 };
+
+S.Extensions.forEach(function(Extension) {
+    ToBeCleaned.Scripts.push('bib/i/extensions/' + Extension);
+});
 
 ToBeCleaned.All = S.concat(ToBeCleaned.Scripts, ToBeCleaned.Styles, ToBeCleaned.Metafiles);
 
@@ -273,7 +278,9 @@ S.makeStyle = function(Param) {
                 browsers: 'last 2 versions',
                 warnForDuplicates: false
             }),
-            $.cssnano()
+            $.cssnano({
+                zindex: false
+            })
         ]))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
@@ -306,6 +313,35 @@ var Tasks_makeStyles = [
     'make: bibi.css',
     'make: i.css'
 ];
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Make Extension Styles
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+S.makeExtensionStyle = function(ExtensionName) {
+    return S.makeStyle({
+        header: [
+            'dev-bib/i/extensions/' + ExtensionName + '/-header.scss'
+        ],
+        src: [
+            'dev-bib/i/extensions/' + ExtensionName + '/' + ExtensionName + '.scss'
+        ],
+        dist: 'bib/i/extensions/' + ExtensionName + '/' + ExtensionName + '.css'
+    });
+};
+
+var Tasks_makeExtensionStyles = [];
+
+S.Extensions.forEach(function(ExtensionName) {
+    gulp.task('make: extension: ' + ExtensionName + '.css', function() {
+        return S.makeExtensionStyle(ExtensionName);
+    });
+    Tasks_makeExtensionStyles.push('make: extension: ' + ExtensionName + '.css');
+});
 
 
 //==============================================================================================================================================
@@ -344,11 +380,10 @@ gulp.task('serve', function() {
 gulp.task('watch', function() {
     gulp.watch(['dev-bib/i/res/scripts/**/*.js'], ['make: bibi.js']);
     gulp.watch(['dev-bib/i.js'], ['make: i.js']);
-    S.Extensions.forEach(function(ExtensionName) {
-        gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.js'], ['make: extension: ' + ExtensionName + '.js']);
-    });
     gulp.watch(['dev-bib/i/res/styles/*.scss',], ['make: bibi.css']);
     gulp.watch(['dev-bib/i.scss'], ['make: i.css']);
+    S.Extensions.forEach(function(ExtensionName) { gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.js'  ], ['make: extension: ' + ExtensionName + '.js' ]); });
+    S.Extensions.forEach(function(ExtensionName) { gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.scss'], ['make: extension: ' + ExtensionName + '.css']); });
     gulp.watch(['package.json'], ['update: JSONs']);
     gulp.watch(['README.md'], ['update: README.md']);
     gulp.watch(['LICENSE'], ['update: LICENSE']);
@@ -369,7 +404,7 @@ gulp.task('build', function() {
         ['clean: All'],
         Tasks_updateMetafiles,
         ['update: bower_components.js'],
-        S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles)
+        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles)
     );
 });
 
@@ -377,7 +412,7 @@ gulp.task('update', function() {
     return $.runSequence(
         Tasks_updateMetafiles,
         ['update: bower_components.js'],
-        S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles)
+        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles)
     );
 });
 
@@ -386,7 +421,7 @@ gulp.task('default', function() {
         ['clean: All'],
         Tasks_updateMetafiles,
         ['update: bower_components.js'],
-        S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles),
+        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles),
         ['serve', 'watch']
     );
 });
@@ -435,7 +470,7 @@ gulp.task('distribute', function() {
         ['clean: All'],
         Tasks_updateMetafiles,
         ['update: bower_components.js'],
-        S.concat(Tasks_makeScripts, Tasks_makeExtensionScripts, Tasks_makeStyles),
+        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles),
         'clean: Distribution',
         'copy: Distribution',
         'archive: Distribution'
