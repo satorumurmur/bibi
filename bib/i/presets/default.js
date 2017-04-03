@@ -23,7 +23,7 @@ Bibi.Preset = {
 "use-swipe"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-cookie"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"cookie-expires"             : 60 * 60 * 24 * 3, // seconds (60 * 60 * 24 * 3 = 3days)
+"cookie-expires"             : 1000 * 60 * 60 * 24 * 3, // milli-seconds (ex. 1000ms * 60s * 60m * 24h * 3d = 3days)
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 

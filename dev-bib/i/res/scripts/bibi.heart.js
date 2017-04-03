@@ -4483,7 +4483,7 @@ O.Cookie = {
         }
         if(!Opt) Opt = {};
         Opt.Path = location.pathname.replace(/[^\/]+$/, "");
-        if(!Opt.Expires) Opt.Expires = 1000 * S["cookie-expires"];
+        if(!Opt.Expires) Opt.Expires = S["cookie-expires"];
         sML.Cookies.write("bibi", JSON.stringify(Cookie), Opt);
     }
 };
