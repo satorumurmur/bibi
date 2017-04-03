@@ -3,7 +3,7 @@
  * # BiB/i Extension: Unzipper (core)
  *
  * - "EPUB-Zip Utility for BiB/i (core)"
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
+ * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  */
 
