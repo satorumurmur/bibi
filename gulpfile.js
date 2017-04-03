@@ -30,6 +30,7 @@ var gulp = require('gulp'), S = {}, $ = {
 S.Extensions = [
     "analytics",
     "epubcfi",
+    "fontsize",
     "jatex",
     "overreflow",
     "share",
