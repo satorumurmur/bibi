@@ -1,0 +1,57 @@
+@charset "utf-8";
+
+@import "../../res/styles/_common-lib";
+
+$scaling: 1.44;
+
+.bibi-button {
+	.bibi-button-iconbox {
+		.bibi-icon-fontsize {
+			&:before {
+				@include font-icon("Material Icons");
+				display: block;
+				position: absolute;
+				@include trbl(-100%);
+				margin: auto;
+				width: 1em;
+				height: 1em;
+				line-height: 1.1;
+			}
+		}
+		.bibi-icon-fontsize-change {
+			&:before {
+				content: "format_size";
+				font-size: 24px;
+			}
+		}
+		.bibi-icon-fontsize-exlarge,
+		.bibi-icon-fontsize-large,
+		.bibi-icon-fontsize-medium,
+		.bibi-icon-fontsize-small,
+		.bibi-icon-fontsize-exsmall {
+			&:before {
+				content: "title";
+				font-size: 13px;
+			}
+		}
+		.bibi-icon-fontsize-exlarge { &:before { transform: rotate(  0deg) scale(1 * $scaling * $scaling); } }
+		.bibi-icon-fontsize-large   { &:before { transform: rotate(  0deg) scale(1 * $scaling); } }
+		.bibi-icon-fontsize-medium  { &:before { transform: rotate(  0deg) scale(1); } }
+		.bibi-icon-fontsize-small   { &:before { transform: rotate(  0deg) scale(1 / $scaling); } }
+		.bibi-icon-fontsize-exsmall { &:before { transform: rotate(  0deg) scale(1 / $scaling / $scaling); } }
+	}
+	.bibi-button-label {
+		span.non-visual-in-label {
+			@extend .non-visual;
+		}
+	}
+}
+.bibi-button.active {
+	.bibi-button-iconbox {
+		.bibi-icon-fontsize-exlarge { &:before { transform: rotate(360deg) scale(1 * $scaling * $scaling); } }
+		.bibi-icon-fontsize-large   { &:before { transform: rotate(360deg) scale(1 * $scaling); } }
+		.bibi-icon-fontsize-medium  { &:before { transform: rotate(360deg) scale(1); } }
+		.bibi-icon-fontsize-small   { &:before { transform: rotate(360deg) scale(1 / $scaling); } }
+		.bibi-icon-fontsize-exsmall { &:before { transform: rotate(360deg) scale(1 / $scaling / $scaling); } }
+	}
+}
