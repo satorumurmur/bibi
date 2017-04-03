@@ -66,7 +66,7 @@ Bibi.x({
                         Labels: { default: { default: 'Twitter' } },
                         Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
                         href: ShareSubPanel.getShareURI("P", "T"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "T"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("P", "T"); },
                         on: { click: function() { return false; } }
                     },
                     {
@@ -74,7 +74,7 @@ Bibi.x({
                         Labels: { default: { default: 'Facebook' } },
                         Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
                         href: ShareSubPanel.getShareURI("P", "F"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "F"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("P", "F"); },
                         on: { click: function() { return false; } }
                     },
                     {
@@ -82,7 +82,7 @@ Bibi.x({
                         Labels: { default: { default: 'Google+' } },
                         Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
                         href: ShareSubPanel.getShareURI("P", "G"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("P", "G"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("P", "G"); },
                         on: { click: function() { return false; } }
                     }
                 ]
@@ -100,7 +100,7 @@ Bibi.x({
                         Labels: { default: { default: 'Twitter' } },
                         Icon: '<span class="bibi-icon bibi-icon-Twitter"></span>',
                         href: ShareSubPanel.getShareURI("B", "T"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "T"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("B", "T"); },
                         on: { click: function() { return false; } }
                     },
                     {
@@ -108,7 +108,7 @@ Bibi.x({
                         Labels: { default: { default: 'Facebook' } },
                         Icon: '<span class="bibi-icon bibi-icon-Facebook"></span>',
                         href: ShareSubPanel.getShareURI("B", "F"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "F"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("B", "F"); },
                         on: { click: function() { return false; } }
                     },
                     {
@@ -116,7 +116,7 @@ Bibi.x({
                         Labels: { default: { default: 'Google+' } },
                         Icon: '<span class="bibi-icon bibi-icon-GooglePlus"></span>',
                         href: ShareSubPanel.getShareURI("B", "G"),
-                        execute: function() { this.href = ShareSubPanel.getShareURI("B", "G"); },
+                        action: function() { this.href = ShareSubPanel.getShareURI("B", "G"); },
                         on: { click: function() { return false; } }
                     }
                 ]

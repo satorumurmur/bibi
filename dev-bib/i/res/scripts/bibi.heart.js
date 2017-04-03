@@ -2689,7 +2689,7 @@ I.createMenu.createPanelSwitch = function() {
         },
         Help: true,
         Icon: '<span class="bibi-icon bibi-icon-toggle-panel"><span class="bar-1"></span><span class="bar-2"></span><span class="bar-3"></span></span>',
-        execute: function() {
+        action: function() {
             I.Panel.toggle();
         }
     });
@@ -2763,7 +2763,7 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
                     Notes: true,
                     Icon: Icon["paged"],
                     Value: "paged",
-                    execute: changeView
+                    action: changeView
                 },
                 {
                     Type: "radio",
@@ -2776,7 +2776,7 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
                     Notes: true,
                     Icon: Icon["horizontal"],
                     Value: "horizontal",
-                    execute: changeView
+                    action: changeView
                 },
                 {
                     Type: "radio",
@@ -2789,7 +2789,7 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
                     Notes: true,
                     Icon: Icon["vertical"],
                     Value: "vertical",
-                    execute: changeView
+                    action: changeView
                 }
             ]
         }
@@ -2830,7 +2830,7 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
             active:  { default: 'Exit Fullscreen', ja: 'フルスクリーンモード解除' }
         },
         Icon: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>',
-        execute: function() {
+        action: function() {
             var Button = this;
             if(!O.FullscreenElement.Fullscreen) {
                 sML.requestFullscreen(O.FullscreenElement);
@@ -2911,10 +2911,11 @@ I.createButtonGroup.addButton = function(Par, i) { // classifies Button
     Button.isAvailable = function() {
         return (!Button.Busy && !Button.ButtonGroup.Busy);
     };
-    if(typeof Button.execute == "function") {
+    if(typeof Button.execute == "function") Button.action = Button.execute; // for back compatibility
+    if(typeof Button.action == "function") {
         Button.addTapEventListener("tapped", function(Eve) {
             if(!Button.isAvailable()) return false;
-            Button.execute.apply(Button, arguments);
+            Button.action.apply(Button, arguments);
         });
     }
     if(!(Button.ButtonGroup.Buttons instanceof Array)) Button.ButtonGroup.Buttons = [];
@@ -3619,7 +3620,7 @@ I.createSwiper = function() {
                     active:  { default: 'Swipe', ja: 'スワイプ操作' }
                 },
                 Icon: '<span class="bibi-icon bibi-icon-toggle-swipe"></span>',
-                execute: function() {
+                action: function() {
                     I.Swiper.toggle();
                     I.Panel.close();
                     I.Menu.close();
