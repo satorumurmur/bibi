@@ -163,7 +163,6 @@ var Tasks_updateMetafiles = [
 S.update_bower_components_js = function() {
     return gulp.src([
         'bower_components/native-promise-only/lib/npo.src.js',
-        'bower_components/hammerjs/hammer.min.js',
         'bower_components/easing/easing-min.js',
         'bower_components/sML/sML.js'
     ])
