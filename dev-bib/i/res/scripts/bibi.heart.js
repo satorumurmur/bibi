@@ -3564,7 +3564,7 @@ I.createSwiper = function() {
         },
         activateElement: function(Ele) {
             Ele.addEventListener("touchstart", I.Swiper.ontouchstart);
-            sML.observeTouch(Ele).addTouchEventListener("swipe", I.Swiper.onswiped);
+            Ele.addEventListener("touchend", I.Swiper.ontouchend);
             if(!O.Mobile) {
                 Ele.addEventListener('wheel', R.onwheel);
                 sML.each(Ele.querySelectorAll("img"), function(){ this.addEventListener(O["pointerdown"], O.preventDefault); });
@@ -3572,19 +3572,35 @@ I.createSwiper = function() {
         },
         deactivateElement: function(Ele) {
             Ele.removeEventListener("touchstart", I.Swiper.ontouchstart);
-            sML.unobserveTouch(Ele);
+            Ele.removeEventListener("touchend", I.Swiper.ontouchend);
             if(!O.Mobile) {
                 Ele.removeEventListener('wheel', R.onwheel);
                 sML.each(Ele.querySelectorAll("img"), function(){ this.removeEventListener(O["pointerdown"], O.preventDefault); });
             }
         },
-        onswiped: function(Eve, TEve) {
-            var From = "", To = "", Angle = TEve.angle + 90; if(Angle < 0) Angle += 360;
-                 if(330 <= Angle || Angle <=  30) From = "bottom", To = "top";
-            else if( 60 <= Angle && Angle <= 120) From = "left",   To = "right";
-            else if(150 <= Angle && Angle <= 210) From = "top",    To = "bottom";
-            else if(240 <= Angle && Angle <= 300) From = "right",  To = "left";
-            if(I.Arrows[From] && I.Arrows[From].isAvailable()) E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[From].Distance });
+        ontouchstart: function(Eve) {
+            var EventCoord = O.getBibiEventCoord(Eve);
+            I.Swiper.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp };
+        },
+        ontouchend: function(Eve) {
+            if(!I.Swiper.TouchStartedOn) return;
+            if(Eve.timeStamp - I.Swiper.TouchStartedOn.T <= 300) {
+                var EventCoord = O.getBibiEventCoord(Eve);
+                var VarX = EventCoord.X - I.Swiper.TouchStartedOn.X;
+                var VarY = EventCoord.Y - I.Swiper.TouchStartedOn.Y;
+                if(Math.sqrt(Math.pow(VarX, 2) + Math.pow(VarY, 2)) >= 10) {
+                    var Deg = Math.atan2((VarY ? VarY * -1 : 0), VarX) * 180 / Math.PI;
+                    var From = "", To = "";
+                         if( 120 >= Deg && Deg >=   60) From = "bottom", To = "top";
+                    else if(  30 >= Deg && Deg >=  -30) From = "left",   To = "right";
+                    else if( -60 >= Deg && Deg >= -120) From = "top",    To = "bottom";
+                    else if(-150 >= Deg || Deg >=  150) From = "right",  To = "left";
+                    if(I.Arrows[From] && I.Arrows[From].isAvailable()) {
+                        E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[From].Distance });
+                    }
+                }
+            }
+            delete I.Swiper.TouchStartedOn;
         },
         onwheeled: function(Eve) {
             if(!Eve.BibiSwiperWheel) return;
@@ -3594,38 +3610,29 @@ I.createSwiper = function() {
                 I.Swiper.onwheeled.hot = true;
                 E.dispatch("bibi:commands:move-by", { Distance: Eve.BibiSwiperWheel.Distance });
             }
-        },
-        ontouchstart: function(Eve) {
-            if(Eve.touches.length < 2) return;
-            I.Swiper.close();
-            R.Main.addEventListener("touchend", I.Swiper.ontouchend);
-            R.Items.forEach(function(Item) { Item.HTML.addEventListener("touchend", I.Swiper.ontouchend); });
-        },
-        ontouchend: function(Eve) {
-            // if(Eve.changedTouches.length < 2) return; // ピンチ中に指を減らしたりすると取りこぼすので判定しない
-            if(document.body.clientWidth / window.innerWidth <= 1) {
-                R.Main.removeEventListener("touchend", I.Swiper.ontouchend);
-                R.Items.forEach(function(Item) { Item.HTML.removeEventListener("touchend", I.Swiper.ontouchend); });
-                I.Swiper.open();
-            }
         }/*,
         addButton: function() {
             I.Menu.Config.SubPanel.SwipeSection = I.Menu.Config.SubPanel.addSection({
                 //Labels: { default: { default: 'Settings', ja: '操作設定' } }
-            });
-            I.Swiper.Button = I.Menu.Config.SubPanel.SwipeSection.ButtonGroup.addButton({
-                Type: "toggle",
-                Labels: {
-                    default: { default: 'Swipe', ja: 'スワイプ操作' },
-                    active:  { default: 'Swipe', ja: 'スワイプ操作' }
-                },
-                Icon: '<span class="bibi-icon bibi-icon-toggle-swipe"></span>',
-                action: function() {
-                    I.Swiper.toggle();
-                    I.Panel.close();
-                    I.Menu.close();
+                ButtonGroup: {
+                    Buttons: [
+                        {
+                            Type: "toggle",
+                            Labels: {
+                                default: { default: 'Swipe', ja: 'スワイプ操作' },
+                                active:  { default: 'Swipe', ja: 'スワイプ操作' }
+                            },
+                            Icon: '<span class="bibi-icon bibi-icon-toggle-swipe"></span>',
+                            action: function() {
+                                I.Swiper.toggle();
+                                I.Panel.close();
+                                I.Menu.close();
+                            }
+                        }
+                    ]
                 }
             });
+            I.Swiper.Button = I.Menu.Config.SubPanel.SwipeSection.ButtonGroup.Buttons[0];
             E.add("bibi:activated-touch",   function() { I.setState(I.Swiper.Button, "active"); });
             E.add("bibi:deactivated-touch", function() { I.setState(I.Swiper.Button, ""); });
         }*/

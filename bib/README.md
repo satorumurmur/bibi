@@ -154,7 +154,6 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 * [Font Awesome](http://fontawesome.io) ... Copyright &copy; Dave Gandy ([Licensed under SIL Open Font License (OFL) 1.1](http://scripts.sil.org/OFL))
 * [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. ([Licensed under the Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0))
 * [Native Promise Only](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under the MIT license.)
-* [Hammer.JS](http://hammerjs.github.io/) ... Copyright &copy; Jorik Tangelder (Licensed under the MIT license.)
 * [easing.js](https://github.com/danro/easing-js) ... Copyright &copy; Dan Rogers ([Licensed under the MIT license.](http://danro.mit-license.org/))
 * [sML](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under the MIT license.)
 

@@ -29,8 +29,7 @@
   ],
   "devDependencies": {
     "native-promise-only": "^0.8.0-a",
-    "hammerjs": "^2.0.8",
     "easing": "*",
-    "sML": "sml#^0.999.44"
+    "sML": "sml#^0.999.46"
   }
 }
