@@ -168,7 +168,9 @@ S.update_bower_components_js = function() {
     ])
         .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
         .pipe($.concat('dev-bib/i/res/scripts/_lib/bower_components.js'))
+        .pipe($.replace(/(\/\/ -+\n\/\/ easing\.js v[\d\.]+\n(\/\/ [^\n]+\n)+)/, '/*!\n$1*/\n'))
         .pipe($.uglify({ preserveComments: 'some' }))
+        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
         .pipe(gulp.dest(''));
 };
 
