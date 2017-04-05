@@ -174,7 +174,7 @@ S.update_bower_components_js = function() {
 };
 
 gulp.task('update: bower_components', function() {
-    return $.bower.commands.install().on('end', S.update_bower_components_js);
+    return $.bower.commands.install()/*.on('end', S.update_bower_components_js)*/;
 });
 
 gulp.task('update: bower_components.js', function() {
@@ -389,6 +389,7 @@ gulp.task('watch', function() {
     gulp.watch(['README.md'], ['update: README.md']);
     gulp.watch(['LICENSE'], ['update: LICENSE']);
     gulp.watch(['bower.json'], ['update: bower_components']);
+    gulp.watch(['bower_components/**/*.js'], ['update: bower_components.js']);
     return gulp;
 });
 
