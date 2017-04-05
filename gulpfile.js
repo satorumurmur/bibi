@@ -170,7 +170,6 @@ S.update_bower_components_js = function() {
         .pipe($.concat('dev-bib/i/res/scripts/_lib/bower_components.js'))
         .pipe($.replace(/(\/\/ -+\n\/\/ easing\.js v[\d\.]+\n(\/\/ [^\n]+\n)+)/, '/*!\n$1*/\n'))
         .pipe($.uglify({ preserveComments: 'some' }))
-        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
         .pipe(gulp.dest(''));
 };
 
@@ -197,6 +196,8 @@ S.makeScript = function(Param) {
         .pipe($.uglify({ preserveComments: 'some' }))
         .pipe($.replace('0.000.0', S.getVersion()))
         .pipe($.replace('198106091234', S.getBuildNumber()))
+        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
+        .pipe($.replace(/(\*\/)(.)/g, '$1\n$2'))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
 };
@@ -284,6 +285,8 @@ S.makeStyle = function(Param) {
                 zindex: false
             })
         ]))
+        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
+        .pipe($.replace(/(\*\/)(.)/g, '$1\n$2'))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
 };
