@@ -23,8 +23,8 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
 
 ### Table of Contents
 
-1. [How to Setup & Read/Publish EPUB Books (for users/publishers)](#how-to-setup--readpublish-epub-books)
-2. [How to Arrange Development Environment (for developers)](#how-to-arrange-development-environment)
+1. [How to Setup & Read/Publish EPUB Books](#how-to-setup--readpublish-epub-books) (for Users/Publishers)
+2. [How to Arrange Development Environment](#how-to-arrange-development-environment) (for Developers)
 3. [License](#license)
 4. [Special Thanks](#special-thanks)
 
