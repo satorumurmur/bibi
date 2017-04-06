@@ -21,15 +21,12 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
     - Internet Explorer 11 (except opening zipped EPUB archive)
 
 
+### Table of Contents
 
-
-Table of Contents
---------------------------------------------------------------------------------------------------------------------------------
-
-1. How to setup & read/publish EPUB books (for users/publishers)
-2. How to arrange development environment (for developers)
-3. License
-4. Special thanks
+1. [How to Setup & Read/Publish EPUB Books (for users/publishers)](#how-to-setup--readpublish-epub-books)
+2. [How to Arrange Development Environment (for developers)](#how-to-arrange-development-environment)
+3. [License](#license)
+4. [Special Thanks](#special-thanks)
 
 
 
@@ -39,7 +36,7 @@ Table of Contents
 
 
 
-How to setup & read/publish EPUB books
+How to Setup & Read/Publish EPUB Books
 --------------------------------------------------------------------------------------------------------------------------------
 
 BiB/i supports two ways to read/publish EPUB books:
@@ -100,7 +97,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-How to arrange development environment
+How to Arrange Development Environment
 --------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -171,7 +168,7 @@ License
 
 
 
-Special thanks
+Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
 * KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
