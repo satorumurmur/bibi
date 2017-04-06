@@ -34,7 +34,7 @@ Table of Contents
 
 
 
-1. How to setup & read/publish EPUB books
+How to setup & read/publish EPUB books
 --------------------------------------------------------------------------------------------------------------------------------
 
 BiB/i supports two ways to read/publish EPUB books:
@@ -95,7 +95,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-2. How to arrange development environment
+How to arrange development environment
 --------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -138,7 +138,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-3. License
+License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
