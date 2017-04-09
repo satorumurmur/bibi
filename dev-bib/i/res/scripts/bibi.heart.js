@@ -1375,8 +1375,13 @@ R.resetStage = function() {
     R.Stage = {};
     R.Columned = false;
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
-    R.Stage.Width   = O.HTML.clientWidth;
-    R.Stage.Height  = O.HTML.clientHeight;
+    R.Stage.Width  = O.HTML.clientWidth;
+    R.Stage.Height = O.HTML.clientHeight;
+    if(/FBAN/.test(navigator.userAgent)) {
+        R.Stage.Height = window.innerHeight;
+        O.HTML.style.height = window.innerHeight + "px";
+        window.scrollTo(0, 0);
+    }
     if(S.RVM == "paged") {
         if(I.Slider) R.Stage.Height -= O.Scrollbars.Height;
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
@@ -3565,6 +3570,7 @@ I.createSwiper = function() {
         },
         activateElement: function(Ele) {
             Ele.addEventListener("touchstart", I.Swiper.ontouchstart);
+            Ele.addEventListener("touchmove", I.Swiper.ontouchmove);
             Ele.addEventListener("touchend", I.Swiper.ontouchend);
             if(!O.Mobile) {
                 Ele.addEventListener('wheel', R.onwheel);
@@ -3573,6 +3579,7 @@ I.createSwiper = function() {
         },
         deactivateElement: function(Ele) {
             Ele.removeEventListener("touchstart", I.Swiper.ontouchstart);
+            Ele.removeEventListener("touchmove", I.Swiper.ontouchmove);
             Ele.removeEventListener("touchend", I.Swiper.ontouchend);
             if(!O.Mobile) {
                 Ele.removeEventListener('wheel', R.onwheel);
@@ -3583,9 +3590,12 @@ I.createSwiper = function() {
             var EventCoord = O.getBibiEventCoord(Eve);
             I.Swiper.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp };
         },
+        ontouchmove: function(Eve) {
+            if(Eve.touches.length == 1 && document.body.clientWidth / window.innerWidth <= 1) Eve.preventDefault();
+        },
         ontouchend: function(Eve) {
             if(!I.Swiper.TouchStartedOn) return;
-            if(Eve.timeStamp - I.Swiper.TouchStartedOn.T <= 300) {
+            if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - I.Swiper.TouchStartedOn.T <= 300) {
                 var EventCoord = O.getBibiEventCoord(Eve);
                 var VarX = EventCoord.X - I.Swiper.TouchStartedOn.X;
                 var VarY = EventCoord.Y - I.Swiper.TouchStartedOn.Y;

@@ -8,6 +8,8 @@
 
 html {
 	overflow: hidden; &.welcome { overflow: scroll; }
+	position: absolute; // for InAppBrowsers
+	@include trbl(0); // for InAppBrowsers
 	width: 100%;
 	height: 100%;
 	font-family: sans-serif;
@@ -32,7 +34,9 @@ body {
 		-webkit-tap-highlight-color: rgba(255,255,255,0);
 		-webkit-tap-highlight-color: transparent;
 	}
-	position: absolute;
+	//position: absolute;
+	//@include trbl(0);
+	overflow: hidden;
 	width: 100%;
 	height: 100%;
 	background: transparent no-repeat center center;
@@ -129,8 +133,9 @@ div#bibi-main {
 	box-sizing: border-box;
 	//padding: 35px 0;
 	//transition: .2s ease-out;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_main;
+	@include trbl(0);
 	//padding-top: $top-bar-height;
 	width: 100%;
 	height: 100%;

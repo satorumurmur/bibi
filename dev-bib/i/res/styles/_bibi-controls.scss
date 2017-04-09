@@ -1235,7 +1235,7 @@ html.panel-opened div#bibi-poweredby {
 div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_nombre;
 	margin: auto;
 	border-radius: $nombre-box-height * 0.5;
@@ -1324,7 +1324,7 @@ div#bibi-slider {
 	box-sizing: border-box;
 	display: block;
 	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_slider;
 	bottom: 0;
 	width: 100%;
