@@ -7,7 +7,7 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a parmalink for each book, and you can embed it in other webpages (just like a YouTube video).
+You can publish EPUB books on the web with a permalink for each book, and you can embed it in other webpages (just like a YouTube video).
 
 ### Spec.
 
@@ -21,20 +21,22 @@ You can publish EPUB books on the web with a parmalink for each book, and you ca
     - Internet Explorer 11 (except opening zipped EPUB archive)
 
 
+### Table of Contents
+
+1. [How to Setup & Read/Publish EPUB Books](#how-to-setup--readpublish-epub-books) (for Users/Publishers)
+2. [How to Arrange Development Environment](#how-to-arrange-development-environment) (for Developers)
+3. [License](#license)
+4. [Special Thanks](#special-thanks)
 
 
-Table of Contents
+
+
 --------------------------------------------------------------------------------------------------------------------------------
 
-1. How to setup & read/publish EPUB books (for users/publishers)
-2. How to arrange development environment (for developers)
-3. License
-4. Special thanks
 
 
 
-
-1. How to setup & read/publish EPUB books
+How to Setup & Read/Publish EPUB Books
 --------------------------------------------------------------------------------------------------------------------------------
 
 BiB/i supports two ways to read/publish EPUB books:
@@ -65,7 +67,7 @@ You can publish both unzipped folder and zipped EPUB archive. But using unzipped
 
 #### Publish unzipped folders (Recommended)
 
-This is recommended. It accelarates reading experience of your readers, and is more compatible with many browsers.
+This is recommended. It accelerates reading experience of your readers, and is more compatible with many browsers.
 
 1. Upload `bib` directory into some directory on your web server.
 2. Unzip an EPUB book,
@@ -95,7 +97,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-2. How to arrange development environment
+How to Arrange Development Environment
 --------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -138,7 +140,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-3. License
+License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -166,7 +168,7 @@ This is not recommended. It is slow and not compatible with Internet Explorer.
 
 
 
-4. Special thanks
+Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
 * KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
