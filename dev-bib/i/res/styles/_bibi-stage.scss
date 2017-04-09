@@ -140,8 +140,8 @@ div#bibi-main {
 	html.laying-out & {
 		opacity: 0;
 	}
-	html.busy &,
-	html.shade-visible & {
+	html.busy &/*,
+	html.shade-visible &*/ {
 		opacity: 0.33;
 		//filter: blur(2px);
 	}
