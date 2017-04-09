@@ -649,10 +649,37 @@ div#bibi-panel-bookinfo-cover {
 
 
 // ================================================================================
-// + Sub Panel (& Shade)
+// + Shade
 // --------------------------------------------------------------------------------
 
-$subpanel-background-color: rgba(white, 0.9);
+
+div#bibi-shade {
+	display: none;
+	position: fixed;
+	z-index: $z-index_shade;
+	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
+	width: 100%; height: 100%;
+	background: black;//$bibi-background;
+	opacity: 0;
+	transition: .15s ease;
+	html.shade-opened & {
+		display: block;
+	}
+	html.shade-opened.shade-visible & {
+		opacity: 0.33;
+	}
+	html.shade-opened.shade-visible.panel-opened & {
+	}
+}
+
+
+
+
+// ================================================================================
+// + Sub Panel
+// --------------------------------------------------------------------------------
+
+$subpanel-background-color: rgba(252,252,252, 0.96);
 $subpanel-margin: $button-group-margin;
 $subpanel-triangle-size: $subpanel-margin * 1.5;
 
@@ -696,7 +723,7 @@ div.bibi-subpanel {
 		transition: transform 0.2s cubic-bezier(.2,.8,.8,1.1);
 	}
 	&.opened {
-		box-shadow: rgba(0,0,0, 0.05) 0 2px 2px;
+		box-shadow: rgba(black, 0.1) 0 2px 2px;
 	}
 	&.opened span.bibi-subpanel-bit {
 	}
@@ -732,7 +759,7 @@ div.bibi-subpanel {
 		.bibi-h {
 		}
 			.bibi-h-label {
-				padding-bottom: ($button-group-margin * 1);
+				padding-bottom: ($button-group-margin * 1.5);
 				line-height: 1.2;
 				font-size: 12px;
 				font-weight: bold;
@@ -772,7 +799,7 @@ div.bibi-subpanel {
 				border: solid rgba(black, 0.1); border-width: 1px 0; &.bibi-button-radio { border-style: dashed; }// &:first-child { border-top-width: 0; }
 				min-height: $top-bar-height;
 				color: rgb(64,64,64);
-				background: rgba(white, 0.8);
+				background: white;//rgba(white, 0.9);
 				.bibi-button-iconbox,
 				.bibi-button-label {
 					display: inline-block;
@@ -817,13 +844,13 @@ div.bibi-subpanel {
 				&.bibi-button-toggle.active.hover,
 				&.bibi-button-toggle.active:hover {
 					border-style: solid;
-					border-color: rgba($color_blue-hilight, 0.1);
+					border-color: rgba($color-in-subpanel, 0.1);
 					background: rgba(244,248,252, 0.8);
 					cursor: pointer;
-					color: $color_blue-hilight;
+					color: $color-in-subpanel;
 					z-index: 2;
 					&:after {
-						color: $color_blue-hilight;
+						color: $color-in-subpanel;
 					}
 				}
 			}
@@ -844,7 +871,7 @@ div.bibi-subpanel {
 						font-weight: bold;
 					}
 					&:after {
-						color: $color_blue-hilight;
+						color: $color-in-subpanel;
 					}
 				}
 			}
@@ -900,27 +927,6 @@ div.bibi-subpanel {
 				}
 			}
 		}
-	}
-}
-
-
-// - Shade
-// --------------------------------------------------------------------------------
-
-div#bibi-shade {
-	display: none;
-	position: fixed;
-	z-index: $z-index_shade;
-	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
-	width: 100%; height: 100%;
-	background: $bibi-background;
-	opacity: 0;
-	transition: .15s ease;
-	html.shade-opened & {
-		display: block;
-	}
-	html.shade-visible.panel-opened & {
-		opacity: 0.67;
 	}
 }
 
@@ -1229,7 +1235,7 @@ html.panel-opened div#bibi-poweredby {
 div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_nombre;
 	margin: auto;
 	border-radius: $nombre-box-height * 0.5;
@@ -1318,7 +1324,7 @@ div#bibi-slider {
 	box-sizing: border-box;
 	display: block;
 	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_slider;
 	bottom: 0;
 	width: 100%;

@@ -54,7 +54,7 @@ Bibi.Preset = {
 "extensions": [
     { "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" }, // if the browser is Internet Explorer, this is always inactive
     { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "base": "auto" }, // "base": "auto" or pixel-number (if you want to change the default font-size based on the size used most frequently in each HTML)
+    { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "scale-per-step": 1.25, "base": "auto" }, // "base": "auto" or pixel-number (if you want to change the default font-size based on the size used most frequently in each HTML)
     { "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
     //{ "name": "OverReflow", "src": "extensions/overreflow/overreflow.js" },
