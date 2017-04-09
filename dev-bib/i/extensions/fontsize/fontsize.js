@@ -13,32 +13,32 @@ Bibi.x({
     name: "FontSize",
     description: "Font Size Optimizer",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "1.0.0",
-    build: 201704031541
+    version: "1.0.1",
+    build: 201704062136
 
 })(function() {
 
-    X.FontSize.Step = 0;
-    X.FontSize.ScalePerStep = 1.25;
-
-    X.FontSize.changeItemFontSize = function(Item, FontSize) {
-        if(Item.FontSizeStyleRule) sML.CSS.deleteRule(Item.FontSizeStyleRule, Item.contentDocument);
-        Item.FontSizeStyleRule = sML.CSS.appendRule("html", "font-size: " + FontSize + "px !important;", Item.contentDocument);
-    };
-    X.FontSize.changeItemFontSizeStep = function(Item, Step) {
-        X.FontSize.changeItemFontSize(Item, Item.FontSize.Base * Math.pow(X.FontSize.ScalePerStep, Step));
-    };
+    if(typeof X.Presets.FontSize["scale-per-step"] != "number" || X.Presets.FontSize["scale-per-step"] <= 1) X.Presets.FontSize["scale-per-step"] = 1.25;
 
     if(S["use-cookie"]) {
         var BibiCookie = O.Cookie.remember(O.RootPath);
         if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) X.FontSize.Step = BibiCookie.FontSize.Step * 1;
     }
+    if(typeof X.FontSize.Step != "number" || X.FontSize.Step < -2 || 2 < X.FontSize.Step) X.FontSize.Step = 0;
 
     O.appendStyleSheetLink({
         className: "bibi-extension-stylesheet",
         id: "bibi-extension-stylesheet_FontSize",
         href: O.RootPath + "extensions/fontsize/fontsize.css"
     });
+
+    X.FontSize.changeItemFontSize = function(Item, FontSize) {
+        if(Item.FontSizeStyleRule) sML.CSS.deleteRule(Item.FontSizeStyleRule, Item.contentDocument);
+        Item.FontSizeStyleRule = sML.CSS.appendRule("html", "font-size: " + FontSize + "px !important;", Item.contentDocument);
+    };
+    X.FontSize.changeItemFontSizeStep = function(Item, Step) {
+        X.FontSize.changeItemFontSize(Item, Item.FontSize.Base * Math.pow(X.Presets.FontSize["scale-per-step"], Step));
+    };
 
     E.bind("bibi:postprocessed-item-content", function(Item) {
         Item.FontSize = {
