@@ -335,12 +335,12 @@ $icon-color_default-hover_background:    $icon-color_background;
 $icon-color_default-hover_border:        rgb(192,192,192);
 
 // Default:Hover in Sub Panel
-$icon-color_default-hover_font-paint_in-subpanel:    $color_blue-hilight;
+$icon-color_default-hover_font-paint_in-subpanel:    $color-in-subpanel;
 $icon-color_default-hover_font-outline_in-subpanel:  transparent;
 $icon-color_default-hover_shape-paint_in-subpanel:   white;
-$icon-color_default-hover_shape-outline_in-subpanel: $color_blue-hilight;
-$icon-color_default-hover_background_in-subpanel:    lighten($color_blue-hilight, 45%);
-$icon-color_default-hover_border_in-subpanel:        $color_blue-hilight;
+$icon-color_default-hover_shape-outline_in-subpanel: $color-in-subpanel;
+$icon-color_default-hover_background_in-subpanel:    lighten($color-in-subpanel, 45%);
+$icon-color_default-hover_border_in-subpanel:        $color-in-subpanel;
 
 // Active
 $icon-color_active_font-paint:    $icon-color_background;
@@ -354,9 +354,9 @@ $icon-color_active_border:        darken($icon-color_border, 30%);
 $icon-color_active_font-paint_in-subpanel:    white;
 $icon-color_active_font-outline_in-subpanel:  transparent;
 $icon-color_active_shape-paint_in-subpanel:   white;
-$icon-color_active_shape-outline_in-subpanel: $color_blue-hilight;
-$icon-color_active_background_in-subpanel:    $color_blue-hilight;
-$icon-color_active_border_in-subpanel:        $color_blue-hilight;
+$icon-color_active_shape-outline_in-subpanel: $color-in-subpanel;
+$icon-color_active_background_in-subpanel:    $color-in-subpanel;
+$icon-color_active_border_in-subpanel:        $color-in-subpanel;
 
 // Active:Hover
 $icon-color_active-hover_font-paint:    $icon-color_active_font-paint;
@@ -370,9 +370,9 @@ $icon-color_active-hover_border:        lighten($icon-color_active_border, 10%);
 $icon-color_active-hover_font-paint_in-subpanel:    white;
 $icon-color_active-hover_font-outline_in-subpanel:  transparent;
 $icon-color_active-hover_shape-paint_in-subpanel:   white;
-$icon-color_active-hover_shape-outline_in-subpanel: $color_blue-hilight;
-$icon-color_active-hover_background_in-subpanel:    lighten($color_blue-hilight, 20%);
-$icon-color_active-hover_border_in-subpanel:        $color_blue-hilight;
+$icon-color_active-hover_shape-outline_in-subpanel: $color-in-subpanel;
+$icon-color_active-hover_background_in-subpanel:    lighten($color-in-subpanel, 20%);
+$icon-color_active-hover_border_in-subpanel:        $color-in-subpanel;
 /*
 $icon-color_default-hover_font-paint: $icon-color_shape-paint;
 $icon-color_default-hover_font-outline: $icon-color_font-paint;

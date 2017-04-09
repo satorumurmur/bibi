@@ -817,13 +817,13 @@ div.bibi-subpanel {
 				&.bibi-button-toggle.active.hover,
 				&.bibi-button-toggle.active:hover {
 					border-style: solid;
-					border-color: rgba($color_blue-hilight, 0.1);
+					border-color: rgba($color-in-subpanel, 0.1);
 					background: rgba(244,248,252, 0.8);
 					cursor: pointer;
-					color: $color_blue-hilight;
+					color: $color-in-subpanel;
 					z-index: 2;
 					&:after {
-						color: $color_blue-hilight;
+						color: $color-in-subpanel;
 					}
 				}
 			}
@@ -844,7 +844,7 @@ div.bibi-subpanel {
 						font-weight: bold;
 					}
 					&:after {
-						color: $color_blue-hilight;
+						color: $color-in-subpanel;
 					}
 				}
 			}
