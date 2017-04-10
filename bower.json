@@ -30,6 +30,6 @@
   "devDependencies": {
     "native-promise-only": "^0.8.0-a",
     "easing": "*",
-    "sML": "sml#0.999.46"
+    "sML": "sml#0.999.47"
   }
 }
