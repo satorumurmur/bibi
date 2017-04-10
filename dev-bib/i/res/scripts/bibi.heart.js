@@ -1565,8 +1565,6 @@ R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
         var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
         while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
         if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
-        //sML.log(PBR);
-        //sML.log(Item.ItemIndex + ": " + BreakPoint);
         if(ComputedStyle.pageBreakBefore == "always") {
             if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = this.parentNode.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
             Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1574,7 +1572,6 @@ R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
         }
         if(ComputedStyle.pageBreakAfter == "always") {
             BreakPoint += Add + this["offset" + PBR[2]];
-            //sML.log(Item.ItemIndex + ": " + BreakPoint);
             this.style["margin-" + PBR[4]] = 0;
             if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = this.parentNode.insertBefore(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this.nextSibling);
             Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1659,7 +1656,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
                 PageB / SpreadViewPort[S.SIZE.B],
                 PageL / SpreadViewPort[S.SIZE.L]
             );
-            //if(S.SLA != "vertical" && SpreadViewPort[S.SIZE.B] * Scale < PageB) Scale = PageB / SpreadViewPort[S.SIZE.B];
         } else {
             Scale = Math.min(
                 PageB / ItemRef["viewport"][S.SIZE.b],
@@ -1685,7 +1681,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
     else                                  Page.style.left  = 0;
     Page.style[S.SIZE.b] = PageB + "px";
     Page.style[S.SIZE.l] = PageL + "px";
-    //if(Spread.Items.length == 1 && (ItemRef["page-spread"] == "left" || ItemRef["page-spread"] == "right")) Page.style.width = parseFloat(Page.style.width) * 2 + "px";
     Page.Item = Item, Page.Spread = Spread;
     Page.PageIndexInItem = Item.Pages.length;
     Item.Pages.push(Page);
