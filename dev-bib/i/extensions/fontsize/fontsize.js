@@ -46,7 +46,8 @@ Bibi.x({
         };
         Item.FontSize.Base = Item.FontSize.Default;
         O.editCSSRules(Item.contentDocument, function(CSSRule) {
-            if(!CSSRule.selectorText || /^@/.test(CSSRule.selectorText) || Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return;
+            if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
+            try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
             var REs = {
                 "pt": / font-size: (\d[\d\.]*)pt; /,
                 "px": / font-size: (\d[\d\.]*)px; /

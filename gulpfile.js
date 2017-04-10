@@ -163,7 +163,7 @@ var Tasks_updateMetafiles = [
 S.update_bower_components_js = function() {
     return gulp.src([
         'bower_components/native-promise-only/lib/npo.src.js',
-        'bower_components/easing/easing-min.js',
+        'bower_components/easing/easing.js',
         'bower_components/sML/sML.js'
     ])
         .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
@@ -297,7 +297,7 @@ gulp.task('make: bibi.css', function() {
             'dev-bib/i/res/styles/-header.scss'
         ],
         src: [
-            'dev-bib/i/res/styles/bibi.scss'
+            'dev-bib/i/res/styles/bibi.heart.scss'
         ],
         dist: 'bib/i/res/styles/bibi.css'
     });
@@ -383,17 +383,17 @@ gulp.task('serve', function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 gulp.task('watch', function() {
+    gulp.watch(['package.json'], ['update: JSONs']);
+    gulp.watch(['README.md'], ['update: README.md']);
+    gulp.watch(['LICENSE'], ['update: LICENSE']);
+    gulp.watch(['bower.json'], ['update: bower_components']);
+    gulp.watch(['bower_components/**/*.js'], ['update: bower_components.js']);
     gulp.watch(['dev-bib/i/res/scripts/**/*.js'], ['make: bibi.js']);
     gulp.watch(['dev-bib/i.js'], ['make: i.js']);
     gulp.watch(['dev-bib/i/res/styles/*.scss',], ['make: bibi.css']);
     gulp.watch(['dev-bib/i.scss'], ['make: i.css']);
     S.Extensions.forEach(function(ExtensionName) { gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.js'  ], ['make: extension: ' + ExtensionName + '.js' ]); });
     S.Extensions.forEach(function(ExtensionName) { gulp.watch(['dev-bib/i/extensions/' + ExtensionName + '/**/*.scss'], ['make: extension: ' + ExtensionName + '.css']); });
-    gulp.watch(['package.json'], ['update: JSONs']);
-    gulp.watch(['README.md'], ['update: README.md']);
-    gulp.watch(['LICENSE'], ['update: LICENSE']);
-    gulp.watch(['bower.json'], ['update: bower_components']);
-    gulp.watch(['bower_components/**/*.js'], ['update: bower_components.js']);
     return gulp;
 });
 

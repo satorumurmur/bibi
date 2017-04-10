@@ -1,10 +1,7 @@
 /*!
- *
- * # BiB/i (heart)
- *
- * - "Heart of BiB/i"
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *                                                                                                                                (℠)
+ *  ## BiB/i (heart)
+ *  - "Heart of BiB/i"
  *
  */
 
@@ -1475,17 +1472,13 @@ R.resetItem.asReflowableItem = function(Item) {
     }
     var PageB = StageB;
     var PageL = StageL;
-    if(/-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
+    if(!S["single-page-always"] && /-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        //if(/^tb/.test(S.BWM)) {
-        //    PageL = BunkoL;
-        //} else {
-            var StageHalfL = Math.floor((StageL - PageGap) / 2);
-            if(StageHalfL >= BunkoL) {
-                Item.Spreaded = true;
-                PageL = StageHalfL;
-            }
-        //}
+        var StageHalfL = Math.floor((StageL - PageGap) / 2);
+        if(StageHalfL >= BunkoL) {
+            Item.Spreaded = true;
+            PageL = StageHalfL;
+        }
     }
     Item.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = PageL + "px";
@@ -1510,9 +1503,9 @@ R.resetItem.asReflowableItem = function(Item) {
             Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
             Page.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
         }
-        Page.style[            S.SIZE.b] = PageB + "px";
-        Page.style[            S.SIZE.l] = PageL + "px";
-        Page.style[            S.BASE.b] = (PageL + PageGap) * i + "px";
+        Page.style[S.SIZE.b] = PageB + "px";
+        Page.style[S.SIZE.l] = PageL + "px";
+        Page.style[S.BASE.b] = (PageL + PageGap) * i + "px";
         Page.Item = Item, Page.Spread = Spread;
         Page.PageIndexInItem = Item.Pages.length;
         Item.Pages.push(Page);
@@ -1572,8 +1565,6 @@ R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
         var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
         while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
         if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
-        //sML.log(PBR);
-        //sML.log(Item.ItemIndex + ": " + BreakPoint);
         if(ComputedStyle.pageBreakBefore == "always") {
             if(!this.BibiPageBreakerBefore) this.BibiPageBreakerBefore = this.parentNode.insertBefore(sML.create("span", { className: "bibi-page-breaker-before" }, { display: "block" }), this);
             Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1581,7 +1572,6 @@ R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
         }
         if(ComputedStyle.pageBreakAfter == "always") {
             BreakPoint += Add + this["offset" + PBR[2]];
-            //sML.log(Item.ItemIndex + ": " + BreakPoint);
             this.style["margin-" + PBR[4]] = 0;
             if(!this.BibiPageBreakerAfter) this.BibiPageBreakerAfter = this.parentNode.insertBefore(sML.create("span", { className: "bibi-page-breaker-after" }, { display: "block" }), this.nextSibling);
             Add = (PBR[1] - BreakPoint % PBR[1]); if(Add == PBR[1]) Add = 0;
@@ -1598,17 +1588,13 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     var StageL = R.Stage[S.SIZE.L];
     var PageB = StageB;
     var PageL = StageL;
-    if(S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
+    if(!S["single-page-always"] && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        //if(/^tb/.test(S.BWM)) {
-        //    PageL = BunkoL;
-        //} else {
-            var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
-            if(StageHalfL > BunkoL) {
-                Item.Spreaded = true;
-                PageL = StageHalfL;
-            }
-        //}
+        var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
+        if(StageHalfL > BunkoL) {
+            Item.Spreaded = true;
+            PageL = StageHalfL;
+        }
     }
     Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
@@ -1670,7 +1656,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
                 PageB / SpreadViewPort[S.SIZE.B],
                 PageL / SpreadViewPort[S.SIZE.L]
             );
-            //if(S.SLA != "vertical" && SpreadViewPort[S.SIZE.B] * Scale < PageB) Scale = PageB / SpreadViewPort[S.SIZE.B];
         } else {
             Scale = Math.min(
                 PageB / ItemRef["viewport"][S.SIZE.b],
@@ -1696,7 +1681,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
     else                                  Page.style.left  = 0;
     Page.style[S.SIZE.b] = PageB + "px";
     Page.style[S.SIZE.l] = PageL + "px";
-    //if(Spread.Items.length == 1 && (ItemRef["page-spread"] == "left" || ItemRef["page-spread"] == "right")) Page.style.width = parseFloat(Page.style.width) * 2 + "px";
     Page.Item = Item, Page.Spread = Spread;
     Page.PageIndexInItem = Item.Pages.length;
     Item.Pages.push(Page);
@@ -2043,8 +2027,8 @@ R.getCurrentPages = function() {
         Top:    FrameScrollCoord.Y,
         Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
     };
-    FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B] / R.Scale;
-    FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A] / R.Scale;
+    FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B];
+    FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A];
     var Pages = [], Ratio = [], Status = [], BiggestRatio = 0, Done = false;
     R.Pages.forEach(function(Page, i) {
         if(!Done) {
@@ -2254,7 +2238,7 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
 
 R.focusOn.getScrollTarget = function(FocusPoint) {
     var ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
-    ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
+    ScrollTarget[S.AXIS.L] = FocusPoint;
     return ScrollTarget;
 };
 
@@ -2390,27 +2374,6 @@ R.getBibiToDestination = function(BibitoString) {
         ItemIndexInAll: ItemIndexInAll,
         ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
     };
-};
-
-
-R.Scale = 1;
-
-R.zoom = function(Scale) {
-    if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-    R.getCurrent();
-    var CurrentStartPage = R.Current.Pages.StartPage;
-    sML.style(R.Main.Book, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
-    if(Scale == 1) {
-        O.HTML.style.overflow = "";
-        sML.style(R.Main.Book, { transform: "" });
-    } else {
-        sML.style(R.Main.Book, { transform: "scale(" + Scale + ")" });
-        O.HTML.style.overflow = "auto";
-    }
-    setTimeout(function() {
-        E.dispatch("bibi:commands:focus-on", { Destination: { Page: CurrentStartPage }, Duration: 0 });
-    }, 0);
-    R.Scale = Scale;
 };
 
 
@@ -4510,6 +4473,7 @@ O.Cookie = {
 O.SettingTypes = {
     YesNo: [
         "fix-reader-view-mode",
+        "single-page-always",
         "wait",
         "autostart",
         "start-in-new-window",
@@ -4729,9 +4693,9 @@ X.add = function(Extension) {
         return function() { return false };
     }
     if(typeof Extension["description"] != "string") Extension["decription"] = undefined;
-    if(typeof Extension["author"] != "string") Extension["author"] = undefined;
-    if(typeof Extension["version"] != "string") Extension["version"] = undefined;
-    if(typeof Extension["build"] != "number") Extension["build"] = undefined;
+    if(typeof Extension["author"]      != "string") Extension["author"]     = undefined;
+    if(typeof Extension["version"]     != "string") Extension["version"]    = undefined;
+    if(typeof Extension["build"]       != "number") Extension["build"]      = undefined;
     if(!(X.Extensions instanceof Array)) X.Extensions = [];
     X.Extensions.push(Extension);
     X[Extension["name"]] = Extension;

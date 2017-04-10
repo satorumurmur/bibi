@@ -12,10 +12,12 @@ Bibi.Preset = {
 "bookshelf"                  : "../bookshelf/", // relative path from bib/i/index.html (if the origin is included in "trustworthy-origins", URI begins with "http://" or "https://" for COR-allowed server is OK).
 
 "reader-view-mode"           : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
-
 "fix-reader-view-mode"       : "no", // "yes" or "no" or "desktop" or "mobile"
+"single-page-always"         : "no", // "yes" or "no" or "desktop" or "mobile"
+
 "autostart"                  : "no", // "yes" or "no" or "desktop" or "mobile"
 "start-in-new-window"        : "mobile", // "yes" or "no" or "desktop" or "mobile"
+
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
