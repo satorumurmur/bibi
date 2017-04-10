@@ -13,6 +13,7 @@ Bibi.Preset = {
 
 "reader-view-mode"           : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
 "fix-reader-view-mode"       : "no", // "yes" or "no" or "desktop" or "mobile"
+"single-page-always"         : "no", // "yes" or "no" or "desktop" or "mobile"
 
 "autostart"                  : "no", // "yes" or "no" or "desktop" or "mobile"
 "start-in-new-window"        : "mobile", // "yes" or "no" or "desktop" or "mobile"

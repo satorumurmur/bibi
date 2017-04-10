@@ -1472,7 +1472,7 @@ R.resetItem.asReflowableItem = function(Item) {
     }
     var PageB = StageB;
     var PageL = StageL;
-    if(/-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
+    if(!S["single-page-always"] && /-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
         var StageHalfL = Math.floor((StageL - PageGap) / 2);
         if(StageHalfL >= BunkoL) {
@@ -1591,7 +1591,7 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     var StageL = R.Stage[S.SIZE.L];
     var PageB = StageB;
     var PageL = StageL;
-    if(S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
+    if(!S["single-page-always"] && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
         var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
         if(StageHalfL > BunkoL) {
@@ -4499,6 +4499,7 @@ O.Cookie = {
 O.SettingTypes = {
     YesNo: [
         "fix-reader-view-mode",
+        "single-page-always",
         "wait",
         "autostart",
         "start-in-new-window",
