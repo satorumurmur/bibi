@@ -4693,9 +4693,9 @@ X.add = function(Extension) {
         return function() { return false };
     }
     if(typeof Extension["description"] != "string") Extension["decription"] = undefined;
-    if(typeof Extension["author"] != "string") Extension["author"] = undefined;
-    if(typeof Extension["version"] != "string") Extension["version"] = undefined;
-    if(typeof Extension["build"] != "number") Extension["build"] = undefined;
+    if(typeof Extension["author"]      != "string") Extension["author"]     = undefined;
+    if(typeof Extension["version"]     != "string") Extension["version"]    = undefined;
+    if(typeof Extension["build"]       != "number") Extension["build"]      = undefined;
     if(!(X.Extensions instanceof Array)) X.Extensions = [];
     X.Extensions.push(Extension);
     X[Extension["name"]] = Extension;
