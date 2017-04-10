@@ -2027,8 +2027,8 @@ R.getCurrentPages = function() {
         Top:    FrameScrollCoord.Y,
         Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
     };
-    FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B] / R.Scale;
-    FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A] / R.Scale;
+    FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B];
+    FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A];
     var Pages = [], Ratio = [], Status = [], BiggestRatio = 0, Done = false;
     R.Pages.forEach(function(Page, i) {
         if(!Done) {
@@ -2238,7 +2238,7 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
 
 R.focusOn.getScrollTarget = function(FocusPoint) {
     var ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
-    ScrollTarget[S.AXIS.L] = FocusPoint * R.Scale;
+    ScrollTarget[S.AXIS.L] = FocusPoint;
     return ScrollTarget;
 };
 
@@ -2374,27 +2374,6 @@ R.getBibiToDestination = function(BibitoString) {
         ItemIndexInAll: ItemIndexInAll,
         ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
     };
-};
-
-
-R.Scale = 1;
-
-R.zoom = function(Scale) {
-    if(typeof Scale != "number" || Scale <= 0) Scale = 1;
-    R.getCurrent();
-    var CurrentStartPage = R.Current.Pages.StartPage;
-    sML.style(R.Main.Book, { "transform-origin": S.SLD == "rtl" ? "100% 0" : "0 0" });
-    if(Scale == 1) {
-        O.HTML.style.overflow = "";
-        sML.style(R.Main.Book, { transform: "" });
-    } else {
-        sML.style(R.Main.Book, { transform: "scale(" + Scale + ")" });
-        O.HTML.style.overflow = "auto";
-    }
-    setTimeout(function() {
-        E.dispatch("bibi:commands:focus-on", { Destination: { Page: CurrentStartPage }, Duration: 0 });
-    }, 0);
-    R.Scale = Scale;
 };
 
 
