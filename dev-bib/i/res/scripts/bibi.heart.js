@@ -1474,15 +1474,11 @@ R.resetItem.asReflowableItem = function(Item) {
     var PageL = StageL;
     if(/-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        //if(/^tb/.test(S.BWM)) {
-        //    PageL = BunkoL;
-        //} else {
-            var StageHalfL = Math.floor((StageL - PageGap) / 2);
-            if(StageHalfL >= BunkoL) {
-                Item.Spreaded = true;
-                PageL = StageHalfL;
-            }
-        //}
+        var StageHalfL = Math.floor((StageL - PageGap) / 2);
+        if(StageHalfL >= BunkoL) {
+            Item.Spreaded = true;
+            PageL = StageHalfL;
+        }
     }
     Item.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = PageL + "px";
@@ -1507,9 +1503,9 @@ R.resetItem.asReflowableItem = function(Item) {
             Page.style["padding" + S.BASE.S] = S["item-padding-" + S.BASE.s] + "px";
             Page.style["padding" + S.BASE.E] = S["item-padding-" + S.BASE.e] + "px";
         }
-        Page.style[            S.SIZE.b] = PageB + "px";
-        Page.style[            S.SIZE.l] = PageL + "px";
-        Page.style[            S.BASE.b] = (PageL + PageGap) * i + "px";
+        Page.style[S.SIZE.b] = PageB + "px";
+        Page.style[S.SIZE.l] = PageL + "px";
+        Page.style[S.BASE.b] = (PageL + PageGap) * i + "px";
         Page.Item = Item, Page.Spread = Spread;
         Page.PageIndexInItem = Item.Pages.length;
         Item.Pages.push(Page);
@@ -1597,15 +1593,11 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     var PageL = StageL;
     if(S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
         var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        //if(/^tb/.test(S.BWM)) {
-        //    PageL = BunkoL;
-        //} else {
-            var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
-            if(StageHalfL > BunkoL) {
-                Item.Spreaded = true;
-                PageL = StageHalfL;
-            }
-        //}
+        var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
+        if(StageHalfL > BunkoL) {
+            Item.Spreaded = true;
+            PageL = StageHalfL;
+        }
     }
     Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
