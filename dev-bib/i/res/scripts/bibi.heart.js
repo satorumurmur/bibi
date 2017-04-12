@@ -1124,15 +1124,38 @@ L.postprocessItem.coordinateLinkages.setJump = function(A) {
 L.postprocessItem.patchStyles = function(Item) {
 
     O.editCSSRules(Item.contentDocument, function(CSSRule) {
-        if(/(-(webkit|epub)-)?column-count: 1; /.test(CSSRule.cssText)) {
+        if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) {
             CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
         }
-        if(sML.UA.InternetExplorer) {
-            /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-            else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-            else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
-        }
     });
+
+    if(sML.UA.Edge || sML.UA.InternetExplorer) {
+        var translatePrefixing = function(CSSRule, A, B) {
+            var RE;
+            if(B) {
+                RE = new RegExp("^.*? -ms-" + B + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) {                                                                          return; }
+                RE = new RegExp("^.*? -ms-" + A + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) { CSSRule.style["-ms-" +      B     ] = CSSRule.cssText.replace(RE, "$1"); return; }
+            } else {
+                RE = new RegExp("^.*? -ms-" + A + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) {                                                                          return; }
+            }
+            RE = new RegExp("^.*? "         + A + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) { CSSRule.style["-ms-" + (B ? B : A)] = CSSRule.cssText.replace(RE, "$1"); return; }
+            RE = new RegExp("^.*? -epub-"   + A + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) { CSSRule.style["-ms-" + (B ? B : A)] = CSSRule.cssText.replace(RE, "$1"); return; }
+            RE = new RegExp("^.*? -webkit-" + A + ": ([^;]+); .*$"); if(RE.test(CSSRule.cssText)) { CSSRule.style["-ms-" + (B ? B : A)] = CSSRule.cssText.replace(RE, "$1"); return; }
+        };
+        if(sML.UA.Edge) {
+        } else /*if(sML.UA.InternetExplorer)*/ {
+            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                     if(/ (-(epub|webkit)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
+                else if(/ (-(epub|webkit)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
+                else if(/ (-(epub|webkit)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+                translatePrefixing(CSSRule, "text-combine-upright", "text-combine-horizontal");
+                translatePrefixing(CSSRule, "text-combine-horizontal");
+                //translatePrefixing(CSSRule, "text-orientation");
+                //translatePrefixing(CSSRule, "line-break");
+                //translatePrefixing(CSSRule, "word-break");
+            });
+        }
+    }
 
     var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
     var ItemBodyComputedStyle = getComputedStyle(Item.Body);
