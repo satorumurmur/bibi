@@ -1599,16 +1599,16 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
     if(Item.ImageItem) {
-        if(Item.Body["scroll" + S.SIZE.B] <= PageB && Item.Body["scroll" + S.SIZE.L] <= PageL) {
+        if(Item.HTML["scroll" + S.SIZE.B] <= PageB && Item.HTML["scroll" + S.SIZE.L] <= PageL) {
             var ItemBodyComputedStyle = getComputedStyle(Item.Body);
             Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px";
         } else {
-            if((S.SLD == "ttb" && Item.Body["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.Body["scroll" + S.SIZE.L] > PageL)) {
+            if((S.SLD == "ttb" && Item.HTML["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.HTML["scroll" + S.SIZE.L] > PageL)) {
                 var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
             } else {
                 var TransformOrigin =  "50% 0";
             }
-            var Scale = Math.floor(Math.min(PageB / Item.Body["scroll" + S.SIZE.B], PageL / Item.Body["scroll" + S.SIZE.L]) * 100) / 100;
+            var Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
             sML.style(Item.HTML, {
                 "transform-origin": TransformOrigin,
                 "transform": "scale(" + Scale + ")"
