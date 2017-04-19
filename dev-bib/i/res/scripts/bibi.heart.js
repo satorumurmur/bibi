@@ -885,7 +885,8 @@ L.loadItem = function(Item) {
 L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
     Item.ItemBox.appendChild(Item);
     Item.contentDocument.open();
-    Item.contentDocument.write(HTML ? HTML : [
+    Item.contentDocument.write(HTML ? HTML.replace(/^<\?.+?\?>/, "") : [
+        '<!DOCTYPE html>',
         '<html>',
             '<head>' + Head + '</head>',
             '<body onload="setTimeout(function() { parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false; }, 0);">' + Body + '</body>',
@@ -902,6 +903,11 @@ L.postprocessItem = function(Item) {
     Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
     Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
     Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
+
+    var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
+         if(!XMLLang &&  Lang) Item.HTML.setAttribute("xml:lang", Lang);
+    else if( XMLLang && !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
+    else if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
 
     sML.addClass(Item.HTML, sML.Environments.join(" "));
     sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
