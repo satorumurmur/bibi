@@ -145,11 +145,8 @@ Bibi.initialize = function() {
     // UI
     I.initialize();
 
-    O.Compatible = true;
-    if(sML.UA.InternetExplorer < 11) {
-        O.Compatible = false;
-    }
-    if(!O.Compatible) {
+    O.NotCompatible = (sML.UA.InternetExplorer < 11) ? true : false;
+    if(O.NotCompatible) {
         // Bye-bye
         var Msg = {
             en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
@@ -591,7 +588,9 @@ L.onLoadPackageDocument = function() {
         if(S["autostart"] || L.Played) {
             L.loadItemsInSpreads();
         } else {
-            L.wait().then(L.loadItemsInSpreads);
+            L.wait().then(function() {
+                L.loadItemsInSpreads();
+            });
         }
     });
 };
@@ -785,7 +784,7 @@ L.loadNavigation = function() {
                 var NavUL = (function(Ele) {
                     var ChildNodes = Ele.childNodes;
                     var UL = undefined;
-                    for(var i = 0, L = ChildNodes.length; i < L; i++) {
+                    for(var l = ChildNodes.length, i = 0; i < l; i++) {
                         if(ChildNodes[i].nodeType == 1 && /^navPoint$/i.test(ChildNodes[i].tagName)) {
                             var NavPoint = ChildNodes[i];
                             var NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
@@ -931,7 +930,7 @@ L.postprocessItem = function(Item) {
     var Elements = Item.contentDocument.querySelectorAll("body>*");
     if(Elements && Elements.length) {
         var LengthOfElements = 0;
-        for(var i = 0, l = Elements.length; i < l; i++) {
+        for(var l = Elements.length, i = 0; i < l; i++) {
             if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
         }
         if(LengthOfElements == 1) {
@@ -1166,13 +1165,6 @@ L.postprocessItem.patchStyles = function(Item) {
     }
     Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
     sML.addClass(Item.HTML, "writing-mode-" + Item.HTML.WritingMode);
-    /*
-    Item.Body.style["margin" + (function() {
-        if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
-        if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
-        return "Bottom";
-    })()] = 0;
-    */
          if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
     else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
     else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
@@ -1801,7 +1793,8 @@ R.layOutSpread = function(Spread) {
 
 /*
 R.layOutStage = function() {
-    for(var L = R.Spreads.length, i = 0, StageLength = 0; i < L; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
+    var StageLength = 0;
+    for(var l = R.Spreads.length, i = 0; i < l; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
     R.Main.Book.style[S.SIZE.l] = StageLength + "px";
 };
 */
@@ -1866,7 +1859,7 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
-    for(var i = 0, L = R.Items.length; i < L; i++) {
+    for(var l = R.Items.length, i = 0; i < l; i++) {
         var Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
             R.Columned = true;
@@ -2248,7 +2241,7 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
             ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
         }
         var NearestPage = Item.Pages[0];
-        for(var i = 0, L = Item.Pages.length; i < L; i++) {
+        for(var l = Item.Pages.length, i = 0; i < l; i++) {
             ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
             if(ElementCoordInItem <= 0) {
                 NearestPage = Item.Pages[i];
@@ -4264,8 +4257,7 @@ O.download = function(URI, MimeType) {
         XHR.open('GET', URI, true);
         //if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
         XHR.onloadend = function() {
-            if(XHR.status !== 200) return reject(XHR);
-            else                   return resolve(XHR);
+            XHR.status === 200 ? resolve(XHR) : reject(XHR);
         };
         XHR.send(null);
     });
@@ -4301,7 +4293,7 @@ O.editCSSRules = function() {
     sML.each(Doc.styleSheets, function() {
         var StyleSheet = this;
         if(!StyleSheet.cssRules) return;
-        for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+        for(var l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
             var CSSRule = this.cssRules[i];
             /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
             else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
@@ -4357,8 +4349,8 @@ O.getElementCoord = function(El) {
 
 O.getPath = function() {
     var Origin = "", Path = arguments[0];
-    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  = arguments[1];
-    else for(var i = 1; i < arguments.length; i++)                  Path += "/" + arguments[i];
+    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  =       arguments[1];
+    else for(var l = arguments.length, i = 1; i < l; i++)           Path += "/" + arguments[i];
     Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Origin = arguments[1], Path = arguments[2]; });
     while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, "$1/");
     while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   "/");
@@ -4635,7 +4627,7 @@ M.receive = function(Data) {
 
 M.gate = function(Eve) {
     if(!Eve || !Eve.data) return;
-    for(var i = 0, L = S["trustworthy-origins"].length; i < L; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
+    for(var l = S["trustworthy-origins"].length, i = 0; i < l; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
 };
 
 
