@@ -1,6 +1,6 @@
 {
   "name": "bibi",
-  "version": "0.999.9-pb.4",
+  "version": "0.999.9",
   "authors": [
     "Satoru MATSUSHIMA"
   ],
@@ -30,6 +30,8 @@
   "devDependencies": {
     "native-promise-only": "^0.8.0-a",
     "easing": "*",
-    "sML": "sml#0.999.47"
+    "sML": "sml#0.999.47",
+    "jszip": "3.1.3",
+    "jszip-utils": "0.0.2"
   }
 }

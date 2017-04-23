@@ -18,7 +18,7 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
     - Chrome, Opera, Vivaldi
     - Firefox
     - Microsoft Edge
-    - Internet Explorer 11 (except opening zipped EPUB archive)
+    - Internet Explorer 11
 
 
 ### Table of Contents
@@ -62,12 +62,13 @@ In either case,
 
 [Demo](http://bibi.epub.link/#demo).
 
-You can publish both unzipped folder and zipped EPUB archive. But using unzipped folder is highly recommended.
+You can publish both unzipped folder and zipped EPUB archive.
+
+Using unzipped folder is recommended for the book which is heavy or contains many files.
+Using zipped EPUB file is recommended for the book which is light or contains less files.
 
 
-#### Publish unzipped folders (Recommended)
-
-This is recommended. It accelerates reading experience of your readers, and is more compatible with many browsers.
+#### Publish unzipped folders
 
 1. Upload `bib` directory into some directory on your web server.
 2. Unzip an EPUB book,
@@ -82,9 +83,7 @@ This is recommended. It accelerates reading experience of your readers, and is m
 ````
 
 
-#### Publish zipped EPUB archives (Not recommended)
-
-This is not recommended. It is slow and not compatible with Internet Explorer.
+#### Publish zipped EPUB files
 
 1. Upload `bib` directory into some directory on your web server.
 2. Upload your EPUB book (ex. `BOOKNAME.epub`) to `bib/bookshelf` directory, and
@@ -162,9 +161,8 @@ License
 
 ### BiB/i Extension: Unzipper is including and powered by these open source softwares:
 
-* [JSZip](http://stuartk.com/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
-* [base64.js](https://github.com/dankogai/js-base64) ... Copyright &copy; dankogai (Licensed under the MIT license.)
-
+* [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
+* [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 
 
 

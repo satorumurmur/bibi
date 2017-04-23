@@ -8,6 +8,7 @@
  *
  *  ## Components:
  *  1. BiB/i Extension: Unzipper (core)
- *  2. JSZip - http://stuartk.com/jszip | Copyright (c) Stuart Knightley - Dual licensed under the MIT license or GPLv3.
- *  3. base64.js - https://github.com/dankogai/js-base64 | Copyright (c) dankogai - Licensed under the MIT license.
+ *  2. JSZip - http://stuk.github.io/jszip | Copyright (c) Stuart Knightley - Dual licensed under the MIT license or GPLv3.
+ *  3. JSZipUtils - http://stuk.github.io/jszip-utils | Copyright (c) Stuart Knightley - Dual licensed under the MIT license or GPLv3.
+ *
  */

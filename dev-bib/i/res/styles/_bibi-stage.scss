@@ -147,15 +147,14 @@ div#bibi-main {
 	}
 	html.busy &/*,
 	html.shade-visible &*/ {
-		opacity: 0.33;
-		//filter: blur(2px);
-	}
-	html.panel-opened & {
-		//filter: blur(4px);
-		opacity: 0.75;
-	}
-	html.panel-opened.InternetExplorer & {
 		opacity: 0.25;
+		//filter: blur(2px);
+	}/*
+	html.panel-opened & {
+		opacity: 0.75;
+	}*/
+	html.slider-opened & {
+		opacity: 0.75;
 	}
 	html.page-ltr.flipping-ahead &,
 	html.page-rtl.flipping-astern & {

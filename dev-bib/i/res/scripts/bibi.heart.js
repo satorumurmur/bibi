@@ -145,11 +145,8 @@ Bibi.initialize = function() {
     // UI
     I.initialize();
 
-    O.Compatible = true;
-    if(sML.UA.InternetExplorer < 11) {
-        O.Compatible = false;
-    }
-    if(!O.Compatible) {
+    O.NotCompatible = (sML.UA.InternetExplorer < 11) ? true : false;
+    if(O.NotCompatible) {
         // Bye-bye
         var Msg = {
             en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
@@ -201,7 +198,7 @@ Bibi.ready = function() {
     E.add("bibi:readied", function() {
         if(U["book"]) {
             sML.removeClass(O.HTML, "ready");
-            L.loadBook(U["book"]);
+            L.loadBook({ Path: (/^([\w\d]+:)?\/\//.test(U["book"]) ? "" : P["bookshelf"] + "/") + U["book"] });
         } else {
             if(X["Unzipper"] && window.File && !O.Mobile) {
                 I.Veil.Catcher.dropOrClick();
@@ -233,101 +230,25 @@ Bibi.ready = function() {
 B = {}; // Bibi.Book
 
 
-B.initialize = function(Book) {
-    O.log("Initializing Book...", "*:");
-    delete B.Online;
-    delete B.Unzipped;
-    delete B["name"];
-    delete B.Path;
-    delete B.PathDelimiter;
-    delete B.File;
-    delete B.Files;
-    delete B.initialize.resolve;
-    delete B.initialize.reject;
+B.initialize = function() {
     O.applyTo(B, {
         Title: "",
         Creator: "",
         Publisher: "",
         Language: "",
         WritingMode: "",
+        Unzipped: false,
+        Path: "",
+        PathDelimiter: "",
         Mimetype:  { Path: "mimetype" },
         Container: { Path: "META-INF/container.xml" },
         Package:   { Path: "", Dir: "",
             Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
-            Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {} },
+            Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {}, Files: {} },
             Spine:    { "itemrefs": [] }
         },
+        Files: {},
         FileDigit: 0
-    });
-    return B.initialize.promise(Book);
-};
-
-
-B.initialize.promise = function(Book) {
-    return new Promise(function(resolve, reject) {
-        B.initialize.resolve = resolve;
-        B.initialize.reject  = reject;
-        if(typeof Book == "string") { // Online
-            var Origin = P["bookshelf"].replace(/^([\w\d]+:\/\/[^\/]+).*$/, "$1");
-            if(!P["trustworthy-origins"].includes(Origin)) {
-                return B.initialize.reject('The Origin of Bookshelf "' + Origin + '" Is Not Allowed.');
-            }
-            if(/^([\w\d]+:\/)?\//.test(Book)) {
-                return B.initialize.reject('The Path Must Be Relative from Bookshelf.');
-            }
-            B.Online = true;
-            B["name"] = Book;
-            B.Path = P["bookshelf"] + "/" + B["name"];
-            if(/\.epub$/i.test(B["name"])) { // ends with ".epub" -> Zipped
-                B.initialize.asZipped();
-            } else { // Unzipped ?
-                B.Path = B.Path.replace(/\/+$/, "");
-                B.checkContainer().then(function() {
-                    B.initialize.resolve();
-                }).catch(function() {
-                    B.initialize.asZipped();
-                });
-            }
-        } else if(typeof Book == "object" && Book) { // Local
-            if(Book.size && typeof Book.name == "string" && /\.epub$/i.test(Book.name)) {
-                B["name"] = B.Path = "[Local] " + Book.name;
-                B.File = Book;
-                B.initialize.asZipped();
-            } else {
-                B.initialize.reject('EPUB File Is Not Valid.');
-            }
-        } else {
-            B.initialize.reject('Something Trouble.');
-        }
-    }).then(function() {
-        delete B.initialize.resolve;
-        delete B.initialize.reject;
-        B.PathDelimiter = B.Unzipped ? "/" : " > ";
-        O.log("Book Initialized.", "/*");
-    }).catch(function(ErrorMessage) {
-        I.note(ErrorMessage, 99999999999, "IsError");
-        O.error(ErrorMessage);
-        return "ERROR";
-    });
-};
-
-
-B.initialize.asZipped = function() {
-    if(!X["Unzipper"]) return B.initialize.reject('Zipped EPUB Unavailable.');
-    if(S["autostart"]) {
-        B.loadEPUB();
-    } else {
-        L.wait().then(B.loadEPUB);
-    }
-};
-
-
-B.checkContainer = function() {
-    return O.download(B.Path + "/" + B.Container.Path).then(function(XHR) {
-        if(XHR.responseText) { // Unzipped
-            B.Unzipped = true;
-            O.log('EPUB: ' + B.Path + ' (Unzipped Online Folder)', "-*");
-        }
     });
 };
 
@@ -346,9 +267,8 @@ L = {}; // Bibi.Loader
 
 
 L.wait = function() {
-    return new Promise(function(resolve, reject) {
-        L.wait.resolve = resolve;
-        L.wait.reject  = reject;
+    return new Promise(function(resolve) {
+        L.wait.resolve = function() { resolve(); delete L.wait.resolve; };
         O.Busy = false;
         sML.removeClass(O.HTML, "busy");
         sML.addClass(O.HTML, "waiting");
@@ -356,8 +276,6 @@ L.wait = function() {
         O.log('(waiting)', '-*');
         I.note('');
     }).then(function() {
-        delete L.wait.resolve;
-        delete L.wait.reject;
         O.Busy = true;
         sML.addClass(O.HTML, "busy");
         sML.removeClass(O.HTML, "waiting");
@@ -374,23 +292,49 @@ L.play = function() {
 };
 
 
-L.resetReader = function() {
-    R.Main.Book.innerHTML = "";
-    R.Sub.innerHTML = "";
-    R.initializeParameters();
-};
-
-
-L.loadBook = function(Book) {
-    //O.log("Loading Book...", "*:");
+L.loadBook = function(PathOrData) {
+    B.initialize();
+    R.reset();
+    L.Preprocessed = false;
+    L.Loaded = false;
     O.Busy = true;
     sML.addClass(O.HTML, "busy");
     sML.addClass(O.HTML, "loading");
     I.note('Loading...');
-    B.initialize(Book).then(function(ERROR) {
-        if(ERROR) return;
-        L.Loaded = false;
+    O.log("Initializing Book...", "*:");
+    return new Promise(function(resolve, reject) {
+        L.loadBook.resolve = function() { resolve.apply(L.loadBook, arguments); delete L.loadBook.resolve; delete L.loadBook.reject; };
+        L.loadBook.reject  = function() {  reject.apply(L.loadBook, arguments); delete L.loadBook.resolve; delete L.loadBook.reject; I.Veil.Cover.className = ""; };
+        if(PathOrData.Path) {
+            // Online
+            if(!P["trustworthy-origins"].includes(PathOrData.Path.replace(/^([\w\d]+:\/\/[^\/]+).*$/, "$1"))) return L.loadBook.reject('The Origin of the Path of the Book Is Not Allowed.');
+            B.Path = PathOrData.Path;
+            O.download(B.Path + "/mimetype").then(function() {
+                // Online && Unzipped
+                B.Unzipped = true;
+                O.log('EPUB: ' + B.Path + ' (Unzipped Online Folder)', "-*");
+                L.loadBook.resolve();
+            }).catch(function() {
+                // Online && Zipped (probably)
+                if(!X.Unzipper) return L.loadBook.reject('Unzipper Extension Is Required to Open a Zipped EPUB.');
+                X.Unzipper.loadBookData({ Path: B.Path });
+            });
+        } else if(PathOrData.Data) {
+            // Local (only from the form or the catcher generated by X.Unzipper)
+            if(!PathOrData.Data.size || typeof PathOrData.Data.name != "string"/* || !/\.epub$/i.test(PathOrData.Data.name)*/) return L.loadBook.reject('EPUB File Is Not Valid.');
+            B.Path = "[Local] " + PathOrData.Data.name;
+            X.Unzipper.loadBookData({ Data: PathOrData.Data });
+        } else {
+            L.loadBook.reject('Something Troubled...');
+        }
+    }).then(function() {
+        B.PathDelimiter = B.Unzipped ? "/" : " > ";
+        O.log("Book Initialized.", "/*");
         L.loadContainer();
+    }).catch(function(ErrorMessage) {
+        I.note(ErrorMessage, 99999999999, "ErrorOccured");
+        O.error(ErrorMessage);
+        return false;
     });
 };
 
@@ -480,9 +424,11 @@ L.processPackageDocument = function(Doc) {
         };
         if(ManifestItem["id"] && ManifestItem["href"]) {
             B.Package.Manifest["items"][ManifestItem["id"]] = ManifestItem;
+            ManifestItem.Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
+            B.Package.Manifest.Files[ManifestItem.Path] = "";
             (function(ManifestItemProperties) {
-                if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
-                if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
+                if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = ManifestItem.Path;
+                if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = ManifestItem.Path;
             })(" " + ManifestItem.properties + " ");
             if(TOCID && ManifestItem["id"] == TOCID) B.Package.Manifest["toc-ncx"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
         }
@@ -591,7 +537,9 @@ L.onLoadPackageDocument = function() {
         if(S["autostart"] || L.Played) {
             L.loadItemsInSpreads();
         } else {
-            L.wait().then(L.loadItemsInSpreads);
+            L.wait().then(function() {
+                L.loadItemsInSpreads();
+            });
         }
     });
 };
@@ -601,63 +549,47 @@ L.createCover = function() {
 
     O.log('Creating Cover...', "*:");
 
-    I.Veil.Cover.innerHTML = I.Panel.BookInfo.Cover.innerHTML = "";
+    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
 
     if(B.Package.Manifest["cover-image"].Path) {
         R.CoverImage.Path = B.Package.Manifest["cover-image"].Path;
     }
 
-    var InfoHTML = (function() {
+    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (function() {
         var BookID = [];
-        if(B.Title)     BookID.push('<strong>' + B.Title + '</strong>');
-        if(B.Creator)   BookID.push('<em>' + B.Creator + '</em>');
-        if(B.Publisher) BookID.push('<span>' + B.Publisher + '</span>');
+        if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
+        if(B.Creator)   BookID.push('<em>'     + B.Creator   + '</em>');
+        if(B.Publisher) BookID.push('<span>'   + B.Publisher + '</span>');
         return BookID.join(" ");
     })();
 
-    I.Veil.Cover.Info = I.Veil.Cover.appendChild(
-        sML.create("p", { id: "bibi-veil-cover-info",
-            innerHTML: InfoHTML
-        })
-    );
-
-    I.Panel.BookInfo.Cover.Info = I.Panel.BookInfo.Cover.appendChild(
-        sML.create("p", { id: "bibi-panel-bookinfo-cover-info",
-            innerHTML: InfoHTML
-        })
-    );
-
-    (function(changeClass) {
-        if(R.CoverImage.Path) {
-            O.log('Cover Image: ' + B.Path + B.PathDelimiter + R.CoverImage.Path, "-*");
-            sML.create("img", {
-                load: function() {
-                    //O.log('Loading Cover Image: ' + B.Path + B.PathDelimiter + R.CoverImage.Path + ' ...', "*:");
-                    var Img = this;
-                    Img.src = B.Unzipped ? (B.Path + "/" + R.CoverImage.Path) : B.getDataURI(R.CoverImage.Path);
-                    Img.timeout = setTimeout(function() { Img.ontimeout(); }, 5000)
-                },
-                onload: function() {
-                    if(this.TimedOut) return false;
-                    clearTimeout(this.timeout);
-                    //O.log('Cover Image Loaded.', "/*");
-                    sML.style(I.Veil.Cover, { backgroundImage: "url(" + this.src + ")" });
-                    I.Panel.BookInfo.Cover.insertBefore(this, I.Panel.BookInfo.Cover.Info);
-                    changeClass("with-cover-image");
-                },
-                ontimeout: function() {
-                    this.TimedOut = true;
-                    //O.log('Cover Image Request Timed Out.', "/*");
-                    changeClass("without-cover-image");
-                }
-            }).load();
-        } else {
-            O.log('No Cover Image.', "-*");
-            changeClass("without-cover-image");
-        }
-    })(function(ClassName) {
-        I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = ClassName;
-    });
+    if(R.CoverImage.Path) {
+        O.log('Cover Image: ' + B.Path + B.PathDelimiter + R.CoverImage.Path, "-*");
+        sML.create("img", {
+            load: function() {
+                //O.log('Loading Cover Image: ' + B.Path + B.PathDelimiter + R.CoverImage.Path + ' ...', "*:");
+                var Img = this;
+                Img.src = B.Files[R.CoverImage.Path] ? O.getDataURI(R.CoverImage.Path, B.Files[R.CoverImage.Path]) : B.Path + "/" + R.CoverImage.Path;
+                Img.timeout = setTimeout(function() { Img.ontimeout(); }, 5000)
+            },
+            onload: function() {
+                if(this.TimedOut) return false;
+                clearTimeout(this.timeout);
+                //O.log('Cover Image Loaded.', "/*");
+                sML.style(I.Veil.Cover, { backgroundImage: "url(" + this.src + ")" });
+                I.Panel.BookInfo.Cover.insertBefore(this, I.Panel.BookInfo.Cover.Info);
+                I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
+            },
+            ontimeout: function() {
+                this.TimedOut = true;
+                //O.log('Cover Image Request Timed Out.', "/*");
+                I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
+            }
+        }).load();
+    } else {
+        O.log('No Cover Image.', "-*");
+        I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
+    }
 
     O.log('Cover Created.', "/*");
     E.dispatch("bibi:created-cover", R.CoverImage.Path);
@@ -785,7 +717,7 @@ L.loadNavigation = function() {
                 var NavUL = (function(Ele) {
                     var ChildNodes = Ele.childNodes;
                     var UL = undefined;
-                    for(var i = 0, L = ChildNodes.length; i < L; i++) {
+                    for(var l = ChildNodes.length, i = 0; i < l; i++) {
                         if(ChildNodes[i].nodeType == 1 && /^navPoint$/i.test(ChildNodes[i].tagName)) {
                             var NavPoint = ChildNodes[i];
                             var NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
@@ -832,8 +764,178 @@ L.loadItemsInSpreads = function() {
     L.listenResizingWhileLoading = function() { R.ToBeLaidOutLater = true; };
     window.addEventListener("resize", L.listenResizingWhileLoading);
 
-    R.Spreads.forEach(L.loadSpread);
+    L.preprocessResources().then(function() {
+        R.Spreads.forEach(L.loadSpread);
+    });
 
+};
+
+
+L.preprocessResources = function() {
+    return new Promise(function(resolve, reject) {
+        if(B.Unzipped) {
+            if(!(sML.UA.Gecko || sML.UA.Edge)) return resolve();
+            var FilesToBeLoaded = 0;
+            for(var FilePath in B.Package.Manifest.Files) {
+                if(/\.(css|x?html?)$/.test(FilePath)) {
+                    B.Files[FilePath] = "";
+                    FilesToBeLoaded++;
+                }
+            }
+            if(!FilesToBeLoaded) return resolve();
+            var FilesLoaded = 0;
+            for(var FilePath in B.Files) {
+                (function(FilePath) {
+                    O.download(B.Path + "/" +  FilePath).then(function(XHR) {
+                        B.Files[FilePath] = XHR.responseText;
+                        FilesLoaded++;
+                        if(FilesLoaded >= FilesToBeLoaded) return resolve("ToPreprocess");
+                    });
+                })(FilePath);
+            }
+        } else {
+            for(var FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
+            resolve("ToPreprocess");
+        }
+    }).then(function(ToPreprocess) {
+        if(!ToPreprocess) return;
+        for(var Type in L.preprocessResources.Settings) if(L.preprocessResources.Settings[Type].init) L.preprocessResources.Settings[Type].init();
+        E.dispatch("bibi:is-going-to:preprocess-resources");
+        var Log = [];
+        ["CSS", "SVG", "HTML"].forEach(function(Type) {
+            var Count = 0;
+            for(var FilePath in B.Files) {
+                if(!L.preprocessResources.Settings[Type].FileExtensionRE.test(FilePath)) continue;
+                L.preprocessResources.preprocessFile(FilePath, L.preprocessResources.Settings[Type]);
+                Count++;
+            }
+            if(Count) Log.push(Count + ' ' + Type + (Count >= 2 ? "s" : ""));
+        });
+        if(Log.length) O.log('Preprocessed ' + Log.join(', '), "-*");
+        L.Preprocessed = true;
+        E.dispatch("bibi:preprocessed-resources");
+    });
+};
+
+L.preprocessResources.preprocessFile = function(FilePath, Setting) {
+    var FileContent = B.Files[FilePath];
+    if(!B.Files[FilePath] || !Setting.FileExtensionRE.test(FilePath)) return FileContent;
+    if(Setting.ReplaceRules) {
+        Setting.ReplaceRules.forEach(function(ReplaceRule) {
+            if(ReplaceRule) FileContent = FileContent.replace(ReplaceRule[0], ReplaceRule[1]);
+        });
+    }
+    if(Setting.NestingRE) {
+        var Nestings = FileContent.match(Setting.NestingRE);
+        if(Nestings) {
+            Nestings.forEach(function(Nesting) {
+                var NestingPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), Nesting.replace(Setting.NestingRE, "$2"));
+                if(B.Files[NestingPath]) {
+                    FileContent = FileContent.replace(
+                        Nesting, Nesting.replace(
+                            Setting.NestingRE, "$1" + O.getDataURI(NestingPath, L.preprocessResources.preprocessFile(NestingPath, Setting)) + "$3"
+                        )
+                    );
+                }
+            });
+        }
+    }
+    FileContent = L.preprocessResources.replaceResourceRefferences(FilePath, FileContent, Setting);
+    B.Files[FilePath] = FileContent.replace(/[\r\n]+/gm, "\n").trim();
+    return B.Files[FilePath];
+};
+
+L.preprocessResources.Settings = {
+    CSS: {
+        FileExtensionRE: /\.css$/,
+        ReplaceRules: [
+            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""],,
+            [/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/g, '$1column-count: auto$4']
+        ],
+        NestingRE: /(@import\s*(?:url\()?["']?)(?!(?:https?|data):)(.+?\.css)(['"]?(?:\))?\s*;)/g,
+        ResAttributesAndExtensions: {
+            "url" : "gif|png|jpe?g|svg|ttf|otf|woff"
+        },
+        getResMatchRE: function() {
+            return /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g;
+        },
+        init: function() {
+            if(sML.UA.WebKit || sML.UA.Blink) {
+                return;
+            }
+            this.ReplaceRules.push([/-(epub|webkit)-/g, '']);
+            if(sML.UA.Gecko) {
+                this.ReplaceRules.push([/text-combine-horizontal:\s*([^;\}]+)\s*([;\}])/g, 'text-combine-upright: $1$2']);
+                this.ReplaceRules.push([/text-combine:\s*horizontal\s*([;\}])/g, 'text-combine-upright: all$1']);
+                return;
+            }
+            if(sML.UA.Edge) {
+                this.ReplaceRules.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/g, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
+                this.ReplaceRules.push([/text-combine\s*:\s*horizontal\s*([;\}])/g, 'text-combine-horizontal: all; text-combine-upright: all$1']);
+            }
+            if(sML.UA.InternetExplorer) {
+                this.ReplaceRules.push([/writing-mode\s*:\s*vertical-rl\s*([;\}])/g,   'writing-mode: tb-rl$1']);
+                this.ReplaceRules.push([/writing-mode\s*:\s*vertical-lr\s*([;\}])/g,   'writing-mode: tb-lr$1']);
+                this.ReplaceRules.push([/writing-mode\s*:\s*horizontal-tb\s*([;\}])/g, 'writing-mode: lr-tb$1']);
+                this.ReplaceRules.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/g, '-ms-text-combine-horizontal: $2$3']);
+                this.ReplaceRules.push([/text-combine\s*:\s*horizontal\s*([;\}])/g, '-ms-text-combine-horizontal: all$1']);
+            }
+            if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
+                this.ReplaceRules.push([/text-align\s*:\s*justify\s*([;\}])/g, 'text-align: justify; text-justify: inter-ideograph$1']);
+            }
+        }
+    },
+    SVG: {
+        FileExtensionRE: /\.svg$/,
+        ReplaceRules: [
+            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
+        ],
+        NestingRE: /(<img\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.svg?)(['"][^>]*>)/g,
+        ResAttributesAndExtensions: {
+            "href"       : "css",
+            "src"        : "gif|png|jpe?g|js",
+            "xlink:href" : "gif|png|jpe?g"
+        }
+    },
+    HTML: {
+        FileExtensionRE: /\.x?html?$/,
+        ReplaceRules: [
+            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
+        ],
+        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.x?html?)(['"][^>]*>)/g,
+        ResAttributesAndExtensions: {
+            "href"       : "css",
+            "src"        : "gif|png|jpe?g|svg|js|mp[34]|m4[av]|webm",
+            "xlink:href" : "gif|png|jpe?g"
+        }
+    }
+};
+
+L.preprocessResources.replaceResourceRefferences = function(FilePath, FileContent, Setting) {
+    if(!FileContent || !FilePath || !Setting || !Setting.ResAttributesAndExtensions) return FileContent;
+    if(typeof Setting.getResMatchRE != "function") Setting.getResMatchRE = function(At) { return (new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g")); };
+    var FileDir = FilePath.replace(/\/?[^\/]+$/, "");
+    for(var Attribute in Setting.ResAttributesAndExtensions) {
+        var ResMatchRE = Setting.getResMatchRE(Attribute);
+        var ResMatches = FileContent.match(ResMatchRE);
+        if(ResMatches) {
+            var ExtRE = new RegExp('\.' + Setting.ResAttributesAndExtensions[Attribute] + '$', "i");
+            ResMatches.forEach(function(Match) {
+                var ResPathInSource = Match.replace(ResMatchRE, "$1");
+                var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
+                var ResFilePathAndHash = ResPath.split("#");
+                var ResFilePath = ResFilePathAndHash[0];
+                if(ExtRE.test(ResFilePath)) {
+                    if(B.Files[ResFilePath]) {
+                        FileContent = FileContent.replace(Match, Match.replace(ResPathInSource, O.getDataURI(ResFilePath, B.Files[ResFilePath]) + (ResFilePathAndHash[1] ? "#" + ResFilePathAndHash[1] : "")));
+                    } else {
+                        FileContent = FileContent.replace(Match, Match.replace(ResPathInSource, B.Path + "/" + ResPath));
+                    }
+                }
+            });
+        }
+    }
+    return FileContent;
 };
 
 
@@ -852,33 +954,33 @@ L.loadItem = function(Item) {
     var Path = Item.Path;
     if(/\.(x?html?)$/i.test(Path)) {
         // If HTML or Others
-        if(B.Unzipped) {
+        if(B.Files[Path]) {
+            L.loadItem.writeItemHTML(Item, B.Files[Path]);
+            setTimeout(L.postprocessItem, 0, Item);
+        } else {
             Item.src = B.Path + "/" + Path;
             Item.onload = function() { setTimeout(L.postprocessItem, 0, Item); };
             Item.ItemBox.appendChild(Item);
-        } else {
-            L.loadItem.writeItemHTML(Item, B.Files[Path]);
-            setTimeout(L.postprocessItem, 0, Item);
         }
     } else if(/\.(svg)$/i.test(Path)) {
         // If SVG-in-Spine
         Item.IsSVG = true;
-        if(B.Unzipped) {
+        if(B.Files[Path]) {
+            L.loadItem.writeItemHTML(Item, false, '', B.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
+        } else {
             var URI = B.Path + "/" + Path;
             O.download(URI).then(function(XHR) {
                 L.loadItem.writeItemHTML(Item, false, '<base href="' + URI + '" />', XHR.responseText.replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
             });
-        } else {
-            L.loadItem.writeItemHTML(Item, false, '', B.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
         }
     } else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
         // If Bitmap-in-Spine
         Item.IsBitmap = true;
-        L.loadItem.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Unzipped ? B.Path + "/" + Path : B.getDataURI(Path)) + '" />');
+        L.loadItem.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Files[Path] ? O.getDataURI(Path, B.Files[Path]) : B.Path + "/" + Path) + '" />');
     } else if(/\.(pdf)$/i.test(Path)) {
         // If PDF-in-Spine
         Item.IsPDF = true;
-        L.loadItem.writeItemHTML(Item, false, '', '<iframe     src="' + (B.Unzipped ? B.Path + "/" + Path : B.getDataURI(Path)) + '" />');
+        L.loadItem.writeItemHTML(Item, false, '',     '<iframe src="' + (B.Files[Path] ? O.getDataURI(Path, B.Files[Path]) : B.Path + "/" + Path) + '" />');
     }
 };
 
@@ -886,7 +988,8 @@ L.loadItem = function(Item) {
 L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
     Item.ItemBox.appendChild(Item);
     Item.contentDocument.open();
-    Item.contentDocument.write(HTML ? HTML : [
+    Item.contentDocument.write(HTML ? HTML.replace(/^<\?.+?\?>/, "") : [
+        '<!DOCTYPE html>',
         '<html>',
             '<head>' + Head + '</head>',
             '<body onload="setTimeout(function() { parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false; }, 0);">' + Body + '</body>',
@@ -904,11 +1007,13 @@ L.postprocessItem = function(Item) {
     Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
     Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
 
+    var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
+         if(!XMLLang &&  Lang) Item.HTML.setAttribute("xml:lang", Lang);
+    else if( XMLLang && !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
+    else if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
+
     sML.addClass(Item.HTML, sML.Environments.join(" "));
     sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
-
-    if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
-    if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
 
     Item.StyleSheets = [];
     sML.appendStyleRule("html", "-webkit-text-size-adjust: 100%;", Item.contentDocument);
@@ -931,7 +1036,7 @@ L.postprocessItem = function(Item) {
     var Elements = Item.contentDocument.querySelectorAll("body>*");
     if(Elements && Elements.length) {
         var LengthOfElements = 0;
-        for(var i = 0, l = Elements.length; i < l; i++) {
+        for(var l = Elements.length, i = 0; i < l; i++) {
             if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
         }
         if(LengthOfElements == 1) {
@@ -965,13 +1070,18 @@ L.postprocessItem = function(Item) {
     L.postprocessItem.defineViewport(Item);
     L.postprocessItem.coordinateLinkages(Item);
 
-    setTimeout(function() {
-        if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return setTimeout(arguments.callee, 100);
-        L.postprocessItem.patchStyles(Item);
+    new Promise(function(resolve, reject) {
+        Item.CSSLoadingTimerID = setInterval(function() {
+            if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return;
+            clearInterval(Item.CSSLoadingTimerID);
+            L.postprocessItem.patchStyles(Item);
+            resolve();
+        }, 100);
+    }).then(function() {
         E.dispatch("bibi:postprocessed-item-content", Item);
         E.dispatch("bibi:postprocessed-item", Item);
         L.onLoadItem(Item);
-    }, 100);
+    });
 
 };
 
@@ -1118,21 +1228,37 @@ L.postprocessItem.coordinateLinkages.setJump = function(A) {
         return false;
     });
     */
-}
+};
 
 
 L.postprocessItem.patchStyles = function(Item) {
 
-    O.editCSSRules(Item.contentDocument, function(CSSRule) {
-        if(/(-(webkit|epub)-)?column-count: 1; /.test(CSSRule.cssText)) {
-            CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
-        }
+    if(!L.Preprocessed) {
         if(sML.UA.InternetExplorer) {
-            /**/ if(/ (-(webkit|epub)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-rl" : "tb-rl";
-            else if(/ (-(webkit|epub)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "bt-lr" : "tb-lr";
-            else if(/ (-(webkit|epub)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = / direction: rtl; /.test(CSSRule.cssText) ? "rl-tb" : "lr-tb";
+            if(!B.Unzipped) return false;
+            var IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
+            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                if(/(-(epub|webkit)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-rl";
+                if(/(-(epub|webkit)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-lr";
+                if(/(-(epub|webkit)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "lr-tb";
+                if(/(-(epub|webkit)-)?(text-combine-upright|text-combine-horizontal): all; /.test(CSSRule.cssText)) CSSRule.style.msTextCombineHorizontal = "all";
+                if(IsCJK && / text-align: justify; /.test(CSSRule.cssText)) CSSRule.style.textJustify = "inter-ideograph";
+            });
+        } else {
+            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = CSSRule.style.epubColumnCount = "auto";
+            });
         }
-    });
+    }
+    if(sML.UA.Gecko) {
+        Array.prototype.forEach.call(Item.Body.getElementsByTagName("a"), function(A) {
+            var ComputedStyle = getComputedStyle(A);
+            if(/^vertical-/.test(ComputedStyle.writingMode)) {
+                     if(ComputedStyle.textDecoration ==  "overline") A.style.textDecoration = "underline";
+                else if(ComputedStyle.textDecoration == "underline") A.style.textDecoration =  "overline";
+            }
+        });
+    }
 
     var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
     var ItemBodyComputedStyle = getComputedStyle(Item.Body);
@@ -1143,20 +1269,11 @@ L.postprocessItem.patchStyles = function(Item) {
     }
     Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
     sML.addClass(Item.HTML, "writing-mode-" + Item.HTML.WritingMode);
-    /*
-    Item.Body.style["margin" + (function() {
-        if(/-rl$/.test(Item.HTML.WritingMode)) return "Left";
-        if(/-lr$/.test(Item.HTML.WritingMode)) return "Right";
-        return "Bottom";
-    })()] = 0;
-    */
          if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
     else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
     else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
-
     if(Item.HTML.style) { sML.style(Item.ItemBox, L.postprocessItem.patchStyles.getBackgroundStyle(Item.HTML)); Item.HTML.style.background = "transparent"; }
     if(Item.Body.style) { sML.style(Item,         L.postprocessItem.patchStyles.getBackgroundStyle(Item.Body)); Item.Body.style.background = "transparent"; }
-
     sML.each(Item.Body.getElementsByTagName("img"), function() {
         this.Bibi = {
             DefaultStyle: {
@@ -1218,7 +1335,7 @@ L.onLoadSpread = function(Spread) {
 
 L.onLoadItemsInSpreads = function() {
 
-    delete B.Files;
+    B.Files = {};
     R.resetPages();
 
     O.stamp("Items in Spreads Loaded");
@@ -1301,32 +1418,11 @@ R = {}; // Bibi.Reader
 
 R.initialize = function() {
 
-    R.initializeParameters();
-    R.initializeElements();
-    R.initializeEventListeners();
-
-};
-
-
-R.initializeParameters = function() {
-    R.Started = false;
-    R.AllItems = [], R.NonLinearItems = [];
-    R.Spreads = [], R.Items = [], R.Pages = [];
-    R.CoverImage = { Path: "" };
-    R.Current = {};
-};
-
-
-R.initializeElements = function() {
-
     R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main" }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create("div", { id: "bibi-sub" }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "bibi-main-book" }));
 
-};
-
-
-R.initializeEventListeners = function() {
+    R.reset();
 
     E.add("bibi:scrolled", function() {
         R.getCurrent();
@@ -1365,6 +1461,16 @@ R.initializeEventListeners = function() {
         Item.HTML.addTapEventListener("tap", R.ontap);
     });
 
+};
+
+
+R.reset = function() {
+    R.Started = false;
+    R.AllItems = [], R.NonLinearItems = [];
+    R.Spreads = [], R.Items = [], R.Pages = [];
+    R.CoverImage = { Path: "" };
+    R.Current = {};
+    R.Main.Book.innerHTML = R.Sub.innerHTML = "";
 };
 
 
@@ -1599,16 +1705,16 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     Item.style[S.SIZE.b] = ItemBox.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
     if(Item.ImageItem) {
-        if(Item.Body["scroll" + S.SIZE.B] <= PageB && Item.Body["scroll" + S.SIZE.L] <= PageL) {
+        if(Item.HTML["scroll" + S.SIZE.B] <= PageB && Item.HTML["scroll" + S.SIZE.L] <= PageL) {
             var ItemBodyComputedStyle = getComputedStyle(Item.Body);
             Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px";
         } else {
-            if((S.SLD == "ttb" && Item.Body["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.Body["scroll" + S.SIZE.L] > PageL)) {
+            if((S.SLD == "ttb" && Item.HTML["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.HTML["scroll" + S.SIZE.L] > PageL)) {
                 var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
             } else {
                 var TransformOrigin =  "50% 0";
             }
-            var Scale = Math.floor(Math.min(PageB / Item.Body["scroll" + S.SIZE.B], PageL / Item.Body["scroll" + S.SIZE.L]) * 100) / 100;
+            var Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
             sML.style(Item.HTML, {
                 "transform-origin": TransformOrigin,
                 "transform": "scale(" + Scale + ")"
@@ -1778,7 +1884,8 @@ R.layOutSpread = function(Spread) {
 
 /*
 R.layOutStage = function() {
-    for(var L = R.Spreads.length, i = 0, StageLength = 0; i < L; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
+    var StageLength = 0;
+    for(var l = R.Spreads.length, i = 0; i < l; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
     R.Main.Book.style[S.SIZE.l] = StageLength + "px";
 };
 */
@@ -1843,7 +1950,7 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
-    for(var i = 0, L = R.Items.length; i < L; i++) {
+    for(var l = R.Items.length, i = 0; i < l; i++) {
         var Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
             R.Columned = true;
@@ -2225,7 +2332,7 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
             ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
         }
         var NearestPage = Item.Pages[0];
-        for(var i = 0, L = Item.Pages.length; i < L; i++) {
+        for(var l = Item.Pages.length, i = 0; i < l; i++) {
             ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
             if(ElementCoordInItem <= 0) {
                 NearestPage = Item.Pages[i];
@@ -2414,12 +2521,12 @@ I.initialize = function() {
 };
 
 
-I.note = function(Msg, Time, IsError) {
+I.note = function(Msg, Time, ErrorOccured) {
     clearTimeout(I.note.Timer);
     if(!Msg) I.note.Time = 0;
     else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
     if(I.Notifier) {
-        I.Notifier.Board.innerHTML = '<p' + (IsError ? ' class="error"' : '') + '>' + Msg + '</p>';
+        I.Notifier.Board.innerHTML = '<p' + (ErrorOccured ? ' class="error"' : '') + '>' + Msg + '</p>';
         sML.addClass(O.HTML, "notifier-shown");
         I.note.Timer = setTimeout(function() { sML.removeClass(O.HTML, "notifier-shown"); }, I.note.Time);
     }
@@ -2459,6 +2566,9 @@ I.createVeil = function() {
     I.Veil.open();
 
     I.Veil.Cover = I.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
+    I.Veil.Cover.Info = I.Veil.Cover.appendChild(
+        sML.create("p", { id: "bibi-veil-cover-info" })
+    );
 
     var PlayButtonTitle = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
     I.Veil.PlayButton = I.Veil.appendChild(
@@ -2528,6 +2638,9 @@ I.createPanel = function() {
     I.Panel.BookInfo.Cover = I.Panel.BookInfo.Box.appendChild(
         sML.create("div", { id: "bibi-panel-bookinfo-cover" })
     );
+    I.Panel.BookInfo.Cover.Info = I.Panel.BookInfo.Cover.appendChild(
+        sML.create("p", { id: "bibi-panel-bookinfo-cover-info" })
+    );
 
     I.SubPanels = [];
     I.createPanel.createShade();
@@ -2557,6 +2670,8 @@ I.createPanel.createShade = function() {
     );
 
     I.observeTap(I.Shade, { StopPropagation: true });
+
+    //I.Shade.addTapEventListener("tap", R.ontap);
 
     I.Shade.addTapEventListener("tapped", function() {
         I.SubPanels.forEach(function(SubPanel) {
@@ -3227,10 +3342,12 @@ I.createSlider = function() {
     I.setToggleAction(I.Slider, {
         onopened: function() {
             sML.addClass(O.HTML, "slider-opened");
+            //I.Shade.open(); // bad
             E.dispatch("bibi:opened-slider");
         },
         onclosed: function() {
             sML.removeClass(O.HTML, "slider-opened");
+            //I.Shade.close(); // bad
             E.dispatch("bibi:closed-slider");
         }
     });
@@ -3254,7 +3371,20 @@ I.createSlider = function() {
     //E.add("bibi:opened",   I.Slider.open);
     E.add("bibi:laid-out", I.Slider.reset);
     E.add("bibi:closed-panel", I.Slider.close);
-    sML.appendStyleRule("html.view-paged div#bibi-slider", "height: " + (O.Scrollbars.Height) + "px;");
+
+    // Optimize to Scrollbar Size
+    sML.appendStyleRule([
+        "html.view-paged div#bibi-slider"
+    ].join(", "), "height: " + (O.Scrollbars.Height) + "px;");
+    sML.appendStyleRule([
+        "html.view-vertical div#bibi-slider"
+    ].join(", "), "width: calc(100% - " + (O.Scrollbars.Width) + "px);");
+    /*
+    sML.appendStyleRule([
+        "html.view-vertical.panel-opened div#bibi-slider",
+        "html.view-vertical.subpanel-opened div#bibi-slider"
+    ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
+    */
 
     E.dispatch("bibi:created-slider");
 
@@ -3311,7 +3441,7 @@ I.createArrows = function() {
                 if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.Target.id)) return true;
                 if(/^(spread|item)/.test(BibiEvent.Target.className)) return true;
             } else {
-                if(O.isAnchorContent(BibiEvent.Target)) return false;
+                return O.isAnchorContent(BibiEvent.Target) ? false : true;
             }
             return false;
         }
@@ -3930,7 +4060,7 @@ U.initialize = function() { // formerly O.readExtras
     U["book"] = (function() {
         var Book = Q["book"] ? Q["book"] : O.Body.getAttribute("data-bibi-book");
         if(typeof Book != "string") return undefined;
-        Book = decodeURIComponent(Book);
+        Book = decodeURIComponent(Book).replace(/\/+$/, "");
         if(/^([\w\d]+:)?\/\//.test(Book)) { // absolute URI
             if(/^\/\//.test(Book)) Book = location.protocol + Book;
         }
@@ -4226,6 +4356,7 @@ O.error = function(Msg) {
     sML.removeClass(O.HTML, "waiting");
     E.dispatch("bibi:x_x", Msg);
     O.log(Msg, "-x");
+    O.log.Depth = 1;
 };
 
 
@@ -4241,16 +4372,15 @@ O.download = function(URI, MimeType) {
         XHR.open('GET', URI, true);
         //if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
         XHR.onloadend = function() {
-            if(XHR.status !== 200) return reject(XHR);
-            else                   return resolve(XHR);
+            XHR.status === 200 ? resolve(XHR) : reject(XHR);
         };
         XHR.send(null);
     });
 };
 
 
-O.parseDocument = function(Path, ResponseText) {
-    return (new DOMParser()).parseFromString(ResponseText, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
+O.parseDocument = function(Path, Doc) {
+    return (new DOMParser()).parseFromString(Doc, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
 };
 
 
@@ -4278,7 +4408,7 @@ O.editCSSRules = function() {
     sML.each(Doc.styleSheets, function() {
         var StyleSheet = this;
         if(!StyleSheet.cssRules) return;
-        for(var L = StyleSheet.cssRules.length, i = 0; i < L; i++) {
+        for(var l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
             var CSSRule = this.cssRules[i];
             /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
             else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
@@ -4300,6 +4430,20 @@ O.appendStyleSheetLink = function(Opt, Doc) {
     return Doc.head.appendChild(Link);
 };
 
+
+O.isBin = function(Hint) {
+    if(/(^|\.)(gif|jpe?g|png|ttf|otf|woff|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(Hint)) return true;
+    return false;
+};
+
+O.getDataURI = function(FilePath, FileContent) {
+    for(var Ext in O.ContentTypes) {
+        if((new RegExp('(^|\.)' + Ext + '$', "i")).test(FilePath)) {
+            return "data:" + O.ContentTypes[Ext] + ";base64," + (O.isBin(FilePath) ? btoa(FileContent) : btoa(unescape(encodeURIComponent(FileContent))));
+        }
+    }
+    return "";
+};
 
 O.getWritingMode = function(Ele) {
     var CS = getComputedStyle(Ele);
@@ -4334,8 +4478,8 @@ O.getElementCoord = function(El) {
 
 O.getPath = function() {
     var Origin = "", Path = arguments[0];
-    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  = arguments[1];
-    else for(var i = 1; i < arguments.length; i++)                  Path += "/" + arguments[i];
+    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  =       arguments[1];
+    else for(var l = arguments.length, i = 1; i < l; i++)           Path += "/" + arguments[i];
     Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Origin = arguments[1], Path = arguments[2]; });
     while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, "$1/");
     while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   "/");
@@ -4468,6 +4612,26 @@ O.Cookie = {
         if(!Opt.Expires) Opt.Expires = S["cookie-expires"];
         sML.Cookies.write("bibi", JSON.stringify(Cookie), Opt);
     }
+};
+
+O.ContentTypes = {
+    "gif"   :       "image/gif",
+    "png"   :       "image/png",
+    "jpe?g" :       "image/jpeg",
+    "svg"   :       "image/svg+xml",
+    "mp4"   :       "video/mp4",
+    "webm"  :       "video/webm",
+    "mp3"   :       "audio/mpeg",
+    "mp4"   :       "audio/mp4",
+    "ttf"   :        "font/truetype",
+    "otf"   :        "font/opentype",
+    "woff"  :        "font/woff",
+    "css"   :        "text/css",
+    "js"    :        "text/javascript",
+    "html?" :        "text/html",
+    "xhtml" : "application/xhtml+xml",
+    "xml"   : "application/xml",
+    "pdf"   : "application/pdf"
 };
 
 O.SettingTypes = {
@@ -4612,7 +4776,7 @@ M.receive = function(Data) {
 
 M.gate = function(Eve) {
     if(!Eve || !Eve.data) return;
-    for(var i = 0, L = S["trustworthy-origins"].length; i < L; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
+    for(var l = S["trustworthy-origins"].length, i = 0; i < l; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
 };
 
 

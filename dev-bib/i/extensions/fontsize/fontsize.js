@@ -45,16 +45,22 @@ Bibi.x({
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, "") * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
-        O.editCSSRules(Item.contentDocument, function(CSSRule) {
-            if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
-            try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
-            var REs = {
-                "pt": / font-size: (\d[\d\.]*)pt; /,
-                "px": / font-size: (\d[\d\.]*)px; /
-            };
-            if(REs["pt"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["pt"])[1] * (96/72) / Item.FontSize.Base + "rem";
-            if(REs["px"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["px"])[1]           / Item.FontSize.Base + "rem";
-        });
+        if(sML.UA.InternetExplorer && L.Preprocessed) {
+            Array.prototype.forEach.call(Item.contentDocument.documentElement.querySelectorAll("body, body *"), function(Ele) {
+                Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem";
+            });
+        } else {
+            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
+                try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
+                var REs = {
+                    "pt": / font-size: (\d[\d\.]*)pt; /,
+                    "px": / font-size: (\d[\d\.]*)px; /
+                };
+                if(REs["pt"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["pt"])[1] * (96/72) / Item.FontSize.Base + "rem";
+                if(REs["px"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["px"])[1]           / Item.FontSize.Base + "rem";
+            });
+        }
         if(typeof X.Presets.FontSize["base"] == "number" && X.Presets.FontSize["base"] > 0) {
             var MostPopularFontSize = 0;
             var FontSizeCounter = {};
