@@ -1015,6 +1015,9 @@ L.postprocessItem = function(Item) {
     sML.addClass(Item.HTML, sML.Environments.join(" "));
     sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
 
+    if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
+    if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
+
     Item.StyleSheets = [];
     sML.appendStyleRule("html", "-webkit-text-size-adjust: 100%;", Item.contentDocument);
     sML.each(Item.HTML.querySelectorAll("link, style"), function() {

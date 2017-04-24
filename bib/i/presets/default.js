@@ -48,6 +48,9 @@ Bibi.Preset = {
 
 "page-breaking"              : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
 
+"epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
+"epub-additional-script"     : "", // path from spine-item or http:// URI or ""
+
 // =================================================================================================
 
 "extensions": [
