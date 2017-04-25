@@ -70,7 +70,7 @@
             Fragment.add("parent-pipi-path", Pipi.encode(Pipi.Path));
             Fragment.add("parent-bibi-label",  Pipi.encode(BibiLabel));
             Fragment.add("parent-holder-id", Holder.id);
-            if(/^(horizontal|vertical|paged)$/.test(RVM))               Fragment.add("reader-view-mode", RVM);
+            if(        /^(horizontal|vertical|paged)$/.test(RVM))       Fragment.add("reader-view-mode", RVM);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(FixRVM))    Fragment.add("fix-reader-view-mode", FixRVM);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart)) Fragment.add("autostart", Autostart);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(NewWindow)) Fragment.add("start-in-new-window", NewWindow);
@@ -80,8 +80,8 @@
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseKeys))   Fragment.add("use-keys", UseKeys);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseSwipe))  Fragment.add("use-swipe", UseSwipe);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseCookie)) Fragment.add("use-cookie", UseCookie);
-            if(/^[1-9][\d\-\.]*$/.test(To))                             Fragment.add("to", To);
-            if(/^[1-9]\d*$/.test(Nav))                                  Fragment.add("nav", Nav);
+            if(                     /^[1-9][\d\-\.]*$/.test(To))        Fragment.add("to", To);
+            if(                           /^[1-9]\d*$/.test(Nav))       Fragment.add("nav", Nav);
             // Frame
             var Frame = Bibi.Frame = Holder.appendChild(
                 Pipi.create("iframe", {
