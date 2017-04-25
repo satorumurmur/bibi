@@ -40,6 +40,7 @@
             var FixRVM     = Anchor.getAttribute("data-bibi-fix-reader-view-mode");
             var Autostart  = Anchor.getAttribute("data-bibi-autostart");
             var NewWindow  = Anchor.getAttribute("data-bibi-start-in-new-window");
+            var UseNombre  = Anchor.getAttribute("data-bibi-use-nombre");
             var UseSlider  = Anchor.getAttribute("data-bibi-use-slider");
             var UseArrows  = Anchor.getAttribute("data-bibi-use-arrows");
             var UseKeys    = Anchor.getAttribute("data-bibi-use-keys");
@@ -73,6 +74,7 @@
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(FixRVM))    Fragment.add("fix-reader-view-mode", FixRVM);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(Autostart)) Fragment.add("autostart", Autostart);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(NewWindow)) Fragment.add("start-in-new-window", NewWindow);
+            if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseNombre)) Fragment.add("use-nombre", UseNombre);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseSlider)) Fragment.add("use-slider", UseSlider);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseArrows)) Fragment.add("use-arrows", UseArrows);
             if(/^(true|false|yes|no|mobile|desktop)?$/.test(UseKeys))   Fragment.add("use-keys", UseKeys);
