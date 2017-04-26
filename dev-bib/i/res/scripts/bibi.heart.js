@@ -18,7 +18,7 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-document.addEventListener("DOMContentLoaded", function() { Bibi.welcome(); });
+document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welcome, 0); });
 
 
 Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi';
@@ -41,11 +41,11 @@ Bibi.welcome = function() {
     O.contentWindow = window;
     O.contentDocument = document;
 
-    O.HTML   = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " bibi welcome";
-    O.Head   = document.head;
-    O.Body   = document.body;
-    O.Info   = document.getElementById("bibi-info");
-    O.Title  = document.getElementsByTagName("title")[0];
+    O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " bibi welcome";
+    O.Head  = document.head;
+    O.Body  = document.body;
+    O.Info  = document.getElementById("bibi-info");
+    O.Title = document.getElementsByTagName("title")[0];
 
     // Device & Event
     if(sML.OS.iOS || sML.OS.Android) {
@@ -75,6 +75,57 @@ Bibi.welcome = function() {
             O["pointerout"]  = "mouseout";
         }
     }
+
+    setTimeout(Bibi.initialize, 0);
+
+};
+
+
+Bibi.initialize = function() {
+
+    // Reader
+    R.initialize();
+
+    // UI
+    I.initialize();
+
+    O.NotCompatible = (sML.UA.InternetExplorer < 11) ? true : false;
+    if(O.NotCompatible) {
+        // Say Bye-bye
+        var Msg = {
+            en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
+            ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
+        };
+        I.Veil.ByeBye = I.Veil.appendChild(
+            sML.create("p", { id: "bibi-veil-byebye",
+                innerHTML: [
+                    '<span lang="en">', Msg["en"], '</span>',
+                    '<span lang="ja">', Msg["ja"], '</span>',
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
+            })
+        );
+        I.note('(Your Browser Is Not Compatible)', 99999999999);
+        O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
+        E.dispatch("bibi:says-byebye");
+        sML.removeClass(O.HTML, "welcome");
+        return false;
+    }
+
+    // Say Welcome!
+    I.note("Welcome!");
+
+    // Extensions
+    X.initialize();
+
+    // Presets
+    P.initialize();
+
+    // User Parameters
+    U.initialize();
+
+    var PromiseForLoadingExtensions = new Promise(function(resolve, reject) {
+        return (P.X.length) ? X.loadFilesInPreset().then(resolve) : resolve();
+    });
 
     // Window Embedding
     if(window.parent == window) {
@@ -126,66 +177,25 @@ Bibi.welcome = function() {
     delete VTC;
     sML.deleteStyleRule(SRI4VTC);
 
-    setTimeout(Bibi.initialize, 0);
-
-};
-
-
-Bibi.initialize = function() {
-
     // Scrollbars
     O.Scrollbars = {
         Width: window.innerWidth - O.HTML.offsetWidth,
         Height: window.innerHeight - O.HTML.offsetHeight
     };
 
-    // Reader
-    R.initialize();
-
-    // UI
-    I.initialize();
-
-    O.NotCompatible = (sML.UA.InternetExplorer < 11) ? true : false;
-    if(O.NotCompatible) {
-        // Bye-bye
-        var Msg = {
-            en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
-            ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
-        };
-        I.Veil.ByeBye = I.Veil.appendChild(
-            sML.create("p", { id: "bibi-veil-byebye",
-                innerHTML: [
-                    '<span lang="en">', Msg["en"], '</span>',
-                    '<span lang="ja">', Msg["ja"], '</span>',
-                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
-            })
-        );
-        O.log(Msg["en"].replace(/<[^>]*>/g, ""), "-*");
-        E.dispatch("bibi:says-byebye");
-        return false;
-    } else {
-        // Welcome!
-        I.note("Welcome!");
-        sML.removeClass(O.HTML, "welcome");
-    }
-
-    // Extensions
-    X.initialize();
-
     // Settings
-    P.initialize();
-    U.initialize();
     S.initialize();
 
-    // Ready
-    P.Initialized.then(function() {
+    sML.removeClass(O.HTML, "welcome");
+
+    // Ready ?
+    PromiseForLoadingExtensions.then(function() {
         E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
         E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
         E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
         E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
         window.addEventListener("message", M.gate, false);
         Bibi.ready();
-        O.ReadiedURL = location.href;
     });
 
 };
@@ -200,7 +210,7 @@ Bibi.ready = function() {
             sML.removeClass(O.HTML, "ready");
             L.loadBook({ Path: (/^([\w\d]+:)?\/\//.test(U["book"]) ? "" : P["bookshelf"] + "/") + U["book"] });
         } else {
-            if(X["Unzipper"] && window.File && !O.Mobile) {
+            if(X.Unzipper && window.File && !O.Mobile) {
                 I.Veil.Catcher.dropOrClick();
             } else {
                 if(O.WindowEmbedded) {
@@ -213,6 +223,8 @@ Bibi.ready = function() {
     });
 
     setTimeout(function() { E.dispatch("bibi:readied"); }, (O.Mobile ? 999 : 1));
+
+    O.ReadiedURL = location.href;
 
 };
 
@@ -340,11 +352,8 @@ L.loadBook = function(PathOrData) {
 
 
 L.loadContainer = function() {
-
     O.log('Loading Container XML: ' + B.Path + B.PathDelimiter + B.Container.Path + ' ...', "*:");
-
     O.openDocument(B.Container.Path).then(L.processContainer).then(L.onLoadContainer);
-
 };
 
 
@@ -361,11 +370,8 @@ L.onLoadContainer = function() {
 
 
 L.loadPackageDocument = function() {
-
     O.log('Loading Package Document: ' + B.Path + B.PathDelimiter + B.Package.Path + ' ...', "*:");
-
     O.openDocument(B.Package.Path).then(L.processPackageDocument).then(L.onLoadPackageDocument);
-
 };
 
 
@@ -818,6 +824,7 @@ L.preprocessResources = function() {
 };
 
 L.preprocessResources.preprocessFile = function(FilePath, Setting) {
+    if(B.Files[FilePath].Preprocessed) return B.Files[FilePath];
     var FileContent = B.Files[FilePath];
     if(!B.Files[FilePath] || !Setting.FileExtensionRE.test(FilePath)) return FileContent;
     if(Setting.ReplaceRules) {
@@ -842,6 +849,7 @@ L.preprocessResources.preprocessFile = function(FilePath, Setting) {
     }
     FileContent = L.preprocessResources.replaceResourceRefferences(FilePath, FileContent, Setting);
     B.Files[FilePath] = FileContent.replace(/[\r\n]+/gm, "\n").trim();
+    B.Files[FilePath].Preprocessed = true;
     return B.Files[FilePath];
 };
 
@@ -4037,9 +4045,6 @@ P.initialize = function() {
         ExtensionsToBeLoaded.push(FileInfo);
     });
     P.X = P["extensions"] = ExtensionsToBeLoaded;
-    P.Initialized = new Promise(function(resolve, reject) {
-        return (P.X.length) ? X.loadFilesInPreset().then(resolve) : resolve();
-    });
 };
 
 
@@ -4733,7 +4738,7 @@ E.unbind = function(Name, Listener, Ele) {
 
 
 E.dispatch = function(Name, Detail, Ele) {
-    //console.log('//////// ' + Name);
+    // console.log('//////// ' + Name);
     if(typeof Name != "string") return false;
     Ele = (Ele ? Ele : document);
     if(Ele.BibiBindedEventListeners && Ele.BibiBindedEventListeners[Name] instanceof Array) {

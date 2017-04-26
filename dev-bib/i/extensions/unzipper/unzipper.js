@@ -13,9 +13,9 @@
 Bibi.x({
 
     name: "Unzipper",
-    description: "EPUB-Zip Unarchiver for BiB/i",
+    description: "EPUB-Zip Utility for BiB/i",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: Bibi["version"],
+    version: "1.3.0",
     build: Bibi["build"]
 
 })(function() {
@@ -99,7 +99,7 @@ Bibi.x({
                 var FilesExtracted = 0;
                 FilesToBeExtract.forEach(function(FileName) {
                     ZippedData.file(FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(function(content) {
-                        B.Files[FileName] = content;
+                        B.Files[FileName] = content.trim();
                         FilesExtracted++;
                         if(FilesExtracted >= FilesToBeExtract.length) resolve(Log);
                     });
