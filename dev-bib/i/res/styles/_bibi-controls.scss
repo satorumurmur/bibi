@@ -1556,7 +1556,7 @@ div#bibi-arrow-forward {
 	//// Interaction
 	& {
 		&:before, &:after {
-			transition-duration: 1s;
+			transition-duration: .4s;
 		}
 		&:before {
 			opacity: 0;
@@ -1583,7 +1583,8 @@ div#bibi-arrow-forward {
 			transition-duration: .1s;
 		}
 		&:before {
-			transform: scale(.75);
+			transform: scale(1.1);
+			opacity: .75;
 		}
 	}
 	&.available.glowing {
@@ -1602,9 +1603,9 @@ div#bibi-arrow-forward {
 		#{$dir}: 0;
 		&:before, &:after { transform-origin: $transform-origin; }
 		&:before { content: $icon-code; #{$dir}: $button-group-margin; }
-		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.250)); }
+		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
 	}
-	&.available.hover, &.available.active, &.available.glowing {
+	&.available.hover, &.available.glowing {
 		&:after { #{$dir}: 0; }
 	}
 	&.available.glowing {
