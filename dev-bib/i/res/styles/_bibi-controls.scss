@@ -105,18 +105,13 @@ div#bibi-veil:after {
 p#bibi-veil-byebye {
 	position: absolute;
 	z-index: $z-index_veil-byebye;
-	left: 0;
-	right: 0;
-	top: 69px;
+	@include trbl(69px, 0, auto);
 	margin: auto;
 	line-height: 1.75;
 	text-align: center;
-	text-indent: .1em;
-	letter-spacing: .1em;
 	font-size: 12px;
 	font-weight: bold;
-	text-shadow: 0 1px 2px black, 0 0 4px rgb(176,176,176);
-	color: rgb(160,160,160);
+	color: white;
 	a {
 		color: inherit;
 		transition: .2s linear;
@@ -142,11 +137,9 @@ p#bibi-veil-byebye {
 			right: 0;
 			top: 0;
 			margin: auto;
-			border-style: solid;
-			border-width: 1px 0;
-			border-color: rgb(128,128,128) transparent black;
 			width: 2em;
-			height: 0;
+			height: 1px;
+			background: white;
 		}
 	}
 }
