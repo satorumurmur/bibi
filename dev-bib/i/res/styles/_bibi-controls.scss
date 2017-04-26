@@ -576,14 +576,16 @@ div#bibi-panel-bookinfo-navigation {
 			}
 		}
 		a {
+			border: solid rgb(216,216,216);
+			html.page-rtl & { border-width: 0 1px 0 0; padding-right: .1em; }
+			html.page-ltr & { border-width: 0 0 1px 0; padding-bottom: .1em; }
 			color: rgb(64,64,64);
 			text-decoration: none;
 			transition: linear .15s;
 			&:hover {
+				border-color: steelblue;
 				color: steelblue;
 				transition: none;
-				html.page-ltr &, html.Android.page-rtl & { text-decoration: underline; }
-				html.page-rtl & { text-decoration: overline; }
 			}
 			&.bibi-bookinfo-inactive-link {
 				color: inherit !important;
@@ -1323,7 +1325,7 @@ div#bibi-nombre {
 	width: 100%;
 	height: $scrollbar-thumb-size;
 	html.slider-opened & {
-		border-radius: 2px;
+		border-radius: 8px;
 		height: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
 		//height: 75%;
 	}
@@ -1495,152 +1497,138 @@ div#bibi-slider {
 
 
 $arrow-bar-length: $top-bar-height;
-$offset_glowing: 8px;
+$arrow-icon-size: $arrow-bar-length * 0.5;
 
 
 div#bibi-arrow-back,
 div#bibi-arrow-forward {
-	display: none; html.arrows-active & { display: block; }
-	position: fixed;
-	z-index: $z-index_arrow;
-	margin: auto;
-	line-height: 1;
-	&, &:before {
-		transition: .4s cubic-bezier(.2,.8,.8,1.6);
-		html.busy & {
-			transition: none;
+	//// Layout
+	& {
+		display: none; html.arrows-active & { display: block; }
+		position: fixed;
+		z-index: $z-index_arrow;
+		margin: auto;
+		line-height: 1;
+		&:before, &:after {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+		}
+		&:before { // icon
+			@include font-icon("ElegantIcons");
+			z-index: 2;
+			margin: auto;
+			width: $arrow-icon-size;
+			height: $arrow-icon-size;
+			text-align: center;
+			vertical-align: middle;
+			line-height: $arrow-icon-size;
+			text-indent: -.05em;
+			font-size: $arrow-icon-size;
+			border-radius: 50%;
+			color: white;//rgb(96,96,96);
+			background: black;
+		}
+		&:after { // edge shadow
+			content: "";
+			z-index: 1;
 		}
 	}
-	&:before, &:after {
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-	}
-	&:before { // icon
-	//	@include font-icon("Material Icons");
-		@include font-icon("ElegantIcons");
-		z-index: 2;
-		margin: auto;
-		width: $arrow-bar-length;
-		height: $arrow-bar-length;
-		text-align: center;
-		vertical-align: middle;
-		line-height: $arrow-bar-length * 1.025;
-		text-indent: -.05em;
-		font-size: $arrow-bar-length;
-		border-radius: 50%;
-	}
-	&:after { // edge shadow
-		content: "";
-		z-index: 1;
-	}
-	html.appearance-ttb & { // ↑↓
+	html.appearance-ttb & {
+		// ↑↓
 		left: 0; right: 0; width: 100%; width: 100vw; height: 0;
 		&:before { left: 0; right: 0; }
 		&:after  { left: 0; right: 0; width: 100%; height: $arrow-bar-length; }
 	}
 	html.appearance-ltr &,
-	html.appearance-rtl & { // ←→
+	html.appearance-rtl & {
+		// ←→
 		top: 0; bottom: 0; width: 0; height: 100%; height: 100vh;
 		&:before { top: 0; bottom: 0; }
 		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
 	}
-}
-
-@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing, $cursor) {
-	#{$dir}: 0;
-	&:before, &:after { transform-origin: $transform-origin; }
-	&:before {
-		#{$dir}: 0;//$button-group-margin;
-		content: $icon-code;
-		color: rgb(128,128,128);
-		transform: scale(0.9);
-		opacity: 0;
+	html.busy & {
+		&:before, &:after {
+			transition: none !important;
+			opacity: 0 !important;
+		}
 	}
-	&:after {
-		#{$dir}: $arrow-bar-length * -1;
-		opacity: 0;
-		&         { background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
-		&.glowing { background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.250)); }
-	}
-	&.available {
+	//// Interaction
+	& {
+		&:before, &:after {
+			transition-duration: 1s;
+		}
 		&:before {
 			opacity: 0;
+			transform: scale(1);
+			transition-timing-function: cubic-bezier(.2, .8, .8, 1.6);
 		}
-		&.hover, &.active, &.glowing {
-			&:before, &:after {
-				opacity: 1;
-			}
+		&:after {
+			opacity: 1;
+			transition-timing-function: ease-out;
 		}
-		&.hover, &.active {
-			cursor: $cursor;
+	}
+	&.available.hover {
+		cursor: pointer;
+		&:before, &:after {
+			transition-duration: .2s;
 		}
-		&.hover {
-			&:before, &:after { transition-duration: .2s; }
-			&:before {
-				transform: scale(1);
-			}
-			&:after { #{$dir}: 0; }
+		&:before {
+			transform: scale(1);
+			opacity: 1;
 		}
-		&.active {
-			&:before, &:after { transition-duration: .1s; }
-			&:before { #{$dir}: $button-group-margin / 2; transform: scale(0.9); }
+	}
+	&.available.active {
+		&:before, &:after {
+			transition-duration: .1s;
 		}
-		&.glowing {
-			&:before {
-				//content: $icon-code_glowing;
-				color: white;
-				background: rgba(black, 0.69);
-//				box-shadow: 0 0 0 4px rgba(white, 0.8);
-				transform: scale(1);
-			}
+		&:before {
+			transform: scale(.75);
+		}
+	}
+	&.available.glowing {
+		&:before, &:after {
+			transition-duration: .1s;
+		}
+		&:before {
+			transform: scale(2);
+			opacity: 1;
 		}
 	}
 }
 
-html.appearance-ltr div#bibi-arrow-back,
-html.appearance-rtl div#bibi-arrow-forward { // ←
-//	@include arrow-variation(left, 0% 50%, "\e314", "", pointer); /*keyboard_arrow_left*/
-	@include arrow-variation(left, 0% 50%, "\34", "\e045", pointer); // arrow_carrot-left, arrow_carrot-left_alt
-	&.glowing {
-		&:before {
-			margin-left: $offset_glowing;
-		}
+@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing) {
+	& {
+		#{$dir}: 0;
+		&:before, &:after { transform-origin: $transform-origin; }
+		&:before { content: $icon-code; #{$dir}: $button-group-margin; }
+		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.250)); }
+	}
+	&.available.hover, &.available.active, &.available.glowing {
+		&:after { #{$dir}: 0; }
+	}
+	&.available.glowing {
+		&:before { content: $icon-code_glowing; #{$dir}: 8px; }
 	}
 }
-html.appearance-ltr div#bibi-arrow-forward,
-html.appearance-rtl div#bibi-arrow-back { // →
-//	@include arrow-variation(right, 100% 50%, "\e315", "", pointer); /*keyboard_arrow_right*/
-	@include arrow-variation(right, 100% 50%, "\35", "\e046", pointer); // arrow_carrot-right, arrow_carrot-right_alt
-	&.glowing {
-		&:before {
-			margin-right: $offset_glowing;
-		}
-	}
+
+html.appearance-ttb div#bibi-arrow-back {
+	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\32", "\32"); // "\32" arrow_carrot-up // "\e043" arrow_carrot-up_alt
 }
-html.appearance-ttb div#bibi-arrow-back { // ↑
-//	@include arrow-variation(top, 50% 0%, "\e316", "", pointer); /*keyboard_arrow_up*/
-	@include arrow-variation(top, 50% 0%, "\32", "\e043", pointer); // arrow_carrot-up, arrow_carrot-up_alt
-	&.glowing {
-		&:before {
-			margin-top: $offset_glowing;
-		}
-	}
+html.appearance-ltr div#bibi-arrow-forward, html.appearance-rtl div#bibi-arrow-back {
+	/* → */ @include arrow-variation( right, 100%  50%, "\35", "\35"); // "\35" arrow_carrot-right // "\e046" arrow_carrot-right_alt
 }
-html.appearance-ttb.notifier-shown div#bibi-arrow-back { // ↑
-	&.glowing {
-		&:before {
-			margin-top: $top-bar-height + $offset_glowing;
-		}
-	}
+html.appearance-ttb div#bibi-arrow-forward {
+	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\33", "\33"); // "\33" arrow_carrot-down // "\e044" arrow_carrot-down_alt
 }
-html.appearance-ttb div#bibi-arrow-forward { // ↓
-//	@include arrow-variation(bottom, 50% 100%, "\e313", "", pointer); /*keyboard_arrow_down*/
-	@include arrow-variation(bottom, 50% 100%, "\33", "\e044", pointer); // arrow_carrot-down, arrow_carrot-down_alt
-	&.glowing {
-		&:before {
-			margin-bottom: $offset_glowing;
-		}
+html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
+	/* ← */ @include arrow-variation(  left,   0%  50%, "\34", "\34"); // "\34" arrow_carrot-left // "\e045" arrow_carrot-left_alt
+}
+
+html.appearance-ttb.notifier-shown div#bibi-arrow-back {
+	/* ↑ */ // with Notifier
+	&.available.glowing {
+		&:before { top: 8px + $top-bar-height; }
 	}
 }
 
