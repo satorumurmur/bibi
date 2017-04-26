@@ -11,10 +11,10 @@
 Bibi.x({
 
     name: "FontSize",
-    description: "Font Size Optimizer",
+    description: "Font Size Optimizer for BiB/i",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "1.0.1",
-    build: 201704062136
+    version: "1.1.0",
+    build: Bibi["build"]
 
 })(function() {
 
@@ -90,8 +90,14 @@ Bibi.x({
     X.FontSize.Button = X.FontSize.ButtonGroup.addButton({
         Type: "toggle",
         Labels: {
-            default: { default: 'Change Font Size', ja: '文字サイズを変更' },
-            active:  { default: 'Close Font Size Menu', ja: '文字サイズメニューを閉じる' }
+            default: {
+                default: 'Change Font Size',
+                ja: '文字サイズを変更'
+            },
+            active: {
+                default: 'Close Font Size Menu',
+                ja: '文字サイズメニューを閉じる'
+            }
         },
         //className: 'bibi-button-fontsize bibi-button-fontsize-change',
         Icon: '<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-change"></span>',
