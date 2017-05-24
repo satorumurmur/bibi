@@ -11,6 +11,11 @@ Bibi.Preset = {
 
 "website-name-in-title"      : "", // "" or name of your website replaces string "BiB/i" in <title>.
 
+"website-name-in-menu"       : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
+"website-href"               : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
+
+"remove-bibi-website-link"   : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
+
 // -------------------------------------------------------------------------------------------------
 
 "bookshelf"                  : "../bookshelf/", // relative path from bib/i/index.html (if the origin is included in "trustworthy-origins", URI begins with "http://" or "https://" for COR-allowed server is OK).

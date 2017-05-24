@@ -2771,6 +2771,8 @@ I.createMenu = function() {
     if(!S["fix-reader-view-mode"])                                                                     I.createMenu.SettingMenuComponents.push("ViewModeButtons");
     if(O.WindowEmbedded)                                                                               I.createMenu.SettingMenuComponents.push("NewWindowButton");
     if(O.FullscreenEnabled && !O.Mobile)                                                               I.createMenu.SettingMenuComponents.push("FullscreenButton");
+    if(S["website-href"] && /^https?:\/\/[^\/]+/.test(S["website-href"]) && S["website-name-in-menu"]) I.createMenu.SettingMenuComponents.push("WebsiteLink");
+    if(!S["remove-bibi-website-link"])                                                                 I.createMenu.SettingMenuComponents.push("BibiWebsiteLink");
     if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
     E.dispatch("bibi:created-menu");
@@ -2822,6 +2824,7 @@ I.createMenu.createSettingMenu = function() {
 
     if(I.createMenu.SettingMenuComponents.includes("ViewModeButtons")                                                                   ) I.createMenu.createSettingMenu.createViewModeSection();
     if(I.createMenu.SettingMenuComponents.includes("NewWindowButton") || I.createMenu.SettingMenuComponents.includes("FullscreenButton")) I.createMenu.createSettingMenu.createWindowSection();
+    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")     || I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink") ) I.createMenu.createSettingMenu.createLinkageSection();
 
 };
 
@@ -2943,6 +2946,40 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
 
     I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
         Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
+        ButtonGroup: {
+            Buttons: Buttons
+        }
+    });
+
+};
+
+
+I.createMenu.createSettingMenu.createLinkageSection = function() {
+
+    var Buttons = [];
+
+    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) Buttons.push({
+        Type: "link",
+        Labels: {
+            default: { default: S["website-name-in-menu"].replace(/&/gi, '&amp;').replace(/</gi, '&lt;').replace(/>/gi, '&gt;') }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+        href: S["website-href"],
+        target: "_blank"
+    });
+
+    if(I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")) Buttons.push({
+        Type: "link",
+        Labels: {
+            default: { default: "BiB/i | Official Website" }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+        href: Bibi.SiteHref,
+        target: "_blank"
+    });
+
+    I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Link' + (Buttons.length > 1 ? 's' : ''), ja: 'リンク' } },
         ButtonGroup: {
             Buttons: Buttons
         }
@@ -4672,6 +4709,7 @@ O.SettingTypes = {
         "flipper-width"
     ],
     Boolean: [
+        "remove-bibi-website-link",
         "page-breaking"
     ]
 };
