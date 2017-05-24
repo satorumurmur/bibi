@@ -2766,7 +2766,12 @@ I.createMenu = function() {
     ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
 
     I.createMenu.createPanelSwitch();
-    I.createMenu.createSettingMenu();
+
+    I.createMenu.SettingMenuComponents = [];
+    if(!S["fix-reader-view-mode"])                                                                     I.createMenu.SettingMenuComponents.push("ViewModeButtons");
+    if(O.WindowEmbedded)                                                                               I.createMenu.SettingMenuComponents.push("NewWindowButton");
+    if(O.FullscreenEnabled && !O.Mobile)                                                               I.createMenu.SettingMenuComponents.push("FullscreenButton");
+    if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
     E.dispatch("bibi:created-menu");
 
@@ -2799,11 +2804,6 @@ I.createMenu.createPanelSwitch = function() {
 
 I.createMenu.createSettingMenu = function() {
 
-    var CreateViewModeSection = (!S["fix-reader-view-mode"]);
-    var CreateWindowSection   = (O.WindowEmbedded || (!O.Mobile && O.FullscreenEnabled));
-
-    if(!CreateViewModeSection && !CreateWindowSection) return false;
-
     I.Menu.Config = {};
 
     // Button
@@ -2820,8 +2820,8 @@ I.createMenu.createSettingMenu = function() {
     // Sub Panel
     I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_change-view" });
 
-    if(CreateViewModeSection) I.createMenu.createSettingMenu.createViewModeSection();
-    if(CreateWindowSection)   I.createMenu.createSettingMenu.createWindowSection();
+    if(I.createMenu.SettingMenuComponents.includes("ViewModeButtons")                                                                   ) I.createMenu.createSettingMenu.createViewModeSection();
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton") || I.createMenu.SettingMenuComponents.includes("FullscreenButton")) I.createMenu.createSettingMenu.createWindowSection();
 
 };
 
@@ -2901,13 +2901,10 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
 
 I.createMenu.createSettingMenu.createWindowSection = function() {
 
-    I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
-        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
-        ButtonGroup: {}
-    });
+    var Buttons = [];
 
     // New Window
-    if(O.WindowEmbedded) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) Buttons.push({
         Type: "link",
         Labels: {
             default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
@@ -2918,7 +2915,7 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
     });
 
     // Fullscreen
-    if(!O.Mobile && O.FullscreenEnabled) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
+    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) Buttons.push({
         Type: "toggle",
         Labels: {
             default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
@@ -2941,6 +2938,13 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
                 E.dispatch("bibi:exited-fullscreen");
                 sML.removeClass(O.HTML, "fullscreen");
             }
+        }
+    });
+
+    I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
+        ButtonGroup: {
+            Buttons: Buttons
         }
     });
 
