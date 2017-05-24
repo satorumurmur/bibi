@@ -494,13 +494,13 @@ L.processPackageDocument = function(Doc) {
         B.WritingMode = "lr-tb";
     }
 
-    var IDFragments = [];
-    if(B.Title)     IDFragments.push(B.Title);
-    if(B.Creator)   IDFragments.push(B.Creator);
-    if(B.Publisher) IDFragments.push(B.Publisher);
-    if(IDFragments.length) {
+    if(B.Title) {
+        var BookIDFragments = [B.Title];
+        if(B.Creator)   BookIDFragments.push(B.Creator);
+        if(B.Publisher) BookIDFragments.push(B.Publisher);
+        BookIDFragments = BookIDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">");
         O.Title.innerHTML = "";
-        O.Title.appendChild(document.createTextNode(IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, "*:") + " | BiB/i"));
+        O.Title.appendChild(document.createTextNode(BookIDFragments + " | " + (S["website-name-in-title"] ? S["website-name-in-title"] : "BiB/i")));
     }
 
     var IDLogs = [];

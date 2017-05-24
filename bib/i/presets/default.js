@@ -9,6 +9,10 @@ Bibi.Preset = {
 
 // -------------------------------------------------------------------------------------------------
 
+"website-name-in-title"      : "", // "" or name of your website replaces string "BiB/i" in <title>.
+
+// -------------------------------------------------------------------------------------------------
+
 "bookshelf"                  : "../bookshelf/", // relative path from bib/i/index.html (if the origin is included in "trustworthy-origins", URI begins with "http://" or "https://" for COR-allowed server is OK).
 
 "reader-view-mode"           : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
