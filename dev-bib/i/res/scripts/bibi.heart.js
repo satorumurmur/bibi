@@ -1016,9 +1016,9 @@ L.postprocessItem = function(Item) {
     Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
 
     var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
-         if(!XMLLang &&  Lang) Item.HTML.setAttribute("xml:lang", Lang);
-    else if( XMLLang && !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
-    else if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
+         if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
+    else if(!XMLLang         ) Item.HTML.setAttribute("xml:lang", Lang);
+    else if(            !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
 
     sML.addClass(Item.HTML, sML.Environments.join(" "));
     sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
