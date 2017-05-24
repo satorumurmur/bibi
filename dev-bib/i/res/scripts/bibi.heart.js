@@ -20,8 +20,8 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 
 document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welcome, 0); });
 
-
-Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi';
+Bibi.SiteHref = "http://bibi.epub.link";
+Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi.SiteHref + ' - [en] https://github.com/satorumurmur/bibi';
 
 
 Bibi.welcome = function() {
@@ -101,7 +101,7 @@ Bibi.initialize = function() {
                 innerHTML: [
                     '<span lang="en">', Msg["en"], '</span>',
                     '<span lang="ja">', Msg["ja"], '</span>',
-                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi.SiteHref + '" target="_blank">$1</a>')
             })
         );
         I.note('(Your Browser Is Not Compatible)', 99999999999);
@@ -3153,7 +3153,7 @@ I.createPoweredBy = function() {
 
     I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
         '<p>',
-            '<a href="http://bibi.epub.link" target="_blank" title="BiB/i | Web Site">',
+            '<a href="' + Bibi.SiteHref + '" target="_blank" title="BiB/i | Official Website">',
                 '<span>BiB/i</span>',
                 '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
                 '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
