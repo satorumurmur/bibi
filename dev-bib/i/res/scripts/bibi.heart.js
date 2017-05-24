@@ -783,7 +783,7 @@ L.preprocessResources = function() {
             if(!(sML.UA.Gecko || sML.UA.Edge)) return resolve();
             var FilesToBeLoaded = 0;
             for(var FilePath in B.Package.Manifest.Files) {
-                if(/\.(css|x?html?)$/.test(FilePath)) {
+                if(/\.(css|xhtml|xml|html?)$/.test(FilePath)) {
                     B.Files[FilePath] = "";
                     FilesToBeLoaded++;
                 }
@@ -906,11 +906,11 @@ L.preprocessResources.Settings = {
         }
     },
     HTML: {
-        FileExtensionRE: /\.x?html?$/,
+        FileExtensionRE: /\.(xhtml|xml|html?)$/,
         ReplaceRules: [
             [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
         ],
-        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.x?html?)(['"][^>]*>)/g,
+        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.(xhtml|xml|html?))(['"][^>]*>)/g,
         ResAttributesAndExtensions: {
             "href"       : "css",
             "src"        : "gif|png|jpe?g|svg|js|mp[34]|m4[av]|webm",
@@ -960,7 +960,7 @@ L.loadItem = function(Item) {
     Item.TimeCard = {};
     Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
     var Path = Item.Path;
-    if(/\.(x?html?)$/i.test(Path)) {
+    if(/\.(xhtml|xml|html?)$/i.test(Path)) {
         // If HTML or Others
         if(B.Files[Path]) {
             L.loadItem.writeItemHTML(Item, B.Files[Path]);
@@ -4378,7 +4378,6 @@ O.download = function(URI, MimeType) {
         var XHR = new XMLHttpRequest();
         if(MimeType) XHR.overrideMimeType(MimeType);
         XHR.open('GET', URI, true);
-        //if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
         XHR.onloadend = function() {
             XHR.status === 200 ? resolve(XHR) : reject(XHR);
         };
