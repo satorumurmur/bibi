@@ -20,8 +20,8 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 
 document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welcome, 0); });
 
-
-Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] http://bibi.epub.link - [en] https://github.com/satorumurmur/bibi';
+Bibi.SiteHref = "http://bibi.epub.link";
+Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi.SiteHref + ' - [en] https://github.com/satorumurmur/bibi';
 
 
 Bibi.welcome = function() {
@@ -101,7 +101,7 @@ Bibi.initialize = function() {
                 innerHTML: [
                     '<span lang="en">', Msg["en"], '</span>',
                     '<span lang="ja">', Msg["ja"], '</span>',
-                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="http://bibi.epub.link/" target="_blank">$1</a>')
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi.SiteHref + '" target="_blank">$1</a>')
             })
         );
         I.note('(Your Browser Is Not Compatible)', 99999999999);
@@ -494,13 +494,13 @@ L.processPackageDocument = function(Doc) {
         B.WritingMode = "lr-tb";
     }
 
-    var IDFragments = [];
-    if(B.Title)     IDFragments.push(B.Title);
-    if(B.Creator)   IDFragments.push(B.Creator);
-    if(B.Publisher) IDFragments.push(B.Publisher);
-    if(IDFragments.length) {
+    if(B.Title) {
+        var BookIDFragments = [B.Title];
+        if(B.Creator)   BookIDFragments.push(B.Creator);
+        if(B.Publisher) BookIDFragments.push(B.Publisher);
+        BookIDFragments = BookIDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">");
         O.Title.innerHTML = "";
-        O.Title.appendChild(document.createTextNode(IDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, "*:") + " | BiB/i"));
+        O.Title.appendChild(document.createTextNode(BookIDFragments + " | " + (S["website-name-in-title"] ? S["website-name-in-title"] : "BiB/i")));
     }
 
     var IDLogs = [];
@@ -783,7 +783,7 @@ L.preprocessResources = function() {
             if(!(sML.UA.Gecko || sML.UA.Edge)) return resolve();
             var FilesToBeLoaded = 0;
             for(var FilePath in B.Package.Manifest.Files) {
-                if(/\.(css|x?html?)$/.test(FilePath)) {
+                if(/\.(css|xhtml|xml|html?)$/.test(FilePath)) {
                     B.Files[FilePath] = "";
                     FilesToBeLoaded++;
                 }
@@ -906,11 +906,11 @@ L.preprocessResources.Settings = {
         }
     },
     HTML: {
-        FileExtensionRE: /\.x?html?$/,
+        FileExtensionRE: /\.(xhtml|xml|html?)$/,
         ReplaceRules: [
             [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
         ],
-        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.x?html?)(['"][^>]*>)/g,
+        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.(xhtml|xml|html?))(['"][^>]*>)/g,
         ResAttributesAndExtensions: {
             "href"       : "css",
             "src"        : "gif|png|jpe?g|svg|js|mp[34]|m4[av]|webm",
@@ -960,7 +960,7 @@ L.loadItem = function(Item) {
     Item.TimeCard = {};
     Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
     var Path = Item.Path;
-    if(/\.(x?html?)$/i.test(Path)) {
+    if(/\.(xhtml|xml|html?)$/i.test(Path)) {
         // If HTML or Others
         if(B.Files[Path]) {
             L.loadItem.writeItemHTML(Item, B.Files[Path]);
@@ -1016,9 +1016,9 @@ L.postprocessItem = function(Item) {
     Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
 
     var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
-         if(!XMLLang &&  Lang) Item.HTML.setAttribute("xml:lang", Lang);
-    else if( XMLLang && !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
-    else if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
+         if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
+    else if(!XMLLang         ) Item.HTML.setAttribute("xml:lang", Lang);
+    else if(            !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
 
     sML.addClass(Item.HTML, sML.Environments.join(" "));
     sML.each(Item.Body.querySelectorAll("link"), function() { Item.Head.appendChild(this); });
@@ -2766,7 +2766,14 @@ I.createMenu = function() {
     ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
 
     I.createMenu.createPanelSwitch();
-    I.createMenu.createSettingMenu();
+
+    I.createMenu.SettingMenuComponents = [];
+    if(!S["fix-reader-view-mode"])                                                                     I.createMenu.SettingMenuComponents.push("ViewModeButtons");
+    if(O.WindowEmbedded)                                                                               I.createMenu.SettingMenuComponents.push("NewWindowButton");
+    if(O.FullscreenEnabled && !O.Mobile)                                                               I.createMenu.SettingMenuComponents.push("FullscreenButton");
+    if(S["website-href"] && /^https?:\/\/[^\/]+/.test(S["website-href"]) && S["website-name-in-menu"]) I.createMenu.SettingMenuComponents.push("WebsiteLink");
+    if(!S["remove-bibi-website-link"])                                                                 I.createMenu.SettingMenuComponents.push("BibiWebsiteLink");
+    if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
     E.dispatch("bibi:created-menu");
 
@@ -2799,11 +2806,6 @@ I.createMenu.createPanelSwitch = function() {
 
 I.createMenu.createSettingMenu = function() {
 
-    var CreateViewModeSection = (!S["fix-reader-view-mode"]);
-    var CreateWindowSection   = (O.WindowEmbedded || (!O.Mobile && O.FullscreenEnabled));
-
-    if(!CreateViewModeSection && !CreateWindowSection) return false;
-
     I.Menu.Config = {};
 
     // Button
@@ -2820,8 +2822,9 @@ I.createMenu.createSettingMenu = function() {
     // Sub Panel
     I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_change-view" });
 
-    if(CreateViewModeSection) I.createMenu.createSettingMenu.createViewModeSection();
-    if(CreateWindowSection)   I.createMenu.createSettingMenu.createWindowSection();
+    if(I.createMenu.SettingMenuComponents.includes("ViewModeButtons")                                                                   ) I.createMenu.createSettingMenu.createViewModeSection();
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton") || I.createMenu.SettingMenuComponents.includes("FullscreenButton")) I.createMenu.createSettingMenu.createWindowSection();
+    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")     || I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink") ) I.createMenu.createSettingMenu.createLinkageSection();
 
 };
 
@@ -2901,13 +2904,10 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
 
 I.createMenu.createSettingMenu.createWindowSection = function() {
 
-    I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
-        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
-        ButtonGroup: {}
-    });
+    var Buttons = [];
 
     // New Window
-    if(O.WindowEmbedded) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) Buttons.push({
         Type: "link",
         Labels: {
             default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
@@ -2918,7 +2918,7 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
     });
 
     // Fullscreen
-    if(!O.Mobile && O.FullscreenEnabled) I.Menu.Config.SubPanel.WindowSection.ButtonGroup.addButton({
+    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) Buttons.push({
         Type: "toggle",
         Labels: {
             default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
@@ -2941,6 +2941,47 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
                 E.dispatch("bibi:exited-fullscreen");
                 sML.removeClass(O.HTML, "fullscreen");
             }
+        }
+    });
+
+    I.Menu.Config.SubPanel.WindowSection = I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Window Operation', ja: 'ウィンドウ操作' } },
+        ButtonGroup: {
+            Buttons: Buttons
+        }
+    });
+
+};
+
+
+I.createMenu.createSettingMenu.createLinkageSection = function() {
+
+    var Buttons = [];
+
+    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) Buttons.push({
+        Type: "link",
+        Labels: {
+            default: { default: S["website-name-in-menu"].replace(/&/gi, '&amp;').replace(/</gi, '&lt;').replace(/>/gi, '&gt;') }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+        href: S["website-href"],
+        target: "_blank"
+    });
+
+    if(I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")) Buttons.push({
+        Type: "link",
+        Labels: {
+            default: { default: "BiB/i | Official Website" }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+        href: Bibi.SiteHref,
+        target: "_blank"
+    });
+
+    I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Link' + (Buttons.length > 1 ? 's' : ''), ja: 'リンク' } },
+        ButtonGroup: {
+            Buttons: Buttons
         }
     });
 
@@ -3149,7 +3190,7 @@ I.createPoweredBy = function() {
 
     I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
         '<p>',
-            '<a href="http://bibi.epub.link" target="_blank" title="BiB/i | Web Site">',
+            '<a href="' + Bibi.SiteHref + '" target="_blank" title="BiB/i | Official Website">',
                 '<span>BiB/i</span>',
                 '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
                 '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
@@ -4378,7 +4419,6 @@ O.download = function(URI, MimeType) {
         var XHR = new XMLHttpRequest();
         if(MimeType) XHR.overrideMimeType(MimeType);
         XHR.open('GET', URI, true);
-        //if(/\.x?html$/i.test(URI)) XHR.responseType = "document";
         XHR.onloadend = function() {
             XHR.status === 200 ? resolve(XHR) : reject(XHR);
         };
@@ -4669,6 +4709,7 @@ O.SettingTypes = {
         "flipper-width"
     ],
     Boolean: [
+        "remove-bibi-website-link",
         "page-breaking"
     ]
 };

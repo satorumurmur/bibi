@@ -9,6 +9,15 @@ Bibi.Preset = {
 
 // -------------------------------------------------------------------------------------------------
 
+"website-name-in-title"      : "", // "" or name of your website replaces string "BiB/i" in <title>.
+
+"website-name-in-menu"       : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
+"website-href"               : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
+
+"remove-bibi-website-link"   : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
+
+// -------------------------------------------------------------------------------------------------
+
 "bookshelf"                  : "../bookshelf/", // relative path from bib/i/index.html (if the origin is included in "trustworthy-origins", URI begins with "http://" or "https://" for COR-allowed server is OK).
 
 "reader-view-mode"           : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
@@ -46,7 +55,7 @@ Bibi.Preset = {
 
 "flipper-width"              : 0.3, // ratio (lower than 1) or px (1 or higher)
 
-"page-breaking"              : false, // true or false (if it is true, CSS "page-break-before/after: always;" will work, partially)
+"page-breaking"              : false, // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
 "epub-additional-script"     : "", // path from spine-item or http:// URI or ""
@@ -54,7 +63,7 @@ Bibi.Preset = {
 // =================================================================================================
 
 "extensions": [
-    { "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" }, // if the browser is Internet Explorer, this is always inactive
+    { "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" },
     { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
     { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "base": "auto", "scale-per-step": 1.25 }, // "base": "auto" or pixel-number (if you want to change the default font-size based on the size used most frequently in each HTML)
     { "name": "Share", "src" : "extensions/share/share.js" },
