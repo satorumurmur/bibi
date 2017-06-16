@@ -60,6 +60,7 @@ Bibi.welcome = function() {
         O["pointermove"] = "touchmove";
         O["pointerup"]   = "touchend";
     } else {
+        O.Mobile = false;
         O["resize"] = "resize";
         if(sML.UA.InternetExplorer || sML.UA.Edge) {
             O["pointerdown"] = "pointerdown";
