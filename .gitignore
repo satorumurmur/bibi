@@ -17,6 +17,14 @@ npm-debug.log
 # --------------------------------------------------------------------------------
 bower_components
 
+# BiB/i: Compiled CSS/JavaScript files
+# --------------------------------------------------------------------------------
+bib/i/extensions
+bib/i/res/styles
+bib/i/res/scripts
+bib/i.css
+bib/i.js
+
 # BiB/i: Bookshelf
 # --------------------------------------------------------------------------------
 bib/bookshelf/*
