@@ -3274,12 +3274,12 @@ I.createSlider = function() {
                 I.Slider.Pages.innerHTML = "";
                 R.Spreads.forEach(function(Spread, i) {
                     var SpreadBit = I.Slider.Spreads.appendChild(sML.create("div", { id: "bibi-slider-spreadbit-" + (i + 1) }, { width: (1 / R.Pages.length * Spread.Pages.length * 100) + "%" }));
-                    SpreadBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
+                    SpreadBit.style[S.PPD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
                 });
                 R.Pages.forEach(function(Page, i) {
                     var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }, { width: (1 / R.Pages.length * 100) + "%" }));
                     PageBit.PageNumber = i + 1;
-                    PageBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
+                    PageBit.style[S.PPD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
                     if(I.Nombre) {
                         PageBit.addEventListener(O["pointerover"], function() {
                             if(I.Slider.Sliding) return;
@@ -3333,7 +3333,7 @@ I.createSlider = function() {
                 I.Slider.Sliding = false;
                 E.remove("bibi:moved-pointer", I.Slider.slide);
                 I.Slider.removeEventListener(O["pointermove"], I.Slider.onpointermove);
-                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.ceil(R.Pages.length * I.Slider.slide.SlidedX / I.Slider.offsetWidth * (S.ARD == "rtl" ? -1 : 1));
+                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.ceil(R.Pages.length * I.Slider.slide.SlidedX / I.Slider.offsetWidth * (S.PPD == "rtl" ? -1 : 1));
                      if(TargetPageIndex < 0)                  TargetPageIndex = 0;
                 else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
                 var TargetPage = R.Pages[TargetPageIndex];
