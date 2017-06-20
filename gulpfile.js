@@ -123,8 +123,7 @@ ToBeCleaned.All = S.concat(ToBeCleaned.Scripts, ToBeCleaned.Styles, ToBeCleaned.
 
 gulp.task('update: JSONs', function() {
     return gulp.src([
-        'bower.json',
-        'bib/manifest.json'
+        'bower.json'
     ])
         .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
         .pipe($.replace(/"version"(\s*:\s*)".+?"/, '"version"$1"' + S.getVersion() + '"'))
