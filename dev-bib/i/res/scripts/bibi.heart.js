@@ -3271,16 +3271,21 @@ I.createSlider = function() {
     I.Slider = O.Body.appendChild(
         sML.create("div", { id: "bibi-slider",
             reset: function() {
+                     if(S.ARD == "ttb") I.Slider.SIZE = { L: "Height", l: "height" }, I.Slider.AXIS = { b: "top",   OB: "Top",  ob: "top",  XY: "Y" };
+                else if(S.ARD == "rtl") I.Slider.SIZE = { L: "Width",  l: "width"  }, I.Slider.AXIS = { b: "right", OB: "Left", ob: "left", XY: "X" };
+                else                    I.Slider.SIZE = { L: "Width",  l: "width"  }, I.Slider.AXIS = { b: "left",  OB: "Left", ob: "left", XY: "X" };
                 I.Slider.Spreads.innerHTML = "";
                 I.Slider.Pages.innerHTML = "";
                 R.Spreads.forEach(function(Spread, i) {
-                    var SpreadBit = I.Slider.Spreads.appendChild(sML.create("div", { id: "bibi-slider-spreadbit-" + (i + 1) }, { width: (1 / R.Pages.length * Spread.Pages.length * 100) + "%" }));
-                    SpreadBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
+                    var SpreadBit = I.Slider.Spreads.appendChild(sML.create("div", { id: "bibi-slider-spreadbit-" + (i + 1) }));
+                    SpreadBit.style[I.Slider.SIZE.l] = (  1 / R.Pages.length * Spread.Pages.length * 100) + "%";
+                    SpreadBit.style[I.Slider.AXIS.b] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
                 });
                 R.Pages.forEach(function(Page, i) {
-                    var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }, { width: (1 / R.Pages.length * 100) + "%" }));
+                    var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }));
+                    PageBit.style[I.Slider.SIZE.l] = (  1 / R.Pages.length * 100) + "%";
+                    PageBit.style[I.Slider.AXIS.b] = (100 / R.Pages.length *   i) + "%";
                     PageBit.PageNumber = i + 1;
-                    PageBit.style[S.ARD == "ltr" ? "left" : "right"] = (100 / R.Pages.length * i) + "%";
                     if(I.Nombre) {
                         PageBit.addEventListener(O["pointerover"], function() {
                             if(I.Slider.Sliding) return;
@@ -3300,17 +3305,27 @@ I.createSlider = function() {
                 });
             },
             progress: function() {
-                //if(S.RVM != "paged") return;
-                I.Slider.Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
-                I.Slider.Current.style.width = (100 / R.Pages.length) * R.Current.Pages.length + "%";
-                I.Slider.Current.style[S.PPD == "ltr" ? "left" : "right"] = (R.Current.Pages.StartPage.PageIndex / R.Pages.length * 100) + "%";
+                var Current = I.Slider.Current;
+                Current.style.top = Current.style.right = Current.style.bottom = Current.style.left = Current.style.width = Current.style.height = "";
+                Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
+                if(S.RVM == "paged" || I.Slider.UIState == "active") {
+                    Current.style[I.Slider.SIZE.l] = (100 / R.Pages.length) * R.Current.Pages.length + "%";
+                    Current.style[I.Slider.AXIS.b] = (R.Current.Pages.StartPage.PageIndex / R.Pages.length * 100) + "%";
+                } else {
+                    Current.style[I.Slider.SIZE.l]  = (R.Main["offset" + I.Slider.SIZE.L]  / R.Main["scroll" + I.Slider.SIZE.L] * 100) + "%";
+                    Current.style[I.Slider.AXIS.ob] = (R.Main["scroll" + I.Slider.AXIS.OB] / R.Main["scroll" + I.Slider.SIZE.L] * 100) + "%";
+                }
             },
             slide: function(Eve) {
                 var BibiEvent = O.getBibiEvent(Eve);
-                     if(BibiEvent.Coord.X < I.Slider.offsetLeft)                        BibiEvent.Coord.X = I.Slider.offsetLeft;
-                else if(BibiEvent.Coord.X > I.Slider.offsetLeft + I.Slider.offsetWidth) BibiEvent.Coord.X = I.Slider.offsetLeft + I.Slider.offsetWidth;
-                I.Slider.slide.SlidedX = BibiEvent.Coord.X - I.Slider.slide.StartX;
-                sML.style(I.Slider.Current, { transform: "translateX(" + I.Slider.slide.SlidedX + "px)" });
+                var SliderEdges = [
+                    I.Slider["offset" + I.Slider.AXIS.OB],
+                    I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider["offset" + I.Slider.SIZE.L]
+                ];
+                     if(BibiEvent.Coord[I.Slider.AXIS.XY] < SliderEdges[0]) BibiEvent.Coord[I.Slider.AXIS.XY] = SliderEdges[0];
+                else if(BibiEvent.Coord[I.Slider.AXIS.XY] > SliderEdges[1]) BibiEvent.Coord[I.Slider.AXIS.XY] = SliderEdges[1];
+                I.Slider.slide.SlidedCoord = BibiEvent.Coord[I.Slider.AXIS.XY] - I.Slider.slide.StartCoord;
+                sML.style(I.Slider.Current, { transform: "translate" + I.Slider.AXIS.XY + "(" + I.Slider.slide.SlidedCoord + "px)" });
             },
             startSliding: function(Eve) {
                 if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
@@ -3318,11 +3333,11 @@ I.createSlider = function() {
                 I.Slider.Sliding = true;
                 var EventCoord = O.getBibiEventCoord(Eve);
                 if(Eve.target == I.Slider.Current) {
-                    I.Slider.slide.StartX = EventCoord.X;
-                    I.Slider.slide.SlidedX = 0;
+                    I.Slider.slide.StartCoord = EventCoord[I.Slider.AXIS.XY];
+                    I.Slider.slide.SlidedCoord = 0;
                 } else {
-                    I.Slider.slide.StartX = I.Slider.offsetLeft + I.Slider.Current.offsetLeft + I.Slider.Current.offsetWidth / 2;
-                    I.Slider.slide.SlidedX = EventCoord.X - I.Slider.slide.StartX;
+                    I.Slider.slide.StartCoord = I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.SIZE.L]  / 2;
+                    I.Slider.slide.SlidedCoord = EventCoord[I.Slider.AXIS.XY] - I.Slider.slide.StartCoord;
                 }
                 clearTimeout(I.Slider.Timer_endSliding);
                 sML.addClass(O.HTML, "slider-sliding");
@@ -3334,7 +3349,7 @@ I.createSlider = function() {
                 I.Slider.Sliding = false;
                 E.remove("bibi:moved-pointer", I.Slider.slide);
                 I.Slider.removeEventListener(O["pointermove"], I.Slider.onpointermove);
-                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.ceil(R.Pages.length * I.Slider.slide.SlidedX / I.Slider.offsetWidth * (S.ARD == "rtl" ? -1 : 1));
+                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.round(R.Pages.length * (I.Slider.slide.SlidedCoord / I.Slider["offset" + I.Slider.SIZE.L] * (S.ARD != "ttb" && S.PPD == "rtl" ? -1 : 1)));
                      if(TargetPageIndex < 0)                  TargetPageIndex = 0;
                 else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
                 var TargetPage = R.Pages[TargetPageIndex];
@@ -3395,11 +3410,13 @@ I.createSlider = function() {
     I.setFeedback(I.Slider.Current);
     I.setToggleAction(I.Slider, {
         onopened: function() {
+            I.Slider.progress();
             sML.addClass(O.HTML, "slider-opened");
             //I.Shade.open(); // bad
             E.dispatch("bibi:opened-slider");
         },
         onclosed: function() {
+            I.Slider.progress();
             sML.removeClass(O.HTML, "slider-opened");
             //I.Shade.close(); // bad
             E.dispatch("bibi:closed-slider");
@@ -3428,17 +3445,12 @@ I.createSlider = function() {
 
     // Optimize to Scrollbar Size
     sML.appendStyleRule([
-        "html.view-paged div#bibi-slider"
+        "html.view-paged div#bibi-slider",
+        "html.view-horizontal div#bibi-slider"
     ].join(", "), "height: " + (O.Scrollbars.Height) + "px;");
     sML.appendStyleRule([
         "html.view-vertical div#bibi-slider"
-    ].join(", "), "width: calc(100% - " + (O.Scrollbars.Width) + "px);");
-    /*
-    sML.appendStyleRule([
-        "html.view-vertical.panel-opened div#bibi-slider",
-        "html.view-vertical.subpanel-opened div#bibi-slider"
-    ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
-    */
+    ].join(", "), "width: " + (O.Scrollbars.Width) + "px;");
 
     E.dispatch("bibi:created-slider");
 

@@ -24,10 +24,10 @@ $color-in-subpanel: $color_blue-hilight;
 $scrollbar-track-background-color: rgb(255,255,255);
 $scrollbar-track-border-color: rgb(232,232,232);
 
-$scrollbar-thumb-background-color: black;
+$scrollbar-thumb-background-color: rgb(64,64,64);
 $scrollbar-thumb-background-color_hover: rgb(96,96,96);
 $scrollbar-thumb-background-color_active: rgb(192,192,192);
-$scrollbar-thumb-border-color: black;
+$scrollbar-thumb-border-color: rgb(32,32,32);
 
 $nombre-box-background-color: rgba(240,240,240,0.9);
 $nombre-box-background-color: rgb(240,240,240);
@@ -51,7 +51,7 @@ $button-group-margin: 4px;
 $top-bar-height: $icon-size + $button-group-margin * 2;
 $bottom-bar-height: $top-bar-height;
 
-$slider-size: $bottom-bar-height * 1.5;
+$slider-size: $bottom-bar-height * 2;
 
 $nombre-box-width: 120px;
 $nombre-box-height: 20px;

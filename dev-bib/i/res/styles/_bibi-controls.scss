@@ -980,6 +980,16 @@ div#bibi-menu {
 	}
 }
 
+html.slider-opened.view-vertical div#bibi-menu{
+	width: calc(100% - #{$slider-size});
+}
+
+html.view-vertical.slider-opened.panel-opened div#bibi-menu,
+html.view-vertical.slider-opened.subpanel-opened div#bibi-menu {
+	width: 100%;
+	padding-right: $slider-size;
+}
+
 
 // - Menu-L & Menu-R
 // --------------------------------------------------------------------------------
@@ -1102,7 +1112,8 @@ div#bibi-help {
 	html.subpanel-opened & {
 		bottom: 0 !important;
 	}
-	html.slider-opened & {
+	html.slider-opened.view-paged &,
+	html.slider-opened.view-horizontal & {
 		bottom: $slider-size !important;
 	}
 	p {
@@ -1313,33 +1324,50 @@ div#bibi-nombre {
 // --------------------------------------------------------------------------------
 
 @mixin slider-thumb-base() {
+	$length: 100%;
+	$breadth: $scrollbar-thumb-size;
+	$breadth-opened: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
 	content: "";
 	display: block;
 	box-sizing: border-box;
 	display: block;
 	position: absolute;
-	top: 0; bottom: 0;
 	margin: auto;
 	border: solid 1px;
 	border-radius: $scrollbar-thumb-size * 0.5;
-	width: 100%;
-	height: $scrollbar-thumb-size;
+	html.view-paged &,
+	html.view-horizontal & {
+		@include trbl(0, auto);
+		width: $length;
+		height: $breadth;
+	}
+	html.view-vertical & {
+		@include trbl(auto, 0);
+		width: $breadth;
+		height: $length;
+	}
 	html.slider-opened & {
-		border-radius: 8px;
-		height: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
-		//height: 75%;
+		border-radius: 2px;
+	}
+	html.view-paged.slider-opened &,
+	html.view-horizontal.slider-opened & {
+		height: $breadth-opened;
+	}
+	html.view-vertical.slider-opened & {
+		width: $breadth-opened;
 	}
 }
 
 div#bibi-slider {
+	$length: 100%;
+	$breadth: $scrollbar-track-size;
+	position: relative;
 	box-sizing: border-box;
 	display: block;
 	overflow: hidden;
 	position: absolute;
 	z-index: $z-index_slider;
-	bottom: 0;
-	width: 100%;
-	border-top: solid 0 $scrollbar-track-border-color;
+	border: solid 0 $scrollbar-track-border-color;
 	background: $scrollbar-track-background-color;
 	cursor: pointer;
 	&,
@@ -1350,21 +1378,54 @@ div#bibi-slider {
 			transition: none;
 		}
 	}
-	html.view-paged & {
-		border-top-width: 1px;
-		height: $scrollbar-track-size;
+	html.view-paged &,
+	html.view-horizontal & {
+		@include trbl(auto, 0, 0, 0);
+		width: $length;
+		height: $breadth;
 	}
-	html.view-horizontal &,
-	html.view-vertical &,
-	html.iOS &,
-	html.Android & {
-		border-top-width: 0;
-		height: 0;
+	html.view-vertical & {
+		@include trbl(auto, 0, 0, auto);
+		width: $breadth;
+		height: $length;
+	}
+	html.view-paged &,
+	html.view-horizontal & {
+		border-top-width: 1px;
+	}
+	html.view-vertical & {
+		border-left-width: 1px;
 	}
 	html.slider-opened & {
-		border-top-width: 1px !important;
-		height: $slider-size !important;
 		background: rgba($scrollbar-track-background-color, 0.96);
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			margin: 0;
+			width: 0;
+			height: 0;
+			border: dotted 0 rgba($scrollbar-thumb-background-color, 0.125);
+		}
+	}
+	html.slider-opened.view-paged &,
+	html.slider-opened.view-horizontal & {
+		height: $slider-size !important;
+		&:before {
+			@include trbl(50%, 0, auto, 0);
+			width: $length;
+			border-top-width: 1px;
+			transform: translateY(-0.5px);
+		}
+	}
+	html.slider-opened.view-vertical & {
+		width: $slider-size !important;
+		&:before {
+			@include trbl(0, auto, 0, 50%);
+			height: $length;
+			border-left-width: 1px;
+			transform: translateX(-0.5px);
+		}
 	}
 }
 	div#bibi-slider-spreads,
@@ -1374,9 +1435,16 @@ div#bibi-slider {
 			box-sizing: border-box;
 			display: block;
 			position: absolute;
-			bottom: 0;
-			height: 100%;
 			//transition: 0.05s linear;
+			html.view-paged &,
+			html.view-horizontal & {
+				@include trbl(auto, auto, 0, auto);
+				height: 100%;
+			}
+			html.view-vertical & {
+				@include trbl(auto, 0, auto, auto);
+				width: 100%;
+			}
 		}
 	}
 	div#bibi-slider-spreads {
@@ -1384,17 +1452,46 @@ div#bibi-slider {
 			z-index: 1;
 			//overflow: hidden;
 			&:before {
+				$length: 1px;
+				$breadth: 4px;
+				$breadth-opened: 8px;
 				content: "";
 				display: block;
 				position: absolute;
-				top: 0; bottom: 0; margin: auto;
-				width: 1px;
-				height: 4px;
-				background: rgba($scrollbar-thumb-background-color, 0.33);
-				html.appearance-rtl & { right: -0.5px; }
-				html.appearance-ltr & { left: -0.5px; }
+				margin: auto;
+				border-radius: 1px;
+				background: rgba($scrollbar-thumb-background-color, 0.25);
+				opacity: 0;
+				html.view-paged &,
+				html.view-horizontal & {
+					@include trbl(0, auto);
+					width: $length;
+					height: $breadth;
+				}
+				html.view-vertical & {
+					@include trbl(auto, 0);
+					width: $breadth;
+					height: $length;
+				}
+				html.appearance-ltr & {
+					left: $length * -0.5;
+				}
+				html.appearance-rtl & {
+					right: $length * -0.5;
+				}
+				html.appearance-ttb & {
+					top: $length * -0.5;
+				}
+				html.slider-opened.view-paged &,
+				html.slider-opened.view-horizontal & {
+					height: $breadth-opened;
+				}
+				html.slider-opened.view-vertical & {
+					width: $breadth-opened;
+				}
+				//html.view-paged &,
 				html.slider-opened & {
-					height: 8px;
+					opacity: 1;
 				}
 			}
 			&:first-child:before {
@@ -1459,21 +1556,39 @@ div#bibi-slider {
 			}
 			&.two-pages {
 				html.slider-opened & {
-					&:before, &:after {
-						width: 50%;
-					}
 					&:after {
 						content: "";
 						display: block;
 					}
 				}
-				html.page-ltr &:before,
-				html.page-rtl &:after {
+				html.slider-opened.view-paged &,
+				html.slider-opened.view-horizontal & {
+					&:before, &:after {
+						width: 50%;
+					}
+				}
+				html.slider-opened.view-vertical & {
+					&:before, &:after {
+						height: 50%;
+					}
+				}
+				html.view-paged.page-ltr &:before,
+				html.view-horizontal.page-ltr &:before,
+				html.view-paged.page-rtl &:after,
+				html.view-horizontal.page-rtl &:after {
 					left:  0;
 				}
-				html.page-rtl &:before,
-				html.page-ltr &:after {
+				html.view-paged.page-rtl &:before,
+				html.view-horizontal.page-rtl &:before,
+				html.view-paged.page-ltr &:after,
+				html.view-horizontal.page-ltr &:after {
 					right: 0;
+				}
+				html.view-vertical.page-ltr &:after {
+					top: 0;
+				}
+				html.view-vertical.page-rtl &:after {
+					bottom:  0;
 				}
 				html.slider-opened.page-ltr &:before,
 				html.slider-opened.page-rtl &:after {
