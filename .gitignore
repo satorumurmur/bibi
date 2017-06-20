@@ -13,25 +13,17 @@ Icon
 node_modules
 npm-debug.log
 
-# Ruby / Gem / Rack
-# --------------------------------------------------------------------------------
-.bundle
-vendor/bundle
-# Gemfile
-# Gemfile.lock
-
-# Sprockets
-# --------------------------------------------------------------------------------
-# config.ru
-
 # Bower
 # --------------------------------------------------------------------------------
 bower_components
 
-# SASS
+# BiB/i: Compiled CSS/JavaScript files
 # --------------------------------------------------------------------------------
-# config.rb
-*.sass-cache
+bib/i/extensions
+bib/i/res/styles
+bib/i/res/scripts
+bib/i.css
+bib/i.js
 
 # BiB/i: Bookshelf
 # --------------------------------------------------------------------------------
