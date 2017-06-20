@@ -1605,6 +1605,7 @@ R.resetItem.asReflowableItem = function(Item) {
     var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
     ItemL = (PageL + PageGap) * Pages - PageGap;
     Item.style[S.SIZE.l] = ItemL + "px";
+    if(sML.UA.InternetExplorer) Item.HTML.style[S.SIZE.l] = "100%";
     var ItemBoxB = PageB;
     var ItemBoxL = ItemL + ((S.RVM == "paged" && Item.Spreaded && Pages % 2) ? (PageGap + PageL) : 0);
     if(!/fill/.test(ItemRef["bibi:layout"])) {
