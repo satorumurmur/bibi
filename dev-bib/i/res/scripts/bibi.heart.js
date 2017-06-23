@@ -3305,6 +3305,7 @@ I.createSlider = function() {
                 });
             },
             progress: function() {
+                if(I.Slider.Sliding) return;
                 var Current = I.Slider.Current;
                 Current.style.top = Current.style.right = Current.style.bottom = Current.style.left = Current.style.width = Current.style.height = "";
                 Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
@@ -3316,53 +3317,55 @@ I.createSlider = function() {
                     Current.style[I.Slider.AXIS.ob] = (R.Main["scroll" + I.Slider.AXIS.OB] / R.Main["scroll" + I.Slider.SIZE.L] * 100) + "%";
                 }
             },
+            flip: function() {
+                var SlidedDistance = I.Slider.Status.CurrentCoord - I.Slider.Status.StartCoord;
+                var TargetPageIndex = I.Slider.Status.StartPageIndex + Math.round(R.Pages.length * (SlidedDistance / I.Slider["offset" + I.Slider.SIZE.L] * (S.ARD != "ttb" && S.PPD == "rtl" ? -1 : 1)));
+                     if(TargetPageIndex < 0)                  TargetPageIndex = 0;
+                else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
+                var TargetPage = R.Pages[TargetPageIndex];
+                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
+                    E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0 });
+                }
+                if(I.Slider.Sliding) {
+                    sML.style(I.Slider.Current, { transform: "translate" + I.Slider.AXIS.XY + "(" + SlidedDistance + "px)" });
+                } else {
+                    sML.style(I.Slider.Current, { transform: "" });
+                    I.Slider.progress();
+                }
+            },
             slide: function(Eve) {
-                var BibiEvent = O.getBibiEvent(Eve);
                 var SliderEdges = [
                     I.Slider["offset" + I.Slider.AXIS.OB],
                     I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider["offset" + I.Slider.SIZE.L]
                 ];
-                     if(BibiEvent.Coord[I.Slider.AXIS.XY] < SliderEdges[0]) BibiEvent.Coord[I.Slider.AXIS.XY] = SliderEdges[0];
-                else if(BibiEvent.Coord[I.Slider.AXIS.XY] > SliderEdges[1]) BibiEvent.Coord[I.Slider.AXIS.XY] = SliderEdges[1];
-                I.Slider.slide.SlidedCoord = BibiEvent.Coord[I.Slider.AXIS.XY] - I.Slider.slide.StartCoord;
-                sML.style(I.Slider.Current, { transform: "translate" + I.Slider.AXIS.XY + "(" + I.Slider.slide.SlidedCoord + "px)" });
+                var CurrentCoord = O.getBibiEventCoord(Eve)[I.Slider.AXIS.XY];
+                     if(CurrentCoord < SliderEdges[0]) CurrentCoord = SliderEdges[0];
+                else if(CurrentCoord > SliderEdges[1]) CurrentCoord = SliderEdges[1];
+                I.Slider.Status.CurrentCoord = CurrentCoord;
+                I.Slider.flip();
             },
             startSliding: function(Eve) {
-                if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
                 Eve.preventDefault();
+                if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
                 I.Slider.Sliding = true;
-                var EventCoord = O.getBibiEventCoord(Eve);
-                if(Eve.target == I.Slider.Current) {
-                    I.Slider.slide.StartCoord = EventCoord[I.Slider.AXIS.XY];
-                    I.Slider.slide.SlidedCoord = 0;
-                } else {
-                    I.Slider.slide.StartCoord = I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.SIZE.L]  / 2;
-                    I.Slider.slide.SlidedCoord = EventCoord[I.Slider.AXIS.XY] - I.Slider.slide.StartCoord;
-                }
+                I.Slider.Status = {
+                    StartPageIndex: R.Current.Pages.StartPage.PageIndex,
+                    StartCoord: (Eve.target == I.Slider.Current) ?
+                        O.getBibiEventCoord(Eve)[I.Slider.AXIS.XY] :
+                        I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.AXIS.OB] + I.Slider.Current["offset" + I.Slider.SIZE.L]  / 2
+                };
+                I.Slider.Status.CurrentCoord = I.Slider.Status.StartCoord;
                 clearTimeout(I.Slider.Timer_endSliding);
                 sML.addClass(O.HTML, "slider-sliding");
-                I.Slider.addEventListener(O["pointermove"], I.Slider.onpointermove);
                 E.add("bibi:moved-pointer", I.Slider.slide);
             },
-            endSliding: function() {
+            endSliding: function(Eve) {
                 if(!I.Slider.Sliding) return;
                 I.Slider.Sliding = false;
                 E.remove("bibi:moved-pointer", I.Slider.slide);
-                I.Slider.removeEventListener(O["pointermove"], I.Slider.onpointermove);
-                var TargetPageIndex = R.Current.Pages.StartPage.PageIndex + Math.round(R.Pages.length * (I.Slider.slide.SlidedCoord / I.Slider["offset" + I.Slider.SIZE.L] * (S.ARD != "ttb" && S.PPD == "rtl" ? -1 : 1)));
-                     if(TargetPageIndex < 0)                  TargetPageIndex = 0;
-                else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
-                var TargetPage = R.Pages[TargetPageIndex];
-                var callback = function() {
-                    sML.style(I.Slider.Current, { transform: "" });
-                    I.Slider.Timer_endSliding = setTimeout(function() { sML.removeClass(O.HTML, "slider-sliding"); }, 125);
-                };
-                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
-                    //E.dispatch("bibi:commands:focus-on", 0);
-                    E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0, callback: callback });
-                } else {
-                    callback();
-                }
+                I.Slider.Status.CurrentCoord = O.getBibiEventCoord(Eve)[I.Slider.AXIS.XY];
+                I.Slider.flip();
+                I.Slider.Timer_endSliding = setTimeout(function() { sML.removeClass(O.HTML, "slider-sliding"); }, 125);
             },
             activate: function() {
                 if(I.Nombre) {
@@ -3382,24 +3385,7 @@ I.createSlider = function() {
                 O.HTML.removeEventListener(O["pointerdown"], I.Slider.startSliding);
                 R.Items.concat(O).forEach(function(Item) { Item.HTML.removeEventListener(O["pointerup"], I.Slider.endSliding); });
                 E.remove("bibi:scrolls", I.Slider.progress);
-            },
-            getTargetPage: function(Eve) {
-                var Ratio = O.getBibiEvent(Eve).Coord.X / window.innerWidth;
-                if(S.PPD == "rtl") Ratio = 1 - Ratio;
-                return R.Pages[Math.ceil(R.Pages.length * Ratio) - 1];
-            },
-            onpointermove: function(Eve) {
-                if(!I.Nombre) return;
-                clearTimeout(I.Nombre.Timer_hide);
-                var TargetPage = I.Slider.getTargetPage(Eve);
-                I.Nombre.progress({ Pages: { StartPage: TargetPage, EndPage: TargetPage } });
-            }/*,
-            ontap: function(Eve) {
-                var TargetPage = I.Slider.getTargetPage(Eve);
-                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
-                    E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0 });
-                }
-            }*/
+            }
         })
     );
     I.Slider.Spreads      = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-spreads" }));
