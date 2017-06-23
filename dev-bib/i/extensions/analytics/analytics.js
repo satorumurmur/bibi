@@ -35,7 +35,7 @@ Bibi.x({
         return Hosts;
     })([]));
 
-    E.add("bibi:created-navigation", function() {
+    E.add("bibi:loaded-navigation", function() {
         sML.each(I.Panel.BookInfo.Navigation.querySelectorAll("a"), function() {
             this.addEventListener("click", function() {
                 ga('send', { hitType: 'event',
