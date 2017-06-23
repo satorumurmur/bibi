@@ -2196,6 +2196,7 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
 R.getCurrent = function() {
     R.Current.Pages = R.getCurrentPages();
     R.Current.Page = R.Current.Pages.EndPage;
+    R.Current.Percent = Math.floor((R.Current.Pages.EndPage.PageIndex + 1) / R.Pages.length * 100);
     R.classifyCurrent();
     return R.Current;
 };
@@ -3231,6 +3232,7 @@ I.createNombre = function() {
         progress: function(PageInfo) {
             clearTimeout(I.Nombre.Timer_hide);
             if(!PageInfo || !PageInfo.Pages) PageInfo = R.getCurrent();
+            if(typeof PageInfo.Percent != "number") PageInfo.Percent = Math.floor((PageInfo.Pages.EndPage.PageIndex + 1) / R.Pages.length * 100);
             if(!R.Current.Page) return;
             I.Nombre.Current.innerHTML = (function() {
                 var PageNumber = PageInfo.Pages.StartPage.PageIndex + 1;
@@ -3239,7 +3241,7 @@ I.createNombre = function() {
             })();
             I.Nombre.Delimiter.innerHTML = '/';
             I.Nombre.Total.innerHTML     = R.Pages.length;
-            I.Nombre.Percent.innerHTML   = '(' + Math.floor((PageInfo.Pages.EndPage.PageIndex + 1) / R.Pages.length * 100) + '<span class="unit">%</span>)';
+            I.Nombre.Percent.innerHTML   = '(' + PageInfo.Percent + '<span class="unit">%</span>)';
             I.Nombre.show();
             I.Nombre.Timer_hide = setTimeout(I.Nombre.hide, 1234);
         }
