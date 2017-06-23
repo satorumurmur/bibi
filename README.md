@@ -4,10 +4,14 @@ BiB/i
 EPUB Reader on your website.
 
 
+
+
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
 You can publish EPUB books on the web with a permalink for each book, and you can embed it in other webpages (just like a YouTube video).
+
+
 
 ### Spec.
 
@@ -15,10 +19,11 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
 * Open source. (MIT license)
 * Made with JavaScript. Works compatibly with all major web browsers on Mac/PC/smartphones:
     - Safari
-    - Chrome, Opera, Vivaldi
+    - Chrome (Opera, Vivaldi, Brave)
     - Firefox
     - Microsoft Edge
     - Internet Explorer 11
+
 
 
 ### Table of Contents
@@ -46,7 +51,7 @@ BiB/i supports two ways to read/publish EPUB books:
 
 In either case,
 
-1. Download BiB/i from [GitHub repositoly page](https://github.com/satorumurmur/bibi)'s right sidebar or [BiB/i web site](http://bibi.epub.link/#download),
+1. Download BiB/i from [GitHub release page](https://github.com/satorumurmur/bibi/releases) or [BiB/i website](http://bibi.epub.link/#download).
 2. And unzip it at first.
 
 
@@ -56,6 +61,7 @@ In either case,
 1. Open `bib/i/index.html` in your browser (except Internet Explorer), and
 2. Drag an EPUB book and drop it into the window.
 3. That's all!
+
 
 
 ### Publish on the web
@@ -100,9 +106,11 @@ How to Arrange Development Environment
 --------------------------------------------------------------------------------------------------------------------------------
 
 
+
 ### Requirements
 
 * [Node.js + npm](http://nodejs.org/) - guide: “[Download the installer](http://nodejs.org/download/)” (or “[Installing Node.js via package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)”)
+
 
 
 ### Arrangements
@@ -111,6 +119,7 @@ How to Arrange Development Environment
 2. `$ cd <the local repository>`
 3. `$ npm install`
     - installs modules in `npm-modules` and `bower_components` directories.
+
 
 
 ### Development
@@ -134,7 +143,6 @@ How to Arrange Development Environment
     - `bib/manifest.json`
     - Files in `bib/i/presets/`
     - Files in `bib/bookshelf/`
-
 
 
 
@@ -163,6 +171,7 @@ License
 
 * [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
 * [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under the MIT license or GPLv3.)
+
 
 
 
