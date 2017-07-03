@@ -1,5 +1,5 @@
 /*!
- *
+ *                                                                                                                                (℠)
  *  # Pipi: BiB/i Putter
  *
  *  - "Putting EPUBs in a Web Page with BiB/i."
