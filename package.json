@@ -21,7 +21,10 @@
   "readmeFilename": "README.md",
   "scripts": {
     "postinstall": "bower install",
-    "start": "gulp"
+    "start": "gulp",
+    "update": "gulp update",
+    "build": "gulp build",
+    "distribute": "gulp distribute"
   },
   "devDependencies": {
     "bower": "^1.8.0",
