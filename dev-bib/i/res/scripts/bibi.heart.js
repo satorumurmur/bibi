@@ -4140,6 +4140,7 @@ U.initialize = function() { // formerly O.readExtras
                     case "parent-origin":
                     case "parent-pipi-path":
                     case "parent-bibi-label":
+                    case "parent-holder-id":
                         PnV[1] = U.decode(PnV[1]);
                         break;
                     case "reader-view-mode":
@@ -4152,7 +4153,6 @@ U.initialize = function() { // formerly O.readExtras
                         PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined;
                         break;
                     case "preset":
-                    case "parent-holder-id":
                         break;
                     default:
                         if(O.SettingTypes.YesNo.includes(PnV[0])) {
