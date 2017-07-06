@@ -16,7 +16,7 @@ Bibi.x({
 
 })(function() {
 
-    var ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R });
+    var ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
 
     // Share
     var ShareButton = ShareButtonGroup.addButton({
@@ -109,23 +109,15 @@ Bibi.x({
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "book-title" }));
     }
     if(X.Presets.Share["allow-embedding-in-other-webpages"]) {
+        var EmbedCode = [
+            '<a href="' + O.RequestedURL + '" data-bibi="embed">' + (U["parent-bibi-label"] ? U["parent-bibi-label"] : document.title) + '</a>',
+            '<script src="' + (U["parent-pipi-path"] ? U["parent-pipi-path"] : O.RootPath.replace(/\/$/, ".js")) + '"></script>'
+        ].join("").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         ShareSubPanel.addSection({
-            ButtonGroup: {
-                Buttons: [
-                    {
-                        Labels: { default: { default: 'Get the Embed-Code of This Book', ja: 'この本の埋め込みコードを取得' } },
-                        Icon: '<span class="bibi-icon bibi-icon-code"></span>',
-                        on: {
-                            click: function() {
-                                alert([
-                                    '<a href="' + O.RequestedURL + '" data-bibi="embed">' + (U["parent-bibi-label"] ? U["parent-bibi-label"] : document.title) + '</a>',
-                                    '<script src="' + (U["parent-pipi-path"] ? U["parent-pipi-path"] : O.RootPath.replace(/\/$/, ".js")) + '"></script>'
-                                ].join(""));
-                            }
-                        }
-                    }
-                ]
-            }
+            Labels: { default: { default: 'Embed-Code of This Book', ja: 'この本の埋め込みコード' } },
+            Notes: [
+                { default: { default: '<input class="code block" value="' + EmbedCode.replace(/[""]/g, "&quot;") + '" onclick="this.select();" />' } }
+            ]
         });
     }
     O.Head.appendChild(sML.create("script", { async: "async", src: "//platform.twitter.com/widgets.js" }));
