@@ -3132,13 +3132,25 @@ I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classi
     // HGroup
     if(SubPanelSection.Labels) {
         SubPanelSection.Labels = I.distillLabels(SubPanelSection.Labels);
-        SubPanelSection.Label = SubPanelSection.appendChild(
+        SubPanelSection.appendChild(
             sML.create("div",  { className: "bibi-hgroup" })
         ).appendChild(
             sML.create("p",    { className: "bibi-h" })
         ).appendChild(
             sML.create("span", { className: "bibi-h-label", innerHTML: SubPanelSection.Labels["default"][O.Language] })
         );
+    }
+    // PGroup
+    if(SubPanelSection.Notes) {
+        var PGroup = SubPanelSection.appendChild(
+            sML.create("div",  { className: "bibi-pgroup" })
+        );
+        SubPanelSection.Notes.forEach(function(Note) {
+            Note = I.distillLabels(Note);
+            PGroup.appendChild(
+                sML.create("p",    { className: "bibi-p", innerHTML: Note["default"][O.Language] })
+            );
+        });
     }
     // ButtonGroup
     SubPanelSection.addButtonGroup = I.createSubPanel.addSection.addButtonGroup;

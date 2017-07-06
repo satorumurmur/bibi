@@ -704,7 +704,6 @@ div.bibi-subpanel {
 	}
 	& {
 		position: fixed;
-		//overflow: auto; -webkit-overflow-scrolling: touch;
 		z-index: $z-index_subpanel;
 		right: $subpanel-margin;
 		top: $top-bar-height + $subpanel-margin;
@@ -714,6 +713,31 @@ div.bibi-subpanel {
 		max-height: calc(100% - #{$top-bar-height + $subpanel-margin * 2});
 		border-radius: 4px;
 		background: $subpanel-background-color;
+	}
+	& {
+		overflow: auto; -webkit-overflow-scrolling: touch;
+		$scrollbar-track-size: 6px;
+		$scrollbar-thumb-size: 2px;
+		$scrollbar-thumb-background-color: rgb(128,128,128);
+		$scrollbar-track-background-color: rgb(248,248,248);
+		&::-webkit-scrollbar { // scrollbar
+			height: $scrollbar-track-size;
+			width: $scrollbar-track-size;
+		}
+		&::-webkit-scrollbar-track { // scrollbar track
+			background: $scrollbar-track-background-color;
+		}
+		&::-webkit-scrollbar-thumb { // scrollbar thumb
+			border-radius: $scrollbar-track-size * 0.5;
+			border: solid (($scrollbar-track-size - $scrollbar-thumb-size) * 0.5) $scrollbar-track-background-color;
+			background: $scrollbar-thumb-background-color;
+			&:hover {
+				background: $scrollbar-thumb-background-color_hover;
+			}
+			&:active {
+				background: $scrollbar-thumb-background-color_active;
+			}
+		}
 	}
 	& span.bibi-subpanel-bit {
 		display: block;
@@ -749,23 +773,22 @@ div.bibi-subpanel {
 	strong {
 		font-weight: bold;
 	}
-	.bibi-hgroup, .bibi-buttongroup {
+	.bibi-hgroup, .bibi-pgroup, .bibi-buttongroup {
 	}
-		.bibi-h, .bibi-buttonbox,
-		.bibi-h-label,
-		.bibi-button {
+		.bibi-h, .bibi-p, .bibi-buttonbox,
+		.bibi-h-label, .bibi-button {
 			display: block;
 			box-sizing: border-box;
 		}
-			.bibi-h-label,
-			.bibi-button {
-				padding-left: ($button-group-margin * 2);
-				padding-right: ($button-group-margin * 2);
-			}
+		.bibi-h, .bibi-p,
+		.bibi-button {
+			padding-left: ($button-group-margin * 2);
+			padding-right: ($button-group-margin * 2);
+		}
 			a.bibi-button {
 				text-decoration: none;
 			}
-	.bibi-hgroup, {
+	.bibi-hgroup {
 	}
 		.bibi-h {
 		}
@@ -795,15 +818,44 @@ div.bibi-subpanel {
 					}
 				}
 			}
-	.bibi-buttongroup {
+	.bibi-pgroup {
+		border: solid rgba(black, 0.1); border-width: 1px 0;
+		overflow: hidden;
+		color: rgb(64,64,64);
+		background: white;//rgba(white, 0.9);
+	}
+		.bibi-p {
+			margin: 8px 0;
+			line-height: 1.5;
+			font-size: 14px;
+			small {
+				font-size: 10px;
+			}
+			.code {
+				font-size: 12px;
+				font-family: monospace;
+				word-break: break-all;
+				color: rgb(96,96,96);
+			}
+			.block {
+				box-sizing: border-box;
+				display: block;
+				width: 100%;
+			}
+			input.block {
+				border: solid 1px rgb(234,234,234);
+				padding: .5em;
+			}
+		}
+	.bibi-buttongroup { // ul
 		border: solid rgba(black, 0.1); border-width: 1px 0;
 		overflow: hidden;
 	}
-		.bibi-buttonbox {
+		.bibi-buttonbox { // li
 			line-height: 1.2;
 			font-size: 14px;
 		}
-			.bibi-button {
+			.bibi-button { // a, span
 				position: relative;
 				z-index: 1;
 				margin: -1px 0;
