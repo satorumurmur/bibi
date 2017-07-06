@@ -108,6 +108,7 @@ Bibi.x({
             }
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "book-title" }));
     }
+    /*
     if(X.Presets.Share["allow-embedding-in-other-webpages"]) {
         var EmbedCode = [
             '<a href="' + O.RequestedURL + '" data-bibi="embed">' + (U["parent-bibi-label"] ? U["parent-bibi-label"] : document.title) + '</a>',
@@ -120,6 +121,7 @@ Bibi.x({
             ]
         });
     }
+    */
     O.Head.appendChild(sML.create("script", { async: "async", src: "//platform.twitter.com/widgets.js" }));
 
 });
