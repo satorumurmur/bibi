@@ -3359,8 +3359,8 @@ I.createSlider = function() {
                 I.Slider.flip();
             },
             startSliding: function(Eve) {
-                Eve.preventDefault();
                 if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
+                Eve.preventDefault();
                 I.Slider.Sliding = true;
                 I.Slider.Status = {
                     StartPageIndex: R.Current.Pages.StartPage.PageIndex,
