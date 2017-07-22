@@ -420,18 +420,9 @@ gulp.task('watch', function() {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Build, Update, Default
+//-- Update, Build, Default
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
-
-gulp.task('build', function() {
-    return $.runSequence(
-        ['clean: All'],
-        Tasks_updateMetafiles,
-        Tasks_updateBowerComponents,
-        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles)
-    );
-});
 
 gulp.task('update', function() {
     return $.runSequence(
@@ -441,13 +432,23 @@ gulp.task('update', function() {
     );
 });
 
+gulp.task('build', function() {
+    return $.runSequence(
+        'clean: All',
+        Tasks_updateMetafiles,
+        Tasks_updateBowerComponents,
+        S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles)
+    );
+});
+
 gulp.task('default', function() {
     return $.runSequence(
-        ['clean: All'],
+        'clean: All',
         Tasks_updateMetafiles,
         Tasks_updateBowerComponents,
         S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles),
-        ['serve', 'watch']
+        'serve',
+        'watch'
     );
 });
 
@@ -459,11 +460,24 @@ gulp.task('default', function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-gulp.task('clean: Distribution', function() {
+gulp.task('clean: Distribution Folder', function() {
     var Ver = S.getVersion();
     return S.clean([
-        'archives/bibi-' + Ver,
+        'archives/bibi-' + Ver
+    ]);
+});
+
+gulp.task('clean: Distribution Archive', function() {
+    var Ver = S.getVersion();
+    return S.clean([
         'archives/bibi-' + Ver + '.zip'
+    ]);
+});
+
+gulp.task('clean: Distribution', function() {
+    return $.runSequence([
+        'clean: Distribution Folder',
+        'clean: Distribution Archive'
     ]);
 });
 
@@ -482,9 +496,11 @@ gulp.task('copy: Distribution', function() {
 gulp.task('archive: Distribution', function() {
     var Ver = S.getVersion();
     return gulp.src([
-        'archives/bibi-' + Ver + '/bib/**/*.*',
-        'archives/bibi-' + Ver + '/bib/*'
-    ])
+        'archives/bibi-' + Ver + '/**/*',
+        'archives/bibi-' + Ver + '/**/*.*'
+    ], {
+        base: 'archives'
+    })
         .pipe($.plumber({ errorHandler: $.notify.onError('<%= error.message %>') }))
         .pipe($.zip('bibi-' + Ver + '.zip'))
         .pipe(gulp.dest('archives'));
@@ -492,12 +508,13 @@ gulp.task('archive: Distribution', function() {
 
 gulp.task('distribute', function() {
     return $.runSequence(
-        ['clean: All'],
+        'clean: All',
         Tasks_updateMetafiles,
         Tasks_updateBowerComponents,
         S.concat(Tasks_makeScripts, Tasks_makeStyles, Tasks_makeExtensionScripts, Tasks_makeExtensionStyles),
         'clean: Distribution',
         'copy: Distribution',
-        'archive: Distribution'
+        'archive: Distribution',
+        'clean: Distribution Folder'
     );
 });

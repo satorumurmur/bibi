@@ -3132,13 +3132,25 @@ I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classi
     // HGroup
     if(SubPanelSection.Labels) {
         SubPanelSection.Labels = I.distillLabels(SubPanelSection.Labels);
-        SubPanelSection.Label = SubPanelSection.appendChild(
+        SubPanelSection.appendChild(
             sML.create("div",  { className: "bibi-hgroup" })
         ).appendChild(
             sML.create("p",    { className: "bibi-h" })
         ).appendChild(
             sML.create("span", { className: "bibi-h-label", innerHTML: SubPanelSection.Labels["default"][O.Language] })
         );
+    }
+    // PGroup
+    if(SubPanelSection.Notes) {
+        var PGroup = SubPanelSection.appendChild(
+            sML.create("div",  { className: "bibi-pgroup" })
+        );
+        SubPanelSection.Notes.forEach(function(Note) {
+            Note = I.distillLabels(Note);
+            PGroup.appendChild(
+                sML.create("p",    { className: "bibi-p", innerHTML: Note["default"][O.Language] })
+            );
+        });
     }
     // ButtonGroup
     SubPanelSection.addButtonGroup = I.createSubPanel.addSection.addButtonGroup;
@@ -3347,8 +3359,8 @@ I.createSlider = function() {
                 I.Slider.flip();
             },
             startSliding: function(Eve) {
-                Eve.preventDefault();
                 if(!Eve.target || !Eve.target.id || !/^bibi-slider-/.test(Eve.target.id)) return;
+                Eve.preventDefault();
                 I.Slider.Sliding = true;
                 I.Slider.Status = {
                     StartPageIndex: R.Current.Pages.StartPage.PageIndex,
@@ -4140,6 +4152,7 @@ U.initialize = function() { // formerly O.readExtras
                     case "parent-origin":
                     case "parent-pipi-path":
                     case "parent-bibi-label":
+                    case "parent-holder-id":
                         PnV[1] = U.decode(PnV[1]);
                         break;
                     case "reader-view-mode":
@@ -4152,7 +4165,6 @@ U.initialize = function() { // formerly O.readExtras
                         PnV[1] = /^[1-9]\d*$/.test(PnV[1]) ? PnV[1] * 1 : undefined;
                         break;
                     case "preset":
-                    case "parent-holder-id":
                         break;
                     default:
                         if(O.SettingTypes.YesNo.includes(PnV[0])) {
