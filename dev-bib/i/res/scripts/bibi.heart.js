@@ -5,7 +5,7 @@
  *
  */
 
-Bibi = { "version": "0.000.0", "build": 198106091234 };
+Bibi = { "version": "0.000.0", "build": 198106091234, "href": "http://bibi.epub.link" };
 
 
 
@@ -20,14 +20,10 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 
 document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welcome, 0); });
 
-Bibi.SiteHref = "http://bibi.epub.link";
-Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi.SiteHref + ' - [en] https://github.com/satorumurmur/bibi';
-
-
 Bibi.welcome = function() {
 
     O.stamp("Welcome!");
-    O.log(Bibi.WelcomeMessage, "-0");
+    O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi["href"] + ' - [en] https://github.com/satorumurmur/bibi', "-0");
     E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
@@ -102,7 +98,7 @@ Bibi.initialize = function() {
                 innerHTML: [
                     '<span lang="en">', Msg["en"], '</span>',
                     '<span lang="ja">', Msg["ja"], '</span>',
-                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi.SiteHref + '" target="_blank">$1</a>')
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi["href"] + '" target="_blank">$1</a>')
             })
         );
         I.note('(Your Browser Is Not Compatible)', 99999999999);
@@ -2977,7 +2973,7 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
             default: { default: "BiB/i | Official Website" }
         },
         Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
-        href: Bibi.SiteHref,
+        href: Bibi["href"],
         target: "_blank"
     });
 
@@ -3205,7 +3201,7 @@ I.createPoweredBy = function() {
 
     I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
         '<p>',
-            '<a href="' + Bibi.SiteHref + '" target="_blank" title="BiB/i | Official Website">',
+            '<a href="' + Bibi["href"] + '" target="_blank" title="BiB/i | Official Website">',
                 '<span>BiB/i</span>',
                 '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
                 '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
@@ -3426,7 +3422,7 @@ I.createSlider = function() {
     E.add("bibi:commands:close-slider",  function(Opt) { I.Slider.close(Opt); });
     E.add("bibi:commands:toggle-slider", function(Opt) { I.Slider.toggle(Opt); });
     E.add("bibi:tapped", function(Eve) {
-        if(!L.Opened) return;
+        if(!L.Opened) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
@@ -4355,61 +4351,62 @@ O.log = function(Msg, Tag) {
     if(sML.UA.Gecko && typeof Msg == "string") Msg = Msg.replace(/(https?:\/\/)/g, "");
     var Pre = 'BiB/i: ';
     switch(Tag) {
-        case  "-*": Tag  = "-" + (O.log.Depth);              break;
-        case  "*:": Tag  =       (O.log.Depth) + ":";        break;
-        case "/*" : Tag  = "/" + (O.log.Depth - 1);          break;
+        case  "*:": Tag  =       (O.log.Depth    ) + ":";        break;
+        case "/*" : Tag  = "/" + (O.log.Depth - 1)      ;        break;
+        default   : Tag  = "-" + (O.log.Depth    )      ;        break;
     }
     switch(Tag) {
-        case "-x" : Pre += "[ERROR] ";                  console.info(Pre + Msg); return;
-        case "-0" : Pre += "━━ "; console.info(Pre + Msg); return;
-        case "-1" : Pre += " - ";                       O.log.Depth = 1; break;
-        case  "1:": Pre += "┌ ";                       O.log.Depth = 2; break;
-        case "-2" : Pre += "│ - ";                     O.log.Depth = 2; break;
-        case  "2:": Pre += "│┌ ";                     O.log.Depth = 3; break;
-        case "-3" : Pre += "││ - ";                   O.log.Depth = 3; break;
-        case  "3:": Pre += "││┌ ";                   O.log.Depth = 4; break;
-        case "-4" : Pre += "│││ - ";                 O.log.Depth = 4; break;
-        case  "4:": Pre += "│││┌ ";                 O.log.Depth = 5; break;
-        case "-5" : Pre += "││││ - ";               O.log.Depth = 5; break;
-        case  "5:": Pre += "││││┌ ";               O.log.Depth = 6; break;
-        case "-6" : Pre += "│││││ - ";             O.log.Depth = 6; break;
-        case "/5" : Pre += "││││└ ";               O.log.Depth = 5; break;
-        case "/4" : Pre += "│││└ ";                 O.log.Depth = 4; break;
-        case "/3" : Pre += "││└ ";                   O.log.Depth = 3; break;
-        case "/2" : Pre += "│└ ";                     O.log.Depth = 2; break;
-        case "/1" : Pre += "└ ";                       O.log.Depth = 1; break;
+        case "-x" : Pre += "[ERROR] "; console.info(Pre + Msg); return;
+        case "-0" : Pre += "━━ ";    console.info(Pre + Msg); return;
+        case "-1" : Pre += " - ";              O.log.Depth = 1;  break;
+        case  "1:": Pre += "┌ ";              O.log.Depth = 2;  break;
+        case "-2" : Pre += "│ - ";            O.log.Depth = 2;  break;
+        case  "2:": Pre += "│┌ ";            O.log.Depth = 3;  break;
+        case "-3" : Pre += "││ - ";          O.log.Depth = 3;  break;
+        case  "3:": Pre += "││┌ ";          O.log.Depth = 4;  break;
+        case "-4" : Pre += "│││ - ";        O.log.Depth = 4;  break;
+        case  "4:": Pre += "│││┌ ";        O.log.Depth = 5;  break;
+        case "-5" : Pre += "││││ - ";      O.log.Depth = 5;  break;
+        case  "5:": Pre += "││││┌ ";      O.log.Depth = 6;  break;
+        case "-6" : Pre += "│││││ - ";    O.log.Depth = 6;  break;
+        case "/5" : Pre += "││││└ ";      O.log.Depth = 5;  break;
+        case "/4" : Pre += "│││└ ";        O.log.Depth = 4;  break;
+        case "/3" : Pre += "││└ ";          O.log.Depth = 3;  break;
+        case "/2" : Pre += "│└ ";            O.log.Depth = 2;  break;
+        case "/1" : Pre += "└ ";              O.log.Depth = 1;  break;
     }
     console.log(Pre + Msg);
 };
 /*O.log = function(Msg, Tag) {
     var Pre = 'BiB/i: ';
     switch(Tag) {
-        case  "-*": Tag  = "-" + (O.log.Depth);              break;
-        case  "*:": Tag  =       (O.log.Depth) + ":";        break;
-        case "/*" : Tag  = "/" + (O.log.Depth - 1);          break;
+        case "-*" : Tag  = "-" + (O.log.Depth    )      ; break;
+        case  "*:": Tag  =       (O.log.Depth    ) + ":"; break;
+        case "/*" : Tag  = "/" + (O.log.Depth - 1)      ; break;
     }
     switch(Tag) {
-        case "-x" : Pre += "[ERROR] ";                       console.error(Pre + Msg); break;
-        case "-0" : Pre += "━━━━━━━━━━━━ ";      console.info(Pre + Msg); break;
-        case "-1" : O.log.Depth = 1; console.log(Pre + Msg); break;
-        case  "1:": O.log.Depth = 2; console.group(Pre + Msg); break;
-        case "-2" : O.log.Depth = 2; console.log(Pre + Msg); break;
-        case  "2:": O.log.Depth = 3; console.group(Pre + Msg); break;
-        case "-3" : O.log.Depth = 3; console.log(Pre + Msg); break;
-        case  "3:": O.log.Depth = 4; console.group(Pre + Msg); break;
-        case "-4" : O.log.Depth = 4; console.log(Pre + Msg); break;
-        case  "4:": O.log.Depth = 5; console.group(Pre + Msg); break;
-        case "-5" : O.log.Depth = 5; console.log(Pre + Msg); break;
-        case  "5:": O.log.Depth = 6; console.group(Pre + Msg); break;
-        case "-6" : O.log.Depth = 6; console.log(Pre + Msg); break;
-        case "/5" : O.log.Depth = 5; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/4" : O.log.Depth = 4; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/3" : O.log.Depth = 3; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/2" : O.log.Depth = 2; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/1" : O.log.Depth = 1; console.log(Pre + Msg); console.groupEnd(); break;
+        case "-x" : Pre += "[ERROR] "; console.error(Pre + Msg);                     break;
+        case "-0" : Pre += "━━ ";    console.info( Pre + Msg);                     break;
+        case "-1" : O.log.Depth = 1;   console.log(  Pre + Msg);                     break;
+        case  "1:": O.log.Depth = 2;   console.group(Pre + Msg);                     break;
+        case "-2" : O.log.Depth = 2;   console.log(  Pre + Msg);                     break;
+        case  "2:": O.log.Depth = 3;   console.group(Pre + Msg);                     break;
+        case "-3" : O.log.Depth = 3;   console.log(  Pre + Msg);                     break;
+        case  "3:": O.log.Depth = 4;   console.group(Pre + Msg);                     break;
+        case "-4" : O.log.Depth = 4;   console.log(  Pre + Msg);                     break;
+        case  "4:": O.log.Depth = 5;   console.group(Pre + Msg);                     break;
+        case "-5" : O.log.Depth = 5;   console.log(  Pre + Msg);                     break;
+        case  "5:": O.log.Depth = 6;   console.group(Pre + Msg);                     break;
+        case "-6" : O.log.Depth = 6;   console.log(  Pre + Msg);                     break;
+        case "/5" : O.log.Depth = 5;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/4" : O.log.Depth = 4;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/3" : O.log.Depth = 3;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/2" : O.log.Depth = 2;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/1" : O.log.Depth = 1;   console.log(  Pre + Msg); console.groupEnd(); break;
     }
 };*/
-O.log.Depth = 1; if(parent && parent != window) O.log = function() { return false; };
+O.log.Depth = 1;
+if(parent && parent != window) O.log = function() { return false; };
 
 
 O.error = function(Msg) {
