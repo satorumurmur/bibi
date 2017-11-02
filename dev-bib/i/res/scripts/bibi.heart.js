@@ -322,7 +322,7 @@ L.loadBook = function(PathOrData) {
             // Online
             if(!P["trustworthy-origins"].includes(PathOrData.Path.replace(/^([\w\d]+:\/\/[^\/]+).*$/, "$1"))) return L.loadBook.reject('The Origin of the Path of the Book Is Not Allowed.');
             B.Path = PathOrData.Path;
-            O.download(B.Path + "/mimetype").then(function() {
+            O.download(B.Path + "/" + B.Container.Path).then(function() {
                 // Online && Unzipped
                 B.Unzipped = true;
                 O.log('EPUB: ' + B.Path + ' (Unzipped Online Folder)', "-*");
