@@ -1426,7 +1426,7 @@ R = {}; // Bibi.Reader
 
 R.initialize = function() {
 
-    R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main" }), O.Body.firstElementChild);
+    R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main", Transformation: { Scale: 1, Translation: { X: 0, Y: 0 } } }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create("div", { id: "bibi-sub" }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "bibi-main-book" }));
 
@@ -1463,10 +1463,14 @@ R.initialize = function() {
     //}
 
     I.observeTap(O.HTML);
-    O.HTML.addTapEventListener("tap", R.ontap);
+    O.HTML.addTapEventListener("tap",         R.ontap);
+    O.HTML.addEventListener(O["pointerdown"], R.onpointerdown);
+    O.HTML.addEventListener(O["pointerup"],   R.onpointerup);
     E.add("bibi:loaded-item", function(Item) {
         I.observeTap(Item.HTML);
-        Item.HTML.addTapEventListener("tap", R.ontap);
+        Item.HTML.addTapEventListener("tap",         R.ontap);
+        Item.HTML.addEventListener(O["pointerdown"], R.onpointerdown);
+        Item.HTML.addEventListener(O["pointerup"],   R.onpointerup);
     });
 
 };
@@ -1486,8 +1490,8 @@ R.resetStage = function() {
     R.Stage = {};
     R.Columned = false;
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
-    R.Stage.Width  = O.HTML.clientWidth;
-    R.Stage.Height = O.HTML.clientHeight;
+    R.Stage.Width  = O.Body.clientWidth;
+    R.Stage.Height = O.Body.clientHeight;
     if(/FBAN/.test(navigator.userAgent)) {
         R.Stage.Height = window.innerHeight;
         O.HTML.style.height = window.innerHeight + "px";
@@ -1779,17 +1783,25 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         }
         if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
     }
+    var SO /*= ScaleOptimizing*/ = 1 / Scale;
     PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
     PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
-    ItemBox.style[S.SIZE.l] = Item.style[S.SIZE.l] = PageL + "px";
-    ItemBox.style[S.SIZE.b] = Item.style[S.SIZE.b] = PageB + "px";
+    ItemBox.style[S.SIZE.l] = PageL      + "px";
+    ItemBox.style[S.SIZE.b] = PageB      + "px";
+       Item.style[S.SIZE.l] = PageL * SO + "px";
+       Item.style[S.SIZE.b] = PageB * SO + "px";
     var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
         "width": ItemRef["viewport"].width + "px",
         "height": ItemRef["viewport"].height + "px",
         "transform-origin": TransformOrigin,
         "transformOrigin": TransformOrigin,
-        "transform": "scale(" + Scale + ")"
+        "transform": "scale(" + (Scale * SO) + ")"
+    });
+    sML.style(Item, {
+        "transform-origin": "0 0",
+        "transformOrigin": "0 0",
+        "transform": "scale(" + (1 / SO) + ")"
     });
     var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     if(ItemRef["page-spread"] == "right") Page.style.right = 0;
@@ -2047,6 +2059,18 @@ R.ontap = function(Eve) {
     E.dispatch("bibi:taps",   Eve);
     E.dispatch("bibi:tapped", Eve);
 }
+
+R.onpointerdown = function(Eve) {
+    E.dispatch("bibi:downs-pointer",  Eve);
+    R.PointerIsDowned = true;
+    E.dispatch("bibi:downed-pointer", Eve);
+};
+
+R.onpointerup = function(Eve) {
+    E.dispatch("bibi:ups-pointer",   Eve);
+    R.PointerIsDowned = false;
+    E.dispatch("bibi:upped-pointer", Eve);
+};
 
 R.onpointermove = function(Eve) {
     var CC = O.getBibiEventCoord(Eve), PC = R.onpointermove.PreviousCoord;
@@ -2723,6 +2747,7 @@ I.createMenu = function() {
     });
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) {
+            if(I.isPointerStealth()) return false;
             var BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
@@ -2735,6 +2760,7 @@ I.createMenu = function() {
         });
     }
     E.add("bibi:tapped", function(Eve) {
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
         if(S.RVM == "horizontal") {
@@ -2992,7 +3018,7 @@ I.createButtonGroup = function(Par) { // classifies ButtonGroup
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
     if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
     var ClassName = ["bibi-buttongroup"];
-    if(Par.Tiled) ClassName.push("bibi-tiledbuttongroup");
+    if(Par.Tiled) ClassName.push("bibi-buttongroup-tiled");
     if(Par.Sticky) ClassName.push("sticky");
     Par.className = ClassName.join(" ");
     Par.IsButtonGroup = true;
@@ -3136,23 +3162,29 @@ I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classi
             sML.create("span", { className: "bibi-h-label", innerHTML: SubPanelSection.Labels["default"][O.Language] })
         );
     }
-    // PGroup
+    // PGroup: Setting
     if(SubPanelSection.Notes) {
-        var PGroup = SubPanelSection.appendChild(
-            sML.create("div",  { className: "bibi-pgroup" })
-        );
         SubPanelSection.Notes.forEach(function(Note) {
+            if(!Note.Position || Note.Position == "before") {
+                if(!SubPanelSection.PGroup_Before) SubPanelSection.PGroup_Before = sML.create("div", { className: "bibi-pgroup bibi-pgroup_before" });
+                var PGroup = SubPanelSection.PGroup_Before;
+            } else if(Note.Position == "after") {
+                if(!SubPanelSection.PGroup_After)  SubPanelSection.PGroup_After  = sML.create("div", { className: "bibi-pgroup bibi-pgroup_after"  });
+                var PGroup = SubPanelSection.PGroup_After;
+            }
             Note = I.distillLabels(Note);
-            PGroup.appendChild(
-                sML.create("p",    { className: "bibi-p", innerHTML: Note["default"][O.Language] })
-            );
+            PGroup.appendChild(sML.create("p", { className: "bibi-p", innerHTML: Note["default"][O.Language] }));
         });
     }
+    // PGroup: Before
+    if(SubPanelSection.PGroup_Before) SubPanelSection.appendChild(SubPanelSection.PGroup_Before);
     // ButtonGroup
     SubPanelSection.addButtonGroup = I.createSubPanel.addSection.addButtonGroup;
     if(SubPanelSection.ButtonGroup) SubPanelSection.addButtonGroup(SubPanelSection.ButtonGroup);
     this.appendChild(SubPanelSection);
     this.Sections.push(SubPanelSection);
+    // PGroup: After
+    if(SubPanelSection.PGroup_After)  SubPanelSection.appendChild(SubPanelSection.PGroup_After);
     return SubPanelSection;
 };
 
@@ -3423,6 +3455,7 @@ I.createSlider = function() {
     E.add("bibi:commands:toggle-slider", function(Opt) { I.Slider.toggle(Opt); });
     E.add("bibi:tapped", function(Eve) {
         if(!L.Opened) return false;
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
@@ -3511,7 +3544,7 @@ I.createArrows = function() {
 
     sML.addClass(O.HTML, "arrows-active");
 
-    I.Arrows.Back = I.Arrows["back"] = R.Main.appendChild(
+    I.Arrows.Back = I.Arrows["back"] = O.Body.appendChild(
         sML.create("div", { id: "bibi-arrow-back",
             Distance: -1,
             Labels: {
@@ -3522,7 +3555,7 @@ I.createArrows = function() {
             }
         })
     );
-    I.Arrows.Forward = I.Arrows["forward"] = R.Main.appendChild(
+    I.Arrows.Forward = I.Arrows["forward"] = O.Body.appendChild(
         sML.create("div", { id: "bibi-arrow-forward",
             Distance: +1,
             Labels: {
@@ -3546,6 +3579,7 @@ I.createArrows = function() {
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) { // try hovering
             if(!L.Opened) return false;
+            if(I.isPointerStealth()) return false;
             var BibiEvent = O.getBibiEvent(Eve);
             if(I.Arrows.areAvailable(BibiEvent)) {
                 var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
@@ -3571,6 +3605,7 @@ I.createArrows = function() {
 
     E.add("bibi:tapped", function(Eve) { // try moving
         if(!L.Opened) return false;
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
         if(!I.Arrows.areAvailable(BibiEvent)) return false;
@@ -3619,6 +3654,7 @@ I.createKeyListener = function() {
 
     // Keys
     I.KeyListener = {
+        ActiveKeys: {},
         KeyCodes: { "keydown": {}, "keyup": {}, "keypress": {} },
         updateKeyCodes: function(EventTypes, KeyCodesToUpdate) {
             if(typeof EventTypes.join != "function")  EventTypes = [EventTypes];
@@ -3664,14 +3700,31 @@ I.createKeyListener = function() {
             if(Eve.altKey)   Eve.BibiModifierKeys.push("Alt");
             if(Eve.metaKey)  Eve.BibiModifierKeys.push("Meta");
             //if(!Eve.BibiKeyName) return false;
+            if(Eve.BibiKeyName) Eve.preventDefault();
             return true;
         },
         onkeydown:  function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
+            if(Eve.BibiKeyName) {
+                if(!I.KeyListener.ActiveKeys[Eve.BibiKeyName]) {
+                    I.KeyListener.ActiveKeys[Eve.BibiKeyName] = Date.now();
+                } else {
+                    E.dispatch("bibi:is-holding-key", Eve);
+                }
+            }
             E.dispatch("bibi:downs-key", Eve);
         },
         onkeyup:    function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
+            if(I.KeyListener.ActiveKeys[Eve.BibiKeyName] && Date.now() - I.KeyListener.ActiveKeys[Eve.BibiKeyName] < 300) {
+                E.dispatch("bibi:touches-key", Eve);
+                E.dispatch("bibi:touched-key", Eve);
+            }
+            if(Eve.BibiKeyName) {
+                if(I.KeyListener.ActiveKeys[Eve.BibiKeyName]) {
+                    delete I.KeyListener.ActiveKeys[Eve.BibiKeyName];
+                }
+            }
             E.dispatch("bibi:ups-key", Eve);
         },
         onkeypress:  function(Eve) {
@@ -3687,8 +3740,7 @@ I.createKeyListener = function() {
         },
         tryMoving: function(Eve) {
             if(!Eve.BibiKeyName) return false;
-            if(Eve.shiftKey) Eve.BibiKeyName = Eve.BibiKeyName.toUpperCase();
-            var MovingParameter = I.KeyListener.MovingParameters[Eve.BibiKeyName];
+            var MovingParameter = I.KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
             Eve.preventDefault();
                  if(typeof MovingParameter == "number") E.dispatch("bibi:commands:move-by",  { Distance:    MovingParameter });
@@ -3707,7 +3759,8 @@ I.createKeyListener = function() {
 
     E.add("bibi:updated-settings", function(   ) { I.KeyListener.updateMovingParameters(); });
     E.add("bibi:opened",           function(   ) { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(); });
-    E.add("bibi:ups-key",          function(Eve) { I.KeyListener.tryMoving(Eve); });
+
+    E.add("bibi:touched-key",      function(Eve) { I.KeyListener.tryMoving(Eve); });
 
     E.dispatch("bibi:created-keylistener");
 
@@ -3882,8 +3935,9 @@ I.setToggleAction = function(Ele, Par) {
 I.distillLabels = function(Labels) {
     if(typeof Labels != "object" || !Labels) Labels = {};
     for(var State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
-    if(!Labels["default"])                      Labels["default"] = I.distillLabels.distillLanguage();
-    if(!Labels["active"]  && Labels["default"]) Labels["active"] = Labels["default"];
+    if(!Labels["default"])                       Labels["default"]  = I.distillLabels.distillLanguage();
+    if(!Labels["active"]   && Labels["default"]) Labels["active"]   = Labels["default"];
+    if(!Labels["disabled"] && Labels["default"]) Labels["disabled"] = Labels["default"];
     return Labels;
 };
 
@@ -3942,24 +3996,25 @@ I.observeTap = function(Ele, Opt) {
             return Ele;
         };
         Ele.addEventListener(O["pointerdown"], function(Eve) {
-            if(Opt.PreventDefault) Eve.preventDefault();
-            if(Opt.StopPropagation) Eve.stopPropagation();
             clearTimeout(Ele.Timer_tap);
-            Ele.TouchStart = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
-            Ele.TouchEnd = undefined;
-            Ele.Timer_tap = setTimeout(function() {
-                Ele.TouchStart = undefined;
-            }, 300);
+            Ele.TouchStart = { Time: Date.now(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
+            Ele.Timer_tap = setTimeout(function() { delete Ele.TouchStart; }, 333);
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
         });
         Ele.addEventListener(O["pointerup"], function(Eve) {
-            if(Opt.PreventDefault) Eve.preventDefault();
-            if(Opt.StopPropagation) Eve.stopPropagation();
-            if(!Ele.TouchStart) return;
-            Ele.TouchEnd = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
-            if((Ele.TouchEnd.Time - Ele.TouchStart.Time) < 300 && Math.abs(Ele.TouchEnd.Coord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(Ele.TouchEnd.Coord.Y - Ele.TouchStart.Coord.Y) < 5) {
-                E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
-                E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
+            if(Ele.TouchStart) {
+                if((Date.now() - Ele.TouchStart.Time) < 300) {
+                    var TouchEndCoord = O.getBibiEventCoord(Eve);
+                    if(Math.abs(TouchEndCoord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(TouchEndCoord.Y - Ele.TouchStart.Coord.Y) < 5) {
+                        E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
+                        E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
+                    }
+                }
+                delete Ele.TouchStart;
             }
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
         });
     }
     return Ele;
@@ -3970,15 +4025,18 @@ I.setTapAction = function(Ele) {
     var ontapped = (function() {
         switch(Ele.Type) {
             case "toggle": return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, Ele.UIState == "default" ? "active" : "default");
             };
             case "radio": return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 Ele.ButtonGroup.Buttons.forEach(function(Button) {
                     if(Button != Ele) I.setUIState(Button, "");
                 });
                 I.setUIState(Ele, "active");
             };
             default: return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, "active");
                 clearTimeout(Ele.Timer_deactivate);
                 Ele.Timer_deactivate = setTimeout(function() {
@@ -3990,6 +4048,7 @@ I.setTapAction = function(Ele) {
     Ele.addTapEventListener("tapped", function(Eve) {
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         if(Ele.Type == "radio" && Ele.UIState == "active") return Ele;
+        if(Ele.UIState == "disabled") return Ele;
         ontapped.call(Ele, Eve);
         if(Ele.hideHelp) Ele.hideHelp();
         if(Ele.note) Ele.note();
@@ -4047,6 +4106,16 @@ I.setUIState = function(UI, UIState) {
         sML.replaceClass(UI, UI.PreviousUIState, UI.UIState);
     }
     return UI.UIState;
+};
+
+I.isPointerStealth = function() {
+    var IsPointerStealth = false;
+    I.isPointerStealth.Checkers.forEach(function(checker) { if(checker()) IsPointerStealth = true; });
+    return IsPointerStealth;
+};
+I.isPointerStealth.Checkers = [];
+I.isPointerStealth.addChecker = function(Fun) {
+    if(typeof Fun == "function" && !I.isPointerStealth.Checkers.includes(Fun)) I.isPointerStealth.Checkers.push(Fun);
 };
 
 
@@ -4575,12 +4644,15 @@ O.getBibiEventCoord = function(Eve) {
         Coord.X = Eve.pageX;
         Coord.Y = Eve.pageY;
     }
-    if(Eve.target.ownerDocument.documentElement != O.HTML) {
+    if(Eve.target.ownerDocument.documentElement == O.HTML) {
+        Coord.X -= O.Body.scrollLeft;
+        Coord.Y -= O.Body.scrollTop;
+    } else {
         var Item = Eve.target.ownerDocument.documentElement.Item;
         ItemCoord = O.getElementCoord(Item);
         if(!Item.PrePaginated && !Item.Outsourcing) ItemCoord.X += S["item-padding-left"], ItemCoord.Y += S["item-padding-top"];
-        Coord.X += ItemCoord.X - R.Main.scrollLeft;
-        Coord.Y += ItemCoord.Y - R.Main.scrollTop;
+        Coord.X = (Coord.X + ItemCoord.X - R.Main.scrollLeft) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.X;
+        Coord.Y = (Coord.Y + ItemCoord.Y - R.Main.scrollTop ) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.Y;
     }
     return Coord;
 };

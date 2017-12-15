@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------
 
 html {
-	overflow: hidden; &.welcome { overflow: scroll; }
+	overflow: hidden; &.welcome { overflow: scroll !important; }
 	position: absolute; // for InAppBrowsers
 	@include trbl(0); // for InAppBrowsers
 	width: 100%;
@@ -27,6 +27,7 @@ html {
 	&[data-bibi-cursor="right"],
 	&[data-bibi-cursor="top"],
 	&[data-bibi-cursor="bottom"] { cursor: pointer; }
+	user-select: none;
 }
 
 body {
@@ -60,6 +61,25 @@ html.WebKit, html.Blink {
 		}
 		&:active {
 			background: $scrollbar-thumb-background-color_active;
+		}
+	}
+	&.zoomed-in {
+		::-webkit-scrollbar { // scrollbar
+			height: 0;
+			width: 0;
+		}
+		::-webkit-scrollbar-track { // scrollbar track
+			background: transparent;
+		}
+		::-webkit-scrollbar-thumb { // scrollbar thumb
+			border-color: transparent;
+			background: transparent;
+			&:hover {
+				background: transparent;
+			}
+			&:active {
+				background: transparent;
+			}
 		}
 	}
 	&.view-horizontal, &.view-vertical {
@@ -140,6 +160,8 @@ div#bibi-main {
 	width: 100%;
 	height: 100%;
 	transition: .15s ease;
+	transform-origin: 0 0;
+	will-change: scroll-position, transform, opacity;
 	html.view-horizontal & { overflow-x: scroll; }
 	html.view-vertical   & { overflow-y: scroll; }
 	html.laying-out & {
@@ -155,7 +177,7 @@ div#bibi-main {
 	}*/
 	html.slider-opened & {
 		opacity: 0.75;
-	}
+	}/*
 	html.page-ltr.flipping-ahead &,
 	html.page-rtl.flipping-astern & {
 		transform: translateX(-100px);
@@ -165,7 +187,7 @@ div#bibi-main {
 	html.page-rtl.flipping-ahead & {
 		transform: translateX(100px);
 		opacity: 0;
-	}
+	}*/
 }
 	div#bibi-main-book {
 		position: relative;
@@ -182,12 +204,16 @@ div#bibi-main {
 			position: relative;
 			html.spread-ltr & { float: left; }
 			html.spread-rtl & { float: right; }
-			html.swipe-active &.image-spread-box:after {
-				content: "";
-				display: block;
-				position: absolute;
-				z-index: 2;
-				left: 0; top: 0; right: 0; bottom: 0; margin: 0; width: 100%; height: 100%;
+			//html.dragging &,
+			//html.loupe-active &,
+			html.swipe-active &.image-spread-box {
+				&:after {
+					content: "";
+					display: block;
+					position: absolute;
+					z-index: 2;
+					@include trbl(0); margin: 0; width: 100%; height: 100%;
+				}
 			}
 			//&.non-linear-spread-box { display: none; }
 		}
@@ -211,11 +237,11 @@ div#bibi-main {
 					div.spread-box.pre-paginated &.page-spread-right { float: right; }
 					html.book-pre-paginated.view-paged & {
 						//transition: opacity 0.05s linear;
-						//opacity: 0.4;
-						//filter: blur(1px);
+						opacity: 0.25;
+						//filter: blur(2px);
 						&.current {
 							opacity: 1;
-							filter: none;
+							//filter: none;
 						}
 					}
 					//&.non-linear-item-box { display: none; }
@@ -242,6 +268,8 @@ div#bibi-main {
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
+						html.zoomed-in & { will-change: transform; }
+						html.transforming & { will-change: none !important; }
 						html.page-ltr & { transform-origin: 0 0; }
 						html.page-rtl & { transform-origin: 100% 0; }
 						//&.non-linear-item { display: none; }

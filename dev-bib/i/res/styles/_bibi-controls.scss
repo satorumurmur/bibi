@@ -436,6 +436,7 @@ div#bibi-panel {
 		transform: none;
 		opacity: 1;
 		transition: 0.15s ease-in;
+		user-select: auto;
 	}
 }
 
@@ -780,9 +781,13 @@ div.bibi-subpanel {
 			display: block;
 			box-sizing: border-box;
 		}
-		.bibi-h, .bibi-p,
+		.bibi-h,
 		.bibi-button {
 			padding-left: ($button-group-margin * 2);
+			padding-right: ($button-group-margin * 2);
+		}
+		.bibi-p {
+			padding-left: ($button-group-margin * 2.5);
 			padding-right: ($button-group-margin * 2);
 		}
 			a.bibi-button {
@@ -819,15 +824,20 @@ div.bibi-subpanel {
 				}
 			}
 	.bibi-pgroup {
-		border: solid rgba(black, 0.1); border-width: 1px 0;
+		border: solid 0 rgba(black, 0.1);
+		&.bibi-pgroup_before { border-top-width:    1px; }
+		&.bibi-pgroup_after  { border-bottom-width: 1px; }
 		overflow: hidden;
 		color: rgb(64,64,64);
 		background: white;//rgba(white, 0.9);
 	}
 		.bibi-p {
-			margin: 8px 0;
-			line-height: 1.5;
-			font-size: 14px;
+			margin: 4px 0 0;
+			&:first-child { margin-top: 8px; }
+			&:last-child  { margin-bottom: 6px; }
+			line-height: 1.4;
+			font-size: 12px;
+			text-align: justify;
 			small {
 				font-size: 10px;
 			}
@@ -845,6 +855,12 @@ div.bibi-subpanel {
 			input.block {
 				border: solid 1px rgb(234,234,234);
 				padding: .5em;
+			}
+			strong {
+				font-weight: bold;
+			}
+			em {
+				background: rgba(black, 0.075);
 			}
 		}
 	.bibi-buttongroup { // ul
@@ -916,6 +932,14 @@ div.bibi-subpanel {
 						color: $color-in-subpanel;
 					}
 				}
+				&.disabled,
+				&.disabled.hover,
+				&.disabled:hover {
+					.bibi-button-iconbox,
+					.bibi-button-label {
+						opacity: 0.5 !important;
+					}
+				}
 			}
 			.bibi-button-link {
 				&:after {
@@ -963,7 +987,7 @@ div.bibi-subpanel {
 					}
 				}
 			}
-	.bibi-tiledbuttongroup {
+	.bibi-buttongroup-tiled {
 		display: flex;
 		align-items: stretch;
 		align-content: center;
@@ -1075,6 +1099,11 @@ div#bibi-menu-r {
 			width: $icon-size;
 			height: $icon-size;
 			.bibi-button {
+				position: relative;
+				z-index: 1;
+				&.hover, &.active {
+					z-index: 10;
+				}
 				span.bibi-button-label {
 					font-size: 0;
 					color: transparent;
@@ -1087,6 +1116,17 @@ div#bibi-menu-r {
 		html.panel-opened &,
 		html.subpanel-opened & {
 			opacity: 1;
+		}
+	}
+	ul.bibi-buttongroup-tiled {
+		li:not(:first-child):not(:last-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-radius: 0;
+					}
+				}
+			}
 		}
 	}
 }
@@ -1110,6 +1150,31 @@ div#bibi-menu-l {
 			margin-left: $button-group-margin / 2; &:first-child { margin-left: 0; }
 		}
 	}
+	ul.bibi-buttongroup-tiled {
+		li {
+			margin-left: -1px;
+		}
+		li:first-child {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-right-radius: 0;
+						border-bottom-right-radius: 0;
+					}
+				}
+			}
+		}
+		li:last-child {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-left-radius: 0;
+						border-bottom-left-radius: 0;
+					}
+				}
+			}
+		}
+	}
 }
 
 div#bibi-menu-r {
@@ -1129,6 +1194,31 @@ div#bibi-menu-r {
 		li {
 			float: right;
 			margin-right: $button-group-margin / 2; &:first-child { margin-right: 0; }
+		}
+	}
+	ul.bibi-buttongroup-tiled {
+		li {
+			margin-right: -1px;
+		}
+		li:first-child {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-left-radius: 0;
+						border-bottom-left-radius: 0;
+					}
+				}
+			}
+		}
+		li:last-child {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-right-radius: 0;
+						border-bottom-right-radius: 0;
+					}
+				}
+			}
 		}
 	}
 }
@@ -1309,7 +1399,7 @@ html.panel-opened div#bibi-poweredby {
 div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
-	position: absolute;
+	position: fixed;
 	z-index: $z-index_nombre;
 	margin: auto;
 	border-radius: $nombre-box-height * 0.5;
@@ -1322,14 +1412,20 @@ div#bibi-nombre {
 	background: $nombre-box-background-color;
 	opacity: 0;
 	transition: 0.125s ease-out;
+	html.view-paged &,
+	html.view-horizontal & {
+		top: auto;
+		left: -100%; right: -100%;
+	}
 	html.view-paged & {
-		@include trbl(auto, -100%, 2px, -100%);
+		bottom: 2px;
 	}
 	html.view-horizontal & {
-		@include trbl(auto, -100%, $scrollbar-track-size + 2px, -100%); // `bottom` is to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
+		bottom: $scrollbar-track-size + 2px; // `bottom` is to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
 	}
 	html.view-vertical & {
-		@include trbl(-100%, $scrollbar-track-size + 2px, -100%, auto); //  `right` is to be overwritten by JavaScript ... (O.ScrollBars.Width  + 2) + "px"
+		top: -100%;  bottom: -100%;
+		left: auto;  right: $scrollbar-track-size + 2px; // `right` is to be overwritten by JavaScript ... (O.ScrollBars.Width  + 2) + "px"
 		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
 	}
 	html.slider-opened.view-paged &,
@@ -1420,7 +1516,7 @@ div#bibi-slider {
 	box-sizing: border-box;
 	display: block;
 	overflow: hidden;
-	position: absolute;
+	position: fixed;
 	z-index: $z-index_slider;
 	border: solid 0 $scrollbar-track-border-color;
 	background: $scrollbar-track-background-color;
@@ -1667,7 +1763,7 @@ div#bibi-slider {
 
 
 $arrow-bar-length: $top-bar-height;
-$arrow-icon-size: $arrow-bar-length * 0.5;
+$arrow-icon-size: $arrow-bar-length * 1;
 
 
 div#bibi-arrow-back,
@@ -1692,7 +1788,7 @@ div#bibi-arrow-forward {
 			height: $arrow-icon-size;
 			text-align: center;
 			vertical-align: middle;
-			line-height: $arrow-icon-size;
+			line-height: $arrow-icon-size * .96;
 			text-indent: -.05em;
 			font-size: $arrow-icon-size;
 			border-radius: 50%;
@@ -1744,7 +1840,7 @@ div#bibi-arrow-forward {
 			transition-duration: .2s;
 		}
 		&:before {
-			transform: scale(1);
+			transform: scale(1.1);
 			opacity: 1;
 		}
 	}
@@ -1753,7 +1849,7 @@ div#bibi-arrow-forward {
 			transition-duration: .1s;
 		}
 		&:before {
-			transform: scale(1.1);
+			transform: scale(1.0);
 			opacity: .75;
 		}
 	}
@@ -1762,7 +1858,7 @@ div#bibi-arrow-forward {
 			transition-duration: .1s;
 		}
 		&:before {
-			transform: scale(2);
+			transform: scale(1.1);
 			opacity: 1;
 		}
 	}
