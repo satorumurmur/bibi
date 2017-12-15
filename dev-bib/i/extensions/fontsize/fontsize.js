@@ -84,7 +84,7 @@ Bibi.x({
         }
     });
 
-    X.FontSize.ButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
+    X.FontSize.ButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, id: "bibi-buttongroup_fontsize" });
 
     // FontSize Button
     X.FontSize.Button = X.FontSize.ButtonGroup.addButton({
