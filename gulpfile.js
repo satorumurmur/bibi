@@ -32,6 +32,7 @@ S.Extensions = [
     "epubcfi",
     "fontsize",
     "jatex",
+    "loupe",
     "overreflow",
     "share",
     "unaccessibilizer",
