@@ -27,6 +27,8 @@ Bibi.Preset = {
 "autostart"                  : "no", // "yes" or "no" or "desktop" or "mobile"
 "start-in-new-window"        : "mobile", // "yes" or "no" or "desktop" or "mobile"
 
+"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"

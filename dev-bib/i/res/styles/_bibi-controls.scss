@@ -1026,27 +1026,33 @@ div.bibi-subpanel {
 // --------------------------------------------------------------------------------
 
 div#bibi-menu {
+	html.without-menubar & { display: none !important; }
 	box-sizing: border-box;
 	position: fixed; html.waiting-file & { display: none; }
 	z-index: $z-index_menu;
 	left: 0; right: auto; top: 0; bottom: auto;
-	border-bottom: solid 1px rgba(128,128,128, 0);
+	border-bottom: solid 1px rgba(128,128,128, 0.1);
 	height: $top-bar-height;
 	width: 100%;
-	background: rgba(255,255,255, 0);
-	&.hover,
-	html.menu-opened & {
+	background: rgba(255,255,255, 0.9);
+	html.book-full-height & {
+		border-bottom-color: rgba(128,128,128, 0);
+		background-color: rgba(255,255,255, 0);
+	}
+	html.book-full-height &.hover,
+	html.book-full-height.menu-opened &,
+	html.book-full-height.menu-fixed & {
 		border-bottom-color: rgba(128,128,128, 0.1);
-		background: rgba(255,255,255, 0.9);
+		background-color: rgba(255,255,255, 0.9);
 	}
 	html.veil-opened & {
 		border-bottom-color: rgba(128,128,128, 0);
-		background: rgba(255,255,255, 0);
+		background-color: rgba(255,255,255, 0);
 	}
 	html.panel-opened &,
 	html.subpanel-opened & {
 		border-bottom-color: rgba(128,128,128, 0.1);
-		background: rgba(255,255,255, 1);
+		background-color: rgba(255,255,255, 1);
 	}
 	&.hover {
 //		box-shadow: 0 0 ($top-bar-height / 2) rgba(128,128,128, 0.1);

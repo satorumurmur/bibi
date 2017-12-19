@@ -1497,6 +1497,12 @@ R.resetStage = function() {
         O.HTML.style.height = window.innerHeight + "px";
         window.scrollTo(0, 0);
     }
+    if(S["use-full-height"]) {
+        sML.addClass(O.HTML, "book-full-height");
+    } else {
+        sML.removeClass(O.HTML, "book-full-height");
+        R.Stage.Height -= I.Menu.Height;
+    }
     if(S.RVM == "paged") {
         if(I.Slider) R.Stage.Height -= O.Scrollbars.Height;
         R.Stage.PageGap = R.Main.Book.style["padding" + S.BASE.S] = R.Main.Book.style["padding" + S.BASE.E] = 0;
@@ -2720,7 +2726,9 @@ I.createPanel.createShade = function() {
 I.createMenu = function() {
 
     // Menus
+    if(!S["use-menubar"]) sML.addClass(O.HTML, "without-menubar");
     I.Menu = O.Body.appendChild(sML.create("div", { id: "bibi-menu", on: { "click": function(Eve) { Eve.stopPropagation(); } } }));
+    I.Menu.Height = I.Menu.offsetHeight;
     I.setHoverActions(I.Menu);
     I.setToggleAction(I.Menu, {
         onopened: function() {
@@ -4772,6 +4780,8 @@ O.SettingTypes = {
         "wait",
         "autostart",
         "start-in-new-window",
+        "use-full-height",
+        "use-menubar",
         "use-nombre",
         "use-slider",
         "use-arrows",
