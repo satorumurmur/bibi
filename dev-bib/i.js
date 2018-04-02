@@ -69,7 +69,8 @@
                 "use-arrows",
                 "use-keys",
                 "use-swipe",
-                "use-cookie"
+                "use-cookie",
+                "preprocess-html-always"
             ].forEach(function(PresetKey) {
                 var PresetValue = Anchor.getAttribute("data-bibi-" + PresetKey);
                 if(!PresetValue) return;

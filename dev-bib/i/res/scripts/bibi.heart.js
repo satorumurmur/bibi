@@ -775,12 +775,18 @@ L.loadItemsInSpreads = function() {
 
 
 L.preprocessResources = function() {
+    
     return new Promise(function(resolve, reject) {
         if(B.Unzipped) {
-            if(!(sML.UA.Gecko || sML.UA.Edge)) return resolve();
+            var FileExtensionRE = (function() {
+                if(sML.UA.Gecko || sML.UA.Edge) return /\.(xhtml|xml|html?|css)$/;
+                if(S["preprocess-html-always"]) return /\.(xhtml|xml|html?)$/;
+                return null;
+            })();
+            if(!FileExtensionRE) return resolve();
             var FilesToBeLoaded = 0;
             for(var FilePath in B.Package.Manifest.Files) {
-                if(/\.(css|xhtml|xml|html?)$/.test(FilePath)) {
+                if(FileExtensionRE.test(FilePath)) {
                     B.Files[FilePath] = "";
                     FilesToBeLoaded++;
                 }
@@ -854,7 +860,7 @@ L.preprocessResources.Settings = {
     CSS: {
         FileExtensionRE: /\.css$/,
         ReplaceRules: [
-            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""],,
+            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""],
             [/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/g, '$1column-count: auto$4']
         ],
         NestingRE: /(@import\s*(?:url\()?["']?)(?!(?:https?|data):)(.+?\.css)(['"]?(?:\))?\s*;)/g,
@@ -1008,9 +1014,28 @@ L.postprocessItem = function(Item) {
 
     Item.stamp("Postprocess");
 
-    Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
-    Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
-    Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
+    Item.PostprocessTrialCount = Item.PostprocessTrialCount || 1;
+
+    if(
+        !Item.contentDocument.documentElement ||
+        !Item.contentDocument.head ||
+        !Item.contentDocument.body
+    ) {
+        if(Item.PostprocessTrialCount > 10) {
+            return O.error("Faled to load an Item: " + Item.Path);
+        } else {
+            return setTimeout(function() {
+                Item.PostprocessTrialCount++;
+                L.postprocessItem(Item);
+            }, 100);
+        }
+    }
+
+    Item.HTML = Item.contentDocument.documentElement;
+    Item.Head = Item.contentDocument.head;
+    Item.Body = Item.contentDocument.body;
+
+    Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
 
     var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
          if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
@@ -4787,7 +4812,8 @@ O.SettingTypes = {
         "use-arrows",
         "use-keys",
         "use-swipe",
-        "use-cookie"
+        "use-cookie",
+        "preprocess-html-always"
     ],
     Integer: [
         "spread-gap",

@@ -57,6 +57,8 @@ Bibi.Preset = {
 
 "flipper-width"              : 0.3, // ratio (lower than 1) or px (1 or higher)
 
+"preprocess-html-always"     : "no", // "yes" or "no" or "desktop" or "mobile"
+
 "page-breaking"              : false, // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
