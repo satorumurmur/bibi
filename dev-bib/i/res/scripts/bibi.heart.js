@@ -4428,6 +4428,7 @@ O.log = function(Msg, Tag) {
     if(sML.UA.Gecko && typeof Msg == "string") Msg = Msg.replace(/(https?:\/\/)/g, "");
     var Pre = 'BiB/i: ';
     switch(Tag) {
+        case "-x" : break;
         case  "*:": Tag  =       (O.log.Depth    ) + ":";        break;
         case "/*" : Tag  = "/" + (O.log.Depth - 1)      ;        break;
         default   : Tag  = "-" + (O.log.Depth    )      ;        break;
@@ -4493,7 +4494,6 @@ O.error = function(Msg) {
     sML.removeClass(O.HTML, "waiting");
     E.dispatch("bibi:x_x", Msg);
     O.log(Msg, "-x");
-    O.log.Depth = 1;
 };
 
 
