@@ -378,7 +378,7 @@ S.Extensions.forEach(function(ExtensionName) {
 gulp.task('serve', function() {
     $.browserSync({
         server: {
-            baseDir: '',
+            baseDir: '.',
             index: 'index.html'
         },
         ghostMode: {
