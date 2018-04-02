@@ -27,8 +27,8 @@
     "distribute": "gulp distribute"
   },
   "devDependencies": {
-    "bower": "^1.8.0",
-    "browser-sync": "^2.18.8",
+    "bower": "^1.8.4",
+    "browser-sync": "^2.23.6",
     "cssnano": "^3.10.0",
     "del": "^2.2.2",
     "fs": "0.0.2",
@@ -37,7 +37,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-if": "^2.0.2",
     "gulp-notify": "^2.2.0",
-    "gulp-plumber": "^1.1.0",
+    "gulp-plumber": "^1.2.0",
     "gulp-postcss": "^6.4.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
