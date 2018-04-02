@@ -417,7 +417,7 @@ $icon-color_active_border: darken(pink, 5%);
 	color: $color_border;
 	border-color: $color_border;
 	background-color: $color_background;
-	&:before {
+	&:before, &:after {
 		color: $color_font-paint;
 		@include outline-color("text", $color_font-outline);
 	}
@@ -460,7 +460,7 @@ $icon-color_active_border: darken(pink, 5%);
 			$icon-color_border_in-subpanel
 		);
 	}
-	&, &:before, * {
+	&, &:before, &:after, * {
 		transition:
 			color 0.125s linear,
 			background-color 0.125s linear,
@@ -517,7 +517,7 @@ $icon-color_active_border: darken(pink, 5%);
 		$icon-color_active_background,
 		$icon-color_active_border
 	);
-	&:before {
+	&:before, &:after {
 		transform: rotate(360deg);
 	}
 	.bibi-subpanel & {
@@ -578,13 +578,15 @@ $icon-color_active_border: darken(pink, 5%);
 		font-size: $icon-size_in-subpanel * .6;
 		line-height: $icon-size_in-subpanel * .96;
 	}
+	&:before, &:after {
+		display: inline-block;
+		color: $color !important;
+		@include trbl(0); margin: auto;
+		box-shadow: none !important;
+	}
 	&:before {
 		@include font-icon("FontAwesome");
-		display: inline-block;
 		content: $content;
-		color: $color !important;
-		left: 0; right: 0; top: 0; bottom: 0; margin: auto;
-		box-shadow: none !important;
 	}
 }
 

@@ -4,6 +4,12 @@
 
 $scaling: 1.44;
 
+#bibi-buttongroup_fontsize {
+	html.book-pre-paginated & {
+		display: none;
+	}
+}
+
 .bibi-button {
 	.bibi-button-iconbox {
 		.bibi-icon-fontsize {

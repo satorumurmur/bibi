@@ -5,7 +5,7 @@
  *
  */
 
-Bibi = { "version": "0.000.0", "build": 198106091234 };
+Bibi = { "version": "0.000.0", "build": 198106091234, "href": "http://bibi.epub.link" };
 
 
 
@@ -20,14 +20,10 @@ Bibi = { "version": "0.000.0", "build": 198106091234 };
 
 document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welcome, 0); });
 
-Bibi.SiteHref = "http://bibi.epub.link";
-Bibi.WelcomeMessage = 'Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi.SiteHref + ' - [en] https://github.com/satorumurmur/bibi';
-
-
 Bibi.welcome = function() {
 
     O.stamp("Welcome!");
-    O.log(Bibi.WelcomeMessage, "-0");
+    O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi["href"] + ' - [en] https://github.com/satorumurmur/bibi', "-0");
     E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
@@ -102,7 +98,7 @@ Bibi.initialize = function() {
                 innerHTML: [
                     '<span lang="en">', Msg["en"], '</span>',
                     '<span lang="ja">', Msg["ja"], '</span>',
-                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi.SiteHref + '" target="_blank">$1</a>')
+                ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi["href"] + '" target="_blank">$1</a>')
             })
         );
         I.note('(Your Browser Is Not Compatible)', 99999999999);
@@ -779,12 +775,18 @@ L.loadItemsInSpreads = function() {
 
 
 L.preprocessResources = function() {
+    
     return new Promise(function(resolve, reject) {
         if(B.Unzipped) {
-            if(!(sML.UA.Gecko || sML.UA.Edge)) return resolve();
+            var FileExtensionRE = (function() {
+                if(sML.UA.Gecko || sML.UA.Edge) return /\.(xhtml|xml|html?|css)$/;
+                if(S["preprocess-html-always"]) return /\.(xhtml|xml|html?)$/;
+                return null;
+            })();
+            if(!FileExtensionRE) return resolve();
             var FilesToBeLoaded = 0;
             for(var FilePath in B.Package.Manifest.Files) {
-                if(/\.(css|xhtml|xml|html?)$/.test(FilePath)) {
+                if(FileExtensionRE.test(FilePath)) {
                     B.Files[FilePath] = "";
                     FilesToBeLoaded++;
                 }
@@ -858,7 +860,7 @@ L.preprocessResources.Settings = {
     CSS: {
         FileExtensionRE: /\.css$/,
         ReplaceRules: [
-            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""],,
+            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""],
             [/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/g, '$1column-count: auto$4']
         ],
         NestingRE: /(@import\s*(?:url\()?["']?)(?!(?:https?|data):)(.+?\.css)(['"]?(?:\))?\s*;)/g,
@@ -1012,9 +1014,28 @@ L.postprocessItem = function(Item) {
 
     Item.stamp("Postprocess");
 
-    Item.HTML = sML.edit(Item.contentDocument.getElementsByTagName("html")[0], { Item: Item });
-    Item.Head = sML.edit(Item.contentDocument.getElementsByTagName("head")[0], { Item: Item });
-    Item.Body = sML.edit(Item.contentDocument.getElementsByTagName("body")[0], { Item: Item });
+    Item.PostprocessTrialCount = Item.PostprocessTrialCount || 1;
+
+    if(
+        !Item.contentDocument.documentElement ||
+        !Item.contentDocument.head ||
+        !Item.contentDocument.body
+    ) {
+        if(Item.PostprocessTrialCount > 10) {
+            return O.error("Faled to load an Item: " + Item.Path);
+        } else {
+            return setTimeout(function() {
+                Item.PostprocessTrialCount++;
+                L.postprocessItem(Item);
+            }, 100);
+        }
+    }
+
+    Item.HTML = Item.contentDocument.documentElement;
+    Item.Head = Item.contentDocument.head;
+    Item.Body = Item.contentDocument.body;
+
+    Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
 
     var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
          if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
@@ -1430,7 +1451,7 @@ R = {}; // Bibi.Reader
 
 R.initialize = function() {
 
-    R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main" }), O.Body.firstElementChild);
+    R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main", Transformation: { Scale: 1, Translation: { X: 0, Y: 0 } } }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create("div", { id: "bibi-sub" }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "bibi-main-book" }));
 
@@ -1467,10 +1488,14 @@ R.initialize = function() {
     //}
 
     I.observeTap(O.HTML);
-    O.HTML.addTapEventListener("tap", R.ontap);
+    O.HTML.addTapEventListener("tap",         R.ontap);
+    O.HTML.addEventListener(O["pointerdown"], R.onpointerdown);
+    O.HTML.addEventListener(O["pointerup"],   R.onpointerup);
     E.add("bibi:loaded-item", function(Item) {
         I.observeTap(Item.HTML);
-        Item.HTML.addTapEventListener("tap", R.ontap);
+        Item.HTML.addTapEventListener("tap",         R.ontap);
+        Item.HTML.addEventListener(O["pointerdown"], R.onpointerdown);
+        Item.HTML.addEventListener(O["pointerup"],   R.onpointerup);
     });
 
 };
@@ -1490,12 +1515,18 @@ R.resetStage = function() {
     R.Stage = {};
     R.Columned = false;
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = "";
-    R.Stage.Width  = O.HTML.clientWidth;
-    R.Stage.Height = O.HTML.clientHeight;
+    R.Stage.Width  = O.Body.clientWidth;
+    R.Stage.Height = O.Body.clientHeight;
     if(/FBAN/.test(navigator.userAgent)) {
         R.Stage.Height = window.innerHeight;
         O.HTML.style.height = window.innerHeight + "px";
         window.scrollTo(0, 0);
+    }
+    if(S["use-full-height"]) {
+        sML.addClass(O.HTML, "book-full-height");
+    } else {
+        sML.removeClass(O.HTML, "book-full-height");
+        R.Stage.Height -= I.Menu.Height;
     }
     if(S.RVM == "paged") {
         if(I.Slider) R.Stage.Height -= O.Scrollbars.Height;
@@ -1783,17 +1814,25 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         }
         if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
     }
+    var SO /*= ScaleOptimizing*/ = 1 / Scale;
     PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
     PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
-    ItemBox.style[S.SIZE.l] = Item.style[S.SIZE.l] = PageL + "px";
-    ItemBox.style[S.SIZE.b] = Item.style[S.SIZE.b] = PageB + "px";
+    ItemBox.style[S.SIZE.l] = PageL      + "px";
+    ItemBox.style[S.SIZE.b] = PageB      + "px";
+       Item.style[S.SIZE.l] = PageL * SO + "px";
+       Item.style[S.SIZE.b] = PageB * SO + "px";
     var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
         "width": ItemRef["viewport"].width + "px",
         "height": ItemRef["viewport"].height + "px",
         "transform-origin": TransformOrigin,
         "transformOrigin": TransformOrigin,
-        "transform": "scale(" + Scale + ")"
+        "transform": "scale(" + (Scale * SO) + ")"
+    });
+    sML.style(Item, {
+        "transform-origin": "0 0",
+        "transformOrigin": "0 0",
+        "transform": "scale(" + (1 / SO) + ")"
     });
     var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     if(ItemRef["page-spread"] == "right") Page.style.right = 0;
@@ -2051,6 +2090,18 @@ R.ontap = function(Eve) {
     E.dispatch("bibi:taps",   Eve);
     E.dispatch("bibi:tapped", Eve);
 }
+
+R.onpointerdown = function(Eve) {
+    E.dispatch("bibi:downs-pointer",  Eve);
+    R.PointerIsDowned = true;
+    E.dispatch("bibi:downed-pointer", Eve);
+};
+
+R.onpointerup = function(Eve) {
+    E.dispatch("bibi:ups-pointer",   Eve);
+    R.PointerIsDowned = false;
+    E.dispatch("bibi:upped-pointer", Eve);
+};
 
 R.onpointermove = function(Eve) {
     var CC = O.getBibiEventCoord(Eve), PC = R.onpointermove.PreviousCoord;
@@ -2700,7 +2751,9 @@ I.createPanel.createShade = function() {
 I.createMenu = function() {
 
     // Menus
+    if(!S["use-menubar"]) sML.addClass(O.HTML, "without-menubar");
     I.Menu = O.Body.appendChild(sML.create("div", { id: "bibi-menu", on: { "click": function(Eve) { Eve.stopPropagation(); } } }));
+    I.Menu.Height = I.Menu.offsetHeight;
     I.setHoverActions(I.Menu);
     I.setToggleAction(I.Menu, {
         onopened: function() {
@@ -2727,6 +2780,7 @@ I.createMenu = function() {
     });
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) {
+            if(I.isPointerStealth()) return false;
             var BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
@@ -2739,6 +2793,7 @@ I.createMenu = function() {
         });
     }
     E.add("bibi:tapped", function(Eve) {
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
         if(S.RVM == "horizontal") {
@@ -2977,7 +3032,7 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
             default: { default: "BiB/i | Official Website" }
         },
         Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
-        href: Bibi.SiteHref,
+        href: Bibi["href"],
         target: "_blank"
     });
 
@@ -2996,7 +3051,7 @@ I.createButtonGroup = function(Par) { // classifies ButtonGroup
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
     if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
     var ClassName = ["bibi-buttongroup"];
-    if(Par.Tiled) ClassName.push("bibi-tiledbuttongroup");
+    if(Par.Tiled) ClassName.push("bibi-buttongroup-tiled");
     if(Par.Sticky) ClassName.push("sticky");
     Par.className = ClassName.join(" ");
     Par.IsButtonGroup = true;
@@ -3140,23 +3195,29 @@ I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classi
             sML.create("span", { className: "bibi-h-label", innerHTML: SubPanelSection.Labels["default"][O.Language] })
         );
     }
-    // PGroup
+    // PGroup: Setting
     if(SubPanelSection.Notes) {
-        var PGroup = SubPanelSection.appendChild(
-            sML.create("div",  { className: "bibi-pgroup" })
-        );
         SubPanelSection.Notes.forEach(function(Note) {
+            if(!Note.Position || Note.Position == "before") {
+                if(!SubPanelSection.PGroup_Before) SubPanelSection.PGroup_Before = sML.create("div", { className: "bibi-pgroup bibi-pgroup_before" });
+                var PGroup = SubPanelSection.PGroup_Before;
+            } else if(Note.Position == "after") {
+                if(!SubPanelSection.PGroup_After)  SubPanelSection.PGroup_After  = sML.create("div", { className: "bibi-pgroup bibi-pgroup_after"  });
+                var PGroup = SubPanelSection.PGroup_After;
+            }
             Note = I.distillLabels(Note);
-            PGroup.appendChild(
-                sML.create("p",    { className: "bibi-p", innerHTML: Note["default"][O.Language] })
-            );
+            PGroup.appendChild(sML.create("p", { className: "bibi-p", innerHTML: Note["default"][O.Language] }));
         });
     }
+    // PGroup: Before
+    if(SubPanelSection.PGroup_Before) SubPanelSection.appendChild(SubPanelSection.PGroup_Before);
     // ButtonGroup
     SubPanelSection.addButtonGroup = I.createSubPanel.addSection.addButtonGroup;
     if(SubPanelSection.ButtonGroup) SubPanelSection.addButtonGroup(SubPanelSection.ButtonGroup);
     this.appendChild(SubPanelSection);
     this.Sections.push(SubPanelSection);
+    // PGroup: After
+    if(SubPanelSection.PGroup_After)  SubPanelSection.appendChild(SubPanelSection.PGroup_After);
     return SubPanelSection;
 };
 
@@ -3205,7 +3266,7 @@ I.createPoweredBy = function() {
 
     I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
         '<p>',
-            '<a href="' + Bibi.SiteHref + '" target="_blank" title="BiB/i | Official Website">',
+            '<a href="' + Bibi["href"] + '" target="_blank" title="BiB/i | Official Website">',
                 '<span>BiB/i</span>',
                 '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
                 '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
@@ -3426,7 +3487,8 @@ I.createSlider = function() {
     E.add("bibi:commands:close-slider",  function(Opt) { I.Slider.close(Opt); });
     E.add("bibi:commands:toggle-slider", function(Opt) { I.Slider.toggle(Opt); });
     E.add("bibi:tapped", function(Eve) {
-        if(!L.Opened) return;
+        if(!L.Opened) return false;
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
@@ -3515,7 +3577,7 @@ I.createArrows = function() {
 
     sML.addClass(O.HTML, "arrows-active");
 
-    I.Arrows.Back = I.Arrows["back"] = R.Main.appendChild(
+    I.Arrows.Back = I.Arrows["back"] = O.Body.appendChild(
         sML.create("div", { id: "bibi-arrow-back",
             Distance: -1,
             Labels: {
@@ -3526,7 +3588,7 @@ I.createArrows = function() {
             }
         })
     );
-    I.Arrows.Forward = I.Arrows["forward"] = R.Main.appendChild(
+    I.Arrows.Forward = I.Arrows["forward"] = O.Body.appendChild(
         sML.create("div", { id: "bibi-arrow-forward",
             Distance: +1,
             Labels: {
@@ -3550,6 +3612,7 @@ I.createArrows = function() {
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) { // try hovering
             if(!L.Opened) return false;
+            if(I.isPointerStealth()) return false;
             var BibiEvent = O.getBibiEvent(Eve);
             if(I.Arrows.areAvailable(BibiEvent)) {
                 var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
@@ -3575,6 +3638,7 @@ I.createArrows = function() {
 
     E.add("bibi:tapped", function(Eve) { // try moving
         if(!L.Opened) return false;
+        if(I.isPointerStealth()) return false;
         var BibiEvent = O.getBibiEvent(Eve);
         if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
         if(!I.Arrows.areAvailable(BibiEvent)) return false;
@@ -3623,6 +3687,7 @@ I.createKeyListener = function() {
 
     // Keys
     I.KeyListener = {
+        ActiveKeys: {},
         KeyCodes: { "keydown": {}, "keyup": {}, "keypress": {} },
         updateKeyCodes: function(EventTypes, KeyCodesToUpdate) {
             if(typeof EventTypes.join != "function")  EventTypes = [EventTypes];
@@ -3668,14 +3733,31 @@ I.createKeyListener = function() {
             if(Eve.altKey)   Eve.BibiModifierKeys.push("Alt");
             if(Eve.metaKey)  Eve.BibiModifierKeys.push("Meta");
             //if(!Eve.BibiKeyName) return false;
+            if(Eve.BibiKeyName) Eve.preventDefault();
             return true;
         },
         onkeydown:  function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
+            if(Eve.BibiKeyName) {
+                if(!I.KeyListener.ActiveKeys[Eve.BibiKeyName]) {
+                    I.KeyListener.ActiveKeys[Eve.BibiKeyName] = Date.now();
+                } else {
+                    E.dispatch("bibi:is-holding-key", Eve);
+                }
+            }
             E.dispatch("bibi:downs-key", Eve);
         },
         onkeyup:    function(Eve) {
             if(!I.KeyListener.onEvent(Eve)) return false;
+            if(I.KeyListener.ActiveKeys[Eve.BibiKeyName] && Date.now() - I.KeyListener.ActiveKeys[Eve.BibiKeyName] < 300) {
+                E.dispatch("bibi:touches-key", Eve);
+                E.dispatch("bibi:touched-key", Eve);
+            }
+            if(Eve.BibiKeyName) {
+                if(I.KeyListener.ActiveKeys[Eve.BibiKeyName]) {
+                    delete I.KeyListener.ActiveKeys[Eve.BibiKeyName];
+                }
+            }
             E.dispatch("bibi:ups-key", Eve);
         },
         onkeypress:  function(Eve) {
@@ -3691,8 +3773,7 @@ I.createKeyListener = function() {
         },
         tryMoving: function(Eve) {
             if(!Eve.BibiKeyName) return false;
-            if(Eve.shiftKey) Eve.BibiKeyName = Eve.BibiKeyName.toUpperCase();
-            var MovingParameter = I.KeyListener.MovingParameters[Eve.BibiKeyName];
+            var MovingParameter = I.KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
             Eve.preventDefault();
                  if(typeof MovingParameter == "number") E.dispatch("bibi:commands:move-by",  { Distance:    MovingParameter });
@@ -3711,7 +3792,8 @@ I.createKeyListener = function() {
 
     E.add("bibi:updated-settings", function(   ) { I.KeyListener.updateMovingParameters(); });
     E.add("bibi:opened",           function(   ) { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(); });
-    E.add("bibi:ups-key",          function(Eve) { I.KeyListener.tryMoving(Eve); });
+
+    E.add("bibi:touched-key",      function(Eve) { I.KeyListener.tryMoving(Eve); });
 
     E.dispatch("bibi:created-keylistener");
 
@@ -3886,8 +3968,9 @@ I.setToggleAction = function(Ele, Par) {
 I.distillLabels = function(Labels) {
     if(typeof Labels != "object" || !Labels) Labels = {};
     for(var State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
-    if(!Labels["default"])                      Labels["default"] = I.distillLabels.distillLanguage();
-    if(!Labels["active"]  && Labels["default"]) Labels["active"] = Labels["default"];
+    if(!Labels["default"])                       Labels["default"]  = I.distillLabels.distillLanguage();
+    if(!Labels["active"]   && Labels["default"]) Labels["active"]   = Labels["default"];
+    if(!Labels["disabled"] && Labels["default"]) Labels["disabled"] = Labels["default"];
     return Labels;
 };
 
@@ -3946,24 +4029,25 @@ I.observeTap = function(Ele, Opt) {
             return Ele;
         };
         Ele.addEventListener(O["pointerdown"], function(Eve) {
-            if(Opt.PreventDefault) Eve.preventDefault();
-            if(Opt.StopPropagation) Eve.stopPropagation();
             clearTimeout(Ele.Timer_tap);
-            Ele.TouchStart = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
-            Ele.TouchEnd = undefined;
-            Ele.Timer_tap = setTimeout(function() {
-                Ele.TouchStart = undefined;
-            }, 300);
+            Ele.TouchStart = { Time: Date.now(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
+            Ele.Timer_tap = setTimeout(function() { delete Ele.TouchStart; }, 333);
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
         });
         Ele.addEventListener(O["pointerup"], function(Eve) {
-            if(Opt.PreventDefault) Eve.preventDefault();
-            if(Opt.StopPropagation) Eve.stopPropagation();
-            if(!Ele.TouchStart) return;
-            Ele.TouchEnd = { Time: new Date(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
-            if((Ele.TouchEnd.Time - Ele.TouchStart.Time) < 300 && Math.abs(Ele.TouchEnd.Coord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(Ele.TouchEnd.Coord.Y - Ele.TouchStart.Coord.Y) < 5) {
-                E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
-                E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
+            if(Ele.TouchStart) {
+                if((Date.now() - Ele.TouchStart.Time) < 300) {
+                    var TouchEndCoord = O.getBibiEventCoord(Eve);
+                    if(Math.abs(TouchEndCoord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(TouchEndCoord.Y - Ele.TouchStart.Coord.Y) < 5) {
+                        E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
+                        E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
+                    }
+                }
+                delete Ele.TouchStart;
             }
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
         });
     }
     return Ele;
@@ -3974,15 +4058,18 @@ I.setTapAction = function(Ele) {
     var ontapped = (function() {
         switch(Ele.Type) {
             case "toggle": return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, Ele.UIState == "default" ? "active" : "default");
             };
             case "radio": return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 Ele.ButtonGroup.Buttons.forEach(function(Button) {
                     if(Button != Ele) I.setUIState(Button, "");
                 });
                 I.setUIState(Ele, "active");
             };
             default: return function(Eve) {
+                if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, "active");
                 clearTimeout(Ele.Timer_deactivate);
                 Ele.Timer_deactivate = setTimeout(function() {
@@ -3994,6 +4081,7 @@ I.setTapAction = function(Ele) {
     Ele.addTapEventListener("tapped", function(Eve) {
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         if(Ele.Type == "radio" && Ele.UIState == "active") return Ele;
+        if(Ele.UIState == "disabled") return Ele;
         ontapped.call(Ele, Eve);
         if(Ele.hideHelp) Ele.hideHelp();
         if(Ele.note) Ele.note();
@@ -4051,6 +4139,16 @@ I.setUIState = function(UI, UIState) {
         sML.replaceClass(UI, UI.PreviousUIState, UI.UIState);
     }
     return UI.UIState;
+};
+
+I.isPointerStealth = function() {
+    var IsPointerStealth = false;
+    I.isPointerStealth.Checkers.forEach(function(checker) { if(checker()) IsPointerStealth = true; });
+    return IsPointerStealth;
+};
+I.isPointerStealth.Checkers = [];
+I.isPointerStealth.addChecker = function(fun) {
+    if(typeof fun == "function" && !I.isPointerStealth.Checkers.includes(fun)) I.isPointerStealth.Checkers.push(fun);
 };
 
 
@@ -4355,61 +4453,63 @@ O.log = function(Msg, Tag) {
     if(sML.UA.Gecko && typeof Msg == "string") Msg = Msg.replace(/(https?:\/\/)/g, "");
     var Pre = 'BiB/i: ';
     switch(Tag) {
-        case  "-*": Tag  = "-" + (O.log.Depth);              break;
-        case  "*:": Tag  =       (O.log.Depth) + ":";        break;
-        case "/*" : Tag  = "/" + (O.log.Depth - 1);          break;
+        case "-x" : break;
+        case  "*:": Tag  =       (O.log.Depth    ) + ":";        break;
+        case "/*" : Tag  = "/" + (O.log.Depth - 1)      ;        break;
+        default   : Tag  = "-" + (O.log.Depth    )      ;        break;
     }
     switch(Tag) {
-        case "-x" : Pre += "[ERROR] ";                  console.info(Pre + Msg); return;
-        case "-0" : Pre += "━━ "; console.info(Pre + Msg); return;
-        case "-1" : Pre += " - ";                       O.log.Depth = 1; break;
-        case  "1:": Pre += "┌ ";                       O.log.Depth = 2; break;
-        case "-2" : Pre += "│ - ";                     O.log.Depth = 2; break;
-        case  "2:": Pre += "│┌ ";                     O.log.Depth = 3; break;
-        case "-3" : Pre += "││ - ";                   O.log.Depth = 3; break;
-        case  "3:": Pre += "││┌ ";                   O.log.Depth = 4; break;
-        case "-4" : Pre += "│││ - ";                 O.log.Depth = 4; break;
-        case  "4:": Pre += "│││┌ ";                 O.log.Depth = 5; break;
-        case "-5" : Pre += "││││ - ";               O.log.Depth = 5; break;
-        case  "5:": Pre += "││││┌ ";               O.log.Depth = 6; break;
-        case "-6" : Pre += "│││││ - ";             O.log.Depth = 6; break;
-        case "/5" : Pre += "││││└ ";               O.log.Depth = 5; break;
-        case "/4" : Pre += "│││└ ";                 O.log.Depth = 4; break;
-        case "/3" : Pre += "││└ ";                   O.log.Depth = 3; break;
-        case "/2" : Pre += "│└ ";                     O.log.Depth = 2; break;
-        case "/1" : Pre += "└ ";                       O.log.Depth = 1; break;
+        case "-x" : Pre += "[ERROR] "; console.info(Pre + Msg); return;
+        case "-0" : Pre += "━━ ";    console.info(Pre + Msg); return;
+        case "-1" : Pre += " - ";              O.log.Depth = 1;  break;
+        case  "1:": Pre += "┌ ";              O.log.Depth = 2;  break;
+        case "-2" : Pre += "│ - ";            O.log.Depth = 2;  break;
+        case  "2:": Pre += "│┌ ";            O.log.Depth = 3;  break;
+        case "-3" : Pre += "││ - ";          O.log.Depth = 3;  break;
+        case  "3:": Pre += "││┌ ";          O.log.Depth = 4;  break;
+        case "-4" : Pre += "│││ - ";        O.log.Depth = 4;  break;
+        case  "4:": Pre += "│││┌ ";        O.log.Depth = 5;  break;
+        case "-5" : Pre += "││││ - ";      O.log.Depth = 5;  break;
+        case  "5:": Pre += "││││┌ ";      O.log.Depth = 6;  break;
+        case "-6" : Pre += "│││││ - ";    O.log.Depth = 6;  break;
+        case "/5" : Pre += "││││└ ";      O.log.Depth = 5;  break;
+        case "/4" : Pre += "│││└ ";        O.log.Depth = 4;  break;
+        case "/3" : Pre += "││└ ";          O.log.Depth = 3;  break;
+        case "/2" : Pre += "│└ ";            O.log.Depth = 2;  break;
+        case "/1" : Pre += "└ ";              O.log.Depth = 1;  break;
     }
     console.log(Pre + Msg);
 };
 /*O.log = function(Msg, Tag) {
     var Pre = 'BiB/i: ';
     switch(Tag) {
-        case  "-*": Tag  = "-" + (O.log.Depth);              break;
-        case  "*:": Tag  =       (O.log.Depth) + ":";        break;
-        case "/*" : Tag  = "/" + (O.log.Depth - 1);          break;
+        case "-*" : Tag  = "-" + (O.log.Depth    )      ; break;
+        case  "*:": Tag  =       (O.log.Depth    ) + ":"; break;
+        case "/*" : Tag  = "/" + (O.log.Depth - 1)      ; break;
     }
     switch(Tag) {
-        case "-x" : Pre += "[ERROR] ";                       console.error(Pre + Msg); break;
-        case "-0" : Pre += "━━━━━━━━━━━━ ";      console.info(Pre + Msg); break;
-        case "-1" : O.log.Depth = 1; console.log(Pre + Msg); break;
-        case  "1:": O.log.Depth = 2; console.group(Pre + Msg); break;
-        case "-2" : O.log.Depth = 2; console.log(Pre + Msg); break;
-        case  "2:": O.log.Depth = 3; console.group(Pre + Msg); break;
-        case "-3" : O.log.Depth = 3; console.log(Pre + Msg); break;
-        case  "3:": O.log.Depth = 4; console.group(Pre + Msg); break;
-        case "-4" : O.log.Depth = 4; console.log(Pre + Msg); break;
-        case  "4:": O.log.Depth = 5; console.group(Pre + Msg); break;
-        case "-5" : O.log.Depth = 5; console.log(Pre + Msg); break;
-        case  "5:": O.log.Depth = 6; console.group(Pre + Msg); break;
-        case "-6" : O.log.Depth = 6; console.log(Pre + Msg); break;
-        case "/5" : O.log.Depth = 5; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/4" : O.log.Depth = 4; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/3" : O.log.Depth = 3; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/2" : O.log.Depth = 2; console.log(Pre + Msg); console.groupEnd(); break;
-        case "/1" : O.log.Depth = 1; console.log(Pre + Msg); console.groupEnd(); break;
+        case "-x" : Pre += "[ERROR] "; console.error(Pre + Msg);                     break;
+        case "-0" : Pre += "━━ ";    console.info( Pre + Msg);                     break;
+        case "-1" : O.log.Depth = 1;   console.log(  Pre + Msg);                     break;
+        case  "1:": O.log.Depth = 2;   console.group(Pre + Msg);                     break;
+        case "-2" : O.log.Depth = 2;   console.log(  Pre + Msg);                     break;
+        case  "2:": O.log.Depth = 3;   console.group(Pre + Msg);                     break;
+        case "-3" : O.log.Depth = 3;   console.log(  Pre + Msg);                     break;
+        case  "3:": O.log.Depth = 4;   console.group(Pre + Msg);                     break;
+        case "-4" : O.log.Depth = 4;   console.log(  Pre + Msg);                     break;
+        case  "4:": O.log.Depth = 5;   console.group(Pre + Msg);                     break;
+        case "-5" : O.log.Depth = 5;   console.log(  Pre + Msg);                     break;
+        case  "5:": O.log.Depth = 6;   console.group(Pre + Msg);                     break;
+        case "-6" : O.log.Depth = 6;   console.log(  Pre + Msg);                     break;
+        case "/5" : O.log.Depth = 5;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/4" : O.log.Depth = 4;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/3" : O.log.Depth = 3;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/2" : O.log.Depth = 2;   console.log(  Pre + Msg); console.groupEnd(); break;
+        case "/1" : O.log.Depth = 1;   console.log(  Pre + Msg); console.groupEnd(); break;
     }
 };*/
-O.log.Depth = 1; if(parent && parent != window) O.log = function() { return false; };
+O.log.Depth = 1;
+if(parent && parent != window) O.log = function() { return false; };
 
 
 O.error = function(Msg) {
@@ -4419,7 +4519,6 @@ O.error = function(Msg) {
     sML.removeClass(O.HTML, "waiting");
     E.dispatch("bibi:x_x", Msg);
     O.log(Msg, "-x");
-    O.log.Depth = 1;
 };
 
 
@@ -4578,12 +4677,15 @@ O.getBibiEventCoord = function(Eve) {
         Coord.X = Eve.pageX;
         Coord.Y = Eve.pageY;
     }
-    if(Eve.target.ownerDocument.documentElement != O.HTML) {
+    if(Eve.target.ownerDocument.documentElement == O.HTML) {
+        Coord.X -= O.Body.scrollLeft;
+        Coord.Y -= O.Body.scrollTop;
+    } else {
         var Item = Eve.target.ownerDocument.documentElement.Item;
         ItemCoord = O.getElementCoord(Item);
         if(!Item.PrePaginated && !Item.Outsourcing) ItemCoord.X += S["item-padding-left"], ItemCoord.Y += S["item-padding-top"];
-        Coord.X += ItemCoord.X - R.Main.scrollLeft;
-        Coord.Y += ItemCoord.Y - R.Main.scrollTop;
+        Coord.X = (Coord.X + ItemCoord.X - R.Main.scrollLeft) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.X;
+        Coord.Y = (Coord.Y + ItemCoord.Y - R.Main.scrollTop ) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.Y;
     }
     return Coord;
 };
@@ -4703,12 +4805,15 @@ O.SettingTypes = {
         "wait",
         "autostart",
         "start-in-new-window",
+        "use-full-height",
+        "use-menubar",
         "use-nombre",
         "use-slider",
         "use-arrows",
         "use-keys",
         "use-swipe",
-        "use-cookie"
+        "use-cookie",
+        "preprocess-html-always"
     ],
     Integer: [
         "spread-gap",

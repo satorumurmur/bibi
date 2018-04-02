@@ -27,6 +27,8 @@ Bibi.Preset = {
 "autostart"                  : "no", // "yes" or "no" or "desktop" or "mobile"
 "start-in-new-window"        : "mobile", // "yes" or "no" or "desktop" or "mobile"
 
+"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
@@ -55,6 +57,8 @@ Bibi.Preset = {
 
 "flipper-width"              : 0.3, // ratio (lower than 1) or px (1 or higher)
 
+"preprocess-html-always"     : "no", // "yes" or "no" or "desktop" or "mobile"
+
 "page-breaking"              : false, // true or false (if true, CSS "page-break-before/after: always;" will work, partially)
 
 "epub-additional-stylesheet" : "", // path from spine-item or http:// URI or ""
@@ -66,6 +70,7 @@ Bibi.Preset = {
     { "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" },
     { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
     { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "base": "auto", "scale-per-step": 1.25 }, // "base": "auto" or pixel-number (if you want to change the default font-size based on the size used most frequently in each HTML)
+    { "name": "Loupe", "src": "extensions/loupe/loupe.js", "mode": "", "max-scale": 4 },
     { "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
     //{ "name": "OverReflow", "src": "extensions/overreflow/overreflow.js" },

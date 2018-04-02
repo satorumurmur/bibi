@@ -59,14 +59,18 @@
                 "nav",
                 "reader-view-mode",
                 "fix-reader-view-mode",
+                "single-page-always",
                 "autostart",
                 "start-in-new-window",
+                "use-full-height",
+                "use-menubar",
                 "use-nombre",
                 "use-slider",
                 "use-arrows",
                 "use-keys",
                 "use-swipe",
-                "use-cookie"
+                "use-cookie",
+                "preprocess-html-always"
             ].forEach(function(PresetKey) {
                 var PresetValue = Anchor.getAttribute("data-bibi-" + PresetKey);
                 if(!PresetValue) return;

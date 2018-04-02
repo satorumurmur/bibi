@@ -32,6 +32,7 @@ S.Extensions = [
     "epubcfi",
     "fontsize",
     "jatex",
+    "loupe",
     "overreflow",
     "share",
     "unaccessibilizer",
@@ -71,28 +72,22 @@ S.getBuildNumber = function() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-S.clean = function(list) {
-    $.del.sync(list);
-    return gulp;
-};
+S.clean = function(List) { $.del.sync(List); return gulp; };
 
-gulp.task('clean: Scripts', function() {
-    return S.clean(ToBeCleaned.Scripts);
-});
+var ToBeCleaned = {};
 
-gulp.task('clean: Styles', function() {
-    return S.clean(ToBeCleaned.Styles);
-});
-
-gulp.task('clean: Metafiles', function() {
-    return S.clean(ToBeCleaned.Metafiles);
-});
-
-gulp.task('clean: All', function() {
-    return S.clean(ToBeCleaned.All);
-});
-
-var ToBeCleaned = {
+(function(TBC) {
+    ToBeCleaned.All = [];
+    for(var Category in TBC) {
+        ToBeCleaned[Category] = TBC[Category];
+        ToBeCleaned.All = ToBeCleaned.All.concat(ToBeCleaned[Category]);
+    }
+    for(var Category in ToBeCleaned) {
+        gulp.task('clean: ' + Category, function() {
+            return S.clean(ToBeCleaned[Category]);
+        });
+    }
+})({
     Scripts: [
         'bib/i/res/scripts',
         'bib/i.js'
@@ -104,14 +99,9 @@ var ToBeCleaned = {
     Metafiles: [
         'bib/LICENSE',
         'bib/README.md'
-    ]
-};
-
-S.Extensions.forEach(function(Extension) {
-    ToBeCleaned.Scripts.push('bib/i/extensions/' + Extension);
+    ],
+    Extensions: S.Extensions
 });
-
-ToBeCleaned.All = S.concat(ToBeCleaned.Scripts, ToBeCleaned.Styles, ToBeCleaned.Metafiles);
 
 
 //==============================================================================================================================================
@@ -216,8 +206,8 @@ S.makeScript = function(Param) {
         .pipe($.uglify({ preserveComments: 'some' }))
         .pipe($.replace('0.000.0', S.getVersion()))
         .pipe($.replace('198106091234', S.getBuildNumber()))
-        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
-        .pipe($.replace(/(\*\/)(.)/g, '$1\n$2'))
+        .pipe($.replace(/(.)(\/\*!)\n/g, '$1\n$2\n'))
+        .pipe($.replace(/\n( \*\/)(.)/g, '\n$1\n$2'))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
 };
@@ -301,11 +291,14 @@ S.makeStyle = function(Param) {
                 warnForDuplicates: false
             }),
             $.cssnano({
-                zindex: false
+                zindex: false,
+                discardUnused: {
+                    fontFace: false
+                }
             })
         ]))
-        .pipe($.replace(/(.)(\/\*!)/g, '$1\n$2'))
-        .pipe($.replace(/(\*\/)(.)/g, '$1\n$2'))
+        .pipe($.replace(/(.)(\/\*!)\n/g, '$1\n$2\n'))
+        .pipe($.replace(/\n( \*\/)(.)/g, '\n$1\n$2'))
         .pipe(gulp.dest(''))
         .pipe($.browserSync.reload({ stream: true }));
 };
