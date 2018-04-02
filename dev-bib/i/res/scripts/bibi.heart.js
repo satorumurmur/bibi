@@ -4147,8 +4147,8 @@ I.isPointerStealth = function() {
     return IsPointerStealth;
 };
 I.isPointerStealth.Checkers = [];
-I.isPointerStealth.addChecker = function(Fun) {
-    if(typeof Fun == "function" && !I.isPointerStealth.Checkers.includes(Fun)) I.isPointerStealth.Checkers.push(Fun);
+I.isPointerStealth.addChecker = function(fun) {
+    if(typeof fun == "function" && !I.isPointerStealth.Checkers.includes(fun)) I.isPointerStealth.Checkers.push(fun);
 };
 
 
