@@ -45,7 +45,7 @@ Bibi.x({
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, "") * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
-        if(sML.UA.InternetExplorer && L.Preprocessed) {
+        if(L.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
             Array.prototype.forEach.call(Item.contentDocument.documentElement.querySelectorAll("body, body *"), function(Ele) {
                 Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem";
             });
