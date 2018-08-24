@@ -1,0 +1,196 @@
+// ================================================================================
+// + Lib.
+// --------------------------------------------------------------------------------
+
+
+
+
+// ================================================================================
+// + Vars
+// --------------------------------------------------------------------------------
+
+
+// - Colors
+// --------------------------------------------------------------------------------
+
+$veil-background: linear-gradient(to bottom, rgb(96,96,96), rgb(192,192,192));//rgb(216,216,216);
+$bibi-background: rgb(64,64,64);
+
+$color_blue-hilight: saturate(steelblue, 20%);
+$color_red-hilight: rgb(255,96,81);
+
+$color-in-subpanel: $color_blue-hilight;
+
+$scrollbar-track-background-color: rgb(255,255,255);
+$scrollbar-track-border-color: rgb(232,232,232);
+
+$scrollbar-thumb-background-color: rgb(64,64,64);
+$scrollbar-thumb-background-color_hover: rgb(96,96,96);
+$scrollbar-thumb-background-color_active: rgb(192,192,192);
+$scrollbar-thumb-border-color: rgb(32,32,32);
+
+$nombre-box-background-color: rgba(240,240,240,0.9);
+$nombre-box-background-color: rgb(240,240,240);
+
+$nombre-color: rgb(64,64,64);
+$nombre-current-color: darken($nombre-color, 25%);
+$nombre-percent-color: lighten($nombre-color, 25%);
+
+
+// - Sizes
+// --------------------------------------------------------------------------------
+
+$scrollbar-track-size: 16px;
+$scrollbar-thumb-size: 8px;
+
+$icon-size: 31px;
+$icon-size_in-subpanel: 21px;
+
+$button-group-margin: 4px;
+
+$top-bar-height: $icon-size + $button-group-margin * 2;
+$bottom-bar-height: $top-bar-height;
+
+$slider-size: $bottom-bar-height * 2;
+
+$nombre-box-width: 120px;
+$nombre-box-height: 20px;
+
+
+// - Z-Indexes
+// --------------------------------------------------------------------------------
+
+$z-index_main: 1;
+	$z-index_main-book: 1;
+	$z-index_main-touchpanel: 10;
+
+$z-index_scrollbar: $z-index_main + 1;
+$z-index_progress: $z-index_main + 1;
+$z-index_nombre: $z-index_main + 1;
+$z-index_slider: $z-index_main + 10;
+
+$z-index_sub: 10;
+
+$z-index_veil: 100;
+	$z-index_veil-bottombar: 1;
+	$z-index_veil-cover: 10;
+	$z-index_veil-play: 10;
+	$z-index_veil-byebye: 10;
+
+$z-index_catcher: $z-index_veil + 1;
+
+$z-index_panel: 1000;
+	$z-index_panel-bookinfo: 1;
+	$z-index_panel-bottombar: $z-index_panel-bookinfo + 1;
+	$z-index_panel-topbar: 1000;
+
+$z-index_menu: $z-index_panel + 1;
+
+$z-index-help: $z-index_panel + 1;
+$z-index-poweredby: $z-index_panel + 1;
+
+$z-index_arrow: $z-index_panel + 1;
+
+$z-index_shade: $z-index_menu - 1;
+$z-index_subpanel: $z-index_menu + 1;
+
+$z-index_notifier-board: 99999999999;
+$z-index_spinner: $z-index_notifier-board - 1;
+
+
+
+
+// ================================================================================
+// + Mix-Ins
+// --------------------------------------------------------------------------------
+
+
+@mixin trbl($t: auto, $r: $t, $b: $t, $l: $r) { top: $t; right: $r; bottom: $b; left: $l; }
+@mixin tb($t: auto, $b: $t) { top: $t; bottom: $b; }
+@mixin lr($l: auto, $r: $l) { left: $l; right: $r; }
+@mixin margin-v($t: 0, $b: $t) { margin-top: $t; margin-bottom: $b; }
+@mixin margin-h($l: 0, $r: $l) { margin-left: $l; margin-right: $r; }
+@mixin padding-v($t, $b: $t) { padding-top: $t; padding-bottom: $b; }
+@mixin padding-h($l, $r: $l) { padding-left: $l; padding-right: $r; }
+@mixin size($w, $h: $w) { width: $w; height: $h; }
+@mixin wh($w, $h: $w) { @include size($w, $h); }
+@mixin max-size($w, $h: $w) { max-width: $w; max-height: $h; }
+@mixin min-size($w, $h: $w) { min-width: $w; min-height: $h; }
+
+@mixin min($min) { @media screen and (min-width: #{$min}) { @content; } }
+@mixin max($max) { @media screen and (max-width: #{$max}) { @content; } }
+@mixin min-max($min, $max) { @media screen and (min-width: #{$min}) and (max-width: #{$max}) { @content; } }
+@mixin max-min($max, $min) { @include min-max($min, $max) { @content; } }
+
+@mixin keyframes($N) { @-webkit-keyframes #{$N} { @content; } @-epub-keyframes #{$N} { @content; } @-moz-keyframes #{$N} { @content; } @-ms-keyframes #{$N} { @content; } @keyframes #{$N} { @content; } }
+
+@mixin prefix($P, $V) { -webkit-#{$P}: $V; -epub-#{$P}: $V; -moz-#{$P}: $V; -ms-#{$P}: $V; @content; #{$P}: $V; }
+
+@mixin text-combine-upright_all() { -webkit-text-combine: horizontal; text-combine: horizontal; -ms-text-combine-horizontal: all; text-combine-horizontal: all; text-combine-upright: all; }
+
+@mixin writing-mode($V) {
+	@include prefix(writing-mode, $V) {
+		$V2: null;
+		     @if $V == horizontal-lr { $V2: lr-tb; }
+		@else if $V == horizontal-rl { $V2: rl-tb; }
+		@else if $V ==   vertical-rl { $V2: tb-rl; }
+		@else if $V ==   vertical-lr { $V2: tb-lr; }
+		-ms-writing-mode: $V2;
+	}
+}
+
+@mixin font-icon($FamilyName) {
+	display: inline-block;
+	direction: ltr;
+	letter-spacing: normal;
+	text-transform: none;
+	text-rendering: optimizeLegibility;
+	white-space: nowrap;
+	word-wrap: normal;
+	font-family: $FamilyName;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	-ms-font-feature-settings: 'liga' 1;
+	font-feature-settings: 'liga';
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	speak: none;
+}
+
+
+
+
+
+// ================================================================================
+// + Common Classes
+// --------------------------------------------------------------------------------
+
+
+.non-visual {
+	display: block !important;
+	position: absolute !important;
+	overflow: hidden !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	left: 0 !important;
+	top: 0 !important;
+	width: 0 !important;
+	height: 0 !important;
+	background: transparent !important;
+}
+
+.separator {
+	display: block;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+	border: solid black;
+	border-width: 1px 0 0;
+	height: 0;
+}
+
+.uppercase {
+	text-transform: uppercase !important;
+}

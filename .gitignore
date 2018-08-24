@@ -17,6 +17,10 @@ npm-debug.log
 # --------------------------------------------------------------------------------
 bower_components
 
+# SourceMaps
+# --------------------------------------------------------------------------------
+*.map
+
 # BiB/i: Compiled CSS/JavaScript files
 # --------------------------------------------------------------------------------
 bib/i/extensions
@@ -24,6 +28,7 @@ bib/i/res/styles
 bib/i/res/scripts
 bib/i.css
 bib/i.js
+bower_components.js
 
 # BiB/i: Bookshelf
 # --------------------------------------------------------------------------------
@@ -32,10 +37,8 @@ bib/bookshelf/*
 dev-bib/bookshelf/*
 !dev-bib/bookshelf/.gitkeep
 
-
 # Others
 # --------------------------------------------------------------------------------
 archives/*
 *.zip
 ____IGNORE____
-

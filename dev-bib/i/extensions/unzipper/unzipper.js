@@ -2,7 +2,7 @@
  *
  * # BiB/i Extension: Unzipper (core)
  *
- * - "EPUB-Zip Utility for BiB/i (core)"
+ * - "Unzipping Utility for BiB/i (core)"
  * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
  * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
  *
@@ -13,137 +13,156 @@
 Bibi.x({
 
     name: "Unzipper",
-    description: "EPUB-Zip Utility for BiB/i",
+    description: "Unzipping Utility for BiB/i",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "1.3.0",
+    version: "1.5.0",
     build: Bibi["build"]
 
 })(function() {
 
-    X.Unzipper.loadBookData = function(PathOrData) {
-        if(S["autostart"]) {
-            X.Unzipper.loadBookData.fetch(PathOrData);
-        } else {
-            I.Veil.Cover.Info.innerHTML = [
-                '<strong>' + (O.Mobile ? "Tap" : "Click") + ' to Open</strong>',
-                '<small>' + B.Path.replace(/.*?([^\/]+)$/, "$1") + '</small>'
-            ].join(" ");
-            sML.addClass(I.Veil.Cover, "without-cover-image waiting-for-unzipping");
-            L.wait().then(function() {
-                X.Unzipper.loadBookData.fetch(PathOrData);
-            });
-        }
-    };
-
-    X.Unzipper.loadBookData.fetch = function(PathOrData) {
-        if(PathOrData.Path) {
-            new JSZip.external.Promise(function (resolve, reject) {
-                JSZipUtils.getBinaryContent(PathOrData.Path, function(Err, BookDataBinary) {
-                    Err ? reject(Err) : resolve(BookDataBinary);
-                });
-            }).then(function(BookDataBinary) {
-                JSZip.loadAsync(BookDataBinary).then(X.Unzipper.loadBookData.extract);
-            }).catch(function() {
-                L.loadBook.reject('EPUB Not Found.');
-            });
-        } else if(PathOrData.Data) {
-            var EPUBLoader = new FileReader();
-            EPUBLoader.onload = function() {
-                JSZip.loadAsync(this.result).then(X.Unzipper.loadBookData.extract);
-            };
-            EPUBLoader.onerror = function() {
-                L.loadBook.reject('Something Troubled...');
-            };
-            EPUBLoader.readAsArrayBuffer(PathOrData.Data);
-        }
-    };
-
-    X.Unzipper.loadBookData.extract = function(ZippedData) {
+    X.Unzipper.loadBookData = function(BookData) {
         return new Promise(function(resolve, reject) {
-            O.log("Extracting EPUB: " + B.Path + " ...", "*:");
-            I.Veil.Catcher.style.opacity = 0;
-            var FileCount = { HTML: 0, CSS: 0, SVG: 0, Image: 0, Font: 0, Audio: 0, Video: 0, PDF: 0, Etc: 0, All: 0 };
-            var FilesToBeExtract = [];
-            for(var FileName in ZippedData.files) {
-                if(
-                    ZippedData.files[FileName].dir ||
-                    !ZippedData.files[FileName]._data.compressedContent ||
-                    /\.(git|svn|bundle|sass-cache)\/|(\.(DS_Store|AppleDouble|LSOverride|Spotlight-V100|Trashes|gitignore)|Thumbs\.db|Gemfile(\.lock)?|config\.(rb|ru))$/.test(FileName)
-                ) continue;
-                     if(         /\.(x?html?)$/i.test(FileName)) FileCount.HTML++;
-                else if(             /\.(css)$/i.test(FileName)) FileCount.CSS++;
-                else if(             /\.(svg)$/i.test(FileName)) FileCount.SVG++;
-                else if(   /\.(gif|jpe?g|png)$/i.test(FileName)) FileCount.Image++;
-                else if(    /\.(woff|otf|ttf)$/i.test(FileName)) FileCount.Font++;
-                else if( /\.(m4a|aac|mp3|ogg)$/i.test(FileName)) FileCount.Audio++;
-                else if(/\.(mp4|m4v|ogv|webm)$/i.test(FileName)) FileCount.Video++;
-                else if(             /\.(pdf)$/i.test(FileName)) FileCount.PDF++;
-                else                                             FileCount.Etc++;
-                FilesToBeExtract.push(FileName);
-            }
-            if(!FilesToBeExtract.length) return reject();
-            FileCount.All = FilesToBeExtract.length;
-            B.FileDigit = (FileCount.All + "").length;
-            var PartLog = [];
-            if(FileCount.HTML)  PartLog.push(FileCount.HTML  + ' HTML'  + (FileCount.HTML  >= 2 ? 's' : ''));
-            if(FileCount.CSS)   PartLog.push(FileCount.CSS   + ' CSS'   + (FileCount.CSS   >= 2 ? 's' : ''));
-            if(FileCount.SVG)   PartLog.push(FileCount.SVG   + ' SVG'   + (FileCount.SVG   >= 2 ? 's' : ''));
-            if(FileCount.Image) PartLog.push(FileCount.Image + ' Image' + (FileCount.Image >= 2 ? 's' : ''));
-            if(FileCount.Font)  PartLog.push(FileCount.Font  + ' Font'  + (FileCount.Font  >= 2 ? 's' : ''));
-            if(FileCount.Audio) PartLog.push(FileCount.Audio + ' Audio' + (FileCount.Audio >= 2 ? 's' : ''));
-            if(FileCount.Video) PartLog.push(FileCount.Video + ' Video' + (FileCount.Video >= 2 ? 's' : ''));
-            if(FileCount.PDF)   PartLog.push(FileCount.PDF   + ' PDF'   + (FileCount.PDF   >= 2 ? 's' : ''));
-            if(FileCount.Etc)   PartLog.push(FileCount.Etc   + ' etc.');
-            var Log =                        FileCount.All   + ' File'  + (FileCount.All   >= 2 ? 's' : '') + '.' + ' (' + PartLog.join(', ') + ')';
-            new Promise(function(resolve, reject) {
-                var FilesExtracted = 0;
-                FilesToBeExtract.forEach(function(FileName) {
-                    ZippedData.file(FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(function(content) {
-                        B.Files[FileName] = content.trim();
-                        FilesExtracted++;
-                        if(FilesExtracted >= FilesToBeExtract.length) resolve(Log);
-                    });
-                });
-            }).then(function() {
-                O.log('Extracted ' + Log, "-*");
-                O.log("EPUB Extracted.", "/*");
-                L.loadBook.resolve();
-                sML.removeClass(O.HTML, "waiting-file");
-            }).catch(reject);
-        }).catch(function() {
-            I.Veil.Catcher.style.opacity = "";
-            L.loadBook.reject("EPUB Extracting Failed.");
+            X.Unzipper.loadBookData.start(BookData).then(function(BookData) {
+                return X.Unzipper.loadBookData.getArrayBuffer(BookData);
+            }).then(function(ArrayBufferOfBookData) {
+                return JSZip.loadAsync(ArrayBufferOfBookData);
+            }).then(function(BookDataArchive) {
+                if(I.Catcher) I.Catcher.style.opacity = 0;
+                return X.Unzipper.loadBookData.extract(BookDataArchive);
+            }).then(function(Log) {
+                O.log("Book Data Extracted" + (Log ? ' ' + Log : '') + '.', "-*");
+                resolve();
+            }).catch(function(ErrorMessage) {
+                reject(ErrorMessage);
+            })
         });
     };
 
-    // Catcher
-    var CatcherLabel = "<strong>Give Me an EPUB File!</strong> <span>Please Drop Me It.</span> <small>(or Click Me and Select)</small>";
-    I.Veil.Catcher = I.Veil.appendChild(
-        sML.create("p", { id: "bibi-veil-catcher", title: CatcherLabel.replace(/<[^>]+>/g, ""), innerHTML: '<span>' + CatcherLabel + '</span>' }, { display: "none" })
-    );
-    I.Veil.Catcher.addEventListener("click", function() {
-        if(!this.Input) this.Input = this.appendChild(
-            sML.create("input", { type: "file",
-                onchange: function(Eve) {
-                    L.loadBook({ Data: Eve.target.files[0] });
-                }
-            })
-        );
-        this.Input.click();
-    });
-    I.Veil.Catcher.dropOrClick = function() {
-        sML.addClass(O.HTML, "waiting-file");
-        I.Veil.Catcher.style.display = "block";
-        I.note('Drop an EPUB file into this window. Or click and select an EPUB file.');
+    X.Unzipper.loadBookData.start = function(BookData) {
+        return new Promise(function(resolve) {
+            if(S["autostart"]) {
+                resolve(BookData);
+            } else {
+                I.Veil.Cover.Info.innerHTML = [
+                    '<strong>' + (O.Mobile ? "Tap" : "Click") + ' to Open</strong>',
+                    '<small>' + B.Path.replace(/.*?([^\/]+)$/, "$1") + '</small>'
+                ].join(" ");
+                sML.addClass(I.Veil.Cover, "without-cover-image waiting-for-unzipping");
+                L.wait().then(function() {
+                    resolve(BookData);
+                });
+            }
+        });
     };
-    if(!O.Mobile) {
-        I.Veil.Catcher.addEventListener("dragenter", function(Eve) { Eve.preventDefault();    sML.addClass(O.HTML, "dragenter"); }, 1);
-        I.Veil.Catcher.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); }, 1);
-        I.Veil.Catcher.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); sML.removeClass(O.HTML, "dragenter"); }, 1);
-        I.Veil.Catcher.addEventListener("drop",      function(Eve) { Eve.preventDefault();
-            L.loadBook({ Data: Eve.dataTransfer.files[0] });
-        }, 1);
-    }
+
+    X.Unzipper.loadBookData.getArrayBuffer = function(BookData) {
+        return new Promise(function(resolve, reject) {
+            if(typeof BookData == "string") {
+                JSZipUtils.getBinaryContent(BookData, function(Err, ArrayBufferOfBookData) {
+                    Err ? reject('Book File Is Not Found or Invalid.') : resolve(ArrayBufferOfBookData);
+                });
+            } else if(BookData instanceof Blob) {
+                var BookDataLoader = new FileReader();
+                BookDataLoader.onload  = function() { resolve(this.result); };
+                BookDataLoader.onerror = function() { reject('Book Data Is Invalid.'); };
+                BookDataLoader.readAsArrayBuffer(BookData);
+            } else {
+                reject('Book Data Is Invalid.');
+            }
+        });
+    };
+
+    X.Unzipper.loadBookData.extract = function(BookDataArchive) {
+        return new Promise(function(resolve, reject) {
+            var FilesToBeExtract = [];
+            for(var FileName in BookDataArchive.files) {
+                if(
+                    BookDataArchive.files[FileName].dir ||
+                    /(^|\/)\./.test(FileName) ||
+                    /\.(db|php|p[lm]|cgi|r[bu])(\/|$)/i.test(FileName) ||
+                    /^mimetype$/i.test(FileName) ||
+                    !BookDataArchive.files[FileName]._data.compressedContent
+                ) {
+                    delete BookDataArchive.files[FileName];
+                    continue;
+                }
+                FilesToBeExtract.push(FileName);
+            }
+            if(!FilesToBeExtract.length) return reject('Does Not Contain Any Resources');
+            var FolderName = "", FolderNameRE = undefined;
+            if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.Zine.Path)) {
+                [B.Container.Path, B.Zine.Path].forEach(function(ToBeFound) {
+                    if(FolderName) return;
+                    var RE = new RegExp("^(.+?\\/)" + ToBeFound.replace(/\//g, "\\/").replace(/\./g, "\\.") + "$");
+                    for(var i = 0, l = FilesToBeExtract.length; i < l; i++) {
+                        var FileName = FilesToBeExtract[i];
+                        if(RE.test(FileName)) {
+                            FolderName = FileName.replace(RE, "$1");
+                            FolderNameRE = new RegExp("^" + FolderName.replace(/\//g, "\\/").replace(/\./g, "\\."));
+                            break;
+                        }
+                    }
+                });
+            }
+            if(FilesToBeExtract.includes(FolderName + B.Container.Path)) {
+                if(!S["book-type"]) S["book-type"] = "EPUB";
+                else if(S["book-type"] == "Zine") reject({ BookTypeError: 'It Seems to Be an EPUB. Not a Zine.' });
+            } else if(FilesToBeExtract.includes(FolderName + B.Zine.Path)) {
+                if(!S["book-type"]) S["book-type"] = "Zine";
+                else if(S["book-type"] == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
+            } else {
+                reject('Required Metafile Is Not Contained.');
+            }
+            var FileCount = { All: 0, Particular: 0 }, FileTypesToBeCounted = [
+                ["Meta XML",   "xml|opf|ncx"],
+                ["Meta YAML",  "ya?ml"],
+                ["HTML",       "html?|xht(ml?)?"],
+                ["SMIL",       "smil?"],
+                ["PLS",        "pls"],
+                ["CSS",        "css"],
+                ["JavaScript", "js"],
+                ["JSON",       "json"],
+                ["SVG",        "svg"],
+                ["Bitmap",     "gif|jpe?g|png"],
+                ["Font",       "woff2?|otf|ttf"],
+                ["Audio",      "aac|m4a|mp3|ogg"],
+                ["Video",      "mp4|m4v|webm|ogv"],
+                ["PDF",        "pdf"],
+                ["Markdown",   "md"],
+                ["PlainText",  "txt"]
+            ];
+            FilesToBeExtract.forEach(function(FileName) {
+                if(FolderName) FileName = FileName.replace(FolderNameRE, "");
+                BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(function(content) {
+                    B.Files[FileName] = content.trim();
+                    if(S["book-type"] == "Zine" && !B.Package.Manifest.Files[FileName]) B.Package.Manifest.Files[FileName] = {};
+                    if(FileTypesToBeCounted.length) {
+                        for(var Counted = false, l = FileTypesToBeCounted.length, i = 0; i < l; i++) {
+                            var Label = FileTypesToBeCounted[i][0], REFragment = FileTypesToBeCounted[i][1];
+                            if(new RegExp("\\.(" + FileTypesToBeCounted[i][1] + ")$", "i").test(FileName)) {
+                                if(FileCount[Label]) FileCount[Label]++; else FileCount[Label] = 1;
+                                FileCount.Particular++;
+                                break;
+                            }
+                        }
+                    }
+                    FileCount.All++;
+                    if(FileCount.All >= FilesToBeExtract.length) {
+                        var PartLog = [];
+                        FileTypesToBeCounted.forEach(function(FileTypeToBeCounted) {
+                            var Label = FileTypeToBeCounted[0], Count = FileCount[Label];
+                            if(Count) PartLog.push(Count + ' ' + Label + (Count >= 2 ? 's' : ''));
+                        });
+                        if(PartLog.length && FileCount.Particular < FileCount.All) {
+                            var EtCCount = FileCount.All - FileCount.Particular;
+                            PartLog.push(EtCCount + ' ' + (EtCCount >= 2 ? 'Others' : 'Another'));
+                        }
+                        resolve('(' + (PartLog.length != 1 ? FileCount.All + ' Resources' + (PartLog.length > 1 ? ' = ' : '') : '') + PartLog.join(' + ') + ')');
+                    }
+                });
+            });
+        });
+    };
 
 });
 

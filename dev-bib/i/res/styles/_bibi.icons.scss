@@ -223,6 +223,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 .bibi-icon-open-newwindow {
 	text-decoration: none;
 	&:before {
+		@include font-icon("Material Icons");
 		left: 0;
 		right: 0;
 		top: 0;
@@ -241,60 +242,42 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 
 .bibi-icon-setting {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*touch_app*/ "\e8b8";
-	//	@include font-icon("FontAwesome");
-	//	content: "\f013"; // cog
-	//	font-size: $icon-size * 23/31;
-		@include font-icon("ElegantIcons");
-		content: "\e037"; // icon_cog
-		font-size: $icon-size * 19/31;
+		content: /*touch_app*/ "\e8b8";
+		font-size: $icon-size * 0.75;
 	}
 }
 
 .bibi-icon-share {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*share*/ "\e80d";
-	//	@include font-icon("FontAwesome");
-	//	content: "\f064"; // share
-	//	content: "\f045"; // share-square-o
-	//	content: "\f1e0"; // share-alt
-		@include font-icon("ElegantIcons");
-		content: "\e0a0"; // social_share
-		font-size: $icon-size * 16/31;
+		content: /*share*/ "\e80d";
+		font-size: $icon-size * 20/31;
+		font-weight: bold;
+		html.InternetExplorer & { font-weight: normal; }
 	}
 }
 
 .bibi-icon-toggle-fullscreen {
 	&:before {
-		//@include font-icon("Material Icons");
-		@include font-icon("FontAwesome");
 		.bibi-subpanel & {
-			font-size: $icon-size_in-subpanel * 5/7;
+			font-size: $icon-size_in-subpanel * 0.9;
+			html.InternetExplorer & { top: -.05em; }
 		}
 	}
 	&:before {
-		//content: /*fullscreen*/ "\e5d0";
-		content: "\f065"; // expand
+		content: /*fullscreen*/ "\e5d0";
 	}
 	*:fullscreen &:before {
-		//content: /*fullscreen_exit*/ "\e5d1";
-		content: "\f066"; // compress
+		content: /*fullscreen_exit*/ "\e5d1";
 	}
 }
 
 .bibi-icon-open-newwindow {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*open_in_new*/ "\e89e";
-		@include font-icon("FontAwesome");
-		content: "\f08e"; // external-link
+		content: /*open_in_new*/ "\e89e";
 		font-size: $icon-size * 21/31;
 		.bibi-subpanel & {
-			margin-top: .06em;
-			margin-left: .09em;
-			font-size: $icon-size_in-subpanel * 13/21;
+			margin-top: -.025em;
+			font-size: $icon-size_in-subpanel * 16/21;
 		}
 	}
 }
@@ -568,14 +551,16 @@ $icon-color_active_border: darken(pink, 5%);
 // + Font Icons
 // --------------------------------------------------------------------------------
 
-@mixin fa-icon($content, $color) {
+@mixin SNS-icon($content, $color) {
 	margin-top: .05em;
 	margin-right: -.1em;
+	border: none 0;
+	border-radius: 0;
 	background: transparent !important;
-	font-size: $icon-size * .6;
+	font-size: $icon-size;
 	line-height: $icon-size * .96;
 	.bibi-subpanel & {
-		font-size: $icon-size_in-subpanel * .6;
+		font-size: $icon-size_in-subpanel;
 		line-height: $icon-size_in-subpanel * .96;
 	}
 	&:before, &:after {
@@ -585,28 +570,92 @@ $icon-color_active_border: darken(pink, 5%);
 		box-shadow: none !important;
 	}
 	&:before {
-		@include font-icon("FontAwesome");
+		@include font-icon("Font Awesome Brands");
 		content: $content;
 	}
 }
 
-@mixin fa-icon-SNS($content, $color) {
-	@include fa-icon($content, $color);
-	border: none 0;
-	border-radius: 0;
-	font-size: $icon-size;
-	.bibi-subpanel & {
-		font-size: $icon-size_in-subpanel;
-	}
-}
-
-.bibi-icon-Twitter    { @include fa-icon-SNS("\f081", rgb(29,161,242)); }
-.bibi-icon-Facebook   { @include fa-icon-SNS("\f082", rgb(58,89,153)); }
-.bibi-icon-GooglePlus { @include fa-icon-SNS("\f0d4", rgb(219,68,55)); }
-
-.bibi-icon-code       { @include fa-icon("\f121", rgb(128,160,0)); } 
-.bibi-icon-anchor     { @include fa-icon("\f13d", navy); }
+.bibi-icon-Twitter    { @include SNS-icon("\f081", rgb( 29,161,242)); }
+.bibi-icon-Facebook   { @include SNS-icon("\f082", rgb( 58, 89,153)); }
+.bibi-icon-GooglePlus { @include SNS-icon("\f0d4", rgb(219, 68, 55)); }
 
 .bibi-icon-colorless  { &:before { color: inherit; } }
+
+
+
+
+// ================================================================================
+// + Book Icon
+// --------------------------------------------------------------------------------
+
+@mixin book-icon($icon-size) {
+	box-sizing: border-box;
+	display: block;
+	position: relative;
+	@include size($icon-size);
+	&:before,
+	&:after,
+	span,
+	span:before,
+	span:after {
+		content: "";
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+	}
+	$line-width: $icon-size * 8/128;
+	$book-width: $icon-size - $line-width * 2.5;
+	$book-height: $icon-size;
+	$cover-width: $book-width - $line-width * 2;
+	$cover-height: $book-height - $line-width * 4;
+	$page-breadth: $book-height - $line-width - $cover-height;
+	$book-breadth: $page-breadth + $line-width * 2;
+	$left: ($icon-size - $book-width) * 0.5 - $line-width * 0.5;
+	$top: 0;
+	$outer-color: white;
+	$inner-color: rgb(136,136,136);
+	&:before {
+	}
+	span {
+		// Back Cover
+		z-index: 10;
+		left: $left;
+		top: $top;
+		border-radius: ($book-breadth * 0.5) $line-width $line-width 0;
+		width: $cover-width + $line-width * 2;
+		height: $icon-size - $line-width * 3;
+		background: $outer-color;
+		&:before {
+			// Pages
+			z-index: 100;
+			left: ($book-breadth * 0.5);
+			top: $line-width;
+			border-radius: 0 2px $line-width * 3.5 0;
+			width: $cover-width - ($line-width + $page-breadth * 0.5) + $line-width;
+			height: $icon-size - $line-width;
+			background: $inner-color;
+		}
+		&:after {
+			// Top of Spine
+			z-index: 1000;
+			left: $line-width;
+			top: $line-width;
+			border-radius: ($page-breadth * 0.5) 0 0 ($page-breadth * 0.5);
+			width: $page-breadth;// * 0.5;
+			height: $page-breadth;
+			background: $inner-color;
+		}
+	}
+	&:after {
+		// Front Cover
+		z-index: 10000;
+		left: $left;
+		top: $top + ($icon-size - $cover-height);
+		border-radius: 0 $line-width $line-width ($book-breadth * 0.5);
+		width: $cover-width;
+		height: $cover-height;
+		background: $outer-color;
+	}
+}
 
 

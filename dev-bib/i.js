@@ -9,7 +9,7 @@
 
 (function() {
     if(window["bibi:pipi"]) return;
-    var Pipi = window["bibi:pipi"] = { "version": "0.000.0", "build": 198106091234,
+    var Pipi = window["bibi:pipi"] = { "version": "____bibi-version____", "build": "____bibi-build____",
         Status: "",
         Bibis: [],
         Anchors: [],
@@ -60,8 +60,8 @@
                 "reader-view-mode",
                 "fix-reader-view-mode",
                 "single-page-always",
-                "autostart",
-                "start-in-new-window",
+                "autostart", "autostart-embedded",
+                "start-in-new-window", "start-embedded-in-new-window",
                 "use-full-height",
                 "use-menubar",
                 "use-nombre",
@@ -81,6 +81,7 @@
                     case "reader-view-mode": RE =         /^(horizontal|vertical|paged)$/; break;
                     default:                 RE = /^(true|false|yes|no|mobile|desktop)?$/; break;
                 }
+                if(/^(autostart|start-in-new-window)$/.test(PresetKey)) PresetKey = PresetKey.replace("start", "start-embedded");
                 if(RE.test(PresetValue)) Fragments.add(PresetKey, PresetValue);
             });
             // Frame
@@ -97,7 +98,7 @@
             Frame.addEventListener("load", function() {
                 Pipi.Loaded++;
                 this.Bibi.Anchor.dispatchEvent(new CustomEvent("bibi:loaded", { detail: this.Bibi }));
-                if(Pipi.Status != "Timeouted" && Pipi.Loaded == Pipi.Bibis.length) {
+                if(Pipi.Status != "TimedOut" && Pipi.Loaded == Pipi.Bibis.length) {
                     Pipi.Status = "Loaded";
                     document.dispatchEvent(new CustomEvent("bibi:loaded", { detail: Pipi }));
                 }
@@ -132,7 +133,7 @@
         }
         setTimeout(function() {
             if(Pipi.Status == "Loaded") return;
-            Pipi.Status = "Timeouted";
+            Pipi.Status = "TimedOut";
             document.dispatchEvent(new CustomEvent("bibi:timed-out", { detail: Pipi }));
         }, 12000);
         Pipi.Status = "Readied";
@@ -146,12 +147,18 @@
         return Ele;
     };
     Pipi.Fragments = function() {
-        this.Fragments = [];
+        this.FragmentKeys = [];
+        this.FragmentKeysAndValues = {};
         this.add = function(Key, Value) {
-            this.Fragments.push(Key + ":" + Pipi.encode(Value));
+            if(!this.FragmentKeys.includes(Key)) this.FragmentKeys.push(Key);
+            this.FragmentKeysAndValues[Key] = Value;
         };
         this.make = function() {
-            return this.Fragments.length ? "pipi(" + this.Fragments.join(",") + ")" : "";
+            if(!this.FragmentKeys.length) return "";
+            for(var Fragments = [], l = this.FragmentKeys.length, i = 0; i < l; i++) {
+                Fragments.push(this.FragmentKeys[i] + ":" + Pipi.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]));
+            }
+            return "pipi(" + this.Fragments.join(",") + ")";
         };
         return this;
     };

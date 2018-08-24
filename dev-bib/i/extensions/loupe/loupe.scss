@@ -1,6 +1,6 @@
 @charset "utf-8";
 
-@import "../../res/styles/_common-lib";
+@import "../../res/styles/_/_lib";
 
 #bibi-buttongroup_loupe {
 	html.waiting &,
@@ -21,13 +21,13 @@
 				line-height: 1;
 			}
 			&:before {
-				@include font-icon("FontAwesome");
+				@include font-icon("Material Icons");
 				@include trbl(-100%);
 			}
 		}
 		.bibi-icon-loupe-menu {
 			&:before {
-				content: "\f00e";
+				content: /*zoom_in*/ "\8ff";
 				font-size: 22px;
 			}
 		}
@@ -35,28 +35,31 @@
 		.bibi-icon-loupe-zoomout,
 		.bibi-icon-loupe-reset {
 			&:before {
-				font-size: 18px;
+				font-size: 26px;
+				line-height: 29px;
+				text-indent: 1px;
+				//font-weight: bold;
 			}
 		}
 		.bibi-icon-loupe-zoomin {
 			&:before {
-				content: "\f00e";
+				content: /*zoom_in*/ "\e8ff";
 			}
 		}
 		.bibi-icon-loupe-zoomout {
 			&:before {
-				content: "\f010";
+				content: /*zoom_out*/ "\e900";
 			}
 		}
 		.bibi-icon-loupe-reset {
 			&:before {
-				content: "\f002";
+				content: /*search*/ "\e8b6";
 			}
 			&:after {
 				content: "=";
 				display: block;
 				position: absolute;
-				@include trbl(23%, auto, auto, 25%);
+				@include trbl(21%, auto, auto, 24%);
 				margin: auto;
 				width: 1em;
 				height: 1em;
@@ -64,7 +67,7 @@
 				line-height: 1;
 			}
 			html.Windows &:after {
-				@include trbl(29%, auto, auto, 25%);
+				@include trbl(27%, auto, auto, 25%);
 			}
 			#bibi-subpanel_loupe &:after {
 				@include trbl(11%, auto, auto, 17%);

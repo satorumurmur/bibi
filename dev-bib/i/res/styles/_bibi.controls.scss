@@ -149,22 +149,24 @@ p#bibi-veil-byebye {
 // --------------------------------------------------------------------------------
 
 div#bibi-veil-cover {
-	overflow: hidden;
-	position: absolute;
-	z-index: $z-index_veil-cover;
-	left: 0;
-	top: 0;
-	box-sizing: border-box;
-	border: solid transparent;
-	border-width: 4px; //border-top-width: $top-bar-height + 4px;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	transition: opacity 0.5s linear;
-	background: transparent no-repeat center center;
-	background-size: contain;
-	p {
+	& {
+		overflow: hidden;
+		position: absolute;
+		z-index: $z-index_veil-cover;
+		left: 0;
+		top: 0;
+		box-sizing: border-box;
+		border: solid transparent;
+		border-width: 4px; //border-top-width: $top-bar-height + 4px;
+		width: 100%;
+		height: 100%;
 		opacity: 0;
+		transition: opacity 0.5s linear;
+		background: transparent no-repeat center center;
+		background-size: contain;
+		p {
+			opacity: 0;
+		}
 	}
 	&.with-cover-image,
 	&.without-cover-image {
@@ -173,31 +175,7 @@ div#bibi-veil-cover {
 	&.with-cover-image {
 	}
 	&.without-cover-image {
-		$button-size: 128px;
-		&:before, p {
-			display: block;
-			position: absolute;
-			margin: auto;
-			left: -100%;
-			top: -100%;
-			right: -100%;
-			bottom: -100%;
-		}
-		&:before {
-		//	@include font-icon("Material Icons");
-		//	content: /*import_contacts*/ "\e0e0";
-			@include font-icon("ElegantIcons");
-			content: "\e086"; // book
-			z-index: 1;
-			width: $button-size;
-			height: $button-size;
-			line-height: 1;
-			font-size: $button-size;
-			text-align: center;
-			vertical-align: middle;
-			color: rgba(255,255,255,0.25);
-			transform: translateY($button-size * -0.2);
-		}
+		$icon-size: 144px;
 		p {
 			z-index: 2;
 			width: 100%;
@@ -209,7 +187,7 @@ div#bibi-veil-cover {
 			text-align: center;
 			text-shadow: 0 0 4px rgb(128,128,128);
 			opacity: 1;
-			transform: translateY($button-size * -0.1);
+			transform: translateY($icon-size * -0.1);
 			strong, em, small, span {
 				display: block;
 			}
@@ -231,6 +209,22 @@ div#bibi-veil-cover {
 				font-size: 1em * 10/14;
 			}
 		}
+		.book-icon {
+			@include book-icon($icon-size);
+			z-index: 1;
+			transform: translateY($icon-size * -0.125);
+			opacity: .25;
+		}
+		p,
+		.book-icon {
+			display: block;
+			position: absolute;
+			margin: auto;
+			left: -100%;
+			top: -100%;
+			right: -100%;
+			bottom: -100%;
+		}
 	}
 	&.without-cover-image.waiting-for-unzipping {
 		p {
@@ -245,85 +239,11 @@ div#bibi-veil-cover {
 }
 
 
-// - Catcher
-// --------------------------------------------------------------------------------
-
-p#bibi-veil-catcher {
-	$size: 128px;
-	box-sizing: border-box;
-	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-	z-index: $z-index_veil-catcher;
-	border: dashed 10px rgba(white, 0.125);
-	border-radius: 30px;
-	width: 88%;
-	height: 80%;
-	color: rgba(white, 0.67);
-	transform: translateY(-2.5%);
-	cursor: pointer;
-	transition: .125s ease;
-	&:before, >span {
-		box-sizing: border-box;
-		display: block;
-		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-		vertical-align: middle;
-		text-align: center;
-	}
-	&:before { // icon
-	//	@include font-icon("Material Icons");
-	//	content: /*import_contacts*/ "\e0e0";
-		@include font-icon("ElegantIcons");
-		content: "\e022"; // book_alt
-		width: $size;
-		height: $size;
-		line-height: $size;
-		text-indent: .05em;
-		font-size: $size;
-		transform: translateY($size * -0.4);
-	}
-	>span {
-		width: 100%;
-		height: 1.5em;
-		transform: translateY($size * 0.4);
-		strong, span, small {
-			display: block;
-		}
-		strong {
-			font-weight: bold;
-			font-size: 18px;
-		}
-		span {
-			margin-top: .5em;
-			font-size: 16px;
-		}
-		small {
-			margin-top: .5em;
-			font-size: 14px;
-		}
-	}
-	input {
-		visibility: hidden;
-	}
-	html.dragenter &,
-	&:hover {
-		transition: .2s ease;
-		border-color: rgba(white, 0.5);
-		color: rgba(white, 1);
-
-	}
-	&:active {
-		&:before {
-			transform: translateY($size * -0.4) scale(1.1);
-			transition: .125s cubic-bezier(.2,.8,.8,1.6);
-		}
-	}
-}
-
-
 // - Play
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-play {
-	$size: 81px;
+	$size: 96px;
 	$offset: 8px;
 	display: none; html.waiting & { display: block; }
 	box-sizing: border-box;
@@ -346,13 +266,14 @@ p#bibi-veil-play {
 			transform $transition-duration $transition-timing-function_form;
 	}
 	&:before { // icon
-		//@include font-icon("FontAwesome");
-		@include font-icon("ElegantIcons");
+		@include font-icon("Material Icons");
+		content: "\e038"; // play_circle_filled color: white;
 		box-sizing: border-box;
 		display: block;
 		z-index: 10;
 		position: absolute;
 		margin: auto;
+		//border-radius: 50%;
 		width: $size;
 		height: $size;
 		line-height: $size * 0.98;
@@ -362,51 +283,172 @@ p#bibi-veil-play {
 		font-size: $size;
 		color: rgba(236,236,236, 0.9);
 		//text-shadow: 0 0 4px rgb(160,160,160)
+		//color: rgb(69,69,69);
+		//background: rgba(236,236,236, 0.9);
 	}
 	&:hover {
 		background: rgba(black, 0.4);
-		&:before {
-			color: white;
-			transform: scale(1.1);
-		}
 	}
 	html.appearance-ttb & { // ↓
-		&:before {
-		//	content: "\f107";
-			content: "\e044"; // arrow_carrot-dowm_alt
-			bottom: $offset; top: auto; left: 0; right: 0;
-			transform-origin: 50% 100%;
-		}
-		&:active {
-			&:before {
-				bottom: $size * -1/3;
-			}
-		}
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include trbl(auto, 0, $offset, 0); }
+		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate(90deg); }
+		&:active:before { transform: translateY( 10%) scale(1.1) rotate(90deg); }
 	}
 	html.appearance-rtl & { // ←
-		&:before {
-		//	content: "\f104";
-			content: "\e045"; // arrow_carrot-left_alt
-			left: $offset; right: auto; top: 0; bottom: 0;
-			transform-origin: 0 50%;
-		}
-		&:active {
-			&:before {
-				left: $size * -1/3;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  @include trbl(0, auto, 0, $offset); }
+		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
+		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
+	}
+	html.appearance-ltr & { // →
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  @include trbl(0, $offset, 0, auto); }
+		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
+		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
+	}
+}
+
+
+// - Catcher
+// --------------------------------------------------------------------------------
+
+div#bibi-catcher {
+	$icon-size: 128px;
+	$center-line-from-the-bottom: 56%;
+	$area-margin: 24px;
+	$area-margin-narrow: $area-margin * 0.5;
+	display: none; html.waiting-file & { display: block; }
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $z-index_catcher;
+	@include trbl(0);
+	margin: auto;
+	border: dashed 8px rgba(white, 0.25);
+	border-radius: 24px;
+	width:  calc(100% - #{$area-margin * 2                     });
+	height: calc(100% - #{$area-margin * 2 + $bottom-bar-height});
+	@include max(768px) {
+		width:  calc(100% - #{$area-margin-narrow * 2                     });
+		height: calc(100% - #{$area-margin-narrow * 2 + $bottom-bar-height});
+	}
+	color: white;
+	transform: translateY(#{$bottom-bar-height * -0.5});
+	cursor: pointer;
+	transition: .2s ease;
+	> input {
+		visibility: hidden;
+	}
+	> .pgroup {
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 100;
+		@include trbl(100% - $center-line-from-the-bottom, 0, auto);
+		margin: 0 auto;
+		width: 100%;
+		vertical-align: middle;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+		p {
+			strong, em, span, small {
+				display: block;
+				font-weight: bold;
+			}
+			strong {
+				box-sizing: border-box;
+				//position: absolute;
+				//bottom: calc(100% + #{$icon-size + 16px});
+				margin-top: 18px;
+				padding: 0 1em;
+				border: solid 1px rgba(white, 1);
+				height: 2.5em;
+				line-height: 2.5em;
+				border-radius: 1.25em;
+				font-size: 16px;
+				//color: rgba(black, .5);
+				//background: rgba(white, .075);
+			}
+			em {
+				margin-top: 14px;
+				font-size: 16px;
+				line-height: 1.5;
+				//text-decoration: underline rgba(white, .75);
+			}
+			span {
+				margin-top: 10px;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+			small {
+				margin-top: 6px;
+				font-size: 12px;
 			}
 		}
 	}
-	html.appearance-ltr & { // →
-		&:before {
-		//	content: "\f105"; // arrow_carrot-right_alt
-			content: "\e046";
-			right: $offset; left: auto; top: 0; bottom: 0;
-			transform-origin: 100% 50%;
-		}
-		&:active {
-			&:before {
-				right: $size * -1/3;
+	> .pgroup[lang="en"] {
+		p {
+			strong {
+				text-indent: .125em;
 			}
+			em {
+				margin-right: -.125em;
+			}
+			span {
+				margin-right: -.125em;
+			}
+			small {
+			}
+		}
+	}
+	> .pgroup[lang="ja"] {
+		p {
+			strong {
+				text-indent: .5em;
+			}
+			em {
+				margin-right: -.67em; text-indent: -.67em;
+			}
+			span {
+				margin-right: -.67em;
+				text-indent: 0;
+			}
+			small {
+			}
+		}
+	}
+	> .book-icon {
+		@include book-icon($icon-size);
+		position: absolute;
+		z-index: 10;
+		@include trbl(auto, 0, $center-line-from-the-bottom);
+		margin: 0 auto;
+		transition: .125s cubic-bezier(.2,.8,.8,1.6);
+		opacity: .9;
+	}
+	html.dragenter &,
+	&:hover {
+		&:before,
+		> .book-icon {
+			opacity: 1;
+			transform: scale(1.05);
+		}
+		&:after,
+		> .book-icon + .book-icon {
+			opacity: .5;
+			transform: translateX(10%);
+		}
+		border-color: rgba(white, .5);
+	}
+	&:active {
+		&:before,
+		> .book-icon {
+			opacity: .5;
+			transform: scale(1);
+		}
+		&:after,
+		> .book-icon + .book-icon {
+			opacity: 1;
+			transform: scale(0.81);
 		}
 	}
 }
@@ -814,11 +856,12 @@ div.bibi-subpanel {
 					font-size: 10px;
 					color: rgb(128,128,128);
 					&:before {
-						@include font-icon("FontAwesome");
+						@include font-icon("Material Icons");
 						position: absolute;
-						left: .2em;
-						top: .25em;
-						content: "\f105";
+						left: -.1em;
+						top: .225em;
+						font-size: 1.1em;
+						content: "\e5cc"; // chevron_right
 						color: rgb(160,160,160);
 					}
 				}
@@ -909,11 +952,12 @@ div.bibi-subpanel {
 				}
 				&:after {
 					z-index: 1;
-					@include font-icon("FontAwesome");
+					@include font-icon("Material Icons");
 					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
-					//width: 0.9em;
+					//width: 20px;
 					height: 0.9em;
 					line-height: 1;
+					font-size: 16px;
 					text-align: right;
 					color: rgb(160,160,160);
 					transition: .2s ease-in-out;
@@ -943,9 +987,7 @@ div.bibi-subpanel {
 			}
 			.bibi-button-link {
 				&:after {
-					//content: "\f054"; // chevron-right
-					content: "\f105"; // angle-right
-					text-align: center;
+					content: "\e5cc"; // chevron_right
 				}
 			}
 			.bibi-button-toggle,
@@ -958,32 +1000,30 @@ div.bibi-subpanel {
 						font-weight: bold;
 					}
 					&:after {
+						//margin-right: -1px;
+						//font-size: 18px;
 						color: $color-in-subpanel;
 					}
 				}
 			}
 			.bibi-button-toggle {
 				&:after {
-					margin-right: -.1em;
-					font-size: 1.2em;
-					content: "\f204"; // toggle-off
+					content: "\e835"; // check_box_outline_blank
 				}
 				&.active {
 					&:after {
-						content: "\f205"; // toggle-on
+						content: "\e834"; // check_box
 					}
 				}
 			}
 			.bibi-button-radio {
 				&:after {
-					content: "\f1db"; // circle-thin
+					content: "\e836"; // radio_button_unchecked
 				}
 				&.active {
 					&:after {
-						margin-right: -.1em;
-						font-size: 1.2em;
-						content: "\f058"; // check-circle
-					//	content: "\f192"; // dot-circle-o
+						content: "\e837"; // radio_button_checked
+						content: "\e86c"; // check_circle
 					}
 				}
 			}
@@ -1010,7 +1050,7 @@ div.bibi-subpanel {
 			}
 			.bibi-button-link {
 				&:after {
-					text-align: right;
+					margin-right: -5px;
 				}
 			}
 		}
@@ -1787,15 +1827,13 @@ div#bibi-arrow-forward {
 			position: absolute;
 		}
 		&:before { // icon
-			@include font-icon("ElegantIcons");
+			@include font-icon("Material Icons");
 			z-index: 2;
 			margin: auto;
 			width: $arrow-icon-size;
 			height: $arrow-icon-size;
 			text-align: center;
 			vertical-align: middle;
-			line-height: $arrow-icon-size * .96;
-			text-indent: -.05em;
 			font-size: $arrow-icon-size;
 			border-radius: 50%;
 			color: white;//rgb(96,96,96);
@@ -1870,11 +1908,11 @@ div#bibi-arrow-forward {
 	}
 }
 
-@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing) {
+@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing, $icon-line-height, $icon-indent) {
 	& {
 		#{$dir}: 0;
 		&:before, &:after { transform-origin: $transform-origin; }
-		&:before { content: $icon-code; #{$dir}: $button-group-margin; }
+		&:before { content: $icon-code; #{$dir}: $button-group-margin; line-height: $icon-line-height; text-indent: $icon-indent; }
 		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
 	}
 	&.available.hover, &.available.glowing {
@@ -1885,17 +1923,18 @@ div#bibi-arrow-forward {
 	}
 }
 
-html.appearance-ttb div#bibi-arrow-back {
-	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\32", "\32"); // "\32" arrow_carrot-up // "\e043" arrow_carrot-up_alt
+html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
+	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $arrow-icon-size, -.03em); // chevron_left
 }
 html.appearance-ltr div#bibi-arrow-forward, html.appearance-rtl div#bibi-arrow-back {
-	/* → */ @include arrow-variation( right, 100%  50%, "\35", "\35"); // "\35" arrow_carrot-right // "\e046" arrow_carrot-right_alt
+	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $arrow-icon-size, .03em); // chevron_right
+}
+
+html.appearance-ttb div#bibi-arrow-back {
+	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\e5ce", "\e5ce", $arrow-icon-size * .97, 0); // expand_less
 }
 html.appearance-ttb div#bibi-arrow-forward {
-	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\33", "\33"); // "\33" arrow_carrot-down // "\e044" arrow_carrot-down_alt
-}
-html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
-	/* ← */ @include arrow-variation(  left,   0%  50%, "\34", "\34"); // "\34" arrow_carrot-left // "\e045" arrow_carrot-left_alt
+	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $arrow-icon-size * 1.03, 0); // expand_more
 }
 
 html.appearance-ttb.notifier-shown div#bibi-arrow-back {

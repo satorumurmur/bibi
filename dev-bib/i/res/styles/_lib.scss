@@ -74,9 +74,10 @@ $z-index_sub: 10;
 $z-index_veil: 100;
 	$z-index_veil-bottombar: 1;
 	$z-index_veil-cover: 10;
-	$z-index_veil-catcher: 10;
 	$z-index_veil-play: 10;
 	$z-index_veil-byebye: 10;
+
+$z-index_catcher: $z-index_veil + 1;
 
 $z-index_panel: 1000;
 	$z-index_panel-bookinfo: 1;
@@ -105,6 +106,16 @@ $z-index_spinner: $z-index_notifier-board - 1;
 
 
 @mixin trbl($t: auto, $r: $t, $b: $t, $l: $r) { top: $t; right: $r; bottom: $b; left: $l; }
+@mixin tb($t: auto, $b: $t) { top: $t; bottom: $b; }
+@mixin lr($l: auto, $r: $l) { left: $l; right: $r; }
+@mixin margin-v($t: 0, $b: $t) { margin-top: $t; margin-bottom: $b; }
+@mixin margin-h($l: 0, $r: $l) { margin-left: $l; margin-right: $r; }
+@mixin padding-v($t, $b: $t) { padding-top: $t; padding-bottom: $b; }
+@mixin padding-h($l, $r: $l) { padding-left: $l; padding-right: $r; }
+@mixin size($w, $h: $w) { width: $w; height: $h; }
+@mixin wh($w, $h: $w) { @include size($w, $h); }
+@mixin max-size($w, $h: $w) { max-width: $w; max-height: $h; }
+@mixin min-size($w, $h: $w) { min-width: $w; min-height: $h; }
 
 @mixin min($min) { @media screen and (min-width: #{$min}) { @content; } }
 @mixin max($max) { @media screen and (max-width: #{$max}) { @content; } }
