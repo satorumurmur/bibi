@@ -20,7 +20,7 @@ Bibi.x({
 
     'use strict';
 
-    var unaccessibilize = function(Item) {
+    const unaccessibilize = function(Item) {
         // select-elements
         if(X.Presets.Unaccessibilizer["select-elements"]) {
             ["-webkit-", "-moz-", "-ms-", ""].forEach(function(Prefix) {

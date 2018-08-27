@@ -112,7 +112,7 @@ Bibi.x({
         },
         ontapped: function(Eve) {
             if(!this.isAvailable("TAP", Eve)) return false;
-            var BibiEvent = O.getBibiEvent(Eve);
+            const BibiEvent = O.getBibiEvent(Eve);
             if(BibiEvent.Target.tagName) {
                 if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
@@ -141,7 +141,7 @@ Bibi.x({
             if(R.Main.Transformation.Scale == 1 || !this.PointerDownCoord) return;
             X.Loupe.Dragging = true;
             sML.addClass(O.HTML, "dragging");
-            var BibiEvent = O.getBibiEvent(Eve);
+            const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(this.Timer_TransitionRestore);
             sML.style(R.Main, { transition: "none", cursor: "move" });
             this.transform({
