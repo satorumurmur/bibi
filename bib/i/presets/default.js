@@ -1,15 +1,26 @@
 Bibi.Preset = {
 
-// =================================================================================================
+
+//==============================================================================================================================================
+//-- Definition
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 "preset-name"                  : "Default", // Name of this preset. As you like.
 "preset-description"           : "Default Preset for BiB/i.", // Description for this preset. As you like.
 "preset-author"                : "Satoru MATSUSHIMA", // Name of the author of this preset. As you like.
-"preset-author-href"           : "https://bibi.epub.link", // URI of a website, etc. of the author of this preset. As you like.
+"preset-author-href"           : "https://bibi.epub.link", // URI of a webpage of the author of this preset. As you like.
 
-// =================================================================================================
 
-"bookshelf"                    : "../bookshelf", // Relative path of a directory from bib/i/index.html (to use path begins with "http(s)://", read <01> at the bottom of this preset file)
+//==============================================================================================================================================
+//-- Bookshelf
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+"bookshelf"                    : "../bookshelf", // Relative path of a directory from bib/i/index.html (to use path begins with "http(s)://", read <01> at the bottom of this preset file).
+
+
+//==============================================================================================================================================
+//-- Behavior
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 "reader-view-mode"             : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
 "fix-reader-view-mode"         : "no", // "yes" or "no" or "desktop" or "mobile"
@@ -19,47 +30,47 @@ Bibi.Preset = {
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
+"use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
+
+
+//==============================================================================================================================================
+//-- UI / Design
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
 "use-menubar"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
 "use-swipe"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-
-"cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
-// -------------------------------------------------------------------------------------------------
+"use-full-height"              : "yes", // "yes" or "no" or "desktop" or "mobile".
 
-"use-full-height"              : "yes", // "yes" or "no" or "desktop" or "mobile"
+"flipper-width"                : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
 
-"book-background"              : "", // CSS background value or ""
+"item-padding-left"            : 28, // Number of pixel
+"item-padding-right"           : 28, // Number of pixel
+"item-padding-top"             : 40, // Number of pixel
+"item-padding-bottom"          : 20, // Number of pixel
 
-"spread-gap"                   : 2, // px
-"spread-margin"                : 0, // px
+"spread-gap"                   : 2, // Number of pixel
+"spread-margin"                : 0, // Number of pixel
 
 "spread-border-radius"         : "", // CSS border-radius value or ""
 "spread-box-shadow"            : "", // CSS box-shadow value or ""
 
-"item-padding-left"            : 28, // px
-"item-padding-right"           : 28, // px
-"item-padding-top"             : 40, // px
-"item-padding-bottom"          : 20, // px
+"book-background"              : "", // CSS background value or ""
 
-"flipper-width"                : 0.3, // Ratio (lower than 1), or pixel-number (1 or higher)
 
-"preprocess-html-always"       : "no", // "yes" or "no" or "desktop" or "mobile"
-
-"epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
-"epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""
-
-// =================================================================================================
+//==============================================================================================================================================
+//-- Extensions
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 "extensions": [
     { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "base": "auto", "scale-per-step": 1.25 }, // "base": "auto" or pixel-number
+    { "name": "FontSize", "src": "extensions/fontsize/fontsize.js", "base": "auto", "scale-per-step": 1.25 }, // "base": "auto" or Number of pixel
     { "name": "Loupe", "src": "extensions/loupe/loupe.js", "mode": "", "max-scale": 4 },
     { "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
@@ -68,16 +79,10 @@ Bibi.Preset = {
     { "name": "Bibi", "4U" : "w/0" } // (*'-'*)
 ],
 
-// =================================================================================================
 
-"website-name-in-title"        : "", // "" or name of your website replaces string "BiB/i" in <title>.
-
-"website-name-in-menu"         : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
-"website-href"                 : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
-
-"remove-bibi-website-link"     : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
-
-// -------------------------------------------------------------------------------------------------
+//==============================================================================================================================================
+//-- Extra
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 "unzip-if-necessary"           : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try unzipping first. More info is <02> at the bottom of this preset file)
 
@@ -86,22 +91,33 @@ Bibi.Preset = {
 "accept-base64-encoded-data"   : true, // true or false (If true, BiB/i accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 "accept-local-file"            : "yes", // "yes" or "no" or "desktop" or "mobile". (If it is enabled, BiB/i prepares UI for loading files. Conditions for acceptance are <03> at the bottom of this preset file)
 
+"website-name-in-title"        : "", // "" or name of your website replaces string "BiB/i" in <title>.
+"website-name-in-menu"         : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
+"website-href"                 : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
+"remove-bibi-website-link"     : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
 
-// -------------------------------------------------------------------------------------------------
+"preprocess-html-always"       : "no", // "yes" or "no" or "desktop" or "mobile"
+
+"epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
+"epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""
+
+"cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
 
 "trustworthy-origins"          : []
 
-// =================================================================================================
-
-};
 
 /*
 
 
-## <01> You can use a path begins with "http(s)://" for "bookshelf" in cases of the below:
+//==============================================================================================================================================
+//-- Additional Info.
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+## <01> You can use a path begins with "http(s)://" for "bookshelf" option in cases of the below:
 
     * The origin of the path defined in the "bookshelf" option is same as the origin of this BiB/i.
-    * [OR] The origin of "bookshelf" is included in "trustworthy-origins"
+    * [OR] The origin is included in "trustworthy-origins" option.
         - [AND] The origin allows COR from the origin of this BiB/i.
 
 
@@ -135,3 +151,6 @@ Bibi.Preset = {
 
 
 */
+
+
+};
