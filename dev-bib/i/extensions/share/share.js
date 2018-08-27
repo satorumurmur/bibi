@@ -16,6 +16,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     var ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
 
     // Share

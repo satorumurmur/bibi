@@ -20,6 +20,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     X.Unzipper.loadBookData = function(BookData) {
         return new Promise(function(resolve, reject) {
             X.Unzipper.loadBookData.start(BookData).then(function(BookData) {

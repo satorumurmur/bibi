@@ -18,6 +18,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     X.Zine.openYAML = function(Path) {
         if(B.Unzipped) {
             return O.download(B.Path + "/" +  Path).then(function(XHR) {

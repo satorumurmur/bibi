@@ -18,6 +18,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     var unaccessibilize = function(Item) {
         // select-elements
         if(X.Presets.Unaccessibilizer["select-elements"]) {

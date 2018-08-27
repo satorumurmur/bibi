@@ -18,6 +18,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     if(O.Mobile) return;
 
     if(typeof X.Presets.Loupe["mode"]      != "string" || X.Presets.Loupe["mode"]      != "with-keys") X.Presets.Loupe["mode"]      = "pointer-only";
