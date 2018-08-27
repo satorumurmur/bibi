@@ -18,6 +18,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     X.Zine.openYAML = function(Path) {
         if(B.Unzipped) {
             return O.download(B.Path + "/" +  Path).then(function(XHR) {
@@ -38,36 +40,36 @@ Bibi.x({
     };
 
     X.Zine.processZineData = function(Data) {
-        var Doc = document.createElement("bibi:zine");
+        const Doc = document.createElement("bibi:zine");
         // Metadata
-        var Metadata = Doc.appendChild(document.createElement("metadata"));
+        const Metadata = Doc.appendChild(document.createElement("metadata"));
         ["identifier", "title", "creator", "publisher", "language", "rendition-layout", "rendition-orientation", "rendition-spread"].forEach(function(Property) {
             if(!Data[Property]) return;
-            var Meta = Metadata.appendChild(document.createElement("meta"));
+            const Meta = Metadata.appendChild(document.createElement("meta"));
             Meta.setAttribute("property", Property.replace("-", ":"));
             Meta.textContent = Data[Property];
         });
         // Manifest & Spine
-        var Manifest = Doc.appendChild(document.createElement("manifest"));
+        const Manifest = Doc.appendChild(document.createElement("manifest"));
         ["cover-image", "nav"].forEach(function(Property) {
             if(!Data[Property]) return;
-            var Item = Manifest.appendChild(document.createElement("item"));
+            const Item = Manifest.appendChild(document.createElement("item"));
             Item.setAttribute("id", Property + "-item");
             Item.setAttribute("properties", Property);
             Item.setAttribute("href", Data[Property]);
         });
-        var Spine = Doc.appendChild(document.createElement("spine"));
+        const Spine = Doc.appendChild(document.createElement("spine"));
         if(Data["page-progression-direction"]) {
             Spine.setAttribute("page-progression-direction", Data["page-progression-direction"]);
         }
         Data.spine.forEach(function(ItemrefData, i) {
             if(!ItemrefData) return;
             ItemrefData = ItemrefData.trim().replace(/\s+/, " ").split(" ");
-            var ID = "spine-item-" + sML.String.pad(i + 1, 0, 3);
-            var Item = Manifest.appendChild(document.createElement("item"));
+            const ID = "spine-item-" + sML.String.pad(i + 1, 0, 3);
+            const Item = Manifest.appendChild(document.createElement("item"));
             Item.setAttribute("id", ID);
             Item.setAttribute("href", ItemrefData[0]);
-            var Itemref = Spine.appendChild(document.createElement("itemref"));
+            const Itemref = Spine.appendChild(document.createElement("itemref"));
             Itemref.setAttribute("idref", ID);
             if(ItemrefData[1]) {
                 Itemref.setAttribute("properties", "page-spread-" + ItemrefData[1]);

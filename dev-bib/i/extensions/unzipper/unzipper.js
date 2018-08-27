@@ -20,6 +20,8 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     X.Unzipper.loadBookData = function(BookData) {
         return new Promise(function(resolve, reject) {
             X.Unzipper.loadBookData.start(BookData).then(function(BookData) {
@@ -62,7 +64,7 @@ Bibi.x({
                     Err ? reject('Book File Is Not Found or Invalid.') : resolve(ArrayBufferOfBookData);
                 });
             } else if(BookData instanceof Blob) {
-                var BookDataLoader = new FileReader();
+                const BookDataLoader = new FileReader();
                 BookDataLoader.onload  = function() { resolve(this.result); };
                 BookDataLoader.onerror = function() { reject('Book Data Is Invalid.'); };
                 BookDataLoader.readAsArrayBuffer(BookData);
@@ -74,8 +76,8 @@ Bibi.x({
 
     X.Unzipper.loadBookData.extract = function(BookDataArchive) {
         return new Promise(function(resolve, reject) {
-            var FilesToBeExtract = [];
-            for(var FileName in BookDataArchive.files) {
+            const FilesToBeExtract = [];
+            for(let FileName in BookDataArchive.files) {
                 if(
                     BookDataArchive.files[FileName].dir ||
                     /(^|\/)\./.test(FileName) ||
@@ -89,13 +91,13 @@ Bibi.x({
                 FilesToBeExtract.push(FileName);
             }
             if(!FilesToBeExtract.length) return reject('Does Not Contain Any Resources');
-            var FolderName = "", FolderNameRE = undefined;
+            let FolderName = "", FolderNameRE = undefined;
             if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.Zine.Path)) {
                 [B.Container.Path, B.Zine.Path].forEach(function(ToBeFound) {
                     if(FolderName) return;
-                    var RE = new RegExp("^(.+?\\/)" + ToBeFound.replace(/\//g, "\\/").replace(/\./g, "\\.") + "$");
-                    for(var i = 0, l = FilesToBeExtract.length; i < l; i++) {
-                        var FileName = FilesToBeExtract[i];
+                    const RE = new RegExp("^(.+?\\/)" + ToBeFound.replace(/\//g, "\\/").replace(/\./g, "\\.") + "$");
+                    for(let l = FilesToBeExtract.length, i = 0; i < l; i++) {
+                        const FileName = FilesToBeExtract[i];
                         if(RE.test(FileName)) {
                             FolderName = FileName.replace(RE, "$1");
                             FolderNameRE = new RegExp("^" + FolderName.replace(/\//g, "\\/").replace(/\./g, "\\."));
@@ -113,7 +115,8 @@ Bibi.x({
             } else {
                 reject('Required Metafile Is Not Contained.');
             }
-            var FileCount = { All: 0, Particular: 0 }, FileTypesToBeCounted = [
+            const FileCount = { All: 0, Particular: 0 };
+            const FileTypesToBeCounted = [
                 ["Meta XML",   "xml|opf|ncx"],
                 ["Meta YAML",  "ya?ml"],
                 ["HTML",       "html?|xht(ml?)?"],
@@ -137,8 +140,8 @@ Bibi.x({
                     B.Files[FileName] = content.trim();
                     if(S["book-type"] == "Zine" && !B.Package.Manifest.Files[FileName]) B.Package.Manifest.Files[FileName] = {};
                     if(FileTypesToBeCounted.length) {
-                        for(var Counted = false, l = FileTypesToBeCounted.length, i = 0; i < l; i++) {
-                            var Label = FileTypesToBeCounted[i][0], REFragment = FileTypesToBeCounted[i][1];
+                        for(let Counted = false, l = FileTypesToBeCounted.length, i = 0; i < l; i++) {
+                            const Label = FileTypesToBeCounted[i][0], REFragment = FileTypesToBeCounted[i][1];
                             if(new RegExp("\\.(" + FileTypesToBeCounted[i][1] + ")$", "i").test(FileName)) {
                                 if(FileCount[Label]) FileCount[Label]++; else FileCount[Label] = 1;
                                 FileCount.Particular++;
@@ -148,13 +151,13 @@ Bibi.x({
                     }
                     FileCount.All++;
                     if(FileCount.All >= FilesToBeExtract.length) {
-                        var PartLog = [];
+                        const PartLog = [];
                         FileTypesToBeCounted.forEach(function(FileTypeToBeCounted) {
-                            var Label = FileTypeToBeCounted[0], Count = FileCount[Label];
+                            const Label = FileTypeToBeCounted[0], Count = FileCount[Label];
                             if(Count) PartLog.push(Count + ' ' + Label + (Count >= 2 ? 's' : ''));
                         });
                         if(PartLog.length && FileCount.Particular < FileCount.All) {
-                            var EtCCount = FileCount.All - FileCount.Particular;
+                            const EtCCount = FileCount.All - FileCount.Particular;
                             PartLog.push(EtCCount + ' ' + (EtCCount >= 2 ? 'Others' : 'Another'));
                         }
                         resolve('(' + (PartLog.length != 1 ? FileCount.All + ' Resources' + (PartLog.length > 1 ? ' = ' : '') : '') + PartLog.join(' + ') + ')');

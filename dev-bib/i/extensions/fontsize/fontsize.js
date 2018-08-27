@@ -18,10 +18,12 @@ Bibi.x({
 
 })(function() {
 
+    'use strict';
+
     if(typeof X.Presets.FontSize["scale-per-step"] != "number" || X.Presets.FontSize["scale-per-step"] <= 1) X.Presets.FontSize["scale-per-step"] = 1.25;
 
     if(S["use-cookie"]) {
-        var BibiCookie = O.Cookie.remember(O.RootPath);
+        const BibiCookie = O.Cookie.remember(O.RootPath);
         if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) X.FontSize.Step = BibiCookie.FontSize.Step * 1;
     }
     if(typeof X.FontSize.Step != "number" || X.FontSize.Step < -2 || 2 < X.FontSize.Step) X.FontSize.Step = 0;
@@ -53,7 +55,7 @@ Bibi.x({
             O.editCSSRules(Item.contentDocument, function(CSSRule) {
                 if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
                 try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
-                var REs = {
+                const REs = {
                     "pt": / font-size: (\d[\d\.]*)pt; /,
                     "px": / font-size: (\d[\d\.]*)px; /
                 };
@@ -62,16 +64,16 @@ Bibi.x({
             });
         }
         if(typeof X.Presets.FontSize["base"] == "number" && X.Presets.FontSize["base"] > 0) {
-            var MostPopularFontSize = 0;
-            var FontSizeCounter = {};
+            let MostPopularFontSize = 0;
+            const FontSizeCounter = {};
             sML.each(Item.Body.querySelectorAll("p, p *"), function() {
                 if(!this.innerText.replace(/\s/g, "")) return;
-                var FontSize = Math.round(getComputedStyle(this).fontSize.replace(/[^\d]*$/, "") * 100) / 100;
+                const FontSize = Math.round(getComputedStyle(this).fontSize.replace(/[^\d]*$/, "") * 100) / 100;
                 if(!FontSizeCounter[FontSize]) FontSizeCounter[FontSize] = [];
                 FontSizeCounter[FontSize].push(this);
             });
-            var MostPopularFontSizeAmount = 0;
-            for(var FontSize in FontSizeCounter) {
+            let MostPopularFontSizeAmount = 0;
+            for(let FontSize in FontSizeCounter) {
                 if(FontSizeCounter[FontSize].length > MostPopularFontSizeAmount) {
                     MostPopularFontSizeAmount = FontSizeCounter[FontSize].length;
                     MostPopularFontSize = FontSize;
@@ -110,9 +112,9 @@ Bibi.x({
         id: "bibi-subpanel_fontsize",
         open: function() {}
     });
-    var changeFontSizeStep = function() {
-        var Button = this;
-        var Step = Button.Step;
+    const changeFontSizeStep = function() {
+        const Button = this;
+        const Step = Button.Step;
         if(Step == X.FontSize.Step) return;
         Button.ButtonGroup.Busy = true;
         X.FontSize.Step = Step;

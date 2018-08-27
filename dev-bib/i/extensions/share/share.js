@@ -16,10 +16,12 @@ Bibi.x({
 
 })(function() {
 
-    var ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
+    'use strict';
+
+    const ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
 
     // Share
-    var ShareButton = ShareButtonGroup.addButton({
+    const ShareButton = ShareButtonGroup.addButton({
         Type: "toggle",
         Labels: {
             default: { default: 'Share', ja: 'シェア' },
@@ -30,7 +32,7 @@ Bibi.x({
     });
 
     // Share SubPanel
-    var ShareSubPanel = I.createSubPanel({
+    const ShareSubPanel = I.createSubPanel({
         Opener: ShareButton,
         id: "bibi-subpanel_share",
         open: function() {
@@ -42,10 +44,10 @@ Bibi.x({
             });
         },
         getShareURI: function(ParentOrBook, SNS) {
-            var ShareTitle = "", ShareURI = "";
+            let ShareTitle = "", ShareURI = "";
             switch(ParentOrBook) {
                 case "Parent": ShareTitle = U["parent-title"], ShareURI = U["parent-uri"]; break;
-                case "Book": ShareTitle = document.title,    ShareURI = O.ReadiedURL;    break;
+                case "Book":   ShareTitle = document.title,    ShareURI = O.ReadiedURL;    break;
             }
             switch(SNS) {
                 case "Twitter": return "https://twitter.com/intent/tweet?url="   + encodeURIComponent(ShareURI) + "&text=" + encodeURIComponent(ShareTitle) + "&hashtags=bibipub"; break;
@@ -55,8 +57,8 @@ Bibi.x({
             return "";
         }
     });
-    var getButtonObject = function(ParentOrBook, SNS, onclick) {
-        var ButtonObject = {
+    const getButtonObject = function(ParentOrBook, SNS, onclick) {
+        const ButtonObject = {
             Type: "link",
             Labels: { default: { default: SNS } },
             Icon: '<span class="bibi-icon bibi-icon-' + SNS.replace("+", "Plus") + '"></span>',
@@ -67,7 +69,7 @@ Bibi.x({
             }
         };
         if(!O.Mobile && SNS != "Twitter") {
-            var N = "_blank", W = 560, H = 500;
+            let N = "_blank", W = 560, H = 500;
             switch(SNS) {
                 case "Facebook": N = "FBwindow", H = 480; break;
                 case "Google+" : N = "G+window", W = 400; break;
@@ -110,7 +112,7 @@ Bibi.x({
     }
     /*
     if(X.Presets.Share["allow-embedding-in-other-webpages"]) {
-        var EmbedCode = [
+        const EmbedCode = [
             '<a href="' + O.RequestedURL + '" data-bibi="embed">' + (U["parent-bibi-label"] ? U["parent-bibi-label"] : document.title) + '</a>',
             '<script src="' + (U["parent-pipi-path"] ? U["parent-pipi-path"] : O.RootPath.replace(/\/$/, ".js")) + '"></script>'
         ].join("").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

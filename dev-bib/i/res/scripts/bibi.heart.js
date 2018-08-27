@@ -5,7 +5,12 @@
  *
  */
 
-Bibi = { "version": "0.000.0", "build": 198106091234, "href": "http://bibi.epub.link" };
+(function(____) { 'use strict';
+
+
+
+
+____.Bibi = { "version": "____bibi-version____", "build": "____bibi-build____", "href": "https://bibi.epub.link" };
 
 
 
@@ -89,7 +94,7 @@ Bibi.initialize = function() {
     O.NotCompatible = (sML.UA.InternetExplorer < 11) ? true : false;
     if(O.NotCompatible) {
         // Say Bye-bye
-        var Msg = {
+        const Msg = {
             en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
             ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
         };
@@ -150,13 +155,13 @@ Bibi.initialize = function() {
 
     // Writing Mode & Font Size
     O.WritingModeProperty = (function() {
-        var HTMLCS = getComputedStyle(O.HTML);
+        const HTMLCS = getComputedStyle(O.HTML);
         if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
         if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
         else return undefined;
     })();
-    var SRI4VTC = sML.appendStyleRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
-    var VTC = document.body.appendChild(sML.create("div", { id: "bibi-vtc" })); // VerticalTextChecker
+    const SRI4VTC = sML.appendStyleRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
+    const VTC = document.body.appendChild(sML.create("div", { id: "bibi-vtc" })); // VerticalTextChecker
     VTC.Child = VTC.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
     if(VTC.Child.offsetWidth < VTC.Child.offsetHeight) {
         O.HTML.className = O.HTML.className + " vertical-text-enabled";
@@ -167,7 +172,6 @@ Bibi.initialize = function() {
     };
     O.DefaultFontSize = Math.min(VTC.Child.offsetWidth, VTC.Child.offsetHeight);
     document.body.removeChild(VTC);
-    VTC = undefined;
     sML.deleteStyleRule(SRI4VTC);
 
     // Scrollbars
@@ -179,7 +183,7 @@ Bibi.initialize = function() {
     // Settings
     S.initialize();
 
-    var PromiseForLoadingExtensions = new Promise(function(resolve) {
+    const PromiseForLoadingExtensions = new Promise(function(resolve) {
         X.loadFilesInPreset().then(resolve);
     });
 
@@ -237,7 +241,7 @@ Bibi.ready = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-B = {}; // Bibi.Book
+____.B = {}; // Bibi.Book
 
 
 B.initialize = function() {
@@ -274,7 +278,7 @@ B.initialize = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-L = {}; // Bibi.Loader
+____.L = {}; // Bibi.Loader
 
 
 L.wait = function() {
@@ -317,7 +321,7 @@ L.loadBook = function(BookData, BookDataMeta) {
     I.note('Loading...');
     O.log("Initializing Book...", "*:");
     return new Promise(function(resolve, reject) {
-        var BookDataType = (function() {
+        const BookDataType = (function() {
             if(!BookData) return null;
             if(typeof BookData == "string") {
                 if(/^https?:\/\//.test(BookData)) return "URI";
@@ -334,21 +338,22 @@ L.loadBook = function(BookData, BookDataMeta) {
             // Online
             B.Path = BookData;
             if(!S["trustworthy-origins"].includes(B.Path.replace(/^(\w+:\/\/[^\/]+).*$/, "$1"))) return reject('The Origin of the Path of the Book Is Not Allowed.');
-            var getErrorMessage = function(As, Detail) {
-                var         ErrorMessage  = 'Failed to Open';
+            const getErrorMessage = function(As, Detail) {
+                let         ErrorMessage  = 'Failed to Open';
                 if(As.join) ErrorMessage += ' Both as ' + As.join(' and ');
                 else        ErrorMessage += ' as ' + As;
                 if(Detail)  ErrorMessage += ' (' + Detail + ')';
                 return      ErrorMessage +  '.';
             };
+            let ToCheckExistance, As;
             if(S["book-type"] == "EPUB") {
                 // Online EPUB
-                var ToCheckExistance = B.Container.Path;
-                var As = ['a Zipped EPUB File', 'an Unzipped EPUB Folder'];
+                ToCheckExistance = B.Container.Path;
+                As = ['a Zipped EPUB File', 'an Unzipped EPUB Folder'];
             } else if(S["book-type"] == "Zine") {
                 // Online Zine
-                var ToCheckExistance = B.Zine.Path;
-                var As = ['a Zipped Zine File', 'an Unzipped Zine Folder'];
+                ToCheckExistance = B.Zine.Path;
+                As = ['a Zipped Zine File', 'an Unzipped Zine Folder'];
             }
             if(S.willBeUnzipped(B.Path)) {
                 // Online Zipped (probably)
@@ -365,7 +370,7 @@ L.loadBook = function(BookData, BookDataMeta) {
                         B.Unzipped = true;
                         resolve(As[1]);
                     }).catch(function(XHR) {
-                        var ErrorDetail = "";//(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
+                        const ErrorDetail = "";//(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
                         O.log(getErrorMessage(As[1], ErrorDetail), "-*");
                         reject(getErrorMessage(As));
                     });
@@ -378,14 +383,15 @@ L.loadBook = function(BookData, BookDataMeta) {
                     B.Unzipped = true;
                     resolve(As[0]);
                 }).catch(function(XHR) {
-                    var ErrorDetail = "";//(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
+                    const ErrorDetail = "";//(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
                     O.log(getErrorMessage(As[0], ErrorDetail), "-*");
                     // Online Zipped (probably)
                     return reject('To Open This Book as ' + As[1] + ', Changing "unzip-if-necessary" May Be Required.');
                 });
             }
         } else {
-            var MIMETypeError = false, MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
+            let MIMETypeError = false, FileOrData;
+            const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
             if(BookDataType == "File") {
                 // Local Zipped EPUB/Zine File
                 if(!S["accept-local-file"]) reject('To Open Local Files, Changing "accept-local-file" in default.js Is Required.');
@@ -402,16 +408,16 @@ L.loadBook = function(BookData, BookDataMeta) {
                 } else {
                     MIMETypeError = true;
                 }
-                var FileOrData = "File";
+                FileOrData = "File";
                 B.Path = "[Local File] " + BookData.name;
             } else {
                 if(BookDataType == "Base64") {
                     // Base64 Encoded EPUB/Zine Data
                     if(!S["accept-base64-encoded-data"]) return reject('To Open Base64 Encoded Data, Changing "accept-base64-encoded-data" in default.js Is Required.');
                     try {
-                        var Bin = atob(BookData.replace(/^.*,/, ''));
-                        var Buf = new Uint8Array(Bin.length);
-                        for(var l = Bin.length, i = 0; i < l; i++) Buf[i] = Bin.charCodeAt(i);
+                        const Bin = atob(BookData.replace(/^.*,/, ''));
+                        const Buf = new Uint8Array(Bin.length);
+                        for(let l = Bin.length, i = 0; i < l; i++) Buf[i] = Bin.charCodeAt(i);
                         BookData = new Blob([Buf.buffer], { type: BookDataMeta["type"] });
                         if(!BookData || !(BookData instanceof Blob)) throw '';
                     } catch(Err) {
@@ -424,7 +430,7 @@ L.loadBook = function(BookData, BookDataMeta) {
                     B.Path = "[BLOB Converted Data]";
                 }
                 if(!MIMETypeREs["EPUB"].test(BookData.type) && !MIMETypeREs["Zine"].test(BookData.type)) MIMETypeError = true;
-                var FileOrData = "Data";
+                FileOrData = "Data";
             }
             if(MIMETypeError) return reject('BiB/i Can Not Open This Type of File.');
             if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
@@ -453,7 +459,7 @@ L.loadBook = function(BookData, BookDataMeta) {
     }).catch(function(Log) {
         I.Veil.Cover.className = "";
         if(S["accept-local-file"]) O.HTML.classList.add("waiting-file");
-        var Message = 'BiB/i Failed to Open the Book.';
+        const Message = 'BiB/i Failed to Open the Book.';
         I.note(Message, 99999999999, "ErrorOccured");
         O.error(Message + "\n* " + Log);
         return false;
@@ -489,24 +495,24 @@ L.loadPackageDocument = function() {
 L.processPackageDocument = function(Doc) {
 
     // Package
-    var Metadata = Doc.getElementsByTagName("metadata")[0];
-    var Manifest = Doc.getElementsByTagName("manifest")[0];
-    var Spine    = Doc.getElementsByTagName("spine")[0];
-    var ManifestItems = Manifest.getElementsByTagName("item");
-    var SpineItemrefs = Spine.getElementsByTagName("itemref");
+    const Metadata = Doc.getElementsByTagName("metadata")[0];
+    const Manifest = Doc.getElementsByTagName("manifest")[0];
+    const Spine    = Doc.getElementsByTagName("spine")[0];
+    const ManifestItems = Manifest.getElementsByTagName("item");
+    const SpineItemrefs = Spine.getElementsByTagName("itemref");
     if(ManifestItems.length <= 0) return O.error('"' + B.Package.Path + '" has no <item> in <manifest>.');
     if(SpineItemrefs.length <= 0) return O.error('"' + B.Package.Path + '" has no <itemref> in <spine>.');
 
     // METADATA
-    var XMLNS = { "dc": Metadata.getAttribute("xmlns:dc") };
+    const XMLNS = { "dc": Metadata.getAttribute("xmlns:dc") };
     sML.each(Metadata.getElementsByTagName("meta"), function() {
         if(this.getAttribute("refines")) return;
         if(this.getAttribute("property")) {
             // DCTerms
-            var Property = this.getAttribute("property").replace(/^dcterms:/, "");
-                 if(/^(identifier|title)$/.test(Property)) B.Package.Metadata[Property] = this.textContent;
+            const Property = this.getAttribute("property").replace(/^dcterms:/, "");
+                 if(          /^(identifier|title)$/.test(Property)) B.Package.Metadata[Property      ] = this.textContent;
             else if(/^(creator|publisher|language)$/.test(Property)) B.Package.Metadata[Property + "s"].push(this.textContent);
-            else if(!B.Package.Metadata[Property]) B.Package.Metadata[Property] = this.textContent;
+            else if(                  !B.Package.Metadata[Property]) B.Package.Metadata[Property      ] = this.textContent;
         }
         if(this.getAttribute("name") && this.getAttribute("content")) {
             // Others
@@ -530,9 +536,9 @@ L.processPackageDocument = function(Doc) {
     Doc = undefined;
 
     // MANIFEST
-    var TOCID = Spine.getAttribute("toc");
+    const TOCID = Spine.getAttribute("toc");
     sML.each(ManifestItems, function() {
-        var ManifestItem = {
+        const ManifestItem = {
             "id"         : this.getAttribute("id")         || "",
             "href"       : this.getAttribute("href")       || "",
             "media-type" : this.getAttribute("media-type") || "",
@@ -555,7 +561,7 @@ L.processPackageDocument = function(Doc) {
     B.Package.Spine["page-progression-direction"] = Spine.getAttribute("page-progression-direction");
     if(!B.Package.Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(B.Package.Spine["page-progression-direction"])) B.Package.Spine["page-progression-direction"] = "ltr";//"default";
     B.PPD = B.Package.Spine["page-progression-direction"];
-    var PropertyREs = [
+    const PropertyREs = [
         /(page-spread)-(.+)/,
         /(rendition:layout)-(.+)/,
         /(rendition:orientation)-(.+)/,
@@ -564,7 +570,7 @@ L.processPackageDocument = function(Doc) {
         /(bibi:[a-z]+)-(.+)/
     ];
     sML.each(SpineItemrefs, function(i) {
-        var SpineItemref = {
+        const SpineItemref = {
             "idref"                 : this.getAttribute("idref")      || "",
             "linear"                : this.getAttribute("linear")     || "",
             "properties"            : this.getAttribute("properties") || "",
@@ -606,23 +612,23 @@ L.processPackageDocument = function(Doc) {
     }
 
     if(B.Title) {
-        var BookIDFragments = [B.Title];
+        const BookIDFragments = [B.Title];
         if(B.Creator)   BookIDFragments.push(B.Creator);
         if(B.Publisher) BookIDFragments.push(B.Publisher);
-        BookIDFragments = BookIDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">");
+        const TitleExtras = S["website-name-in-title"] ? S["website-name-in-title"] : "Published with BiB/i";
         O.Title.innerHTML = "";
-        O.Title.appendChild(document.createTextNode(BookIDFragments + " | " + (S["website-name-in-title"] ? S["website-name-in-title"] : "Published with BiB/i")));
+        O.Title.appendChild(document.createTextNode(BookIDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">") + " | " + TitleExtras));
         try { O.Info.querySelector("h1").innerHTML = document.title; } catch(Err) {}
     }
 
-    var IDLogs = [];
+    const IDLogs = [];
     if(B.Title)     IDLogs.push(B.Title);
     if(B.Creator)   IDLogs.push(B.Creator);
     if(B.Publisher) IDLogs.push(B.Publisher);
     IDLogs.push('Language: "'  + B.Language + '"');
     O.log(IDLogs.join(' / '), "-*");
 
-    var MetaLogs = [];
+    const MetaLogs = [];
     MetaLogs.push('layout: "' + B.Package.Metadata["rendition:layout"] + '"');
     MetaLogs.push('orientation: "' + B.Package.Metadata["rendition:orientation"] + '"');
     MetaLogs.push('spread: "' + B.Package.Metadata["rendition:spread"] + '"');
@@ -630,14 +636,10 @@ L.processPackageDocument = function(Doc) {
     O.log(MetaLogs.join(' / '), "-*");
 
     if(S["use-cookie"]) {
-        var BibiCookie = O.Cookie.remember(O.RootPath);
-        var BookCookie = O.Cookie.remember(B.ID);
-        if(BibiCookie) {
-            if(!U["reader-view-mode"] && BibiCookie.RVM) S["reader-view-mode"] = BibiCookie.RVM;
-        }
-        if(BookCookie) {
-            if(!U["to"] && BookCookie.Position) S["to"] = BookCookie.Position;
-        }
+        const BibiCookie = O.Cookie.remember(O.RootPath);
+        const BookCookie = O.Cookie.remember(B.ID);
+        if(BibiCookie) if(!U["reader-view-mode"] && BibiCookie.RVM     ) S["reader-view-mode"] = BibiCookie.RVM;
+        if(BookCookie) if(!U["to"]               && BookCookie.Position) S["to"]               = BookCookie.Position;
     }
 
     S.update();
@@ -674,7 +676,7 @@ L.createCover = function() {
     }
 
     I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (function() {
-        var BookID = [];
+        const BookID = [];
         if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
         if(B.Creator)   BookID.push('<em>'     + B.Creator   + '</em>');
         if(B.Publisher) BookID.push('<span>'   + B.Publisher + '</span>');
@@ -686,7 +688,7 @@ L.createCover = function() {
         sML.create("img", {
             load: function() {
                 //O.log('Loading Cover Image: ' + B.Path + B.PathDelimiter + R.CoverImage.Path + ' ...', "*:");
-                var Img = this;
+                const Img = this;
                 Img.src = B.Files[R.CoverImage.Path] ? O.getDataURI(R.CoverImage.Path, B.Files[R.CoverImage.Path]) : B.Path + "/" + R.CoverImage.Path;
                 Img.timeout = setTimeout(function() { Img.ontimeout(); }, 5000)
             },
@@ -721,8 +723,9 @@ L.prepareSpine = function(ItemMaker) {
     O.log('Preparing Spine...', "*:");
 
     // For Spread Pairing of Pre-Paginated
-    if(B.PPD == "rtl") var SpreadPairBefore = "right", SpreadPairAfter = "left";
-    else               var SpreadPairBefore = "left",  SpreadPairAfter = "right";
+    let SpreadPairBefore, SpreadPairAfter;
+    if(B.PPD == "rtl") SpreadPairBefore = "right", SpreadPairAfter = "left";
+    else               SpreadPairBefore = "left",  SpreadPairAfter = "right";
 
     B.FileDigit = (B.Package.Spine["itemrefs"].length + "").length;
     //if(B.FileDigit < 3) B.FileDigit = 3;
@@ -736,9 +739,9 @@ L.prepareSpine = function(ItemMaker) {
 
     // Spreads, Boxes, and Items
     sML.each(B.Package.Spine["itemrefs"], function() {
-        var ItemRef = this, ItemIndex = R.Items.length;
+        const ItemRef = this, ItemIndex = R.Items.length;
         // Item: A
-        var Item = ItemMaker(this);
+        const Item = ItemMaker(this);
         Item.classList.add("item");
         Item.ItemRef = ItemRef;
         Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
@@ -752,14 +755,14 @@ L.prepareSpine = function(ItemMaker) {
         if(ItemRef["linear"] != "yes") return R.NonLinearItems.push(Item);
         R.Items.push(Item);
         // SpreadBox & Spread
-        var SpreadBox, Spread;
+        let SpreadBox, Spread;
         if(ItemRef["page-spread"] == "center") {
             Item.IsSpreadCenter = true;
         } else if(ItemRef["page-spread"] == SpreadPairBefore) {
             Item.IsSpreadPairBefore = true;
         } else if(ItemRef["page-spread"] == SpreadPairAfter && ItemIndex > 0) {
             Item.IsSpreadPairAfter = true;
-            var PreviousItem = R.Items[ItemIndex - 1];
+            const PreviousItem = R.Items[ItemIndex - 1];
             if(PreviousItem.IsSpreadPairBefore) {
                 PreviousItem.SpreadPair = Item;
                 Item.SpreadPair = PreviousItem;
@@ -777,7 +780,7 @@ L.prepareSpine = function(ItemMaker) {
             R.Spreads.push(Spread);
         }
         // ItemBox
-        var ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
+        const ItemBox = Spread.appendChild(sML.create("div", { className: "item-box" }));
         // Item: B
         Item.Spread = Spread;
         Item.ItemBox = ItemBox;
@@ -826,7 +829,7 @@ L.loadNavigation = function() {
         O.log('Loading Navigation: ' + B.Path + B.PathDelimiter + I.Panel.BookInfo.Navigation.Path + ' ...', "*:");
         O.openDocument(I.Panel.BookInfo.Navigation.Path).then(function(Doc) {
             I.Panel.BookInfo.Navigation.innerHTML = "";
-            var NavContent = document.createDocumentFragment();
+            const NavContent = document.createDocumentFragment();
             if(I.Panel.BookInfo.Navigation.Type == "Navigation Document") {
                 sML.each(Doc.querySelectorAll("nav"), function() {
                     switch(this.getAttribute("epub:type")) {
@@ -838,30 +841,29 @@ L.loadNavigation = function() {
                     NavContent.appendChild(this);
                 });
             } else {
-                var NavUL = (function(Ele) {
-                    var ChildNodes = Ele.childNodes;
-                    var UL = undefined;
-                    for(var l = ChildNodes.length, i = 0; i < l; i++) {
-                        if(ChildNodes[i].nodeType == 1 && /^navPoint$/i.test(ChildNodes[i].tagName)) {
-                            var NavPoint = ChildNodes[i];
-                            var NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
-                            var Content = NavPoint.getElementsByTagName("content")[0];
-                            var Text = NavPoint.getElementsByTagName("text")[0];
-                            if(!UL) UL = document.createElement("ul");
-                            var LI = sML.create("li", { id: NavPoint.getAttribute("id") }); LI.setAttribute("playorder", NavPoint.getAttribute("playorder"));
-                            var A = sML.create("a", { href: Content.getAttribute("src"), innerHTML: Text.innerHTML.trim() });
-                            UL.appendChild(LI).appendChild(A);
-                            var ChildUL = arguments.callee(NavPoint);
-                            if(ChildUL) LI.appendChild(ChildUL);
-                        }
+                const makeNavULTree = function(Ele) {
+                    const ChildNodes = Ele.childNodes;
+                    let UL = undefined;
+                    for(let l = ChildNodes.length, i = 0; i < l; i++) {
+                        if(ChildNodes[i].nodeType != 1 || !/^navPoint$/i.test(ChildNodes[i].tagName)) continue;
+                        const NavPoint = ChildNodes[i];
+                        const NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
+                        const Content  = NavPoint.getElementsByTagName("content")[0];
+                        const Text = NavPoint.getElementsByTagName("text")[0];
+                        if(!UL) UL = document.createElement("ul");
+                        const LI = sML.create("li", { id: NavPoint.getAttribute("id") }); LI.setAttribute("playorder", NavPoint.getAttribute("playorder"));
+                        const A  = sML.create("a", { href: Content.getAttribute("src"), innerHTML: Text.innerHTML.trim() });
+                        UL.appendChild(LI).appendChild(A);
+                        const ChildUL = makeNavULTree(NavPoint);
+                        if(ChildUL) LI.appendChild(ChildUL);
                     }
                     return UL;
-                })(Doc.getElementsByTagName("navMap")[0]);
+                };
+                const NavUL = makeNavULTree(Doc.getElementsByTagName("navMap")[0]);
                 if(NavUL) NavContent.appendChild(document.createElement("nav")).appendChild(NavUL);
             }
             I.Panel.BookInfo.Navigation.appendChild(NavContent);
             I.Panel.BookInfo.Navigation.Body = I.Panel.BookInfo.Navigation;
-            NavContent = Doc = undefined;
             L.postprocessItem.coordinateLinkages(I.Panel.BookInfo.Navigation, "InNav");
             R.resetNavigation();
             O.log('Navigation Loaded.', "/*");
@@ -900,15 +902,15 @@ L.preprocessResources = function() {
     return new Promise(function(resolve, reject) {
         if(B.Unzipped) {
             if(S["book-type"] == "Zine") return resolve();
-            var FileTypes = (function() {
+            const FileTypes = (function() {
                 if(sML.UA.Gecko || sML.UA.Edge) return ["HTML", "CSS"];
                 if(S["preprocess-html-always"]) return ["HTML"];
                 return null;
             })();
             if(!FileTypes) return resolve();
-            var FilesToBeLoaded = 0;
-            for(var FilePath in B.Package.Manifest.Files) {
-                for(var l = FileTypes.length, i = 0; i < l; i++) {
+            let FilesToBeLoaded = 0;
+            for(let FilePath in B.Package.Manifest.Files) {
+                for(let l = FileTypes.length, i = 0; i < l; i++) {
                     if(L.preprocessResources.Settings[FileTypes[i]].FileExtensionRE.test(FilePath)) {
                         B.Files[FilePath] = "";
                         FilesToBeLoaded++;
@@ -917,8 +919,8 @@ L.preprocessResources = function() {
                 }
             }
             if(!FilesToBeLoaded) return resolve();
-            var FilesLoaded = 0;
-            for(var FilePath in B.Files) {
+            let FilesLoaded = 0;
+            for(let FilePath in B.Files) {
                 (function(FilePath) {
                     O.download(B.Path + "/" +  FilePath).then(function(XHR) {
                         B.Files[FilePath] = XHR.responseText;
@@ -928,17 +930,18 @@ L.preprocessResources = function() {
                 })(FilePath);
             }
         } else {
-            for(var FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
+            for(let FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
             resolve("ToPreprocess");
         }
     }).then(function(ToPreprocess) {
         if(!ToPreprocess) return;
-        if(S["book-type"] == "EPUB") for(var Type in L.preprocessResources.Settings) if(L.preprocessResources.Settings[Type].init) L.preprocessResources.Settings[Type].init();
+        if(S["book-type"] == "EPUB") for(let Type in L.preprocessResources.Settings) if(L.preprocessResources.Settings[Type].init) L.preprocessResources.Settings[Type].init();
         E.dispatch("bibi:is-going-to:preprocess-resources");
-        var PartLog = [], AllCount = 0;
+        const PartLog = [];
+        let AllCount = 0;
         ["CSS", "SVG", "HTML"].forEach(function(Type) {
-            var Count = 0;
-            for(var FilePath in B.Files) {
+            let Count = 0;
+            for(let FilePath in B.Files) {
                 if(!L.preprocessResources.Settings[Type].FileExtensionRE.test(FilePath)) continue;
                 L.preprocessResources.preprocessFile(FilePath, L.preprocessResources.Settings[Type]);
                 Count++;
@@ -955,7 +958,7 @@ L.preprocessResources = function() {
 L.preprocessResources.PreprocessedFiles = [];
 L.preprocessResources.preprocessFile = function(FilePath, Setting) {
     if(L.preprocessResources.PreprocessedFiles.includes(FilePath)) return B.Files[FilePath];
-    var FileContent = B.Files[FilePath];
+    let FileContent = B.Files[FilePath];
     if(!B.Files[FilePath] || !Setting.FileExtensionRE.test(FilePath)) return FileContent;
     if(Setting.ReplaceRules) {
         Setting.ReplaceRules.forEach(function(ReplaceRule) {
@@ -963,10 +966,10 @@ L.preprocessResources.preprocessFile = function(FilePath, Setting) {
         });
     }
     if(Setting.NestingRE) {
-        var Nestings = FileContent.match(Setting.NestingRE);
+        const Nestings = FileContent.match(Setting.NestingRE);
         if(Nestings) {
             Nestings.forEach(function(Nesting) {
-                var NestingPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), Nesting.replace(Setting.NestingRE, "$2"));
+                const NestingPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), Nesting.replace(Setting.NestingRE, "$2"));
                 if(B.Files[NestingPath]) {
                     FileContent = FileContent.replace(
                         Nesting, Nesting.replace(
@@ -1052,17 +1055,17 @@ L.preprocessResources.Settings = {
 L.preprocessResources.replaceResourceRefferences = function(FilePath, FileContent, Setting) {
     if(!FileContent || !FilePath || !Setting || !Setting.ResAttributesAndExtensions) return FileContent;
     if(typeof Setting.getResMatchRE != "function") Setting.getResMatchRE = function(At) { return (new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g")); };
-    var FileDir = FilePath.replace(/\/?[^\/]+$/, "");
-    for(var Attribute in Setting.ResAttributesAndExtensions) {
-        var ResMatchRE = Setting.getResMatchRE(Attribute);
-        var ResMatches = FileContent.match(ResMatchRE);
+    const FileDir = FilePath.replace(/\/?[^\/]+$/, "");
+    for(let Attribute in Setting.ResAttributesAndExtensions) {
+        const ResMatchRE = Setting.getResMatchRE(Attribute);
+        const ResMatches = FileContent.match(ResMatchRE);
         if(ResMatches) {
-            var ExtRE = new RegExp('\.' + Setting.ResAttributesAndExtensions[Attribute] + '$', "i");
+            const ExtRE = new RegExp('\.' + Setting.ResAttributesAndExtensions[Attribute] + '$', "i");
             ResMatches.forEach(function(Match) {
-                var ResPathInSource = Match.replace(ResMatchRE, "$1");
-                var ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
-                var ResFilePathAndHash = ResPath.split("#");
-                var ResFilePath = ResFilePathAndHash[0];
+                const ResPathInSource = Match.replace(ResMatchRE, "$1");
+                const ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
+                const ResFilePathAndHash = ResPath.split("#");
+                const ResFilePath = ResFilePathAndHash[0];
                 if(ExtRE.test(ResFilePath)) {
                     if(B.Files[ResFilePath]) {
                         FileContent = FileContent.replace(Match, Match.replace(ResPathInSource, O.getDataURI(ResFilePath, B.Files[ResFilePath]) + (ResFilePathAndHash[1] ? "#" + ResFilePathAndHash[1] : "")));
@@ -1085,7 +1088,7 @@ L.loadSpread = function(Spread) {
 
 
 L.loadItem = function(Item) {
-    var FullPath = Item.Path ? ((!/^https?:\/\//.test(Item.Path) ? B.Path + B.PathDelimiter : "") + Item.Path) : "";
+    const FullPath = Item.Path ? ((!/^https?:\/\//.test(Item.Path) ? B.Path + B.PathDelimiter : "") + Item.Path) : "";
     O.log(sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit) + '/' + sML.String.pad(R.Items.length, 0, B.FileDigit) + ' - ' + (FullPath ? FullPath : '... Not Found.'), "-*");
     Item.Loaded = false;
     Item.TimeCard = {};
@@ -1165,7 +1168,7 @@ L.postprocessItem = function(Item) {
 
     Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
 
-    var XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
+    const XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
          if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
     else if(!XMLLang         ) Item.HTML.setAttribute("xml:lang", Lang);
     else if(            !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
@@ -1187,19 +1190,17 @@ L.postprocessItem = function(Item) {
     });
 
     Item.BibiProperties = {};
-    var BibiProperties = Item.HTML.getAttribute("data-bibi-properties");
+    const BibiProperties = Item.HTML.getAttribute("data-bibi-properties");
     if(BibiProperties) {
         BibiProperties.replace(/[\s\t\r\n]+/g, " ").split(" ").forEach(function(Property) {
             if(Property) Item.BibiProperties[Property] = true;
         });
     }
 
-    var Elements = Item.contentDocument.querySelectorAll("body>*");
+    const Elements = Item.contentDocument.querySelectorAll("body>*");
     if(Elements && Elements.length) {
-        var LengthOfElements = 0;
-        for(var l = Elements.length, i = 0; i < l; i++) {
-            if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
-        }
+        let LengthOfElements = 0;
+        for(let l = Elements.length, i = 0; i < l; i++) if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
         if(LengthOfElements == 1) {
             if(/^svg$/i.test(Item.Body.firstElementChild.tagName)) {
                 Item.Outsourcing = true;
@@ -1250,9 +1251,9 @@ L.postprocessItem = function(Item) {
 L.postprocessItem.processSVGs = function(Item) {
     if(sML.UA.InternetExplorer) {
         sML.each(Item.Body.getElementsByTagName("svg"), function() {
-            var ChildImages = this.getElementsByTagName("image");
+            const ChildImages = this.getElementsByTagName("image");
             if(ChildImages.length == 1) {
-                var ChildImage = ChildImages[0];
+                const ChildImage = ChildImages[0];
                 if(ChildImage.getAttribute("width") && ChildImage.getAttribute("height")) {
                     this.setAttribute("width",  ChildImage.getAttribute("width"));
                     this.setAttribute("height", ChildImage.getAttribute("height"));
@@ -1264,13 +1265,13 @@ L.postprocessItem.processSVGs = function(Item) {
 
 
 L.postprocessItem.defineViewport = function(Item) {
-    var ItemRef = Item.ItemRef;
+    const ItemRef = Item.ItemRef;
     sML.each(Item.Head.getElementsByTagName("meta"), function() { // META Viewport
         if(this.name == "viewport") {
             ItemRef["viewport"].content = this.getAttribute("content");
             if(ItemRef["viewport"].content) {
-                var ViewportWidth  = ItemRef["viewport"].content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
-                var ViewportHeight = ItemRef["viewport"].content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
+                const ViewportWidth  = ItemRef["viewport"].content.replace( /^.*?width=([^\, ]+).*$/, "$1") * 1;
+                const ViewportHeight = ItemRef["viewport"].content.replace(/^.*?height=([^\, ]+).*$/, "$1") * 1;
                 if(!isNaN(ViewportWidth) && !isNaN(ViewportHeight)) {
                     ItemRef["viewport"].width  = ViewportWidth;
                     ItemRef["viewport"].height = ViewportHeight;
@@ -1279,14 +1280,14 @@ L.postprocessItem.defineViewport = function(Item) {
         }
     });
     if(ItemRef["rendition:layout"] == "pre-paginated" && !(ItemRef["viewport"].width * ItemRef["viewport"].height)) { // If Fixed-Layout Item without Viewport
-        var ItemImage = Item.Body.firstElementChild;
+        const ItemImage = Item.Body.firstElementChild;
         if(Item.SingleSVGOnlyItem) { // If Single-SVG-HTML or SVG-in-Spine, Use ViewBox for Viewport.
             if(ItemImage.getAttribute("viewBox")) {
                 ItemRef["viewBox"].content = ItemImage.getAttribute("viewBox");
-                var ViewBoxCoords  = ItemRef["viewBox"].content.split(" ");
+                const ViewBoxCoords  = ItemRef["viewBox"].content.split(" ");
                 if(ViewBoxCoords.length == 4) {
-                    var ViewBoxWidth  = ViewBoxCoords[2] * 1 - ViewBoxCoords[0] * 1;
-                    var ViewBoxHeight = ViewBoxCoords[3] * 1 - ViewBoxCoords[1] * 1;
+                    const ViewBoxWidth  = ViewBoxCoords[2] * 1 - ViewBoxCoords[0] * 1;
+                    const ViewBoxHeight = ViewBoxCoords[3] * 1 - ViewBoxCoords[1] * 1;
                     if(ViewBoxWidth && ViewBoxHeight) {
                         if(ItemImage.getAttribute("width")  != "100%") ItemImage.setAttribute("width",  "100%");
                         if(ItemImage.getAttribute("height") != "100%") ItemImage.setAttribute("height", "100%");
@@ -1304,16 +1305,16 @@ L.postprocessItem.defineViewport = function(Item) {
 
 
 L.postprocessItem.coordinateLinkages = function(Item, InNav) {
-    var Path = Item.Path;
-    var RootElement = Item.Body;
+    const Path = Item.Path;
+    const RootElement = Item.Body;
     sML.each(RootElement.getElementsByTagName("a"), function(i) {
-        var A = this;
+        const A = this;
         if(InNav) {
             A.NavANumber = i + 1;
             A.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
             A.addEventListener(O["pointerup"],   function(Eve) { Eve.stopPropagation(); });
         }
-        var HrefPathInSource = A.getAttribute("href");
+        let HrefPathInSource = A.getAttribute("href");
         if(!HrefPathInSource) {
             if(InNav) {
                 A.addEventListener("click", function(Eve) { Eve.preventDefault(); Eve.stopPropagation(); return false; });
@@ -1323,16 +1324,16 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         }
         if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
             if(HrefPathInSource.split("#")[0] == location.href.split("#")[0]) {
-                var HrefHashInSource = HrefPathInSource.split("#")[1];
+                const HrefHashInSource = HrefPathInSource.split("#")[1];
                 HrefPathInSource = (HrefHashInSource ? "#" + HrefHashInSource : R.Items[0].Path)
             } else {
                 return A.setAttribute("target", A.getAttribute("target") || "_blank");
             }
         }
-        var HrefPath = O.getPath(Path.replace(/\/?([^\/]+)$/, ""), (!/^\.*\/+/.test(HrefPathInSource) ? "./" : "") + (/^#/.test(HrefPathInSource) ? Path.replace(/^.+?([^\/]+)$/, "$1") : "") + HrefPathInSource);
-        var HrefFnH = HrefPath.split("#");
-        var HrefFile = HrefFnH[0] ? HrefFnH[0] : Path;
-        var HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
+        const HrefPath = O.getPath(Path.replace(/\/?([^\/]+)$/, ""), (!/^\.*\/+/.test(HrefPathInSource) ? "./" : "") + (/^#/.test(HrefPathInSource) ? Path.replace(/^.+?([^\/]+)$/, "$1") : "") + HrefPathInSource);
+        const HrefFnH = HrefPath.split("#");
+        const HrefFile = HrefFnH[0] ? HrefFnH[0] : Path;
+        const HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
         R.Items.forEach(function(rItem) {
             if(HrefFile == rItem.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
@@ -1371,7 +1372,7 @@ L.postprocessItem.coordinateLinkages.setJump = function(A) {
         Eve.preventDefault(); 
         Eve.stopPropagation();
         if(A.Destination) {
-            var Go = L.Opened ? function() {
+            const Go = L.Opened ? function() {
                 E.dispatch("bibi:commands:focus-on", { Destination: A.Destination, Duration: 0 });
             } : function() {
                 if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
@@ -1397,7 +1398,7 @@ L.postprocessItem.patchStyles = function(Item) {
     if(!L.Preprocessed) {
         if(sML.UA.InternetExplorer) {
             if(!B.Unzipped) return false;
-            var IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
+            const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
             O.editCSSRules(Item.contentDocument, function(CSSRule) {
                 if(/(-(epub|webkit)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-rl";
                 if(/(-(epub|webkit)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-lr";
@@ -1413,7 +1414,7 @@ L.postprocessItem.patchStyles = function(Item) {
     }
     if(sML.UA.Gecko) {
         Array.prototype.forEach.call(Item.Body.getElementsByTagName("a"), function(A) {
-            var ComputedStyle = getComputedStyle(A);
+            const ComputedStyle = getComputedStyle(A);
             if(/^vertical-/.test(ComputedStyle.writingMode)) {
                      if(ComputedStyle.textDecoration ==  "overline") A.style.textDecoration = "underline";
                 else if(ComputedStyle.textDecoration == "underline") A.style.textDecoration =  "overline";
@@ -1421,8 +1422,8 @@ L.postprocessItem.patchStyles = function(Item) {
         });
     }
 
-    var ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
-    var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+    const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+    const ItemBodyComputedStyle = getComputedStyle(Item.Body);
     if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) {
         sML.style(Item.HTML, {
             "writing-mode": ItemBodyComputedStyle[O.WritingModeProperty]
@@ -1451,13 +1452,13 @@ L.postprocessItem.patchStyles = function(Item) {
 };
 
 L.postprocessItem.patchStyles.getBackgroundStyle = function(Ele) {
-    var ComputedStyle = getComputedStyle(Ele);
+    const ComputedStyle = getComputedStyle(Ele);
     return {
-        backgroundColor: ComputedStyle.backgroundColor,
-        backgroundImage: ComputedStyle.backgroundImage,
-        backgroundRepeat: ComputedStyle.backgroundRepeat,
+        backgroundColor:    ComputedStyle.backgroundColor,
+        backgroundImage:    ComputedStyle.backgroundImage,
+        backgroundRepeat:   ComputedStyle.backgroundRepeat,
         backgroundPosition: ComputedStyle.backgroundPosition,
-        backgroundSize: ComputedStyle.backgroundSize
+        backgroundSize:     ComputedStyle.backgroundSize
     };
 };
 
@@ -1471,7 +1472,7 @@ L.onLoadItem = function(Item) {
     }
     E.dispatch("bibi:loaded-item", Item);
     Item.stamp("Loaded");
-    var Spread = Item.Spread;
+    const Spread = Item.Spread;
     Spread.LoadedItems++;
     if(Spread.LoadedItems == Spread.Items.length) L.onLoadSpread(Spread);
     I.note("Loading... (" + (L.LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
@@ -1536,7 +1537,7 @@ L.open = function() {
     R.layOut({
         Destination: (function() {
             if(S["to"]) {
-                var HatchedDestination = R.focusOn.hatchDestination(S["to"]);
+                const HatchedDestination = R.focusOn.hatchDestination(S["to"]);
                 if(HatchedDestination) return HatchedDestination;
             }
             return "head";
@@ -1574,7 +1575,7 @@ L.open = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-R = {}; // Bibi.Reader
+____.R = {}; // Bibi.Reader
 
 
 R.initialize = function() {
@@ -1676,30 +1677,31 @@ R.resetSpread = function(Spread) {
     Spread.Items.forEach(function(Item) {
         R.resetItem(Item);
     });
-    var SpreadBox = Spread.SpreadBox;
+    const SpreadBox = Spread.SpreadBox;
     SpreadBox.style["margin" + S.BASE.B] = SpreadBox.style["margin" + S.BASE.A] = "";
     SpreadBox.style["margin" + S.BASE.E] = SpreadBox.style["margin" + S.BASE.S] = "auto";
     SpreadBox.style.padding = SpreadBox.style.width = SpreadBox.style.height = "";
+    let Width = 0, Height = 0;
     if(Spread.RenditionLayout == "reflowable" || (S.BRL == "reflowable" && S.SLA == "vertical")) {
         if(Spread.Items.length == 2) {
             if(R.Stage.Width > Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth) {
-                var Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
-                var Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+                Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+                Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
             } else {
-                var Width  = Math.max(Spread.Items[0].ItemBox.offsetWidth,   Spread.Items[1].ItemBox.offsetWidth);
-                var Height =          Spread.Items[0].ItemBox.offsetHeight + Spread.Items[1].ItemBox.offsetHeight;
+                Width  = Math.max(Spread.Items[0].ItemBox.offsetWidth,   Spread.Items[1].ItemBox.offsetWidth);
+                Height =          Spread.Items[0].ItemBox.offsetHeight + Spread.Items[1].ItemBox.offsetHeight;
             }
         } else {
-            var Width  = Spread.Items[0].ItemBox.offsetWidth;
-            var Height = Spread.Items[0].ItemBox.offsetHeight;
+            Width  = Spread.Items[0].ItemBox.offsetWidth;
+            Height = Spread.Items[0].ItemBox.offsetHeight;
         }
     } else {
         if(Spread.Items.length == 2) {
-            var Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
-            var Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+            Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+            Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
         } else {
-            var Width  = Spread.Items[0].ItemBox.offsetWidth * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1);
-            var Height = Spread.Items[0].ItemBox.offsetHeight;
+            Width  = Spread.Items[0].ItemBox.offsetWidth * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1);
+            Height = Spread.Items[0].ItemBox.offsetHeight;
         }
     }
     SpreadBox.style.width  = Math.ceil(Width) + "px";
@@ -1734,10 +1736,10 @@ R.resetItem = function(Item) {
 };
 
 R.resetItem.asReflowableItem = function(Item) {
-    var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
-    var StageB = R.Stage[S.SIZE.B];
-    var StageL = R.Stage[S.SIZE.L];
-    var PageGap = R.Stage.PageGap;
+    const ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
+    let StageB = R.Stage[S.SIZE.B];
+    let StageL = R.Stage[S.SIZE.L];
+    let PageGap = R.Stage.PageGap;
     if(!/fill/.test(ItemRef["bibi:layout"])) {
         StageB  -= (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
         StageL  -= (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
@@ -1747,11 +1749,11 @@ R.resetItem.asReflowableItem = function(Item) {
         Item.style["padding-" + S.BASE.s] = S["item-padding-" + S.BASE.s] + "px";
         Item.style["padding-" + S.BASE.e] = S["item-padding-" + S.BASE.e] + "px";
     }
-    var PageB = StageB;
-    var PageL = StageL;
+    let PageB = StageB;
+    let PageL = StageL;
     if(!S["single-page-always"] && /-tb$/.test(B.WritingMode) && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
-        var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        var StageHalfL = Math.floor((StageL - PageGap) / 2);
+        const BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
+        const StageHalfL = Math.floor((StageL - PageGap) / 2);
         if(StageHalfL >= BunkoL) {
             Item.Spreaded = true;
             PageL = StageHalfL;
@@ -1760,21 +1762,21 @@ R.resetItem.asReflowableItem = function(Item) {
     Item.style[S.SIZE.b] = PageB + "px";
     Item.style[S.SIZE.l] = PageL + "px";
     R.resetItem.asReflowableItem.adjustContent(Item, PageB, PageL, PageGap);
-    var ItemL = sML.UA.InternetExplorer ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
-    var Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
+    let ItemL = sML.UA.InternetExplorer ? Item.Body["client" + S.SIZE.L] : Item.HTML["scroll" + S.SIZE.L];
+    const Pages = Math.ceil((ItemL + PageGap) / (PageL + PageGap));
     ItemL = (PageL + PageGap) * Pages - PageGap;
     Item.style[S.SIZE.l] = ItemL + "px";
     if(sML.UA.InternetExplorer) Item.HTML.style[S.SIZE.l] = "100%";
-    var ItemBoxB = PageB;
-    var ItemBoxL = ItemL + ((S.RVM == "paged" && Item.Spreaded && Pages % 2) ? (PageGap + PageL) : 0);
+    let ItemBoxB = PageB;
+    let ItemBoxL = ItemL + ((S.RVM == "paged" && Item.Spreaded && Pages % 2) ? (PageGap + PageL) : 0);
     if(!/fill/.test(ItemRef["bibi:layout"])) {
         ItemBoxB += (S["item-padding-" + S.BASE.s] + S["item-padding-" + S.BASE.e]);
         ItemBoxL += (S["item-padding-" + S.BASE.b] + S["item-padding-" + S.BASE.a]);
     }
     ItemBox.style[S.SIZE.b] = ItemBoxB + "px";
     ItemBox.style[S.SIZE.l] = ItemBoxL + "px";
-    for(var i = 0; i < Pages; i++) {
-        var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
+    for(let i = 0; i < Pages; i++) {
+        const Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
         if(!/fill/.test(ItemRef["bibi:layout"])) {
             Page.style["padding" + S.BASE.B] = S["item-padding-" + S.BASE.b] + "px";
             Page.style["padding" + S.BASE.A] = S["item-padding-" + S.BASE.a] + "px";
@@ -1792,7 +1794,7 @@ R.resetItem.asReflowableItem = function(Item) {
 };
 R.resetItem.asReflowableItem.adjustContent = function(Item, PageB, PageL, PageGap) {
     E.dispatch("bibi:is-going-to:adjust-content", Item);
-    var WordWrappingStyleSheetIndex = sML.appendStyleRule("*", "word-wrap: break-word;", Item.contentDocument); ////
+    const WordWrappingStyleSheetIndex = sML.appendStyleRule("*", "word-wrap: break-word;", Item.contentDocument); ////
     R.resetItem.asReflowableItem.adjustContent.fitImages(Item, PageB, PageL);
     R.resetItem.asReflowableItem.adjustContent.columify(Item, PageB, PageL, PageGap);
     //if(S["page-breaking"]) R.resetItem.asReflowableItem.adjustContent.breakPages(Item, PageB);
@@ -1806,10 +1808,10 @@ R.resetItem.asReflowableItem.adjustContent.fitImages = function(Item, PageB, Pag
         //this.style.verticalAlign = this.Bibi.DefaultStyle["vertical-align"];
         this.style.width         = this.Bibi.DefaultStyle["width"];
         this.style.height        = this.Bibi.DefaultStyle["height"];
-        var B = parseFloat(getComputedStyle(this)[S.SIZE.b]);
-        var L = parseFloat(getComputedStyle(this)[S.SIZE.l]);
-        var MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.SIZE.b]), PageB));
-        var MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.SIZE.l]), PageL));
+        const B = parseFloat(getComputedStyle(this)[S.SIZE.b]);
+        const L = parseFloat(getComputedStyle(this)[S.SIZE.l]);
+        const MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.SIZE.b]), PageB));
+        const MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.SIZE.l]), PageL));
         if(B > MaxB || L > MaxL) {
             //if(getComputedStyle(this).display == "inline") this.style.display = "inline-block";
             //this.style.verticalAlign = "top";
@@ -1832,15 +1834,15 @@ R.resetItem.asReflowableItem.adjustContent.columify = function(Item, PageB, Page
     }
 };/*
 R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
-    var PBR; // PageBreakerRulers
+    let PBR; // PageBreakerRulers
     if(Item.Body["offset" + S.SIZE.B] <= PageB) PBR = [(S.SLA == "vertical" ? "Top" : "Left"), window["inner" + S.SIZE.L], S.SIZE.L, S.SIZE.l, S.BASE.a]; // ... PageL, S.SIZE.L, S.SIZE.l, S.BASE.a];
     else                                        PBR = [(S.SLA == "vertical" ? "Left" : "Top"), PageB, S.SIZE.B, S.SIZE.b, S.BASE.e]; // ... window["inner" + S.SIZE.B], S.SIZE.B, S.SIZE.b, S.BASE.e];
     sML.each(Item.contentDocument.querySelectorAll("html>body *"), function() {
-        var ComputedStyle = getComputedStyle(this);
+        const ComputedStyle = getComputedStyle(this);
         if(ComputedStyle.pageBreakBefore != "always" && ComputedStyle.pageBreakAfter != "always") return;
         if(this.BibiPageBreakerBefore) this.BibiPageBreakerBefore.style[PBR[3]] = "";
         if(this.BibiPageBreakerAfter)  this.BibiPageBreakerAfter.style[PBR[3]] = "";
-        var Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
+        let Ele = this,                                 BreakPoint  = Ele["offset" + PBR[0]], Add = 0;
         while(Ele.offsetParent) Ele = Ele.offsetParent, BreakPoint += Ele["offset" + PBR[0]];
         if(S.SLD == "rtl") BreakPoint = window["innerWidth"] + BreakPoint * -1 - this["offset" + PBR[2]];
         if(ComputedStyle.pageBreakBefore == "always") {
@@ -1859,16 +1861,16 @@ R.resetItem.asReflowableItem.adjustContent.breakPages = function(Item, PageB) {
 };*/
 
 R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
-    var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
+    const ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
     Item.style.margin = "auto";
     Item.style.padding = 0;
-    var StageB = R.Stage[S.SIZE.B];
-    var StageL = R.Stage[S.SIZE.L];
-    var PageB = StageB;
-    var PageL = StageL;
+    let StageB = R.Stage[S.SIZE.B];
+    let StageL = R.Stage[S.SIZE.L];
+    let PageB = StageB;
+    let PageL = StageL;
     if(!S["single-page-always"] && S.SLA == "horizontal" && !/fill-spread/.test(ItemRef["bibi:layout"])) {
-        var BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
-        var StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
+        const BunkoL = Math.floor(PageB * R.DefaultPageRatio[S.AXIS.L] / R.DefaultPageRatio[S.AXIS.B]);
+        const StageHalfL = Math.floor((StageL - R.Stage.PageGap) / 2);
         if(StageHalfL > BunkoL) {
             Item.Spreaded = true;
             PageL = StageHalfL;
@@ -1878,32 +1880,32 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
     Item.style[S.SIZE.l] = ItemBox.style[S.SIZE.l] = PageL + "px";
     if(Item.ImageItem) {
         if(Item.HTML["scroll" + S.SIZE.B] <= PageB && Item.HTML["scroll" + S.SIZE.L] <= PageL) {
-            var ItemBodyComputedStyle = getComputedStyle(Item.Body);
+            const ItemBodyComputedStyle = getComputedStyle(Item.Body);
             Item.style.width = Item.Body.offsetWidth + parseFloat(ItemBodyComputedStyle.marginLeft) + parseFloat(ItemBodyComputedStyle.marginRight) + "px";
         } else {
+            let TransformOrigin = "";
             if((S.SLD == "ttb" && Item.HTML["scroll" + S.SIZE.B] > PageB) || (S.SLA == "horizontal" && Item.HTML["scroll" + S.SIZE.L] > PageL)) {
-                var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
+                TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
             } else {
-                var TransformOrigin =  "50% 0";
+                TransformOrigin =  "50% 0";
             }
-            var Scale = Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100;
             sML.style(Item.HTML, {
                 "transform-origin": TransformOrigin,
-                "transform": "scale(" + Scale + ")"
+                "transform": "scale(" + (Math.floor(Math.min(PageB / Item.HTML["scroll" + S.SIZE.B], PageL / Item.HTML["scroll" + S.SIZE.L]) * 100) / 100) + ")"
             });
         }
         sML.each(Item.Body.getElementsByTagName("img"), function() {
-            var IMG = this;
+            const IMG = this;
             IMG.style.maxWidth = "none";
             setTimeout(function() {
                 IMG.style.maxWidth = "";
             }, 0);
         });
     } else if(Item.FrameItem) {
-        var IFrame = Item.Body.getElementsByTagName("iframe")[0];
+        const IFrame = Item.Body.getElementsByTagName("iframe")[0];
         IFrame.style[S.SIZE.b] = IFrame.style[S.SIZE.l] = "100%";
     }
-    var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
+    const Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     Page.style[S.SIZE.b] = PageB + "px";
     Page.style[S.SIZE.l] = PageL + "px";
     Page.style[S.BASE.b] = 0;
@@ -1914,20 +1916,21 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 };
 
 R.resetItem.asPrePaginatedItem = function(Item) {
-    var ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
+    const ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
     Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
-    var StageB = R.Stage[S.SIZE.B];
-    var StageL = R.Stage[S.SIZE.L];
-    var PageB = StageB;
-    var PageL = StageL;
+    let StageB = R.Stage[S.SIZE.B];
+    let StageL = R.Stage[S.SIZE.L];
+    let PageB = StageB;
+    let PageL = StageL;
     Item.style.padding = 0;
+    let Scale = 1;
     if(Item.Scale) {
-        var Scale = Item.Scale;
+        Scale = Item.Scale;
         delete Item.Scale;
     } else {
-        var Scale = 1;
+        Scale = 1;
         if((S.BRL == "pre-paginated" && S.SLA == "vertical") || R.Stage.Orientation == ItemRef["rendition:spread"] || ItemRef["rendition:spread"] == "both") {
-            var SpreadViewPort = { Width: ItemRef["viewport"].width, Height: ItemRef["viewport"].height };
+            const SpreadViewPort = { Width: ItemRef["viewport"].width, Height: ItemRef["viewport"].height };
             if(Item.SpreadPair) SpreadViewPort.Width += Item.SpreadPair.ItemRef["viewport"].width;
             else if(ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left") SpreadViewPort.Width += SpreadViewPort.Width;
             Scale = Math.min(
@@ -1942,14 +1945,14 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         }
         if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
     }
-    var SO /*= ScaleOptimizing*/ = 1 / Scale;
+    const SO /*= ScaleOptimizing*/ = 1 / Scale;
     PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
     PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
     ItemBox.style[S.SIZE.l] = PageL      + "px";
     ItemBox.style[S.SIZE.b] = PageB      + "px";
        Item.style[S.SIZE.l] = PageL * SO + "px";
        Item.style[S.SIZE.b] = PageB * SO + "px";
-    var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
+    const TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
         "width": ItemRef["viewport"].width + "px",
         "height": ItemRef["viewport"].height + "px",
@@ -1962,7 +1965,7 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         "transformOrigin": "0 0",
         "transform": "scale(" + (1 / SO) + ")"
     });
-    var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
+    const Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     if(ItemRef["page-spread"] == "right") Page.style.right = 0;
     else                                  Page.style.left  = 0;
     Page.style[S.SIZE.b] = PageB + "px";
@@ -1991,25 +1994,21 @@ R.resetPages = function() {
     return R.Pages;
 };
 
-R.resetNavigation = function() {/*
-    if(S.PPD == "rtl") {
-        var theWidth = I.Panel.Navigation.scrollWidth - window.innerWidth;
-        I.Panel.NavigationBox.scrollLeft = I.Panel.NavigationBox.scrollWidth - window.innerWidth;
-    }
-*/};
+R.resetNavigation = function() {
+};
 
 
 R.layOutSpread = function(Spread) {
     O.stamp("Lay Out Spread " + Spread.SpreadIndex + " Start");
     E.dispatch("bibi:is-going-to:lay-out-spread", Spread);
-    var SpreadBox = Spread.SpreadBox;
+    const SpreadBox = Spread.SpreadBox;
     SpreadBox.style.padding = "";
     SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = 0;
     if(S.SLA == "horizontal") {
         // Set padding-start + padding-end of SpreadBox
         if(SpreadBox.offsetHeight < R.Stage[S.SIZE.B]) {
-            var SpreadBoxPaddingTop    = Math.floor((R.Stage[S.SIZE.B] - SpreadBox.offsetHeight) / 2);
-            var SpreadBoxPaddingBottom = R.Stage[S.SIZE.B] - (SpreadBoxPaddingTop + SpreadBox.offsetHeight);
+            const SpreadBoxPaddingTop    = Math.floor((R.Stage[S.SIZE.B] - SpreadBox.offsetHeight) / 2);
+            const SpreadBoxPaddingBottom = R.Stage[S.SIZE.B] - (SpreadBoxPaddingTop + SpreadBox.offsetHeight);
             SpreadBox.style.paddingTop    = SpreadBoxPaddingTop + "px";
             SpreadBox.style.paddingBottom = SpreadBoxPaddingBottom + "px";
         }
@@ -2018,17 +2017,17 @@ R.layOutSpread = function(Spread) {
         if(R.Stage[S.SIZE.L] >= SpreadBox["offset" + S.SIZE.L]) {
             SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.SIZE.L] - SpreadBox["offset" + S.SIZE.L]) / 2);
         } else {
-            var FirstItemInSpread = Spread.Items[0];
+            const FirstItemInSpread = Spread.Items[0];
             if(R.Stage[S.SIZE.L] >= FirstItemInSpread["offset" + S.SIZE.L]) {
                 SpreadBox.PaddingBefore = Math.ceil((R.Stage[S.SIZE.L] - FirstItemInSpread["offset" + S.SIZE.L]) / 2);
             }
-            var LastItemInSpread = Spread.Items[Spread.Items.length - 1];
+            const LastItemInSpread = Spread.Items[Spread.Items.length - 1];
             if(R.Stage[S.SIZE.L] >= LastItemInSpread["offset" + S.SIZE.L]) {
                 SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.SIZE.L] - LastItemInSpread["offset" + S.SIZE.L]) / 2);
             }
         }
         if(Spread.SpreadIndex != 0) {
-            var PreviousSpreadBox = R.Spreads[Spread.SpreadIndex - 1].SpreadBox;
+            const PreviousSpreadBox = R.Spreads[Spread.SpreadIndex - 1].SpreadBox;
             SpreadBox.PaddingBefore = SpreadBox.PaddingBefore - PreviousSpreadBox.PaddingAfter;
             if(SpreadBox.PaddingBefore < I.Menu.offsetHeight) SpreadBox.PaddingBefore = I.Menu.offsetHeight;
         }
@@ -2050,7 +2049,7 @@ R.layOutSpread = function(Spread) {
     if(SpreadBox.PaddingBefore > 0) SpreadBox.style["padding" + S.BASE.B] = SpreadBox.PaddingBefore + "px";
     if(SpreadBox.PaddingAfter  > 0) SpreadBox.style["padding" + S.BASE.A] = SpreadBox.PaddingAfter  + "px";
     // Adjust R.Main.Book (div#epub-content-main)
-    var MainContentLength = 0;
+    let MainContentLength = 0;
     R.Spreads.forEach(function(Spread) {
         MainContentLength += Spread.SpreadBox["offset" + S.SIZE.L];
     });
@@ -2059,15 +2058,6 @@ R.layOutSpread = function(Spread) {
     E.dispatch("bibi:laid-out-spread", Spread);
     O.stamp("Lay Out Spread " + Spread.SpreadIndex + " End");
 };
-
-
-/*
-R.layOutStage = function() {
-    var StageLength = 0;
-    for(var l = R.Spreads.length, i = 0; i < l; i++) StageLength += R.Spreads[i].SpreadBox["offset" + S.SIZE.L];
-    R.Main.Book.style[S.SIZE.l] = StageLength + "px";
-};
-*/
 
 
 R.layOut = function(Opt) {
@@ -2100,7 +2090,7 @@ R.layOut = function(Opt) {
 
     if(!Opt.Destination) {
         R.getCurrent();
-        var CurrentPage = R.Current.Pages.StartPage;
+        const CurrentPage = R.Current.Pages.StartPage;
         Opt.Destination = {
             SpreadIndex: CurrentPage.Spread.SpreadIndex,
             PageProgressInSpread: CurrentPage.PageIndexInSpread / CurrentPage.Spread.Pages.length
@@ -2129,8 +2119,8 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
-    for(var l = R.Items.length, i = 0; i < l; i++) {
-        var Style = R.Items[i].HTML.style;
+    for(let l = R.Items.length, i = 0; i < l; i++) {
+        const Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
             R.Columned = true;
             break;
@@ -2160,12 +2150,12 @@ R.layOut = function(Opt) {
 };
 
 R.updateOrientation = function() {
-    var PreviousOrientation = R.Orientation;
+    const PreviousOrientation = R.Orientation;
     if(typeof window.orientation != "undefined") {
         R.Orientation = (window.orientation == 0 || window.orientation == 180) ? "portrait" : "landscape";
     } else {
-        var W = window.innerWidth  - (S.SLA == "vertical"   ? O.Scrollbars.Width  : 0);
-        var H = window.innerHeight - (S.SLA == "horizontal" ? O.Scrollbars.Height : 0);
+        const W = window.innerWidth  - (S.SLA == "vertical"   ? O.Scrollbars.Width  : 0);
+        const H = window.innerHeight - (S.SLA == "horizontal" ? O.Scrollbars.Height : 0);
         R.Orientation = W / H < 1.4 /* Math.floor(Math.sqrt(2) * 10) / 10 */ ? "portrait" : "landscape";
     }
     if(R.Orientation != PreviousOrientation) {
@@ -2231,7 +2221,7 @@ R.onpointerup = function(Eve) {
 };
 
 R.onpointermove = function(Eve) {
-    var CC = O.getBibiEventCoord(Eve), PC = R.onpointermove.PreviousCoord;
+    const CC = O.getBibiEventCoord(Eve), PC = R.onpointermove.PreviousCoord;
     if(PC.X != CC.X || PC.Y != CC.Y) E.dispatch("bibi:moved-pointer",   Eve);
     else                             E.dispatch("bibi:stopped-pointer", Eve);
     R.onpointermove.PreviousCoord = CC;
@@ -2241,7 +2231,7 @@ R.onpointermove.PreviousCoord = { X:0, Y:0 };
 R.onwheel = function(Eve) {
     Eve.preventDefault();
     if(Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY)) {
-        var CW = {}, PWs = R.onwheel.PreviousWheels, PWl = PWs.length, Wheeled = false;
+        const CW = {}, PWs = R.onwheel.PreviousWheels, PWl = PWs.length, Wheeled = false;
         CW.Distance = (Eve.deltaX < 0 ? -1 : 1) * (S.ARD == "rtl" ? -1 : 1);
         CW.Delta = Math.abs(Eve.deltaX);
         if(!PWs[PWl - 1]) {
@@ -2316,54 +2306,51 @@ R.getFrameState = function() {
 
 
 R.getCurrentPages = function() {
-    var FrameState = R.getFrameState();
-    var FrameScrollCoord = FrameState.Coord;
-    var FrameClientSize  = FrameState.Size;
-    FrameScrollCoord = {
-        Left:   FrameScrollCoord.X,
-        Right:  FrameScrollCoord.X + FrameClientSize.Width,
-        Top:    FrameScrollCoord.Y,
-        Bottom: FrameScrollCoord.Y + FrameClientSize.Height,
+    const FrameState = R.getFrameState();
+    const FrameScrollCoord = {
+        Left:   FrameState.Coord.X,
+        Right:  FrameState.Coord.X + FrameState.Size.Width,
+        Top:    FrameState.Coord.Y,
+        Bottom: FrameState.Coord.Y + FrameState.Size.Height,
     };
     FrameScrollCoord.Before = FrameScrollCoord[S.BASE.B];
     FrameScrollCoord.After  = FrameScrollCoord[S.BASE.A];
-    var Pages = [], Ratio = [], Status = [], BiggestRatio = 0, Done = false;
+    let Pages = [], Ratio = [], Status = [], BiggestRatio = 0, Done = false;
     R.Pages.forEach(function(Page, i) {
-        if(!Done) {
-            var PageCoord = sML.getCoord(Page);
-            PageCoord.Before = PageCoord[S.BASE.B];
-            PageCoord.After  = PageCoord[S.BASE.A];
-            var LengthInside = Math.min(FrameScrollCoord.After * S.AXIS.PM, PageCoord.After * S.AXIS.PM) - Math.max(FrameScrollCoord.Before * S.AXIS.PM, PageCoord.Before * S.AXIS.PM);
-            var PageRatio = (LengthInside <= 0 || !PageCoord[S.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.SIZE.L] * 100);
-            if(PageRatio <= 0) {
-                if(Pages.length) Done = true;
-            } else if(PageRatio > BiggestRatio) {
-                Pages = [Page];
-                Ratio = [PageRatio];
-                Status = [R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord)];
-                BiggestRatio = PageRatio;
-            } else if(PageRatio == BiggestRatio) {
-                Pages.push(Page);
-                Ratio.push(PageRatio);
-                Status.push(R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord));
-            }
+        if(Done) return;
+        const PageCoord = sML.getCoord(Page);
+        PageCoord.Before = PageCoord[S.BASE.B];
+        PageCoord.After  = PageCoord[S.BASE.A];
+        const LengthInside = Math.min(FrameScrollCoord.After * S.AXIS.PM, PageCoord.After * S.AXIS.PM) - Math.max(FrameScrollCoord.Before * S.AXIS.PM, PageCoord.Before * S.AXIS.PM);
+        const PageRatio = (LengthInside <= 0 || !PageCoord[S.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.SIZE.L] * 100);
+        if(PageRatio <= 0) {
+            if(Pages.length) Done = true;
+        } else if(PageRatio > BiggestRatio) {
+            Pages = [Page];
+            Ratio = [PageRatio];
+            Status = [R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord)];
+            BiggestRatio = PageRatio;
+        } else if(PageRatio == BiggestRatio) {
+            Pages.push(Page);
+            Ratio.push(PageRatio);
+            Status.push(R.getCurrentPages.getStatus(PageRatio, PageCoord, FrameScrollCoord));
         }
     });
-    var Params = {
+    const Params = {
                                                    Ratio: Ratio,                          Status: Status,
         StartPage: Pages[0],              StartPageRatio: Ratio[0],              StartPageStatus: Status[0],
           EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
     };
-    for(var Property in Params) Pages[Property] = Params[Property];
+    for(let Property in Params) Pages[Property] = Params[Property];
     return Pages;
 };
 
 R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
     if(PageRatio >= 100) return "including";
-    var Status = [];
+    const Status = [];
     if(window["inner" + S.SIZE.L] < PageCoord[S.SIZE.L]) Status.push("oversize");
-    var FrameBefore = FrameScrollCoord.Before;
-    var FrameAfter  = FrameScrollCoord.After;
+    const FrameBefore = FrameScrollCoord.Before;
+    const FrameAfter  = FrameScrollCoord.After;
     if(FrameBefore * S.AXIS.PM <  PageCoord.Before * S.AXIS.PM) Status.push("entering");
     if(FrameBefore * S.AXIS.PM == PageCoord.Before * S.AXIS.PM) Status.push("entered");
     if(FrameAfter  * S.AXIS.PM == PageCoord.After  * S.AXIS.PM) Status.push("passsing");
@@ -2414,7 +2401,7 @@ R.focusOn = function(Par) {
     if(!Par.Destination) return false;
     E.dispatch("bibi:is-going-to:focus-on", Par);
     R.Moving = true;
-    var FocusPoint = 0;
+    let FocusPoint = 0;
     if(S["book-rendition-layout"] == "reflowable") {
         if(Par.Destination.Edge == "head") {
             FocusPoint = (S.SLD != "rtl") ? 0 : R.Main.Book["offset" + [S.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.SIZE.L];
@@ -2435,8 +2422,7 @@ R.focusOn = function(Par) {
         }
     }
     if(typeof Par.Destination.TextNodeIndex == "number") R.selectTextLocation(Par.Destination); // Colorize Destination with Selection
-    var ScrollTarget = R.focusOn.getScrollTarget(FocusPoint);
-    sML.scrollTo(ScrollTarget, {
+    sML.scrollTo(R.focusOn.getScrollTarget(FocusPoint), {
         ForceScroll: true,
         Duration: ((S.RVM == "paged") ? 0 : Par.Duration),
         callback: function() {
@@ -2508,23 +2494,24 @@ R.focusOn.hatchDestination = function(Destination) { // from Page, Element, or E
 };
 
 R.focusOn.getNearestPageOfElement = function(Ele) {
-    var Item = Ele.ownerDocument.body.Item;
+    const Item = Ele.ownerDocument.body.Item;
     if(!Item) return R.Pages[0];
+    let NearestPage, ElementCoordInItem;
     if(Item.Columned) {
         sML.style(Item.HTML, { "column-width": "" });
-        var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
+        ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.B];
         if(S.PPD == "rtl" && S.SLA == "vertical") {
             ElementCoordInItem = Item.offsetWidth - (S["item-padding-left"] + S["item-padding-right"]) - ElementCoordInItem - Ele.offsetWidth;
         }
         sML.style(Item.HTML, { "column-width": Item.ColumnLength + "px" });
-        var NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth - 1)];
+        NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth - 1)];
     } else {
-        var ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
+        ElementCoordInItem = O.getElementCoord(Ele)[S.AXIS.L];
         if(S.SLD == "rtl" && S.SLA == "horizontal") {
             ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
         }
-        var NearestPage = Item.Pages[0];
-        for(var l = Item.Pages.length, i = 0; i < l; i++) {
+        NearestPage = Item.Pages[0];
+        for(let l = Item.Pages.length, i = 0; i < l; i++) {
             ElementCoordInItem -= Item.Pages[i]["offset" + S.SIZE.L];
             if(ElementCoordInItem <= 0) {
                 NearestPage = Item.Pages[i];
@@ -2536,7 +2523,7 @@ R.focusOn.getNearestPageOfElement = function(Ele) {
 };
 
 R.focusOn.getScrollTarget = function(FocusPoint) {
-    var ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
+    const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     ScrollTarget[S.AXIS.L] = FocusPoint;
     return ScrollTarget;
 };
@@ -2544,9 +2531,9 @@ R.focusOn.getScrollTarget = function(FocusPoint) {
 
 R.selectTextLocation = function(Destination) {
     if(typeof Destination.TextNodeIndex != "number") return;
-    var DestinationNode = Destination.Element.childNodes[Destination.TextNodeIndex];
+    const DestinationNode = Destination.Element.childNodes[Destination.TextNodeIndex];
     if(!DestinationNode || !DestinationNode.textContent) return;
-    var Sides = { Start: { Node: DestinationNode, Index: 0 }, End: { Node: DestinationNode, Index: DestinationNode.textContent.length } };
+    const Sides = { Start: { Node: DestinationNode, Index: 0 }, End: { Node: DestinationNode, Index: DestinationNode.textContent.length } };
     if(Destination.TermStep) {
         if(Destination.TermStep.Preceding || Destination.TermStep.Following) {
             Sides.Start.Index = Destination.TermStep.Index, Sides.End.Index = Destination.TermStep.Index;
@@ -2576,12 +2563,12 @@ R.moveBy = function(Par) {
     if(Par.Distance == 0 || isNaN(Par.Distance)) return false;
     Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch("bibi:is-going-to:move-by", Par);
-    var CurrentEdge = "", Side = "";
+    let CurrentEdge = "", Side = "";
     if(Par.Distance > 0) CurrentEdge = "EndPage",   Side = "before";
     else                 CurrentEdge = "StartPage", Side = "after";
     R.getCurrent();
-    var CurrentPage = R.Current.Pages[CurrentEdge];
-    var ToFocus = (
+    const CurrentPage = R.Current.Pages[CurrentEdge];
+    const ToFocus = (
         R.Columned ||
         S.BRL == "pre-paginated" ||
         CurrentPage.Item.PrePaginated ||
@@ -2590,7 +2577,7 @@ R.moveBy = function(Par) {
         (Par.Distance < 0 && CurrentPage.PageIndexInItem == 0) ||
         (Par.Distance > 0 && CurrentPage.PageIndexInItem == CurrentPage.Item.Pages.length - 1)
     );
-    var callback = Par.callback;
+    const callback = Par.callback;
     Par.callback = function(Par) {
         if(typeof callback == "function") callback(Par);
         E.dispatch("bibi:moved-by", Par);
@@ -2598,8 +2585,8 @@ R.moveBy = function(Par) {
     if(!ToFocus) {
         E.dispatch("bibi:commands:scroll-by", Par);
     } else {
-        var CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
-        var CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
+        const CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
+        const CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
         if(/(oversize)/.test(CurrentPageStatus)) {
             if(Par.Distance > 0) {
                      if(CurrentPageRatio >= 90)             Side = "before";
@@ -2618,10 +2605,10 @@ R.moveBy = function(Par) {
             }
         }
         //sML.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
-        var DestinationPageIndex = CurrentPage.PageIndex + Par.Distance;
+        const DestinationPageIndex = CurrentPage.PageIndex + Par.Distance;
              if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
         else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
-        var DestinationPage = R.Pages[DestinationPageIndex];
+        const DestinationPage = R.Pages[DestinationPageIndex];
         if(S.BRL == "pre-paginated" && DestinationPage.Item.SpreadPair) {
             if(S.SLA == "horizontal" && R.Stage[S.SIZE.L] > DestinationPage.Spread["offset" + S.SIZE.L]) {
                 if(Par.Distance < 0 && DestinationPage.PageIndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
@@ -2640,11 +2627,11 @@ R.scrollBy = function(Par) {
     if(!Par.Distance || typeof Par.Distance != "number") return false;
     E.dispatch("bibi:is-going-to:scroll-by", Par);
     R.Moving = true;
-    var ScrollTarget = {
+    const ScrollTarget = {
         Frame: R.Main,
         X: 0, Y: 0
     };
-    var CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
+    const CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
     switch(S.SLD) {
         case "ttb": ScrollTarget.Y = CurrentScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
         case "ltr": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
@@ -2666,7 +2653,7 @@ R.scrollBy = function(Par) {
 R.getBibiToDestination = function(BibitoString) {
     if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
     if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    var ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
+    let ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
     if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
     return {
         BibitoString: BibitoString,
@@ -2686,7 +2673,7 @@ R.getBibiToDestination = function(BibitoString) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-I = {}; // Bibi.UserInterfaces
+____.I = {}; // Bibi.UserInterfaces
 
 
 I.initialize = function() {
@@ -2763,7 +2750,7 @@ I.createVeil = function() {
         sML.create("p", { id: "bibi-veil-cover-info" })
     );
 
-    var PlayButtonTitle = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
+    const PlayButtonTitle = (O.Mobile ? 'Tap' : 'Click') + ' to Open';
     I.Veil.PlayButton = I.Veil.appendChild(
         sML.create("p", { id: "bibi-veil-play", title: PlayButtonTitle,
             innerHTML: '<span class="non-visual">' + PlayButtonTitle + '</span>',
@@ -2794,7 +2781,7 @@ I.createVeil = function() {
 I.createCatcher = function() {
     // Catcher
     if(S["book"] || S.BookDataElement || !S["accept-local-file"]) return;
-    var CatcherInnerHTML = I.distillLabels.distillLanguage({
+    const CatcherInnerHTML = I.distillLabels.distillLanguage({
         default: '<div class="pgroup" lang="en">' + [
             '<p><strong>Pass Me Your EPUB File!</strong></p>',
             '<p><em>You Can Open Your Own EPUB.</em></p>',
@@ -2812,7 +2799,7 @@ I.createCatcher = function() {
     I.Catcher.title = I.Catcher.querySelector('span').innerHTML.replace(/<br( ?\/)?>/g, "\n").replace(/<[^>]+>/g, "").trim();
     I.Catcher.Input = I.Catcher.appendChild(sML.create("input", { type: "file" }));
     if(!S["unzip-if-necessary"].includes("*") && S["unzip-if-necessary"].length) {
-        var Accept = [];
+        const Accept = [];
         if(S["unzip-if-necessary"].includes(".epub")) {
             Accept.push("application/epub+zip");
         }
@@ -2824,7 +2811,7 @@ I.createCatcher = function() {
         if(Accept.length) I.Catcher.Input.setAttribute("accept", Accept.join(","));
     }
     I.Catcher.Input.addEventListener("change", function(Eve) {
-        var FileData = {};  try { FileData = Eve.target.files[0]; } catch(Err) {}
+        let FileData = {};  try { FileData = Eve.target.files[0]; } catch(Err) {}
         L.loadBook(FileData, "Input");
     });
     I.Catcher.addEventListener("click", function(Eve) {
@@ -2835,7 +2822,7 @@ I.createCatcher = function() {
         I.Catcher.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); }, 1);
         I.Catcher.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.HTML.classList.remove("dragenter"); }, 1);
         I.Catcher.addEventListener("drop",      function(Eve) { Eve.preventDefault();
-            var FileData = {};  try { FileData = Eve.dataTransfer.files[0]; } catch(Err) {}
+            let FileData = {};  try { FileData = Eve.dataTransfer.files[0]; } catch(Err) {}
             L.loadBook(FileData, "Drop");
         }, 1);
     }
@@ -2960,7 +2947,7 @@ I.createMenu = function() {
     if(!O.Mobile) {
         E.add("bibi:moved-pointer", function(Eve) {
             if(I.isPointerStealth()) return false;
-            var BibiEvent = O.getBibiEvent(Eve);
+            const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
                 E.dispatch("bibi:hovers", Eve, I.Menu);
@@ -2973,7 +2960,7 @@ I.createMenu = function() {
     }
     E.add("bibi:tapped", function(Eve) {
         if(I.isPointerStealth()) return false;
-        var BibiEvent = O.getBibiEvent(Eve);
+        const BibiEvent = O.getBibiEvent(Eve);
         //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
         if(S.RVM == "horizontal") {
             if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
@@ -3069,17 +3056,17 @@ I.createMenu.createSettingMenu = function() {
 I.createMenu.createSettingMenu.createViewModeSection = function() {
 
     // Shapes
-    var Shape = {};
+    const Shape = {};
     Shape.Item         = '<span class="bibi-shape bibi-shape-item"></span>';
     Shape.Spread       = '<span class="bibi-shape bibi-shape-spread">' + Shape.Item + Shape.Item + '</span>';
 
     // Icons
-    var Icon = {};
+    const Icon = {};
     Icon["paged"]      = '<span class="bibi-icon bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
     Icon["horizontal"] = '<span class="bibi-icon bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
     Icon["vertical"]   = '<span class="bibi-icon bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
 
-    var changeView = function() {
+    const changeView = function() {
         R.changeView(this.Value);
     };
 
@@ -3141,7 +3128,7 @@ I.createMenu.createSettingMenu.createViewModeSection = function() {
 
 I.createMenu.createSettingMenu.createWindowSection = function() {
 
-    var Buttons = [];
+    const Buttons = [];
 
     // New Window
     if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) Buttons.push({
@@ -3163,7 +3150,7 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
         },
         Icon: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>',
         action: function() {
-            var Button = this;
+            const Button = this;
             if(!O.FullscreenElement.Fullscreen) {
                 sML.requestFullscreen(O.FullscreenElement);
             } else {
@@ -3193,7 +3180,7 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
 
 I.createMenu.createSettingMenu.createLinkageSection = function() {
 
-    var Buttons = [];
+    const Buttons = [];
 
     if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) Buttons.push({
         Type: "link",
@@ -3229,12 +3216,12 @@ I.createButtonGroup = function(Par) { // classifies ButtonGroup
     if(!Par || typeof Par != "object" || !Par.Area || !Par.Area.tagName) return null;
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
     if(typeof Par.id        != "string" || !Par.id)        delete Par.id;
-    var ClassName = ["bibi-buttongroup"];
-    if(Par.Tiled) ClassName.push("bibi-buttongroup-tiled");
-    if(Par.Sticky) ClassName.push("sticky");
-    Par.className = ClassName.join(" ");
+    const ClassNames = ["bibi-buttongroup"];
+    if(Par.Tiled) ClassNames.push("bibi-buttongroup-tiled");
+    if(Par.Sticky) ClassNames.push("sticky");
+    Par.className = ClassNames.join(" ");
     Par.IsButtonGroup = true;
-    var ButtonGroup = Par.Area.appendChild(sML.create("ul", Par));
+    const ButtonGroup = Par.Area.appendChild(sML.create("ul", Par));
     ButtonGroup.addButton = I.createButtonGroup.addButton;
     if(ButtonGroup.Buttons instanceof Array) {
         ButtonGroup.Buttons.forEach(function(Button, i) {
@@ -3262,7 +3249,7 @@ I.createButtonGroup.addButton = function(Par, i) { // classifies Button
         }
     }
     Par.IsBibiButton = true;
-    var Button = Par.ButtonGroup.appendChild(
+    const Button = Par.ButtonGroup.appendChild(
         sML.create("li", { className: "bibi-buttonbox bibi-buttonbox-" + Par.Type })
     ).appendChild(
         sML.create((typeof Par.href == "string" ? "a" : "span"), Par)
@@ -3306,7 +3293,7 @@ I.createSubPanel = function(Par) { // classifies SubPanel
     Par.className = "bibi-subpanel" + (Par.className ? " " + Par.className : "");
     Par.Sections = [];
 
-    var SubPanel = O.Body.appendChild(sML.create("div", Par));
+    const SubPanel = O.Body.appendChild(sML.create("div", Par));
     SubPanel.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
     SubPanel.addEventListener(O["pointerup"],   function(Eve) { Eve.stopPropagation(); });
 
@@ -3345,7 +3332,7 @@ I.createSubPanel = function(Par) { // classifies SubPanel
         SubPanel: SubPanel,
         adjust: function(Ele) {
             if(!Ele) return;
-            var Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.SubPanel).X;
+            const Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.SubPanel).X;
             sML.style(this.SubPanel, { transformOrigin: Center + "px 0" });
             sML.style(this.SubPanel.Bit, { left: Center + "px" });
         }
@@ -3362,7 +3349,7 @@ I.createSubPanel = function(Par) { // classifies SubPanel
 I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classify SubPanelSection
     if(!Par) Par = {};
     Par.className = "bibi-subpanel-section";
-    var SubPanelSection = sML.create("div", Par);
+    const SubPanelSection = sML.create("div", Par);
     // HGroup
     if(SubPanelSection.Labels) {
         SubPanelSection.Labels = I.distillLabels(SubPanelSection.Labels);
@@ -3377,12 +3364,13 @@ I.createSubPanel.addSection = function(Par) { // classifies of Subpanel / classi
     // PGroup: Setting
     if(SubPanelSection.Notes) {
         SubPanelSection.Notes.forEach(function(Note) {
+            let PGroup;
             if(!Note.Position || Note.Position == "before") {
                 if(!SubPanelSection.PGroup_Before) SubPanelSection.PGroup_Before = sML.create("div", { className: "bibi-pgroup bibi-pgroup_before" });
-                var PGroup = SubPanelSection.PGroup_Before;
+                PGroup = SubPanelSection.PGroup_Before;
             } else if(Note.Position == "after") {
                 if(!SubPanelSection.PGroup_After)  SubPanelSection.PGroup_After  = sML.create("div", { className: "bibi-pgroup bibi-pgroup_after"  });
-                var PGroup = SubPanelSection.PGroup_After;
+                PGroup = SubPanelSection.PGroup_After;
             }
             Note = I.distillLabels(Note);
             PGroup.appendChild(sML.create("p", { className: "bibi-p", innerHTML: Note["default"][O.Language] }));
@@ -3487,7 +3475,7 @@ I.createNombre = function() {
             if(typeof PageInfo.Percent != "number") PageInfo.Percent = Math.floor((PageInfo.Pages.EndPage.PageIndex + 1) / R.Pages.length * 100);
             if(!R.Current.Page) return;
             I.Nombre.Current.innerHTML = (function() {
-                var PageNumber = PageInfo.Pages.StartPage.PageIndex + 1;
+                let PageNumber = PageInfo.Pages.StartPage.PageIndex + 1;
                 if(PageInfo.Pages.StartPage != PageInfo.Pages.EndPage) PageNumber += '<span class="delimiter">-</span>' + (PageInfo.Pages.EndPage.PageIndex + 1);
                 return PageNumber;
             })();
@@ -3531,12 +3519,12 @@ I.createSlider = function() {
                 I.Slider.Spreads.innerHTML = "";
                 I.Slider.Pages.innerHTML = "";
                 R.Spreads.forEach(function(Spread, i) {
-                    var SpreadBit = I.Slider.Spreads.appendChild(sML.create("div", { id: "bibi-slider-spreadbit-" + (i + 1) }));
+                    const SpreadBit = I.Slider.Spreads.appendChild(sML.create("div", { id: "bibi-slider-spreadbit-" + (i + 1) }));
                     SpreadBit.style[I.Slider.SIZE.l] = (  1 / R.Pages.length * Spread.Pages.length * 100) + "%";
                     SpreadBit.style[I.Slider.AXIS.b] = (100 / R.Pages.length * Spread.Pages[0].PageIndex) + "%";
                 });
                 R.Pages.forEach(function(Page, i) {
-                    var PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }));
+                    const PageBit = I.Slider.Pages.appendChild(sML.create("div", { id: "bibi-slider-pagebit-" + (i + 1) }));
                     PageBit.style[I.Slider.SIZE.l] = (  1 / R.Pages.length * 100) + "%";
                     PageBit.style[I.Slider.AXIS.b] = (100 / R.Pages.length *   i) + "%";
                     PageBit.PageNumber = i + 1;
@@ -3560,7 +3548,7 @@ I.createSlider = function() {
             },
             progress: function() {
                 if(I.Slider.Sliding) return;
-                var Current = I.Slider.Current;
+                const Current = I.Slider.Current;
                 Current.style.top = Current.style.right = Current.style.bottom = Current.style.left = Current.style.width = Current.style.height = "";
                 Current.className = (R.Current.Pages.length > 1) ? "two-pages" : "";
                 if(S.RVM == "paged" || I.Slider.UIState == "active") {
@@ -3572,11 +3560,11 @@ I.createSlider = function() {
                 }
             },
             flip: function() {
-                var SlidedDistance = I.Slider.Status.CurrentCoord - I.Slider.Status.StartCoord;
-                var TargetPageIndex = I.Slider.Status.StartPageIndex + Math.round(R.Pages.length * (SlidedDistance / I.Slider["offset" + I.Slider.SIZE.L] * (S.ARD != "ttb" && S.PPD == "rtl" ? -1 : 1)));
+                const SlidedDistance = I.Slider.Status.CurrentCoord - I.Slider.Status.StartCoord;
+                let TargetPageIndex = I.Slider.Status.StartPageIndex + Math.round(R.Pages.length * (SlidedDistance / I.Slider["offset" + I.Slider.SIZE.L] * (S.ARD != "ttb" && S.PPD == "rtl" ? -1 : 1)));
                      if(TargetPageIndex < 0)                  TargetPageIndex = 0;
                 else if(TargetPageIndex > R.Pages.length - 1) TargetPageIndex = R.Pages.length - 1;
-                var TargetPage = R.Pages[TargetPageIndex];
+                const TargetPage = R.Pages[TargetPageIndex];
                 if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
                     E.dispatch("bibi:commands:focus-on", { Destination: TargetPage, Duration: 0 });
                 }
@@ -3588,11 +3576,11 @@ I.createSlider = function() {
                 }
             },
             slide: function(Eve) {
-                var SliderEdges = [
+                const SliderEdges = [
                     I.Slider["offset" + I.Slider.AXIS.OB],
                     I.Slider["offset" + I.Slider.AXIS.OB] + I.Slider["offset" + I.Slider.SIZE.L]
                 ];
-                var CurrentCoord = O.getBibiEventCoord(Eve)[I.Slider.AXIS.XY];
+                let CurrentCoord = O.getBibiEventCoord(Eve)[I.Slider.AXIS.XY];
                      if(CurrentCoord < SliderEdges[0]) CurrentCoord = SliderEdges[0];
                 else if(CurrentCoord > SliderEdges[1]) CurrentCoord = SliderEdges[1];
                 I.Slider.Status.CurrentCoord = CurrentCoord;
@@ -3668,7 +3656,7 @@ I.createSlider = function() {
     E.add("bibi:tapped", function(Eve) {
         if(!L.Opened) return false;
         if(I.isPointerStealth()) return false;
-        var BibiEvent = O.getBibiEvent(Eve);
+        const BibiEvent = O.getBibiEvent(Eve);
         if(BibiEvent.Target.tagName) {
             if(/bibi-slider/.test(BibiEvent.Target.id)) return false;
             if(O.isAnchorContent(BibiEvent.Target)) return false;
@@ -3792,9 +3780,9 @@ I.createArrows = function() {
         E.add("bibi:moved-pointer", function(Eve) { // try hovering
             if(!L.Opened) return false;
             if(I.isPointerStealth()) return false;
-            var BibiEvent = O.getBibiEvent(Eve);
+            const BibiEvent = O.getBibiEvent(Eve);
             if(I.Arrows.areAvailable(BibiEvent)) {
-                var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+                const Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
                 if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
                     E.dispatch("bibi:hovers",   Eve, I.Arrows[Dir]);
                     E.dispatch("bibi:unhovers", Eve, I.Arrows[Dir].Pair);
@@ -3818,10 +3806,10 @@ I.createArrows = function() {
     E.add("bibi:tapped", function(Eve) { // try moving
         if(!L.Opened) return false;
         if(I.isPointerStealth()) return false;
-        var BibiEvent = O.getBibiEvent(Eve);
+        const BibiEvent = O.getBibiEvent(Eve);
         if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
         if(!I.Arrows.areAvailable(BibiEvent)) return false;
-        var Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
+        const Dir = (S.RVM == "vertical") ? BibiEvent.Division.Y : BibiEvent.Division.X;
         if(I.Arrows[Dir] && I.Arrows[Dir].isAvailable()) {
             //E.dispatch("bibi:commands:move-by", { Distance: I.Arrows[Dir].Distance });
             E.dispatch("bibi:taps",   Eve, I.Arrows[Dir]);
@@ -3832,7 +3820,7 @@ I.createArrows = function() {
     E.add("bibi:commands:move-by", function(Par) { // indicate direction
         if(!L.Opened) return false;
         if(!Par || !Par.Distance) return false;
-        var Dir = "";
+        let Dir = "";
         switch(Par.Distance) {
             case -1 : Dir = "back";    break;
             case  1 : Dir = "forward"; break;
@@ -3900,7 +3888,7 @@ I.createKeyListener = function() {
             }
         },
         getBibiKeyName: function(Eve) {
-            var KeyName = I.KeyListener.KeyCodes[Eve.type][Eve.keyCode];
+            const KeyName = I.KeyListener.KeyCodes[Eve.type][Eve.keyCode];
             return KeyName ? KeyName : "";
         },
         onEvent: function(Eve) {
@@ -3952,7 +3940,7 @@ I.createKeyListener = function() {
         },
         tryMoving: function(Eve) {
             if(!Eve.BibiKeyName) return false;
-            var MovingParameter = I.KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
+            const MovingParameter = I.KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
             Eve.preventDefault();
                  if(typeof MovingParameter == "number") E.dispatch("bibi:commands:move-by",  { Distance:    MovingParameter });
@@ -4007,7 +3995,7 @@ I.createSwiper = function() {
             }
         },
         ontouchstart: function(Eve) {
-            var EventCoord = O.getBibiEventCoord(Eve);
+            const EventCoord = O.getBibiEventCoord(Eve);
             I.Swiper.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp };
         },
         ontouchmove: function(Eve) {
@@ -4016,12 +4004,12 @@ I.createSwiper = function() {
         ontouchend: function(Eve) {
             if(!I.Swiper.TouchStartedOn) return;
             if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - I.Swiper.TouchStartedOn.T <= 300) {
-                var EventCoord = O.getBibiEventCoord(Eve);
-                var VarX = EventCoord.X - I.Swiper.TouchStartedOn.X;
-                var VarY = EventCoord.Y - I.Swiper.TouchStartedOn.Y;
+                const EventCoord = O.getBibiEventCoord(Eve);
+                const VarX = EventCoord.X - I.Swiper.TouchStartedOn.X;
+                const VarY = EventCoord.Y - I.Swiper.TouchStartedOn.Y;
                 if(Math.sqrt(Math.pow(VarX, 2) + Math.pow(VarY, 2)) >= 10) {
-                    var Deg = Math.atan2((VarY ? VarY * -1 : 0), VarX) * 180 / Math.PI;
-                    var From = "", To = "";
+                    const Deg = Math.atan2((VarY ? VarY * -1 : 0), VarX) * 180 / Math.PI;
+                    let From = "", To = "";
                          if( 120 >= Deg && Deg >=   60) From = "bottom", To = "top";
                     else if(  30 >= Deg && Deg >=  -30) From = "left",   To = "right";
                     else if( -60 >= Deg && Deg >= -120) From = "top",    To = "bottom";
@@ -4101,7 +4089,7 @@ I.createSwiper = function() {
 I.createSpinner = function() {
 
     I.Spinner = O.Body.appendChild(sML.create("div", { id: "bibi-spinner" }));
-    for(var i = 1; i <= 12; i++) I.Spinner.appendChild(document.createElement("span"));
+    for(let i = 1; i <= 12; i++) I.Spinner.appendChild(document.createElement("span"));
     E.dispatch("bibi:created-spinner");
 
 };
@@ -4146,7 +4134,7 @@ I.setToggleAction = function(Ele, Par) {
 
 I.distillLabels = function(Labels) {
     if(typeof Labels != "object" || !Labels) Labels = {};
-    for(var State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
+    for(let State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
     if(!Labels["default"])                       Labels["default"]  = I.distillLabels.distillLanguage();
     if(!Labels["active"]   && Labels["default"]) Labels["active"]   = Labels["default"];
     if(!Labels["disabled"] && Labels["default"]) Labels["disabled"] = Labels["default"];
@@ -4217,7 +4205,7 @@ I.observeTap = function(Ele, Opt) {
         Ele.addEventListener(O["pointerup"], function(Eve) {
             if(Ele.TouchStart) {
                 if((Date.now() - Ele.TouchStart.Time) < 300) {
-                    var TouchEndCoord = O.getBibiEventCoord(Eve);
+                    const TouchEndCoord = O.getBibiEventCoord(Eve);
                     if(Math.abs(TouchEndCoord.X - Ele.TouchStart.Coord.X) < 5 && Math.abs(TouchEndCoord.Y - Ele.TouchStart.Coord.Y) < 5) {
                         E.dispatch("bibi:taps",   Ele.TouchStart.Event, Ele);
                         E.dispatch("bibi:tapped", Ele.TouchStart.Event, Ele);
@@ -4234,7 +4222,7 @@ I.observeTap = function(Ele, Opt) {
 
 
 I.setTapAction = function(Ele) {
-    var ontapped = (function() {
+    const ontapped = (function() {
         switch(Ele.Type) {
             case "toggle": return function(Eve) {
                 if(Ele.UIState == "disabled") return false;
@@ -4321,7 +4309,7 @@ I.setUIState = function(UI, UIState) {
 };
 
 I.isPointerStealth = function() {
-    var IsPointerStealth = false;
+    let IsPointerStealth = false;
     I.isPointerStealth.Checkers.forEach(function(checker) { if(checker()) IsPointerStealth = true; });
     return IsPointerStealth;
 };
@@ -4345,7 +4333,7 @@ I.getBookIcon = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-P = {}; // Bibi.Preset
+____.P = {}; // Bibi.Preset
 
 
 P.initialize = function() {
@@ -4379,23 +4367,23 @@ P.initialize = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-U = {}; // Bibi.SettingsInURI
+____.U = {}; // Bibi.SettingsInURI
 
 
 U.initialize = function() { // formerly O.readExtras
 
-    var Q = U.parseQuery(location.search);
-    var H = U.parseHash(location.hash);
+    const Q = U.parseQuery(location.search);
+    const H = U.parseHash(location.hash);
 
     ["epub", "zine", "book"].forEach(function(BookType) {
-        var BookPath = Q[BookType] ? Q[BookType] : O.Body.getAttribute("data-bibi-" + BookType);
+        const BookPath = Q[BookType] ? Q[BookType] : O.Body.getAttribute("data-bibi-" + BookType);
         U[BookType] = (typeof BookPath == "string") ? decodeURIComponent(BookPath) : "";
     });
 
-    var BookDataElement = document.getElementById("bibi-book-data");
+    const BookDataElement = document.getElementById("bibi-book-data");
     if(BookDataElement) {
         if(!U["epub"] && !U["zine"] && !U["book"] && BookDataElement.innerText.trim()) {
-            var BookDataMIMEType = BookDataElement.getAttribute("data-bibi-book-mimetype");
+            const BookDataMIMEType = BookDataElement.getAttribute("data-bibi-book-mimetype");
             if(typeof BookDataMIMEType == "string" && /^application\/(epub\+zip|zip|x-zip(-compressed)?)$/i.test(BookDataMIMEType)) {
                 U.BookDataElement = BookDataElement;
             }
@@ -4406,7 +4394,7 @@ U.initialize = function() { // formerly O.readExtras
         }
     }
 
-    var applyToU = function(DataString) {
+    const applyToU = function(DataString) {
         if(typeof DataString != "string") return {};
         DataString.replace(" ", "").split(",").forEach(function(PnV) {
             PnV = PnV.split(":"); if(!PnV[0]) return;
@@ -4481,7 +4469,7 @@ U.decode = function(Str) {
 U.parseQuery = function(Q) {
     if(typeof Q != "string") return {};
     Q = Q.replace(/^\?/, "");
-    var Params = {};
+    const Params = {};
     Q.split("&").forEach(function(PnV) {
         PnV = PnV.split("=");
         if(/^[a-z]+$/.test(PnV[0])) Params[PnV[0]] = PnV[1];
@@ -4493,9 +4481,11 @@ U.parseQuery = function(Q) {
 U.parseHash = function(H) {
     if(typeof H != "string") return {};
     H = H.replace(/^#/, "");
-    var Params = {}, CurrentPosition = 0;
-    var parseFragment = function() {
-        var Foothold = CurrentPosition, Label = "";
+    const Params = {};
+    let CurrentPosition = 0;
+    const parseFragment = function() {
+        const Foothold = CurrentPosition;
+        let Label = "";
         while(/[a-z_]/.test(H.charAt(CurrentPosition))) CurrentPosition++;
         if(H.charAt(CurrentPosition) == "(") Label = H.substr(Foothold, CurrentPosition - 1 - Foothold + 1), CurrentPosition++; else return {};
         while(H.charAt(CurrentPosition) != ")") CurrentPosition++;
@@ -4521,11 +4511,11 @@ U.parseHash = function(H) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-S = {}; // Bibi.Settings
+____.S = {}; // Bibi.Settings
 
 
 S.initialize = function() {
-    for(var Property in S) if(typeof S[Property] != "function") delete S[Property];
+    for(let Property in S) if(typeof S[Property] != "function") delete S[Property];
     O.applyRtL(S, P);
     O.applyRtL(S, U);
     O.SettingTypes.YesNo.concat(O.PresetOnlySettingTypes.YesNo).concat(O.UserOnlySettingTypes.YesNo).forEach(function(Property) {
@@ -4556,8 +4546,9 @@ S.initialize = function() {
     S["unzip-if-necessary"] = (function() {
         if(!S["unzip-if-necessary"].length) return [];
         if(S["unzip-if-necessary"].includes("*")) return ["*"];
-        for(var UnzipIfNecessary = [], l = S["unzip-if-necessary"].length, i = 0; i < l; i++) {
-            var Ext = S["unzip-if-necessary"][i];
+        const UnzipIfNecessary = [];
+        for(let l = S["unzip-if-necessary"].length, i = 0; i < l; i++) {
+            let Ext = S["unzip-if-necessary"][i];
             if(typeof Ext != "string" || !/^(\.[\w\d]+)*$/.test(Ext)) continue;
             Ext = Ext.toLowerCase();
             if(!UnzipIfNecessary.includes(Ext)) UnzipIfNecessary.push(Ext);
@@ -4593,15 +4584,15 @@ S.willBeUnzipped = function(FileName) {
     if(!FileName || !S["unzip-if-necessary"].length) return false;
     if(S["unzip-if-necessary"].includes("*")) return true;
     if(S["unzip-if-necessary"].includes("")) return !/(\.[\w\d]+)+$/.test(FileName);
-    for(var l = S["unzip-if-necessary"].length, i = 0; i < l; i++) if(new RegExp(S["unzip-if-necessary"][i].replace(/\./g, "\\.") + "$", "i").test(FileName)) return true;
+    for(let l = S["unzip-if-necessary"].length, i = 0; i < l; i++) if(new RegExp(S["unzip-if-necessary"][i].replace(/\./g, "\\.") + "$", "i").test(FileName)) return true;
     return false;
 };
 
 S.update = function(Settings) {
 
-    var PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD;
+    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD;
 
-    if(typeof Settings == "object") for(var Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
+    if(typeof Settings == "object") for(let Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
 
     S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
     S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
@@ -4676,12 +4667,12 @@ S.update = function(Settings) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-O = {}; // Bibi.Operator
+____.O = {}; // Bibi.Operator
 
 
 O.log = function(Msg, Tag) {
     if(sML.UA.Gecko && typeof Msg == "string") Msg = Msg.replace(/(https?:\/\/)/g, "");
-    var Pre = 'BiB/i: ';
+    let Pre = 'BiB/i: ';
     switch(Tag) {
         case "-x" : break;
         case  "*:": Tag  =       (O.log.Depth    ) + ":";        break;
@@ -4711,7 +4702,7 @@ O.log = function(Msg, Tag) {
     console.log(Pre + Msg);
 };
 /*O.log = function(Msg, Tag) {
-    var Pre = 'BiB/i: ';
+    let Pre = 'BiB/i: ';
     switch(Tag) {
         case "-*" : Tag  = "-" + (O.log.Depth    )      ; break;
         case  "*:": Tag  =       (O.log.Depth    ) + ":"; break;
@@ -4753,13 +4744,13 @@ O.error = function(Msg) {
 
 
 O.applyRtL = function(Left, Right) {
-    for(var Property in Right) if(typeof Left[Property] != "function" && typeof Right[Property] != "function") Left[Property] = Right[Property];
+    for(let Property in Right) if(typeof Left[Property] != "function" && typeof Right[Property] != "function") Left[Property] = Right[Property];
 };
 
 
 O.download = function(URI, MimeType) {
     return new Promise(function(resolve, reject) {
-        var XHR = new XMLHttpRequest();
+        const XHR = new XMLHttpRequest();
         if(MimeType) XHR.overrideMimeType(MimeType);
         XHR.open('GET', URI, true);
         XHR.onloadend = function() {
@@ -4791,19 +4782,19 @@ O.openDocument = function(Path) {
 
 
 O.editCSSRules = function() {
-    var Doc, Fun;
-         if(typeof arguments[0] == "function") Doc = arguments[1], Fun = arguments[0];
-    else if(typeof arguments[1] == "function") Doc = arguments[0], Fun = arguments[1];
+    let Doc, fun;
+         if(typeof arguments[0] == "function") Doc = arguments[1], fun = arguments[0];
+    else if(typeof arguments[1] == "function") Doc = arguments[0], fun = arguments[1];
     if(!Doc) Doc = document;
-    if(!Doc.styleSheets || typeof Fun != "function") return;
+    if(!Doc.styleSheets || typeof fun != "function") return;
     sML.each(Doc.styleSheets, function() {
-        var StyleSheet = this;
+        const StyleSheet = this;
         if(!StyleSheet.cssRules) return;
-        for(var l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
-            var CSSRule = this.cssRules[i];
+        for(let l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
+            const CSSRule = this.cssRules[i];
             /**/ if(CSSRule.cssRules)   arguments.callee.call(CSSRule);
             else if(CSSRule.styleSheet) arguments.callee.call(CSSRule.styleSheet);
-            else Fun(CSSRule);
+            else fun(CSSRule);
         }
     });
 };
@@ -4812,7 +4803,7 @@ O.editCSSRules = function() {
 O.appendStyleSheetLink = function(Opt, Doc) {
     if(!Opt || !Opt.href) return false;
     if(!Doc) Doc = document;
-    var Link = Doc.createElement("link");
+    const Link = Doc.createElement("link");
     Link.rel = "stylesheet";
     if(typeof Opt.className == "string") Link.className = Opt.className;
     if(typeof Opt.id        == "string") Link.id = Opt.id;
@@ -4828,7 +4819,7 @@ O.isBin = function(Hint) {
 };
 
 O.getDataURI = function(FilePath, FileContent) {
-    for(var Ext in O.ContentTypes) {
+    for(let Ext in O.ContentTypes) {
         if((new RegExp('(^|\.)' + Ext + '$', "i")).test(FilePath)) {
             return "data:" + O.ContentTypes[Ext] + ";base64," + (O.isBin(FilePath) ? btoa(FileContent) : btoa(unescape(encodeURIComponent(FileContent))));
         }
@@ -4837,7 +4828,7 @@ O.getDataURI = function(FilePath, FileContent) {
 };
 
 O.getWritingMode = function(Ele) {
-    var CS = getComputedStyle(Ele);
+    const CS = getComputedStyle(Ele);
          if(!O.WritingModeProperty)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
     else if(     /^vertical-/.test(CS[O.WritingModeProperty])) return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[O.WritingModeProperty]) ? "lr" : "rl");
     else if(   /^horizontal-/.test(CS[O.WritingModeProperty])) return (CS["direction"] == "rtl" ? "rl" : "lr") + "-" + (/-bt$/.test(CS[O.WritingModeProperty]) ? "bt" : "tb");
@@ -4846,8 +4837,8 @@ O.getWritingMode = function(Ele) {
 
 
 O.getElementInnerText = function(Ele) {
-    var InnerText = "InnerText";
-    var Copy = document.createElement("div");
+    let InnerText = "InnerText";
+    const Copy = document.createElement("div");
     Copy.innerHTML = Ele.innerHTML.replace(/ (src(set)?|source|(xlink:)?href)=/g, " data-$1=");
     sML.each(Copy.querySelectorAll("svg"),    function() { this.parentNode.removeChild(this); });
     sML.each(Copy.querySelectorAll("video"),  function() { this.parentNode.removeChild(this); });
@@ -4862,15 +4853,15 @@ O.getElementInnerText = function(Ele) {
 
 
 O.getElementCoord = function(El) {
-    var Coord = { X: El["offsetLeft"], Y: El["offsetTop"] };
+    const Coord = { X: El["offsetLeft"], Y: El["offsetTop"] };
     while(El.offsetParent) El = El.offsetParent, Coord.X += El["offsetLeft"], Coord.Y += El["offsetTop"];
     return Coord;
 };
 
 O.getPath = function() {
-    var Origin = "", Path = arguments[0];
+    let Origin = "", Path = arguments[0];
     if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  =       arguments[1];
-    else for(var l = arguments.length, i = 1; i < l; i++)           Path += "/" + arguments[i];
+    else for(let l = arguments.length, i = 1; i < l; i++)           Path += "/" + arguments[i];
     Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Origin = arguments[1], Path = arguments[2]; });
     while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, "$1/");
     while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   "/");
@@ -4890,7 +4881,7 @@ O.isAnchorContent = function(Ele) {
 
 O.stamp = function(What, TimeCard) {
     if(!TimeCard) TimeCard = O.TimeCard;
-    var HMS = O.TimeCard.getHMS(O.TimeCard.getElapsed());
+    const HMS = O.TimeCard.getHMS(O.TimeCard.getElapsed());
     if(TimeCard[HMS]) What = TimeCard[HMS] + " -&- " + What;
     TimeCard[HMS] = What;
 };
@@ -4899,7 +4890,7 @@ O.stopPropagation = function(Eve) { Eve.stopPropagation(); return false; };
 O.preventDefault  = function(Eve) { Eve.preventDefault();  return false; };
 
 O.getBibiEventCoord = function(Eve) {
-    var Coord = { X:0, Y:0 };
+    const Coord = { X:0, Y:0 };
     if(/^touch/.test(Eve.type)) {
         Coord.X = Eve.changedTouches[0].pageX;
         Coord.Y = Eve.changedTouches[0].pageY;
@@ -4911,8 +4902,8 @@ O.getBibiEventCoord = function(Eve) {
         Coord.X -= O.Body.scrollLeft;
         Coord.Y -= O.Body.scrollTop;
     } else {
-        var Item = Eve.target.ownerDocument.documentElement.Item;
-        ItemCoord = O.getElementCoord(Item);
+        const Item = Eve.target.ownerDocument.documentElement.Item;
+        const ItemCoord = O.getElementCoord(Item);
         if(!Item.PrePaginated && !Item.Outsourcing) ItemCoord.X += S["item-padding-left"], ItemCoord.Y += S["item-padding-top"];
         Coord.X = (Coord.X + ItemCoord.X - R.Main.scrollLeft) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.X;
         Coord.Y = (Coord.Y + ItemCoord.Y - R.Main.scrollTop ) * R.Main.Transformation.Scale + R.Main.Transformation.Translation.Y;
@@ -4922,22 +4913,23 @@ O.getBibiEventCoord = function(Eve) {
 
 O.getBibiEvent = function(Eve) {
     if(!Eve) return {};
-    var Coord = O.getBibiEventCoord(Eve);
-    var FlipperWidth = S["flipper-width"];
-    var Ratio = {
+    const Coord = O.getBibiEventCoord(Eve);
+    const FlipperWidth = S["flipper-width"];
+    const Ratio = {
         X: Coord.X / window.innerWidth,
         Y: Coord.Y / window.innerHeight
     };
+    let BorderT, BorderR, BorderB, BorderL;
     if(FlipperWidth < 1) { // Ratio
-        var BorderL = BorderT =     FlipperWidth;
-        var BorderR = BorderB = 1 - FlipperWidth;
+        BorderL = BorderT =     FlipperWidth;
+        BorderR = BorderB = 1 - FlipperWidth;
     } else { // Pixel to Ratio
-        var BorderL = FlipperWidth / window.innerWidth;
-        var BorderT = FlipperWidth / window.innerHeight;
-        var BorderR = 1 - BorderL;
-        var BorderB = 1 - BorderT;
+        BorderL = FlipperWidth / window.innerWidth;
+        BorderT = FlipperWidth / window.innerHeight;
+        BorderR = 1 - BorderL;
+        BorderB = 1 - BorderT;
     }
-    var Division = {
+    const Division = {
         X: "",
         Y: ""
     };
@@ -4972,14 +4964,14 @@ O.TimeCard = {
 };
 
 O.getOrigin = function(Win) {
-    var Loc = (Win ? Win : window).location;
+    const Loc = (Win ? Win : window).location;
     return Loc.origin || Loc.protocol + "//" + (Loc.host || Loc.hostname + (Loc.port ? ":" + Loc.port : ""));
 };
 O.Origin = O.getOrigin();
 
 O.Path = (function() {
     if(document.currentScript) return document.currentScript.src;
-    var Scripts = document.getElementsByTagName("script");
+    const Scripts = document.getElementsByTagName("script");
     return Scripts[Scripts.length - 1].src;
 })();
 
@@ -4987,17 +4979,17 @@ O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "/");
 
 O.Cookie = {
     remember: function(Group) {
-        var Cookie = JSON.parse(sML.Cookies.read("bibi") || '{}');
+        const Cookie = JSON.parse(sML.Cookies.read("bibi") || '{}');
         if(typeof Group != "string" || !Group) return Cookie;
         return Cookie[Group];
     },
     eat: function(Group, KeyVal, Opt) {
         if(typeof Group != "string" || !Group) return false;
         if(typeof KeyVal != "object") return false;
-        var Cookie = this.remember();
+        const Cookie = this.remember();
         if(typeof Cookie[Group] != "object") Cookie[Group] = {};
-        for(var Key in KeyVal) {
-            var Val = KeyVal[Key];
+        for(let Key in KeyVal) {
+            const Val = KeyVal[Key];
             if(typeof Val == "function") continue;
             Cookie[Group][Key] = Val;
         }
@@ -5108,7 +5100,7 @@ O.UserOnlySettingTypes = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-E = {}; // Bibi.Events
+____.E = {}; // Bibi.Events
 
 
 
@@ -5184,7 +5176,7 @@ E.dispatch = function(Name, Detail, Ele) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-M = {}; // Bibi.Messages
+____.M = {}; // Bibi.Messages
 
 
 M.post = function(Msg, TargetOrigin) {
@@ -5199,7 +5191,7 @@ M.receive = function(Data) {
     try {
         Data = JSON.parse(Data);
         if(typeof Data != "object" || !Data) return false;
-        for(var EventName in Data) if(/^bibi:commands:/.test(EventName)) E.dispatch(EventName, Data[EventName]);
+        for(let EventName in Data) if(/^bibi:commands:/.test(EventName)) E.dispatch(EventName, Data[EventName]);
         return true;
     } catch(Err) {}
     return false;
@@ -5208,7 +5200,7 @@ M.receive = function(Data) {
 
 M.gate = function(Eve) {
     if(!Eve || !Eve.data) return;
-    for(var l = S["trustworthy-origins"].length, i = 0; i < l; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
+    for(let l = S["trustworthy-origins"].length, i = 0; i < l; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
 };
 
 
@@ -5222,7 +5214,7 @@ M.gate = function(Eve) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-X = {}; // Bibi.Extensions
+____.X = {}; // Bibi.Extensions
 
 
 X.initialize = function() {
@@ -5246,7 +5238,7 @@ X.loadFilesInPreset = function() {
     })()) {
         P["extensions"].unshift({ "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" });
     }
-    var ExtensionsToBeLoaded = [];
+    const ExtensionsToBeLoaded = [];
     P["extensions"].forEach(function(FileInfo) {
         if(
             typeof FileInfo["name"] != "string" || !FileInfo["name"] || FileInfo["name"] == "Bibi" ||
@@ -5255,11 +5247,11 @@ X.loadFilesInPreset = function() {
         FileInfo.FileIndexInPreset = ExtensionsToBeLoaded.length;
         ExtensionsToBeLoaded.push(FileInfo);
     });
-    var PXs = P["extensions"] = ExtensionsToBeLoaded;
+    const PXs = P["extensions"] = ExtensionsToBeLoaded;
     return new Promise(function(resolve, reject) {
         if(!PXs.length) return resolve();
         O.log('Loading Extension File' + (PXs.length > 1 ? 's' : '') + '...', "*:");
-        var loadFile = function(FileInfo) {
+        const loadFile = function(FileInfo) {
             if(X.Files[FileInfo["name"]]) {
                 O.log('"name" of Extension File "' + FileInfo["name"] + '" is already taken.', "-*");
                 loadFile(PXs[FileInfo.FileIndexInPreset + 1]);
@@ -5267,7 +5259,7 @@ X.loadFilesInPreset = function() {
             }
             X.Files[FileInfo["name"]] = FileInfo;
             X.Presets[FileInfo["name"]] = PXs[FileInfo["name"]] = {};
-            for(var Option in FileInfo) PXs[FileInfo["name"]][Option] = FileInfo[Option];
+            for(let Option in FileInfo) PXs[FileInfo["name"]][Option] = FileInfo[Option];
             document.head.appendChild(
                 sML.create("script", { className: "bibi-extension-script", id: "bibi-extension-script_" + FileInfo["name"], name: FileInfo["name"], src: FileInfo["src"],// async: "async",
                     onload: function() {
@@ -5275,14 +5267,14 @@ X.loadFilesInPreset = function() {
                         if(FileInfo.FileIndexInPreset + 1 == PXs.length) {
                             /*
                             if(X.Loaded.length) {
-                                var LoadedExtensionFiles = "";
+                                let LoadedExtensionFiles = "";
                                 X.Loaded.forEach(function(LoadedExtension) { LoadedExtensionFiles += ", " + LoadedExtension["name"]; });
                                 LoadedExtensionFiles = LoadedExtensionFiles.replace(/^, /, "");
                                 O.log('Extension File' + (X.Loaded.length > 1 ? 's' : '') + ': ' + LoadedExtensionFiles, "-*");
                             }
                             */
                             if(X.Added.length) {
-                                var AddedExtensions = "";
+                                let AddedExtensions = "";
                                 X.Added.forEach(function(AddedExtension) { AddedExtensions += ", " + AddedExtension["name"]; });
                                 AddedExtensions = AddedExtensions.replace(/^, /, "");
                                 O.log('Extension' + (X.Added.length > 1 ? 's' : '') + ': ' + AddedExtensions, "-*");
@@ -5333,3 +5325,7 @@ X.add = function(Extension) {
 
 Bibi.x = X.add;
 
+
+
+
+})(typeof global != 'undefined' ? global : this);
