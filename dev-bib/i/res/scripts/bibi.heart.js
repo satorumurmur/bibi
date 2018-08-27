@@ -3022,7 +3022,7 @@ I.createMenu.createPanelSwitch = function() {
             I.Panel.toggle();
         }
     });
-    E.add("bibi:opened-panel",  function() { I.setUIState(I.PanelSwitch, "active"); });
+    E.add("bibi:opened-panel", function() { I.setUIState(I.PanelSwitch, "active"); });
     E.add("bibi:closed-panel", function() { I.setUIState(I.PanelSwitch, ""); });
     E.add("bibi:started", function() {
         sML.style(I.PanelSwitch, { display: "block" });
@@ -5548,7 +5548,6 @@ O.SettingTypes = {
 
 O.PresetOnlySettingTypes = {
     Boolean: [
-        //"page-breaking",
         "remove-bibi-website-link",
         "accept-blob-converted-data",
         "accept-base64-encoded-data"

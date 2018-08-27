@@ -289,6 +289,7 @@ p#bibi-veil-play {
 	&:hover {
 		background: rgba(black, 0.4);
 	}
+	&,
 	html.appearance-ttb & { // ↓
 		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include trbl(auto, 0, $offset, 0); }
 		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate(90deg); }
