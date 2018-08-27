@@ -42,7 +42,6 @@ S.Extensions = [
     'epubcfi',
     'fontsize',
     'loupe',
-    'overreflow',
     'share',
     'unaccessibilizer',
     'unzipper',
