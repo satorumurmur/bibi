@@ -317,6 +317,69 @@ $bibi-icon-font-size-scaling: 1.44;
 .bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling); } }
 .bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
 
+.bibi-icon-loupe {
+	&:before, &:after {
+		display: block;
+		position: absolute;
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		line-height: 1;
+	}
+	&:before {
+		@include font-icon("Material Icons");
+		@include trbl(-100%);
+	}
+}
+.bibi-icon-loupe-menu {
+	&:before {
+		content: /*zoom_in*/ "\8ff";
+		font-size: 22px;
+	}
+}
+.bibi-icon-loupe-zoomin,
+.bibi-icon-loupe-zoomout,
+.bibi-icon-loupe-reset {
+	&:before {
+		font-size: 26px;
+		line-height: 29px;
+		text-indent: 1px;
+		//font-weight: bold;
+	}
+}
+.bibi-icon-loupe-zoomin {
+	&:before {
+		content: /*zoom_in*/ "\e8ff";
+	}
+}
+.bibi-icon-loupe-zoomout {
+	&:before {
+		content: /*zoom_out*/ "\e900";
+	}
+}
+.bibi-icon-loupe-reset {
+	&:before {
+		content: /*search*/ "\e8b6";
+	}
+	&:after {
+		content: "=";
+		display: block;
+		position: absolute;
+		@include trbl(21%, auto, auto, 24%);
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		font-size: 1em * (13px / 18px);
+		line-height: 1;
+	}
+	html.Windows &:after {
+		@include trbl(27%, auto, auto, 25%);
+	}
+	#bibi-subpanel_loupe &:after {
+		@include trbl(11%, auto, auto, 17%);
+	}
+}
+
 
 
 
@@ -555,6 +618,26 @@ $icon-color_active_border: darken(pink, 5%);
 	.bibi-icon-font-size-medium  { &:before { transform: rotate(360deg) scale(1); } }
 	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling); } }
 	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+	.bibi-icon-loupe-zoomin {
+		&:before {
+			html.loupe-with-keys & {
+				transform: rotate(360deg);
+			}
+			html.loupe-pointer-only & {
+				transform: scale(1.5);
+			}
+		}
+	}
+	.bibi-icon-loupe-zoomout {
+		&:before {
+			transform: scale(0.67);
+		}
+	}
+	.bibi-icon-loupe-reset {
+		&:before, &:after {
+			transform: scale(0.67);
+		}
+	}
 }
 
 
@@ -584,6 +667,20 @@ $icon-color_active_border: darken(pink, 5%);
 		);
 	}
 	cursor: pointer;
+}
+
+
+// - Disabled
+// --------------------------------------------------------------------------------
+
+.bibi-button.disabled {
+	.bibi-icon-loupe-zoomin,
+	.bibi-icon-loupe-zoomout,
+	.bibi-icon-loupe-reset {
+		&:before, &:after {
+			opacity: 0.33;
+		}
+	}
 }
 
 

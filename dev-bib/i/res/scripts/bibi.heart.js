@@ -3000,6 +3000,7 @@ I.createMenu = function() {
     if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
     I.createMenu.createFontSizeMenu();
+    I.createMenu.createLoupe();
 
     E.dispatch("bibi:created-menu");
 
@@ -3413,6 +3414,276 @@ I.createMenu.createFontSizeMenu = function() {
         if(Button.Step == I.FontSizeMenu.Step) I.setUIState(Button, "active");
     });
 
+};
+
+
+I.createMenu.createLoupe = function() {
+
+    if(!S["use-font-size-menu"]) return;
+
+    // Button Group
+    I.Loupe = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" });
+
+    if(typeof S["loupe-mode"]      != "string" || S["loupe-mode"]      != "with-keys") S["loupe-mode"]      = "pointer-only";
+    if(typeof S["loupe-max-scale"] != "number" || S["loupe-max-scale"] <=           1) S["loupe-max-scale"] = 4;
+
+    if(S["loupe-mode"] == "with-keys" && !S["use-keys"]) return;
+
+    sML.edit(I.Loupe, {
+        scale: function(Scl, BibiEvent) { // Scl: Scale
+            if(typeof Scl != "number") return false;
+            Scl = Math.round(Scl * 100) / 100;
+            if(Scl == R.Main.Transformation.Scale) return;
+            E.dispatch("bibi:changes-scale", Scl);
+            if(Scl == 1) {
+                this.transform({ Scale: 1, Translation: { X: 0, Y: 0 } });
+            } else {
+                if(this.UIState != "active") return false;
+                if(!BibiEvent) BibiEvent = { Coord: { X: R.Main.offsetWidth / 2, Y: R.Main.offsetHeight / 2 } };
+                this.transform({
+                    Scale: Scl,
+                    Translation: {
+                        X: BibiEvent.Coord.X - (BibiEvent.Coord.X - R.Main.Transformation.Translation.X) * (Scl / R.Main.Transformation.Scale),
+                        Y: BibiEvent.Coord.Y - (BibiEvent.Coord.Y - R.Main.Transformation.Translation.Y) * (Scl / R.Main.Transformation.Scale)
+                    }
+                });
+            }
+            E.dispatch("bibi:changed-scale", R.Main.Transformation.Scale);
+        },
+        transform: function(Tfm) { // Tfm: Transformation
+            if(!Tfm) return;
+            clearTimeout(this.Timer_onTransformEnd);
+            sML.addClass(O.HTML, "transforming");
+            if(Tfm.Translation.X > 0) Tfm.Translation.X = 0;
+            if(Tfm.Translation.Y > 0) Tfm.Translation.Y = 0;
+            if(Tfm.Translation.X < R.Main.offsetWidth  * (1 - Tfm.Scale)) Tfm.Translation.X = R.Main.offsetWidth  * (1 - Tfm.Scale);
+            if(Tfm.Translation.Y < R.Main.offsetHeight * (1 - Tfm.Scale)) Tfm.Translation.Y = R.Main.offsetHeight * (1 - Tfm.Scale);
+            sML.style(R.Main, {
+                transform: (function(Ps) {
+                         if(Tfm.Translation.X && Tfm.Translation.Y) Ps.push( "translate(" + Tfm.Translation.X + "px" + ", " + Tfm.Translation.Y + "px" + ")");
+                    else if(Tfm.Translation.X                     ) Ps.push("translateX(" + Tfm.Translation.X + "px"                                   + ")");
+                    else if(                     Tfm.Translation.Y) Ps.push("translateY("                                   + Tfm.Translation.Y + "px" + ")");
+                         if(Tfm.Scale != 1                        ) Ps.push(     "scale(" + Tfm.Scale                                                  + ")");
+                    return Ps.join(" ");
+                })([])
+            });
+            R.Main.Transformation = Tfm;
+            this.Timer_onTransformEnd = setTimeout(function() {
+                     if(R.Main.Transformation.Scale == 1) sML.removeClass(O.HTML, "zoomed-in" ), sML.removeClass(O.HTML, "zoomed-out");
+                else if(R.Main.Transformation.Scale <  1) sML.removeClass(O.HTML, "zoomed-in" ),    sML.addClass(O.HTML, "zoomed-out");
+                else                                      sML.removeClass(O.HTML, "zoomed-out"),    sML.addClass(O.HTML, "zoomed-in" );
+                sML.removeClass(O.HTML, "transforming");
+                I.Loupe.onTransformEnd();
+                if(S["use-cookie"]) O.Cookie.eat(O.BookURL, { Loupe: { Transformation: R.Main.Transformation } });
+            }, 345);
+        },
+        isAvailable: function(Mode, Eve) {
+            if(!L.Opened) return false;
+            if(this.UIState != "active") return false;
+            if(S.BRL == "reflowable") return false;
+            if(Mode == "CHECK-STEALTH") {
+                if(!I.KeyListener.ActiveKeys["Space"] && !I.Loupe.Dragging) return false;
+            } else if(Mode == "TAP") {
+                if(!I.KeyListener.ActiveKeys["Space"]) return false;
+            } else if(Mode == "MOVE") {
+                if(R.Main.Transformation.Scale == 1) return false;
+            } else {
+                if(!R.PointerIsDowned) return false;
+            }
+            return true;
+        },
+        onTransformEnd: function() {
+            if(S["loupe-mode"] == "with-keys") {
+                I.setUIState(I.Loupe.SubPanel.Sections[0].ButtonGroup.Buttons[1], (R.Main.Transformation.Scale == 1) ? "disabled" : "default");
+            } else {
+                I.setUIState(I.Loupe.ZoomInButton,    (R.Main.Transformation.Scale == S["loupe-max-scale"]) ? "disabled" : "default");
+                I.setUIState(I.Loupe.ZoomResetButton, (R.Main.Transformation.Scale ==                            1) ? "disabled" : "default");
+                I.setUIState(I.Loupe.ZoomOutButton,   (R.Main.Transformation.Scale ==                            1) ? "disabled" : "default");
+            }
+        },
+        adjustScale: function(Scl) {
+                 if(Scl < 1                           ) return 1;
+            else if(Scl > S["loupe-max-scale"]) return S["loupe-max-scale"];
+            return Scl;
+        },
+        ontapped: function(Eve) {
+            if(!this.isAvailable("TAP", Eve)) return false;
+            const BibiEvent = O.getBibiEvent(Eve);
+            if(BibiEvent.Target.tagName) {
+                if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return false;
+                if(O.isAnchorContent(BibiEvent.Target)) return false;
+                if(S.RVM == "horizontal" && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
+            }
+            this.scale(this.adjustScale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1)), BibiEvent);
+        },
+        onpointerdown: function(Eve) {
+            this.PointerDownCoord = O.getBibiEvent(Eve).Coord;
+            this.PointerDownTransformation = {
+                Scale: R.Main.Transformation.Scale,
+                Translation: {
+                    X: R.Main.Transformation.Translation.X,
+                    Y: R.Main.Transformation.Translation.Y
+                }
+            };
+        },
+        onpointerup: function(Eve) {
+            sML.removeClass(O.HTML, "dragging");
+            I.Loupe.Dragging = false;
+            delete this.PointerDownCoord;
+            delete this.PointerDownTransformation;
+        },
+        onpointermove: function(Eve) {
+            if(!this.isAvailable("MOVE", Eve)) return false;
+            if(R.Main.Transformation.Scale == 1 || !this.PointerDownCoord) return;
+            I.Loupe.Dragging = true;
+            sML.addClass(O.HTML, "dragging");
+            const BibiEvent = O.getBibiEvent(Eve);
+            clearTimeout(this.Timer_TransitionRestore);
+            sML.style(R.Main, { transition: "none", cursor: "move" });
+            this.transform({
+                Scale: R.Main.Transformation.Scale,
+                Translation: {
+                    X: this.PointerDownTransformation.Translation.X + (BibiEvent.Coord.X - this.PointerDownCoord.X),
+                    Y: this.PointerDownTransformation.Translation.Y + (BibiEvent.Coord.Y - this.PointerDownCoord.Y)
+                }
+            });
+            this.Timer_TransitionRestore = setTimeout(function() { sML.style(R.Main, { transition: "", cursor: "" }); }, 234);
+        }
+    });
+    I.isPointerStealth.addChecker(function() {
+        return I.Loupe.isAvailable("CHECK-STEALTH");
+    });
+
+    I.setToggleAction(I.Loupe, {
+        onopened: function() {
+            sML.addClass(O.HTML, "loupe-active");
+            sML.addClass(O.HTML, "loupe-" + S["loupe-mode"]);
+            if(S["loupe-mode"] == "with-keys") I.setUIState(this.SubPanel.Sections[0].ButtonGroup.Buttons[0], "active");
+        },
+        onclosed: function() {
+            this.scale(1);
+            sML.removeClass(O.HTML, "loupe-" + S["loupe-mode"]);
+            sML.removeClass(O.HTML, "loupe-active");
+            if(S["loupe-mode"] == "with-keys") I.setUIState(this.SubPanel.Sections[0].ButtonGroup.Buttons[0], "default");
+        }
+    });
+
+    E.add("bibi:commands:activate-loupe",   function()      { I.Loupe.open(); });
+    E.add("bibi:commands:deactivate-loupe", function()      { I.Loupe.close(); });
+    E.add("bibi:commands:toggle-loupe",     function()      { I.Loupe.toggle(); });
+    E.add("bibi:commands:scale",            function(Scale) { I.Loupe.scale(Scale); });
+
+    E.add("bibi:tapped",         function(Eve) { I.Loupe.ontapped(     Eve); });
+    E.add("bibi:downed-pointer", function(Eve) { I.Loupe.onpointerdown(Eve); });
+    E.add("bibi:upped-pointer",  function(Eve) { I.Loupe.onpointerup(  Eve); });
+    E.add("bibi:moved-pointer",  function(Eve) { I.Loupe.onpointermove(Eve); });
+
+    E.add("bibi:changed-scale", function(Scale) { O.log('Changed Scale: ' + Scale); });
+
+    if(S["loupe-mode"] == "with-keys") {
+        // Button
+        I.Loupe.MenuButton = I.Loupe.addButton({
+            Type: "toggle",
+            Labels: {
+                default: {
+                    default: 'Zoom-in/out',
+                    ja: '拡大機能'
+                },
+                active: {
+                    default: 'Close Zoom-in/out Menu',
+                    ja: '拡大機能メニューを閉じる'
+                }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-menu"></span>',
+            Help: true
+        });
+        // SubPanel
+        I.Loupe.SubPanel = I.createSubPanel({
+            Opener: I.Loupe.MenuButton,
+            id: "bibi-subpanel_loupe",
+            open: function() {}
+        });
+        I.Loupe.SubPanel.addSection({
+            Labels: {
+                default: {
+                    default: 'Zoom-in/out or Reset',
+                    ja: '拡大縮小とリセット'
+                }
+            },
+            ButtonGroup: {
+                Buttons: [{
+                    Type: "toggle",
+                    Labels: {
+                        default: {
+                            default: 'Zoom-in/out',
+                            ja: '拡大機能'
+                        },
+                        active: {
+                            default: 'Zoom-in/out <small>(activated)</small>',
+                            ja: '拡大機能<small>（現在有効）</small>'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>',
+                    action: function() { I.Loupe.toggle(); }
+                }, {
+                    Type: "normal",
+                    Labels: {
+                        default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>',
+                    action: function() { I.Loupe.scale(1); }
+                }]
+            },
+            Notes: [{
+                Position: "after",
+                default: {
+                    default: ['<strong>Zoom-in/out is activated</strong>:', '* Space + Click to Zoom-in'].join('<br />'),
+                    ja: ['<strong>拡大機能が有効のとき</strong>：', '・スペースキーを押しながらクリックで拡大'].join('<br />')
+                }
+            }, {
+                Position: "after",
+                default: {
+                    default: ['<strong>Zoomed-in</strong>:', '* Space + Shift + Click to Zoom-out', '* Space + Drag to Move the Book'].join('<br />'),
+                    ja: ['<strong>拡大中</strong>：', '・スペース + Shift キーを押しながらクリックで縮小', '・スペースキーを押しながらドラッグで本を移動'].join('<br />')
+                }
+            }]
+        });
+    } else {
+        I.Loupe.ZoomInButton = I.Loupe.addButton({
+            Type: "normal",
+            Labels: {
+                default: { default: 'Zoom-in', ja: '拡大する' }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>',
+            Help: true,
+            action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)); }
+        });
+        I.Loupe.ZoomResetButton = I.Loupe.addButton({
+            Type: "normal",
+            Labels: {
+                default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>',
+            Help: true,
+            action: function() { I.Loupe.scale(1); }
+        });
+        I.Loupe.ZoomOutButton = I.Loupe.addButton({
+            Type: "normal",
+            Labels: {
+                default: { default: 'Zoom-out', ja: '縮小する' }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomout"></span>',
+            Help: true,
+            action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)); }
+        });
+    }
+
+    E.bind("bibi:opened", function() {
+        if(S["loupe-mode"] == "with-keys") I.setUIState(I.Loupe.SubPanel.Sections[0].ButtonGroup.Buttons[0], "active");
+        I.Loupe.toggle();
+        if(S["use-cookie"]) try { I.Loupe.transform(O.Cookie.remember(O.BookURL).Loupe.Transformation); } catch(Err) {}
+        I.Loupe.onTransformEnd();
+    });
 
 };
 
@@ -4550,6 +4821,9 @@ P.initialize = function() {
         if(typeof P[PropertyName] == "string") P[PropertyName] = /^(yes|no|mobile|desktop)$/.test(P[PropertyName]) ? P[PropertyName] : "no";
         else                                   P[PropertyName] = P[PropertyName] ? "yes" : "no";
     });
+    O.SettingTypes.String.concat(O.PresetOnlySettingTypes.String).forEach(function(PropertyName) {
+        if(typeof P[PropertyName] != "string") P[PropertyName] = "";
+    });
     O.SettingTypes.Integer.concat(O.PresetOnlySettingTypes.Integer).forEach(function(PropertyName) {
         P[PropertyName] = (typeof P[PropertyName] != "number" || P[PropertyName] < 0) ? 0 : Math.round(P[PropertyName]);
     });
@@ -5236,11 +5510,15 @@ O.SettingTypes = {
         "start-embedded-in-new-window",
         "use-menubar",
         "use-font-size-menu",
+        "use-loupe",
         "use-nombre",
         "use-slider",
         "use-arrows",
         "use-keys",
         "use-swipe"
+    ],
+    String: [
+        "loupe-mode"
     ],
     Integer: [
         "spread-gap",
@@ -5253,6 +5531,7 @@ O.SettingTypes = {
     Number: [
         "base-font-size",
         "font-size-scaling-per-step",
+        "loupe-max-scale",
         "flipper-width"
     ],
     Array: [
@@ -5270,6 +5549,8 @@ O.PresetOnlySettingTypes = {
         "use-cookie",
         "preprocess-html-always",
         "accept-local-file"
+    ],
+    String: [
     ],
     Integer: [
     ],

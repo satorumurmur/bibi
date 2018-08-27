@@ -39,6 +39,7 @@ Bibi.Preset = {
 
 "use-menubar"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-font-size-menu"           : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-loupe"                    : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe is not works with touch-devices. To set "yes" or "mobile" is NOT recommended.)
 "use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
@@ -47,6 +48,7 @@ Bibi.Preset = {
 
 "base-font-size"               : "auto", // Number of pixel or "auto"
 "font-size-scaling-per-step"   : 1.25, // Number of scale
+"loupe-max-scale"              : 4, // Number of scale
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
@@ -74,7 +76,6 @@ Bibi.Preset = {
 
 "extensions": [
     { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    { "name": "Loupe", "src": "extensions/loupe/loupe.js", "mode": "", "max-scale": 4 },
     { "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
     //{ "name": "Unaccessibilizer", "src": "extensions/unaccessibilizer/unaccessibilizer.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
@@ -98,6 +99,8 @@ Bibi.Preset = {
 "website-name-in-menu"         : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
 "website-href"                 : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
 "remove-bibi-website-link"     : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
+
+"loupe-mode"                   : "", // "with-keys" or ""
 
 "preprocess-html-always"       : "no", // "yes" or "no" or "desktop" or "mobile"
 

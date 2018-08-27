@@ -65,6 +65,7 @@
                 "use-full-height",
                 "use-menubar",
                 "use-font-size-menu",
+                "use-loupe",
                 "use-nombre",
                 "use-slider",
                 "use-arrows",
