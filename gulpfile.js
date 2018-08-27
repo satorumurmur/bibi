@@ -41,7 +41,6 @@ S.Extensions = [
     'analytics',
     'epubcfi',
     'fontsize',
-    'jatex',
     'loupe',
     'overreflow',
     'share',

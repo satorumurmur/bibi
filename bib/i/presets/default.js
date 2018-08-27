@@ -64,7 +64,6 @@ Bibi.Preset = {
     { "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
     //{ "name": "OverReflow", "src": "extensions/overreflow/overreflow.js" },
-    //{ "name": "JaTEx", "src": "extensions/jatex/jatex.js" },
     //{ "name": "Unaccessibilizer", "src": "extensions/unaccessibilizer/unaccessibilizer.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
     // ------------------------------------------------------------------------------------------
     { "name": "Bibi", "4U" : "w/0" } // (*'-'*)
