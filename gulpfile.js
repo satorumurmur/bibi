@@ -40,8 +40,6 @@ const gulp = require('gulp'), S = {}, $ = {
 S.Extensions = [
     'analytics',
     'epubcfi',
-    'fontsize',
-    'loupe',
     'share',
     'unaccessibilizer',
     'unzipper',
