@@ -3028,6 +3028,8 @@ I.createMenu.createPanelSwitch = function() {
         sML.style(I.PanelSwitch, { display: "block" });
     });
 
+    E.dispatch("bibi:created-panel-switch");
+
 };
 
 
@@ -3052,6 +3054,8 @@ I.createMenu.createSettingMenu = function() {
     if(I.createMenu.SettingMenuComponents.includes("ViewModeButtons")                                                                   ) I.createMenu.createSettingMenu.createViewModeSection();
     if(I.createMenu.SettingMenuComponents.includes("NewWindowButton") || I.createMenu.SettingMenuComponents.includes("FullscreenButton")) I.createMenu.createSettingMenu.createWindowSection();
     if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")     || I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink") ) I.createMenu.createSettingMenu.createLinkageSection();
+
+    E.dispatch("bibi:created-setting-menu");
 
 };
 
@@ -3414,6 +3418,8 @@ I.createMenu.createFontSizeMenu = function() {
         if(Button.Step == I.FontSizeMenu.Step) I.setUIState(Button, "active");
     });
 
+    E.dispatch("bibi:created-font-size-menu");
+
 };
 
 
@@ -3684,6 +3690,8 @@ I.createMenu.createLoupe = function() {
         if(S["use-cookie"]) try { I.Loupe.transform(O.Cookie.remember(O.BookURL).Loupe.Transformation); } catch(Err) {}
         I.Loupe.onTransformEnd();
     });
+
+    E.dispatch("bibi:created-loupe");
 
 };
 
