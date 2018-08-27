@@ -2999,6 +2999,8 @@ I.createMenu = function() {
     if(!S["remove-bibi-website-link"])                                                                 I.createMenu.SettingMenuComponents.push("BibiWebsiteLink");
     if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
+    I.createMenu.createFontSizeMenu();
+
     E.dispatch("bibi:created-menu");
 
 };
@@ -3208,6 +3210,209 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
             Buttons: Buttons
         }
     });
+
+};
+
+
+I.createMenu.createFontSizeMenu = function() {
+
+    if(!S["use-font-size-menu"]) return;
+
+    I.FontSizeMenu = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, id: "bibi-buttongroup_font-size" });
+
+    if(typeof S["font-size-scaling-per-step"] != "number" || S["font-size-scaling-per-step"] <= 1) S["font-size-scaling-per-step"] = 1.25;
+
+    if(S["use-cookie"]) {
+        const BibiCookie = O.Cookie.remember(O.RootPath);
+        if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) I.FontSizeMenu.Step = BibiCookie.FontSize.Step * 1;
+    }
+    if(typeof I.FontSizeMenu.Step != "number" || I.FontSizeMenu.Step < -2 || 2 < I.FontSizeMenu.Step) I.FontSizeMenu.Step = 0;
+
+    I.FontSizeMenu.changeItemFontSize = function(Item, FontSize) {
+        if(Item.FontSizeStyleRule) sML.CSS.deleteRule(Item.FontSizeStyleRule, Item.contentDocument);
+        Item.FontSizeStyleRule = sML.CSS.appendRule("html", "font-size: " + FontSize + "px !important;", Item.contentDocument);
+    };
+    I.FontSizeMenu.changeItemFontSizeStep = function(Item, Step) {
+        I.FontSizeMenu.changeItemFontSize(Item, Item.FontSize.Base * Math.pow(S["font-size-scaling-per-step"], Step));
+    };
+
+    E.bind("bibi:postprocessed-item-content", function(Item) {
+        Item.FontSize = {
+            Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, "") * 1
+        };
+        Item.FontSize.Base = Item.FontSize.Default;
+        if(L.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
+            Array.prototype.forEach.call(Item.contentDocument.documentElement.querySelectorAll("body, body *"), function(Ele) {
+                Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem";
+            });
+        } else {
+            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
+                try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
+                const REs = {
+                    "pt": / font-size: (\d[\d\.]*)pt; /,
+                    "px": / font-size: (\d[\d\.]*)px; /
+                };
+                if(REs["pt"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["pt"])[1] * (96/72) / Item.FontSize.Base + "rem";
+                if(REs["px"].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs["px"])[1]           / Item.FontSize.Base + "rem";
+            });
+        }
+        if(typeof S["base-font-size"] == "number" && S["base-font-size"] > 0) {
+            let MostPopularFontSize = 0;
+            const FontSizeCounter = {};
+            sML.each(Item.Body.querySelectorAll("p, p *"), function() {
+                if(!this.innerText.replace(/\s/g, "")) return;
+                const FontSize = Math.round(getComputedStyle(this).fontSize.replace(/[^\d]*$/, "") * 100) / 100;
+                if(!FontSizeCounter[FontSize]) FontSizeCounter[FontSize] = [];
+                FontSizeCounter[FontSize].push(this);
+            });
+            let MostPopularFontSizeAmount = 0;
+            for(let FontSize in FontSizeCounter) {
+                if(FontSizeCounter[FontSize].length > MostPopularFontSizeAmount) {
+                    MostPopularFontSizeAmount = FontSizeCounter[FontSize].length;
+                    MostPopularFontSize = FontSize;
+                }
+            }
+            if(MostPopularFontSize) Item.FontSize.Base = Item.FontSize.Base * (S["base-font-size"] / MostPopularFontSize);
+            I.FontSizeMenu.changeItemFontSizeStep(Item, I.FontSizeMenu.Step);
+        } else if(I.FontSizeMenu.Step != 0) {
+            I.FontSizeMenu.changeItemFontSizeStep(Item, I.FontSizeMenu.Step);
+        }
+    });
+
+    // FontSize Button
+    I.FontSizeMenu.Button = I.FontSizeMenu.addButton({
+        Type: "toggle",
+        Labels: {
+            default: {
+                default: 'Change Font Size',
+                ja: '文字サイズを変更'
+            },
+            active: {
+                default: 'Close Font Size Menu',
+                ja: '文字サイズメニューを閉じる'
+            }
+        },
+        //className: 'bibi-button-font-size bibi-button-font-size-change',
+        Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-change"></span>',
+        Help: true
+    });
+
+    // FontSize SubPanel
+    I.FontSizeMenu.SubPanel = I.createSubPanel({
+        Opener: I.FontSizeMenu.Button,
+        id: "bibi-subpanel_font-size",
+        open: function() {}
+    });
+    const changeFontSizeStep = function() {
+        const Button = this;
+        const Step = Button.Step;
+        if(Step == I.FontSizeMenu.Step) return;
+        Button.ButtonGroup.Busy = true;
+        I.FontSizeMenu.Step = Step;
+        if(S["use-cookie"]) {
+            O.Cookie.eat(O.RootPath, { FontSize: { Step: Step } });
+        }
+        I.Panel.close();
+        if(I.Slider) I.Slider.close();
+        setTimeout(function() {
+            R.layOut({
+                Reset: true,
+                NoNotification: true,
+                before: function() {
+                    R.Items.forEach(function(Item) {
+                        I.FontSizeMenu.changeItemFontSizeStep(Item, Step);
+                    });
+                },
+                callback: function() {
+                    E.dispatch("bibi:changed-font-size", { Step: Step });
+                    Button.ButtonGroup.Busy = false;
+                }
+            });
+        }, 88);
+    };
+    I.FontSizeMenu.SubPanel.Section = I.FontSizeMenu.SubPanel.addSection({
+        Labels: {
+            default: {
+                default: 'Choose Font Size',
+                ja: '文字サイズを選択'
+            }
+        },
+        ButtonGroup: {
+            //Tiled: true,
+            Buttons: [
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Font Size:</span> Ex-Large',
+                            ja: '<span class="non-visual-in-label">文字サイズ：</span>最大'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-exlarge"></span>',
+                    //Notes: true,
+                    Step: 2,
+                    action: changeFontSizeStep
+                },
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Font Size:</span> Large',
+                            ja: '<span class="non-visual-in-label">文字サイズ：</span>大'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-large"></span>',
+                    //Notes: true,
+                    Step: 1,
+                    action: changeFontSizeStep
+                },
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Font Size:</span> Medium <small>(default)</small>',
+                            ja: '<span class="non-visual-in-label">文字サイズ：</span>中<small>（初期値）</small>'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-medium"></span>',
+                    //Notes: true,
+                    Step: 0,
+                    action: changeFontSizeStep
+                },
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Font Size:</span> Small',
+                            ja: '<span class="non-visual-in-label">文字サイズ：</span>小'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-small"></span>',
+                    //Notes: true,
+                    Step: -1,
+                    action: changeFontSizeStep
+                },
+                {
+                    Type: "radio",
+                    Labels: {
+                        default: {
+                            default: '<span class="non-visual-in-label">Font Size:</span> Ex-Small',
+                            ja: '<span class="non-visual-in-label">文字サイズ：</span>最小'
+                        }
+                    },
+                    Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-exsmall"></span>',
+                    //Notes: true,
+                    Step: -2,
+                    action: changeFontSizeStep
+                }
+            ]
+        }
+    });
+    I.FontSizeMenu.SubPanel.Section.ButtonGroup.Buttons.forEach(function(Button) {
+        if(Button.Step == I.FontSizeMenu.Step) I.setUIState(Button, "active");
+    });
+
 
 };
 
@@ -5030,6 +5235,7 @@ O.SettingTypes = {
         "autostart-embedded",
         "start-embedded-in-new-window",
         "use-menubar",
+        "use-font-size-menu",
         "use-nombre",
         "use-slider",
         "use-arrows",
@@ -5045,6 +5251,8 @@ O.SettingTypes = {
         "item-padding-bottom"
     ],
     Number: [
+        "base-font-size",
+        "font-size-scaling-per-step",
         "flipper-width"
     ],
     Array: [

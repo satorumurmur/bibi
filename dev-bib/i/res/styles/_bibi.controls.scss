@@ -938,6 +938,9 @@ div.bibi-subpanel {
 					small {
 						font-size: .875em;
 					}
+					span.non-visual-in-label {
+						@extend .non-visual;
+					}
 				}
 				&:before, &:after {
 					display: block;
@@ -1266,6 +1269,16 @@ div#bibi-menu-r {
 				}
 			}
 		}
+	}
+}
+
+
+// - Button Behaviors
+// --------------------------------------------------------------------------------
+
+ul#bibi-buttongroup_font-size {
+	html.book-pre-paginated & {
+		display: none;
 	}
 }
 

@@ -282,6 +282,41 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	}
 }
 
+.bibi-icon-font-size {
+	&:before {
+		@include font-icon("Material Icons");
+		display: block;
+		position: absolute;
+		@include trbl(-100%);
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		line-height: 1.1;
+	}
+}
+.bibi-icon-font-size-change {
+	&:before {
+		content: "format_size";
+		font-size: 24px;
+	}
+}
+.bibi-icon-font-size-exlarge,
+.bibi-icon-font-size-large,
+.bibi-icon-font-size-medium,
+.bibi-icon-font-size-small,
+.bibi-icon-font-size-exsmall {
+	&:before {
+		content: "title";
+		font-size: 13px;
+	}
+}
+$bibi-icon-font-size-scaling: 1.44;
+.bibi-icon-font-size-exlarge { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-large   { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-medium  { &:before { transform: rotate(  0deg) scale(1); } }
+.bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+
 
 
 
@@ -491,28 +526,35 @@ $icon-color_active_border: darken(pink, 5%);
 // - Active
 // --------------------------------------------------------------------------------
 
-.bibi-button.active .bibi-icon {
-	@include colour-icons(
-		$icon-color_active_font-paint,
-		$icon-color_active_font-outline,
-		$icon-color_active_shape-paint,
-		$icon-color_active_shape-outline,
-		$icon-color_active_background,
-		$icon-color_active_border
-	);
-	&:before, &:after {
-		transform: rotate(360deg);
-	}
-	.bibi-subpanel & {
+.bibi-button.active {
+	.bibi-icon {
 		@include colour-icons(
-			$icon-color_active_font-paint_in-subpanel,
-			$icon-color_active_font-outline_in-subpanel,
-			$icon-color_active_shape-paint_in-subpanel,
-			$icon-color_active_shape-outline_in-subpanel,
-			$icon-color_active_background_in-subpanel,
-			$icon-color_active_border_in-subpanel
+			$icon-color_active_font-paint,
+			$icon-color_active_font-outline,
+			$icon-color_active_shape-paint,
+			$icon-color_active_shape-outline,
+			$icon-color_active_background,
+			$icon-color_active_border
 		);
+		&:before, &:after {
+			transform: rotate(360deg);
+		}
+		.bibi-subpanel & {
+			@include colour-icons(
+				$icon-color_active_font-paint_in-subpanel,
+				$icon-color_active_font-outline_in-subpanel,
+				$icon-color_active_shape-paint_in-subpanel,
+				$icon-color_active_shape-outline_in-subpanel,
+				$icon-color_active_background_in-subpanel,
+				$icon-color_active_border_in-subpanel
+			);
+		}
 	}
+	.bibi-icon-font-size-exlarge { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-large   { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-medium  { &:before { transform: rotate(360deg) scale(1); } }
+	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
 }
 
 
