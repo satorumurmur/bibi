@@ -38,7 +38,7 @@ Bibi.Preset = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "use-menubar"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-font-size-menu"           : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-font-size-changer"        : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-loupe"                    : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe is not works with touch-devices. To set "yes" or "mobile" is NOT recommended.)
 "use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-slider"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
@@ -47,7 +47,7 @@ Bibi.Preset = {
 "use-swipe"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "base-font-size"               : "auto", // Number of pixel or "auto"
-"font-size-scaling-per-step"   : 1.25, // Number of scale
+"font-size-scale-per-step"     : 1.25, // Number of scale
 "loupe-max-scale"              : 4, // Number of scale
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
