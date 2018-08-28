@@ -2999,7 +2999,7 @@ I.createMenu = function() {
     if(!S["remove-bibi-website-link"])                                                                 I.createMenu.SettingMenuComponents.push("BibiWebsiteLink");
     if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
 
-    I.createMenu.createFontSizeMenu();
+    I.createMenu.createFontSizeChanger();
     I.createMenu.createLoupe();
 
     E.dispatch("bibi:created-menu");
@@ -3219,26 +3219,26 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
 };
 
 
-I.createMenu.createFontSizeMenu = function() {
+I.createMenu.createFontSizeChanger = function() {
 
-    if(!S["use-font-size-menu"]) return;
+    if(!S["use-font-size-changer"]) return;
 
-    I.FontSizeMenu = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, id: "bibi-buttongroup_font-size" });
+    I.FontSizeChanger = {};
 
-    if(typeof S["font-size-scaling-per-step"] != "number" || S["font-size-scaling-per-step"] <= 1) S["font-size-scaling-per-step"] = 1.25;
+    if(typeof S["font-size-scale-per-step"] != "number" || S["font-size-scale-per-step"] <= 1) S["font-size-scale-per-step"] = 1.25;
 
     if(S["use-cookie"]) {
         const BibiCookie = O.Cookie.remember(O.RootPath);
-        if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) I.FontSizeMenu.Step = BibiCookie.FontSize.Step * 1;
+        if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) I.FontSizeChanger.Step = BibiCookie.FontSize.Step * 1;
     }
-    if(typeof I.FontSizeMenu.Step != "number" || I.FontSizeMenu.Step < -2 || 2 < I.FontSizeMenu.Step) I.FontSizeMenu.Step = 0;
+    if(typeof I.FontSizeChanger.Step != "number" || I.FontSizeChanger.Step < -2 || 2 < I.FontSizeChanger.Step) I.FontSizeChanger.Step = 0;
 
-    I.FontSizeMenu.changeItemFontSize = function(Item, FontSize) {
+    I.FontSizeChanger.changeItemFontSize = function(Item, FontSize) {
         if(Item.FontSizeStyleRule) sML.CSS.deleteRule(Item.FontSizeStyleRule, Item.contentDocument);
         Item.FontSizeStyleRule = sML.CSS.appendRule("html", "font-size: " + FontSize + "px !important;", Item.contentDocument);
     };
-    I.FontSizeMenu.changeItemFontSizeStep = function(Item, Step) {
-        I.FontSizeMenu.changeItemFontSize(Item, Item.FontSize.Base * Math.pow(S["font-size-scaling-per-step"], Step));
+    I.FontSizeChanger.changeItemFontSizeStep = function(Item, Step) {
+        I.FontSizeChanger.changeItemFontSize(Item, Item.FontSize.Base * Math.pow(S["font-size-scale-per-step"], Step));
     };
 
     E.bind("bibi:postprocessed-item-content", function(Item) {
@@ -3279,14 +3279,14 @@ I.createMenu.createFontSizeMenu = function() {
                 }
             }
             if(MostPopularFontSize) Item.FontSize.Base = Item.FontSize.Base * (S["base-font-size"] / MostPopularFontSize);
-            I.FontSizeMenu.changeItemFontSizeStep(Item, I.FontSizeMenu.Step);
-        } else if(I.FontSizeMenu.Step != 0) {
-            I.FontSizeMenu.changeItemFontSizeStep(Item, I.FontSizeMenu.Step);
+            I.FontSizeChanger.changeItemFontSizeStep(Item, I.FontSizeChanger.Step);
+        } else if(I.FontSizeChanger.Step != 0) {
+            I.FontSizeChanger.changeItemFontSizeStep(Item, I.FontSizeChanger.Step);
         }
     });
 
     // FontSize Button
-    I.FontSizeMenu.Button = I.FontSizeMenu.addButton({
+    I.FontSizeChanger.Button = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, id: "bibi-buttongroup_font-size" }).addButton({
         Type: "toggle",
         Labels: {
             default: {
@@ -3304,17 +3304,17 @@ I.createMenu.createFontSizeMenu = function() {
     });
 
     // FontSize SubPanel
-    I.FontSizeMenu.SubPanel = I.createSubPanel({
-        Opener: I.FontSizeMenu.Button,
+    I.FontSizeChanger.SubPanel = I.createSubPanel({
+        Opener: I.FontSizeChanger.Button,
         id: "bibi-subpanel_font-size",
         open: function() {}
     });
     const changeFontSizeStep = function() {
         const Button = this;
         const Step = Button.Step;
-        if(Step == I.FontSizeMenu.Step) return;
+        if(Step == I.FontSizeChanger.Step) return;
         Button.ButtonGroup.Busy = true;
-        I.FontSizeMenu.Step = Step;
+        I.FontSizeChanger.Step = Step;
         if(S["use-cookie"]) {
             O.Cookie.eat(O.RootPath, { FontSize: { Step: Step } });
         }
@@ -3326,7 +3326,7 @@ I.createMenu.createFontSizeMenu = function() {
                 NoNotification: true,
                 before: function() {
                     R.Items.forEach(function(Item) {
-                        I.FontSizeMenu.changeItemFontSizeStep(Item, Step);
+                        I.FontSizeChanger.changeItemFontSizeStep(Item, Step);
                     });
                 },
                 callback: function() {
@@ -3336,7 +3336,7 @@ I.createMenu.createFontSizeMenu = function() {
             });
         }, 88);
     };
-    I.FontSizeMenu.SubPanel.Section = I.FontSizeMenu.SubPanel.addSection({
+    I.FontSizeChanger.SubPanel.Section = I.FontSizeChanger.SubPanel.addSection({
         Labels: {
             default: {
                 default: 'Choose Font Size',
@@ -3414,21 +3414,20 @@ I.createMenu.createFontSizeMenu = function() {
             ]
         }
     });
-    I.FontSizeMenu.SubPanel.Section.ButtonGroup.Buttons.forEach(function(Button) {
-        if(Button.Step == I.FontSizeMenu.Step) I.setUIState(Button, "active");
+    I.FontSizeChanger.SubPanel.Section.ButtonGroup.Buttons.forEach(function(Button) {
+        if(Button.Step == I.FontSizeChanger.Step) I.setUIState(Button, "active");
     });
 
-    E.dispatch("bibi:created-font-size-menu");
+    E.dispatch("bibi:created-font-size-changer");
 
 };
 
 
 I.createMenu.createLoupe = function() {
 
-    if(!S["use-font-size-menu"]) return;
+    if(!S["use-loupe"]) return;
 
-    // Button Group
-    I.Loupe = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" });
+    I.Loupe = {};
 
     if(typeof S["loupe-mode"]      != "string" || S["loupe-mode"]      != "with-keys") S["loupe-mode"]      = "pointer-only";
     if(typeof S["loupe-max-scale"] != "number" || S["loupe-max-scale"] <=           1) S["loupe-max-scale"] = 4;
@@ -3586,9 +3585,12 @@ I.createMenu.createLoupe = function() {
 
     E.add("bibi:changed-scale", function(Scale) { O.log('Changed Scale: ' + Scale); });
 
+    // Button Group
+    const ButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" });
+
     if(S["loupe-mode"] == "with-keys") {
         // Button
-        I.Loupe.MenuButton = I.Loupe.addButton({
+        I.Loupe.MenuButton = ButtonGroup.addButton({
             Type: "toggle",
             Labels: {
                 default: {
@@ -3655,7 +3657,7 @@ I.createMenu.createLoupe = function() {
             }]
         });
     } else {
-        I.Loupe.ZoomInButton = I.Loupe.addButton({
+        I.Loupe.ZoomInButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Zoom-in', ja: '拡大する' }
@@ -3664,7 +3666,7 @@ I.createMenu.createLoupe = function() {
             Help: true,
             action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)); }
         });
-        I.Loupe.ZoomResetButton = I.Loupe.addButton({
+        I.Loupe.ZoomResetButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
@@ -3673,7 +3675,7 @@ I.createMenu.createLoupe = function() {
             Help: true,
             action: function() { I.Loupe.scale(1); }
         });
-        I.Loupe.ZoomOutButton = I.Loupe.addButton({
+        I.Loupe.ZoomOutButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Zoom-out', ja: '縮小する' }
@@ -5517,7 +5519,7 @@ O.SettingTypes = {
         "autostart-embedded",
         "start-embedded-in-new-window",
         "use-menubar",
-        "use-font-size-menu",
+        "use-font-size-changer",
         "use-loupe",
         "use-nombre",
         "use-slider",
@@ -5538,7 +5540,7 @@ O.SettingTypes = {
     ],
     Number: [
         "base-font-size",
-        "font-size-scaling-per-step",
+        "font-size-scale-per-step",
         "loupe-max-scale",
         "flipper-width"
     ],
