@@ -3425,10 +3425,9 @@ I.createMenu.createFontSizeChanger = function() {
 
 I.createMenu.createLoupe = function() {
 
-    if(!S["use-font-size-menu"]) return;
+    if(!S["use-loupe"]) return;
 
-    // Button Group
-    I.Loupe = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" });
+    I.Loupe = {};
 
     if(typeof S["loupe-mode"]      != "string" || S["loupe-mode"]      != "with-keys") S["loupe-mode"]      = "pointer-only";
     if(typeof S["loupe-max-scale"] != "number" || S["loupe-max-scale"] <=           1) S["loupe-max-scale"] = 4;
@@ -3586,9 +3585,12 @@ I.createMenu.createLoupe = function() {
 
     E.add("bibi:changed-scale", function(Scale) { O.log('Changed Scale: ' + Scale); });
 
+    // Button Group
+    const ButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" });
+
     if(S["loupe-mode"] == "with-keys") {
         // Button
-        I.Loupe.MenuButton = I.Loupe.addButton({
+        I.Loupe.MenuButton = ButtonGroup.addButton({
             Type: "toggle",
             Labels: {
                 default: {
@@ -3655,7 +3657,7 @@ I.createMenu.createLoupe = function() {
             }]
         });
     } else {
-        I.Loupe.ZoomInButton = I.Loupe.addButton({
+        I.Loupe.ZoomInButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Zoom-in', ja: '拡大する' }
@@ -3664,7 +3666,7 @@ I.createMenu.createLoupe = function() {
             Help: true,
             action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)); }
         });
-        I.Loupe.ZoomResetButton = I.Loupe.addButton({
+        I.Loupe.ZoomResetButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
@@ -3673,7 +3675,7 @@ I.createMenu.createLoupe = function() {
             Help: true,
             action: function() { I.Loupe.scale(1); }
         });
-        I.Loupe.ZoomOutButton = I.Loupe.addButton({
+        I.Loupe.ZoomOutButton = ButtonGroup.addButton({
             Type: "normal",
             Labels: {
                 default: { default: 'Zoom-out', ja: '縮小する' }
