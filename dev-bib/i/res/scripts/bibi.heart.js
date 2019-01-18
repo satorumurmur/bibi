@@ -3829,13 +3829,14 @@ I.createSwiper = function() {
         },
         ontouchstart: function(Eve) {
             var EventCoord = O.getBibiEventCoord(Eve);
-            I.Swiper.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp };
+            I.Swiper.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp, SL: R.Main.scrollLeft, ST: R.Main.scrollTop };
         },
         ontouchmove: function(Eve) {
             if(Eve.touches.length == 1 && document.body.clientWidth / window.innerWidth <= 1) Eve.preventDefault();
         },
         ontouchend: function(Eve) {
             if(!I.Swiper.TouchStartedOn) return;
+            if(I.Swiper.TouchStartedOn.SL != R.Main.scrollLeft || I.Swiper.TouchStartedOn.ST != R.Main.scrollTop) return;
             if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - I.Swiper.TouchStartedOn.T <= 300) {
                 var EventCoord = O.getBibiEventCoord(Eve);
                 var VarX = EventCoord.X - I.Swiper.TouchStartedOn.X;
