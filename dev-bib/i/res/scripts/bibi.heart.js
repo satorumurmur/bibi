@@ -2299,7 +2299,7 @@ R.focusOn = function(Par) {
             if(S.SLD == "rtl") FocusPoint += Par.Destination.Page.offsetWidth - R.Stage.Width;
         }
     } else {
-        if(R.Stage[S.SIZE.L] > Par.Destination.Page.Spread["offset" + S.SIZE.L]) {
+        if(R.Stage[S.SIZE.L] >= Par.Destination.Page.Spread["offset" + S.SIZE.L]) {
             FocusPoint = O.getElementCoord(Par.Destination.Page.Spread)[S.AXIS.L];
             FocusPoint -= Math.floor((R.Stage[S.SIZE.L] - Par.Destination.Page.Spread["offset" + S.SIZE.L]) / 2);
         } else {
