@@ -1814,26 +1814,27 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         }
         if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
     }
-    var SO /*= ScaleOptimizing*/ = 1 / Scale;
+    //var SO /*= ScaleOptimizing*/ = 1 / Scale;
     PageL = Math.floor(ItemRef["viewport"][S.SIZE.l] * Scale);
     PageB = Math.floor(ItemRef["viewport"][S.SIZE.b] * (PageL / ItemRef["viewport"][S.SIZE.l]));
     ItemBox.style[S.SIZE.l] = PageL      + "px";
     ItemBox.style[S.SIZE.b] = PageB      + "px";
-       Item.style[S.SIZE.l] = PageL * SO + "px";
-       Item.style[S.SIZE.b] = PageB * SO + "px";
+    //   Item.style[S.SIZE.l] = PageL * SO + "px";
+    //   Item.style[S.SIZE.b] = PageB * SO + "px";
+       Item.style[S.SIZE.l] = Item.style[S.SIZE.b] = "100%";
     var TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
         "width": ItemRef["viewport"].width + "px",
         "height": ItemRef["viewport"].height + "px",
         "transform-origin": TransformOrigin,
         "transformOrigin": TransformOrigin,
-        "transform": "scale(" + (Scale * SO) + ")"
-    });
+        "transform": "scale(" + (Scale/* * SO*/) + ")"
+    });/*
     sML.style(Item, {
         "transform-origin": "0 0",
         "transformOrigin": "0 0",
         "transform": "scale(" + (1 / SO) + ")"
-    });
+    });*/
     var Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     if(ItemRef["page-spread"] == "right") Page.style.right = 0;
     else                                  Page.style.left  = 0;
@@ -3590,7 +3591,7 @@ I.createArrows = function() {
     );
     I.Arrows.Forward = I.Arrows["forward"] = O.Body.appendChild(
         sML.create("div", { id: "bibi-arrow-forward",
-            Distance: +1,
+            Distance: 1,
             Labels: {
                 default: { default: 'Forward', ja: '進む' }
             },
