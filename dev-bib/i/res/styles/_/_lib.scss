@@ -13,8 +13,9 @@
 // - Colors
 // --------------------------------------------------------------------------------
 
+$html-background: rgb(96,96,96);
+$main-background: rgb(64,64,64);
 $veil-background: linear-gradient(to bottom, rgb(96,96,96), rgb(192,192,192));//rgb(216,216,216);
-$bibi-background: rgb(64,64,64);
 
 $color_blue-hilight: saturate(steelblue, 20%);
 $color_red-hilight: rgb(255,96,81);
@@ -24,10 +25,10 @@ $color-in-subpanel: $color_blue-hilight;
 $scrollbar-track-background-color: rgb(255,255,255);
 $scrollbar-track-border-color: rgb(232,232,232);
 
-$scrollbar-thumb-background-color: rgb(64,64,64);
-$scrollbar-thumb-background-color_hover: rgb(96,96,96);
-$scrollbar-thumb-background-color_active: rgb(192,192,192);
-$scrollbar-thumb-border-color: rgb(32,32,32);
+$scrollbar-thumb-background-color: rgb(160,160,160);//rgb(192,192,192);
+$scrollbar-thumb-background-color_hover: rgb(128,128,128);
+$scrollbar-thumb-background-color_active: rgb(160,160,160);
+$scrollbar-thumb-border-color: transparent;//rgb(32,32,32);
 
 $nombre-box-background-color: rgba(240,240,240,0.9);
 $nombre-box-background-color: rgb(240,240,240);
@@ -65,32 +66,32 @@ $z-index_main: 1;
 	$z-index_main-touchpanel: 10;
 
 $z-index_scrollbar: $z-index_main + 1;
-$z-index_progress: $z-index_main + 1;
-$z-index_nombre: $z-index_main + 1;
-$z-index_slider: $z-index_main + 10;
 
 $z-index_sub: 10;
+
+//$z-index_shade: $z-index_sub + 1;
 
 $z-index_veil: 100;
 	$z-index_veil-bottombar: 1;
 	$z-index_veil-cover: 10;
-	$z-index_veil-catcher: 10;
 	$z-index_veil-play: 10;
 	$z-index_veil-byebye: 10;
 
-$z-index_panel: 1000;
+$z-index_catcher: $z-index_veil + 1;
+
+$z-index_slider: 1000;
+$z-index_nombre: $z-index_slider + 1;
+
+$z-index_panel: 10000;
 	$z-index_panel-bookinfo: 1;
 	$z-index_panel-bottombar: $z-index_panel-bookinfo + 1;
 	$z-index_panel-topbar: 1000;
 
-$z-index_menu: $z-index_panel + 1;
-
 $z-index-help: $z-index_panel + 1;
 $z-index-poweredby: $z-index_panel + 1;
-
 $z-index_arrow: $z-index_panel + 1;
 
-$z-index_shade: $z-index_menu - 1;
+$z-index_menu: 100000;
 $z-index_subpanel: $z-index_menu + 1;
 
 $z-index_notifier-board: 99999999999;
@@ -103,8 +104,23 @@ $z-index_spinner: $z-index_notifier-board - 1;
 // + Mix-Ins
 // --------------------------------------------------------------------------------
 
-
 @mixin trbl($t: auto, $r: $t, $b: $t, $l: $r) { top: $t; right: $r; bottom: $b; left: $l; }
+@mixin tb($t: auto, $b: $t) { top: $t; bottom: $b; }
+@mixin lr($l: auto, $r: $l) { left: $l; right: $r; }
+
+@mixin margin-v($t: 0, $b: $t) { margin-top: $t; margin-bottom: $b; }
+@mixin margin-h($l: 0, $r: $l) { margin-left: $l; margin-right: $r; }
+
+@mixin padding-v($t, $b: $t) { padding-top: $t; padding-bottom: $b; }
+@mixin padding-h($l, $r: $l) { padding-left: $l; padding-right: $r; }
+
+@mixin size($w, $h: $w) { width: $w; height: $h; }
+@mixin max-size($w, $h: $w) { max-width: $w; max-height: $h; }
+@mixin min-size($w, $h: $w) { min-width: $w; min-height: $h; }
+
+@mixin wh($w, $h: $w) { @include size($w, $h); }
+@mixin max-wh($w, $h: $w) { @include max-size($w, $h); }
+@mixin min-wh($w, $h: $w) { @include min-size($w, $h); }
 
 @mixin min($min) { @media screen and (min-width: #{$min}) { @content; } }
 @mixin max($max) { @media screen and (max-width: #{$max}) { @content; } }

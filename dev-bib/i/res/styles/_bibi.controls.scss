@@ -11,7 +11,7 @@ div#bibi-notifier {}
 
 div#bibi-notifier-board {
 	box-sizing: border-box;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_notifier-board;
 	top: 0;
 	padding: 0 8px;
@@ -58,7 +58,7 @@ div#bibi-veil {
 	box-sizing: border-box;
 	overflow: hidden;
 	display: block;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_veil;
 	left: 0;
 	top: 0;
@@ -149,22 +149,24 @@ p#bibi-veil-byebye {
 // --------------------------------------------------------------------------------
 
 div#bibi-veil-cover {
-	overflow: hidden;
-	position: absolute;
-	z-index: $z-index_veil-cover;
-	left: 0;
-	top: 0;
-	box-sizing: border-box;
-	border: solid transparent;
-	border-width: 4px; //border-top-width: $top-bar-height + 4px;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	transition: opacity 0.5s linear;
-	background: transparent no-repeat center center;
-	background-size: contain;
-	p {
+	& {
+		overflow: hidden;
+		position: absolute;
+		z-index: $z-index_veil-cover;
+		left: 0;
+		top: 0;
+		box-sizing: border-box;
+		border: solid transparent;
+		border-width: 4px; border-width: ($top-bar-height + 4px) 4px;
+		width: 100%;
+		height: 100%;
 		opacity: 0;
+		transition: opacity 0.5s linear;
+		background: transparent no-repeat center center;
+		background-size: contain;
+		p {
+			opacity: 0;
+		}
 	}
 	&.with-cover-image,
 	&.without-cover-image {
@@ -173,31 +175,7 @@ div#bibi-veil-cover {
 	&.with-cover-image {
 	}
 	&.without-cover-image {
-		$button-size: 128px;
-		&:before, p {
-			display: block;
-			position: absolute;
-			margin: auto;
-			left: -100%;
-			top: -100%;
-			right: -100%;
-			bottom: -100%;
-		}
-		&:before {
-		//	@include font-icon("Material Icons");
-		//	content: /*import_contacts*/ "\e0e0";
-			@include font-icon("ElegantIcons");
-			content: "\e086"; // book
-			z-index: 1;
-			width: $button-size;
-			height: $button-size;
-			line-height: 1;
-			font-size: $button-size;
-			text-align: center;
-			vertical-align: middle;
-			color: rgba(255,255,255,0.25);
-			transform: translateY($button-size * -0.2);
-		}
+		$icon-size: 144px;
 		p {
 			z-index: 2;
 			width: 100%;
@@ -209,7 +187,7 @@ div#bibi-veil-cover {
 			text-align: center;
 			text-shadow: 0 0 4px rgb(128,128,128);
 			opacity: 1;
-			transform: translateY($button-size * -0.1);
+			transform: translateY($icon-size * -0.1);
 			strong, em, small, span {
 				display: block;
 			}
@@ -231,6 +209,22 @@ div#bibi-veil-cover {
 				font-size: 1em * 10/14;
 			}
 		}
+		.book-icon {
+			@include book-icon($icon-size);
+			z-index: 1;
+			transform: translateY($icon-size * -0.125);
+			opacity: .25;
+		}
+		p,
+		.book-icon {
+			display: block;
+			position: absolute;
+			margin: auto;
+			left: -100%;
+			top: -100%;
+			right: -100%;
+			bottom: -100%;
+		}
 	}
 	&.without-cover-image.waiting-for-unzipping {
 		p {
@@ -245,85 +239,11 @@ div#bibi-veil-cover {
 }
 
 
-// - Catcher
-// --------------------------------------------------------------------------------
-
-p#bibi-veil-catcher {
-	$size: 128px;
-	box-sizing: border-box;
-	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-	z-index: $z-index_veil-catcher;
-	border: dashed 10px rgba(white, 0.125);
-	border-radius: 30px;
-	width: 88%;
-	height: 80%;
-	color: rgba(white, 0.67);
-	transform: translateY(-2.5%);
-	cursor: pointer;
-	transition: .125s ease;
-	&:before, >span {
-		box-sizing: border-box;
-		display: block;
-		position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-		vertical-align: middle;
-		text-align: center;
-	}
-	&:before { // icon
-	//	@include font-icon("Material Icons");
-	//	content: /*import_contacts*/ "\e0e0";
-		@include font-icon("ElegantIcons");
-		content: "\e022"; // book_alt
-		width: $size;
-		height: $size;
-		line-height: $size;
-		text-indent: .05em;
-		font-size: $size;
-		transform: translateY($size * -0.4);
-	}
-	>span {
-		width: 100%;
-		height: 1.5em;
-		transform: translateY($size * 0.4);
-		strong, span, small {
-			display: block;
-		}
-		strong {
-			font-weight: bold;
-			font-size: 18px;
-		}
-		span {
-			margin-top: .5em;
-			font-size: 16px;
-		}
-		small {
-			margin-top: .5em;
-			font-size: 14px;
-		}
-	}
-	input {
-		visibility: hidden;
-	}
-	html.dragenter &,
-	&:hover {
-		transition: .2s ease;
-		border-color: rgba(white, 0.5);
-		color: rgba(white, 1);
-
-	}
-	&:active {
-		&:before {
-			transform: translateY($size * -0.4) scale(1.1);
-			transition: .125s cubic-bezier(.2,.8,.8,1.6);
-		}
-	}
-}
-
-
 // - Play
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-play {
-	$size: 81px;
+	$size: 96px;
 	$offset: 8px;
 	display: none; html.waiting & { display: block; }
 	box-sizing: border-box;
@@ -346,13 +266,14 @@ p#bibi-veil-play {
 			transform $transition-duration $transition-timing-function_form;
 	}
 	&:before { // icon
-		//@include font-icon("FontAwesome");
-		@include font-icon("ElegantIcons");
+		@include font-icon("Material Icons");
+		content: "\e038"; // play_circle_filled color: white;
 		box-sizing: border-box;
 		display: block;
 		z-index: 10;
 		position: absolute;
 		margin: auto;
+		//border-radius: 50%;
 		width: $size;
 		height: $size;
 		line-height: $size * 0.98;
@@ -362,51 +283,173 @@ p#bibi-veil-play {
 		font-size: $size;
 		color: rgba(236,236,236, 0.9);
 		//text-shadow: 0 0 4px rgb(160,160,160)
+		//color: rgb(69,69,69);
+		//background: rgba(236,236,236, 0.9);
 	}
 	&:hover {
 		background: rgba(black, 0.4);
-		&:before {
-			color: white;
-			transform: scale(1.1);
-		}
 	}
+	&,
 	html.appearance-ttb & { // ↓
-		&:before {
-		//	content: "\f107";
-			content: "\e044"; // arrow_carrot-dowm_alt
-			bottom: $offset; top: auto; left: 0; right: 0;
-			transform-origin: 50% 100%;
-		}
-		&:active {
-			&:before {
-				bottom: $size * -1/3;
-			}
-		}
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include trbl(auto, 0, $offset, 0); }
+		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate(90deg); }
+		&:active:before { transform: translateY( 10%) scale(1.1) rotate(90deg); }
 	}
 	html.appearance-rtl & { // ←
-		&:before {
-		//	content: "\f104";
-			content: "\e045"; // arrow_carrot-left_alt
-			left: $offset; right: auto; top: 0; bottom: 0;
-			transform-origin: 0 50%;
-		}
-		&:active {
-			&:before {
-				left: $size * -1/3;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  @include trbl(0, auto, 0, $offset); }
+		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
+		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
+	}
+	html.appearance-ltr & { // →
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  @include trbl(0, $offset, 0, auto); }
+		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
+		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
+	}
+}
+
+
+// - Catcher
+// --------------------------------------------------------------------------------
+
+div#bibi-catcher {
+	$icon-size: 128px;
+	$center-line-from-the-bottom: 56%;
+	$area-margin: 24px;
+	$area-margin-narrow: $area-margin * 0.5;
+	display: none; html.waiting-file & { display: block; }
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $z-index_catcher;
+	@include trbl(0);
+	margin: auto;
+	border: dashed 8px rgba(white, 0.25);
+	border-radius: 24px;
+	width:  calc(100% - #{$area-margin * 2                     });
+	height: calc(100% - #{$area-margin * 2 + $bottom-bar-height});
+	@include max(768px) {
+		width:  calc(100% - #{$area-margin-narrow * 2                     });
+		height: calc(100% - #{$area-margin-narrow * 2 + $bottom-bar-height});
+	}
+	color: white;
+	transform: translateY(#{$bottom-bar-height * -0.5});
+	cursor: pointer;
+	transition: .2s ease;
+	> input {
+		visibility: hidden;
+	}
+	> .pgroup {
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 100;
+		@include trbl(100% - $center-line-from-the-bottom, 0, auto);
+		margin: 0 auto;
+		width: 100%;
+		vertical-align: middle;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+		p {
+			strong, em, span, small {
+				display: block;
+				font-weight: bold;
+			}
+			strong {
+				box-sizing: border-box;
+				//position: absolute;
+				//bottom: calc(100% + #{$icon-size + 16px});
+				margin-top: 18px;
+				padding: 0 1em;
+				border: solid 1px rgba(white, 1);
+				height: 2.5em;
+				line-height: 2.5em;
+				border-radius: 1.25em;
+				font-size: 16px;
+				//color: rgba(black, .5);
+				//background: rgba(white, .075);
+			}
+			em {
+				margin-top: 14px;
+				font-size: 16px;
+				line-height: 1.5;
+				//text-decoration: underline rgba(white, .75);
+			}
+			span {
+				margin-top: 10px;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+			small {
+				margin-top: 6px;
+				font-size: 12px;
 			}
 		}
 	}
-	html.appearance-ltr & { // →
-		&:before {
-		//	content: "\f105"; // arrow_carrot-right_alt
-			content: "\e046";
-			right: $offset; left: auto; top: 0; bottom: 0;
-			transform-origin: 100% 50%;
-		}
-		&:active {
-			&:before {
-				right: $size * -1/3;
+	> .pgroup[lang="en"] {
+		p {
+			strong {
+				text-indent: .125em;
 			}
+			em {
+				margin-right: -.125em;
+			}
+			span {
+				margin-right: -.125em;
+			}
+			small {
+			}
+		}
+	}
+	> .pgroup[lang="ja"] {
+		p {
+			strong {
+				text-indent: .5em;
+			}
+			em {
+				margin-right: -.67em; text-indent: -.67em;
+			}
+			span {
+				margin-right: -.67em;
+				text-indent: 0;
+			}
+			small {
+			}
+		}
+	}
+	> .book-icon {
+		@include book-icon($icon-size);
+		position: absolute;
+		z-index: 10;
+		@include trbl(auto, 0, $center-line-from-the-bottom);
+		margin: 0 auto;
+		transition: .125s cubic-bezier(.2,.8,.8,1.6);
+		opacity: .9;
+	}
+	html.dragenter &,
+	&:hover {
+		&:before,
+		> .book-icon {
+			opacity: 1;
+			transform: scale(1.05);
+		}
+		&:after,
+		> .book-icon + .book-icon {
+			opacity: .5;
+			transform: translateX(10%);
+		}
+		border-color: rgba(white, .5);
+	}
+	&:active {
+		&:before,
+		> .book-icon {
+			opacity: .5;
+			transform: scale(1);
+		}
+		&:after,
+		> .book-icon + .book-icon {
+			opacity: 1;
+			transform: scale(0.81);
 		}
 	}
 }
@@ -423,7 +466,7 @@ div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
 	z-index: $z-index_panel;
-	position: fixed;
+	position: absolute;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -485,9 +528,8 @@ div#bibi-panel-bookinfo {
 		margin-top: $top-bar-height;
 		padding: 20px 30px;
 		width: 100%;
-		height: calc(100% - #{$top-bar-height});
+		height: calc(100% - #{$bottom-bar-height});
 		-webkit-overflow-scrolling: touch;
-		html.iOS &, html.Android & { height: calc(100% - #{$top-bar-height + $bottom-bar-height}); }
 		html.page-ltr &, html.Android.page-rtl & { overflow-x: hidden; overflow-y: scroll; @include writing-mode(horizontal-tb); }
 		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; @include writing-mode(vertical-rl); }
 	}
@@ -665,9 +707,10 @@ div#bibi-panel-bookinfo-cover {
 // --------------------------------------------------------------------------------
 
 
+/*
 div#bibi-shade {
 	display: none;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_shade;
 	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
 	width: 100%; height: 100%;
@@ -683,6 +726,7 @@ div#bibi-shade {
 	html.shade-opened.shade-visible.panel-opened & {
 	}
 }
+*/
 
 
 
@@ -704,34 +748,39 @@ div.bibi-subpanel {
 		transition: transform 0.15s ease-out;
 	}
 	& {
-		position: fixed;
+		position: absolute;
 		z-index: $z-index_subpanel;
 		right: $subpanel-margin;
 		top: $top-bar-height + $subpanel-margin;
 		margin: auto;
 		width: calc(100% - #{$subpanel-margin * 2});
 		max-width: 320px - $subpanel-margin * 2;
-		max-height: calc(100% - #{$top-bar-height + $subpanel-margin * 2});
 		border-radius: 4px;
 		background: $subpanel-background-color;
 	}
+	html.appearance-horizontal & {
+		max-height: calc(100% - #{$top-bar-height + $scrollbar-track-size + $subpanel-margin * 2});
+	}
+	html.appearance-vertical & {
+		max-height: calc(100% - #{$top-bar-height + $subpanel-margin * 2});
+	}
 	& {
 		overflow: auto; -webkit-overflow-scrolling: touch;
-		$scrollbar-track-size: 6px;
-		$scrollbar-thumb-size: 2px;
-		$scrollbar-thumb-background-color: rgb(128,128,128);
-		$scrollbar-track-background-color: rgb(248,248,248);
+		$subpanel-scrollbar-track-size: 6px;
+		$subpanel-scrollbar-thumb-size: 2px;
+		$subpanel-scrollbar-thumb-background-color: rgb(128,128,128);
+		$subpanel-scrollbar-track-background-color: rgb(248,248,248);
 		&::-webkit-scrollbar { // scrollbar
-			height: $scrollbar-track-size;
-			width: $scrollbar-track-size;
+			height: $subpanel-scrollbar-track-size;
+			width: $subpanel-scrollbar-track-size;
 		}
 		&::-webkit-scrollbar-track { // scrollbar track
-			background: $scrollbar-track-background-color;
+			background: $subpanel-scrollbar-track-background-color;
 		}
 		&::-webkit-scrollbar-thumb { // scrollbar thumb
-			border-radius: $scrollbar-track-size * 0.5;
-			border: solid (($scrollbar-track-size - $scrollbar-thumb-size) * 0.5) $scrollbar-track-background-color;
-			background: $scrollbar-thumb-background-color;
+			border-radius: $subpanel-scrollbar-track-size * 0.5;
+			border: solid (($subpanel-scrollbar-track-size - $subpanel-scrollbar-thumb-size) * 0.5) $subpanel-scrollbar-track-background-color;
+			background: $subpanel-scrollbar-thumb-background-color;
 			&:hover {
 				background: $scrollbar-thumb-background-color_hover;
 			}
@@ -814,22 +863,29 @@ div.bibi-subpanel {
 					font-size: 10px;
 					color: rgb(128,128,128);
 					&:before {
-						@include font-icon("FontAwesome");
+						@include font-icon("Material Icons");
 						position: absolute;
-						left: .2em;
-						top: .25em;
-						content: "\f105";
+						left: -.1em;
+						top: .225em;
+						font-size: 1.1em;
+						content: "\e5cc"; // chevron_right
 						color: rgb(160,160,160);
 					}
 				}
 			}
 	.bibi-pgroup {
 		border: solid 0 rgba(black, 0.1);
-		&.bibi-pgroup_before { border-top-width:    1px; }
-		&.bibi-pgroup_after  { border-bottom-width: 1px; }
 		overflow: hidden;
 		color: rgb(64,64,64);
 		background: white;//rgba(white, 0.9);
+	}
+	.bibi-hgroup + .bibi-pgroup,
+	.bibi-pgroup + .bibi-pgroup,
+	.bibi-pgroup:first-child {
+		border-top-width:    1px;
+	}
+	.bibi-pgroup:last-child  {
+		border-bottom-width: 1px;
 	}
 		.bibi-p {
 			margin: 4px 0 0;
@@ -867,6 +923,9 @@ div.bibi-subpanel {
 		border: solid rgba(black, 0.1); border-width: 1px 0;
 		overflow: hidden;
 	}
+	.bibi-buttongroup + .bibi-buttongroup { // ul
+		margin-top: $top-bar-height / 6;
+	}
 		.bibi-buttonbox { // li
 			line-height: 1.2;
 			font-size: 14px;
@@ -895,6 +954,9 @@ div.bibi-subpanel {
 					small {
 						font-size: .875em;
 					}
+					span.non-visual-in-label {
+						@extend .non-visual;
+					}
 				}
 				&:before, &:after {
 					display: block;
@@ -909,11 +971,12 @@ div.bibi-subpanel {
 				}
 				&:after {
 					z-index: 1;
-					@include font-icon("FontAwesome");
+					@include font-icon("Material Icons");
 					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
-					//width: 0.9em;
+					//width: 20px;
 					height: 0.9em;
 					line-height: 1;
+					font-size: 16px;
 					text-align: right;
 					color: rgb(160,160,160);
 					transition: .2s ease-in-out;
@@ -943,9 +1006,7 @@ div.bibi-subpanel {
 			}
 			.bibi-button-link {
 				&:after {
-					//content: "\f054"; // chevron-right
-					content: "\f105"; // angle-right
-					text-align: center;
+					content: "\e5cc"; // chevron_right
 				}
 			}
 			.bibi-button-toggle,
@@ -958,32 +1019,30 @@ div.bibi-subpanel {
 						font-weight: bold;
 					}
 					&:after {
+						//margin-right: -1px;
+						//font-size: 18px;
 						color: $color-in-subpanel;
 					}
 				}
 			}
 			.bibi-button-toggle {
 				&:after {
-					margin-right: -.1em;
-					font-size: 1.2em;
-					content: "\f204"; // toggle-off
+					content: "\e835"; // check_box_outline_blank
 				}
 				&.active {
 					&:after {
-						content: "\f205"; // toggle-on
+						content: "\e834"; // check_box
 					}
 				}
 			}
 			.bibi-button-radio {
 				&:after {
-					content: "\f1db"; // circle-thin
+					content: "\e836"; // radio_button_unchecked
 				}
 				&.active {
 					&:after {
-						margin-right: -.1em;
-						font-size: 1.2em;
-						content: "\f058"; // check-circle
-					//	content: "\f192"; // dot-circle-o
+						content: "\e837"; // radio_button_checked
+						content: "\e86c"; // check_circle
 					}
 				}
 			}
@@ -1010,7 +1069,7 @@ div.bibi-subpanel {
 			}
 			.bibi-button-link {
 				&:after {
-					text-align: right;
+					margin-right: -5px;
 				}
 			}
 		}
@@ -1026,43 +1085,54 @@ div.bibi-subpanel {
 // --------------------------------------------------------------------------------
 
 div#bibi-menu {
-	html.without-menubar & { display: none !important; }
-	box-sizing: border-box;
-	position: fixed; html.waiting-file & { display: none; }
-	z-index: $z-index_menu;
-	left: 0; right: auto; top: 0; bottom: auto;
-	border-bottom: solid 1px rgba(128,128,128, 0.1);
-	height: $top-bar-height;
-	width: 100%;
-	background: rgba(255,255,255, 0.9);
-	html.book-full-height & {
-		border-bottom-color: rgba(128,128,128, 0);
-		background-color: rgba(255,255,255, 0);
+	& {
+		box-sizing: border-box;
+		position: absolute;
+		z-index: $z-index_menu;
+		@include trbl(0, 0, auto);
+		left: 0;
+		right: 0;
+		margin: 0;
+		border-bottom: solid 1px transparent;
+		height: $top-bar-height;
+		width: 100%;
+		background: transparent;
+	}
+	html.book-full-height &,
+	html.veil-opened & {
+		border-bottom-color: rgba(black, 0);
+		background-color: rgba(white, 0);
+	}
+	html:not(.book-full-height) &,
+	html.book-full-height &.hover,
+	html.book-full-height.menu-opened &,
+	html.menu-opened &,
+	html.subpanel-opened & {
+		border-bottom-color: rgba(black, 0.05);
+	}
+	html:not(.book-full-height) & {
+		background-color: rgba(white, 1);
 	}
 	html.book-full-height &.hover,
 	html.book-full-height.menu-opened &,
-	html.book-full-height.menu-fixed & {
-		border-bottom-color: rgba(128,128,128, 0.1);
-		background-color: rgba(255,255,255, 0.9);
-	}
-	html.veil-opened & {
-		border-bottom-color: rgba(128,128,128, 0);
-		background-color: rgba(255,255,255, 0);
-	}
-	html.panel-opened &,
+	html.menu-opened &,
 	html.subpanel-opened & {
-		border-bottom-color: rgba(128,128,128, 0.1);
-		background-color: rgba(255,255,255, 1);
+		background-color: rgba(white, .9);
 	}
-	&.hover {
-//		box-shadow: 0 0 ($top-bar-height / 2) rgba(128,128,128, 0.1);
+	html.menu-opened &,
+	html.subpanel-opened & {
+		box-shadow: 0 0 16px rgba(black, 0.125);
+	}
+	html.without-menubar &,
+	html.waiting-file &  {
+		display: none !important;
 	}
 	&, & ul {
 		transition: .125s linear;
 	}
 }
 
-html.slider-opened.view-vertical div#bibi-menu{
+html.slider-opened.view-vertical div#bibi-menu {
 	width: calc(100% - #{$slider-size});
 }
 
@@ -1160,7 +1230,7 @@ div#bibi-menu-l {
 		li {
 			margin-left: -1px;
 		}
-		li:first-child {
+		li:first-child:not(:last-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
 					.bibi-icon {
@@ -1170,7 +1240,7 @@ div#bibi-menu-l {
 				}
 			}
 		}
-		li:last-child {
+		li:last-child:not(:first-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
 					.bibi-icon {
@@ -1206,7 +1276,7 @@ div#bibi-menu-r {
 		li {
 			margin-right: -1px;
 		}
-		li:first-child {
+		li:first-child:not(:last-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
 					.bibi-icon {
@@ -1216,7 +1286,7 @@ div#bibi-menu-r {
 				}
 			}
 		}
-		li:last-child {
+		li:last-child:not(:first-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
 					.bibi-icon {
@@ -1230,6 +1300,23 @@ div#bibi-menu-r {
 }
 
 
+// - Button Behaviors
+// --------------------------------------------------------------------------------
+
+ul#bibi-buttongroup_font-size {
+	html.book-pre-paginated & {
+		display: none;
+	}
+}
+
+ul#bibi-buttongroup_loupe {
+	html.waiting &,
+	html.book-reflowable & {
+		display: none;
+	}
+}
+
+
 
 // ================================================================================
 // + Help
@@ -1239,7 +1326,7 @@ div#bibi-menu-r {
 div#bibi-help {
 	box-sizing: border-box;
 	display: none;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index-help;
 	margin: 0;
 	border-top: solid 1px rgb(240,240,240);
@@ -1282,6 +1369,10 @@ div#bibi-help {
 	}
 }
 
+html.slider-opened:not(.panel-opened).view-vertical div#bibi-help {
+	width: calc(100% - #{$slider-size});
+}
+
 
 
 
@@ -1293,7 +1384,7 @@ div#bibi-help {
 div#bibi-poweredby {
 	box-sizing: border-box;
 	display: block;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index-poweredby;
 	top: auto; right: 0; bottom: 0; left: 0; margin: 0 auto;
 	padding: 4px;
@@ -1405,7 +1496,7 @@ html.panel-opened div#bibi-poweredby {
 div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_nombre;
 	margin: auto;
 	border-radius: $nombre-box-height * 0.5;
@@ -1434,11 +1525,10 @@ div#bibi-nombre {
 		left: auto;  right: $scrollbar-track-size + 2px; // `right` is to be overwritten by JavaScript ... (O.ScrollBars.Width  + 2) + "px"
 		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
 	}
-	html.slider-opened.view-paged &,
-	html.slider-opened.view-horizontal & {
+	html.slider-opened.appearance-horizontal & {
 		bottom: $slider-size + 2px !important;
 	}
-	html.slider-opened.view-vertical & {
+	html.slider-opened.appearance-vertical & {
 		right: $slider-size + 2px !important;
 	}
 	& {
@@ -1480,285 +1570,498 @@ div#bibi-nombre {
 // + Slider
 // --------------------------------------------------------------------------------
 
-@mixin slider-thumb-base() {
-	$length: 100%;
-	$breadth: $scrollbar-thumb-size;
-	$breadth-opened: $slider-size - ($scrollbar-track-size - $scrollbar-thumb-size);
-	content: "";
-	display: block;
-	box-sizing: border-box;
-	display: block;
-	position: absolute;
-	margin: auto;
-	border: solid 1px;
-	border-radius: $scrollbar-thumb-size * 0.5;
-	html.view-paged &,
-	html.view-horizontal & {
-		@include trbl(0, auto);
-		width: $length;
-		height: $breadth;
-	}
-	html.view-vertical & {
-		@include trbl(auto, 0);
-		width: $breadth;
-		height: $length;
-	}
-	html.slider-opened & {
-		border-radius: 2px;
-	}
-	html.view-paged.slider-opened &,
-	html.view-horizontal.slider-opened & {
-		height: $breadth-opened;
-	}
-	html.view-vertical.slider-opened & {
-		width: $breadth-opened;
-	}
-}
+
+$slider-transition: .15s ease;
 
 div#bibi-slider {
-	$length: 100%;
-	$breadth: $scrollbar-track-size;
+	overflow: hidden;
 	position: relative;
 	box-sizing: border-box;
 	display: block;
-	overflow: hidden;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_slider;
-	border: solid 0 $scrollbar-track-border-color;
-	background: $scrollbar-track-background-color;
 	cursor: pointer;
-	&,
-	#bibi-slider-currentpagebits:before,
-	#bibi-slider-currentpagebits:after {
-		transition: linear .1s;
-		html.slider-sliding & {
-			transition: none;
+	transition: $slider-transition;
+	&:after {
+		content: "";
+		display: block;
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 1;
+		border: solid 0 $scrollbar-track-border-color;
+		@include size(100%);
+		background: $scrollbar-track-background-color;
+	}
+	html.appearance-horizontal & {
+		@include trbl(auto, 0, 0, 0);
+		width: 100%;
+		height: $scrollbar-track-size;
+		&:after {
+			border-top-width: 1px;
+			//background: linear-gradient(to top, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, rgba($scrollbar-track-background-color, .75) 100%);
+			background: linear-gradient(to top, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, darken($scrollbar-track-background-color, 10%) 100%);
 		}
 	}
-	html.view-paged &,
-	html.view-horizontal & {
-		@include trbl(auto, 0, 0, 0);
-		width: $length;
-		height: $breadth;
-	}
-	html.view-vertical & {
-		@include trbl(auto, 0, 0, auto);
-		width: $breadth;
-		height: $length;
-	}
-	html.view-paged &,
-	html.view-horizontal & {
-		border-top-width: 1px;
-	}
-	html.view-vertical & {
-		border-left-width: 1px;
+	html.appearance-vertical & {
+		@include trbl(0, 0, 0, auto);
+		width: $scrollbar-track-size;
+		height: 100%;
+		&:after {
+			border-left-width: 1px;
+			//background: linear-gradient(to left, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, rgba($scrollbar-track-background-color, .75) 100%);
+			background: linear-gradient(to left, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, darken($scrollbar-track-background-color, 10%) 100%);
+		}
 	}
 	html.slider-opened & {
-		background: rgba($scrollbar-track-background-color, 0.96);
-		&:before {
-			content: "";
-			display: block;
-			position: absolute;
-			margin: 0;
-			width: 0;
-			height: 0;
-			border: dotted 0 rgba($scrollbar-thumb-background-color, 0.125);
-		}
+		overflow: visible;
+		box-shadow: 0 0 16px rgba(black, 0.125);
 	}
-	html.slider-opened.view-paged &,
-	html.slider-opened.view-horizontal & {
+	html.slider-opened.appearance-horizontal & {
 		height: $slider-size !important;
-		&:before {
-			@include trbl(50%, 0, auto, 0);
-			width: $length;
-			border-top-width: 1px;
-			transform: translateY(-0.5px);
+		&:after {
+			border-top-color: darken($scrollbar-track-background-color, 20%);
 		}
 	}
-	html.slider-opened.view-vertical & {
+	html.slider-opened.appearance-vertical & {
 		width: $slider-size !important;
+		&:after {
+			border-left-color: darken($scrollbar-track-background-color, 20%);
+		}
+	}
+	html.slider-sliding & {
+		transition: none;
+	}
+	html.busy & {
+		opacity: 0;
+		transition: none;
+	}
+}
+
+
+// - Book Map Box
+// --------------------------------------------------------------------------------
+
+$slider-bookmap-margin: $scrollbar-thumb-size;
+
+div#bibi-slider-bookmap-box {
+	box-sizing: border-box;
+	position: absolute;
+	@include trbl(-100vw, -100vh);
+	z-index: 10;
+	margin: auto;
+	background: transparent;
+	html.appearance-horizontal & {
+		@include size(calc(100% - #{$scrollbar-thumb-size}), calc(100% - #{$slider-bookmap-margin * 2}));
+	}
+	html.appearance-horizontal.slider-opened & {
+		//width: calc(100% - #{$scrollbar-thumb-size * 2});
+	}
+	html.appearance-vertical & {
+		@include size(calc(100% - #{$slider-bookmap-margin * 2}), calc(100% - #{$scrollbar-thumb-size}));
+	}
+	html.appearance-vertical.slider-opened & {
+		//height: calc(100% - #{$scrollbar-thumb-size * 2});
+	}
+}
+
+
+// - Book Map
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-bookmap {
+	box-sizing: border-box;
+	position: absolute;
+	@include trbl(-100vw, -100vh);
+	margin: auto;
+	background: transparent;
+	@include size(100%);
+}
+
+	div.bibi-slider-bookmap-spread,
+	div.bibi-slider-bookmap-item,
+	div.bibi-slider-bookmap-page {
+		&,
+		&:before,
+		&:after {
+			box-sizing: border-box;
+			position: absolute;
+			margin: auto;
+		}
+		&:before,
+		&:after {
+		}
 		&:before {
-			@include trbl(0, auto, 0, 50%);
-			height: $length;
-			border-left-width: 1px;
-			transform: translateX(-0.5px);
+			z-index: 10;
+		}
+		&:after {
+			z-index: 1;
+		}
+		> * {
+			z-index: 100;
+		}
+	}
+
+
+// - . Spread
+// --------------------------------------------------------------------------------
+
+$slider-book-spread-border-width: 1px;
+$slider-book-spread-border-color: rgba(black, .125);//rgb(192,192,192)
+$slider-book-spread-background: rgba(black, .05);//linear-gradient(to bottom, rgba(black, 0) 0, rgba(black, 0.1) 100%);
+
+div.bibi-slider-bookmap-spread {
+	& {
+		& {
+			border: solid 0 $slider-book-spread-border-color;
+			border-width: $slider-book-spread-border-width;
+			//border-radius: 1px;
+			background: $slider-book-spread-background;
+		}
+		html.appearance-horizontal & {
+			top: -100vh;
+			bottom: -100vh;
+			height: 100%;
+		}
+		html.appearance-vertical & {
+			left: -100vw;
+			right: -100vw;
+			width: 100%;
+		}
+	}
+	&:not(.pre-paginated):not(:last-child) {
+		html.appearance-ltr & {
+			border-right-width: 0;
+		}
+		html.appearance-rtl & {
+			border-left-width: 0;
+		}
+		html.appearance-vertical & {
+			border-bottom-width: 0;
 		}
 	}
 }
-	div#bibi-slider-spreads,
-	div#bibi-slider-pages,
-	div#bibi-slider-currentpages {
-		div {
+
+
+// - . Item
+// --------------------------------------------------------------------------------
+
+$slider-book-item-divider-style: dotted;
+$slider-book-item-divider-width: 1px;
+$slider-book-item-divider-margin: $slider-book-spread-border-width;
+$slider-book-item-divider-color: rgba(black, .1875);//rgb(234,234,234)
+
+div.bibi-slider-bookmap-item {
+	& {
+		& { // item visualizer
+			background: rgba(white, .8);//linear-gradient(to top, rgba(white, .67) 0, rgba(white, 1) 100%);
+		}
+	}
+	&:not(.pre-paginated),
+	&.pre-paginated:not(.page-spread-left):not(.page-spread-right) {
+		& {
+			@include trbl(0);
+			@include size(100%);
+		}
+	}
+	&.pre-paginated {
+		& {
+			top: 0;
+			bottom: 0;
+			height: 100%;
+		}
+		&.page-spread-left,
+		&.page-spread-right {
+			width: 50%;
+		}
+		&.page-spread-left {
+			left: 0;
+		}
+		&.page-spread-right {
+			right: 0;
+		}
+		+ .pre-paginated:before { // line for pre-paginated divided pages
+			& {
+				display: none;
+				content: "";
+				top: 0;
+				bottom: 0;
+				width: 100%;
+				border: $slider-book-item-divider-style 0 $slider-book-item-divider-color;
+			}
+			html.slider-opened & {
+				display: block;
+				height: calc(100% - #{$slider-book-item-divider-margin * 2});
+			}
+			html.page-ltr & {
+				border-left-width: $slider-book-item-divider-width;
+			}
+			html.page-rtl & {
+				border-right-width: $slider-book-item-divider-width;
+			}
+		}
+	}
+}
+
+
+// - . Page
+// --------------------------------------------------------------------------------
+
+$slider-book-page-rule-width: 1px;
+$slider-book-page-rule-length: $scrollbar-thumb-size * 2;
+$slider-book-page-rule-color: steelblue;//$scrollbar-thumb-background-color;
+$slider-book-page-rule-opacity: .5;
+
+$slider-book-page-background: transparent;//linear-gradient(to top, rgba(desaturate(gold, 100%), .075) 0, rgba(desaturate(gold, 100%), .15) 100%);
+$slider-book-page-background_opened: rgba(steelblue, .125);//linear-gradient(to top, rgba(desaturate(gold, 100%), .075) 0, rgba(desaturate(gold, 100%), .15) 100%);
+
+$slider-book-page-border-width_hover: $slider-book-spread-border-width;
+$slider-book-page-border-color_hover: rgba(steelblue, .25);
+
+div.bibi-slider-bookmap-page {
+	& {
+		& {
+			background: $slider-book-page-background;
+			&:not(:first-child):before {
+				display: none;
+				content: "";
+				background: rgba($slider-book-page-rule-color, $slider-book-page-rule-opacity);
+				html.slider-opened & {
+					display: block;
+				}
+			}
+		}
+		&.hover {
+			//border: solid $slider-book-page-border-width_hover $slider-book-page-border-color_hover;
+			background: $slider-book-page-background_opened;
+		}
+		html.slider-sliding &.hover,
+		&.active {
+			background: $slider-book-page-background !important;
+		}
+		&:after {
+			content: "";
+			html.appearance-horizontal & {
+				@include trbl(-100vh, 0);
+				@include size(100%, $slider-size);
+			}
+			html.slider-opened & {
+				display: none;
+			}
+		}
+	}
+	&:not(.pre-paginated) {
+		html.appearance-horizontal & {
+			height: 100%;
+		}
+		html.appearance-vertical & {
+			width: 100%;
+		}
+		&:not(:first-child):before {
+			& {
+				border-radius: $slider-book-page-rule-width * 0.5;
+			}
+			html.appearance-horizontal & {
+				top: 0;
+				bottom: 0;
+				@include size($slider-book-page-rule-width, $slider-book-page-rule-length);
+			}
+			html.appearance-ltr & {
+				left: $slider-book-page-rule-width * -0.5;
+			}
+			html.appearance-rtl & {
+				right: $slider-book-page-rule-width * -0.5;
+			}
+			html.appearance-vertical & {
+				left: 0;
+				right: 0;
+				top: $slider-book-page-rule-width * -0.5;
+				@include size($slider-book-page-rule-length, $slider-book-page-rule-width);
+			}
+		}
+		&:after {
+			html.appearance-vertical & {
+				@include trbl(0, -100vw);
+				@include size($slider-size, 100%);
+			}
+		}
+	}
+	&.pre-paginated {
+		& {
+			width: 100%;
+			height: 100%;
+		}
+		&:after {
+			html.appearance-vertical & {
+				@include trbl(0, -100vw);
+				@include size($slider-size, 100%);
+			}
+		}
+	}
+}
+
+
+// - . Rail
+// --------------------------------------------------------------------------------
+
+$slider-rail-width_opened: 3px;
+$slider-rail-base-color: rgba(steelblue, .33);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-color: rgba(steelblue, 875);//rgba($scrollbar-thumb-background-color, .5);
+
+div#bibi-slider-rail {
+	& {
+		content: "";
+		overflow: hidden;
+		// display: none; // DO NOT SET `none` !!
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 10000;
+		@include trbl(-100vh, -100vw);
+		margin: auto;
+		background: $slider-rail-base-color;
+	}
+	html.appearance-horizontal & {
+		//@include trbl(auto, auto, $scrollbar-track-size / 2, auto);
+		height: 0;
+	}
+	html.appearance-vertical & {
+		//@include trbl(auto, $scrollbar-track-size / 2, auto, auto);
+		width: 0;
+	}
+	html.slider-opened & {
+		border-radius: $slider-rail-width_opened / 2;
+	}
+	html.slider-opened.appearance-horizontal & {
+		height: $slider-rail-width_opened;
+	}
+	html.slider-opened.appearance-vertical & {
+		width: $slider-rail-width_opened;
+	}
+}
+	div#bibi-slider-rail-progress {
+		& {
+			position: absolute;
+			@include size(100%);
+			background: $slider-rail-progress-color;
+			transition: background-color linear .33s;
+		}
+		div#bibi-slider:hover & {
+			background: transparent;
+		}
+		html.appearance-rtl & {
+			right: 0;
+		}
+		html.appearance-ltr & {
+			left: 0;
+		}
+		html.appearance-vertical & {
+			top: 0;
+		}
+		html.slider-opened & {
+		}
+		html.slider-opened.appearance-horizontal & {
+		}
+		html.slider-opened.appearance-vertical & {
+		}
+	}
+
+
+// - . Thumb
+// --------------------------------------------------------------------------------
+
+$slider-thumb-bar-border-color: transparent;
+$slider-thumb-bar-background: $scrollbar-thumb-background-color;
+$slider-thumb-bar-background_hover: $scrollbar-thumb-background-color_hover;
+$slider-thumb-bar-background_active: $scrollbar-thumb-background-color_active;
+
+$slider-thumb-bar-border-color_opened: rgba(steelblue, .125);
+//$slider-thumb-bar-background_opened: rgba(white, 0) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
+//$slider-thumb-bar-background_opened_hover: rgba(white, .5) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
+$slider-thumb-bar-background_opened: rgba(steelblue, .125);
+$slider-thumb-bar-background_opened_hover: rgba(steelblue, .25);
+$slider-thumb-bar-background_opened_active: rgba(steelblue, .25);//$slider-thumb-bar-background_opened;
+
+$slider-thumb-circle-background_opened: steelblue;//lighten(steelblue, 50%);
+$slider-thumb-circle-size_opened: $scrollbar-thumb-size * 2;
+
+$slider-thumb-circle-border-width_opened: 0;//($slider-thumb-circle-size_opened - $slider-rail-width_opened * 1.5) / 2;
+$slider-thumb-circle-border-color_opened: transparent;//rgba(steelblue, 1);
+
+$slider-thumb-circle-halo-width_opened: 2px;
+$slider-thumb-circle-halo-color_opened: rgba(white, .75);
+
+div#bibi-slider-thumb {
+	& {
+		display: block;
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 100000;
+		margin: auto;
+		border: solid 1px $slider-thumb-bar-border-color;
+		border-radius: $scrollbar-thumb-size * 0.5;
+		background: $slider-thumb-bar-background;
+		transition: background-color .1s linear;
+		cursor: pointer;
+	}
+	html.appearance-horizontal & {
+		top: -100vh;
+		bottom: -100vh;
+		height: $scrollbar-thumb-size;
+		cursor: col-resize;
+	}
+	html.appearance-vertical & {
+		left: -100vw;
+		right: -100vw;
+		width: $scrollbar-thumb-size;
+		cursor: row-resize;
+	}
+	&.hover {
+		background: $slider-thumb-bar-background_hover;
+	}
+	&:active,
+	&.active {
+		background: $slider-thumb-bar-background_active;
+	}
+	html.slider-opened & {
+		border-radius: 1px;//$scrollbar-thumb-size;
+		border-color: $slider-thumb-bar-border-color_opened;
+		background: $slider-thumb-bar-background_opened;
+	}
+	html.slider-opened.appearance-horizontal & {
+		height: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
+	}
+	html.slider-opened.appearance-vertical & {
+		width: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
+	}
+	html.slider-opened &:hover {
+		background: $slider-thumb-bar-background_opened_hover;
+	}
+	html.slider-opened &:active,
+	html.slider-opened &.active {
+		background: $slider-thumb-bar-background_opened_active;
+	}
+	&:before {
+		& {
+			content: "";
 			box-sizing: border-box;
 			display: block;
 			position: absolute;
-			//transition: 0.05s linear;
-			html.view-paged &,
-			html.view-horizontal & {
-				@include trbl(auto, auto, 0, auto);
-				height: 100%;
-			}
-			html.view-vertical & {
-				@include trbl(auto, 0, auto, auto);
-				width: 100%;
-			}
+			z-index: 10;
+			@include trbl(-100%);
+			margin: auto;
+			border-radius: 50%;
+			@include size(0);
+			background: transparent;
+			//transform: scale(0);
+			transition: $slider-transition;
+		}
+		html.slider-opened & {
+			@include size($slider-thumb-circle-size_opened);
+			border: solid $slider-thumb-circle-border-width_opened $slider-thumb-circle-border-color_opened;
+			background: $slider-thumb-circle-background_opened;
+			box-shadow: 0 0 0 $slider-thumb-circle-halo-width_opened $slider-thumb-circle-halo-color_opened;
 		}
 	}
-	div#bibi-slider-spreads {
-		div {
-			z-index: 1;
-			//overflow: hidden;
-			&:before {
-				$length: 1px;
-				$breadth: 4px;
-				$breadth-opened: 8px;
-				content: "";
-				display: block;
-				position: absolute;
-				margin: auto;
-				border-radius: 1px;
-				background: rgba($scrollbar-thumb-background-color, 0.25);
-				opacity: 0;
-				html.view-paged &,
-				html.view-horizontal & {
-					@include trbl(0, auto);
-					width: $length;
-					height: $breadth;
-				}
-				html.view-vertical & {
-					@include trbl(auto, 0);
-					width: $breadth;
-					height: $length;
-				}
-				html.appearance-ltr & {
-					left: $length * -0.5;
-				}
-				html.appearance-rtl & {
-					right: $length * -0.5;
-				}
-				html.appearance-ttb & {
-					top: $length * -0.5;
-				}
-				html.slider-opened.view-paged &,
-				html.slider-opened.view-horizontal & {
-					height: $breadth-opened;
-				}
-				html.slider-opened.view-vertical & {
-					width: $breadth-opened;
-				}
-				//html.view-paged &,
-				html.slider-opened & {
-					opacity: 1;
-				}
-			}
-			&:first-child:before {
-				display: none;
-			}
-			/*
-			html.appearance-rtl & { background: linear-gradient(to left,  $scrollbar-track-border-color, $scrollbar-track-background-color); }
-			html.appearance-ltr & { background: linear-gradient(to right, $scrollbar-track-border-color, $scrollbar-track-background-color); }
-			*/
-			/*
-			&:nth-child(2n) {
-				background: darken($scrollbar-track-background-color, 5%);
-			}
-			*/
-		}
-	}
-	div#bibi-slider-pages {
-		div {
-			z-index: 2;
-			&:before {
-				@include slider-thumb-base();
-				border-color: transparent;
-				background: transparent;
-			}
-			&.hover {
-				&:before {
-					border-color: rgba($scrollbar-thumb-background-color_hover, 0.4);
-					background: rgba(white, 0.5);
-					html.slider-sliding & {
-						border-color: transparent !important;
-						background: transparent !important;
-					}
-				}
-			}
-		}
-	}
-	div#bibi-slider-currentpages {
-	}
-		div#bibi-slider-currentpagebits {
-			z-index: 3;
-			cursor: pointer;
-			&:before, &:after {
-				@include slider-thumb-base();
-				border-color: $scrollbar-thumb-background-color;
-				background: $scrollbar-thumb-background-color;
-				html.slider-opened & {
-					background: rgba($scrollbar-thumb-background-color, 0.5);
-				}
-			}
-			&.hover {
-				&:before, &:after {
-					border-color: $scrollbar-thumb-background-color_hover !important;
-					background: rgba($scrollbar-thumb-background-color_hover, 0.5) !important;
-				}
-			}
-			&:active,
-			&.active {
-				&:before, &:after {
-					border-color: $scrollbar-thumb-background-color_active !important;
-					background: rgba($scrollbar-thumb-background-color_active, 0.5) !important;
-				}
-			}
-			&.two-pages {
-				html.slider-opened & {
-					&:after {
-						content: "";
-						display: block;
-					}
-				}
-				html.slider-opened.view-paged &,
-				html.slider-opened.view-horizontal & {
-					&:before, &:after {
-						width: 50%;
-					}
-				}
-				html.slider-opened.view-vertical & {
-					&:before, &:after {
-						height: 50%;
-					}
-				}
-				html.view-paged.page-ltr &:before,
-				html.view-horizontal.page-ltr &:before,
-				html.view-paged.page-rtl &:after,
-				html.view-horizontal.page-rtl &:after {
-					left:  0;
-				}
-				html.view-paged.page-rtl &:before,
-				html.view-horizontal.page-rtl &:before,
-				html.view-paged.page-ltr &:after,
-				html.view-horizontal.page-ltr &:after {
-					right: 0;
-				}
-				html.view-vertical.page-ltr &:after {
-					top: 0;
-				}
-				html.view-vertical.page-rtl &:after {
-					bottom:  0;
-				}
-				html.slider-opened.page-ltr &:before,
-				html.slider-opened.page-rtl &:after {
-					border-top-right-radius: 0;
-					border-bottom-right-radius: 0;
-				}
-				html.slider-opened.page-rtl &:before,
-				html.slider-opened.page-ltr &:after {
-					border-top-left-radius: 0;
-					border-bottom-left-radius: 0;
-				}
-			}
-		}
+}
 
 
 
@@ -1777,7 +2080,7 @@ div#bibi-arrow-forward {
 	//// Layout
 	& {
 		display: none; html.arrows-active & { display: block; }
-		position: fixed;
+		position: absolute;
 		z-index: $z-index_arrow;
 		margin: auto;
 		line-height: 1;
@@ -1787,15 +2090,13 @@ div#bibi-arrow-forward {
 			position: absolute;
 		}
 		&:before { // icon
-			@include font-icon("ElegantIcons");
+			@include font-icon("Material Icons");
 			z-index: 2;
 			margin: auto;
 			width: $arrow-icon-size;
 			height: $arrow-icon-size;
 			text-align: center;
 			vertical-align: middle;
-			line-height: $arrow-icon-size * .96;
-			text-indent: -.05em;
 			font-size: $arrow-icon-size;
 			border-radius: 50%;
 			color: white;//rgb(96,96,96);
@@ -1870,11 +2171,11 @@ div#bibi-arrow-forward {
 	}
 }
 
-@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing) {
+@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing, $icon-line-height, $icon-indent) {
 	& {
 		#{$dir}: 0;
 		&:before, &:after { transform-origin: $transform-origin; }
-		&:before { content: $icon-code; #{$dir}: $button-group-margin; }
+		&:before { content: $icon-code; #{$dir}: $button-group-margin; line-height: $icon-line-height; text-indent: $icon-indent; }
 		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
 	}
 	&.available.hover, &.available.glowing {
@@ -1885,17 +2186,18 @@ div#bibi-arrow-forward {
 	}
 }
 
-html.appearance-ttb div#bibi-arrow-back {
-	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\32", "\32"); // "\32" arrow_carrot-up // "\e043" arrow_carrot-up_alt
+html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
+	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $arrow-icon-size, -.03em); // chevron_left
 }
 html.appearance-ltr div#bibi-arrow-forward, html.appearance-rtl div#bibi-arrow-back {
-	/* → */ @include arrow-variation( right, 100%  50%, "\35", "\35"); // "\35" arrow_carrot-right // "\e046" arrow_carrot-right_alt
+	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $arrow-icon-size, .03em); // chevron_right
+}
+
+html.appearance-ttb div#bibi-arrow-back {
+	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\e5ce", "\e5ce", $arrow-icon-size * .97, 0); // expand_less
 }
 html.appearance-ttb div#bibi-arrow-forward {
-	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\33", "\33"); // "\33" arrow_carrot-down // "\e044" arrow_carrot-down_alt
-}
-html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
-	/* ← */ @include arrow-variation(  left,   0%  50%, "\34", "\34"); // "\34" arrow_carrot-left // "\e045" arrow_carrot-left_alt
+	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $arrow-icon-size * 1.03, 0); // expand_more
 }
 
 html.appearance-ttb.notifier-shown div#bibi-arrow-back {

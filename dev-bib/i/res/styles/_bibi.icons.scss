@@ -223,6 +223,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 .bibi-icon-open-newwindow {
 	text-decoration: none;
 	&:before {
+		@include font-icon("Material Icons");
 		left: 0;
 		right: 0;
 		top: 0;
@@ -241,61 +242,145 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 
 .bibi-icon-setting {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*touch_app*/ "\e8b8";
-	//	@include font-icon("FontAwesome");
-	//	content: "\f013"; // cog
-	//	font-size: $icon-size * 23/31;
-		@include font-icon("ElegantIcons");
-		content: "\e037"; // icon_cog
-		font-size: $icon-size * 19/31;
+		content: /*touch_app*/ "\e8b8";
+		font-size: $icon-size * 0.75;
 	}
 }
 
 .bibi-icon-share {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*share*/ "\e80d";
-	//	@include font-icon("FontAwesome");
-	//	content: "\f064"; // share
-	//	content: "\f045"; // share-square-o
-	//	content: "\f1e0"; // share-alt
-		@include font-icon("ElegantIcons");
-		content: "\e0a0"; // social_share
-		font-size: $icon-size * 16/31;
+		content: /*share*/ "\e80d";
+		font-size: $icon-size * 20/31;
+		font-weight: bold;
+		html.InternetExplorer & { font-weight: normal; }
 	}
 }
 
 .bibi-icon-toggle-fullscreen {
 	&:before {
-		//@include font-icon("Material Icons");
-		@include font-icon("FontAwesome");
 		.bibi-subpanel & {
-			font-size: $icon-size_in-subpanel * 5/7;
+			font-size: $icon-size_in-subpanel * 0.9;
+			html.InternetExplorer & { top: -.05em; }
 		}
 	}
 	&:before {
-		//content: /*fullscreen*/ "\e5d0";
-		content: "\f065"; // expand
+		content: /*fullscreen*/ "\e5d0";
 	}
 	*:fullscreen &:before {
-		//content: /*fullscreen_exit*/ "\e5d1";
-		content: "\f066"; // compress
+		content: /*fullscreen_exit*/ "\e5d1";
 	}
 }
 
 .bibi-icon-open-newwindow {
 	&:before {
-	//	@include font-icon("Material Icons");
-	//	content: /*open_in_new*/ "\e89e";
-		@include font-icon("FontAwesome");
-		content: "\f08e"; // external-link
+		content: /*open_in_new*/ "\e89e";
 		font-size: $icon-size * 21/31;
 		.bibi-subpanel & {
-			margin-top: .06em;
-			margin-left: .09em;
-			font-size: $icon-size_in-subpanel * 13/21;
+			margin-top: -.025em;
+			font-size: $icon-size_in-subpanel * 16/21;
 		}
+	}
+}
+
+.bibi-icon-font-size {
+	&:before {
+		@include font-icon("Material Icons");
+		display: block;
+		position: absolute;
+		@include trbl(-100%);
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		line-height: 1.1;
+	}
+}
+.bibi-icon-font-size-change {
+	&:before {
+		content: "format_size";
+		font-size: 24px;
+	}
+}
+.bibi-icon-font-size-exlarge,
+.bibi-icon-font-size-large,
+.bibi-icon-font-size-medium,
+.bibi-icon-font-size-small,
+.bibi-icon-font-size-exsmall {
+	&:before {
+		content: "title";
+		font-size: 13px;
+	}
+}
+$bibi-icon-font-size-scaling: 1.44;
+.bibi-icon-font-size-exlarge { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-large   { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-medium  { &:before { transform: rotate(  0deg) scale(1); } }
+.bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+
+.bibi-icon-loupe {
+	&:before, &:after {
+		display: block;
+		position: absolute;
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		line-height: 1;
+	}
+	&:before {
+		@include font-icon("Material Icons");
+		@include trbl(-100%);
+	}
+}
+.bibi-icon-loupe-menu,
+.bibi-icon-loupe-zoomin,
+.bibi-icon-loupe-zoomout,
+.bibi-icon-loupe-reset {
+	&:before {
+		font-size: 26px;
+		line-height: 26px;
+		text-indent: 1px;
+		//font-weight: bold;
+		.bibi-subpanel & {
+			font-size: 22px;
+			line-height: 22px;
+		}
+	}
+}
+.bibi-icon-loupe-menu {
+	&:before {
+		content: /*zoom_in*/ "\e8ff";
+	}
+}
+.bibi-icon-loupe-zoomin {
+	&:before {
+		content: /*zoom_in*/ "\e8ff";
+	}
+}
+.bibi-icon-loupe-zoomout {
+	&:before {
+		content: /*zoom_out*/ "\e900";
+	}
+}
+.bibi-icon-loupe-reset {
+	&:before {
+		content: /*search*/ "\e8b6";
+	}
+	&:after {
+		content: "=";
+		display: block;
+		position: absolute;
+		@include trbl(21%, auto, auto, 24%);
+		margin: auto;
+		width: 1em;
+		height: 1em;
+		font-size: 1em * (13px / 18px);
+		line-height: 1;
+	}
+	html.Windows &:after {
+		@include trbl(27%, auto, auto, 25%);
+	}
+	#bibi-subpanel_loupe &:after {
+		@include trbl(11%, auto, auto, 17%);
 	}
 }
 
@@ -508,27 +593,54 @@ $icon-color_active_border: darken(pink, 5%);
 // - Active
 // --------------------------------------------------------------------------------
 
-.bibi-button.active .bibi-icon {
-	@include colour-icons(
-		$icon-color_active_font-paint,
-		$icon-color_active_font-outline,
-		$icon-color_active_shape-paint,
-		$icon-color_active_shape-outline,
-		$icon-color_active_background,
-		$icon-color_active_border
-	);
-	&:before, &:after {
-		transform: rotate(360deg);
-	}
-	.bibi-subpanel & {
+.bibi-button.active {
+	.bibi-icon {
 		@include colour-icons(
-			$icon-color_active_font-paint_in-subpanel,
-			$icon-color_active_font-outline_in-subpanel,
-			$icon-color_active_shape-paint_in-subpanel,
-			$icon-color_active_shape-outline_in-subpanel,
-			$icon-color_active_background_in-subpanel,
-			$icon-color_active_border_in-subpanel
+			$icon-color_active_font-paint,
+			$icon-color_active_font-outline,
+			$icon-color_active_shape-paint,
+			$icon-color_active_shape-outline,
+			$icon-color_active_background,
+			$icon-color_active_border
 		);
+		&:before, &:after {
+			transform: rotate(360deg);
+		}
+		.bibi-subpanel & {
+			@include colour-icons(
+				$icon-color_active_font-paint_in-subpanel,
+				$icon-color_active_font-outline_in-subpanel,
+				$icon-color_active_shape-paint_in-subpanel,
+				$icon-color_active_shape-outline_in-subpanel,
+				$icon-color_active_background_in-subpanel,
+				$icon-color_active_border_in-subpanel
+			);
+		}
+	}
+	.bibi-icon-font-size-exlarge { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-large   { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-medium  { &:before { transform: rotate(360deg) scale(1); } }
+	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+	.bibi-icon-loupe-zoomin {
+		&:before {
+			html.loupe-with-keys & {
+				transform: rotate(360deg);
+			}
+			html.loupe-pointer-only & {
+				transform: scale(1.5);
+			}
+		}
+	}
+	.bibi-icon-loupe-zoomout {
+		&:before {
+			transform: scale(0.67);
+		}
+	}
+	.bibi-icon-loupe-reset {
+		&:before, &:after {
+			transform: scale(0.67);
+		}
 	}
 }
 
@@ -562,20 +674,36 @@ $icon-color_active_border: darken(pink, 5%);
 }
 
 
+// - Disabled
+// --------------------------------------------------------------------------------
+
+.bibi-button.disabled {
+	.bibi-icon-loupe-zoomin,
+	.bibi-icon-loupe-zoomout,
+	.bibi-icon-loupe-reset {
+		&:before, &:after {
+			opacity: 0.33;
+		}
+	}
+}
+
+
 
 
 // ================================================================================
-// + Font Icons
+// + SNS Icons
 // --------------------------------------------------------------------------------
 
-@mixin fa-icon($content, $color) {
+@mixin SNS-icon($content, $color) {
 	margin-top: .05em;
 	margin-right: -.1em;
+	border: none 0;
+	border-radius: 0;
 	background: transparent !important;
-	font-size: $icon-size * .6;
+	font-size: $icon-size;
 	line-height: $icon-size * .96;
 	.bibi-subpanel & {
-		font-size: $icon-size_in-subpanel * .6;
+		font-size: $icon-size_in-subpanel;
 		line-height: $icon-size_in-subpanel * .96;
 	}
 	&:before, &:after {
@@ -585,28 +713,92 @@ $icon-color_active_border: darken(pink, 5%);
 		box-shadow: none !important;
 	}
 	&:before {
-		@include font-icon("FontAwesome");
+		@include font-icon("Font Awesome Brands");
 		content: $content;
 	}
 }
 
-@mixin fa-icon-SNS($content, $color) {
-	@include fa-icon($content, $color);
-	border: none 0;
-	border-radius: 0;
-	font-size: $icon-size;
-	.bibi-subpanel & {
-		font-size: $icon-size_in-subpanel;
-	}
-}
-
-.bibi-icon-Twitter    { @include fa-icon-SNS("\f081", rgb(29,161,242)); }
-.bibi-icon-Facebook   { @include fa-icon-SNS("\f082", rgb(58,89,153)); }
-.bibi-icon-GooglePlus { @include fa-icon-SNS("\f0d4", rgb(219,68,55)); }
-
-.bibi-icon-code       { @include fa-icon("\f121", rgb(128,160,0)); } 
-.bibi-icon-anchor     { @include fa-icon("\f13d", navy); }
+.bibi-icon-Twitter    { @include SNS-icon("\f081", rgb( 29,161,242)); }
+.bibi-icon-Facebook   { @include SNS-icon("\f082", rgb( 58, 89,153)); }
+.bibi-icon-GooglePlus { @include SNS-icon("\f0d4", rgb(219, 68, 55)); }
 
 .bibi-icon-colorless  { &:before { color: inherit; } }
+
+
+
+
+// ================================================================================
+// + Book Icon
+// --------------------------------------------------------------------------------
+
+@mixin book-icon($icon-size) {
+	box-sizing: border-box;
+	display: block;
+	position: relative;
+	@include size($icon-size);
+	&:before,
+	&:after,
+	span,
+	span:before,
+	span:after {
+		content: "";
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+	}
+	$line-width: $icon-size * 8/128;
+	$book-width: $icon-size - $line-width * 2.5;
+	$book-height: $icon-size;
+	$cover-width: $book-width - $line-width * 2;
+	$cover-height: $book-height - $line-width * 4;
+	$page-breadth: $book-height - $line-width - $cover-height;
+	$book-breadth: $page-breadth + $line-width * 2;
+	$left: ($icon-size - $book-width) * 0.5 - $line-width * 0.5;
+	$top: 0;
+	$outer-color: white;
+	$inner-color: rgb(136,136,136);
+	&:before {
+	}
+	span {
+		// Back Cover
+		z-index: 10;
+		left: $left;
+		top: $top;
+		border-radius: ($book-breadth * 0.5) $line-width $line-width 0;
+		width: $cover-width + $line-width * 2;
+		height: $icon-size - $line-width * 3;
+		background: $outer-color;
+		&:before {
+			// Pages
+			z-index: 100;
+			left: ($book-breadth * 0.5);
+			top: $line-width;
+			border-radius: 0 2px $line-width * 3.5 0;
+			width: $cover-width - ($line-width + $page-breadth * 0.5) + $line-width;
+			height: $icon-size - $line-width;
+			background: $inner-color;
+		}
+		&:after {
+			// Top of Spine
+			z-index: 1000;
+			left: $line-width;
+			top: $line-width;
+			border-radius: ($page-breadth * 0.5) 0 0 ($page-breadth * 0.5);
+			width: $page-breadth;// * 0.5;
+			height: $page-breadth;
+			background: $inner-color;
+		}
+	}
+	&:after {
+		// Front Cover
+		z-index: 10000;
+		left: $left;
+		top: $top + ($icon-size - $cover-height);
+		border-radius: 0 $line-width $line-width ($book-breadth * 0.5);
+		width: $cover-width;
+		height: $cover-height;
+		background: $outer-color;
+	}
+}
 
 

@@ -9,7 +9,7 @@
 html {
 	overflow: hidden; &.welcome { overflow: scroll !important; }
 	position: absolute; // for InAppBrowsers
-	@include trbl(0); // for InAppBrowsers
+	@include trbl(0,0,auto); // for InAppBrowsers
 	width: 100%;
 	height: 100%;
 	font-family: sans-serif;
@@ -18,11 +18,13 @@ html {
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	background: $bibi-background;/*
+	background: $html-background;//$html-background;
+	/*
 	&[data-bibi-cursor="left"]   { cursor: w-resize; }
 	&[data-bibi-cursor="right"]  { cursor: e-resize; }
 	&[data-bibi-cursor="top"]    { cursor: n-resize; }
-	&[data-bibi-cursor="bottom"] { cursor: s-resize; }*/
+	&[data-bibi-cursor="bottom"] { cursor: s-resize; }
+	*/
 	&[data-bibi-cursor="left"],
 	&[data-bibi-cursor="right"],
 	&[data-bibi-cursor="top"],
@@ -35,11 +37,12 @@ body {
 		-webkit-tap-highlight-color: rgba(255,255,255,0);
 		-webkit-tap-highlight-color: transparent;
 	}
-	//position: absolute;
-	//@include trbl(0);
+	position: absolute;
+	@include trbl(0,0,auto);
 	overflow: hidden;
 	width: 100%;
 	height: 100%;
+	//max-height: 150vw;
 	background: transparent no-repeat center center;
 	transition: opacity .25s ease;
 }
@@ -63,7 +66,9 @@ html.WebKit, html.Blink {
 			background: $scrollbar-thumb-background-color_active;
 		}
 	}
-	&.zoomed-in {
+	&.touch,
+	&.zoomed-in,
+	&.slider-opened {
 		::-webkit-scrollbar { // scrollbar
 			height: 0;
 			width: 0;
@@ -86,7 +91,7 @@ html.WebKit, html.Blink {
 		body:after { // scrollbar border
 			content: "";
 			display: block;
-			position: fixed;
+			position: absolute;
 			z-index: $z-index_scrollbar;
 			margin: auto;
 			background: $scrollbar-track-border-color;
@@ -117,7 +122,7 @@ html.WebKit, html.Blink {
 			height: 100%;
 		}
 	}
-	&.iOS, &.Android {
+	&.touch {
 		body:after { // scrollbar border
 			display: none !important;
 		}
@@ -148,23 +153,39 @@ div#epub-metafiles * {
 // --------------------------------------------------------------------------------
 
 div#bibi-main {
-	-webkit-overflow-scrolling: touch;
-	overflow: hidden;
-	box-sizing: border-box;
-	//padding: 35px 0;
-	//transition: .2s ease-out;
-	position: absolute;
-	z-index: $z-index_main;
-	@include trbl(0);
-	padding-top: $top-bar-height;
-	width: 100%;
-	height: 100%;
-	transition: .15s ease;
-	transform-origin: 0 0;
-	will-change: scroll-position, transform, opacity;
-	html.book-full-height & { padding-top: 0; }
-	html.view-horizontal & { overflow-x: scroll; }
-	html.view-vertical   & { overflow-y: scroll; }
+	& {
+		-webkit-overflow-scrolling: touch;
+		box-sizing: border-box;
+		//padding: 35px 0;
+		//transition: .2s ease-out;
+		position: absolute;
+		z-index: $z-index_main;
+		@include trbl(-100vh, -100vw);
+		margin: auto;
+		@include size(100%, 100%);
+		background: $main-background;
+		transition:
+			opacity .15s ease,
+			transform .15s ease;
+		transform-origin: 50% 50%;
+		will-change: scroll-position, opacity, transform;
+	}
+	html.book-full-height & {
+	}
+	html:not(.book-full-height) & {
+		padding-top: $top-bar-height;
+	}
+	html.view-paged & {
+		overflow: hidden;
+	}
+	html.view-horizontal & {
+		overflow-x: scroll;
+		overflow-y: hidden;
+	}
+	html.view-vertical & {
+		overflow-x: hidden;
+		overflow-y: scroll;
+	}
 	html.laying-out & {
 		opacity: 0;
 	}
@@ -176,8 +197,10 @@ div#bibi-main {
 	html.panel-opened & {
 		opacity: 0.75;
 	}*/
-	html.slider-opened & {
+	html.subpanel-opened & {
 		opacity: 0.75;
+	}
+	html.slider-opened & {
 	}/*
 	html.page-ltr.flipping-ahead &,
 	html.page-rtl.flipping-astern & {
@@ -191,6 +214,7 @@ div#bibi-main {
 	}*/
 }
 	div#bibi-main-book {
+		//box-sizing: border-box;
 		position: relative;
 		z-index: $z-index_main-book;
 		width: 100%;
@@ -207,6 +231,7 @@ div#bibi-main {
 			html.spread-rtl & { float: right; }
 			//html.dragging &,
 			//html.loupe-active &,
+			/*
 			html.swipe-active &.image-spread-box {
 				&:after {
 					content: "";
@@ -216,6 +241,7 @@ div#bibi-main {
 					@include trbl(0); margin: 0; width: 100%; height: 100%;
 				}
 			}
+			*/
 			//&.non-linear-spread-box { display: none; }
 		}
 			div.spread {
@@ -228,6 +254,14 @@ div#bibi-main {
 				&.pre-paginated { background: transparent; }
 				html.view-paged & { box-shadow: none !important; }
 				//&.non-linear-spread { display: none; }
+				html.book-pre-paginated.view-paged & {
+					&.not-current {
+						visibility: hidden;
+					}
+					&.current {
+						visibility: visible;
+					}
+				}
 			}
 				div.item-box {
 					display: block;
@@ -237,9 +271,11 @@ div#bibi-main {
 					div.spread-box.pre-paginated &.page-spread-left  { float: left;  }
 					div.spread-box.pre-paginated &.page-spread-right { float: right; }
 					html.book-pre-paginated.view-paged & {
-						//transition: opacity 0.05s linear;
-						opacity: 0.25;
-						//filter: blur(2px);
+						//transition: opacity .2s linear;
+						&.not-current {
+							opacity: 0.4;
+							//filter: blur(2px);
+						}
 						&.current {
 							opacity: 1;
 							//filter: none;
@@ -333,7 +369,7 @@ div#bibi-main {
 							background: rgba(255,255,255,0.69);
 						}
 						&:after {
-							@include font-icon("Material Icons");
+							@include font-icon("Materia lIcons");
 							content: /*open_in_browser*/ "\e89d";
 							z-index: 100;
 							line-height: 50px;
@@ -345,7 +381,7 @@ div#bibi-main {
 
 div#bibi-sub {
 	box-sizing: border-box;
-	position: fixed;
+	position: absolute;
 	z-index: $z-index_sub;
 	top: 0;
 	bottom: 0;
