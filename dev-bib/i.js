@@ -8,8 +8,9 @@
  */
 
 (function() {
+    'use strict';
     if(window["bibi:pipi"]) return;
-    var Pipi = window["bibi:pipi"] = { "version": "____bibi-version____", "build": "____bibi-build____",
+    const Pipi = window["bibi:pipi"] = { "version": "____bibi-version____", "build": "____bibi-build____",
         Status: "",
         Bibis: [],
         Anchors: [],
@@ -20,26 +21,27 @@
     };
     Pipi.Path = (function() {
         if(document.currentScript) return document.currentScript.src;
-        var Scripts = document.getElementsByTagName("script");
+        const Scripts = document.getElementsByTagName("script");
         return Scripts[Scripts.length - 1].src;
     })();
     Pipi.embed = function() {
         Pipi.Status = "Started";
-        var As = document.body.querySelectorAll('a[data-bibi]');
-        for(var L = As.length, i = 0; i < L; i++) if(As[i].getAttribute("href") && !As[i].Bibi) {
+        const As = document.body.querySelectorAll('a[data-bibi]');
+        for(let l = As.length, i = 0; i < l; i++) {
+            if(!As[i].getAttribute("href") || As[i].Bibi) continue;
             // Bibi Object
-            var Bibi = { Index: i, Number: i + 1 };
+            const Bibi = { Index: i, Number: i + 1 };
             // Anchor
-            var Anchor = Bibi.Anchor = As[i];
+            const Anchor = Bibi.Anchor = As[i];
             if(!/ bibi-anchor /.test(" " + Anchor.className + " ")) Anchor.className = "bibi-anchor" + (Anchor.className ? " " + Anchor.className : "");
             if(Anchor.origin != location.origin) Pipi.TrustworthyOrigins.push(Anchor.origin);
             Anchor.addEventListener("bibi:loaded", function(Eve) { console.log("BiB/i: Loaded. - #" + Eve.detail.Number + ": " + Eve.detail.Anchor.href); }, false);
             Pipi.Anchors.push(Anchor);
             // Holder
-            var BibiClass  = Anchor.getAttribute("data-bibi-class");
-            var BibiID     = Anchor.getAttribute("data-bibi-id");
-            var BibiStyle  = Anchor.getAttribute("data-bibi-style");
-            var Holder = Bibi.Holder = Pipi.create("span", {
+            const BibiClass  = Anchor.getAttribute("data-bibi-class");
+            const BibiID     = Anchor.getAttribute("data-bibi-id");
+            const BibiStyle  = Anchor.getAttribute("data-bibi-style");
+            const Holder = Bibi.Holder = Pipi.create("span", {
                 className: "bibi-holder" + (BibiClass ? " " + BibiClass : ""),
                 id: (BibiID ? BibiID : "bibi-holder-" + (i + 1)),
                 title: (Anchor.innerText ? Anchor.innerText + " " : "") + "(powered by BiB/i)"
@@ -47,7 +49,7 @@
             if(BibiStyle) Holder.setAttribute("style", BibiStyle);
             Pipi.Holders.push(Holder);
             // Fragments
-            var Fragments = new Pipi.Fragments();
+            const Fragments = new Pipi.Fragments();
             Fragments.add("parent-title",      document.title);
             Fragments.add("parent-uri",        location.href);
             Fragments.add("parent-origin",     location.origin);
@@ -57,26 +59,23 @@
             [
                 "to",
                 "nav",
-                "reader-view-mode",
-                "fix-reader-view-mode",
-                "single-page-always",
                 "autostart", "autostart-embedded",
+                "fix-reader-view-mode",
+                "preprocess-html-always",
+                "reader-view-mode",
+                "single-page-always",
                 "start-in-new-window", "start-embedded-in-new-window",
-                "use-full-height",
-                "use-menubar",
-                "use-font-size-changer",
-                "use-loupe",
-                "use-nombre",
-                "use-slider",
                 "use-arrows",
+                "use-font-size-changer",
+                "use-full-height",
                 "use-keys",
-                "use-swipe",
-                "use-cookie",
-                "preprocess-html-always"
+                "use-loupe",
+                "use-menubar", //"place-menubar-at-top",
+                "use-nombre"
             ].forEach(function(PresetKey) {
-                var PresetValue = Anchor.getAttribute("data-bibi-" + PresetKey);
+                const PresetValue = Anchor.getAttribute("data-bibi-" + PresetKey);
                 if(!PresetValue) return;
-                var RE;
+                let RE;
                 switch(PresetKey) {
                     case "to":               RE =                      /^[1-9][\d\-\.]*$/; break;
                     case "nav":              RE =                            /^[1-9]\d*$/; break;
@@ -87,8 +86,8 @@
                 if(RE.test(PresetValue)) Fragments.add(PresetKey, PresetValue);
             });
             // Frame
-            var BibiSrc = Anchor.getAttribute("href");
-            var Frame = Bibi.Frame = Holder.appendChild(
+            const BibiSrc = Anchor.getAttribute("href");
+            const Frame = Bibi.Frame = Holder.appendChild(
                 Pipi.create("iframe", {
                     className: "bibi-frame",
                     frameborder: "0",
@@ -111,9 +110,9 @@
             Frame.Bibi = Holder.Bibi = Anchor.Bibi = Bibi;
         }
         // Put
-        for(var i = 0, L = Pipi.Bibis.length; i < L; i++) {
+        for(let l = Pipi.Bibis.length, i = 0; i < l; i++) {
             if(Pipi.Bibis[i].Embedded) continue;
-            var Bibi = Pipi.Bibis[i];
+            const Bibi = Pipi.Bibis[i];
             Bibi.move = function(Distance) {
                 if(typeof Target != "number") return;
                 this.Frame.contentWindow.postMessage('{"bibi:commands:move":"' + Distance + '"}', this.Anchor.origin);
@@ -144,8 +143,8 @@
     };
     Pipi.encode = function(Str) { return encodeURIComponent(Str).replace("(", "_BibiKakkoOpen_").replace(")", "_BibiKakkoClose_"); };
     Pipi.create = function(TagName, Properties) {
-        var Ele = document.createElement(TagName);
-        for(var Attribute in Properties) Ele[Attribute] = Properties[Attribute];
+        const Ele = document.createElement(TagName);
+        for(let Attribute in Properties) Ele[Attribute] = Properties[Attribute];
         return Ele;
     };
     Pipi.Fragments = function() {
@@ -157,17 +156,16 @@
         };
         this.make = function() {
             if(!this.FragmentKeys.length) return "";
-            for(var Fragments = [], l = this.FragmentKeys.length, i = 0; i < l; i++) {
-                Fragments.push(this.FragmentKeys[i] + ":" + Pipi.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]));
-            }
-            return "pipi(" + this.Fragments.join(",") + ")";
+            const Fragments = [];
+            for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(this.FragmentKeys[i] + ":" + Pipi.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]));
+            return "pipi(" + Fragments.join(",") + ")";
         };
         return this;
     };
     if(!window.CustomEvent || (typeof window.CustomEvent !== "function") && (window.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
         window.CustomEvent = function(EventName, Arguments) {
             Arguments = Arguments || { bubbles: false, cancelable: false, detail: undefined };
-            var Eve = document.createEvent("CustomEvent");
+            const Eve = document.createEvent("CustomEvent");
             Eve.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
             return Eve;
         };
@@ -175,13 +173,13 @@
     }
     window.addEventListener("message", function(Eve) {
         if(!Eve || !Eve.data) return;
-        for(var i = 0, L = Pipi.TrustworthyOrigins.length; i < L; i++) {
+        for(let l = Pipi.TrustworthyOrigins.length, i = 0; i < l; i++) {
             if(Eve.origin != Pipi.TrustworthyOrigins[i]) continue;
-            var Data = Eve.data;
+            let Data = Eve.data;
             try {
                 Data = JSON.parse(Data);
                 if(typeof Data != "object" || !Data) return false;
-                for(var EventName in Data) if(/^bibi:commands:/.test(EventName)) document.dispatchEvent(new CustomEvent(EventName, { detail: Data[EventName] }));
+                for(let EventName in Data) if(/^bibi:commands:/.test(EventName)) document.dispatchEvent(new CustomEvent(EventName, { detail: Data[EventName] }));
                 return true;
             } catch(Err) {}
             return false;

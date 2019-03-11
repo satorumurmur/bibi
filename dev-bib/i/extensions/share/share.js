@@ -18,22 +18,19 @@ Bibi.x({
 
     'use strict';
 
-    const ShareButtonGroup = I.createButtonGroup({ Area: I.Menu.R, Sticky: true });
-
-    // Share
-    const ShareButton = ShareButtonGroup.addButton({
-        Type: "toggle",
-        Labels: {
-            default: { default: 'Share', ja: 'シェア' },
-            active:  { default: 'Close Share-Menu', ja: 'シェアメニューを閉じる' }
-        },
-        Help: true,
-        Icon: '<span class="bibi-icon bibi-icon-share"></span>'
-    });
+    I.Sharer = {};
 
     // Share SubPanel
     const ShareSubPanel = I.createSubPanel({
-        Opener: ShareButton,
+        Opener: I.createButtonGroup({ Area: I.Menu.R, Sticky: true }).addButton({
+            Type: "toggle",
+            Labels: {
+                default: { default: 'Share', ja: 'シェア' },
+                active:  { default: 'Close Share-Menu', ja: 'シェアメニューを閉じる' }
+            },
+            Help: true,
+            Icon: '<span class="bibi-icon bibi-icon-share"></span>'
+        }),
         id: "bibi-subpanel_share",
         open: function() {
             sML.each(this.querySelectorAll(".parent-title"), function() {
@@ -57,7 +54,7 @@ Bibi.x({
             return "";
         }
     });
-    const getButtonObject = function(ParentOrBook, SNS, onclick) {
+    const getShareButton = function(ParentOrBook, SNS, onclick) {
         const ButtonObject = {
             Type: "link",
             Labels: { default: { default: SNS } },
@@ -90,9 +87,9 @@ Bibi.x({
             ButtonGroup: {
                 Tiled: true,
                 Buttons: [
-                    getButtonObject("Parent", "Twitter"),
-                    getButtonObject("Parent", "Facebook"),
-                    getButtonObject("Parent", "Google+")
+                    getShareButton("Parent", "Twitter"),
+                    getShareButton("Parent", "Facebook"),
+                    getShareButton("Parent", "Google+")
                 ]
             }
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "parent-title" }));
@@ -103,15 +100,15 @@ Bibi.x({
             ButtonGroup: {
                 Tiled: true,
                 Buttons: [
-                    getButtonObject("Book", "Twitter"),
-                    getButtonObject("Book", "Facebook"),
-                    getButtonObject("Book", "Google+")
+                    getShareButton("Book", "Twitter"),
+                    getShareButton("Book", "Facebook"),
+                    getShareButton("Book", "Google+")
                 ]
             }
         }).querySelector(".bibi-h-label").appendChild(sML.create("small", { className: "book-title" }));
     }
     /*
-    if(X.Presets.Share["allow-embedding-in-other-webpages"]) {
+    if(S["allow-embedding-in-other-webpages"]) {
         const EmbedCode = [
             '<a href="' + O.RequestedURL + '" data-bibi="embed">' + (U["parent-bibi-label"] ? U["parent-bibi-label"] : document.title) + '</a>',
             '<script src="' + (U["parent-pipi-path"] ? U["parent-pipi-path"] : O.RootPath.replace(/\/$/, ".js")) + '"></script>'

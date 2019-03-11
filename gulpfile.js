@@ -177,11 +177,11 @@ gulp.task('update: bower_components', function() {
 });
 
 S.makeBowerComponents = function(Param) {
-    if(!Param.replace) Param.replace = ['', ''];
+    if(!Param.replacement) Param.replacement = ['', ''];
     return gulp.src(Param.src, Param.srcOption)
         .pipe($.plumber(S.ForPlumber))
         .pipe($.concat(Param.dist))
-        .pipe($.replace(Param.replace[0], Param.replace[1]))
+        .pipe($.replace(Param.replacement[0], Param.replacement[1]))
         .pipe($.uglify({ output: { comments: /^!/ } }))
         .pipe(gulp.dest(Param.dest || '.'));
 };
@@ -207,7 +207,7 @@ S.task('update: bower_components.js for bibi', function() {
     return S.makeBowerComponents({
         src: S.BowerComponents['bibi'],
         dist: 'dev-bib/i/res/scripts/_/bower_components.js',
-        replace: [/(\/\/ -+\n\/\/ easing\.js v[\d\.]+\n(\/\/ [^\n]+\n)+)/, '/*!\n$1*/']
+        replacement: [/(\/\/ -+\n\/\/ easing\.js v[\d\.]+\n(\/\/ [^\n]+\n)+)/, '/*!\n$1*/']
     });
 }, _TaskSet);
 
@@ -222,7 +222,7 @@ S.task('update: bower_components.js for zine', function() {
     return S.makeBowerComponents({
         src: S.BowerComponents['zine'],
         dist: 'dev-bib/i/extensions/zine/_/bower_components.js',
-        replace: [/\/\*( *js-yaml *.+? *)\*\//, '/*!$1*/']
+        replacement: [/\/\*( *js-yaml *.+? *)\*\//, '/*!$1*/']
     });
 }, _TaskSet);
 

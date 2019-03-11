@@ -38,21 +38,20 @@ Bibi.Preset = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "use-menubar"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
+//"place-menubar-at-top"         : "no", // "yes" or "no" or "desktop" or "mobile"
+"use-full-height"              : "yes", // "yes" or "no" or "desktop" or "mobile"
+
 "use-font-size-changer"        : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-loupe"                    : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe is not works with touch-devices. To set "yes" or "mobile" is NOT recommended.)
+"use-loupe"                    : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
 "use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-slider"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
-"use-swipe"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "base-font-size"               : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"     : 1.25, // Number of scale
 "loupe-max-scale"              : 4, // Number of scale
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
-
-"use-full-height"              : "yes", // "yes" or "no" or "desktop" or "mobile".
 
 "flipper-width"                : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
 
