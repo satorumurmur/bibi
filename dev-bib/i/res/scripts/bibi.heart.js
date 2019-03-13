@@ -1317,13 +1317,18 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
             A.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
             A.addEventListener(O["pointerup"],   function(Eve) { Eve.stopPropagation(); });
         }
-        let HrefPathInSource = A.getAttribute("href");
+        let HrefPathInSource = A.getAttribute("href"), HrefAttribute = "href";
         if(!HrefPathInSource) {
-            if(InNav) {
-                A.addEventListener("click", function(Eve) { Eve.preventDefault(); Eve.stopPropagation(); return false; });
-                A.classList.add("bibi-bookinfo-inactive-link");
+            HrefPathInSource = A.getAttribute("xlink:href");
+            if(HrefPathInSource) {
+                HrefAttribute = "xlink:href";
+            } else {
+                if(InNav) {
+                    A.addEventListener("click", function(Eve) { Eve.preventDefault(); Eve.stopPropagation(); return false; });
+                    A.classList.add("bibi-bookinfo-inactive-link");
+                }
+                return;
             }
-            return;
         }
         if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
             if(HrefPathInSource.split("#")[0] == location.href.split("#")[0]) {
@@ -1340,7 +1345,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         R.Items.forEach(function(rItem) {
             if(HrefFile == rItem.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
-                A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + HrefPath);
+                A.setAttribute(HrefAttribute, B.Path + "/" + HrefPath);
                 A.InNav = InNav;
                 A.Destination = {
                     Item: rItem,
@@ -1353,12 +1358,12 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
             A.setAttribute("data-bibi-original-href", HrefPathInSource);
             if(X["EPUBCFI"]) {
-                A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + "#" + HrefHash);
+                A.setAttribute(HrefAttribute, B.Path + "/#" + HrefHash);
                 A.InNav = InNav;
                 A.Destination = X["EPUBCFI"].getDestination(HrefHash);
                 L.postprocessItem.coordinateLinkages.setJump(A);
             } else {
-                A.removeAttribute("href");
+                A.removeAttribute(HrefAttribute);
                 A.addEventListener("click", function() { return false; });
                 if(!O.Mobile) {
                     A.addEventListener(O["pointerover"], function() { I.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)"); return false; });
