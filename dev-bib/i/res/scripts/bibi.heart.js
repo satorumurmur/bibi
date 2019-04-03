@@ -521,6 +521,7 @@ L.processPackageDocument = function(Doc) {
             B.Package.Metadata[Meta.getAttribute("name")] = Meta.getAttribute("content");
         }
     });
+    B.IsOMF = B.Package.Metadata["omf:version"] ? true : false;
     const XMLNS_DC = Metadata.getAttribute("xmlns:dc");
     if(!B.Package.Metadata["identifier"])                      O.forEach(Doc.getElementsByTagNameNS(XMLNS_DC, "identifier"), function(DCI) { B.Package.Metadata["identifier"] = DCI.textContent; });
     if(!B.Package.Metadata["identifier"])                      B.Package.Metadata["identifier"] = O.BookURL;
@@ -530,7 +531,7 @@ L.processPackageDocument = function(Doc) {
     if(!B.Package.Metadata["languages" ].length)               O.forEach(Doc.getElementsByTagNameNS(XMLNS_DC, "language"),   function(DCL) { B.Package.Metadata["languages" ].push(DCL.textContent); });
     if(!B.Package.Metadata["languages" ].length)               B.Package.Metadata["languages"][0] = "en";
     if(!B.Package.Metadata["cover"])                           B.Package.Metadata["cover"]                 = "";
-    if(!B.Package.Metadata["rendition:layout"])                B.Package.Metadata["rendition:layout"]      = "reflowable";
+    if(!B.Package.Metadata["rendition:layout"])                B.Package.Metadata["rendition:layout"]      = B.IsOMF ? "pre-paginated" : "reflowable";
     if(!B.Package.Metadata["rendition:orientation"])           B.Package.Metadata["rendition:orientation"] = "auto";
     if(!B.Package.Metadata["rendition:spread"])                B.Package.Metadata["rendition:spread"]      = "auto";
     if( B.Package.Metadata["rendition:orientation"] == "auto") B.Package.Metadata["rendition:orientation"] = "portrait";
