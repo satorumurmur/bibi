@@ -1108,7 +1108,10 @@ div#bibi-menu {
 	html.book-full-height.menu-opened &,
 	html.menu-opened &,
 	html.subpanel-opened & {
-		border-bottom-color: rgba(black, 0.05);
+		border-bottom-color: rgba(black, .05);
+	}
+	html.menu-opened.slider-opened & {
+		border-bottom-color: rgba(black, .125);
 	}
 	html:not(.book-full-height) & {
 		background-color: rgba(white, 1);
@@ -1763,7 +1766,8 @@ div.bibi-slider-bookmap-item {
 			@include size(100%);
 		}
 	}
-	&.pre-paginated {
+	div.bibi-slider-bookmap-spread.spreaded &.pre-paginated,
+	div.bibi-slider-bookmap-spread.not-spreaded.paired-items.horizontal &.pre-paginated {
 		& {
 			top: 0;
 			bottom: 0;
@@ -1797,6 +1801,44 @@ div.bibi-slider-bookmap-item {
 			}
 			html.page-rtl & {
 				border-right-width: $slider-book-item-divider-width;
+			}
+		}
+	}
+	div.bibi-slider-bookmap-spread.not-spreaded.single-item &.pre-paginated {
+		& {
+			@include trbl(0);
+			width: 100%;
+			height: 100%;
+		}
+	}
+	div.bibi-slider-bookmap-spread.not-spreaded.paired-items.vertical &.pre-paginated {
+		& {
+			left: 0;
+			right: 0;
+			width: 100%;
+			height: 50%;
+		}
+		html.page-rtl &.page-spread-right,
+		html.page-ltr &.page-spread-left {
+			top: 0;
+		}
+		html.page-rtl &.page-spread-left,
+		html.page-ltr &.page-spread-right {
+			bottom: 0;
+		}
+		+ .pre-paginated:before { // line for pre-paginated divided pages
+			& {
+				display: none;
+				content: "";
+				top: 0;
+				bottom: 0;
+				height: 100%;
+				border: $slider-book-item-divider-style 0 $slider-book-item-divider-color;
+				border-top-width: $slider-book-item-divider-width;
+			}
+			html.slider-opened & {
+				display: block;
+				width: calc(100% - #{$slider-book-item-divider-margin * 2});
 			}
 		}
 	}
@@ -2023,8 +2065,8 @@ div#bibi-slider-thumb {
 	}
 	html.slider-opened & {
 		border-radius: 1px;//$scrollbar-thumb-size;
-		border-color: $slider-thumb-bar-border-color_opened;
-		background: $slider-thumb-bar-background_opened;
+		border-color: transparent;//$slider-thumb-bar-border-color_opened;
+		background: transparent;//$slider-thumb-bar-background_opened;
 	}
 	html.slider-opened.appearance-horizontal & {
 		height: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
@@ -2033,11 +2075,11 @@ div#bibi-slider-thumb {
 		width: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
 	}
 	html.slider-opened &:hover {
-		background: $slider-thumb-bar-background_opened_hover;
+		background: transparent;//$slider-thumb-bar-background_opened_hover;
 	}
 	html.slider-opened &:active,
 	html.slider-opened &.active {
-		background: $slider-thumb-bar-background_opened_active;
+		background: transparent;//$slider-thumb-bar-background_opened_active;
 	}
 	&:before {
 		& {

@@ -219,6 +219,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 
 .bibi-icon-setting,
 .bibi-icon-share,
+.bibi-icon-full-breadth-layout,
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow {
 	text-decoration: none;
@@ -253,6 +254,16 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 		font-size: $icon-size * 20/31;
 		font-weight: bold;
 		html.InternetExplorer & { font-weight: normal; }
+	}
+}
+
+.bibi-icon-full-breadth-layout {
+	&:before {
+		content: /*settings_overscan*/ "\e8c4";
+		font-size: $icon-size * 0.5;
+		.bibi-subpanel & {
+			line-height: $icon-size_in-subpanel * .95238;
+		}
 	}
 }
 
