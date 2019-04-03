@@ -435,7 +435,7 @@ L.loadBook = function(BookData, BookDataMeta) {
                 if(!MIMETypeREs["EPUB"].test(BookData.type) && !MIMETypeREs["Zine"].test(BookData.type)) MIMETypeError = true;
                 FileOrData = "Data";
             }
-            if(MIMETypeError) return reject('BiB/i Can Not Open This Type of File.');
+            if(MIMETypeError)  return reject('BiB/i Can Not Open This Type of File.');
             if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
             X.Unzipper.loadBookData(BookData).then(function(ContentLog) {
                      if(S["book-type"] == "EPUB") resolve("an Zipped EPUB " + FileOrData);
@@ -1989,13 +1989,10 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         }
         if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
     }
-    //const SO /*= ScaleOptimizing*/ = 1 / Scale;
     PageL = Math.floor(ItemRef["viewport"][S.CC.L.SIZE.l] * Scale);
     PageB = Math.floor(ItemRef["viewport"][S.CC.L.SIZE.b] * (PageL / ItemRef["viewport"][S.CC.L.SIZE.l]));
     ItemBox.style[S.CC.L.SIZE.l] = PageL      + "px";
     ItemBox.style[S.CC.L.SIZE.b] = PageB      + "px";
-    //   Item.style[S.CC.L.SIZE.l] = PageL * SO + "px";
-    //   Item.style[S.CC.L.SIZE.b] = PageB * SO + "px";
        Item.style[S.CC.L.SIZE.l] = Item.style[S.CC.L.SIZE.b] = "100%";
     const TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
@@ -2003,7 +2000,6 @@ R.resetItem.asPrePaginatedItem = function(Item) {
         "height": ItemRef["viewport"].height + "px",
         "transform-origin": TransformOrigin,
         "transformOrigin": TransformOrigin,
-        //"transform": "scale(" + (Scale * SO) + ")"
         "transform": "scale(" + Scale + ")"
     });/*
     sML.style(Item, {
@@ -2482,8 +2478,8 @@ R.focusOn.hatchDestination = function(Destination) { // from Page, Element, or E
             Destination = X["EPUBCFI"].getDestination(Destination);
         }
     } else if(Destination.tagName) {
-             if(typeof Destination.PageIndex   == "number") Destination = { Page: Destination };
-        else if(typeof Destination.ItemIndex   == "number") Destination = { Item: Destination };
+             if(typeof Destination.PageIndex   == "number") Destination = { Page:   Destination };
+        else if(typeof Destination.ItemIndex   == "number") Destination = { Item:   Destination };
         else if(typeof Destination.SpreadIndex == "number") Destination = { Spread: Destination }; 
         else Destination = { Element: Destination };
     }
@@ -3614,6 +3610,7 @@ I.createLoupe = function() {
 
     if(S["use-loupe"]) I.createLoupe.createUI();
     E.dispatch("bibi:created-loupe");
+
 };
 
 
@@ -5280,7 +5277,10 @@ S.update = function(Settings) {
     S.ARA = S["apparent-reading-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 
     // Dictionary
-    S.CC = { L: S.getCC(S.SLA, S.PPD), A: S.getCC(S.ARA, S.PPD) };             
+    S.CC = {
+        L: S.getCC(S.SLA, S.PPD), // for "L"ayout-Direction
+        A: S.getCC(S.ARA, S.PPD)  // for "A"pparent-Direction
+    };             
 
     // Root Class
     if(PrevBRL != S.BRL) O.replaceClass(O.HTML, "book-"       + PrevBRL, "book-"       + S.BRL);
