@@ -1164,7 +1164,7 @@ L.postprocessItem = function(Item) {
         }
     }
 
-    Item.contentDocument.addEventListener("wheel", R.Main.onWheeled);
+    Item.contentDocument.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     Item.HTML = Item.contentDocument.documentElement;
     Item.Head = Item.contentDocument.head;
@@ -1612,7 +1612,7 @@ R.initialize = function() {
         R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
     };
 
-    R.Main.addEventListener("wheel", R.Main.onWheeled);
+    R.Main.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     R.reset();
 
@@ -4335,7 +4335,7 @@ I.createSlider = function() {
     E.add("bibi:laid-out",     I.Slider.reset);
   //E.add("bibi:tapped-shade", I.Slider.close);
 
-    I.Slider.addEventListener("wheel", R.Main.onWheeled);
+    I.Slider.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     // Optimize to Scrollbar Size
     sML.CSS.appendRule([
