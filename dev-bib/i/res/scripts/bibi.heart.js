@@ -195,7 +195,7 @@ Bibi.initialize = function() {
         E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
         E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
         E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
-        E.add("bibi:commands:change-view", function(RVM) { R.changeView(RVM); });
+        E.add("bibi:commands:change-view", function(Par) { R.changeView(Par); });
         window.addEventListener("message", M.gate, false);
         Bibi.ready();
     });
@@ -435,7 +435,7 @@ L.loadBook = function(BookData, BookDataMeta) {
                 if(!MIMETypeREs["EPUB"].test(BookData.type) && !MIMETypeREs["Zine"].test(BookData.type)) MIMETypeError = true;
                 FileOrData = "Data";
             }
-            if(MIMETypeError) return reject('BiB/i Can Not Open This Type of File.');
+            if(MIMETypeError)  return reject('BiB/i Can Not Open This Type of File.');
             if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
             X.Unzipper.loadBookData(BookData).then(function(ContentLog) {
                      if(S["book-type"] == "EPUB") resolve("an Zipped EPUB " + FileOrData);
@@ -521,6 +521,7 @@ L.processPackageDocument = function(Doc) {
             B.Package.Metadata[Meta.getAttribute("name")] = Meta.getAttribute("content");
         }
     });
+    B.IsOMF = B.Package.Metadata["omf:version"] ? true : false;
     const XMLNS_DC = Metadata.getAttribute("xmlns:dc");
     if(!B.Package.Metadata["identifier"])                      O.forEach(Doc.getElementsByTagNameNS(XMLNS_DC, "identifier"), function(DCI) { B.Package.Metadata["identifier"] = DCI.textContent; });
     if(!B.Package.Metadata["identifier"])                      B.Package.Metadata["identifier"] = O.BookURL;
@@ -530,7 +531,7 @@ L.processPackageDocument = function(Doc) {
     if(!B.Package.Metadata["languages" ].length)               O.forEach(Doc.getElementsByTagNameNS(XMLNS_DC, "language"),   function(DCL) { B.Package.Metadata["languages" ].push(DCL.textContent); });
     if(!B.Package.Metadata["languages" ].length)               B.Package.Metadata["languages"][0] = "en";
     if(!B.Package.Metadata["cover"])                           B.Package.Metadata["cover"]                 = "";
-    if(!B.Package.Metadata["rendition:layout"])                B.Package.Metadata["rendition:layout"]      = "reflowable";
+    if(!B.Package.Metadata["rendition:layout"])                B.Package.Metadata["rendition:layout"]      = B.IsOMF ? "pre-paginated" : "reflowable";
     if(!B.Package.Metadata["rendition:orientation"])           B.Package.Metadata["rendition:orientation"] = "auto";
     if(!B.Package.Metadata["rendition:spread"])                B.Package.Metadata["rendition:spread"]      = "auto";
     if( B.Package.Metadata["rendition:orientation"] == "auto") B.Package.Metadata["rendition:orientation"] = "portrait";
@@ -640,8 +641,13 @@ L.processPackageDocument = function(Doc) {
     if(S["use-cookie"]) {
         const BibiCookie = O.Cookie.remember(O.RootPath);
         const BookCookie = O.Cookie.remember(B.ID);
-        if(BibiCookie) if(!U["reader-view-mode"] && BibiCookie.RVM     ) S["reader-view-mode"] = BibiCookie.RVM;
-        if(BookCookie) if(!U["to"]               && BookCookie.Position) S["to"]               = BookCookie.Position;
+        if(BibiCookie) {
+            if(!U["reader-view-mode"]              && BibiCookie.RVM     ) S["reader-view-mode"]              = BibiCookie.RVM;
+            if(!U["full-breadth-layout-in-scroll"] && BibiCookie.FBL     ) S["full-breadth-layout-in-scroll"] = BibiCookie.FBL;
+        }
+        if(BookCookie) {
+            if(!U["to"]                            && BookCookie.Position) S["to"]                            = BookCookie.Position;
+        }
     }
 
     S.update();
@@ -725,9 +731,9 @@ L.prepareSpine = function(ItemMaker) {
     O.log('Preparing Spine...', "*:");
 
     // For Spread Pairing of Pre-Paginated
-    let SpreadPairBefore, SpreadPairAfter;
-    if(B.PPD == "rtl") SpreadPairBefore = "right", SpreadPairAfter = "left";
-    else               SpreadPairBefore = "left",  SpreadPairAfter = "right";
+    let SpreadBefore, SpreadAfter;
+    if(B.PPD == "rtl") SpreadBefore = "right", SpreadAfter = "left";
+    else               SpreadBefore = "left",  SpreadAfter = "right";
 
     B.FileDigit = (B.Package.Spine["itemrefs"].length + "").length;
     //if(B.FileDigit < 3) B.FileDigit = 3;
@@ -760,12 +766,14 @@ L.prepareSpine = function(ItemMaker) {
         let SpreadBox, Spread;
         if(ItemRef["page-spread"] == "center") {
             Item.IsSpreadCenter = true;
-        } else if(ItemRef["page-spread"] == SpreadPairBefore) {
-            Item.IsSpreadPairBefore = true;
-        } else if(ItemRef["page-spread"] == SpreadPairAfter && ItemIndex > 0) {
-            Item.IsSpreadPairAfter = true;
+        } else if(ItemRef["page-spread"] == SpreadBefore) {
+            Item.IsSpreadBefore = true;
+        } else if(ItemRef["page-spread"] == SpreadAfter) {
+            Item.IsSpreadAfter = true;
+        }
+        if(Item.IsSpreadAfter && ItemIndex > 0) {
             const PreviousItem = R.Items[ItemIndex - 1];
-            if(PreviousItem.IsSpreadPairBefore) {
+            if(PreviousItem.IsSpreadBefore) {
                 PreviousItem.SpreadPair = Item;
                 Item.SpreadPair = PreviousItem;
                 Spread = PreviousItem.Spread;
@@ -804,6 +812,22 @@ L.prepareSpine = function(ItemMaker) {
                 Ele.classList.add("layout-" + ItemRef["bibi:layout"]);
             }
         });
+    });
+    O.forEach(R.Spreads, function(Spread) {
+        if(Spread.Items.length == 1) {
+            Spread.classList.add("single-item");
+            if(Spread.Items[0].IsSpreadCenter) {
+                Spread.classList.add("single-item-spread-center");
+            } else if(Spread.Items[0].IsSpreadBefore) {
+                Spread.classList.add("single-item-spread-before");
+                Spread.classList.add("single-item-spread-" + SpreadBefore);
+            } else if(Spread.Items[0].IsSpreadAfter) {
+                Spread.classList.add("single-item-spread-after");
+                Spread.classList.add("single-item-spread-" + SpreadAfter);
+            }
+        } else {
+            Spread.classList.add("paired-items");
+        }
     });
 
     O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''), "-*");
@@ -1164,7 +1188,7 @@ L.postprocessItem = function(Item) {
         }
     }
 
-    Item.contentDocument.addEventListener("wheel", R.Main.onWheeled);
+    Item.contentDocument.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     Item.HTML = Item.contentDocument.documentElement;
     Item.Head = Item.contentDocument.head;
@@ -1612,7 +1636,7 @@ R.initialize = function() {
         R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
     };
 
-    R.Main.addEventListener("wheel", R.Main.onWheeled);
+    R.Main.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     R.reset();
 
@@ -1719,15 +1743,28 @@ R.resetStage = function() {
 R.resetSpread = function(Spread) {
     O.stamp("Reset Spread " + Spread.SpreadIndex + " Start");
     E.dispatch("bibi:is-going-to:reset-spread", Spread);
+    Spread.classList.remove("spreaded");
+    Spread.classList.remove("not-spreaded");
+    Spread.classList.remove("horizontal");
+    Spread.classList.remove("vertical");
     Spread.Items.forEach(function(Item) {
         R.resetItem(Item);
     });
+    Spread.Spreaded = Spread.Items[0].Spreaded;
+    if(Spread.Spreaded) {
+        Spread.classList.add("spreaded");
+        Spread.classList.add("horizontal");
+    } else {
+        Spread.classList.add("not-spreaded");
+        Spread.classList.add(S.RVM == "vertical" ? "vertical" : "horizontal");
+    }
     const SpreadBox = Spread.SpreadBox;
     SpreadBox.style["margin" + S.CC.L.BASE.B] = SpreadBox.style["margin" + S.CC.L.BASE.A] = "";
     SpreadBox.style["margin" + S.CC.L.BASE.S] = SpreadBox.style["margin" + S.CC.L.BASE.E] = "auto";
     SpreadBox.style.padding = SpreadBox.style.width = SpreadBox.style.height = "";
     let Width = 0, Height = 0;
     if(Spread.RenditionLayout == "reflowable" || (S.BRL == "reflowable" && S.SLA == "vertical")) {
+        // Reflowable (Horizontal/Vertical), Fixed-in-Reflowable (Vertical)
         if(Spread.Items.length == 2) {
             if(R.Stage.Width > Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth) {
                 Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
@@ -1741,12 +1778,28 @@ R.resetSpread = function(Spread) {
             Height = Spread.Items[0].ItemBox.offsetHeight;
         }
     } else {
-        if(Spread.Items.length == 2) {
-            Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
-            Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+        // Fixed
+        if(Spread.Spreaded) {
+            if(Spread.Items.length == 2) {
+                Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+                Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+            } else {
+                Width  = Spread.Items[0].ItemBox.offsetWidth * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1);
+                Height = Spread.Items[0].ItemBox.offsetHeight;
+            }
         } else {
-            Width  = Spread.Items[0].ItemBox.offsetWidth * (Spread.Items[0].ItemRef["page-spread"] == "left" || Spread.Items[0].ItemRef["page-spread"] == "right" ? 2 : 1);
-            Height = Spread.Items[0].ItemBox.offsetHeight;
+            if(Spread.Items.length == 2) {
+                if(S.RVM != "vertical") {
+                    Width  =          Spread.Items[0].ItemBox.offsetWidth + Spread.Items[1].ItemBox.offsetWidth;
+                    Height = Math.max(Spread.Items[0].ItemBox.offsetHeight, Spread.Items[1].ItemBox.style.offsetHeight);
+                } else {
+                    Width  = Math.max(Spread.Items[0].ItemBox.offsetWidth,   Spread.Items[1].ItemBox.offsetWidth);
+                    Height =          Spread.Items[0].ItemBox.offsetHeight + Spread.Items[1].ItemBox.offsetHeight;
+                }
+            } else {
+                Width  = Spread.Items[0].ItemBox.offsetWidth;
+                Height = Spread.Items[0].ItemBox.offsetHeight;
+            }
         }
     }
     SpreadBox.style.width  = Math.ceil(Width) + "px";
@@ -1961,56 +2014,58 @@ R.resetItem.asReflowableOutsourcingItem = function(Item, Fun) {
 
 R.resetItem.asPrePaginatedItem = function(Item) {
     const ItemIndex = Item.ItemIndex, ItemRef = Item.ItemRef, ItemBox = Item.ItemBox, Spread = Item.Spread;
-    Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
-    let StageB = R.Stage[S.CC.L.SIZE.B];
-    let StageL = R.Stage[S.CC.L.SIZE.L];
-    let PageB = StageB;
-    let PageL = StageL;
-    Item.style.padding = 0;
-    let Scale = 1;
-    if(Item.Scale) {
-        Scale = Item.Scale;
-        delete Item.Scale;
-    } else {
-        Scale = 1;
-        if((S.BRL == "pre-paginated" && S.SLA == "vertical") || R.Stage.Orientation == ItemRef["rendition:spread"] || ItemRef["rendition:spread"] == "both") {
-            const SpreadViewPort = { Width: ItemRef["viewport"].width, Height: ItemRef["viewport"].height };
-            if(Item.SpreadPair) SpreadViewPort.Width += Item.SpreadPair.ItemRef["viewport"].width;
-            else if(ItemRef["page-spread"] == "right" || ItemRef["page-spread"] == "left") SpreadViewPort.Width += SpreadViewPort.Width;
-            Scale = Math.min(
+    Item.style.padding = Item.HTML.style.margin = Item.HTML.style.padding = Item.Body.style.margin = Item.Body.style.padding = 0;
+    let StageB = R.Stage[S.CC.L.SIZE.B], PageB = StageB;
+    let StageL = R.Stage[S.CC.L.SIZE.L], PageL = StageL;
+    Item.Spreaded = (
+        (S.RVM == "paged" || !S["full-breadth-layout-in-scroll"])
+            &&
+        (ItemRef["rendition:spread"] == "both" || R.Stage.Orientation == ItemRef["rendition:spread"] || R.Stage.Orientation == "landscape")
+    );
+    if(Item.Spreaded) {
+        if(!Item.SpreadPair || Item.SpreadPair.ItemIndex > ItemIndex) {
+            const SpreadViewPort = {
+                Width:  ItemRef["viewport"].width,
+                Height: ItemRef["viewport"].height
+            };
+            if(Item.SpreadPair) {
+                Item.SpreadPair.Spreaded = Item.Spreaded;
+                Item.SpreadPair.Scale = ItemRef["viewport"].height / Item.SpreadPair.ItemRef["viewport"].height;
+                SpreadViewPort.Width += Item.SpreadPair.ItemRef["viewport"].width * Item.SpreadPair.Scale;
+            } else if(ItemRef["page-spread"] == "right") {
+                SpreadViewPort.Width *= 2;
+            } else if(ItemRef["page-spread"] == "left") {
+                SpreadViewPort.Width *= 2;
+            }
+            Item.Scale = Math.min(
                 PageB / SpreadViewPort[S.CC.L.SIZE.B],
                 PageL / SpreadViewPort[S.CC.L.SIZE.L]
             );
-        } else {
-            Scale = Math.min(
-                PageB / ItemRef["viewport"][S.CC.L.SIZE.b],
-                PageL / ItemRef["viewport"][S.CC.L.SIZE.l]
-            );
+            // if(S.RVM != "paged") Item.Scale = PageB / SpreadViewPort[S.CC.L.SIZE.B];
+            if(Item.SpreadPair) {
+                Item.SpreadPair.Scale *= Item.Scale;
+            }
         }
-        if(Item.SpreadPair) Item.SpreadPair.Scale = Scale;
+    } else if(S.RVM == "paged" || !S["full-breadth-layout-in-scroll"]) {
+        Item.Scale = Math.min(
+            PageB / ItemRef["viewport"][S.CC.L.SIZE.b],
+            PageL / ItemRef["viewport"][S.CC.L.SIZE.l]
+        );
+    } else {
+        Item.Scale = PageB / ItemRef["viewport"][S.CC.L.SIZE.b];
     }
-    //const SO /*= ScaleOptimizing*/ = 1 / Scale;
-    PageL = Math.floor(ItemRef["viewport"][S.CC.L.SIZE.l] * Scale);
+    PageL = Math.floor(ItemRef["viewport"][S.CC.L.SIZE.l] * Item.Scale);
     PageB = Math.floor(ItemRef["viewport"][S.CC.L.SIZE.b] * (PageL / ItemRef["viewport"][S.CC.L.SIZE.l]));
-    ItemBox.style[S.CC.L.SIZE.l] = PageL      + "px";
-    ItemBox.style[S.CC.L.SIZE.b] = PageB      + "px";
-    //   Item.style[S.CC.L.SIZE.l] = PageL * SO + "px";
-    //   Item.style[S.CC.L.SIZE.b] = PageB * SO + "px";
-       Item.style[S.CC.L.SIZE.l] = Item.style[S.CC.L.SIZE.b] = "100%";
+    ItemBox.style[S.CC.L.SIZE.l] = PageL + "px", ItemBox.style[S.CC.L.SIZE.b] = PageB + "px";
+       Item.style[S.CC.L.SIZE.l] =                  Item.style[S.CC.L.SIZE.b] = "100%";
     const TransformOrigin = (/rl/.test(Item.HTML.WritingMode)) ? "100% 0" : "0 0";
     sML.style(Item.HTML, {
         "width": ItemRef["viewport"].width + "px",
         "height": ItemRef["viewport"].height + "px",
         "transform-origin": TransformOrigin,
         "transformOrigin": TransformOrigin,
-        //"transform": "scale(" + (Scale * SO) + ")"
-        "transform": "scale(" + Scale + ")"
-    });/*
-    sML.style(Item, {
-        "transform-origin": "0 0",
-        "transformOrigin": "0 0",
-        "transform": "scale(" + (1 / SO) + ")"
-    });*/
+        "transform": "scale(" + Item.Scale + ")"
+    });
     const Page = ItemBox.appendChild(sML.create("span", { className: "page" }));
     if(ItemRef["page-spread"] == "right") Page.style.right = 0;
     else                                  Page.style.left  = 0;
@@ -2060,22 +2115,25 @@ R.layOutSpread = function(Spread) {
         }
     }
     if(S.BRL == "pre-paginated") {
-        if(R.Stage[S.CC.L.SIZE.L] >= SpreadBox["offset" + S.CC.L.SIZE.L]) {
-            SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.CC.L.SIZE.L] - SpreadBox["offset" + S.CC.L.SIZE.L]) / 2);
+        if(S.RVM == "vertical" && !Spread.Spreaded) {
         } else {
-            const FirstItemInSpread = Spread.Items[0];
-            if(R.Stage[S.CC.L.SIZE.L] >= FirstItemInSpread["offset" + S.CC.L.SIZE.L]) {
-                SpreadBox.PaddingBefore = Math.ceil((R.Stage[S.CC.L.SIZE.L] - FirstItemInSpread["offset" + S.CC.L.SIZE.L]) / 2);
+            if(R.Stage[S.CC.L.SIZE.L] >= SpreadBox["offset" + S.CC.L.SIZE.L]) {
+                SpreadBox.PaddingBefore = SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.CC.L.SIZE.L] - SpreadBox["offset" + S.CC.L.SIZE.L]) / 2);
+            } else {
+                const FirstItemInSpread = Spread.Items[0];
+                if(R.Stage[S.CC.L.SIZE.L] >= FirstItemInSpread["offset" + S.CC.L.SIZE.L]) {
+                    SpreadBox.PaddingBefore = Math.ceil((R.Stage[S.CC.L.SIZE.L] - FirstItemInSpread["offset" + S.CC.L.SIZE.L]) / 2);
+                }
+                const LastItemInSpread = Spread.Items[Spread.Items.length - 1];
+                if(R.Stage[S.CC.L.SIZE.L] >= LastItemInSpread["offset" + S.CC.L.SIZE.L]) {
+                    SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.CC.L.SIZE.L] - LastItemInSpread["offset" + S.CC.L.SIZE.L]) / 2);
+                }
             }
-            const LastItemInSpread = Spread.Items[Spread.Items.length - 1];
-            if(R.Stage[S.CC.L.SIZE.L] >= LastItemInSpread["offset" + S.CC.L.SIZE.L]) {
-                SpreadBox.PaddingAfter = Math.ceil((R.Stage[S.CC.L.SIZE.L] - LastItemInSpread["offset" + S.CC.L.SIZE.L]) / 2);
+            if(Spread.SpreadIndex != 0) {
+                const PreviousSpreadBox = R.Spreads[Spread.SpreadIndex - 1].SpreadBox;
+                SpreadBox.PaddingBefore = SpreadBox.PaddingBefore - PreviousSpreadBox.PaddingAfter;
+                if(SpreadBox.PaddingBefore < I.Menu.offsetHeight) SpreadBox.PaddingBefore = I.Menu.offsetHeight;
             }
-        }
-        if(Spread.SpreadIndex != 0) {
-            const PreviousSpreadBox = R.Spreads[Spread.SpreadIndex - 1].SpreadBox;
-            SpreadBox.PaddingBefore = SpreadBox.PaddingBefore - PreviousSpreadBox.PaddingAfter;
-            if(SpreadBox.PaddingBefore < I.Menu.offsetHeight) SpreadBox.PaddingBefore = I.Menu.offsetHeight;
         }
     } else if(S.RVM == "paged") {
         if(Spread.SpreadIndex == 0) {
@@ -2099,6 +2157,7 @@ R.layOutSpread = function(Spread) {
     R.Spreads.forEach(function(Spread) {
         MainContentLength += Spread.SpreadBox["offset" + S.CC.L.SIZE.L];
     });
+    //R.Main.Book.style[S.CC.L.SIZE.b] = S.RVM == "paged" ? "calc(100% - " + O.Scrollbars[S.CC.A.SIZE.B] + "px)" : "";
     R.Main.Book.style[S.CC.L.SIZE.b] = "";
     R.Main.Book.style[S.CC.L.SIZE.l] = MainContentLength + "px";
     E.dispatch("bibi:laid-out-spread", Spread);
@@ -2272,6 +2331,8 @@ R.onPointerMove = function(Eve) {
     if(PC.X != CC.X || PC.Y != CC.Y) E.dispatch("bibi:moved-pointer",   Eve);
     else                             E.dispatch("bibi:stopped-pointer", Eve);
     R.onPointerMove.PreviousCoord = CC;
+    Eve.preventDefault();
+    Eve.stopPropagation();
 };
 R.onPointerMove.PreviousCoord = { X:0, Y:0 };
 
@@ -2307,36 +2368,46 @@ R.onWheel = function(Eve) {
 };
 R.onWheel.PreviousWheels = [];
 
-R.changeView = function(RVM) {
-    if(S["fix-reader-view-mode"] || typeof RVM != "string" || S.RVM == RVM || !/^(paged|horizontal|vertical)$/.test(RVM)) return false;
+R.changeView = function(Param) {
+    if(
+        S["fix-reader-view-mode"] ||
+        !Param || typeof Param.Mode != "string" || !/^(paged|horizontal|vertical)$/.test(Param.Mode) ||
+        S.RVM == Param.Mode && !Param.Force
+    ) return false;
     if(L.Opened) {
         E.dispatch("bibi:closes-utilities");
         E.dispatch("bibi:changes-view");
         O.Busy = true;
         O.HTML.classList.add("busy");
         setTimeout(function() {
-            if(RVM != "paged") {
+            if(Param.Mode != "paged") {
                 R.Spreads.forEach(function(Spread) {
                     Spread.style.opacity = "";
                 });
             }
             R.layOut({
                 Reset: true,
-                Setting: { "reader-view-mode": RVM },
+                Setting: {
+                    "reader-view-mode": Param.Mode
+                },
                 callback: function() {
                     //Option["page-progression-direction"] = S.PPD;
-                    E.dispatch("bibi:changed-view", RVM);
+                    E.dispatch("bibi:changed-view", Param.Mode);
                     O.HTML.classList.remove("busy");
                     O.Busy = false;
                 }
             });
         }, 888);
     } else {
-        S.update({ "reader-view-mode": RVM });
+        S.update({
+            "reader-view-mode": Param.Mode
+        });
         L.play();
     }
     if(S["use-cookie"]) {
-        O.Cookie.eat(O.RootPath, { "RVM": RVM });
+        O.Cookie.eat(O.RootPath, {
+            "RVM": Param.Mode
+        });
     }
 };
 
@@ -2482,8 +2553,8 @@ R.focusOn.hatchDestination = function(Destination) { // from Page, Element, or E
             Destination = X["EPUBCFI"].getDestination(Destination);
         }
     } else if(Destination.tagName) {
-             if(typeof Destination.PageIndex   == "number") Destination = { Page: Destination };
-        else if(typeof Destination.ItemIndex   == "number") Destination = { Item: Destination };
+             if(typeof Destination.PageIndex   == "number") Destination = { Page:   Destination };
+        else if(typeof Destination.ItemIndex   == "number") Destination = { Item:   Destination };
         else if(typeof Destination.SpreadIndex == "number") Destination = { Spread: Destination }; 
         else Destination = { Element: Destination };
     }
@@ -3047,18 +3118,29 @@ I.createMenu.createSettingMenu = function() {
     });
 
     // Sub Panel
-    I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_change-view" });
+    I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_config" });
 
     if(
-        I.createMenu.SettingMenuComponents.includes("ViewModeButtons") || 
+        I.createMenu.SettingMenuComponents.includes("ViewModeButtons")
+    ) {
+        I.Menu.Config.ViewSection        = I.createMenu.createSettingMenu.createViewSection();
+        I.Menu.Config.ViewOptionSectionR = I.createMenu.createSettingMenu.createViewOptionSectionR();
+        I.Menu.Config.ViewOptionSectionF = I.createMenu.createSettingMenu.createViewOptionSectionF();
+    }
+
+    if(
         I.createMenu.SettingMenuComponents.includes("NewWindowButton") ||
         I.createMenu.SettingMenuComponents.includes("FullscreenButton")
-    ) I.Menu.Config.ViewSection = I.createMenu.createSettingMenu.createViewSection();
+    ) {
+        I.Menu.Config.WindowSection      = I.createMenu.createSettingMenu.createWindowSection();
+    }
 
     if(
         I.createMenu.SettingMenuComponents.includes("WebsiteLink") ||
         I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")
-    ) I.Menu.Config.LinkageSection = I.createMenu.createSettingMenu.createLinkageSection();
+    ) {
+        I.Menu.Config.LinkageSection     = I.createMenu.createSettingMenu.createLinkageSection();
+    }
 
     E.dispatch("bibi:created-setting-menu");
 
@@ -3067,79 +3149,137 @@ I.createMenu.createSettingMenu = function() {
 
 I.createMenu.createSettingMenu.createViewSection = function() {
 
-    // Shapes
-    const Shape = {};
-    Shape.Item         = '<span class="bibi-shape bibi-shape-item"></span>';
-    Shape.Spread       = '<span class="bibi-shape bibi-shape-spread">' + Shape.Item + Shape.Item + '</span>';
-
-    // Icons
-    const Icon = {};
-    Icon["paged"]      = '<span class="bibi-icon bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
-    Icon["horizontal"] = '<span class="bibi-icon bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
-    Icon["vertical"]   = '<span class="bibi-icon bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + Shape.Spread + Shape.Spread + Shape.Spread + '</span></span>';
-
-    const changeView = function() {
-        R.changeView(this.Value);
-    };
-
-    const ViewSection = I.Menu.Config.SubPanel.addSection({
-        // Labels: { default: { default: 'Choose Layout', ja: 'レイアウトを選択' } }
+    const Section = I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Layout Mode', ja: '表示モード' } }
     });
 
-    const ViewModeButtonGroup = ViewSection.addButtonGroup({
-        Buttons: [
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: '<span class="non-visual-in-label">Layout:</span> Each Page <small>(Flip with ' + (O.Mobile ? 'Tap/Swipe' : 'Click/Wheel') + ')</small>',
-                        ja: 'ページ単位表示<small>（' + (O.Mobile ? 'タップ／スワイプ' : 'クリック／ホイール') + 'で移動）</small>'
-                    }
-                },
-                Notes: true,
-                Icon: Icon["paged"],
-                Value: "paged",
-                action: changeView
-            },
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: '<span class="non-visual-in-label">Layout:</span> All Pages <small>(Horizontal Scroll)</small>',
-                        ja: '全ページ表示<small>（横スクロール移動）</small>'
-                    }
-                },
-                Notes: true,
-                Icon: Icon["horizontal"],
-                Value: "horizontal",
-                action: changeView
-            },
-            {
-                Type: "radio",
-                Labels: {
-                    default: {
-                        default: '<span class="non-visual-in-label">Layout:</span> All Pages <small>(Vertical Scroll)</small>',
-                        ja: '全ページ表示<small>（縦スクロール移動）</small>'
-                    }
-                },
-                Notes: true,
-                Icon: Icon["vertical"],
-                Value: "vertical",
-                action: changeView
+    const SS /*= SpreadShape*/ = (function(ItemShape) { return '<span class="bibi-shape bibi-shape-spread">' + ItemShape + ItemShape + '</span>'; })('<span class="bibi-shape bibi-shape-item"></span>');
+
+    const Buttons = [{
+        Mode: "paged",
+        Labels: {
+            default: {
+                default: 'Page Flipping <small>(with ' + (O.Mobile ? 'Tap/Swipe' : 'Click/Wheel') + ')</small>',
+                ja: 'ページ単位<small>（' + (O.Mobile ? 'タップ／スワイプ' : 'クリック／ホイール') + '）</small>'
             }
-        ]
+        },
+        Icon: '<span class="bibi-icon bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">' + SS + SS + SS + '</span></span>'
+    }, {
+        Mode: "horizontal",
+        Labels: {
+            default: {
+                default: 'Horizontal Scroll',
+                ja: '横スクロール'
+            }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">' + SS + SS + SS + '</span></span>'
+    }, {
+        Mode: "vertical",
+        Labels: {
+            default: {
+                default: 'Vertical Scroll',
+                ja: '縦スクロール'
+            }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + SS + SS + SS + '</span></span>'
+    }];
+
+    Buttons.forEach(function(Button) {
+        Button.Type = "radio";
+        Button.Notes = true;
+        Button.action = function() { return R.changeView(this); };
     });
+
+    const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
 
     E.add("bibi:updated-settings", function() {
-        ViewModeButtonGroup.Buttons.forEach(function(Button) {
-            I.setUIState(Button, (Button.Value == S.RVM ? "active" : "default"));
+        ButtonGroup.Buttons.forEach(function(Button) {
+            I.setUIState(Button, (Button.Mode == S.RVM ? "active" : "default"));
         });
     });
 
-    const WindowManagerButtons = [];
+    return Section;
+
+};
+
+
+I.createMenu.createSettingMenu.createViewOptionSectionR = function() { // for Reflowable Books
+
+    /*
+
+    const Section = I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Options', ja: '表示オプション' } }
+    });
+
+    const Buttons = [];
+
+    const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
+
+    E.add("bibi:updated-settings", function() {
+        Section.style.display = S.BRL == "reflowable" ? "" : "none";
+        ButtonGroup.Buttons.forEach(function(Button) {
+            I.setUIState(Button, S[Button.Name] ? "active" : "default");
+        });
+    });
+
+    return Section;
+
+    //*/
+
+};
+
+
+I.createMenu.createSettingMenu.createViewOptionSectionF = function() { // for Fixed-layout Books
+
+    const Section = I.Menu.Config.SubPanel.addSection({
+        Labels: { default: { default: 'Options', ja: '表示オプション' } }
+    });
+
+    const Buttons = [{
+        Name: "full-breadth-layout-in-scroll",
+        Type: "toggle",
+        Notes: false,
+        Labels: {
+            default: {
+                default: 'Full Width for Each Page <small>(in Scrolling Mode)</small>',
+                ja: 'スクロール表示では各ページに幅一杯を使用</small>'
+            }
+        },
+        Icon: '<span class="bibi-icon bibi-icon-full-breadth-layout"></span>',
+        action: function() {
+            const IsActive = (this.UIState == "active");
+            S.update({ "full-breadth-layout-in-scroll": IsActive });
+            if(IsActive) O.HTML.classList.add(   "book-full-breadth");
+            else         O.HTML.classList.remove("book-full-breadth");
+            if(S.RVM == "horizontal" || S.RVM == "vertical") R.changeView({ Mode: S.RVM, Force: true });
+            if(S["use-cookie"]) {
+                O.Cookie.eat(O.RootPath, {
+                    "FBL": S["full-breadth-layout-in-scroll"]
+                });
+            }
+        }
+    }];
+
+    const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
+
+    E.add("bibi:updated-settings", function() {
+        Section.style.display = S.BRL == "pre-paginated" ? "" : "none";
+        ButtonGroup.Buttons.forEach(function(Button) {
+            I.setUIState(Button, S[Button.Name] ? "active" : "default");
+        });
+    });
+
+    return Section;
+
+};
+
+
+I.createMenu.createSettingMenu.createWindowSection = function() {
+
+    const Buttons = [];
 
     // New Window
-    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) WindowManagerButtons.push({
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) Buttons.push({
         Type: "link",
         Labels: {
             default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
@@ -3150,7 +3290,7 @@ I.createMenu.createSettingMenu.createViewSection = function() {
     });
 
     // Fullscreen
-    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) WindowManagerButtons.push({
+    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) Buttons.push({
         Type: "toggle",
         Labels: {
             default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
@@ -3176,20 +3316,24 @@ I.createMenu.createSettingMenu.createViewSection = function() {
         }
     });
 
-    if(WindowManagerButtons.length) ViewSection.addButtonGroup({
-        Buttons: WindowManagerButtons
-    });
-
-    return ViewSection;
+    if(Buttons.length) {
+        const WindowSection = I.Menu.Config.SubPanel.addSection({
+            //Labels: { default: { default: 'Choose Layout', ja: 'レイアウトを選択' } }
+        });
+        WindowSection.addButtonGroup({ Buttons: Buttons });
+        return WindowSection;
+    } else {
+        return null;
+    }
 
 };
 
 
 I.createMenu.createSettingMenu.createLinkageSection = function() {
 
-    const LinkageButtons = [];
+    const Buttons = [];
 
-    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) LinkageButtons.push({
+    if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) Buttons.push({
         Type: "link",
         Labels: {
             default: { default: S["website-name-in-menu"].replace(/&/gi, '&amp;').replace(/</gi, '&lt;').replace(/>/gi, '&gt;') }
@@ -3199,7 +3343,7 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
         target: "_blank"
     });
 
-    if(I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")) LinkageButtons.push({
+    if(I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")) Buttons.push({
         Type: "link",
         Labels: {
             default: { default: "BiB/i | Official Website" }
@@ -3209,15 +3353,15 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
         target: "_blank"
     });
 
-    const LinkageSection = I.Menu.Config.SubPanel.addSection({
-        // Labels: { default: { default: 'Link' + (LinkageButtons.length > 1 ? 's' : ''), ja: 'リンク' } },
-    });
-
-    if(LinkageButtons.length) LinkageSection.addButtonGroup({
-        Buttons: LinkageButtons
-    });
-
-    return LinkageSection;
+    if(Buttons.length) {
+        const LinkageSection = I.Menu.Config.SubPanel.addSection({
+            // Labels: { default: { default: 'Link' + (Buttons.length > 1 ? 's' : ''), ja: 'リンク' } },
+        });
+        LinkageSection.addButtonGroup({ Buttons: Buttons });
+        return LinkageSection;
+    } else {
+        return null;
+    }
 
 };
 
@@ -3614,6 +3758,7 @@ I.createLoupe = function() {
 
     if(S["use-loupe"]) I.createLoupe.createUI();
     E.dispatch("bibi:created-loupe");
+
 };
 
 
@@ -4097,6 +4242,14 @@ I.createSlider = function() {
                 I.Slider.BookMap.Spreads = [];
                 R.Spreads.forEach(function(Spread) {
                     const SliderSpread = I.Slider.BookMap.appendChild(sML.create("div", { className: "bibi-slider-bookmap-spread", id: "bibi-slider-bookmap-spread-" + (Spread.SpreadIndex + 1), Spread: Spread }));
+                    if(Spread.Spreaded) {
+                        SliderSpread.classList.add("spreaded");
+                        SliderSpread.classList.add("horizontal");
+                    } else {
+                        SliderSpread.classList.add("not-spreaded");
+                        SliderSpread.classList.add(S.RVM == "vertical" ? "vertical" : "horizontal");
+                    }
+                    SliderSpread.classList.add(Spread.Items.length == 1 ? "single-item" : "paired-items");
                     I.Slider.BookMap.Spreads.push(SliderSpread);
                     SliderSpread.style[                                                       S.CC.A.SIZE.l] = (Spread["offset" + S.CC.L.SIZE.L]                 / R.Main["scroll" + S.CC.L.SIZE.L] * 100) + "%";
                     SliderSpread.style[(S.RVM == "paged" && S.SLD == "ttb") ? S.CC.A.BASE.b : S.CC.A.OOLT.l] = (O.getElementCoord(Spread, R.Main)[S.CC.L.AXIS.L] / R.Main["scroll" + S.CC.L.SIZE.L] * 100) + "%";
@@ -4108,7 +4261,7 @@ I.createSlider = function() {
                             SliderSpread.classList.add("pre-paginated");
                             SliderItem.classList.add("pre-paginated");
                             if(Item.ItemRef["page-spread"]) {
-                                if(Item.ItemRef["page-spread"] != "center") SliderSpread.classList.add("divided-spread");
+                                //if(Item.ItemRef["page-spread"] != "center") SliderSpread.classList.add("divided-spread");
                                 SliderItem.classList.add("page-spread-" + Item.ItemRef["page-spread"]);
                             }
                         }
@@ -4279,9 +4432,9 @@ I.createSlider = function() {
                     Scale: 1 - (BookMarginStart + BookMarginEnd - O.Scrollbars[S.CC.A.SIZE.B]) / R.Main["offset" + S.CC.A.SIZE.B],
                     Translation: {}
                 };
-                Transformation.Translation[S.CC.A.AXIS.L] = 0;
-                Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - R.Main["offset" + S.CC.A.SIZE.B] * (1 - Transformation.Scale) / 2;
-                I.Slider.BookStretchingEach = O.Body["offset" + S.CC.A.SIZE.L] * (1 / Transformation.Scale - 1) / 2;
+                Transformation.Translation[S.CC.A.AXIS.L] = (S.RVM == "vertical" ? I.Menu.offsetHeight / 4 : 0);
+                Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - (R.Main["offset" + S.CC.A.SIZE.B]) * (1 - Transformation.Scale) / 2;// - (S.RVM == "horizontal" ? O.Scrollbars[S.CC.A.SIZE.B] / 2 : 0);
+                I.Slider.BookStretchingEach = O.Body["offset" + S.CC.A.SIZE.L] * (1 / Transformation.Scale - 1) / 2 + (S.RVM == "vertical" ? I.Menu.offsetHeight / 2 : 0);
                 R.Main.style[S.CC.A.SIZE.l]  = (R.Main["offset" + S.CC.A.SIZE.L] + I.Slider.BookStretchingEach * 2) + "px";
                 R.Main.style["padding" + S.CC.A.BASE.B] = R.Main.style["padding" + S.CC.A.BASE.A] = I.Slider.BookStretchingEach + "px";
                 if(S.ARA == S.SLA) R.Main.Book.style["padding" + (S.ARA == "horizontal" ? "Right" : "Bottom")] = I.Slider.BookStretchingEach + "px";
@@ -4338,7 +4491,7 @@ I.createSlider = function() {
     E.add("bibi:laid-out",     I.Slider.reset);
   //E.add("bibi:tapped-shade", I.Slider.close);
 
-    I.Slider.addEventListener("wheel", R.Main.onWheeled);
+    I.Slider.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
 
     // Optimize to Scrollbar Size
     sML.CSS.appendRule([
@@ -4415,12 +4568,15 @@ I.createArrows = function() {
             if(!L.Opened) return false;
             if(I.Panel && I.Panel.UIState == "active") return false;
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
-            if(S.RVM == "vertical") {
-                if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false;
-            } else if(S.RVM == "horizontal") {
-                if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
-            } else {
+            if(S.RVM == "paged") {
                 if(I.Slider && BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
+            } else {
+                if(S["full-breadth-layout-in-scroll"]) return false;
+                if(S.RVM == "horizontal") {
+                    if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
+                } else if(S.RVM == "vertical") {
+                    if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false;
+                }
             }
             if(BibiEvent.Target.ownerDocument.documentElement == O.HTML) {
                 if(BibiEvent.Target == O.HTML || BibiEvent.Target == O.Body) return true;
@@ -5280,7 +5436,10 @@ S.update = function(Settings) {
     S.ARA = S["apparent-reading-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
 
     // Dictionary
-    S.CC = { L: S.getCC(S.SLA, S.PPD), A: S.getCC(S.ARA, S.PPD) };             
+    S.CC = {
+        L: S.getCC(S.SLA, S.PPD), // for "L"ayout-Direction
+        A: S.getCC(S.ARA, S.PPD)  // for "A"pparent-Direction
+    };             
 
     // Root Class
     if(PrevBRL != S.BRL) O.replaceClass(O.HTML, "book-"       + PrevBRL, "book-"       + S.BRL);
