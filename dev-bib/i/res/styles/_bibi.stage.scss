@@ -30,6 +30,7 @@ html {
 	&[data-bibi-cursor="top"],
 	&[data-bibi-cursor="bottom"] { cursor: pointer; }
 	user-select: none;
+	&.Blink { touch-action: none; }
 }
 
 body {
@@ -224,6 +225,15 @@ div#bibi-main {
 		transition-property: transform;
 //		transform: translateY( 0  );
 //		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
+/*
+		display: flex;
+		html.spread-ltr & { flex-direction: row; }
+		html.spread-rtl & { flex-direction: row-reverse; }
+		html.spread-ttb & { flex-direction: column; }
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-items: center;
+*/
 	}
 		div.spread-box {
 			position: relative;
@@ -262,14 +272,23 @@ div#bibi-main {
 						visibility: visible;
 					}
 				}
+				display: flex;
+				html.page-ltr & { flex-direction: row; }
+				html.page-rtl & { flex-direction: row-reverse; }
+				html.view-vertical &.not-spreaded { flex-direction: column; }
+				flex-wrap: nowrap;
+				justify-content: center;
+				&.single-item-spread-before { justify-content: flex-start; }
+				&.single-item-spread-after  { justify-content: flex-end; }
+				align-items: center;
 			}
 				div.item-box {
 					display: block;
 					position: relative;
 					z-index: 1;
 					overflow: hidden;
-					div.spread-box.pre-paginated &.page-spread-left  { float: left;  }
-					div.spread-box.pre-paginated &.page-spread-right { float: right; }
+					//html.view-vertical div.spread.not-spreaded &.page-spread-left  { align-self: flex-start; }
+					//html.view-vertical div.spread.not-spreaded &.page-spread-right { align-self: flex-end; }
 					html.book-pre-paginated.view-paged & {
 						//transition: opacity .2s linear;
 						&.not-current {
