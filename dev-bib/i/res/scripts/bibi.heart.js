@@ -403,7 +403,9 @@ L.loadBook = function(BookData, BookDataMeta) {
                     return reject('BiB/i Can Not Open Local Files without Extension.');
                 } else if(/\.(epub|zip)$/i.test(BookData.name)) {
                     if(!S.willBeUnzipped(BookData.name)) return reject('To Open This File, Changing "unzip-if-necessary" in default.js Is Required.');
-                    if(/\.epub$/i.test(BookData.name)) {
+                    if(BookData.type == "") {
+                        // Do not check MIME Type if BookData.type not given
+                    } else if(/\.epub$/i.test(BookData.name)) {
                         if(!MIMETypeREs["EPUB"].test(BookData.type)) MIMETypeError = true;
                     } else {
                         if(!MIMETypeREs["Zine"].test(BookData.type)) MIMETypeError = true;
