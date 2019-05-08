@@ -742,7 +742,7 @@ $icon-color_active_border: darken(pink, 5%);
 // + Book Icon
 // --------------------------------------------------------------------------------
 
-@mixin book-icon($icon-size) {
+@mixin book-icon($icon-size, $outer-color, $inner-color) {
 	box-sizing: border-box;
 	display: block;
 	position: relative;
@@ -766,10 +766,6 @@ $icon-color_active_border: darken(pink, 5%);
 	$book-breadth: $page-breadth + $line-width * 2;
 	$left: ($icon-size - $book-width) * 0.5 - $line-width * 0.5;
 	$top: 0;
-	$outer-color: white;
-	$inner-color: rgb(136,136,136);
-	&:before {
-	}
 	span {
 		// Back Cover
 		z-index: 10;
@@ -778,7 +774,6 @@ $icon-color_active_border: darken(pink, 5%);
 		border-radius: ($book-breadth * 0.5) $line-width $line-width 0;
 		width: $cover-width + $line-width * 2;
 		height: $icon-size - $line-width * 3;
-		background: $outer-color;
 		&:before {
 			// Pages
 			z-index: 100;
@@ -787,7 +782,6 @@ $icon-color_active_border: darken(pink, 5%);
 			border-radius: 0 2px $line-width * 3.5 0;
 			width: $cover-width - ($line-width + $page-breadth * 0.5) + $line-width;
 			height: $icon-size - $line-width;
-			background: $inner-color;
 		}
 		&:after {
 			// Top of Spine
@@ -797,7 +791,6 @@ $icon-color_active_border: darken(pink, 5%);
 			border-radius: ($page-breadth * 0.5) 0 0 ($page-breadth * 0.5);
 			width: $page-breadth;// * 0.5;
 			height: $page-breadth;
-			background: $inner-color;
 		}
 	}
 	&:after {
@@ -808,8 +801,9 @@ $icon-color_active_border: darken(pink, 5%);
 		border-radius: 0 $line-width $line-width ($book-breadth * 0.5);
 		width: $cover-width;
 		height: $cover-height;
-		background: $outer-color;
 	}
+	span, &:after { background: $outer-color; }
+	span:before, span:after { background: $inner-color; }
 }
 
 

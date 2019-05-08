@@ -36,7 +36,7 @@ Bibi.x({
                     ["user-select", "user-drag"].forEach(function(Property) {
                         Img.style[Prefix + Property] = "none";
                     });
-                    if(O.Mobile) Img.style[Prefix + "pointer-events"] = "none";
+                    if(O.Touch) Img.style[Prefix + "pointer-events"] = "none";
                 });
                 Img.draggable = false;
                 Img.addEventListener("contextmenu", O.preventDefault);
@@ -48,7 +48,7 @@ Bibi.x({
         }
     };
 
-    E.bind("bibi:postprocessed-item-content", function(Item) {
+    E.bind("bibi:postprocessed-item", function(Item) {
         unaccessibilize(Item);
     });
 

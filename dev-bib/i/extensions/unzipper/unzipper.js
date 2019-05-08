@@ -32,7 +32,7 @@ Bibi.x({
                 if(I.Catcher) I.Catcher.style.opacity = 0;
                 return X.Unzipper.loadBookData.extract(BookDataArchive);
             }).then(function(Log) {
-                O.log("Book Data Extracted" + (Log ? ' ' + Log : '') + '.', "-*");
+                O.log("Book Data Extracted" + (Log ? ' ' + Log : '') + '.');
                 resolve();
             }).catch(function(ErrorMessage) {
                 reject(ErrorMessage);
@@ -46,7 +46,7 @@ Bibi.x({
                 resolve(BookData);
             } else {
                 I.Veil.Cover.Info.innerHTML = [
-                    '<strong>' + (O.Mobile ? "Tap" : "Click") + ' to Open</strong>',
+                    '<strong>' + (O.Touch ? "Tap" : "Click") + ' to Open</strong>',
                     '<small>' + B.Path.replace(/.*?([^\/]+)$/, "$1") + '</small>'
                 ].join(" ");
                 sML.addClass(I.Veil.Cover, "without-cover-image waiting-for-unzipping");

@@ -155,15 +155,16 @@ div#epub-metafiles * {
 
 div#bibi-main {
 	& {
+		overflow: hidden;
 		-webkit-overflow-scrolling: touch;
-		box-sizing: border-box;
+		//box-sizing: border-box;
 		//padding: 35px 0;
 		//transition: .2s ease-out;
 		position: absolute;
 		z-index: $z-index_main;
-		@include trbl(-100vh, -100vw);
-		margin: auto;
-		@include size(100%, 100%);
+		//@include trbl(-100vh, -100vw);
+		//margin: auto;
+		@include size(100%);
 		background: $main-background;
 		transition:
 			opacity .15s ease,
@@ -176,16 +177,24 @@ div#bibi-main {
 	html:not(.book-full-height) & {
 		padding-top: $top-bar-height;
 	}
-	html.view-paged & {
-		overflow: hidden;
+    html.view-paged & {
+    	overflow: hidden;
+    }
+    html.view-horizontal & {
+    	overflow-x: scroll;
+    	overflow-y: hidden;
+ 	}
+    html.view-vertical & {
+    	overflow-x: hidden;
+    	overflow-y: scroll;
+ 	}
+	html.appearance-horizontal & {
+		@include trbl(0, -100%, auto, -100%);
+		margin: 0 auto;
 	}
-	html.view-horizontal & {
-		overflow-x: scroll;
-		overflow-y: hidden;
-	}
-	html.view-vertical & {
-		overflow-x: hidden;
-		overflow-y: scroll;
+	html.appearance-vertical & {
+		@include trbl(-100%, auto, -100%, 0);
+		margin: auto 0;
 	}
 	html.laying-out & {
 		opacity: 0;
@@ -215,110 +224,97 @@ div#bibi-main {
 	}*/
 }
 	div#bibi-main-book {
-		//box-sizing: border-box;
-		position: relative;
-		z-index: $z-index_main-book;
-		width: 100%;
-		//height: calc(100% - #{$top-bar-height});
-		height: 100%;
-		transition: 0.5s ease-in-out;
-		transition-property: transform;
-//		transform: translateY( 0  );
-//		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
-/*
+		box-sizing: content-box;//box-sizing: border-box;
 		display: flex;
 		html.spread-ltr & { flex-direction: row; }
 		html.spread-rtl & { flex-direction: row-reverse; }
 		html.spread-ttb & { flex-direction: column; }
 		flex-wrap: nowrap;
-		justify-content: center;
-		align-items: center;
-*/
+		justify-content: space-between;
+		//align-items: center;
+		position: relative;
+		z-index: $z-index_main-book;
+		@include size(100%);
+		transition: 0.5s ease-in-out;
+		transition-property: transform;
+//		transform: translateY( 0  );
+//		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
 	}
 		div.spread-box {
+			box-sizing: border-box;
+			flex-shrink: 0;
 			position: relative;
-			html.spread-ltr & { float: left; }
-			html.spread-rtl & { float: right; }
-			//html.dragging &,
-			//html.loupe-active &,
-			/*
-			html.swipe-active &.image-spread-box {
-				&:after {
-					content: "";
-					display: block;
-					position: absolute;
-					z-index: 2;
-					@include trbl(0); margin: 0; width: 100%; height: 100%;
-				}
-			}
-			*/
-			//&.non-linear-spread-box { display: none; }
+			html.spread-horizontal & { height: 100%; }
+			html.spread-horizontal &:not(.reflowable) { min-width: 100vw; }
+			html.spread-vertical & { width: 100%; }
+			html.view-paged.spread-vertical & { min-height: 100vh; } // [!] To Be Overwritten in Script (if Scrollbars have height)
 		}
 			div.spread {
+				box-sizing: border-box;
 				overflow: hidden;
-				position: relative;
+				position: absolute;
 				z-index: 1;
-				width: 100%;
-				height: 100%;
-				background: white;
-				&.pre-paginated { background: transparent; }
-				html.view-paged & { box-shadow: none !important; }
-				//&.non-linear-spread { display: none; }
-				html.book-pre-paginated.view-paged & {
-					&.not-current {
-						visibility: hidden;
-					}
-					&.current {
-						visibility: visible;
-					}
-				}
+				@include trbl(0);
+				margin: auto;
 				display: flex;
-				html.page-ltr & { flex-direction: row; }
-				html.page-rtl & { flex-direction: row-reverse; }
-				html.view-vertical &.not-spreaded { flex-direction: column; }
 				flex-wrap: nowrap;
 				justify-content: center;
-				&.single-item-spread-before { justify-content: flex-start; }
-				&.single-item-spread-after  { justify-content: flex-end; }
+				html.page-ltr &                                  { flex-direction: row; }
+				html.page-rtl &                                  { flex-direction: row-reverse; }
+				html.view-vertical div.spread-box.not-spreaded & { flex-direction: column; }
+				div.spread-box.single-item-spread-before & { justify-content: flex-start; }
+				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				align-items: center;
+				div.spread-box.reflowable & { background: white; }
 			}
 				div.item-box {
-					display: block;
+					box-sizing: border-box;
+					flex-shrink: 0;
 					position: relative;
-					z-index: 1;
+					//z-index: 1;
 					overflow: hidden;
-					//html.view-vertical div.spread.not-spreaded &.page-spread-left  { align-self: flex-start; }
-					//html.view-vertical div.spread.not-spreaded &.page-spread-right { align-self: flex-end; }
-					html.book-pre-paginated.view-paged & {
-						//transition: opacity .2s linear;
-						&.not-current {
-							opacity: 0.4;
-							//filter: blur(2px);
-						}
-						&.current {
-							opacity: 1;
-							//filter: none;
-						}
+					background: white;
+					&.reflowable {
+						display: flex;
+						html.spread-ltr & { flex-direction: row; }
+						html.spread-rtl & { flex-direction: row-reverse; }
+						html.spread-ttb & { flex-direction: column; }
+						flex-wrap: nowrap;
+						justify-content: flex-start;
+						align-items: center;
 					}
-					//&.non-linear-item-box { display: none; }
-					&:before {
+					html.book-pre-paginated.view-paged &:not(.current) {
+						opacity: .125;
+					}
+					html.book-pre-paginated &:after {
 						content: "";
+						display: block;
 						position: absolute;
-						z-index: 1;
-						left: 0;
-						top: 0;
-						width: 100%;
-						height: 100%;
-						background: white;
+						z-index: 2;
+						@include trbl(0);
+						margin: auto;
+						@include size(100%, 2em);
+						text-align: center;
+						font-family: sans-serif;
+						font-size: 18px;
+						font-weight: bold;
+						color: rgb(192,192,192);
+						opacity: 0;
+						transition: opacity 1s ease-in;
+					}
+					html.book-pre-paginated &:not(.placeholder):after {
+						content: "Loading...";
+						opacity: 1;
 					}
 				}
 					iframe.item, span.page {
+						box-sizing: content-box;
 						display: block;
-						z-index: 10;
 					}
 					iframe.item {
-						position: relative;
-						z-index: 2;
+						position: absolute;
+						z-index: 10;
+						@include trbl(0);
 						margin: 0;
 						padding: 0;
 						border: none 0;
@@ -329,179 +325,23 @@ div#bibi-main {
 						html.page-ltr & { transform-origin: 0 0; }
 						html.page-rtl & { transform-origin: 100% 0; }
 						//&.non-linear-item { display: none; }
+						opacity: 1; div.item-box:not(.loaded) & { opacity: 0; }
+						div.spread-box.current & { transition: opacity .1s linear; }
 					}
 					span.page {
-						position: absolute;
 						z-index: 1;
-						html.spread-horizontal & { top: 0; }
-						html.spread-vertical   & { left: 0; }
-						html.spread-vertical div.spread-box.pre-paginated & { left: auto; top: 0; }
-					}
-					span.overreflow-opener {
-						display: block;
-						z-index: 100;
-						position: absolute;
-						left: 0;
-						right: 0;
-						top: 0;
-						bottom: 0;
-						margin: auto;
-						width: 100%; width: calc(100% - 30px);
-						height: 100%; height: calc(100% - 30px);
-						background: transparent;
-						cursor: pointer;
-						opacity: 0;
-						transition: .1s linear;
-						&:hover {
-							opacity: 1;
-							background: rgba(0,0,0,0.2);
-							transition: .2s linear;
+						@include size(100%);
+						div.item-box.reflowable & {
+							position: relative;
+							flex-shrink: 0;
 						}
-						&:active {
-							background: rgba(0,0,0,0.4);
-							transition: .05s linear;
-						}
-						a, &:before, &:after {
+						div.item-box.pre-paginated & {
 							position: absolute;
-							display: block;
-						}
-						a {
-							z-index: 1;
-							opacity: 0;
-							overflow: hidden;
-							width: 0;
-							height: 0;
-						}
-						&:before, &:after {
-							left: 0;
-							right: 0;
-							top: auto;
-							bottom: 25%;
-							margin: auto;
-							width: 50px;
-							height: 50px;
-						}
-						&:before {
-							content: "";
-							z-index: 10;
-							border-radius: 8px;
-							background: rgba(255,255,255,0.69);
-						}
-						&:after {
-							@include font-icon("Materia lIcons");
-							content: /*open_in_browser*/ "\e89d";
-							z-index: 100;
-							line-height: 50px;
-							text-align: center;
-							font-size: 48px;
-							color: rgba(0,0,0,0.69);
+							@include trbl(0);
 						}
 					}
 
-div#bibi-sub {
-	box-sizing: border-box;
-	position: absolute;
-	z-index: $z-index_sub;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	margin: auto;
-	padding: 0;
-	width: 100%;
-	height: 100%;
-	display: none;
-	div.overreflow-layer {
-		box-sizing: border-box;
-		-webkit-overflow-scrolling: touch;
-		position: absolute;
-		z-index: 1;
-		left: 0;
-		bottom: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(255,255,255,0.96);
-		transform-origin_: 50% 100%;
-		transition: .125s ease-out;
-		.iOS & {
-			overflow: scroll;
-			height: calc(100% - 41px);
-		}
-		&.hidden {
-			opacity: 0;
-			transform: scale(0, 0.88);
-			//transition: .2s ease-in;
-		}
-		iframe.overreflow-frame {
-			box-sizing: border-box;
-			display: block;
-			position: absolute;
-			z-index: 1;
-			left: 0;
-			bottom: 0;
-			padding-top: 41px;
-			width: 100%;
-			height: 100%;
-			.iOS & {
-				padding-top: 0;
-			}
-		}
-	}
-	div.overreflow-bar {
-		box-sizing: border-box;
-		display: block;
-		overflow: hidden;
-		position: absolute;
-		z-index: 10;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 41px;
-		transform-origin_: 50% 0;
-		transition: .250s ease-out;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.125);
-		&.hidden {
-			opacity: 0;
-			transform: scale(1.0, 0);
-			//transition: .2s ease-in;
-		}
-		span.overreflow-closer {
-			box-sizing: border-box;
-			display: block;
-			border-bottom: solid 1px rgba(255,255,255,0.34);
-			width: 100%;
-			height: 100%;
-			text-align: center;
-			line-height: 44px;
-			font-size: 18px;
-			text-indent: 24px;
-			cursor: pointer;
-			color: rgb(64,64,64);
-			background: rgb(248,248,248);
-			transition: 0.15s linear;
-			&:hover, &:active {
-				color: white;
-				//border-bottom-color: rgba(69,69,69,0.34);
-				background: rgb(128,128,128);
-			}
-			&:before {
-				@include font-icon("Material Icons");
-				content: /*highlight_off*/ "\e888";
-				display: inline-block;
-				position: absolute;
-				top: 12px;
-				left: 50%;
-				margin-left: -3.25em * 18/20;
-				width: 20px;
-				height: 20px;
-				line-height: 20px;
-				font-size: 20px;
-				vertical-align: top;
-				
-			}
-		}
-	}
-}
+div#bibi-sub {}
 
 
 // ================================================================================
