@@ -248,6 +248,7 @@ div#bibi-main {
 			html.spread-horizontal &:not(.reflowable) { min-width: 100vw; }
 			html.spread-vertical & { width: 100%; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // [!] To Be Overwritten in Script (if Scrollbars have height)
+			html.book-pre-paginated.view-paged &:not(.current) { visibility: hidden; }
 		}
 			div.spread {
 				box-sizing: border-box;
@@ -282,9 +283,6 @@ div#bibi-main {
 						flex-wrap: nowrap;
 						justify-content: flex-start;
 						align-items: center;
-					}
-					html.book-pre-paginated.view-paged &:not(.current) {
-						opacity: .125;
 					}
 					html.book-pre-paginated &:after {
 						content: "";
@@ -325,7 +323,9 @@ div#bibi-main {
 						html.page-ltr & { transform-origin: 0 0; }
 						html.page-rtl & { transform-origin: 100% 0; }
 						//&.non-linear-item { display: none; }
-						opacity: 1; div.item-box:not(.loaded) & { opacity: 0; }
+						opacity: 1;
+						div.item-box:not(.loaded) & { opacity: 0; }
+						//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
 						div.spread-box.current & { transition: opacity .1s linear; }
 					}
 					span.page {
