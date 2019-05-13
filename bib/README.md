@@ -133,7 +133,7 @@ How to Arrange Development Environment
 
 1. `$ npm start`
     - Distribution files are generated/updated.
-    - Local webserver is launched and your browser opens `http://localhost:3000/bib/i/?book=`.
+    - Local webserver is launched and your browser opens `http://localhost:61671/bib/i/?book=`.
 2. Edit source files.
     - Distribution files are updated.
     - Your browser is reloaded.

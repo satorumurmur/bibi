@@ -30,6 +30,8 @@ Bibi.Preset = {
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
+"allow-placeholders"           : "yes", // "yes" or "no" or "desktop" or "mobile"
+
 "use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 
@@ -47,6 +49,8 @@ Bibi.Preset = {
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
 
+"orientation-border-ratio"     : 1 * 2 / 1.5, // Number (Width per Height)
+
 "base-font-size"               : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"     : 1.25, // Number of scale
 "loupe-max-scale"              : 4, // Number of scale
@@ -60,7 +64,7 @@ Bibi.Preset = {
 "item-padding-top"             : 40, // Number of pixel
 "item-padding-bottom"          : 20, // Number of pixel
 
-"spread-gap"                   : 2, // Number of pixel
+"spread-gap"                   : 8, // Number of pixel
 "spread-margin"                : 0, // Number of pixel
 
 "spread-border-radius"         : "", // CSS border-radius value or ""
@@ -74,8 +78,8 @@ Bibi.Preset = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "extensions": [
-    { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    { "name": "Share", "src" : "extensions/share/share.js" },
+    //{ "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
+    //{ "name": "Share", "src" : "extensions/share/share.js" },
     //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
     //{ "name": "Unaccessibilizer", "src": "extensions/unaccessibilizer/unaccessibilizer.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
     // ------------------------------------------------------------------------------------------
@@ -101,14 +105,12 @@ Bibi.Preset = {
 
 "loupe-mode"                   : "", // "with-keys" or ""
 
-"preprocess-html-always"       : "no", // "yes" or "no" or "desktop" or "mobile"
-
 "epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
 "epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""
 
 "cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
 
-"trustworthy-origins"          : []
+"trustworthy-origins"          : [],
 
 
 /*
@@ -158,4 +160,4 @@ Bibi.Preset = {
 */
 
 
-};
+"bibi": "EPUB Reader on your website." }; Bibi.LogDepth = 9;
