@@ -355,6 +355,15 @@ S.task('make: Bibi Style: bibi.css', function() {
     });
 }, _TaskSet);
 
+S.task('make: Bibi Style: bibi-default.css', function() {
+    return S.makeStyle({
+        src: [
+            'dev-bib/i/res/styles/bibi-default.scss'
+        ],
+        dist: 'bib/i/res/styles/bibi-default.css'
+    });
+}, _TaskSet);
+
 S.task('make: Bibi Style: bib/i.css', function() {
     return S.makeStyle({
         src: [
@@ -413,13 +422,23 @@ for(let X in S.TaskSets) gulp.task(S.DECO[2][0] + X + S.DECO[2][1], $.sequence(S
 
 gulp.task('serve', function() {
     $.browserSync({
+        port: 61671,
+        ui: {
+            port: 61672
+        },
         server: {
             baseDir: '.',
             index: 'index.html'
         },
-        ghostMode: {
-            location: true
-        }
+        snippetOptions: {
+            ignorePaths: 'bib/bookshelf/**/*.*'
+        },
+        ghostMode: false/*{
+            clicks: true,
+            scroll: true,
+            location: true,
+            forms: true
+        }*/
     });
     return gulp.watch([
         'bib/i/index.html',
@@ -463,7 +482,7 @@ gulp.task('watch', function() {
         ['make: Bibi Script: bibi.js']
     ], [
         ['dev-bib/i/res/styles/**/*.scss'],
-        ['make: Bibi Style: bibi.css']
+        ['make: Bibi Style: bibi.css', 'make: Bibi Style: bibi-default.css']
     ], [
         ['dev-bib/i.js'],
         ['make: Bibi Script: bib/i.js']

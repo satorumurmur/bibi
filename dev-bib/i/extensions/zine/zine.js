@@ -35,8 +35,7 @@ Bibi.x({
     };
 
     X.Zine.loadZineData = function() {
-        O.log('Loading Zine Data: ' + B.Path + B.PathDelimiter + B.Zine.Path + ' ...', "*:");
-        X.Zine.openYAML(B.Zine.Path).then(X.Zine.processZineData).then(X.Zine.onLoadZineData);
+        return X.Zine.openYAML(B.Zine.Path).then(X.Zine.processZineData).then(L.processPackageDocument);
     };
 
     X.Zine.processZineData = function(Data) {
@@ -75,11 +74,7 @@ Bibi.x({
                 Itemref.setAttribute("properties", "page-spread-" + ItemrefData[1]);
             }
         });
-        L.processPackageDocument(Doc);
-    };
-
-    X.Zine.onLoadZineData = function() {
-        L.onLoadPackageDocument('Zine Data Loaded.');
+        return Promise.resolve(Doc);
     };
 
 });

@@ -65,7 +65,7 @@ Bibi.x({
                 this.href = ShareSubPanel.getShareURI(ParentOrBook, SNS);
             }
         };
-        if(!O.Mobile && SNS != "Twitter") {
+        if(!O.Touch && SNS != "Twitter") {
             let N = "_blank", W = 560, H = 500;
             switch(SNS) {
                 case "Facebook": N = "FBwindow", H = 480; break;
