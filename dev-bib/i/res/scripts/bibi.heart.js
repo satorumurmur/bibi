@@ -430,12 +430,10 @@ L.loadBook = function() {
         E.dispatch("bibi:opened");
     }).then(function() {
         if(S["allow-placeholders"]) setTimeout(R.turnSpreadsOnDemand, 123);
-        if(I.Slider) setTimeout(I.Slider.resetBookMap, 456);
-    }).then(function() {
-        E.add("bibi:commands:move-by",     function(Par) { R.moveBy(Par); });
-        E.add("bibi:commands:scroll-by",   function(Par) { R.scrollBy(Par); });
-        E.add("bibi:commands:focus-on",    function(Par) { R.focusOn(Par); });
-        E.add("bibi:commands:change-view", function(Par) { R.changeView(Par); });
+        E.add("bibi:commands:move-by",     R.moveBy);
+        E.add("bibi:commands:scroll-by",   R.scrollBy);
+        E.add("bibi:commands:focus-on",    R.focusOn);
+        E.add("bibi:commands:change-view", R.changeView);
         window.addEventListener("message", M.gate, false);
         /*
         alert((function(Alert) {
@@ -1036,9 +1034,8 @@ L.coordinateLinkages.setJump = function(A) {
         if(A.Destination) {
             new Promise(function(resolve) {
                 A.InNav ? I.Panel.toggle().then(resolve) : resolve();
-            }).then(L.Opened ? function() {
-                R.focusOn({ Destination: A.Destination, Duration: 0 });
-            } : function() {
+            }).then(function() {
+                if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
                 if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
                 S["to"] = A.Destination;
                 L.play();
@@ -1977,8 +1974,9 @@ R.layOut = function(Opt) {
             R.organizePages();
             R.layOutStage();
         }
-        R.focusOn({ Destination: Opt.Destination, Duration: 0 });
         resolve();
+    }).then(function() {
+        return R.focusOn({ Destination: Opt.Destination, Duration: 0 });
     }).then(function() {
         O.Busy = false;
         O.HTML.classList.remove("busy");
@@ -2118,11 +2116,7 @@ R.changeView = function(Param) {
         O.Busy = true;
         O.HTML.classList.add("busy");
         setTimeout(function() {
-            if(Param.Mode != "paged") {
-                R.Spreads.forEach(function(Spread) {
-                    Spread.style.opacity = "";
-                });
-            }
+            //if(Param.Mode != "paged") R.Spreads.forEach(function(Spread) { Spread.style.opacity = ""; });
             R.layOut({
                 Reset: true,
                 Setting: {
@@ -2133,7 +2127,7 @@ R.changeView = function(Param) {
                 O.Busy = false;
                 setTimeout(function() { E.dispatch("bibi:changed-view", Param.Mode); }, 0);
             });
-        }, 99);
+        }, 0);
     } else {
         S.update({
             "reader-view-mode": Param.Mode
@@ -3975,8 +3969,8 @@ I.createSlider = function() {
                 I.Slider.progress();
             },
             zoomOutBook: function() {
-                const BookMarginStart  = S.ARA == "horizontal" ? I.Menu.offsetHeight : 0;
-                const BookMarginEnd    = 78;
+                const BookMarginStart = S.ARA == "horizontal" ? I.Menu.offsetHeight : 0;
+                const BookMarginEnd   = 78;
                 const Transformation = {
                     Scale: (R.Main["offset" + S.CC.A.SIZE.B] - (BookMarginStart + BookMarginEnd)) / (R.Main["offset" + S.CC.A.SIZE.B] - O.Scrollbars[S.CC.A.SIZE.B]),
                     Translation: {}
@@ -4019,43 +4013,58 @@ I.createSlider = function() {
                 I.Slider.RailProgress.style[S.CC.A.SIZE.l] = (Progress / I.Slider.Rail["offset" + S.CC.A.SIZE.L] * 100) + "%";
             },
             initializeBookMap: function() {
-                I.Slider.BookMap.BMSpreads = [], I.Slider.BookMap.BMItems = [];
                 R.Spreads.forEach(function(Spread) {
-                    const BMSpread = Spread.BMSpread = sML.create("div", { className: "bookmap-spread", Spread: Spread, BMSpreadBox: sML.create("div") });
-                    I.Slider.BookMap.BMSpreads.push(BMSpread);
-                    BMSpread.BMItems = [];
+                    Spread.BMSpread = I.Slider.BookMap.appendChild(document.createElement("div")).appendChild(sML.create("div", { className: "bookmap-spread", Spread: Spread }));
                     Spread.Items.forEach(function(Item) {
-                        const BMItem = Item.BMItem = sML.create("span", { className: "bookmap-item", Item: Item, BMItemBox: sML.create("div"), BMSpread: BMSpread });
-                        I.Slider.BookMap.BMItems.push(BMItem), BMSpread.BMItems.push(BMItem);
-                        BMSpread.appendChild(BMItem.BMItemBox).appendChild(BMItem);
+                        Item.BMItem = Spread.BMSpread.appendChild(document.createElement("div")).appendChild(sML.create("span", { className: "bookmap-item", Item: Item }));
                     });
-                    I.Slider.BookMap.appendChild(BMSpread.BMSpreadBox).appendChild(BMSpread);
-                    //E.add("bibi:reset-spread", function(Spread) { if(L.Opened) setTimeout(function() { I.Slider.resetBookMapSpread(Spread.BMSpread); }, 123); });
+                    //E.add("bibi:reset-spread", function(Spread) { if(L.Opened) setTimeout(function() { I.Slider.resetBookMapSpread(Spread); }, 123); });
                 });
             },
-            resetBookMap: function() {
-                I.Slider.BookMap.BMSpreads.forEach(I.Slider.resetBookMapSpread);
+            removeBookMap: function(Lock) {
+                clearTimeout(I.Slider.BookMap.Timer_append);
+                if(I.Slider.BookMap.Locked) return false;
+                I.Slider.BookMap.Locked = Lock;
+                if(I.Slider.BookMap.paretElement) {
+                    return I.Slider.BookMapBox.removeChild(I.Slider.BookMap);
+                } else {
+                    return false;
+                }
             },
-            resetBookMapSpread: function(BMSpread) {
-                clearTimeout(I.Slider.Timer_appendBookMap);
-                if(I.Slider.BookMap.paretElement) I.Slider.BookMapBox.removeChild(I.Slider.BookMap);
-                const BMSpreadBox = BMSpread.BMSpreadBox;
-                const Spread = BMSpread.Spread, SpreadBox = Spread.SpreadBox;
+            appendBookMap: function(Unlock) {
+                if(Unlock) I.Slider.BookMap.Locked = false;
+                if(I.Slider.BookMap.Locked) return false;
+                if(!I.Slider.BookMap.paretElement) {
+                    return I.Slider.BookMap.Timer_append = setTimeout(function() {
+                        I.Slider.BookMapBox.appendChild(I.Slider.BookMap);
+                        I.Slider.resetThumbAndRail();
+                    }, Unlock ? 0 : 456);
+                } else {
+                    return false;
+                }
+            },
+            resetBookMap: function() {
+                I.Slider.removeBookMap("Lock");
+                R.Spreads.forEach(I.Slider.resetBookMapSpread);
+                I.Slider.appendBookMap("Unlock");
+            },
+            resetBookMapSpread: function(Spread) {
+                I.Slider.removeBookMap();
+                const BMSpread = Spread.BMSpread, BMSpreadBox = BMSpread.parentElement;
+                const SpreadBox = Spread.SpreadBox;
                 BMSpreadBox.className = "bookmap-spread-box";
-                Array.prototype.forEach.call(SpreadBox.classList, function(ClassName) { if(ClassName != "spread-box") BMSpreadBox.classList.add(ClassName); });
+                O.forEach(SpreadBox.classList, function(ClassName) { if(ClassName != "spread-box") BMSpreadBox.classList.add(ClassName); });
                 BMSpreadBox.style[S.CC.A.SIZE.b] = BMSpread.style[S.CC.A.SIZE.b] = "";
                 BMSpreadBox.style[S.CC.A.SIZE.l] = (SpreadBox["offset" + S.CC.L.SIZE.L] / R.Main["scroll" + S.CC.L.SIZE.L] * 100) + "%";
                 BMSpread.style[S.CC.A.SIZE.l] = (Spread["offset" + S.CC.L.SIZE.L] / SpreadBox["offset" + S.CC.L.SIZE.L] * 100) + "%";
-                if(BMSpread.BMPages) BMSpread.BMPages.forEach(function(OldBMPage) { if(OldBMPage.parentElement) OldBMPage.parentElement.removeChild(OldBMPage); });
-                BMSpread.BMPages = [];
-                BMSpread.BMItems.forEach(function(BMItem) {
-                    const BMItemBox = BMItem.BMItemBox;
-                    const Item = BMItem.Item, ItemBox = Item.ItemBox;
+                O.forEach(BMSpread.querySelectorAll("span.bookmap-page"), function(OldBMPage) { OldBMPage.parentElement.removeChild(OldBMPage); });
+                Spread.Items.forEach(function(Item) {
+                    const BMItem = Item.BMItem, BMItemBox = BMItem.parentElement;
+                    const ItemBox = Item.ItemBox;
                     BMItemBox.className = "bookmap-item-box";
-                    Array.prototype.forEach.call(ItemBox.classList, function(ClassName) { if(ClassName != "item-box") BMItemBox.classList.add(ClassName); });
+                    O.forEach(ItemBox.classList, function(ClassName) { if(ClassName != "item-box") BMItemBox.classList.add(ClassName); });
                     BMItemBox.style[S.CC.A.SIZE.b] = (ItemBox["offset" + S.CC.L.SIZE.B] / Spread["offset" + S.CC.L.SIZE.B] * 100) + "%";
                     BMItemBox.style[S.CC.A.SIZE.l] = (ItemBox["offset" + S.CC.L.SIZE.L] / Spread["offset" + S.CC.L.SIZE.L] * 100) + "%";
-                    BMItem.BMPages = [];
                     Item.Pages.forEach(function(Page) {
                         const BMPage = Page.BMPage = sML.create("span", { className: "bookmap-page", Page: Page });
                         BMPage.style[S.CC.A.SIZE.b] = "";
@@ -4080,13 +4089,10 @@ I.createSlider = function() {
                             E.add(BMPage, "bibi:hovers",   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BMPage.classList.add(   "hover"); });
                             E.add(BMPage, "bibi:unhovers", function(Eve) { this.Page.Item.SpreadPair.Pages[0].BMPage.classList.remove("hover"); });
                         }
-                        BMSpread.BMPages.push(BMPage), BMItem.BMPages.push(BMPage);
                         BMItemBox.appendChild(BMPage);
                     });
                 });
-                I.Slider.Timer_appendBookMap = setTimeout(function() {
-                    I.Slider.BookMapBox.appendChild(I.Slider.BookMap);
-                }, 345);
+                I.Slider.appendBookMap();
             },
             getTouchStartCoord: function(Eve) {
                 return (Eve.target == I.Slider.Thumb) ?
@@ -4117,22 +4123,28 @@ I.createSlider = function() {
                 I.Slider.Timer_onTouchEnd = setTimeout(function() { O.HTML.classList.remove("slider-sliding"); }, 125);
             },
             flip: function(Eve) {
-                const TargetPage = I.Slider.getNearestBMPage(I.Slider.getTouchEndElement(Eve)).Page;
-                if(TargetPage != R.Current.Pages.StartPage && TargetPage != R.Current.Pages.EndPage) {
-                    R.focusOn({ Destination: TargetPage, Duration: 0 });
-                }
+                //clearTimeout(I.Slider.Timer_flipFocus);
                 if(I.Slider.Touching) {
+                    I.Slider.Timer_flipFocus = setTimeout(function() { I.Slider.focus(Eve); }, 0);
                     let Translation = I.Slider.TouchingCoord - I.Slider.TouchStartCoord;
                     let TranslatedCenter = I.Slider.TouchStartThumbCenterCoord + Translation;
                          if(TranslatedCenter < I.Slider.Rail.Coords[0]) Translation = I.Slider.Rail.Coords[0] - I.Slider.TouchStartThumbCenterCoord;
                     else if(TranslatedCenter > I.Slider.Rail.Coords[1]) Translation = I.Slider.Rail.Coords[1] - I.Slider.TouchStartThumbCenterCoord;
                     sML.style(I.Slider.Thumb,        { transform: "translate" + S.CC.A.AXIS.L + "(" + Translation + "px)" });
                     sML.style(I.Slider.RailProgress, { transform: "scale" + S.CC.A.AXIS.L + "(" + (1 + Translation / I.Slider.RailProgress["offset" + S.CC.A.SIZE.L] * S.CC.A.AXIS.PM) + ")" });
-                } else {
+                } else I.Slider.focus(Eve).then(function() {
                     sML.style(I.Slider.Thumb,        { transform: "" });
                     sML.style(I.Slider.RailProgress, { transform: "" });
                     I.Slider.progress();
-                }
+                });
+            },
+            focus: function(Eve) {
+                return new Promise(function(resolve) {
+                    const TargetPage = I.Slider.getNearestBMPage(I.Slider.getTouchEndElement(Eve)).Page;
+                    if(!R.Current.Pages.includes(TargetPage)) {
+                        R.focusOn({ Destination: TargetPage, Duration: 0 }).then(resolve);
+                    } else resolve();
+                });
             },
             getTouchEndElement: function(Eve) {
                 return I.Slider.BookMap.contains(Eve.target) ? Eve.target : (function(TouchEndElementPoint) {
@@ -4143,7 +4155,7 @@ I.createSlider = function() {
             },
             getNearestBMPage: function(Ele) {
                 if(Ele.classList.contains("bookmap-page")) return Ele;
-                const Ones = (Ele.classList.contains("bookmap-item") || Ele.classList.contains("bookmap-spread")) ? Ele.BMPages : I.Slider.BookMap.BMSpreads;
+                const Ones = (Ele.classList.contains("bookmap-item") || Ele.classList.contains("bookmap-spread")) ? Ele.querySelectorAll("span.bookmap-page") : I.Slider.BookMap.querySelectorAll("div.bookmap-spread");
                 const TouchingCoord = I.Slider.TouchingCoord * S.CC.A.AXIS.PM;
                 let TheOne = Ones[Ones.length - 1], PrevOne = null, PrevOneFootCoord = 0;
                 for(let l = Ones.length, i = 0; i < l; i++) {
@@ -4183,7 +4195,7 @@ I.createSlider = function() {
         })
     );
     I.Slider.BookMapBox   = I.Slider.appendChild(sML.create("div", { id: "bibi-slider-bookmap-box" }));
-    I.Slider.BookMap      = I.Slider.BookMapBox.appendChild(sML.create("div", { id: "bibi-slider-bookmap" }));
+    I.Slider.BookMap      = sML.create("div", { id: "bibi-slider-bookmap" });
     I.Slider.Rail         = I.Slider.BookMap.appendChild(sML.create("div", { id: "bibi-slider-rail" }));
     I.Slider.RailProgress = I.Slider.Rail.appendChild(sML.create("div", { id: "bibi-slider-rail-progress" }));
     I.Slider.Thumb        = I.Slider.BookMap.appendChild(sML.create("div", { id: "bibi-slider-thumb", Labels: { default: { default: "Slider Thumb", ja: "スライダー上の好きな位置からドラッグを始められます" } } }));
@@ -4211,7 +4223,10 @@ I.createSlider = function() {
     E.add("bibi:closes-utilities",  function(Opt) { E.dispatch("bibi:commands:close-slider",  Opt); });
     E.add("bibi:toggles-utilities", function(Opt) { E.dispatch("bibi:commands:toggle-slider", Opt); });
 
-    E.add("bibi:opened",       I.Slider.activate);
+    E.add("bibi:opened", function() {
+        I.Slider.activate();
+        setTimeout(I.Slider.resetBookMap, 456);
+    });
     E.add("bibi:laid-out",     I.Slider.reset);
   //E.add("bibi:tapped-shade", I.Slider.close);
 
@@ -4776,7 +4791,7 @@ I.setTapAction = function(Ele) {
         if(Ele.UIState == "disabled") return Ele;
         onTapped.call(Ele, Eve);
         if(Ele.hideHelp) Ele.hideHelp();
-        if(Ele.note) Ele.note();
+        if(Ele.note) setTimeout(Ele.note, 0);
         return Ele;
     });
     return Ele;

@@ -1739,6 +1739,9 @@ div.bookmap-spread {
 	div.bookmap-spread-box.single-item-spread-after &  { justify-content: flex-end; }
 	align-items: center;
 	border: solid 1px white;
+	html.appearance-rtl & { transform: translateX(1px); }
+	html.appearance-ltr & { transform: translateX(-1px); }
+	html.appearance-ttb &   { transform: translateY(-1px); }
 	//html.appearance-horizontal & { border-width: 0 .5px; }
 	//html.appearance-vertical &   { border-width: .5px 0; }
 	background: $slider-bookmap-spread-background;
@@ -1835,15 +1838,16 @@ span.bookmap-page {
 // --------------------------------------------------------------------------------
 
 $slider-rail-width_opened: 3px;
-$slider-rail-color:                rgba(gray, 0.33);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-color_hover:          rgba(steelblue, 0.33);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color:       rgba(steelblue, 1.00);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color_hover: rgba(steelblue, 1.00);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-width_opened: 3px;
+$slider-rail-color:                rgba(gray,      0.250);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-color_hover:          rgba(gray,      0.250);//rgba(steelblue, 0.33);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-color:       rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-color_hover: rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
 
 div#bibi-slider-rail {
 	& {
 		content: "";
-		overflow: hidden;
+		//overflow: hidden;
 		// display: none; // DO NOT SET `none` !!
 		box-sizing: border-box;
 		position: absolute;
@@ -1886,6 +1890,12 @@ div#bibi-slider-rail-progress {
 	div#bibi-slider:hover & {
 		background: $slider-rail-progress-color_hover;
 	}
+	html.appearance-horizontal & {
+		top: -100%;
+		bottom: -100%;
+		margin: auto 0;
+		height: 0;
+	}
 	html.appearance-rtl & {
 		right: 0;
 		transform-origin: 100% 50%;
@@ -1895,14 +1905,20 @@ div#bibi-slider-rail-progress {
 		transform-origin: 0 50%;
 	}
 	html.appearance-vertical & {
+		left: -100%;
+		bottom: -100%;
 		top: 0;
+		margin: 0 auto;
+		width: 0;
 		transform-origin: 50% 0;
 	}
 	html.slider-opened & {
 	}
 	html.slider-opened.appearance-horizontal & {
+		height: $slider-rail-progress-width_opened;
 	}
 	html.slider-opened.appearance-vertical & {
+		width: $slider-rail-progress-width_opened;
 	}
 }
 
@@ -2119,7 +2135,8 @@ div#bibi-arrow-forward {
 		#{$dir}: 0;
 		&:before, &:after { transform-origin: $transform-origin; }
 		&:before { content: $icon-code; #{$dir}: $button-group-margin; line-height: $icon-line-height; text-indent: $icon-indent; }
-		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		//&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1)); }
 	}
 	&.available.hover, &.available.glowing {
 		&:after { #{$dir}: 0; }
