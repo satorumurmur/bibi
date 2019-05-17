@@ -260,9 +260,9 @@ div#bibi-main {
 				display: flex;
 				flex-wrap: nowrap;
 				justify-content: center;
-				html.page-ltr &                                  { flex-direction: row; }
-				html.page-rtl &                                  { flex-direction: row-reverse; }
-				html.view-vertical div.spread-box.not-spreaded & { flex-direction: column; }
+				html.page-ltr &                                    { flex-direction: row; }
+				html.page-rtl &                                    { flex-direction: row-reverse; }
+				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
 				div.spread-box.single-item-spread-before & { justify-content: flex-start; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				align-items: center;

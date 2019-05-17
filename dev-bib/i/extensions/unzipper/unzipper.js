@@ -31,10 +31,7 @@ Bibi.x({
             }).then(function(BookDataArchive) {
                 if(I.Catcher) I.Catcher.style.opacity = 0;
                 return X.Unzipper.loadBookData.extract(BookDataArchive);
-            }).then(function(Log) {
-                O.log("Book Data Extracted" + (Log ? ' ' + Log : '') + '.');
-                resolve();
-            }).catch(function(ErrorMessage) {
+            }).then(resolve).catch(function(ErrorMessage) {
                 reject(ErrorMessage);
             })
         });
@@ -134,6 +131,7 @@ Bibi.x({
                 ["Markdown",   "md"],
                 ["PlainText",  "txt"]
             ];
+            O.log('Extracting Book Data...', "<g:>");
             FilesToBeExtract.forEach(function(FileName) {
                 if(FolderName) FileName = FileName.replace(FolderNameRE, "");
                 BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(function(content) {
@@ -151,16 +149,16 @@ Bibi.x({
                     }
                     FileCount.All++;
                     if(FileCount.All >= FilesToBeExtract.length) {
-                        const PartLog = [];
                         FileTypesToBeCounted.forEach(function(FileTypeToBeCounted) {
                             const Label = FileTypeToBeCounted[0], Count = FileCount[Label];
-                            if(Count) PartLog.push(Count + ' ' + Label + (Count >= 2 ? 's' : ''));
+                            if(Count) O.log(Count + ' ' + Label + (Count > 1 ? 's' : ''));
                         });
-                        if(PartLog.length && FileCount.Particular < FileCount.All) {
+                        if(FileCount.Particular < FileCount.All) {
                             const EtCCount = FileCount.All - FileCount.Particular;
-                            PartLog.push(EtCCount + ' ' + (EtCCount >= 2 ? 'Others' : 'Another'));
+                            O.log(EtCCount + ' ' + (EtCCount > 1 ? 'Others' : 'Another'));
                         }
-                        resolve('(' + (PartLog.length != 1 ? FileCount.All + ' Resources' + (PartLog.length > 1 ? ' = ' : '') : '') + PartLog.join(' + ') + ')');
+                        O.log('Extracted. (' + FileCount.All + ' File' + (FileCount.All > 1 ? 's' : '') + ')', "</g>");
+                        resolve();
                     }
                 });
             });

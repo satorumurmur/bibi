@@ -244,7 +244,7 @@ S.makeScript = function(Param) {
         .pipe($.concat(Param.dist))
         .pipe($.uglify({ output: { comments: /^!/ } }))
         .pipe($.replace(/["']____bibi-version____['"]/, '\'' + S.getVersionNumber() + '\''))
-        .pipe($.replace(/["']____bibi-build____['"]/,  S.getBuildNumber()))
+        //.pipe($.replace(/["']____bibi-build____['"]/,  S.getBuildNumber()))
         //.pipe($.sourcemaps.write(S.MapDir))
         .pipe(gulp.dest(Param.dest || '.'))
         .pipe($.browserSync.reload({ stream: true }));

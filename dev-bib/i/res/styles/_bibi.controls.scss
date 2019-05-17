@@ -1711,10 +1711,17 @@ div#bibi-slider-bookmap {
 // - . Spread Box
 // --------------------------------------------------------------------------------
 
+$slider-bookmap-spread-box-color: transparent;
+$slider-bookmap-spread-box-color_hover: rgba(steelblue, .33);
+
 div.bookmap-spread-box {
 	box-sizing: border-box;
 	flex-shrink: 0;
 	position: relative;
+	background: $slider-bookmap-spread-box-color;
+	&.hover {
+		//background: $slider-bookmap-spread-box-color_hover;
+	}
 }
 
 
@@ -1724,7 +1731,7 @@ div.bookmap-spread-box {
 $slider-bookmap-spread-background: rgba(white, .5);
 
 div.bookmap-spread {
-	box-sizing: content-box;
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 1;
 	@include trbl(0);
@@ -1732,16 +1739,16 @@ div.bookmap-spread {
 	display: flex;
 	flex-wrap: nowrap;
 	justify-content: center;
-	html.page-ltr &                                          { flex-direction: row; }
-	html.page-rtl &                                          { flex-direction: row-reverse; }
-	html.view-vertical div.bookmap-spread-box.not-spreaded & { flex-direction: column; }
+	html.page-ltr &                                            { flex-direction: row; }
+	html.page-rtl &                                            { flex-direction: row-reverse; }
+	html.view-vertical div.bookmap-spread-box:not(.spreaded) & { flex-direction: column; }
 	div.bookmap-spread-box.single-item-spread-before & { justify-content: flex-start; }
 	div.bookmap-spread-box.single-item-spread-after &  { justify-content: flex-end; }
 	align-items: center;
-	border: solid 1px white;
-	html.appearance-rtl & { transform: translateX(1px); }
-	html.appearance-ltr & { transform: translateX(-1px); }
-	html.appearance-ttb &   { transform: translateY(-1px); }
+	//border: solid 1px white;
+	//html.appearance-rtl & { transform: translateX(1px); }
+	//html.appearance-ltr & { transform: translateX(-1px); }
+	//html.appearance-ttb &   { transform: translateY(-1px); }
 	//html.appearance-horizontal & { border-width: 0 .5px; }
 	//html.appearance-vertical &   { border-width: .5px 0; }
 	background: $slider-bookmap-spread-background;
@@ -1785,6 +1792,7 @@ div.bookmap-item-box {
 // --------------------------------------------------------------------------------
 
 span.bookmap-item {
+	/*
 	box-sizing: content-box;
 	display: block;
 	position: absolute;
@@ -1796,7 +1804,8 @@ span.bookmap-item {
 	border: none 0;
 	line-height: 1;
 	vertical-align: top;
-	display: none; ////////
+	*/
+	display: none;
 }
 
 
@@ -1805,9 +1814,10 @@ span.bookmap-item {
 
 $slider-bookmap-page-color: white;
 $slider-bookmap-page-color_hover: lighten(steelblue, 33%);
+$slider-bookmap-page-border-color_hover: $slider-bookmap-page-color_hover;
 
 span.bookmap-page {
-	box-sizing: content-box;
+	box-sizing: border-box;
 	display: block;
 	z-index: 10;
 	div.bookmap-item-box.reflowable & {
@@ -1816,14 +1826,14 @@ span.bookmap-page {
 	}
 	div.bookmap-item-box.pre-paginated & {
 		position: absolute;
-		@include trbl(-1px);
+		@include trbl(0);//trbl(-1px);
 		margin: auto;
 		@include size(100%);
 	}
 	background: $slider-bookmap-page-color;
 	&.hover {
 		background: $slider-bookmap-page-color_hover;
-		border: solid 1px $slider-bookmap-page-color_hover;
+		border: solid 1px $slider-bookmap-page-border-color_hover;
 	}
 	/*
 	div.bookmap-item-box:nth-of-type(odd) & { background: red; }
@@ -1883,43 +1893,20 @@ div#bibi-slider-rail {
 div#bibi-slider-rail-progress {
 	& {
 		position: absolute;
-		@include size(100%);
+		@include size(0);
 		background: $slider-rail-progress-color;
 		transition: background-color linear .33s;
 	}
 	div#bibi-slider:hover & {
 		background: $slider-rail-progress-color_hover;
 	}
-	html.appearance-horizontal & {
-		top: -100%;
-		bottom: -100%;
-		margin: auto 0;
-		height: 0;
-	}
-	html.appearance-rtl & {
-		right: 0;
-		transform-origin: 100% 50%;
-	}
-	html.appearance-ltr & {
-		left: 0;
-		transform-origin: 0 50%;
-	}
-	html.appearance-vertical & {
-		left: -100%;
-		bottom: -100%;
-		top: 0;
-		margin: 0 auto;
-		width: 0;
-		transform-origin: 50% 0;
-	}
-	html.slider-opened & {
-	}
-	html.slider-opened.appearance-horizontal & {
-		height: $slider-rail-progress-width_opened;
-	}
-	html.slider-opened.appearance-vertical & {
-		width: $slider-rail-progress-width_opened;
-	}
+	html.appearance-horizontal & { top: -100%; bottom: -100%; margin: auto 0;                                        }
+	html.appearance-rtl &        {                                             right: 0; transform-origin: 100% 50%; }
+	html.appearance-ltr &        {                                             left:  0; transform-origin:   0  50%; }
+	html.appearance-vertical &   { left: -100%; right: -100%; margin: 0 auto;  top:   0; transform-origin:  50%  0 ; }
+	html.slider-opened & {}
+	html.slider-opened.appearance-horizontal & { height: $slider-rail-progress-width_opened; }
+	html.slider-opened.appearance-vertical &   { width:  $slider-rail-progress-width_opened; }
 }
 
 
