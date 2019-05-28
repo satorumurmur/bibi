@@ -15,9 +15,9 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
 
 ### Spec.
 
-* EPUB 3 and 2 compliant.
-* Open source. (MIT license)
-* Made with JavaScript. Works compatibly with all major web browsers on Mac/PC/smartphones.
+* EPUB 3+ and 2 compliant. Supports both fixed-layout and reflow books of various language.
+* Made with JavaScript. Works compatibly with all major web browsers on various OS/devices.
+* Open source software released under the MIT license.
 
 
 
@@ -129,27 +129,42 @@ How to Arrange Development Environment
 
 
 
-### Development
+### How to Develop
 
-1. `$ npm start`
-    - Distribution files are generated/updated.
-    - Local webserver is launched and your browser opens `http://localhost:61671/bib/i/?book=`.
+1. `$ npm start` (or `$ npm run develop:watch`)
+    - webpack generates development version of files and watch change.
+    - BrowserSync webserver launches and navigate your browser to `http://localhost:61671/bib/i/?book=`.
 2. Edit source files.
-    - Distribution files are updated.
-    - Your browser is reloaded.
+    - webpack watches change and updates development version of the file you edited.
+    - BrowserSync reloads your browser(s) or inject changes of CSS.
 
 * SCSS source file(s) of...
     - `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`,
-    - `bib/i.css` is `dev-bib/i.scss`.
+    - Styles in `bib/i.js` is `dev-bib/i.scss`.
 * JavaScript source file(s) of...
-    - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`),
+    - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`,
     - `bib/i.js` is `dev-bib/i.js`,
     - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 
 * These files are not processed by gulp tasks:
-    - `bib/i/index.html`
-    - Files in `bib/i/presets/`
+    - Index file `bib/i/index.html`
+    - Preset file in `bib/i/presets/`
     - Files in `bib/bookshelf/`
+
+
+
+### How to Build
+
+* `$ npm run build` (or `$ npm run produce`)
+    - webpack generates production version of files.
+
+
+
+### How to Ditribute
+
+* `$npm run distribute`
+    1. webpack generates production version of files.
+    2. gulp generates zipped archive.
 
 
 
@@ -158,28 +173,33 @@ License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
-### BiB/i
+### [BiB/i](https://bibi.epub.link) ([en](https://github.com/satorumurmur/bibi))
 
-* Copyright &copy; Satoru MATSUSHIMA - https://bibi.epub.link/ or https://github.com/satorumurmur/bibi
-* Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php). - https://opensource.org/licenses/mit-license.php
-
-
-### BiB/i is including and powered by these open source softwares:
-
-* [Native Promise Only](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [easing.js](https://github.com/danro/easing-js) ... Copyright &copy; Dan Rogers (Licensed under the [MIT license](https://danro.mit-license.org).)
-* [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the [MIT license](https://opensource.org/licenses/mit-license.php) or GPLv3.)
-* [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under the the [MIT license](https://opensource.org/licenses/mit-license.php) or GPLv3.)
-* [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [sML](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under the [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).)
-* [Font Awesome Free](https://fontawesome.com) ... Copyright &copy; Dave Gandy (Licensed under the [SIL Open Font License (OFL) 1.1](https://scripts.sil.org/OFL))
+* Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
+* Licensed under [the MIT license](https://github.com/satorumurmur/bibi/blob/master/LICENSE). - https://opensource.org/licenses/mit-license.php
 
 
+### Distribution is including these open source softwares:
+
+* Core components:
+    - [sML.js](https://www.npmjs.com/package/sml.js) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT license](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
+    - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache license version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
+    - [Font Awesome Free](https://fontawesome.com) ... Copyright &copy; Dave Gandy (Licensed under [the SIL Open Font License (OFL) 1.1](https://fontawesome.com/license/free).)
+* Extensions:
+    - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT license or the GPLv3 license](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
+    - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT license or the GPLv3 license](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
+    - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT license](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
+* Polyfills (for Internet Explorer):
+    - [Native Promise Only (NPO)](https://www.npmjs.com/package/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT license](http://getify.mit-license.org/).)
+    - [custom-event-polyfill](https://www.npmjs.com/package/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT license](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
+    - [document.currentScript Polyfill](https://www.npmjs.com/package/current-script-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT license](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
+    - [Polyfill Array.prototype.includes](https://www.npmjs.com/package/polyfill-array-includes) ... Copyright &copy; Kevin Latusinski (Licensed under the MIT license.)
+    - [String.prototype.padStart](https://www.npmjs.com/package/string.padstart) ... Copyright &copy; Khaled Al-Ansari (Licensed under [the MIT license](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE).)
+    - [classlist-polyfill](https://www.npmjs.com/package/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
 
 
 Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
-* Shunsuke ITO ... [@shunito](https://github.com/shunito)
+* [KITAITI Makoto](https://github.com/KitaitiMakoto)
+* [Shunsuke ITO](https://github.com/shunito)

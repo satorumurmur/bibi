@@ -1,4 +1,4 @@
-Bibi.Preset = {
+Bibi.preset({
 
 
 //==============================================================================================================================================
@@ -78,13 +78,11 @@ Bibi.Preset = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "extensions": [
-    //{ "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    //{ "name": "Share", "src" : "extensions/share/share.js" },
-    //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
-    //{ "name": "Unaccessibilizer", "src": "extensions/unaccessibilizer/unaccessibilizer.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
-    // ------------------------------------------------------------------------------------------
-    { "name": "Bibi", "4U" : "w/0" } // (*'-'*)
-],
+    //{ "src": "extensions/analytics/index.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
+    //{ "src": "extensions/share/index.js" },
+    //{ "src": "extensions/epubcfi/index.js" },
+    //{ "src": "extensions/unaccessibilizer/index.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
+""], // "id" must be defined in each script. "Unzipper", "Zine", and "Bibi" are reserved for "id".
 
 
 //==============================================================================================================================================
@@ -160,4 +158,4 @@ Bibi.Preset = {
 */
 
 
-"bibi": "EPUB Reader on your website." }; Bibi.LogDepth = 9;
+"bibi": "EPUB Reader on your website." });

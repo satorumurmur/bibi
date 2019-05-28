@@ -1,32 +1,4 @@
 // ================================================================================
-// + CJK
-// --------------------------------------------------------------------------------
-
-
-// - Bibi YuGothic
-// --------------------------------------------------------------------------------
-
-@mixin font_BibiYuGothic() {
-	/* ## Light */
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 100;  src: local("YuGothic-Light"),   local("Yu Gothic Light");  }
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 200;  src: local("YuGothic-Light"),   local("Yu Gothic Light");  }
-	/* ## Regular */
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 300;  src: local("YuGothic-Regular"), local("Yu Gothic");  }
-	/* ## Medium */
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 400;  src: local("YuGothic-Medium"),  local("Yu Gothic Medium"), local("YuGothic-Regular"), local("Yu Gothic");  }
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 500;  src: local("YuGothic-Medium"),  local("Yu Gothic Medium"), local("YuGothic-Regular"), local("Yu Gothic");  }
-	/* ## Bold */
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 600;  src: local("YuGothic-Bold"),    local("Yu Gothic");  }
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 700;  src: local("YuGothic-Bold"),    local("Yu Gothic");  }
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 800;  src: local("YuGothic-Bold"),    local("Yu Gothic");  }
-	@font-face {  font-family: "BibiYuGothic";  font-weight: 900;  src: local("YuGothic-Bold"),    local("Yu Gothic");  }
-}
-@include font_BibiYuGothic();
-
-
-
-
-// ================================================================================
 // + Icons
 // --------------------------------------------------------------------------------
 
@@ -34,82 +6,21 @@
 // - Material Icons
 // --------------------------------------------------------------------------------
 
-@mixin font_MaterialIcons() { /*!
- *
- *  ## Font: Material Icons
- *  - Copyright (c) Material Design Authors / Google Inc. - https://material.io/icons/
- *  - Licensed under the Apache License Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
- *
+/*!
+ * Material Icons by Material Design Authors / Google Inc. - https://material.io/icons
+ * Licensed under the Apache License Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
+ * // through a package maintained by Ravindra Marella. - https://marella.github.io/material-icons
+ * // Licensed under the Apache License Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  */
-	/* ## Icons */
-	@font-face {
-		font-family: 'Material Icons';
-		font-style: normal;
-		font-weight: 400;
-		src: url("#{$font-root}/MaterialIcons/MaterialIcons-Regular.woff2") format('woff2'),
-		     url("#{$font-root}/MaterialIcons/MaterialIcons-Regular.woff") format('woff'),
-		     url("#{$font-root}/MaterialIcons/MaterialIcons-Regular.ttf") format('truetype');
-	}
-}
-@include font_MaterialIcons();
+$material-icons-font-path: '~material-icons/iconfont/';
+@import "~material-icons/iconfont/material-icons.scss";
 
 
 // - Font Awesome
 // --------------------------------------------------------------------------------
 
-@mixin font_FontAwesome() { /*!
- *
- *  ## Font: Font Awesome Free
- *  - Copyright (c) Dave Gandy - https://fontawesome.com
- *  - Licensed under the SIL Open Font License (OFL) 1.1 - https://scripts.sil.org/OFL
- *
- */
-	/* ## Icons */
-	/*
-	@font-face {
-		font-family: "Font Awesome";  font-weight: 400;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fa-regular-400.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fa-regular-400.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fa-regular-400.ttf") format("truetype");
-	}
-	@font-face {
-		font-family: "Font Awesome";  font-weight: 900;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fa-solid-900.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fa-solid-900.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fa-solid-900.ttf") format("truetype");
-	}
-	//*/
-	/*
-	@font-face {
-		font-family: "Font Awesome Regular";  font-weight: 400;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fa-regular-400.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fa-regular-400.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fa-regular-400.ttf") format("truetype");
-	}
-	//*/
-	/*
-	@font-face {
-		font-family: "Font Awesome Solid";  font-weight: 900;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fa-solid-900.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fa-solid-900.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fa-solid-900.ttf") format("truetype");
-	}
-	//*/
-	@font-face {
-		font-family: "Font Awesome Brands";  font-weight: normal;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fa-brands-400.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fa-brands-400.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fa-brands-400.ttf") format("truetype");
-	}
-	/*
-	@font-face {
-		font-family: "FontAwesome";  font-weight: normal;  font-style: normal;
-		src: url("#{$font-root}/FontAwesome/fontawesome-webfont.woff2") format("woff2"),
-			 url("#{$font-root}/FontAwesome/fontawesome-webfont.woff") format("woff"),
-			 url("#{$font-root}/FontAwesome/fontawesome-webfont.ttf") format("truetype");
-	}
-	//*/
-}
-@include font_FontAwesome();
-
+$fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
+//@import "@fortawesome/fontawesome-free/scss/regular.scss";
+//@import "@fortawesome/fontawesome-free/scss/solid.scss";
+@import "~@fortawesome/fontawesome-free/scss/brands.scss";
 

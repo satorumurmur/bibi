@@ -1,44 +1,43 @@
 /*!
+ *                                                                                                                                (℠)
+ *  # BiB/i Extension: Unzipper
  *
- * # BiB/i Extension: Unzipper (core)
+ *  * Copyright (c) Satoru MATSUSHIMA - https://bibi.epub.link or https://github.com/satorumurmur/bibi
+ *  * Licensed under the MIT license. - https://opensource.org/licenses/mit-license.php
  *
- * - "Unzipping Utility for BiB/i (core)"
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
+ *  * Including:
+ *      - JSZip ... Copyright (c) Stuart Knightley - https://stuk.github.io/jszip (Dual licensed under the MIT license or the GPLv3 license.)
+ *      - JSZipUtils ... Copyright (c) Stuart Knightley - https://stuk.github.io/jszip-utils (Dual licensed under the MIT license or the GPLv3 license.)
  *
  */
 
-// requires: JSZip & JSZipUtils
+import JSZip from "jszip/dist/jszip.min.js";
+import JSZipUtils from "jszip-utils/dist/jszip-utils.min.js";
 
 Bibi.x({
 
-    name: "Unzipper",
-    description: "Unzipping Utility for BiB/i",
+    id: "Unzipper",
+    description: "Utilities for Zipped Books.",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "1.5.0",
-    build: Bibi["build"]
+    version: "2.0.0"
 
 })(function() {
 
     'use strict';
 
-    X.Unzipper.loadBookData = function(BookData) {
-        return new Promise(function(resolve, reject) {
-            X.Unzipper.loadBookData.start(BookData).then(function(BookData) {
-                return X.Unzipper.loadBookData.getArrayBuffer(BookData);
-            }).then(function(ArrayBufferOfBookData) {
-                return JSZip.loadAsync(ArrayBufferOfBookData);
-            }).then(function(BookDataArchive) {
-                if(I.Catcher) I.Catcher.style.opacity = 0;
-                return X.Unzipper.loadBookData.extract(BookDataArchive);
-            }).then(resolve).catch(function(ErrorMessage) {
-                reject(ErrorMessage);
-            })
+    this.loadBookData = BookData => {
+        return new Promise((resolve, reject) => {
+            this.loadBookData.start(BookData)
+                .then((BookData)              => { return this.loadBookData.getArrayBuffer(BookData); })
+                .then((ArrayBufferOfBookData) => { return JSZip.loadAsync(ArrayBufferOfBookData); })
+                .then((BookDataArchive)       => { return this.loadBookData.extract(BookDataArchive); })
+                .then(resolve)
+                .catch(reject)
         });
     };
 
-    X.Unzipper.loadBookData.start = function(BookData) {
-        return new Promise(function(resolve) {
+    this.loadBookData.start = BookData => {
+        return new Promise(resolve => {
             if(S["autostart"]) {
                 resolve(BookData);
             } else {
@@ -46,24 +45,22 @@ Bibi.x({
                     '<strong>' + (O.Touch ? "Tap" : "Click") + ' to Open</strong>',
                     '<small>' + B.Path.replace(/.*?([^\/]+)$/, "$1") + '</small>'
                 ].join(" ");
-                sML.addClass(I.Veil.Cover, "without-cover-image waiting-for-unzipping");
-                L.wait().then(function() {
-                    resolve(BookData);
-                });
+                I.Veil.Cover.classList.add("without-cover-image", "waiting-for-unzipping");
+                L.wait().then(() => resolve(BookData));
             }
         });
     };
 
-    X.Unzipper.loadBookData.getArrayBuffer = function(BookData) {
-        return new Promise(function(resolve, reject) {
+    this.loadBookData.getArrayBuffer = BookData => {
+        return new Promise((resolve, reject) => {
             if(typeof BookData == "string") {
-                JSZipUtils.getBinaryContent(BookData, function(Err, ArrayBufferOfBookData) {
+                JSZipUtils.getBinaryContent(BookData, (Err, ArrayBufferOfBookData) => {
                     Err ? reject('Book File Is Not Found or Invalid.') : resolve(ArrayBufferOfBookData);
                 });
             } else if(BookData instanceof Blob) {
                 const BookDataLoader = new FileReader();
-                BookDataLoader.onload  = function() { resolve(this.result); };
-                BookDataLoader.onerror = function() { reject('Book Data Is Invalid.'); };
+                BookDataLoader.onload  = () => resolve(this.result);
+                BookDataLoader.onerror = () => reject('Book Data Is Invalid.');
                 BookDataLoader.readAsArrayBuffer(BookData);
             } else {
                 reject('Book Data Is Invalid.');
@@ -71,8 +68,9 @@ Bibi.x({
         });
     };
 
-    X.Unzipper.loadBookData.extract = function(BookDataArchive) {
-        return new Promise(function(resolve, reject) {
+    this.loadBookData.extract = BookDataArchive => {
+        if(I.Catcher) I.Catcher.style.opacity = 0;
+        return new Promise((resolve, reject) => {
             const FilesToBeExtract = [];
             for(let FileName in BookDataArchive.files) {
                 if(
@@ -90,7 +88,7 @@ Bibi.x({
             if(!FilesToBeExtract.length) return reject('Does Not Contain Any Resources');
             let FolderName = "", FolderNameRE = undefined;
             if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.Zine.Path)) {
-                [B.Container.Path, B.Zine.Path].forEach(function(ToBeFound) {
+                [B.Container.Path, B.Zine.Path].forEach(ToBeFound => {
                     if(FolderName) return;
                     const RE = new RegExp("^(.+?\\/)" + ToBeFound.replace(/\//g, "\\/").replace(/\./g, "\\.") + "$");
                     for(let l = FilesToBeExtract.length, i = 0; i < l; i++) {
@@ -132,9 +130,9 @@ Bibi.x({
                 ["PlainText",  "txt"]
             ];
             O.log('Extracting Book Data...', "<g:>");
-            FilesToBeExtract.forEach(function(FileName) {
+            FilesToBeExtract.forEach(FileName => {
                 if(FolderName) FileName = FileName.replace(FolderNameRE, "");
-                BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(function(content) {
+                BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(content => {
                     B.Files[FileName] = content.trim();
                     if(S["book-type"] == "Zine" && !B.Package.Manifest.Files[FileName]) B.Package.Manifest.Files[FileName] = {};
                     if(FileTypesToBeCounted.length) {
@@ -149,7 +147,7 @@ Bibi.x({
                     }
                     FileCount.All++;
                     if(FileCount.All >= FilesToBeExtract.length) {
-                        FileTypesToBeCounted.forEach(function(FileTypeToBeCounted) {
+                        FileTypesToBeCounted.forEach(FileTypeToBeCounted => {
                             const Label = FileTypeToBeCounted[0], Count = FileCount[Label];
                             if(Count) O.log(Count + ' ' + Label + (Count > 1 ? 's' : ''));
                         });

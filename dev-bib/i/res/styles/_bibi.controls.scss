@@ -1395,8 +1395,9 @@ div#bibi-poweredby {
 	display: block;
 	position: absolute;
 	z-index: $z-index-poweredby;
-	top: auto; right: 0; bottom: 0; left: 0; margin: 0 auto;
-	padding: 4px;
+	@include trbl(auto, 0, 0);
+	margin: 0 auto;
+	//padding: 4px;
 	height: $bottom-bar-height;
 	text-align: right;
 	font-size: 14px;
@@ -1418,39 +1419,35 @@ div#bibi-poweredby {
 	}
 	p {
 		a {
+			$logo-image-original-width: 144px;
+			$logo-image-original-height: 72px;
+			$logo-image-height: 16px;
+			$logo-image-width: $logo-image-height * ($logo-image-original-width / $logo-image-original-height);
+			$logo-box-padding-vertical: 4px;
+			$logo-box-padding-horizontal: 8px;
+			$logo-box-height: $logo-image-height + $logo-box-padding-vertical * 2;
+			$logo-box-width: $logo-image-width + $logo-box-padding-horizontal * 2;
+			$logo-box-margin: ($bottom-bar-height - $logo-box-height) / 2;
 			display: block;
-			position: relative;
-			top: ($bottom-bar-height - (4px + 16px + 4px)) / 2 - 4px;
+			box-sizing: border-box;
+			position: absolute;
+			@include trbl(0, auto, 0, $logo-box-margin);
 			text-decoration: none;
 			color: black;
-			padding: 4px 8px;
-			width: 32px;
-			height: 16px;
+			margin: auto 0;
+			width: $logo-box-width;
+			height: $logo-box-height;
 			border-radius: 2px;
 			transition: .2s linear;
-			span, img {
-				position: absolute;
-				display: block;
-				opacity: 0;
-			}
-			span {
-				overflow: hidden;
-				width: 0;
-				height: 0;
-			}
-			img {
-				left: 0; right: 0; top: 6px; bottom: auto; margin: 0 auto;
-				width: auto;
-				height: 16px;
-				vertical-align: top;
-				transition: .2s linear;
-			}
+			background: transparent none no-repeat center (($logo-box-height - $logo-image-height) / 2 + 2px);
+			background-size: $logo-image-width $logo-image-height;
+			text-align: center;
+			font-size: $logo-image-height;
+			line-height: $logo-box-height + 2px;
+			color: transparent;
 		}
 		a:hover {
 			transition: .075s linear;
-			img {
-				transition: .075s linear;
-			}
 		}
 	}
 }
@@ -1459,16 +1456,11 @@ html.waiting-file div#bibi-poweredby,
 html.waiting div#bibi-poweredby {
 	p {
 		a {
-			background: rgba(128,128,128, 0.5);
-			img.bibi-logo-white {
-				opacity: 1;
-			}
+			background-color: rgba(128,128,128, 0.5);
+			background-image: url(../images/bibi-logo_white.png);
 		}
 		a:hover {
-			background: rgba(160,160,160, 0.9);
-			img.bibi-logo-white {
-				opacity: 1.0;
-			}
+			background-color: rgba(160,160,160, 0.9);
 		}
 	}
 }
@@ -1476,22 +1468,12 @@ html.waiting div#bibi-poweredby {
 html.panel-opened div#bibi-poweredby {
 	p {
 		a {
-			background: transparent;
-			img.bibi-logo-white {
-				opacity: 0;
-			}
-			img.bibi-logo-black {
-				opacity: 0.5;
-			}
+			opacity: 0.5;
+			background-color: transparent;
+			background-image: url(../images/bibi-logo_black.png);
 		}
 		a:hover {
-			background: transparent;
-			img.bibi-logo-white {
-				opacity: 0;
-			}
-			img.bibi-logo-black {
-				opacity: 1.0;
-			}
+			opacity: 1;
 		}
 	}
 }
@@ -2067,53 +2049,26 @@ div#bibi-arrow-forward {
 		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
 	}
 	html.busy & {
-		&:before, &:after {
-			transition: none !important;
-			opacity: 0 !important;
-		}
+		&:before, &:after { opacity: 0 !important; transition: none !important; }
 	}
 	//// Interaction
 	& {
-		&:before, &:after {
-			transition-duration: .4s;
-		}
-		&:before {
-			opacity: 0;
-			transform: scale(1);
-			transition-timing-function: cubic-bezier(.2, .8, .8, 1.6);
-		}
-		&:after {
-			opacity: 1;
-			transition-timing-function: ease-out;
-		}
+		&:before, &:after { transition-duration: .4s; }
+		&:before { opacity: 0.00; transform: scale(1.10); transition-timing-function: cubic-bezier(.2, .8, .8, 1.6); }
+		&:after  { opacity: 1.00;                         transition-timing-function: ease-out; }
 	}
 	&.available.hover {
 		cursor: pointer;
-		&:before, &:after {
-			transition-duration: .2s;
-		}
-		&:before {
-			transform: scale(1.1);
-			opacity: 1;
-		}
+		&:before, &:after { transition-duration: .2s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
 	}
 	&.available.active {
-		&:before, &:after {
-			transition-duration: .1s;
-		}
-		&:before {
-			transform: scale(1.0);
-			opacity: .75;
-		}
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 0.75; transform: scale(1.00); }
 	}
 	&.available.glowing {
-		&:before, &:after {
-			transition-duration: .1s;
-		}
-		&:before {
-			transform: scale(1.1);
-			opacity: 1;
-		}
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
 	}
 }
 
@@ -2133,10 +2088,12 @@ div#bibi-arrow-forward {
 	}
 }
 
-html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward {
 	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $arrow-icon-size, -.03em); // chevron_left
 }
-html.appearance-ltr div#bibi-arrow-forward, html.appearance-rtl div#bibi-arrow-back {
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back {
 	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $arrow-icon-size, .03em); // chevron_right
 }
 

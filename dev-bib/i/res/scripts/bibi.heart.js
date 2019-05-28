@@ -5,12 +5,10 @@
  *
  */
 
-(function(____) { 'use strict'; const TimeOrigin = Date.now();
 
 
 
-
-____.Bibi = { "version": "____bibi-version____", "href": "https://bibi.epub.link" };
+export const Bibi = { "version": "____bibi-version____", "href": "https://bibi.epub.link", TimeOrigin: Date.now() };
 
 
 
@@ -23,20 +21,42 @@ ____.Bibi = { "version": "____bibi-version____", "href": "https://bibi.epub.link
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.hello, 0); });
+Bibi.hello = () => {
+    O.initialize();
+    (hello => {
+        document.addEventListener("DOMContentLoaded", typeof Promise != "function" ?
+            () => document.head.insertBefore(sML.create("script", { id: "bibi-polyfills", src: "./res/scripts/bibi.polyfills.js", onload: hello }), document.getElementById("bibi-script")) :
+            hello
+        );
+    })(() => {
+        O.log('Hello! %c(v' + Bibi["version"] + ')', "<g!>");
+        O.log('[ja] ' + Bibi["href"]);
+        O.log('[en] https://github.com/satorumurmur/bibi');
+        O.log('', "</g>");
+        new Promise(resolve => {
+            O.log('Loading Preset...', "<g:>");
+            const PresetSource = document.getElementById("bibi-script").getAttribute("data-bibi-preset") || "./presets/default.js";
+            O.log('Preset: ' + O.getPath(O.RootPath, PresetSource));
+            document.head.appendChild(sML.create("script", { src: PresetSource, onload: resolve }));
+        }).then(() => {
+            O.log('Loaded.', "</g>");
+        }).then(Bibi.initialize).then(X.loadExtensions).then(Bibi.ready).then(L.loadBook);
+    })
+};
 
-Bibi.hello = function() {
 
-    O.log('Hello! %c(v' + Bibi["version"] + ')', "<g!>");
-    O.log('[ja] ' + Bibi["href"]);
-    O.log('[en] https://github.com/satorumurmur/bibi');
-    O.log('', "</g>");
-    E.dispatch("bibi:says-welcome");
+Bibi.initialize = () => {
+
+    O.HTML  = document.documentElement; O.HTML.classList.add.apply(O.HTML.classList, sML.Environments.concat(["bibi", "welcome"]));
+    O.Head  = document.head;
+    O.Body  = document.body;
+    O.Info  = document.getElementById("bibi-info");
+    O.Title = document.getElementsByTagName("title")[0];
 
     O.RequestedURL = location.href;
     O.BookURL = O.Origin + location.pathname + location.search;
 
-    O.Language = (function() {
+    O.Language = (() => {
         if(typeof navigator.language != "string") return "en";
         return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
     })();
@@ -44,16 +64,10 @@ Bibi.hello = function() {
     O.contentWindow = window;
     O.contentDocument = document;
 
-    O.HTML  = document.documentElement; O.HTML.className = sML.Environments.join(" ") + " bibi welcome";
-    O.Head  = document.head;
-    O.Body  = document.body;
-    O.Info  = document.getElementById("bibi-info");
-    O.Title = document.getElementsByTagName("title")[0];
-
     // Device & Event
     if(sML.OS.iOS || sML.OS.Android) {
         O.Touch = true;
-        O.HTML.className = O.HTML.className + " touch";
+        O.HTML.classList.add("touch");
         if(sML.OS.iOS) {
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-capable",          content: "yes"   }));
             O.Head.appendChild(sML.create("meta", { name: "apple-mobile-web-app-status-bar-style", content: "white" }));
@@ -80,17 +94,8 @@ Bibi.hello = function() {
         }
     }
 
-    setTimeout(Bibi.initialize, 0);
-
-};
-
-
-Bibi.initialize = function() {
-
-    // Reader
+    E.initialize();
     R.initialize();
-
-    // UI
     I.initialize();
 
     if(sML.UA.InternetExplorer < 11) {
@@ -114,16 +119,8 @@ Bibi.initialize = function() {
         return false;
     }
 
-    // Say Welcome!
     I.note("Welcome!");
 
-    // Extensions
-    X.initialize();
-
-    // Presets
-    P.initialize();
-
-    // User Parameters
     U.initialize();
 
     // Window Embedding
@@ -145,23 +142,20 @@ Bibi.initialize = function() {
     }
 
     // Fullscreen
-    if((!O.WindowEmbedded || O.ParentHolder) && (O.Body.requestFullscreen || O.Body.webkitRequestFullscreen || O.Body.mozRequestFullScreen || O.Body.msRequestFullscreen)) {
-        O.FullscreenEnabled = true;
-        O.FullscreenElement  = O.ParentHolder ? O.ParentHolder.Bibi.Frame : O.HTML;
-        O.FullscreenDocument = O.ParentHolder ? window.parent.document    : document;
-        O.HTML.className = O.HTML.className + " fullscreen-enabled";
-    } else {
-        O.HTML.className = O.HTML.className + " fullscreen-not-enabled";
+    { let FsT = null;
+             if(!O.WindowEmbedded) sML.Fullscreen.fill(window       ), FsT = O.HTML                   ;
+        else if( O.ParentHolder  ) sML.Fullscreen.fill(window.parent), FsT = O.ParentHolder.Bibi.Frame;
+        if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT, O.HTML.classList.add("fullscreen-enabled");
     }
 
     // Writing Mode & Font Size
-    O.WritingModeProperty = (function() {
+    O.WritingModeProperty = (() => {
         const HTMLCS = getComputedStyle(O.HTML);
         if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
         if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
         else return undefined;
     })();
-    const SRI4VTC = sML.CSS.appendRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
+    const SRI4VTC = sML.appendCSSRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
     const VTC = document.body.appendChild(sML.create("div", { id: "bibi-vtc" })); // VerticalTextChecker
     VTC.Child = VTC.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
     if(VTC.Child.offsetWidth < VTC.Child.offsetHeight) {
@@ -173,40 +167,33 @@ Bibi.initialize = function() {
     };
     O.DefaultFontSize = Math.min(VTC.Child.offsetWidth, VTC.Child.offsetHeight);
     document.body.removeChild(VTC);
-    sML.deleteStyleRule(SRI4VTC);
+    sML.deleteCSSRule(SRI4VTC);
 
     // Scrollbars
+    O.Body.style.width = "101vw", O.Body.style.height = "101vh";
     O.Scrollbars = {
         Width: window.innerWidth - O.HTML.offsetWidth,
         Height: window.innerHeight - O.HTML.offsetHeight
-    };
-    O.Scrollbars.Height = O.Scrollbars.Width;
+    };//O.Scrollbars.Height = O.Scrollbars.Width;
+    O.Body.style.width = O.Body.style.height = "";
+    O.HTML.style.width = O.Body.style.width = "100%";
 
-    // Settings
     S.initialize();
 
     O.HTML.classList.remove("welcome");
-
-    // Ready ?
-    X.loadFilesInPreset().then(function() {
-        Bibi.ready();
-    });
 
     E.dispatch("bibi:initialized");
 
 };
 
 
-Bibi.ready = function() {
-
-    O.HTML.classList.add("ready");
-    O.ReadiedURL = location.href;
-
-    L.initialize();
-    E.add("bibi:readied", L.loadBook);
-
-    setTimeout(function() { E.dispatch("bibi:readied"); }, (O.Touch ? 999 : 0));
-
+Bibi.ready = () => {
+    return new Promise(resolve => {
+        O.HTML.classList.add("ready");
+        O.ReadiedURL = location.href;
+        E.add("bibi:readied", resolve);
+        E.dispatch("bibi:readied");//setTimeout(() => E.dispatch("bibi:readied"), (O.Touch ? 999 : 0));
+    });
 };
 
 
@@ -220,30 +207,25 @@ Bibi.ready = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.B = {}; // Bibi.Book
-
-
-B.initialize = function() {
-    O.applyRtL(B, {
-        Title: "",
-        Creator: "",
-        Publisher: "",
-        Language: "",
-        WritingMode: "",
-        Unzipped: false,
-        Path: "",
-        PathDelimiter: "",
-        Zine:      { Path: "zine.yml" },
-        Mimetype:  { Path: "mimetype" },
-        Container: { Path: "META-INF/container.xml" },
-        Package:   { Path: "", Dir: "",
-            Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
-            Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {}, Files: {} },
-            Spine:    { "itemrefs": [] }
-        },
-        Files: {},
-        FileDigit: 0
-    }, "ExceptFunctions");
+export const B = { // Bibi.Book
+    Title: "",
+    Creator: "",
+    Publisher: "",
+    Language: "",
+    WritingMode: "",
+    Unzipped: false,
+    Path: "",
+    PathDelimiter: "",
+    Zine:      { Path: "zine.yml" },
+    Mimetype:  { Path: "mimetype" },
+    Container: { Path: "META-INF/container.xml" },
+    Package:   { Path: "", Dir: "",
+        Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
+        Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {}, Files: {} },
+        Spine:    { "itemrefs": [] }
+    },
+    Files: {},
+    FileDigit: 0
 };
 
 
@@ -257,39 +239,36 @@ B.initialize = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.L = {}; // Bibi.Loader
-
-
-L.initialize = function() {
-    O.applyRtL(L, {
-        Opened: false,
-        Preprocessed: false
-    }, "ExceptFunctions");
+export const L = { // Bibi.Loader
+    Opened: false,
+    Preprocessed: false,
+    PreprocessedFiles: []
 };
 
 
-L.loadBook = function() {
-    return L.getBookData().then(function(Param) {
+L.loadBook = () => {
+    return L.getBookData().then(Param => {
         O.Busy = true;
         O.HTML.classList.remove("ready");
         O.HTML.classList.remove("waiting-file");
         O.HTML.classList.add("busy");
         O.HTML.classList.add("loading");
+        window.addEventListener(O["resize"], R.resetBibiHeight);
         I.note('Loading...');
         O.log("Initializing Book...", "<g:>");
         return L.initializeBook(Param);
-    }).then(function(As) {
-        O.log('Load as ' + As + (S["book"] ? ': ' + S["book"] : '.'));
+    }).then((As) => {
+        O.log('As ' + As + (S["book"] ? ': ' + S["book"] : '.'));
         O.log('Initialized.', "</g>");
-    }).then(function() {
+    }).then(() => {
         // Load Container and Package (or ZineData)
-        return new Promise(function(resolve) {
+        return new Promise(resolve => {
             switch(S["book-type"]) {
                 case "EPUB":
                     delete B.Zine;
                     O.log('Loading Container and Package...', "<g:>");
                     O.log("Container: " + B.Path + B.PathDelimiter + B.Container.Path);
-                    return L.loadContainer().then(function() {
+                    return L.loadContainer().then(() => {
                         O.log("Package: " + B.Path + B.PathDelimiter + B.Package.Path);
                         return L.loadPackage().then(resolve);
                     });
@@ -299,13 +278,13 @@ L.loadBook = function() {
                     O.log('Zine Data: ' + B.Path + B.PathDelimiter + B.Zine.Path);
                     return X.Zine.loadZineData().then(resolve);
             }
-        }).then(function() {
+        }).then(() => {
             E.dispatch("bibi:loaded-package-document");
-            ['Title', 'Creator', 'Publisher', 'Language'].forEach(function(Pro) { O.log(Pro + ': ' + B[Pro]); });
-            ['rendition:layout', 'rendition:orientation', 'rendition:spread', 'page-progression-direction'].forEach(function(Pro) { O.log(Pro + ': ' + B.Package.Metadata[Pro]); });
+            ['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
+            ['rendition:layout', 'rendition:orientation', 'rendition:spread', 'page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
             O.log('Loaded.', "</g>");
         });
-    }).then(function() {
+    }).then(() => {
         if(S["use-cookie"]) {
             const BibiCookie = O.Cookie.remember(O.RootPath);
             const BookCookie = O.Cookie.remember(B.ID);
@@ -320,88 +299,91 @@ L.loadBook = function() {
         S.update();
         R.updateOrientation();
         R.resetStage();
-    }).then(function() {
+    }).then(() => {
         // Create Cover
         O.log('Creating Cover...', "<g:>");
         let Done = "";
-        return new Promise(function(resolve) {
+        return new Promise(resolve => {
             if(B.Package.Manifest["cover-image"].Path) {
                 O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest["cover-image"].Path);
                 resolve();
-            } else {
-                reject();
-            }
+            } else reject();
             L.createCover();
             E.dispatch("bibi:created-cover", B.Package.Manifest["cover-image"].Path);
-        }).then(function() {
-            O.log('Will Be Created.', "</g>");
-        }).catch(function() {
-            O.log('No Cover Image.', "</g>");
-        });
-    }).then(function() {
+        }).then(() =>
+            O.log('Will Be Created.', "</g>")
+        ).catch(() =>
+            O.log('No Cover Image.', "</g>")
+        );
+    }).then(() => {
         // Initialize Spine
         O.log('Initializing Spine...', "<g:>");
         L.initializeSpine();
         O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''));
         O.log('Initialized.', "</g>");
-    }).then(function() {
+    }).then(() => {
         // Load Navigation
         O.log('Loading Navigation...', "<g:>");
-        return L.loadNavigation().then(function() {
+        return L.loadNavigation().then(() => {
             O.log(I.Panel.BookInfo.Navigation.Type + ': ' + B.Path + B.PathDelimiter + I.Panel.BookInfo.Navigation.Path);
             O.log('Loaded.', "</g>");
             E.dispatch("bibi:loaded-navigation", I.Panel.BookInfo.Navigation.Path);
-        }).catch(function() {
-            O.log('No Navigation.', "</g>");
-        });
-    }).then(function() {
+        }).catch(() =>
+            O.log('No Navigation.', "</g>")
+        );
+    }).then(() => {
         // Announce "Prepared" (and Wait, sometime)
         E.dispatch("bibi:prepared");
         if(!S["autostart"] && !L.Played) return L.wait();
-    }).then(function() {
+    }).then(() => 
         // Background Preparing
-        return L.preprocessResources();
-    }).then(function() {
+        L.preprocessResources()
+    ).then(() => {
         // Load & Layout Items in Spreads and Pages
         O.log('Loading Items in Spreads' + '...', "<g:>");
         const LayoutOption = {
             Destination: S["to"] || { Edge: "head" },
-            resetter: function() { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
-            addResetter: function() { window.addEventListener("resize", LayoutOption.resetter); },
-            removeResetter: function() { window.removeEventListener("resize", LayoutOption.resetter); for(let Pro in LayoutOption) LayoutOption[Pro] = undefined; }
+            resetter:       () => { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
+            addResetter:    () => { window   .addEventListener("resize", LayoutOption.resetter); },
+            removeResetter: () => { window.removeEventListener("resize", LayoutOption.resetter); for(let Pro in LayoutOption) LayoutOption[Pro] = undefined; }
         };
         LayoutOption.addResetter();
-        return new Promise(function(resolve) {
+        return new Promise(resolve => {
             let LoadedSpreads = 0, LoadedItems = 0;
-            const TargetSpread = (function() { try { return R.Spreads[S["to"].SpreadIndex]; return R.AllItems[S["to"].ItemIndexInAll].Spread; } catch(Err) { return R.Spreads[0]; } })();
-            R.Spreads.forEach(function(Spread) {
-                L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread == TargetSpread) }).then(function() {
+            const TargetSpreadIndex = (() => {
+                if(typeof S["to"] == "object") {
+                    if(S["to"].SpreadIndex)    return S["to"].SpreadIndex;
+                    if(S["to"].ItemIndexInAll) return R.AllItems[S["to"].ItemIndexInAll].Spread.Index;
+                }
+                return 0;
+            })();
+            R.Spreads.forEach(Spread => {
+                L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread.Index == TargetSpreadIndex) }).then(() => {
                     LoadedSpreads++;
                     const ItemLogHeaders = [];
-                    Spread.Items.forEach(function(Item) {
-                        LoadedItems++;
-                        ItemLogHeaders.push('Item ' + sML.String.pad(Item.Index + 1, 0, B.FileDigit));
-                    });
-                    O.log('Spread ' + sML.String.pad(Spread.Index + 1, 0, B.FileDigit) + ' (' + ItemLogHeaders.join(", ") + ')', "<g->");
-                    Spread.Items.forEach(function(Item, i) { O.log(ItemLogHeaders[i] + ': ' + (Item.FullPath || '(Not Found)')); });
+                    Spread.Items.forEach(Item => ItemLogHeaders.push('Item ' + (Item.Index + 1 + "").padStart(B.FileDigit, 0)));
+                    O.log('Spread ' + (Spread.Index + 1 + "").padStart(B.FileDigit, 0) + ' (' + ItemLogHeaders.join(", ") + ')', "<g->");
+                    Spread.Items.forEach(Item => O.log(ItemLogHeaders[Item.IndexInSpread] + ': ' + (Item.FullPath || '(Not Found)')));
                     O.log('', "</g>");
+                    LoadedItems += Spread.Items.length;
                     if(B.Package.Metadata["rendition:layout"] == "reflowable") I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
                     if(!LayoutOption.Reset) R.layOutSpread(Spread);
                     if(LoadedSpreads == R.Spreads.length) resolve();
                 });
             });
-        }).then(function() {
+        }).then(() => {
             B.Files = {};
             O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
             return LayoutOption;
         });
-    }).then(function(LayoutOption) {
+    }).then(LayoutOption => {
+        window.removeEventListener(O["resize"], R.resetBibiHeight);
         if(!LayoutOption.Reset) {
             R.organizePages();
             R.layOutStage();
         }
         return R.layOut(LayoutOption).then(LayoutOption.removeResetter);
-    }).then(function() {
+    }).then(() => {
         // Open
         O.Busy = false;
         O.HTML.classList.remove("busy");
@@ -412,7 +394,7 @@ L.loadBook = function() {
         I.note('');
         O.log('Enjoy Readings!', "<i/>");
         E.dispatch("bibi:opened");
-    }).then(function() {
+    }).then(() => {
         if(S["allow-placeholders"]) setTimeout(R.turnSpreadsOnDemand, 123);
         E.add("bibi:commands:move-by",     R.moveBy);
         E.add("bibi:commands:scroll-by",   R.scrollBy);
@@ -420,7 +402,7 @@ L.loadBook = function() {
         E.add("bibi:commands:change-view", R.changeView);
         window.addEventListener("message", M.gate, false);
         /*
-        alert((function(Alert) {
+        alert((Alert => {
             [
                 "document.referrer",
                 "navigator.userAgent",
@@ -429,28 +411,27 @@ L.loadBook = function() {
                 "[O.HTML.offsetHeight, O.HTML.clientHeight, O.HTML.scrollHeight]",
                 "[O.Body.offsetHeight, O.Body.clientHeight, O.Body.scrollHeight]",
                 "[R.Main.offsetHeight, R.Main.clientHeight, R.Main.scrollHeight]"
-            ].forEach(function(X) {
-                Alert.push("┌ " + X + "\n" + eval(X));
-            });
+            ].forEach(X => Alert.push("┌ " + X + "\n" + eval(X)));
             return Alert.join("\n\n");
         })([]));
         //*/
-    }).catch(function(Mes) {
+    }).catch(Mes => {
         I.note(Mes, 99999999999, "ErrorOccured");
+        throw new Error(Mes);
     });
 };
 
 
-L.wait = function() {
+L.wait = () => {
     O.Busy = false;
     O.HTML.classList.remove("busy");
     O.HTML.classList.add("waiting");
     E.dispatch("bibi:waits");
     O.log('(Waiting...)', '<i/>');
     I.note('');
-    return new Promise(function(resolve) {
-        L.wait.resolve = function() { resolve(); delete L.wait.resolve; };
-    }).then(function() {
+    return new Promise(resolve => {
+        L.wait.resolve = () => { resolve(); delete L.wait.resolve; };
+    }).then(() => {
         O.Busy = true;
         O.HTML.classList.add("busy");
         O.HTML.classList.remove("waiting");
@@ -459,7 +440,7 @@ L.wait = function() {
 };
 
 
-L.play = function() {
+L.play = () => {
     if(S["start-in-new-window"]) return window.open(location.href);
     L.Played = true;
     L.wait.resolve();
@@ -467,24 +448,23 @@ L.play = function() {
 };
 
 
-L.getBookData = function() {
-    return new Promise(function(resolve, reject) {
+L.getBookData = () => {
+    return new Promise((resolve, reject) => {
         if(S["book"])               return resolve({ BookData: S["book"] });
         if(S.BookDataElement)       return resolve({ BookData: S.BookDataElement.innerText.trim(), BookDataType: S.BookDataElement.getAttribute("data-bibi-book-mimetype") });
         if(!S["accept-local-file"]) return reject('Tell me EPUB name via ' + (O.WindowEmbedded ? "embedding tag" : "URI") + '.');
-        L.getBookData.resolve = function(Param) { resolve(Param); delete L.getBookData.resolve; };
+        L.getBookData.resolve = (Param) => { resolve(Param); delete L.getBookData.resolve; };
         O.HTML.classList.add("waiting-file");
     });
 };
 
 
-L.initializeBook = function(Param) {
-    B.initialize();
+L.initializeBook = (Param) => {
     R.reset();
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         if(!Param || !Param.BookData) return reject('Book Data Is Undefined.');
         let BookData = Param.BookData;
-        const BookDataFormat = (function() {
+        const BookDataFormat = (() => {
             switch(typeof BookData) {
                 case "string": return /^https?:\/\//.test(BookData) ? "URI" : "Base64";
                 case "object": return (BookData instanceof File) ? "File" : (BookData instanceof Blob) ? "BLOB" : "";
@@ -496,7 +476,7 @@ L.initializeBook = function(Param) {
             // Online
             B.Path = BookData;
             if(!S["trustworthy-origins"].includes(B.Path.replace(/^(\w+:\/\/[^\/]+).*$/, "$1"))) return reject('The Origin of the Path of the Book Is Not Allowed.');
-            const getErrorMessage = function(As, Detail) {
+            const getErrorMessage = (As, Detail) => {
                 let         ErrorMessage  = 'Failed to Open';
                 if(As.join) ErrorMessage += ' Both as ' + As.join(' and ');
                 else        ErrorMessage += ' as ' + As;
@@ -515,19 +495,19 @@ L.initializeBook = function(Param) {
             }
             if(S.willBeUnzipped(B.Path)) {
                 // Online Zipped (probably)
-                X.Unzipper.loadBookData(B.Path).then(function(ContentLog) {
+                X.Unzipper.loadBookData(B.Path).then(ContentLog => {
                     // Online Zipped (definitely)
                     resolve(As[0]);
-                }).catch(function(ErrorDetail) {
+                }).catch(ErrorDetail => {
                     if(ErrorDetail.BookTypeError) return reject(ErrorDetail.BookTypeError);
                     O.log(getErrorMessage(As[0], ErrorDetail));
                     // Online Unzipped (probably)
                     O.log('Trying as ' + As[1] + '...');
-                    O.download(B.Path + "/" + ToCheckExistance).then(function() {
+                    O.download(B.Path + "/" + ToCheckExistance).then(() => {
                         // Online Unzipped (definitely)
                         B.Unzipped = true;
                         resolve(As[1]);
-                    }).catch(function(XHR) {
+                    }).catch(XHR => {
                         const ErrorDetail = ""; //(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
                         O.log(getErrorMessage(As[1], ErrorDetail));
                         reject(getErrorMessage(As));
@@ -536,11 +516,11 @@ L.initializeBook = function(Param) {
             } else {
                 // Online Unzipped (probably)
                 As.reverse();
-                O.download(B.Path + "/" + ToCheckExistance).then(function() {
+                O.download(B.Path + "/" + ToCheckExistance).then(() => {
                     // Online Unzipped (definitely)
                     B.Unzipped = true;
                     resolve(As[0]);
-                }).catch(function(XHR) {
+                }).catch(XHR => {
                     const ErrorDetail = ""; //(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
                     O.log(getErrorMessage(As[0], ErrorDetail));
                     // Online Zipped (probably)
@@ -588,16 +568,16 @@ L.initializeBook = function(Param) {
                 FileOrData = "Data";
             }
             if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
-            X.Unzipper.loadBookData(BookData).then(function(ContentLog) {
+            X.Unzipper.loadBookData(BookData).then(ContentLog => {
                 if(S["book-type"] == "EPUB") return resolve("an Zipped EPUB " + FileOrData);
                 if(S["book-type"] == "Zine") return resolve( "a Zipped Zine " + FileOrData);
                 return reject('Book ' + FileOrData + ' Is Invalid.');
             });
         }
-    }).then(function(As) {
+    }).then(As => {
         B.PathDelimiter = B.Unzipped ? "/" : " > ";
         return As;
-    }).catch(function(Log) {
+    }).catch(Log => {
         I.Veil.Cover.className = "";
         if(S["accept-local-file"]) O.HTML.classList.add("waiting-file");
         const Message = 'BiB/i Failed to Open the Book.';
@@ -607,22 +587,17 @@ L.initializeBook = function(Param) {
 };
 
 
+L.loadContainer = () => O.openDocument(B.Container.Path).then(L.processContainer);
 
-L.loadContainer = function() {
-    return O.openDocument(B.Container.Path).then(L.processContainer);
-};
-
-L.processContainer = function(Doc) {
+L.processContainer = (Doc) => {
     B.Package.Path = Doc.getElementsByTagName("rootfile")[0].getAttribute("full-path");
     B.Package.Dir  = B.Package.Path.replace(/\/?[^\/]+$/, "");
 };
 
 
-L.loadPackage = function() {
-    return O.openDocument(B.Package.Path).then(L.processPackage);
-};
+L.loadPackage = () => O.openDocument(B.Package.Path).then(L.processPackage);
 
-L.processPackage = function(Doc) {
+L.processPackage = (Doc) => {
 
     const BPM = B.Package.Metadata;
     const BPS = B.Package.Spine;
@@ -637,7 +612,7 @@ L.processPackage = function(Doc) {
     if(SpineItemrefs.length <= 0) return O.error('"' + B.Package.Path + '" has no <itemref> in <spine>.');
 
     // METADATA
-    O.forEach(Metadata.getElementsByTagName("meta"), function(Meta) {
+    sML.forEach(Metadata.getElementsByTagName("meta"), Meta => {
         if(Meta.getAttribute("refines")) return;
         if(Meta.getAttribute("property")) {
             // DCTerms
@@ -652,12 +627,12 @@ L.processPackage = function(Doc) {
         }
     });
     const DCNS = Metadata.getAttribute("xmlns:dc");
-    if(!BPM["identifier"])                      O.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"), function(DCI) { BPM["identifier"] =    DCI.textContent;  });
+    if(!BPM["identifier"])                      sML.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"), DCI => BPM["identifier"] =    DCI.textContent );
     if(!BPM["identifier"])                      BPM["identifier"] = O.BookURL;
-    if(!BPM["title"     ])                      O.forEach(Doc.getElementsByTagNameNS(DCNS, "title"),      function(DCT) { BPM["title"     ] =    DCT.textContent;  });
-    if(!BPM["creators"  ].length)               O.forEach(Doc.getElementsByTagNameNS(DCNS, "creator"),    function(DCC) { BPM["creators"  ].push(DCC.textContent); });
-    if(!BPM["publishers"].length)               O.forEach(Doc.getElementsByTagNameNS(DCNS, "publisher"),  function(DCP) { BPM["publishers"].push(DCP.textContent); });
-    if(!BPM["languages" ].length)               O.forEach(Doc.getElementsByTagNameNS(DCNS, "language"),   function(DCL) { BPM["languages" ].push(DCL.textContent); });
+    if(!BPM["title"     ])                      sML.forEach(Doc.getElementsByTagNameNS(DCNS, "title"),      DCT => BPM["title"     ] =    DCT.textContent );
+    if(!BPM["creators"  ].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "creator"),    DCC => BPM["creators"  ].push(DCC.textContent));
+    if(!BPM["publishers"].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "publisher"),  DCP => BPM["publishers"].push(DCP.textContent));
+    if(!BPM["languages" ].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "language"),   DCL => BPM["languages" ].push(DCL.textContent));
     if(!BPM["languages" ].length)               BPM["languages"][0] = "en";
     if(!BPM["cover"])                           BPM["cover"]                 = "";
     if(!BPM["rendition:layout"])                BPM["rendition:layout"]      = BPM["omf:version"] ? "pre-paginated" : "reflowable";
@@ -671,7 +646,7 @@ L.processPackage = function(Doc) {
     if(BPM["fixed-layout-jp:viewport"]) BPM["fixed-layout-jp:viewport"] = O.getViewportByMetaContentString(       BPM["fixed-layout-jp:viewport"]);
     if(BPM[            "omf:viewport"]) BPM[            "omf:viewport"] = O.getViewportByMetaContentString(       BPM[            "omf:viewport"]);
 
-    B.ICBViewport = (function() {
+    B.ICBViewport = (() => {
         if(BPM[     "original-resolution"]) return BPM[     "original-resolution"];
         if(BPM[      "rendition:viewport"]) return BPM[      "rendition:viewport"];
         if(BPM["fixed-layout-jp:viewport"]) return BPM["fixed-layout-jp:viewport"];
@@ -683,7 +658,7 @@ L.processPackage = function(Doc) {
 
     // MANIFEST
     const TOCID = Spine.getAttribute("toc");
-    O.forEach(ManifestItems, function(ManifestItemSource) {
+    sML.forEach(ManifestItems, ManifestItemSource => {
         const ManifestItem = {
             "id"         : ManifestItemSource.getAttribute("id")         || "",
             "href"       : ManifestItemSource.getAttribute("href")       || "",
@@ -695,7 +670,7 @@ L.processPackage = function(Doc) {
         B.Package.Manifest["items"][ManifestItem["id"]] = ManifestItem;
         ManifestItem.Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
         B.Package.Manifest.Files[ManifestItem.Path] = {};
-        (function(ManifestItemProperties) {
+        (ManifestItemProperties => {
             if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = ManifestItem.Path;
             if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = ManifestItem.Path;
         })(" " + ManifestItem.properties + " ");
@@ -714,7 +689,7 @@ L.processPackage = function(Doc) {
         /(rendition:page-spread)-(.+)/,
         /(bibi:[a-z]+)-(.+)/
     ];
-    O.forEach(SpineItemrefs, function(SpineItemrefSource) {
+    sML.forEach(SpineItemrefs, SpineItemrefSource => {
         const SpineItemref = {
             "idref"                 : SpineItemrefSource.getAttribute("idref")      || "",
             "linear"                : SpineItemrefSource.getAttribute("linear")     || "",
@@ -726,8 +701,8 @@ L.processPackage = function(Doc) {
         };
         if(SpineItemref["linear"] != "no") SpineItemref["linear"] = "yes";
         SpineItemref["properties"] = SpineItemref["properties"].replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/g, " ").split(" ");
-        PropertyREs.forEach(function(RE) {
-            SpineItemref["properties"].forEach(function(Property) {
+        PropertyREs.forEach(RE => {
+            SpineItemref["properties"].forEach(Property => {
                 if(RE.test(Property)) {
                     SpineItemref[Property.replace(RE, "$1")] = Property.replace(RE, "$2").replace("rendition:", "");
                     return false;
@@ -746,7 +721,7 @@ L.processPackage = function(Doc) {
     B.Creator   = BPM["creators"].join(  ", ");
     B.Publisher = BPM["publishers"].join(", ");
     B.Language  = BPM["languages"][0].split("-")[0];
-    B.WritingMode = (function() {
+    B.WritingMode = (() => {
         if(                                                                                            /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) return (B.PPD == "rtl") ? "tb-rl" : "lr-tb";
         if(/^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language)) return                              "rl-tb";
         if(                                                                                                            /^(mo?n)$/.test(B.Language)) return                    "tb-lr"          ;
@@ -768,12 +743,12 @@ L.processPackage = function(Doc) {
 };
 
 
-L.createCover = function() {
+L.createCover = () => {
     //I.Veil.Cover.ImageBox.innerHTML = I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
     I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
     try { I.Panel.BookInfo.Cover.removeChild(I.Panel.BookInfo.Cover.getElementsByTagName("img")[0]); } catch(Err) {}
     const CoverImagePath = B.Package.Manifest["cover-image"].Path;
-    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (function() {
+    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
         if(B.Creator)   BookID.push('<em>'     + B.Creator   + '</em>');
@@ -786,22 +761,24 @@ L.createCover = function() {
                 //O.log('Loading Cover Image: ' + B.Path + B.PathDelimiter + CoverImagePath + ' ...', "<g:>");
                 const Img = this;
                 Img.src = B.Files[CoverImagePath] ? O.getDataURI(CoverImagePath, B.Files[CoverImagePath]) : B.Path + "/" + CoverImagePath;
-                Img.timeout = setTimeout(function() { Img.ontimeout(); }, 5000);
+                Img.timeout = setTimeout(() => Img.ontimeout(), 5000);
                 //I.Veil.Cover.ImageBox.appendChild(this);
-            },
-            onload: function() {
-                if(this.TimedOut) return false;
-                clearTimeout(this.timeout);
-                //O.log('Cover Image Loaded.', "</g>");
-                //I.Panel.BookInfo.Cover.insertBefore(sML.create("img", { src: this.src }), I.Panel.BookInfo.Cover.Info);
-                sML.style(I.Veil.Cover, { backgroundImage: "url(" + this.src + ")" });
-                I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
-                I.Panel.BookInfo.Cover.insertBefore(this, I.Panel.BookInfo.Cover.Info);
             },
             ontimeout: function() {
                 this.TimedOut = true;
                 //O.log('Cover Image Request Timed Out.', "</g>");
                 I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
+            },
+            on: {
+                load: function() {
+                    if(this.TimedOut) return false;
+                    clearTimeout(this.timeout);
+                    //O.log('Cover Image Loaded.', "</g>");
+                    //I.Panel.BookInfo.Cover.insertBefore(sML.create("img", { src: this.src }), I.Panel.BookInfo.Cover.Info);
+                    sML.style(I.Veil.Cover, { backgroundImage: "url(" + this.src + ")" });
+                    I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
+                    I.Panel.BookInfo.Cover.insertBefore(this, I.Panel.BookInfo.Cover.Info);
+                }
             }
         }).load();
     } else {
@@ -812,19 +789,19 @@ L.createCover = function() {
 };
 
 
-L.initializeSpine = function() {
+L.initializeSpine = () => {
     R.Main.removeChild(R.Main.Book);
     let SpreadBefore, SpreadAfter;
     if(B.PPD == "rtl") SpreadBefore = "right", SpreadAfter = "left";
     else               SpreadBefore = "left",  SpreadAfter = "right";
-    O.forEach(B.Package.Spine["itemrefs"], function(ItemRef) {
+    sML.forEach(B.Package.Spine["itemrefs"], ItemRef => {
         const Item = sML.create("iframe", { className: "item", scrolling: "no", allowtransparency: "true",
             Box: sML.create("div", { className: "item-box " + ItemRef["rendition:layout"] }),
             Ref: ItemRef,
             Pages: []
         });
         Item.TimeCard = {};
-        Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
+        Item.stamp = (What) => { O.stamp(What, Item.TimeCard); };
         Item.Index = R.Items.length;
         Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
         Item.FullPath = Item.Path ? ((!/^https?:\/\//.test(Item.Path) ? B.Path + B.PathDelimiter : "") + Item.Path) : "";
@@ -873,9 +850,8 @@ L.initializeSpine = function() {
 };
 
 
-L.loadNavigation = function() {
-
-    return new Promise(function(resolve, reject) {
+L.loadNavigation = () => {
+    return new Promise((resolve, reject) => {
         if(B.Package.Manifest["nav"].Path) {
             I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["nav"].Path;
             I.Panel.BookInfo.Navigation.Type = "Navigation Document";
@@ -884,21 +860,21 @@ L.loadNavigation = function() {
             I.Panel.BookInfo.Navigation.Type = "TOC-NCX";
         }
         if(!I.Panel.BookInfo.Navigation.Type) return reject();
-        return O.openDocument(I.Panel.BookInfo.Navigation.Path).then(function(Doc) {
+        return O.openDocument(I.Panel.BookInfo.Navigation.Path).then(Doc => {
             I.Panel.BookInfo.Navigation.innerHTML = "";
             const NavContent = document.createDocumentFragment();
             if(I.Panel.BookInfo.Navigation.Type == "Navigation Document") {
-                O.forEach(Doc.querySelectorAll("nav"), function(Nav) {
+                sML.forEach(Doc.getElementsByTagName("nav"), Nav => {
                     switch(Nav.getAttribute("epub:type")) {
                         case "toc":       Nav.classList.add("bibi-nav-toc"); break;
                         case "landmarks": Nav.classList.add("bibi-nav-landmarks"); break;
                         case "page-list": Nav.classList.add("bibi-nav-page-list"); break;
                     }
-                    O.forEach(Nav.querySelectorAll("*"), function(Ele) { Ele.removeAttribute("style"); });
+                    sML.forEach(Nav.getElementsByTagName("*"), Ele => Ele.removeAttribute("style"));
                     NavContent.appendChild(Nav);
                 });
             } else {
-                const makeNavULTree = function(Ele) {
+                const makeNavULTree = (Ele) => {
                     const ChildNodes = Ele.childNodes;
                     let UL = undefined;
                     for(let l = ChildNodes.length, i = 0; i < l; i++) {
@@ -923,16 +899,15 @@ L.loadNavigation = function() {
             L.coordinateLinkages(I.Panel.BookInfo.Navigation.Path, I.Panel.BookInfo.Navigation, "InNav");
         }).then(resolve);
     });
-
 };
 
 
-L.coordinateLinkages = function(BasePath, RootElement, InNav) {
-    O.forEach(RootElement.getElementsByTagName("a"), function(A, i) {
+L.coordinateLinkages = (BasePath, RootElement, InNav) => {
+    sML.forEach(RootElement.getElementsByTagName("a"), (A, i) => {
         if(InNav) {
             A.NavANumber = i + 1;
-            A.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
-            A.addEventListener(O["pointerup"],   function(Eve) { Eve.stopPropagation(); });
+            A.addEventListener(O["pointerdown"], Eve => Eve.stopPropagation());
+            A.addEventListener(O["pointerup"],   Eve => Eve.stopPropagation());
         }
         let HrefPathInSource = A.getAttribute("href"), HrefAttribute = "href";
         if(!HrefPathInSource) {
@@ -941,7 +916,7 @@ L.coordinateLinkages = function(BasePath, RootElement, InNav) {
                 HrefAttribute = "xlink:href";
             } else {
                 if(InNav) {
-                    A.addEventListener("click", function(Eve) { Eve.preventDefault(); Eve.stopPropagation(); return false; });
+                    A.addEventListener("click", Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
                     A.classList.add("bibi-bookinfo-inactive-link");
                 }
                 return;
@@ -984,10 +959,10 @@ L.coordinateLinkages = function(BasePath, RootElement, InNav) {
                 L.coordinateLinkages.setJump(A);
             } else {
                 A.removeAttribute(HrefAttribute);
-                A.addEventListener("click", function() { return false; });
+                A.addEventListener("click", () => false);
                 if(!O.Touch) {
-                    A.addEventListener(O["pointerover"], function() { I.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)"); return false; });
-                    A.addEventListener(O["pointerout"],  function() { I.Help.hide(); return false; });
+                    A.addEventListener(O["pointerover"], () => I.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)") && false);
+                    A.addEventListener(O["pointerout"],  () => I.Help.hide()                                                       && false);
                 }
             }
         }
@@ -995,14 +970,14 @@ L.coordinateLinkages = function(BasePath, RootElement, InNav) {
     });
 };
 
-L.coordinateLinkages.setJump = function(A) {
-    A.addEventListener("click", function(Eve) {
+L.coordinateLinkages.setJump = (A) => {
+    A.addEventListener("click", Eve => {
         Eve.preventDefault(); 
         Eve.stopPropagation();
         if(A.Destination) {
-            new Promise(function(resolve) {
+            new Promise(resolve => {
                 A.InNav ? I.Panel.toggle().then(resolve) : resolve();
-            }).then(function() {
+            }).then(() => {
                 if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
                 if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
                 S["to"] = A.Destination;
@@ -1014,12 +989,12 @@ L.coordinateLinkages.setJump = function(A) {
 };
 
 
-L.preprocessResources = function() {
-    return new Promise(function(resolve, reject) {
+L.preprocessResources = () => {
+    return new Promise((resolve, reject) => {
         if(B.Unzipped) {
             if(S.BRL == "pre-paginated") return reject();
             if(S["book-type"] == "Zine") return reject();
-            const FileTypes = (function() {
+            const FileTypes = (() => {
                 if(sML.UA.Gecko || sML.UA.Edge) return ["HTML", "CSS"];
                 return null;
             })();
@@ -1027,7 +1002,7 @@ L.preprocessResources = function() {
             let FilesToBeLoaded = 0;
             for(let FilePath in B.Package.Manifest.Files) {
                 for(let l = FileTypes.length, i = 0; i < l; i++) {
-                    if(L.preprocessResources.Settings[FileTypes[i]].FileExtensionRE.test(FilePath)) {
+                    if(L.PreprocessSettings[FileTypes[i]].FileExtensionRE.test(FilePath)) {
                         B.Files[FilePath] = "";
                         FilesToBeLoaded++;
                         break;
@@ -1037,8 +1012,8 @@ L.preprocessResources = function() {
             if(!FilesToBeLoaded) return reject();
             let FilesLoaded = 0;
             for(let FilePath in B.Files) {
-                //(function(FilePath) {
-                    O.download(B.Path + "/" +  FilePath).then(function(XHR) {
+                //(FilePath => {
+                    O.download(B.Path + "/" +  FilePath).then(XHR => {
                         B.Files[FilePath] = XHR.responseText;
                         FilesLoaded++;
                         if(FilesLoaded >= FilesToBeLoaded) return resolve();
@@ -1049,16 +1024,16 @@ L.preprocessResources = function() {
             for(let FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
             resolve();
         }
-    }).then(function() {
+    }).then(() => {
         O.log('Preprocessing Resources...', "<g:>");
-        for(let Type in L.preprocessResources.Settings) if(L.preprocessResources.Settings[Type].init) L.preprocessResources.Settings[Type].init();
+        for(let Type in L.PreprocessSettings) if(L.PreprocessSettings[Type].init) L.PreprocessSettings[Type].init();
         E.dispatch("bibi:is-going-to:preprocess-resources");
         let AllCount = 0;
-        ["CSS", "SVG", "HTML"].forEach(function(Type) {
+        ["CSS", "SVG", "HTML"].forEach(Type => {
             let Count = 0;
             for(let FilePath in B.Files) {
-                if(!L.preprocessResources.Settings[Type].FileExtensionRE.test(FilePath)) continue;
-                L.preprocessResources.preprocessFile(FilePath, L.preprocessResources.Settings[Type]);
+                if(!L.PreprocessSettings[Type].FileExtensionRE.test(FilePath)) continue;
+                L.preprocessFile(FilePath, L.PreprocessSettings[Type]);
                 Count++, AllCount++;
             }
             if(Count) O.log(Count + ' ' + Type + (Count >= 2 ? 's' : ''));
@@ -1066,30 +1041,30 @@ L.preprocessResources = function() {
         O.log(AllCount ? 'Preprocessed. (' + AllCount + ' File' + (AllCount > 1 ? 's' : '') + ')' : 'Not Needed.', "</g>");
         L.Preprocessed = true;
         E.dispatch("bibi:preprocessed-resources");
-    }).catch(function() {
+    }).catch(() => {
         return Promise.resolve();
     });
 };
 
-L.preprocessResources.PreprocessedFiles = [];
-L.preprocessResources.preprocessFile = function(FilePath, Setting) {
-    if(L.preprocessResources.PreprocessedFiles.includes(FilePath)) return B.Files[FilePath];
+
+L.preprocessFile = (FilePath, Setting) => {
+    if(L.PreprocessedFiles.includes(FilePath)) return B.Files[FilePath];
     let FileContent = B.Files[FilePath];
     if(!B.Files[FilePath] || !Setting.FileExtensionRE.test(FilePath)) return FileContent;
     if(Setting.ReplaceRules) {
-        Setting.ReplaceRules.forEach(function(ReplaceRule) {
+        Setting.ReplaceRules.forEach(ReplaceRule => {
             if(ReplaceRule) FileContent = FileContent.replace(ReplaceRule[0], ReplaceRule[1]);
         });
     }
     if(Setting.NestingRE) {
         const Nestings = FileContent.match(Setting.NestingRE);
         if(Nestings) {
-            Nestings.forEach(function(Nesting) {
+            Nestings.forEach(Nesting => {
                 const NestingPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), Nesting.replace(Setting.NestingRE, "$2"));
                 if(B.Files[NestingPath]) {
                     FileContent = FileContent.replace(
                         Nesting, Nesting.replace(
-                            Setting.NestingRE, "$1" + O.getDataURI(NestingPath, L.preprocessResources.preprocessFile(NestingPath, Setting)) + "$3"
+                            Setting.NestingRE, "$1" + O.getDataURI(NestingPath, L.preprocessFile(NestingPath, Setting)) + "$3"
                         )
                     );
                 }
@@ -1098,11 +1073,11 @@ L.preprocessResources.preprocessFile = function(FilePath, Setting) {
     }
     FileContent = L.preprocessResources.replaceResourceRefferences(FilePath, FileContent, Setting);
     B.Files[FilePath] = FileContent.replace(/[\r\n]+/gm, "\n").trim();
-    L.preprocessResources.PreprocessedFiles.push(FilePath);
+    L.PreprocessedFiles.push(FilePath);
     return B.Files[FilePath];
 };
 
-L.preprocessResources.Settings = {
+L.PreprocessSettings = {
     CSS: {
         FileExtensionRE: /\.css$/,
         ReplaceRules: [
@@ -1112,9 +1087,7 @@ L.preprocessResources.Settings = {
         ResAttributesAndExtensions: {
             "url" : "gif|png|jpe?g|svg|ttf|otf|woff"
         },
-        getResMatchRE: function() {
-            return /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g;
-        },
+        getResMatchRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
         init: function() {
             this.ReplaceRules.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
             this.ReplaceRules.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
@@ -1169,16 +1142,16 @@ L.preprocessResources.Settings = {
     }
 };
 
-L.preprocessResources.replaceResourceRefferences = function(FilePath, FileContent, Setting) {
+L.preprocessResources.replaceResourceRefferences = (FilePath, FileContent, Setting) => {
     if(!FileContent || !FilePath || !Setting || !Setting.ResAttributesAndExtensions) return FileContent;
-    if(typeof Setting.getResMatchRE != "function") Setting.getResMatchRE = function(At) { return (new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g")); };
+    if(typeof Setting.getResMatchRE != "function") Setting.getResMatchRE = (At) => new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g");
     const FileDir = FilePath.replace(/\/?[^\/]+$/, "");
     for(let Attribute in Setting.ResAttributesAndExtensions) {
         const ResMatchRE = Setting.getResMatchRE(Attribute);
         const ResMatches = FileContent.match(ResMatchRE);
         if(ResMatches) {
             const ExtRE = new RegExp('\.' + Setting.ResAttributesAndExtensions[Attribute] + '$', "i");
-            ResMatches.forEach(function(Match) {
+            ResMatches.forEach(Match => {
                 const ResPathInSource = Match.replace(ResMatchRE, "$1");
                 const ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
                 const ResFilePathAndHash = ResPath.split("#");
@@ -1197,17 +1170,17 @@ L.preprocessResources.replaceResourceRefferences = function(FilePath, FileConten
 };
 
 
-L.loadSpread = function(Spread, Param) {
+L.loadSpread = (Spread, Param) => {
     if(!Param) Param = {};
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
         Spread.AllowPlaceholderItems = (S["allow-placeholders"] && Param.AllowPlaceholderItems);
         let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
-        Spread.Items.forEach(function(Item) {
+        Spread.Items.forEach(Item => {
             L.loadItem(Item, {
                 AllowPlaceholder: Param.AllowPlaceholderItems
-            }).then(function() { // Loaded
+            }).then(() => { // Loaded
                 if(++LoadedItemsInSpread                        == Spread.Items.length) resolve(Spread);
-            }).catch(function() { // Skipped
+            }).catch(() => { // Skipped
                 if(++SkippedItemsInSpread + LoadedItemsInSpread == Spread.Items.length)  reject(Spread);
             });
         });
@@ -1215,7 +1188,7 @@ L.loadSpread = function(Spread, Param) {
 };
 
 
-L.loadItem = function(Item, Param) { // Don't Call Directly. Use L.loadSpread.
+L.loadItem = (Item, Param) => { // Don't Call Directly. Use L.loadSpread.
     if(!Param) Param = {};
     const IsPlaceholder = (S["allow-placeholders"] && Item.Ref["rendition:layout"] == "pre-paginated" && Param.AllowPlaceholder);
     if(typeof Item.IsPlaceholder != "undefined" && Item.IsPlaceholder == IsPlaceholder) return Promise.reject(Item);
@@ -1231,14 +1204,14 @@ L.loadItem = function(Item, Param) { // Don't Call Directly. Use L.loadSpread.
         return Promise.resolve(Item);
     }
     ItemBox.classList.remove("loaded");
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         if(/\.(xhtml|xml|html?)$/i.test(Item.Path)) { // If HTML or Others
             return resolve(B.Files[Item.Path] ? { HTML: B.Files[Item.Path] } : { Src: Item.FullPath });
         }
         if(/\.(svg)$/i.test(Item.Path)) { // If SVG-in-Spine
             const Replacement = [/<\?xml-stylesheet\s*(.+?)\s*\?>/g, '<link rel="stylesheet" $1 />'];
             if(B.Files[Item.Path]) return resolve({ Body: B.Files[Item.Path].replace(Replacement[0], Replacement[1]) });
-            return O.download(Item.FullPath).then(function(XHR) { return resolve({ Head: '<base href="' + Item.FullPath + '" />', Body: XHR.responseText.replace(Replacement[0], Replacement[1]) }); });
+            return O.download(Item.FullPath).then(XHR => resolve({ Head: '<base href="' + Item.FullPath + '" />', Body: XHR.responseText.replace(Replacement[0], Replacement[1]) }));
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
             return resolve({ Body: [
@@ -1255,10 +1228,10 @@ L.loadItem = function(Item, Param) { // Don't Call Directly. Use L.loadSpread.
             ].join("") });
         }
         return resolve();
-    }).then(function(Param) {
+    }).then(Param => {
         if(typeof Param != "object") Param = {};
-        return new Promise(function(resolve) {
-            Item.onLoad = function() {
+        return new Promise(resolve => {
+            Item.onLoad = () => {
                 resolve(Item);
                 Item.removeEventListener("load", Item.onLoad);
                 delete Item.onLoad;
@@ -1290,7 +1263,7 @@ L.loadItem = function(Item, Param) { // Don't Call Directly. Use L.loadSpread.
                 }
             }
         });
-    }).then(L.postprocessItem).then(function() {
+    }).then(L.postprocessItem).then(() => {
         Item.Loaded = true;
         ItemBox.classList.add("loaded");
         E.dispatch("bibi:loaded-item", Item);
@@ -1300,7 +1273,7 @@ L.loadItem = function(Item, Param) { // Don't Call Directly. Use L.loadSpread.
 };
 
 
-L.postprocessItem = function(Item) {
+L.postprocessItem = (Item) => {
 
     Item.HTML = Item.contentDocument.documentElement;
     Item.Head = Item.contentDocument.head;
@@ -1316,12 +1289,12 @@ L.postprocessItem = function(Item) {
     else if(!XMLLang         ) Item.HTML.setAttribute("xml:lang", Lang);
     else if(            !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
 
-    O.forEach(Item.Body.querySelectorAll("link"), function(Link) { Item.Head.appendChild(Link); });
+    sML.forEach(Item.Body.getElementsByTagName("link"), Link => Item.Head.appendChild(Link));
 
-    sML.CSS.appendRule("html", "-webkit-text-size-adjust: 100%;", Item.contentDocument);
+    sML.appendCSSRule(Item.contentDocument, "html", "-webkit-text-size-adjust: 100%;");
 
     if(sML.UA.InternetExplorer) {
-        O.forEach(Item.Body.getElementsByTagName("svg"), function(SVG) {
+        sML.forEach(Item.Body.getElementsByTagName("svg"), SVG => {
             const ChildImages = SVG.getElementsByTagName("image");
             if(ChildImages.length == 1) {
                 const ChildImage = ChildImages[0];
@@ -1333,7 +1306,7 @@ L.postprocessItem = function(Item) {
         });
     }
 
-    Item.contentDocument.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
+    Item.contentDocument.addEventListener("wheel", R.Main.listenWheel, { capture: true, passive: false });
 
     I.observeTap(Item.HTML);
     Item.HTML.addTapEventListener("tap",         R.onTap);
@@ -1343,7 +1316,7 @@ L.postprocessItem = function(Item) {
 
     L.coordinateLinkages(Item.Path, Item.Body);
 
-    sML.Environments.forEach(function(EnvironmentClassName) { Item.HTML.classList.add(EnvironmentClassName); });
+    sML.Environments.forEach(EnvironmentClassName => Item.HTML.classList.add(EnvironmentClassName));
 
     const Elements = Item.contentDocument.querySelectorAll("body>*");
     if(Elements && Elements.length) {
@@ -1374,13 +1347,13 @@ L.postprocessItem = function(Item) {
         }
     }
 
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         if(Item.Ref["rendition:layout"] == "pre-paginated") {
             resolve();
         } else {
             L.patchItemStyles(Item).then(resolve);
         }
-    }).then(function() {
+    }).then(() => {
         if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
         if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
         E.dispatch("bibi:postprocessed-item", Item);
@@ -1391,19 +1364,19 @@ L.postprocessItem = function(Item) {
 };
 
 
-L.patchItemStyles = function(Item) { // All processes are only for reflowable.
+L.patchItemStyles = (Item) => { // All processes are only for reflowable.
 
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         Item.StyleSheets = [];
-        Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: O.RootPath + "res/styles/bibi-default.css" }), Item.HTML.querySelector("link, style"));
-        O.forEach(Item.HTML.querySelectorAll("link, style"), function(SSEle) {
+        Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: O.RootPath + "res/styles/bibi.book.css" }), Item.HTML.querySelector("link, style"));
+        sML.forEach(Item.HTML.querySelectorAll("link, style"), SSEle => {
             if(/^link$/i.test(SSEle.tagName)) {
                 if(!/^(alternate )?stylesheet$/.test(SSEle.rel)) return;
                 if((sML.UA.Safari || sML.OS.iOS) && SSEle.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
             }
             Item.StyleSheets.push(SSEle);
         });
-        const checkCSSLoadingAndResolve = function() {
+        const checkCSSLoadingAndResolve = () => {
             if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return false;
             clearInterval(Item.CSSLoadingTimerID);
             delete Item.CSSLoadingTimerID;
@@ -1411,7 +1384,7 @@ L.patchItemStyles = function(Item) { // All processes are only for reflowable.
             return true;
         };
         if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 100);
-    }).then(function() {
+    }).then(() => {
         if(!L.Preprocessed) {
             if(B.Package.Metadata["ebpaj:guide-version"]) {
                 const Versions = B.Package.Metadata["ebpaj:guide-version"].split(".");
@@ -1420,7 +1393,7 @@ L.patchItemStyles = function(Item) { // All processes are only for reflowable.
             if(sML.UA.InternetExplorer) {
                 //if(!B.Unzipped) return false;
                 const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
-                O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                O.editCSSRules(Item.contentDocument, CSSRule => {
                     if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.msColumnCount = "auto";
                     if(/(-(epub|webkit)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-rl";
                     if(/(-(epub|webkit)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-lr";
@@ -1429,18 +1402,14 @@ L.patchItemStyles = function(Item) { // All processes are only for reflowable.
                     if(IsCJK && / text-align: justify; /.test(CSSRule.cssText)) CSSRule.style.textJustify = "inter-ideograph";
                 });
             } else {
-                O.editCSSRules(Item.contentDocument, function(CSSRule) {
+                O.editCSSRules(Item.contentDocument, CSSRule => {
                     if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = "auto";
                 });
             }
         }
         const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
         const ItemBodyComputedStyle = getComputedStyle(Item.Body);
-        if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) {
-            sML.style(Item.HTML, {
-                "writing-mode": ItemBodyComputedStyle[O.WritingModeProperty]
-            });
-        }
+        if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
         Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
              if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
         else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
@@ -1448,19 +1417,17 @@ L.patchItemStyles = function(Item) { // All processes are only for reflowable.
         [
             [Item.Box, ItemHTMLComputedStyle, Item.HTML],
             [Item,     ItemBodyComputedStyle, Item.Body]
-        ].forEach(function(Par) {
+        ].forEach(Par => {
             [
                 "backgroundColor",
                 "backgroundImage",
                 "backgroundRepeat",
                 "backgroundPosition",
                 "backgroundSize"
-            ].forEach(function(Pro) {
-                Par[0].style[Pro] = Par[1][Pro];
-            });
+            ].forEach(Pro => Par[0].style[Pro] = Par[1][Pro]);
             Par[2].style.background = "transparent";
         });
-        O.forEach(Item.Body.querySelectorAll("svg, img"), function(Img) {
+        sML.forEach(Item.Body.querySelectorAll("svg, img"), Img => {
             Img.BibiDefaultStyle = {
                 width: (Img.style.width ? Img.style.width : ""),
                 height: (Img.style.height ? Img.style.height : ""),
@@ -1483,32 +1450,30 @@ L.patchItemStyles = function(Item) { // All processes are only for reflowable.
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.R = {}; // Bibi.Reader
+export const R = {}; // Bibi.Reader
 
 
-R.initialize = function() {
+R.initialize = () => {
 
     R.Main      = O.Body.insertBefore(sML.create("div", { id: "bibi-main", Transformation: { Scale: 1, Translation: { X: 0, Y: 0 } } }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create("div", { id: "bibi-sub" }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create("div", { id: "bibi-main-book" }));
 
-    R.Main.onWheeled = function(Eve) {
+    R.Main.listenWheel = (Eve) => {
+        if(S.RVM == "paged") return;
         Eve.preventDefault();
         Eve.stopPropagation();
-        if(S.RVM == "paged") return R.onWheel(Eve);
         R.Main.scrollLeft = R.Main.scrollLeft + Eve.deltaX;
         R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
     };
 
-    R.Main.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
+    //R.Main.addEventListener("wheel", R.onWheel, { capture: true, passive: true });
 
-    //R.reset();
-
-    E.add("bibi:scrolled", function() {
+    E.add("bibi:scrolled", () => {
         R.getCurrent();
         clearTimeout(R.Timer_Scrolling);
         if(!R.Current.Page) return;
-        R.Timer_Scrolling = setTimeout(function() {
+        R.Timer_Scrolling = setTimeout(() => {
             if(S["allow-placeholders"]) R.turnSpreadsOnDemand();
             if(S["use-cookie"]) {
                 O.Cookie.eat(B.ID, {
@@ -1521,12 +1486,7 @@ R.initialize = function() {
         }, 222);
     });
 
-    E.add("bibi:resized", function() {
-        R.layOut({
-            Reset: true,
-            Setting: (Option && Option.Setting ? Option.Setting : undefined)
-        });
-    });
+    E.add("bibi:resized", () => R.layOut({ Reset: true }));
 
     I.observeTap(O.HTML);
 
@@ -1535,7 +1495,7 @@ R.initialize = function() {
     O.HTML.addEventListener(O["pointerdown"], R.onPointerDown);
     O.HTML.addEventListener(O["pointerup"],   R.onPointerUp);
 
-    E.add("bibi:tapped", function(Eve) {
+    E.add("bibi:tapped", Eve => {
         if(I.isPointerStealth()) return false;
         const BibiEvent = O.getBibiEvent(Eve);
         //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
@@ -1553,7 +1513,7 @@ R.initialize = function() {
         }
     });
 
-    E.add("bibi:tapped-center", function(Eve) {
+    E.add("bibi:tapped-center", Eve => {
         if(I.SubPanel) E.dispatch("bibi:closes-utilities",  Eve);
         else           E.dispatch("bibi:toggles-utilities", Eve);
     });
@@ -1561,7 +1521,7 @@ R.initialize = function() {
 };
 
 
-R.reset = function() {
+R.reset = () => {
     R.Started = false;
     R.Spreads = [], R.Items = [], R.Pages = [];
     R.AllItems = [], R.NonLinearItems = [];
@@ -1572,11 +1532,17 @@ R.reset = function() {
 };
 
 
-R.resetStage = function() {
+R.resetBibiHeight = () => {
     const WIH = window.innerHeight;
     O.HTML.style.height = O.Body.style.height = WIH + "px"; // for In-App Browsers
-    try {  I.Veil.style.height = WIH + "px"; } catch(Err) {}
-    try { I.Panel.style.height = WIH + "px"; } catch(Err) {}
+    return WIH;
+}
+
+
+R.resetStage = () => {
+    const WIH = R.resetBibiHeight(WIH);
+    //try {  I.Veil.style.height = WIH + "px"; } catch(Err) {}
+    //try { I.Panel.style.height = WIH + "px"; } catch(Err) {}
     R.Stage = {};
     R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = "";
@@ -1602,14 +1568,14 @@ R.resetStage = function() {
     R.Main.Book.style["background"] = S["book-background"] ? S["book-background"] : "";
 };
 
-R.layOutSpread = function(Spread) { const SpreadBox = Spread.Box;
+R.layOutSpread = (Spread) => { const SpreadBox = Spread.Box;
     E.dispatch("bibi:is-going-to:reset-spread", Spread);
     Spread.style.width = Spread.style.height = "";
     SpreadBox.classList.remove("spreaded");
     Spread.Pages = [];
-    Spread.Items.forEach(function(Item) {
+    Spread.Items.forEach(Item => {
         R.layOutItem(Item);
-        Item.Pages.forEach(function(Page) {
+        Item.Pages.forEach(Page => {
             Page.IndexInSpread = Spread.Pages.length;
             Spread.Pages.push(Page);
         });
@@ -1665,7 +1631,7 @@ R.layOutSpread = function(Spread) { const SpreadBox = Spread.Box;
     return Spread;
 };
 
-R.layOutItem = function(Item) {
+R.layOutItem = (Item) => {
     O.stamp("Reset...", Item.TimeCard);
     E.dispatch("bibi:is-going-to:reset-item", Item);
     Item.Scale = 1;
@@ -1676,11 +1642,11 @@ R.layOutItem = function(Item) {
     return Item;
 };
 
-R.renderReflowableItem = function(Item) {
+R.renderReflowableItem = (Item) => {
     let PageCB  = R.Stage[S.CC.L.SIZE.B] - (S["item-padding-" + S.CC.L.BASE.s] + S["item-padding-" + S.CC.L.BASE.e]); // Page "C"ontent "B"readth
     let PageCL  = R.Stage[S.CC.L.SIZE.L] - (S["item-padding-" + S.CC.L.BASE.b] + S["item-padding-" + S.CC.L.BASE.a]); // Page "C"ontent "L"ength
     let PageGap = R.Stage.PageGap        + (S["item-padding-" + S.CC.L.BASE.b] + S["item-padding-" + S.CC.L.BASE.a]);
-    ["b","a","s","e"].forEach(function(base) { const trbl = S.CC.L.BASE[base]; Item.style["padding-" + trbl] = S["item-padding-" + trbl] + "px"; });
+    ["b","a","s","e"].forEach(base => { const trbl = S.CC.L.BASE[base]; Item.style["padding-" + trbl] = S["item-padding-" + trbl] + "px"; });
     Item.HTML.classList.remove("bibi-columned");
     Item.HTML.style.width = Item.HTML.style.height = "";
     sML.style(Item.HTML, { "column-fill": "", "column-width": "", "column-gap": "", "column-rule": "" });
@@ -1690,11 +1656,11 @@ R.renderReflowableItem = function(Item) {
     }
     Item.style[S.CC.L.SIZE.b] = PageCB + "px";
     Item.style[S.CC.L.SIZE.l] = PageCL + "px";
-    const WordWrappingStyleSheetIndex = sML.CSS.appendRule("*", "word-wrap: break-word;", Item.contentDocument); ////
-    O.forEach(Item.Body.querySelectorAll("img, svg"), function(Img) {
+    const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, "*", "word-wrap: break-word;"); ////
+    sML.forEach(Item.Body.querySelectorAll("img, svg"), Img => {
         // Fit Image Size
         if(!Img.BibiDefaultStyle) return;
-        ["width", "height", "maxWidth", "maxHeight"].forEach(function(Pro) { Img.style[Pro] = Img.BibiDefaultStyle[Pro]; });
+        ["width", "height", "maxWidth", "maxHeight"].forEach(Pro => Img.style[Pro] = Img.BibiDefaultStyle[Pro]);
         if(S.RVM == "horizontal" && /-(rl|lr)$/.test(Item.HTML.WritingMode) || S.RVM == "vertical" && /-tb$/.test(Item.HTML.WritingMode)) return;
         const B = parseFloat(getComputedStyle(Img)[S.CC.L.SIZE.b]), MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.CC.L.SIZE.b]), PageCB));
         const L = parseFloat(getComputedStyle(Img)[S.CC.L.SIZE.l]), MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[S.CC.L.SIZE.l]), PageCL));
@@ -1719,7 +1685,7 @@ R.renderReflowableItem = function(Item) {
             "column-rule": ""
         });
     }
-    sML.deleteStyleRule(WordWrappingStyleSheetIndex, Item.contentDocument); ////
+    sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
     let ItemL = sML.UA.InternetExplorer ? Item.Body["client" + S.CC.L.SIZE.L] : Item.HTML["scroll" + S.CC.L.SIZE.L];
     const HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
@@ -1729,7 +1695,7 @@ R.renderReflowableItem = function(Item) {
     let ItemBoxL = ItemL  + (S["item-padding-" + S.CC.L.BASE.b] + S["item-padding-" + S.CC.L.BASE.a]);// + ((S.RVM == "paged" && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
     Item.Box.style[S.CC.L.SIZE.b] = ItemBoxB + "px";
     Item.Box.style[S.CC.L.SIZE.l] = ItemBoxL + "px";
-    Item.Pages.forEach(function(Page) { Item.Box.removeChild(Page); });
+    Item.Pages.forEach(Page => Item.Box.removeChild(Page));
     Item.Pages = [];
     const PageL = ItemBoxL / HowManyPages;
     for(let i = 0; i < HowManyPages; i++) {
@@ -1742,7 +1708,7 @@ R.renderReflowableItem = function(Item) {
     return Item;
 };
 
-R.renderPrePaginatedItem = function(Item) {
+R.renderPrePaginatedItem = (Item) => {
     Item.style.visibility = Item.IsPlaceholder ? "hidden" : "";
     sML.style(Item, { "transform-origin": "", "transformOrigin": "", "transform": "" });
     let StageB = R.Stage[S.CC.L.SIZE.B];
@@ -1809,7 +1775,7 @@ R.renderPrePaginatedItem = function(Item) {
     return Item;
 };
 
-R.getItemViewport = function(Item) {
+R.getItemViewport = (Item) => {
     if(!Item.IsPlaceholder) {
         const ViewportMeta = Item.Head.querySelector('meta[name="viewport"]');
         if(ViewportMeta)           return O.getViewportByMetaContentString(ViewportMeta.getAttribute("content"));
@@ -1819,7 +1785,7 @@ R.getItemViewport = function(Item) {
     return null;
 };
 
-R.getItemLayoutViewport = function(Item) {
+R.getItemLayoutViewport = (Item) => {
     if(Item.Viewport) return Item.Viewport;
     if(B.ICBViewport) return B.ICBViewport;
     return {
@@ -1829,28 +1795,28 @@ R.getItemLayoutViewport = function(Item) {
 };
 
 
-R.turnSpread = function(Spread, TF) {
+R.turnSpread = (Spread, TF) => {
     const AllowPlaceholderItems = !(TF);
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         if(!S["allow-placeholders"] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
         const PreviousSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L];
-        L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(function(Spread) {
+        L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
             resolve(Spread); // ←↙ do asynchronous
             R.layOutSpread(Spread);
             const ChangedSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L] - PreviousSpreadBoxLength;
             if(ChangedSpreadBoxLength != 0) R.Main.Book.style[S.CC.L.SIZE.l] = (parseFloat(getComputedStyle(R.Main.Book)[S.CC.L.SIZE.l]) + ChangedSpreadBoxLength) + "px";
-        }).catch(function(Spread) {
+        }).catch(Spread => {
             resolve(Spread);
         });
     });
 };
 
-R.turnSpreads = function(Spreads, TF) {
+R.turnSpreads = (Spreads, TF) => {
     let TurnedSpreads = 0;
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         if(!S["allow-placeholders"]) return resolve();
-        Spreads.forEach(function(Spread) {
-            R.turnSpread(Spread, TF).then(function() {
+        Spreads.forEach(Spread => {
+            R.turnSpread(Spread, TF).then(() => {
                 if(++TurnedSpreads == Spreads.length) resolve(Spreads);
             });
         });
@@ -1860,8 +1826,8 @@ R.turnSpreads = function(Spreads, TF) {
 R.SpreadsTurnedFaceUp = [];
 R.SpreadsToBeTurnedBack = [];
 
-R.turnSpreadsOnDemand = function() {
-    return new Promise(function(resolve) {
+R.turnSpreadsOnDemand = () => {
+    return new Promise(resolve => {
         if(!S["allow-placeholders"]) return resolve();
         const CurrentSpreadIndex = R.Current.Page.Spread.Index;
         const SpreadsToBeTurnedFaceUp = [R.Spreads[CurrentSpreadIndex]];
@@ -1869,42 +1835,40 @@ R.turnSpreadsOnDemand = function() {
         for(let i = 1; i <= 2; i++) if(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]); else break;
         for(let i = 1; i <= 1; i++) if(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]); else break;
         R.turnSpreads(SpreadsToBeTurnedFaceUp, true).then(resolve);
-        R.SpreadsTurnedFaceUp = R.SpreadsTurnedFaceUp.filter(function(SpreadTurnedFaceUp) { return !SpreadsToBeTurnedFaceUp.includes(SpreadTurnedFaceUp); }).concat(SpreadsToBeTurnedFaceUp);
+        R.SpreadsTurnedFaceUp = R.SpreadsTurnedFaceUp.filter(SpreadTurnedFaceUp => !SpreadsToBeTurnedFaceUp.includes(SpreadTurnedFaceUp)).concat(SpreadsToBeTurnedFaceUp);
         while(R.SpreadsTurnedFaceUp.length > 10) R.SpreadsToBeTurnedBack.push(R.SpreadsTurnedFaceUp.shift());
-        R.SpreadsToBeTurnedBack = R.SpreadsToBeTurnedBack.filter(function(SpreadToBeTurnedBack) { return !R.SpreadsTurnedFaceUp.includes(SpreadToBeTurnedBack); });
+        R.SpreadsToBeTurnedBack = R.SpreadsToBeTurnedBack.filter(SpreadToBeTurnedBack => !R.SpreadsTurnedFaceUp.includes(SpreadToBeTurnedBack));
         clearTimeout(R.Timer_turnSpreadsBack);
-        R.Timer_turnSpreadsBack = setTimeout(function() {
-            R.turnSpreads(R.SpreadsToBeTurnedBack, false).then(function() { R.SpreadsToBeTurnedBack = []; });
+        R.Timer_turnSpreadsBack = setTimeout(() => {
+            R.turnSpreads(R.SpreadsToBeTurnedBack, false).then(() => R.SpreadsToBeTurnedBack = []);
         }, 123);
     });
 };
 
 
-R.organizePages = function() {
+R.organizePages = () => {
     R.Pages = [];
-    R.Spreads.forEach(function(Spread) {
-        Spread.Pages.forEach(function(Page) {
+    R.Spreads.forEach(Spread => {
+        Spread.Pages.forEach(Page => {
             Page.Index = R.Pages.length; R.Pages.push(Page);
-            Page.id = "page-" + sML.String.pad(Page.Index + 1, 0, B.FileDigit);
+            Page.id = "page-" + (Page.Index + 1 + "").padStart(B.FileDigit, 0);
         });
     });
     return R.Pages;
 };
 
 
-R.layOutStage = function() {
+R.layOutStage = () => {
     //E.dispatch("bibi:is-going-to:lay-out-stage");
     let MainContentLayoutLength = 0;
-    R.Spreads.forEach(function(Spread) {
-        MainContentLayoutLength += Spread.Box["offset" + S.CC.L.SIZE.L];
-    });
+    R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box["offset" + S.CC.L.SIZE.L]);
     MainContentLayoutLength += R.Stage.PageGap * (R.Spreads.length - 1);
     R.Main.Book.style[S.CC.L.SIZE.l] = MainContentLayoutLength + "px";
     //E.dispatch("bibi:laid-out-stage");
 };
 
 
-R.layOut = function(Opt) {
+R.layOut = (Opt) => {
     /*
         Opt: {
             Destination: BibiDestination,
@@ -1915,7 +1879,7 @@ R.layOut = function(Opt) {
     */
     if(!Opt) Opt = {};
     if(R.LayingOut) return Promise.reject();
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
         R.LayingOut = true;
         O.log('Laying out...', "<g:>");
         E.dispatch("bibi:closes-utilities");
@@ -1935,18 +1899,18 @@ R.layOut = function(Opt) {
             }
         }
         if(Opt.Setting) S.update(Opt.Setting);
-        ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(function(Pro) { O.log(Pro + ': ' + S[Pro]); });
+        ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => O.log(Pro + ': ' + S[Pro]));
         if(typeof Opt.before == "function") Opt.before();
         if(Opt.Reset) {
             R.resetStage();
-            R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
+            R.Spreads.forEach(Spread => R.layOutSpread(Spread));
             R.organizePages();
             R.layOutStage();
         }
         resolve();
-    }).then(function() {
+    }).then(() => {
         return R.focusOn({ Destination: Opt.Destination, Duration: 0 });
-    }).then(function() {
+    }).then(() => {
         O.Busy = false;
         O.HTML.classList.remove("busy");
         O.HTML.classList.remove("laying-out");
@@ -1960,7 +1924,7 @@ R.layOut = function(Opt) {
     });
 };
 
-R.updateOrientation = function() {
+R.updateOrientation = () => {
     const PreviousOrientation = R.Orientation;
     if(typeof window.orientation != "undefined") {
         R.Orientation = (window.orientation == 0 || window.orientation == 180) ? "portrait" : "landscape";
@@ -1977,7 +1941,7 @@ R.updateOrientation = function() {
     }
 };
 
-R.onscroll = function(Eve) {
+R.onscroll = (Eve) => {
     if(!L.Opened) return;
     if(!R.Scrolling) {
         O.HTML.classList.add("scrolling");
@@ -1986,25 +1950,25 @@ R.onscroll = function(Eve) {
     }
     E.dispatch("bibi:scrolls", Eve);
     clearTimeout(R.Timer_onscrolled);
-    R.Timer_onscrolled = setTimeout(function() {
+    R.Timer_onscrolled = setTimeout(() => {
         R.Scrolling = false;
         O.HTML.classList.remove("scrolling");
         E.dispatch("bibi:scrolled", Eve);
     }, 123);
 };
 
-R.onresize = function(Eve) {
+R.onresize = (Eve) => {
     if(!L.Opened) return;
     if(!R.Resizing) O.HTML.classList.add("resizing");
     R.Resizing = true;
     E.dispatch("bibi:resizes", Eve);
     clearTimeout(R.Timer_afterresized);
     clearTimeout(R.Timer_onresized);
-    R.Timer_onresized = setTimeout(function() {
+    R.Timer_onresized = setTimeout(() => {
         O.Busy = true;
         O.HTML.classList.add("busy");
         R.updateOrientation();
-        R.Timer_afterresized = setTimeout(function() {
+        R.Timer_afterresized = setTimeout(() => {
             E.dispatch("bibi:resized", Eve);
             O.Busy = false;
             R.Resizing = false;
@@ -2014,24 +1978,24 @@ R.onresize = function(Eve) {
     }, O.Touch ? 444 : 222);
 };
 
-R.onTap = function(Eve) {
+R.onTap = (Eve) => {
     E.dispatch("bibi:taps",   Eve);
     E.dispatch("bibi:tapped", Eve);
 }
 
-R.onPointerDown = function(Eve) {
+R.onPointerDown = (Eve) => {
     E.dispatch("bibi:downs-pointer",  Eve);
     R.PointerIsDowned = true;
     E.dispatch("bibi:downed-pointer", Eve);
 };
 
-R.onPointerUp = function(Eve) {
+R.onPointerUp = (Eve) => {
     E.dispatch("bibi:ups-pointer",   Eve);
     R.PointerIsDowned = false;
     E.dispatch("bibi:upped-pointer", Eve);
 };
 
-R.onPointerMove = function(Eve) {
+R.onPointerMove = (Eve) => {
     const CC = O.getBibiEventCoord(Eve), PC = R.onPointerMove.PreviousCoord;
     if(PC.X != CC.X || PC.Y != CC.Y) E.dispatch("bibi:moved-pointer",   Eve);
     else                             E.dispatch("bibi:stopped-pointer", Eve);
@@ -2041,39 +2005,7 @@ R.onPointerMove = function(Eve) {
 };
 R.onPointerMove.PreviousCoord = { X:0, Y:0 };
 
-R.onWheel = function(Eve) {
-    Eve.preventDefault();
-    const WA /* WheelAxis */ = Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY) ? "X" : "Y";
-    if(R.onWheel.PreviousWheels.length && R.onWheel.PreviousWheels[R.onWheel.PreviousWheels.length - 1].Axis != WA) R.onWheel.PreviousWheels = [];
-    const CW = {}, PWs = R.onWheel.PreviousWheels, PWl = PWs.length;
-    CW.Axis = WA;
-    CW.Distance = (Eve["delta" + WA] < 0 ? -1 : 1) * (WA == "X" && S.ARD == "rtl" ? -1 : 1);
-    CW.Delta = { X: 0, Y: 0 }, CW.Delta[WA] = Math.abs(Eve["delta" + WA]);
-    if(!PWs[PWl - 1]) {
-        CW.Accel = 1, CW.Wheeled = "start";
-    } else if(CW.Distance != PWs[PWl - 1].Distance) {
-        CW.Accel = 1;
-        if(PWl >= 3 && PWs[PWl - 2].Distance != CW.Distance && PWs[PWl - 3].Distance != CW.Distance) CW.Wheeled = "reverse";
-    } else if(CW.Delta[WA] > PWs[PWl - 1].Delta[WA]) {
-        CW.Accel =  1;
-        if(PWl >= 3 && PWs[PWl - 1].Accel == -1 && PWs[PWl - 2].Accel == -1 && PWs[PWl - 3].Accel == -1) CW.Wheeled = "serial";
-    } else if(CW.Delta[WA] < PWs[PWl - 1].Delta[WA]) {
-        CW.Accel = -1;
-    } else {
-        CW.Accel = PWs[PWl - 1].Accel;
-    }
-    if(CW.Wheeled) {
-        Eve.BibiWheeled = CW;
-        E.dispatch("bibi:wheeled", Eve);
-    }
-    if(PWl >= 3) PWs.shift();
-    PWs.push(CW);
-    clearTimeout(R.onWheel.Timer_stop);
-    R.onWheel.Timer_stop = setTimeout(function() { R.onWheel.PreviousWheels = []; }, 192);
-};
-R.onWheel.PreviousWheels = [];
-
-R.changeView = function(Param) {
+R.changeView = (Param) => {
     if(
         S["fix-reader-view-mode"] ||
         !Param || typeof Param.Mode != "string" || !/^(paged|horizontal|vertical)$/.test(Param.Mode) ||
@@ -2084,17 +2016,17 @@ R.changeView = function(Param) {
         E.dispatch("bibi:changes-view");
         O.Busy = true;
         O.HTML.classList.add("busy");
-        setTimeout(function() {
-            //if(Param.Mode != "paged") R.Spreads.forEach(function(Spread) { Spread.style.opacity = ""; });
+        setTimeout(() => {
+            //if(Param.Mode != "paged") R.Spreads.forEach(Spread => Spread.style.opacity = "");
             R.layOut({
                 Reset: true,
                 Setting: {
                     "reader-view-mode": Param.Mode
                 }
-            }).then(function() {
+            }).then(() => {
                 O.HTML.classList.remove("busy");
                 O.Busy = false;
-                setTimeout(function() { E.dispatch("bibi:changed-view", Param.Mode); }, 0);
+                setTimeout(() => E.dispatch("bibi:changed-view", Param.Mode), 0);
             });
         }, 0);
     } else {
@@ -2111,7 +2043,7 @@ R.changeView = function(Param) {
 };
 
 
-R.getCurrentPages = function() {
+R.getCurrentPages = () => {
     const FrameScrollCoord = {
         Left:   R.Main.scrollLeft,
         Right:  R.Main.scrollLeft + O.Body.offsetWidth, // instead of R.Main.offsetWidth for stretching.
@@ -2150,7 +2082,7 @@ R.getCurrentPages = function() {
     return Pages;
 };
 
-R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
+R.getCurrentPages.getStatus = (PageRatio, PageCoord, FrameScrollCoord) => {
     if(PageRatio >= 100) return "including";
     const Status = [];
     if(window["inner" + S.CC.L.SIZE.L] < PageCoord[S.CC.L.SIZE.L]) Status.push("oversize");
@@ -2163,7 +2095,7 @@ R.getCurrentPages.getStatus = function(PageRatio, PageCoord, FrameScrollCoord) {
     return Status.join(" ");
 };
 
-R.getCurrent = function() {
+R.getCurrent = () => {
     R.Past = R.Current;
     R.Current.Pages = R.getCurrentPages();
     R.Current.Page = R.Current.Pages.EndPage;
@@ -2173,10 +2105,10 @@ R.getCurrent = function() {
 };
 
 
-R.classifyCurrent = function() {
-    R.Spreads.forEach(function(Spread) { Spread.IsCurrent = false;
-        Spread.Items.forEach(function(Item) { Item.IsCurrent = false;
-            Item.Pages.forEach(function(Page) { Page.IsCurrent = false;
+R.classifyCurrent = () => {
+    R.Spreads.forEach(Spread => { Spread.IsCurrent = false;
+        Spread.Items.forEach(Item => { Item.IsCurrent = false;
+            Item.Pages.forEach(Page => { Page.IsCurrent = false;
                 if(R.Current.Pages.includes(Page)) Page.IsCurrent = Item.IsCurrent = Spread.IsCurrent = true;
                 Page.classList.toggle("current", Page.IsCurrent);
             });
@@ -2187,8 +2119,8 @@ R.classifyCurrent = function() {
 };
 
 
-R.focusOn = function(Par) {
-    return new Promise(function(resolve, reject) {
+R.focusOn = (Par) => {
+    return new Promise((resolve, reject) => {
         if(R.Moving) return reject();
         if(!Par) return reject();
         if(typeof Par == "number") Par = { Destination: Par };
@@ -2197,16 +2129,10 @@ R.focusOn = function(Par) {
         E.dispatch("bibi:is-going-to:focus-on", Par);
         R.Moving = true;
         let FocusPoint = 0;
-        if(S["book-rendition-layout"] == "reflowable") {/*
-            if(Dest.Edge == "head") {
-                FocusPoint = (S.SLD != "rtl") ? 0 : R.Main.Book["offset" + [S.CC.L.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.CC.L.SIZE.L];
-            } else if(Dest.Edge == "foot") {
-                FocusPoint = (S.SLD == "rtl") ? 0 : R.Main.Book["offset" + [S.CC.L.SIZE.L]] - sML.Coord.getClientSize(R.Main)[S.CC.L.SIZE.L];
-            } else {*/
-                FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
-                if(Dest.Side == "after") FocusPoint += (Dest.Page["offset" + S.CC.L.SIZE.L] - R.Stage[S.CC.L.SIZE.L]) * S.CC.L.AXIS.PM;
-                if(S.SLD == "rtl") FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
-            //}
+        if(S["book-rendition-layout"] == "reflowable") {
+            FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
+            if(Dest.Side == "after") FocusPoint += (Dest.Page["offset" + S.CC.L.SIZE.L] - R.Stage[S.CC.L.SIZE.L]) * S.CC.L.AXIS.PM;
+            if(S.SLD == "rtl") FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
         } else {
             if(S["allow-placeholders"] && Par.Turn != false) R.turnSpread(Dest.Page.Spread, true);
             if(R.Stage[S.CC.L.SIZE.L] >= Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) {
@@ -2223,13 +2149,13 @@ R.focusOn = function(Par) {
         O.scrollTo(ScrollTarget, {
             ForceScroll: true,
             Duration: 0//(S.RVM == "paged" && S.ARD != S.SLD ? 0 : Par.Duration)
-        }).then(function() {
+        }).then(() => {
             R.getCurrent();
             R.Moving = false;
             resolve();
         });
-    }).then(function() {
-        return new Promise(function(resolve) {
+    }).then(() => {
+        return new Promise(resolve => {
             resolve();
             E.dispatch("bibi:focused-on", Par);
         });
@@ -2237,7 +2163,7 @@ R.focusOn = function(Par) {
 };
 
 
-R.hatchDestination = function(Dest) { // from Page, Element, or Edge
+R.hatchDestination = (Dest) => { // from Page, Element, or Edge
     if(!Dest) return null;
     if(Dest.Page) return Dest;
     if(typeof Dest == "number" || (typeof Dest == "string" && /^\d+$/.test(Dest))) {
@@ -2257,7 +2183,7 @@ R.hatchDestination = function(Dest) { // from Page, Element, or Edge
     return Dest;
 };
 
-R.findPageByDestination = function(Dest) {
+R.findPageByDestination = (Dest) => {
     if(Dest.Page) return Dest.Page;
     if(Dest.Edge == "head") return R.Pages[0];
     if(Dest.Edge == "foot") return R.Pages[R.Pages.length - 1];
@@ -2272,7 +2198,7 @@ R.findPageByDestination = function(Dest) {
     return null;
 };
 
-R.findItemByDestination = function(Dest) {
+R.findItemByDestination = (Dest) => {
     if(Dest.Item) return Dest.Item;
     if(typeof Dest.ItemIndexInAll == "number") return R.AllItems[Dest.ItemIndexInAll];
     if(typeof Dest.ItemIndex == "number") return R.Items[Dest.ItemIndex];
@@ -2281,24 +2207,24 @@ R.findItemByDestination = function(Dest) {
     return null;
 };
 
-R.findSpreadByDestination = function(Dest) {
+R.findSpreadByDestination = (Dest) => {
     if(Dest.Spread) return Dest.Spread;
     if(typeof Dest.SpreadIndex == "number") return R.Spreads[Dest.SpreadIndex];
     return null;
 };
 
-R.getBibiToDestination = function(BibitoString) {
+R.getBibiToDestination = (BibitoString) => {
     if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
     if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
     let ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
-    if(ElementIndex) ElementIndex.split(".").forEach(function(Index) { ElementSelector += ">*:nth-child(" + Index + ")"; });
+    if(ElementIndex) ElementIndex.split(".").forEach(Index => ElementSelector += ">*:nth-child(" + Index + ")");
     return {
         ItemIndexInAll: ItemIndexInAll,
         ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
     };
 };
 
-R.getNearestPageOfElement = function(Ele) {
+R.getNearestPageOfElement = (Ele) => {
     if(!Ele || !Ele.tagName) return null;
     const Item = Ele.ownerDocument.body.Item;
     if(!Item) return null;
@@ -2329,7 +2255,7 @@ R.getNearestPageOfElement = function(Ele) {
 };
 
 
-R.selectTextLocation = function(Destination) {
+R.selectTextLocation = (Destination) => {
     if(typeof Destination.TextNodeIndex != "number" || !Destination.Element) return false;
     const DestinationNode = Destination.Element.childNodes[Destination.TextNodeIndex];
     if(!DestinationNode || !DestinationNode.textContent) return;
@@ -2350,12 +2276,12 @@ R.selectTextLocation = function(Destination) {
             Sides.End.Index = Sides.End.Node.textContent.length;
         }
     }
-    return sML.select(Sides);
+    return sML.Ranges.selectRange(sML.Ranges.getRange(Sides));
 };
 
 
-R.moveBy = function(Par) {
-    return new Promise(function(resolve, reject) {
+R.moveBy = (Par) => {
+    return new Promise((resolve, reject) => {
         if(R.Moving || !L.Opened) return reject();
         if(!Par) return reject();
         if(typeof Par == "number") Par = { Distance: Par };
@@ -2414,16 +2340,14 @@ R.moveBy = function(Par) {
             Par.Destination = { Page: DestinationPage, Side: Side };
             R.focusOn(Par).then(resolve);
         }
-    }).then(function() {
-        return new Promise(function(resolve) {
-            resolve();
-            E.dispatch("bibi:moved-by", Par);
-        });
-    });
+    }).then(() => new Promise(resolve => {
+        resolve();
+        E.dispatch("bibi:moved-by", Par);
+    }));
 };
 
-R.scrollBy = function(Par) {
-    return new Promise(function(resolve, reject) {
+R.scrollBy = (Par) => {
+    return new Promise((resolve, reject) => {
         if(!Par) return reject();
         if(typeof Par == "number") Par = { Distance: Par };
         if(!Par.Distance || typeof Par.Distance != "number") return reject();
@@ -2433,22 +2357,21 @@ R.scrollBy = function(Par) {
             Frame: R.Main,
             X: 0, Y: 0
         };
-        const CurrentScrollCoord = sML.Coord.getScrollCoord(R.Main);
         switch(S.SLD) {
-            case "ttb": ScrollTarget.Y = CurrentScrollCoord.Y + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
-            case "ltr": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
-            case "rtl": ScrollTarget.X = CurrentScrollCoord.X + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
+            case "ttb": ScrollTarget.Y = R.Main.scrollTop  + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
+            case "ltr": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
+            case "rtl": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
         }
         O.scrollTo(ScrollTarget, {
             ForceScroll: true,
             Duration: ((S.RVM == "paged") ? 0 : Par.Duration)
-        }).then(function() {
+        }).then(() => {
             R.getCurrent();
             R.Moving = false;
             resolve();
         });
-    }).then(function() {
-        return new Promise(function(resolve) {
+    }).then(() => {
+        return new Promise(resolve => {
             resolve();
             E.dispatch("bibi:scrolled-by", Par);
         });
@@ -2466,15 +2389,15 @@ R.scrollBy = function(Par) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.I = {}; // Bibi.UserInterfaces
+export const I = {}; // Bibi.UserInterfaces
 
 
-I.initialize = function() {
+I.initialize = () => {
 
     I.createNotifier();
     I.createVeil();
 
-    E.bind("bibi:readied", function() {
+    E.bind("bibi:readied", () => {
         I.createCatcher();
         I.createPanel();
         I.createMenu();
@@ -2484,7 +2407,7 @@ I.initialize = function() {
         I.createLoupe();
     });
 
-    E.bind("bibi:prepared", function() {
+    E.bind("bibi:prepared", () => {
         I.createNombre();
         I.createSlider();
         I.createTurner();
@@ -2494,42 +2417,38 @@ I.initialize = function() {
         I.createSpinner();
     });
 
-    E.add("bibi:commands:open-utilities",   function() { E.dispatch("bibi:opens-utilities"); });
-    E.add("bibi:commands:close-utilities",  function() { E.dispatch("bibi:closes-utilities"); });
-    E.add("bibi:commands:toggle-utilities", function() { E.dispatch("bibi:toggles-utilities"); });
+    E.add("bibi:commands:open-utilities",   () => E.dispatch("bibi:opens-utilities"));
+    E.add("bibi:commands:close-utilities",  () => E.dispatch("bibi:closes-utilities"));
+    E.add("bibi:commands:toggle-utilities", () => E.dispatch("bibi:toggles-utilities"));
 
 };
 
 
-I.note = function(Msg, Time, ErrorOccured) {
+I.note = (Msg, Time, ErrorOccured) => {
     clearTimeout(I.note.Timer);
     if(!Msg) I.note.Time = 0;
     else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
     if(I.Notifier) {
         I.Notifier.Board.innerHTML = '<p' + (ErrorOccured ? ' class="error"' : '') + '>' + Msg + '</p>';
         O.HTML.classList.add("notifier-shown");
-        I.note.Timer = setTimeout(function() { O.HTML.classList.remove("notifier-shown"); }, I.note.Time);
+        I.note.Timer = setTimeout(() => O.HTML.classList.remove("notifier-shown"), I.note.Time);
     }
     if(!O.Touch) {
         if(O.statusClearer) clearTimeout(O.statusClearer);
         window.status = 'BiB/i: ' + Msg;
-        O.statusClearer = setTimeout(function() { window.status = ""; }, I.note.Time);
+        O.statusClearer = setTimeout(() => window.status = "", I.note.Time);
     }
 };
 
 
-I.createNotifier = function() {
-
+I.createNotifier = () => {
     I.Notifier = O.Body.appendChild(sML.create("div", { id: "bibi-notifier" }));
-
     I.Notifier.Board = I.Notifier.appendChild(sML.create("div", { id: "bibi-notifier-board" }));
-
     E.dispatch("bibi:created-notifier");
-
 };
 
 
-I.createVeil = function() {
+I.createVeil = () => {
 
     I.Veil = I.setToggleAction(O.Body.appendChild(sML.create("div", { id: "bibi-veil" })), {
         // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
@@ -2553,29 +2472,30 @@ I.createVeil = function() {
     I.Veil.PlayButton = I.Veil.appendChild(
         sML.create("p", { id: "bibi-veil-play", title: PlayButtonTitle,
             innerHTML: '<span class="non-visual">' + PlayButtonTitle + '</span>',
-            play: function(Eve) {
+            play: (Eve) => {
                 Eve.stopPropagation();
                 L.play();
                 //M.post("bibi:play:button:" + location.href);
                 E.dispatch("bibi:played:by-button");
             },
             hide: function() {
-                this.removeEventListener("click", I.Veil.PlayButton.play);
                 sML.style(this, {
                     opacity: 0,
                     cursor: "default"
-                });
+                }).then(Eve => this.parentNode.removeChild(this));
+            },
+            on: {
+                click: function(Eve) { this.play(Eve); }
             }
         })
     );
-    I.Veil.PlayButton.addEventListener("click", I.Veil.PlayButton.play);
-    E.add("bibi:played", function() { I.Veil.PlayButton.hide(); });
+    E.add("bibi:played", () => I.Veil.PlayButton.hide());
 
     E.dispatch("bibi:created-veil");
 
 };
 
-I.createCatcher = function() {
+I.createCatcher = () => {
     // Catcher
     if(S["book"] || S.BookDataElement || !S["accept-local-file"]) return;
     const CatcherInnerHTML = I.distillLabels.distillLanguage({
@@ -2611,18 +2531,16 @@ I.createCatcher = function() {
         }
         if(Accept.length) I.Catcher.Input.setAttribute("accept", Accept.join(","));
     }
-    I.Catcher.Input.addEventListener("change", function(Eve) {
+    I.Catcher.Input.addEventListener("change", Eve => {
         let FileData = {};  try { FileData = Eve.target.files[0]; } catch(Err) {}
         L.getBookData.resolve({ BookData: FileData });
     });
-    I.Catcher.addEventListener("click", function(Eve) {
-        this.Input.click(Eve);
-    });
+    I.Catcher.addEventListener("click", Eve => I.Catcher.Input.click(Eve));
     if(!O.Touch) {
-        I.Catcher.addEventListener("dragenter", function(Eve) { Eve.preventDefault(); O.HTML.classList.add(   "dragenter"); }, 1);
-        I.Catcher.addEventListener("dragover",  function(Eve) { Eve.preventDefault(); }, 1);
-        I.Catcher.addEventListener("dragleave", function(Eve) { Eve.preventDefault(); O.HTML.classList.remove("dragenter"); }, 1);
-        I.Catcher.addEventListener("drop",      function(Eve) { Eve.preventDefault();
+        I.Catcher.addEventListener("dragenter", Eve => { Eve.preventDefault(); O.HTML.classList.add(   "dragenter"); }, 1);
+        I.Catcher.addEventListener("dragover",  Eve => { Eve.preventDefault();                                       }, 1);
+        I.Catcher.addEventListener("dragleave", Eve => { Eve.preventDefault(); O.HTML.classList.remove("dragenter"); }, 1);
+        I.Catcher.addEventListener("drop",      Eve => { Eve.preventDefault();
             let FileData = {};  try { FileData = Eve.dataTransfer.files[0]; } catch(Err) {}
             L.getBookData.resolve({ BookData: FileData });
         }, 1);
@@ -2631,15 +2549,15 @@ I.createCatcher = function() {
 };
 
 
-I.createPanel = function() {
+I.createPanel = () => {
 
     I.Panel = O.Body.appendChild(sML.create("div", { id: "bibi-panel" }));
     I.setToggleAction(I.Panel, {
-        onopened: function() {
+        onopened: () => {
             O.HTML.classList.add("panel-opened");
             E.dispatch("bibi:opened-panel");
         },
-        onclosed: function() {
+        onclosed: () => {
             O.HTML.classList.remove("panel-opened");
             E.dispatch("bibi:closed-panel");
         }
@@ -2656,10 +2574,10 @@ I.createPanel = function() {
         active: { default: "Close this Index", ja: "この目次を閉じる" }
     };
     I.setFeedback(I.Panel, { StopPropagation: true });
-    I.Panel.addTapEventListener("tapped", function() { E.dispatch("bibi:commands:toggle-panel"); });
+    I.Panel.addTapEventListener("tapped", () => E.dispatch("bibi:commands:toggle-panel"));
 
     // Optimize to Scrollbar Size
-    sML.CSS.appendRule("html.page-rtl div#bibi-panel:after", "bottom: " + (O.Scrollbars.Height) + "px;");
+    sML.appendCSSRule("html.page-rtl div#bibi-panel:after", "bottom: " + (O.Scrollbars.Height) + "px;");
 
     // Book Info
     I.Panel.BookInfo            = I.Panel.appendChild(               sML.create("div", { id: "bibi-panel-bookinfo"            }));
@@ -2673,21 +2591,22 @@ I.createPanel = function() {
 };
 
 
-I.createMenu = function() {
+I.createMenu = () => {
 
     if(!S["use-menubar"]) O.HTML.classList.add("without-menubar");
     //else if( S["place-menubar-at-top"]) O.HTML.classList.add("menubar-top");
     //else                                O.HTML.classList.add("menubar-bottom");
 
     // Menus
-    I.Menu = O.Body.appendChild(sML.create("div", { id: "bibi-menu", on: { "click": function(Eve) { Eve.stopPropagation(); } } }));
+    I.Menu = O.Body.appendChild(sML.create("div", { id: "bibi-menu" }));
+    I.Menu.addEventListener("click", Eve => Eve.stopPropagation());
     I.setHoverActions(I.Menu);
     I.setToggleAction(I.Menu, {
-        onopened: function() {
+        onopened: () => {
             O.HTML.classList.add("menu-opened");
             E.dispatch("bibi:opened-menu");
         },
-        onclosed: function() {
+        onclosed: () => {
             O.HTML.classList.remove("menu-opened");
             E.dispatch("bibi:closed-menu");
         }
@@ -2696,38 +2615,36 @@ I.createMenu = function() {
     E.add("bibi:commands:close-menu",  I.Menu.close);
     E.add("bibi:commands:toggle-menu", I.Menu.toggle);
 
-    E.add("bibi:opens-utilities",   function(Opt) { E.dispatch("bibi:commands:open-menu",   Opt); });
-    E.add("bibi:closes-utilities",  function(Opt) { E.dispatch("bibi:commands:close-menu",  Opt); });
-    E.add("bibi:toggles-utilities", function(Opt) { E.dispatch("bibi:commands:toggle-menu", Opt); });
+    E.add("bibi:opens-utilities",   Opt => E.dispatch("bibi:commands:open-menu",   Opt));
+    E.add("bibi:closes-utilities",  Opt => E.dispatch("bibi:commands:close-menu",  Opt));
+    E.add("bibi:toggles-utilities", Opt => E.dispatch("bibi:commands:toggle-menu", Opt));
 
     E.add("bibi:opened", I.Menu.close);
 
-    E.add("bibi:scrolls", function() {
+    E.add("bibi:scrolls", () => {
         clearTimeout(I.Menu.Timer_cool);
         if(!I.Menu.Hot) I.Menu.classList.add("hot");
         I.Menu.Hot = true;
-        I.Menu.Timer_cool = setTimeout(function() {
+        I.Menu.Timer_cool = setTimeout(() => {
             I.Menu.Hot = false;
             I.Menu.classList.remove("hot");
         }, 1234);
     });
     if(!O.Touch) {
-        E.add("bibi:moved-pointer", function(Eve) {
+        E.add("bibi:moved-pointer", Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(I.Menu.Timer_close);
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) {
                 E.dispatch(I.Menu, "bibi:hovers");
             } else if(I.Menu.Hover) {
-                I.Menu.Timer_close = setTimeout(function() {
-                    E.dispatch(I.Menu, "bibi:unhovers", Eve);
-                }, 123);
+                I.Menu.Timer_close = setTimeout(() => E.dispatch(I.Menu, "bibi:unhovers", Eve), 123);
             }
         });
     }
     I.Menu.L = I.Menu.appendChild(sML.create("div", { id: "bibi-menu-l" }));
     I.Menu.R = I.Menu.appendChild(sML.create("div", { id: "bibi-menu-r" }));
-    [I.Menu.L, I.Menu.R].forEach(function(MenuSide) {
+    [I.Menu.L, I.Menu.R].forEach(MenuSide => {
         MenuSide.ButtonGroups = [];
         MenuSide.addButtonGroup = function(Par) {
             const ButtonGroup = I.createButtonGroup(Par);
@@ -2738,10 +2655,10 @@ I.createMenu = function() {
     });
 
     // Optimize to Scrollbar Size
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-vertical div#bibi-menu"
     ].join(", "), "width: calc(100% - " + (O.Scrollbars.Width) + "px);");
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-vertical.panel-opened div#bibi-menu",
         "html.view-vertical.subpanel-opened div#bibi-menu"
     ].join(", "), "width: 100%; padding-right: " + (O.Scrollbars.Width) + "px;");
@@ -2754,7 +2671,7 @@ I.createMenu = function() {
     I.createMenu.SettingMenuComponents = [];
     if(!S["fix-reader-view-mode"])                                                                     I.createMenu.SettingMenuComponents.push("ViewModeButtons");
     if(O.WindowEmbedded)                                                                               I.createMenu.SettingMenuComponents.push("NewWindowButton");
-    if(O.FullscreenEnabled && !O.Touch)                                                                I.createMenu.SettingMenuComponents.push("FullscreenButton");
+    if(O.FullscreenTarget && !O.Touch)                                                                 I.createMenu.SettingMenuComponents.push("FullscreenButton");
     if(S["website-href"] && /^https?:\/\/[^\/]+/.test(S["website-href"]) && S["website-name-in-menu"]) I.createMenu.SettingMenuComponents.push("WebsiteLink");
     if(!S["remove-bibi-website-link"])                                                                 I.createMenu.SettingMenuComponents.push("BibiWebsiteLink");
     if(I.createMenu.SettingMenuComponents.length) I.createMenu.createSettingMenu();
@@ -2764,9 +2681,7 @@ I.createMenu = function() {
 };
 
 
-I.createMenu.createPanelSwitch = function() {
-
-    // Panel Switch
+I.createMenu.createPanelSwitch = () => {
     I.PanelSwitch = I.Menu.L.addButtonGroup({ Sticky: true }).addButton({
         Type: "toggle",
         Labels: {
@@ -2775,24 +2690,17 @@ I.createMenu.createPanelSwitch = function() {
         },
         Help: true,
         Icon: '<span class="bibi-icon bibi-icon-toggle-panel"><span class="bar-1"></span><span class="bar-2"></span><span class="bar-3"></span></span>',
-        action: function() {
-            I.Panel.toggle();
-        }
+        action: () => I.Panel.toggle()
     });
-    E.add("bibi:opened-panel", function() { I.setUIState(I.PanelSwitch, "active"); });
-    E.add("bibi:closed-panel", function() { I.setUIState(I.PanelSwitch,       ""); });
-    E.add("bibi:started",      function() { sML.style(I.PanelSwitch, { display: "block" }); });
-
+    E.add("bibi:opened-panel", () => I.setUIState(I.PanelSwitch, "active"            ));
+    E.add("bibi:closed-panel", () => I.setUIState(I.PanelSwitch, ""                  ));
+    E.add("bibi:started",      () =>    sML.style(I.PanelSwitch, { display: "block" }));
     E.dispatch("bibi:created-panel-switch");
-
 };
 
 
-I.createMenu.createSettingMenu = function() {
-
+I.createMenu.createSettingMenu = () => {
     I.Menu.Config = {};
-
-    // Button
     I.Menu.Config.Button = I.Menu.R.addButtonGroup({ Sticky: true }).addButton({
         Type: "toggle",
         Labels: {
@@ -2802,10 +2710,7 @@ I.createMenu.createSettingMenu = function() {
         Help: true,
         Icon: '<span class="bibi-icon bibi-icon-setting"></span>'
     });
-
-    // Sub Panel
     I.Menu.Config.SubPanel = I.createSubPanel({ Opener: I.Menu.Config.Button, id: "bibi-subpanel_config" });
-
     if(
         I.createMenu.SettingMenuComponents.includes("ViewModeButtons")
     ) {
@@ -2813,34 +2718,27 @@ I.createMenu.createSettingMenu = function() {
         I.Menu.Config.ViewOptionSectionR = I.createMenu.createSettingMenu.createViewOptionSectionR();
         I.Menu.Config.ViewOptionSectionF = I.createMenu.createSettingMenu.createViewOptionSectionF();
     }
-
     if(
         I.createMenu.SettingMenuComponents.includes("NewWindowButton") ||
         I.createMenu.SettingMenuComponents.includes("FullscreenButton")
     ) {
         I.Menu.Config.WindowSection      = I.createMenu.createSettingMenu.createWindowSection();
     }
-
     if(
         I.createMenu.SettingMenuComponents.includes("WebsiteLink") ||
         I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")
     ) {
         I.Menu.Config.LinkageSection     = I.createMenu.createSettingMenu.createLinkageSection();
     }
-
     E.dispatch("bibi:created-setting-menu");
-
 };
 
 
-I.createMenu.createSettingMenu.createViewSection = function() {
-
+I.createMenu.createSettingMenu.createViewSection = () => {
     const Section = I.Menu.Config.SubPanel.addSection({
         Labels: { default: { default: 'Layout Mode', ja: '表示モード' } }
     });
-
-    const SS /*= SpreadShape*/ = (function(ItemShape) { return '<span class="bibi-shape bibi-shape-spread">' + ItemShape + ItemShape + '</span>'; })('<span class="bibi-shape bibi-shape-item"></span>');
-
+    const SS /*= SpreadShape*/ = (ItemShape => '<span class="bibi-shape bibi-shape-spread">' + ItemShape + ItemShape + '</span>')('<span class="bibi-shape bibi-shape-item"></span>');
     const Buttons = [{
         Mode: "paged",
         Labels: {
@@ -2869,58 +2767,39 @@ I.createMenu.createSettingMenu.createViewSection = function() {
         },
         Icon: '<span class="bibi-icon bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">' + SS + SS + SS + '</span></span>'
     }];
-
-    Buttons.forEach(function(Button) {
+    Buttons.forEach(Button => {
         Button.Type = "radio";
         Button.Notes = true;
-        Button.action = function() { return R.changeView(this); };
+        Button.action = () => R.changeView(Button);
     });
-
     const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
-
-    E.add("bibi:updated-settings", function() {
-        ButtonGroup.Buttons.forEach(function(Button) {
-            I.setUIState(Button, (Button.Mode == S.RVM ? "active" : "default"));
-        });
+    E.add("bibi:updated-settings", () => {
+        ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? "active" : "default")));
     });
-
     return Section;
-
 };
 
 
-I.createMenu.createSettingMenu.createViewOptionSectionR = function() { // for Reflowable Books
-
+I.createMenu.createSettingMenu.createViewOptionSectionR = () => { // for Reflowable Books
     /*
-
     const Section = I.Menu.Config.SubPanel.addSection({
         Labels: { default: { default: 'Options', ja: '表示オプション' } }
     });
-
     const Buttons = [];
-
     const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
-
-    E.add("bibi:updated-settings", function() {
+    E.add("bibi:updated-settings", () => {
         Section.style.display = S.BRL == "reflowable" ? "" : "none";
-        ButtonGroup.Buttons.forEach(function(Button) {
-            I.setUIState(Button, S[Button.Name] ? "active" : "default");
-        });
+        ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, S[Button.Name] ? "active" : "default"));
     });
-
     return Section;
-
     //*/
-
 };
 
 
-I.createMenu.createSettingMenu.createViewOptionSectionF = function() { // for Fixed-layout Books
-
+I.createMenu.createSettingMenu.createViewOptionSectionF = () => { // for Fixed-layout Books
     const Section = I.Menu.Config.SubPanel.addSection({
         Labels: { default: { default: 'Options', ja: '表示オプション' } }
     });
-
     const Buttons = [{
         Name: "full-breadth-layout-in-scroll",
         Type: "toggle",
@@ -2945,63 +2824,56 @@ I.createMenu.createSettingMenu.createViewOptionSectionF = function() { // for Fi
             }
         }
     }];
-
     const ButtonGroup = Section.addButtonGroup({ Buttons: Buttons });
-
-    E.add("bibi:updated-settings", function() {
+    E.add("bibi:updated-settings", () => {
         Section.style.display = S.BRL == "pre-paginated" ? "" : "none";
-        ButtonGroup.Buttons.forEach(function(Button) {
-            I.setUIState(Button, S[Button.Name] ? "active" : "default");
-        });
+        ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, S[Button.Name] ? "active" : "default"));
     });
-
     return Section;
-
 };
 
 
-I.createMenu.createSettingMenu.createWindowSection = function() {
-
+I.createMenu.createSettingMenu.createWindowSection = () => {
     const Buttons = [];
-
-    // New Window
-    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) Buttons.push({
-        Type: "link",
-        Labels: {
-            default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
-        },
-        Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
-        href: O.RequestedURL,
-        target: "_blank"
-    });
-
-    // Fullscreen
-    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) Buttons.push({
-        Type: "toggle",
-        Labels: {
-            default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
-            active:  { default: 'Exit Fullscreen', ja: 'フルスクリーンモード解除' }
-        },
-        Icon: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>',
-        action: function() {
-            const Button = this;
-            if(!O.FullscreenElement.Fullscreen) {
-                sML.requestFullscreen(O.FullscreenElement);
-            } else {
-                sML.exitFullscreen(O.FullscreenDocument);
+    if(I.createMenu.SettingMenuComponents.includes("NewWindowButton")) {
+        Buttons.push({
+            Type: "link",
+            Labels: {
+                default: { default: 'Open in New Window', ja: 'あたらしいウィンドウで開く' }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-open-newwindow"></span>',
+            id: "bibi-button-open-newwindow",
+            href: O.RequestedURL,
+            target: "_blank"
+        });
+    }
+    if(I.createMenu.SettingMenuComponents.includes("FullscreenButton")) {
+        Buttons.push({
+            Type: "toggle",
+            Labels: {
+                default: { default: 'Enter Fullscreen', ja: 'フルスクリーンモード' },
+                active:  { default: 'Exit Fullscreen', ja: 'フルスクリーンモード解除' }
+            },
+            Icon: '<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>',
+            id: "bibi-button-toggle-fullscreen",
+            action: function() {
+                I.Menu.Config.SubPanel.close();
+                !O.Fullscreen ? O.FullscreenTarget.requestFullscreen() : O.FullscreenTarget.ownerDocument.exitFullscreen();
             }
-            if(!O.FullscreenElement.Fullscreen) {
-                O.FullscreenElement.Fullscreen = true;
-                E.dispatch("bibi:requested-fullscreen");
+        });
+        O.FullscreenTarget.ownerDocument.addEventListener("fullscreenchange", function() { // care multi-embeddeding
+            if(!O.FullscreenButton) O.FullscreenButton = document.getElementById("bibi-button-toggle-fullscreen");
+            if(this.fullscreenElement == O.FullscreenTarget) {
+                O.Fullscreen = true;
                 O.HTML.classList.add("fullscreen");
-            } else {
-                O.FullscreenElement.Fullscreen = false;
-                E.dispatch("bibi:exited-fullscreen");
+                I.setUIState(O.FullscreenButton, "active");
+            } else if(O.Fullscreen) {
+                O.Fullscreen = false;
                 O.HTML.classList.remove("fullscreen");
+                I.setUIState(O.FullscreenButton, "default");
             }
-        }
-    });
-
+        });
+    }
     if(Buttons.length) {
         const WindowSection = I.Menu.Config.SubPanel.addSection({
             //Labels: { default: { default: 'Choose Layout', ja: 'レイアウトを選択' } }
@@ -3011,14 +2883,11 @@ I.createMenu.createSettingMenu.createWindowSection = function() {
     } else {
         return null;
     }
-
 };
 
 
-I.createMenu.createSettingMenu.createLinkageSection = function() {
-
+I.createMenu.createSettingMenu.createLinkageSection = () => {
     const Buttons = [];
-
     if(I.createMenu.SettingMenuComponents.includes("WebsiteLink")) Buttons.push({
         Type: "link",
         Labels: {
@@ -3028,7 +2897,6 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
         href: S["website-href"],
         target: "_blank"
     });
-
     if(I.createMenu.SettingMenuComponents.includes("BibiWebsiteLink")) Buttons.push({
         Type: "link",
         Labels: {
@@ -3038,7 +2906,6 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
         href: Bibi["href"],
         target: "_blank"
     });
-
     if(Buttons.length) {
         const LinkageSection = I.Menu.Config.SubPanel.addSection({
             // Labels: { default: { default: 'Link' + (Buttons.length > 1 ? 's' : ''), ja: 'リンク' } },
@@ -3048,40 +2915,31 @@ I.createMenu.createSettingMenu.createLinkageSection = function() {
     } else {
         return null;
     }
-
 };
 
-I.createFontSizeChanger = function() {
 
+I.createFontSizeChanger = () => {
     I.FontSizeChanger = {};
-
     if(typeof S["font-size-scale-per-step"] != "number" || S["font-size-scale-per-step"] <= 1) S["font-size-scale-per-step"] = 1.25;
-
     if(S["use-font-size-changer"] && S["use-cookie"]) {
         const BibiCookie = O.Cookie.remember(O.RootPath);
         if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) I.FontSizeChanger.Step = BibiCookie.FontSize.Step * 1;
     }
     if(typeof I.FontSizeChanger.Step != "number" || I.FontSizeChanger.Step < -2 || 2 < I.FontSizeChanger.Step) I.FontSizeChanger.Step = 0;
-
-    E.bind("bibi:postprocessed-item", function(Item) {
-        if(Item.Ref["rendition:layout"] == "pre-paginated") return false;
-        Item.changeFontSize = function(FontSize) {
-            if(Item.FontSizeStyleRule) sML.CSS.deleteRule(Item.FontSizeStyleRule, Item.contentDocument);
-            Item.FontSizeStyleRule = sML.CSS.appendRule("html", "font-size: " + FontSize + "px !important;", Item.contentDocument);
+    E.bind("bibi:postprocessed-item", Item => { if(Item.Ref["rendition:layout"] == "pre-paginated") return false;
+        Item.changeFontSize = (FontSize) => {
+            if(Item.FontSizeStyleRule) sML.deleteCSSRule(Item.contentDocument, Item.FontSizeStyleRule);
+            Item.FontSizeStyleRule = sML.appendCSSRule(Item.contentDocument, "html", "font-size: " + FontSize + "px !important;");
         };
-        Item.changeFontSizeStep = function(Step) {
-            Item.changeFontSize(Item.FontSize.Base * Math.pow(S["font-size-scale-per-step"], Step));
-        };
+        Item.changeFontSizeStep = (Step) => Item.changeFontSize(Item.FontSize.Base * Math.pow(S["font-size-scale-per-step"], Step));
         Item.FontSize = {
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, "") * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
         if(L.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
-            O.forEach(Item.contentDocument.documentElement.querySelectorAll("body, body *"), function(Ele) {
-                Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem";
-            });
+            sML.forEach(Item.contentDocument.documentElement.querySelectorAll("body, body *"), Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem");
         } else {
-            O.editCSSRules(Item.contentDocument, function(CSSRule) {
+            O.editCSSRules(Item.contentDocument, CSSRule => {
                 if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
                 try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(Error) {}
                 const REs = {
@@ -3095,7 +2953,7 @@ I.createFontSizeChanger = function() {
         if(typeof S["base-font-size"] == "number" && S["base-font-size"] > 0) {
             let MostPopularFontSize = 0;
             const FontSizeCounter = {};
-            O.forEach(Item.Body.querySelectorAll("p, p *"), function(Ele) {
+            sML.forEach(Item.Body.querySelectorAll("p, p *"), Ele => {
                 if(!Ele.innerText.replace(/\s/g, "")) return;
                 const FontSize = Math.round(getComputedStyle(Ele).fontSize.replace(/[^\d]*$/, "") * 100) / 100;
                 if(!FontSizeCounter[FontSize]) FontSizeCounter[FontSize] = [];
@@ -3114,8 +2972,7 @@ I.createFontSizeChanger = function() {
             Item.changeFontSizeStep(I.FontSizeChanger.Step);
         }
     });
-
-    I.FontSizeChanger.changeFontSizeStep = function(Step, Actions) {
+    I.FontSizeChanger.changeFontSizeStep = (Step, Actions) => {
         if(S.BRL == "pre-paginated") return;
         if(Step == I.FontSizeChanger.Step) return;
         if(!Actions) Actions = {};
@@ -3125,42 +2982,32 @@ I.createFontSizeChanger = function() {
         if(S["use-font-size-changer"] && S["use-cookie"]) {
             O.Cookie.eat(O.RootPath, { FontSize: { Step: Step } });
         }
-        setTimeout(function() {
+        setTimeout(() => {
             R.layOut({
+                before: () => R.Items.forEach(Item => { if(Item.changeFontSizeStep) Item.changeFontSizeStep(Step); }),
                 Reset: true,
-                NoNotification: true,
-                before: function() {
-                    R.Items.forEach(function(Item) {
-                        if(Item.changeFontSizeStep) Item.changeFontSizeStep(Item, Step);
-                    });
-                }
-            }).then(function() {
+                NoNotification: true
+            }).then(() => {
                 E.dispatch("bibi:changed-font-size", { Step: Step });
                 if(typeof Actions.after == "function") Actions.after();
             });
         }, 88);
     };
-
-    E.add("bibi:changes-font-size", function() { E.dispatch("bibi:closes-utilities"); });
-
-  //E.add("bibi:changes-view", function() { I.FontSizeChanger.changeFontSizeStep(0); }); // unnecessary
-
-    if(S["use-font-size-changer"]) I.createFontSizeChanger.createUI();
+    E.add("bibi:changes-font-size", () => E.dispatch("bibi:closes-utilities"));
+  //E.add("bibi:changes-view", () => I.FontSizeChanger.changeFontSizeStep(0)); // unnecessary
+    if(S["use-font-size-changer"]) I.createFontSizeChangerUI();
     E.dispatch("bibi:created-font-size-changer");
-
 };
 
 
-I.createFontSizeChanger.createUI = function() {
-
+I.createFontSizeChangerUI = () => {
     const changeFontSizeStep = function() {
         const Button = this;
         I.FontSizeChanger.changeFontSizeStep(Button.Step, {
-            before: function() { Button.ButtonGroup.Busy = true;  },
-            after:  function() { Button.ButtonGroup.Busy = false; }
+            before: () => Button.ButtonGroup.Busy = true,
+            after:  () => Button.ButtonGroup.Busy = false
         });
     };
-
     I.createSubPanel({
         Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: "bibi-buttongroup_font-size" }).addButton({
             Type: "toggle",
@@ -3179,7 +3026,7 @@ I.createFontSizeChanger.createUI = function() {
             Help: true
         }),
         id: "bibi-subpanel_font-size",
-        open: function() {}
+        open: () => {}
     }).addSection({
         Labels: {
             default: {
@@ -3240,14 +3087,11 @@ I.createFontSizeChanger.createUI = function() {
             Icon: '<span class="bibi-icon bibi-icon-font-size bibi-icon-font-size-exsmall"></span>',
             action: changeFontSizeStep, Step: -2
         }]
-    }).Buttons.forEach(function(Button) {
-        if(Button.Step == I.FontSizeChanger.Step) I.setUIState(Button, "active");
-    });
-
+    }).Buttons.forEach(Button => { if(Button.Step == I.FontSizeChanger.Step) I.setUIState(Button, "active"); });
 };
 
 
-I.createLoupe = function() {
+I.createLoupe = () => {
 
     I.Loupe = {};
 
@@ -3257,25 +3101,25 @@ I.createLoupe = function() {
     if(S["loupe-mode"] == "with-keys" && !S["use-keys"]) return;
 
     sML.edit(I.Loupe, {
-        scale: function(Scl, BibiEvent) { // Scl: Scale
+        scale: (Scl, BibiEvent) => { // Scl: Scale
             if(typeof Scl != "number") return false;
             const CurrentTfm = R.Main.Transformation;
             Scl = Math.round(Scl * 100) / 100;
             if(Scl == CurrentTfm.Scale) return;
             E.dispatch("bibi:changes-scale", Scl);
             if(Scl < 1) {
-                this.transform({ Scale: Scl, Translation: { X: R.Main.offsetWidth * (1 - Scl) / 2, Y: R.Main.offsetHeight * (1 - Scl) / 2 } });
+                I.Loupe.transform({ Scale: Scl, Translation: { X: R.Main.offsetWidth * (1 - Scl) / 2, Y: R.Main.offsetHeight * (1 - Scl) / 2 } });
             } else if(Scl == 1) {
-                this.transform({ Scale:   1, Translation: { X: 0, Y: 0 } });
+                I.Loupe.transform({ Scale:   1, Translation: { X: 0, Y: 0 } });
             } else {
-                if(this.UIState != "active") return false;
+                if(I.Loupe.UIState != "active") return false;
                 if(!BibiEvent) BibiEvent = { Coord: { X: window.innerWidth / 2, Y: window.innerHeight / 2 } };
                 /*
                 const CurrentTransformOrigin = {
                     X: window.innerWidth  / 2 + CurrentTfm.Translation.X,
                     Y: window.innerHeight / 2 + CurrentTfm.Translation.Y
                 };
-                this.transform({
+                I.Loupe.transform({
                     Scale: Scl,
                     Translation: {
                         X: CurrentTfm.Translation.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X)) * (Scl / CurrentTfm.Scale))),
@@ -3284,7 +3128,7 @@ I.createLoupe = function() {
                 });
                 */
                 // ↓ simplified on culculation
-                this.transform({
+                I.Loupe.transform({
                     Scale: Scl,
                     Translation: {
                         X: CurrentTfm.Translation.X + (BibiEvent.Coord.X - window.innerWidth  / 2 - CurrentTfm.Translation.X) * (1 - Scl / CurrentTfm.Scale),
@@ -3294,8 +3138,8 @@ I.createLoupe = function() {
             }
             E.dispatch("bibi:changed-scale", R.Main.Transformation.Scale);
         },
-        transform: function(Tfm, Opt) { // Tfm: Transformation
-            return new Promise(function(resolve, reject) {
+        transform: (Tfm, Opt) => { // Tfm: Transformation
+            return new Promise((resolve, reject) => {
                 if(!Tfm) return reject();
                 if(!Opt) Opt = {};
                 clearTimeout(I.Loupe.Timer_onTransformEnd);
@@ -3310,11 +3154,11 @@ I.createLoupe = function() {
                 if(Tfm.Scale > 1) {
                     const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
                     const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
-                    Tfm.Translation.X = O.limitMinMax(Tfm.Translation.X, OverflowX * -1, OverflowX);
-                    Tfm.Translation.Y = O.limitMinMax(Tfm.Translation.Y, OverflowY * -1, OverflowY);
+                    Tfm.Translation.X = sML.limitMinMax(Tfm.Translation.X, OverflowX * -1, OverflowX);
+                    Tfm.Translation.Y = sML.limitMinMax(Tfm.Translation.Y, OverflowY * -1, OverflowY);
                 }
                 sML.style(R.Main, {
-                    transform: (function(Ps) {
+                    transform: (Ps => {
                              if(Tfm.Translation.X && Tfm.Translation.Y) Ps.push( "translate(" + Tfm.Translation.X + "px" + ", " + Tfm.Translation.Y + "px" + ")");
                         else if(Tfm.Translation.X                     ) Ps.push("translateX(" + Tfm.Translation.X + "px"                                   + ")");
                         else if(                     Tfm.Translation.Y) Ps.push("translateY("                                   + Tfm.Translation.Y + "px" + ")");
@@ -3324,7 +3168,7 @@ I.createLoupe = function() {
                 });
                 R.Main.PreviousTransformation = R.Main.Transformation;
                 R.Main.Transformation = Tfm;
-                I.Loupe.Timer_onTransformEnd = setTimeout(function() {
+                I.Loupe.Timer_onTransformEnd = setTimeout(() => {
                          if(R.Main.Transformation.Scale == 1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.remove("zoomed-out");
                     else if(R.Main.Transformation.Scale <  1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.add(   "zoomed-out");
                     else                                      O.HTML.classList.add(   "zoomed-in"), O.HTML.classList.remove("zoomed-out");
@@ -3335,15 +3179,11 @@ I.createLoupe = function() {
                 }, 345);
             });
         },
-        transformBack: function(Opt) {
-            return I.Loupe.transform(R.Main.PreviousTransformation, Opt) || I.Loupe.transformReset(Opt);
-        },
-        transformReset: function(Opt) {
-            return I.Loupe.transform({ Scale: 1, Translation: { X: 0, Y: 0 } }, Opt);
-        },
-        isAvailable: function(Mode) {
+        transformBack:  (Opt) => I.Loupe.transform(R.Main.PreviousTransformation,             Opt) || I.Loupe.transformReset(Opt),
+        transformReset: (Opt) => I.Loupe.transform({ Scale: 1, Translation: { X: 0, Y: 0 } }, Opt),
+        isAvailable: (Mode) => {
             if(!L.Opened) return false;
-            if(this.UIState != "active") return false;
+            if(I.Loupe.UIState != "active") return false;
             if(S.BRL == "reflowable") return false;
             if(Mode == "TAP") {
                 if(!I.KeyListener || !I.KeyListener.ActiveKeys["Space"]) return false;
@@ -3356,22 +3196,20 @@ I.createLoupe = function() {
             }
             return true;
         },
-        adjustScale: function(Scl) {
-            return O.limitMinMax(Scl, 1, S["loupe-max-scale"]);
-        },
-        onTapped: function(Eve) {
-            if(!this.isAvailable("TAP")) return false;
+        adjustScale: (Scl) => sML.limitMinMax(Scl, 1, S["loupe-max-scale"]),
+        onTapped: (Eve) => {
+            if(!I.Loupe.isAvailable("TAP")) return false;
             const BibiEvent = O.getBibiEvent(Eve);
             if(BibiEvent.Target.tagName) {
                 if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
                 if(S.RVM == "horizontal" && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
             }
-            this.scale(this.adjustScale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2), BibiEvent);
+            I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2), BibiEvent);
         },
-        onPointerDown: function(Eve) {
-            this.PointerDownCoord = O.getBibiEvent(Eve).Coord;
-            this.PointerDownTransformation = {
+        onPointerDown: (Eve) => {
+            I.Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
+            I.Loupe.PointerDownTransformation = {
                 Scale: R.Main.Transformation.Scale,
                 Translation: {
                     X: R.Main.Transformation.Translation.X,
@@ -3379,76 +3217,76 @@ I.createLoupe = function() {
                 }
             };
         },
-        onPointerUp: function(Eve) {
+        onPointerUp: (Eve) => {
             O.HTML.classList.remove("dragging");
             I.Loupe.Dragging = false;
-            delete this.PointerDownCoord;
-            delete this.PointerDownTransformation;
+            delete I.Loupe.PointerDownCoord;
+            delete I.Loupe.PointerDownTransformation;
         },
-        onPointerMove: function(Eve) {
-            if(!this.isAvailable("MOVE", Eve)) return false;
-            if(R.Main.Transformation.Scale == 1 || !this.PointerDownCoord) return;
+        onPointerMove: (Eve) => {
+            if(!I.Loupe.isAvailable("MOVE", Eve)) return false;
+            if(R.Main.Transformation.Scale == 1 || !I.Loupe.PointerDownCoord) return;
             I.Loupe.Dragging = true;
             O.HTML.classList.add("dragging");
             const BibiEvent = O.getBibiEvent(Eve);
-            clearTimeout(this.Timer_TransitionRestore);
+            clearTimeout(I.Loupe.Timer_TransitionRestore);
             sML.style(R.Main, { transition: "none", cursor: "move" });
-            this.transform({
+            I.Loupe.transform({
                 Scale: R.Main.Transformation.Scale,
                 Translation: {
-                    X: this.PointerDownTransformation.Translation.X + (BibiEvent.Coord.X - this.PointerDownCoord.X),
-                    Y: this.PointerDownTransformation.Translation.Y + (BibiEvent.Coord.Y - this.PointerDownCoord.Y)
+                    X: I.Loupe.PointerDownTransformation.Translation.X + (BibiEvent.Coord.X - I.Loupe.PointerDownCoord.X),
+                    Y: I.Loupe.PointerDownTransformation.Translation.Y + (BibiEvent.Coord.Y - I.Loupe.PointerDownCoord.Y)
                 }
             });
-            this.Timer_TransitionRestore = setTimeout(function() { sML.style(R.Main, { transition: "", cursor: "" }); }, 234);
+            I.Loupe.Timer_TransitionRestore = setTimeout(() => sML.style(R.Main, { transition: "", cursor: "" }), 234);
         },
-        lock: function() {
+        lock: () => {
             E.dispatch("bibi:locked-loupe");
             I.Loupe.Locked = true;
         },
-        unlock: function() {
+        unlock: () => {
             I.Loupe.Locked = false;
             E.dispatch("bibi:unlocked-loupe");
         }
     });
-    I.isPointerStealth.addChecker(function() {
+    I.isPointerStealth.addChecker(() => {
         if(I.Loupe.Dragging) return true;
         if(!I.KeyListener || !I.KeyListener.ActiveKeys["Space"]) return false;
         return true;
     });
 
     I.setToggleAction(I.Loupe, {
-        onopened: function() {
+        onopened: () => {
             O.HTML.classList.add("loupe-active");
             O.HTML.classList.add("loupe-" + S["loupe-mode"]);
         },
-        onclosed: function() {
-            this.scale(1);
+        onclosed: () => {
+            I.Loupe.scale(1);
             O.HTML.classList.remove("loupe-" + S["loupe-mode"]);
             O.HTML.classList.remove("loupe-active");
         }
     });
 
-    E.add("bibi:commands:activate-loupe",   function()      { I.Loupe.open(); });
-    E.add("bibi:commands:deactivate-loupe", function()      { I.Loupe.close(); });
-    E.add("bibi:commands:toggle-loupe",     function()      { I.Loupe.toggle(); });
-    E.add("bibi:commands:scale",            function(Scale) { I.Loupe.scale(Scale); });
+    E.add("bibi:commands:activate-loupe",   (   ) => I.Loupe.open());
+    E.add("bibi:commands:deactivate-loupe", (   ) => I.Loupe.close());
+    E.add("bibi:commands:toggle-loupe",     (   ) => I.Loupe.toggle());
+    E.add("bibi:commands:scale",            Scale => I.Loupe.scale(Scale));
 
-    E.add("bibi:tapped",         function(Eve) { I.Loupe.onTapped(     Eve); });
-    E.add("bibi:downed-pointer", function(Eve) { I.Loupe.onPointerDown(Eve); });
-    E.add("bibi:upped-pointer",  function(Eve) { I.Loupe.onPointerUp(  Eve); });
-    E.add("bibi:moved-pointer",  function(Eve) { I.Loupe.onPointerMove(Eve); });
+    E.add("bibi:tapped",         Eve => I.Loupe.onTapped(     Eve));
+    E.add("bibi:downed-pointer", Eve => I.Loupe.onPointerDown(Eve));
+    E.add("bibi:upped-pointer",  Eve => I.Loupe.onPointerUp(  Eve));
+    E.add("bibi:moved-pointer",  Eve => I.Loupe.onPointerMove(Eve));
 
-    E.add("bibi:changed-scale", function(Scale) { O.log('Changed Scale: ' + Scale); });
+    E.add("bibi:changed-scale", Scale => O.log('Changed Scale: ' + Scale));
 
-    E.add("bibi:opened", function() {
+    E.add("bibi:opened", () => {
         I.Loupe.open();
         if(S["use-loupe"] && S["use-cookie"]) try { I.Loupe.transform(O.Cookie.remember(O.BookURL).Loupe.Transformation); } catch(Err) {}
     });
 
-    E.add("bibi:changes-view",  function() { I.Loupe.scale(1); });
-    E.add("bibi:opened-slider", I.Loupe.lock);
-    E.add("bibi:closed-slider", I.Loupe.unlock);
+    E.add("bibi:changes-view",  () => I.Loupe.scale(1));
+    E.add("bibi:opened-slider", () => I.Loupe.lock());
+    E.add("bibi:closed-slider", () => I.Loupe.unlock());
 
     if(S["use-loupe"]) I.createLoupeUI();
     E.dispatch("bibi:created-loupe");
@@ -3456,12 +3294,8 @@ I.createLoupe = function() {
 };
 
 
-I.createLoupeUI = function() {
-
-    // Button Group
-
+I.createLoupeUI = () => {
     if(S["loupe-mode"] == "with-keys") {
-        // SubPanel
         const ButtonGroup = I.createSubPanel({
             Opener: I.Menu.R.addButtonGroup({ Sticky: true, Tiled: true, id: "bibi-buttongroup_loupe" }).addButton({
                 Type: "toggle",
@@ -3479,7 +3313,7 @@ I.createLoupeUI = function() {
                 Help: true
             }),
             id: "bibi-subpanel_loupe",
-            open: function() {}
+            open: () => {}
         }).addSection({
             Labels: {
                 default: {
@@ -3501,7 +3335,7 @@ I.createLoupeUI = function() {
                     }
                 },
                 Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>',
-                action: function() { I.Loupe.toggle(); },
+                action: () => I.Loupe.toggle(),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == "string" ? State : I.Loupe.UIState == "active" ? "active" : "default");
                 }
@@ -3511,15 +3345,13 @@ I.createLoupeUI = function() {
                     default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
                 },
                 Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>',
-                action: function() { I.Loupe.scale(1); },
+                action: () => I.Loupe.scale(1),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == "string" ? State : R.Main.Transformation.Scale == 1 ? "disabled" : "default");
                 }
             }]
         });
-        I.Loupe.updateButtonState = function(State) {
-            ButtonGroup.Buttons.forEach(function(Button) { Button.updateState(State); });
-        };
+        I.Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
         const PGroup = ButtonGroup.parentNode.appendChild(sML.create("div", { className: "bibi-pgroup" }));
         [{
             default: ['<strong>Zoom-in/out is activated</strong>:', '* Space + Click to Zoom-in'].join('<br />'),
@@ -3527,9 +3359,7 @@ I.createLoupeUI = function() {
         }, {
             default: ['<strong>Zoomed-in</strong>:', '* Space + Shift + Click to Zoom-out', '* Space + Drag to Move the Book'].join('<br />'),
             ja: ['<strong>拡大中</strong>：', '・スペース + Shift キーを押しながらクリックで縮小', '・ドラッグで本を移動'].join('<br />')
-        }].forEach(function(PContent) {
-            PGroup.appendChild(sML.create("p", { className: "bibi-p", innerHTML: I.distillLabels.distillLanguage(PContent)[O.Language] }));
-        });
+        }].forEach(PContent => PGroup.appendChild(sML.create("p", { className: "bibi-p", innerHTML: I.distillLabels.distillLanguage(PContent)[O.Language] })));
     } else {
         const ButtonGroup = I.Menu.R.addButtonGroup({
             Sticky: true,
@@ -3542,18 +3372,18 @@ I.createLoupeUI = function() {
                 },
                 Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>',
                 Help: true,
-                action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)); },
+                action: () => I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == "string" ? State : (R.Main.Transformation.Scale >= S["loupe-max-scale"]) ? "disabled" : "default");
                 }
-            },{ 
+            }, { 
                 Type: "normal",
                 Labels: {
                     default: { default: 'Reset Zoom-in/out', ja: '元のサイズに戻す' }
                 },
                 Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>',
                 Help: true,
-                action: function() { I.Loupe.scale(1); },
+                action: () => I.Loupe.scale(1),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == "string" ? State : (R.Main.Transformation.Scale == 1) ? "disabled" : "default");
                 }
@@ -3564,27 +3394,22 @@ I.createLoupeUI = function() {
                 },
                 Icon: '<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomout"></span>',
                 Help: true,
-                action: function() { I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)); },
+                action: () => I.Loupe.scale(I.Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == "string" ? State : (R.Main.Transformation.Scale <= 1) ? "disabled" : "default");
                 }
             }]
         });
-        I.Loupe.updateButtonState = function(State) {
-            ButtonGroup.Buttons.forEach(function(Button) { Button.updateState(State); });
-        };
+        I.Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
     }
-
-    E.add("bibi:opened",           function() { I.Loupe.updateButtonState(); });
-
-    E.add("bibi:transformed-book", function() { I.Loupe.updateButtonState(I.Loupe.Locked ? "disabled" : null); });
-    E.add("bibi:locked-loupe",     function() { I.Loupe.updateButtonState("disabled"); });
-    E.add("bibi:unlocked-loupe",   function() { I.Loupe.updateButtonState(); });
-
+    E.add("bibi:opened",           () => I.Loupe.updateButtonState());
+    E.add("bibi:transformed-book", () => I.Loupe.updateButtonState(I.Loupe.Locked ? "disabled" : null));
+    E.add("bibi:locked-loupe",     () => I.Loupe.updateButtonState("disabled"));
+    E.add("bibi:unlocked-loupe",   () => I.Loupe.updateButtonState());
 };
 
 
-I.createButtonGroup = function(Par) {
+I.createButtonGroup = (Par) => {
 
     if(!Par || typeof Par != "object") return null;
 
@@ -3618,7 +3443,7 @@ I.createButtonGroup = function(Par) {
         this.Buttons.push(Button);
         return Button;
     };
-    ButtonsToAdd.forEach(function(ButtonToAdd) { ButtonGroup.addButton(ButtonToAdd); });
+    ButtonsToAdd.forEach(ButtonToAdd => ButtonGroup.addButton(ButtonToAdd));
 
     ButtonGroup.Busy = false;
 
@@ -3627,7 +3452,7 @@ I.createButtonGroup = function(Par) {
 };
 
 
-I.createButton = function(Par) {
+I.createButton = (Par) => {
 
     if(!Par || typeof Par != "object") return null;
     if(typeof Par.className != "string" || !Par.className) delete Par.className;
@@ -3664,18 +3489,13 @@ I.createButton = function(Par) {
         PreventDefault: (Button.href ? false : true)
     });
 
-    Button.isAvailable = function() {
+    Button.isAvailable = () => {
         if(Button.Busy) return false;
         if(Button.ButtonGroup && Button.ButtonGroup.Busy) return false;
         return (Button.UIState != "disabled");
     };
 
-    if(typeof Button.action == "function") {
-        Button.addTapEventListener("tapped", function(Eve) {
-            if(!Button.isAvailable()) return false;
-            Button.action.apply(Button, arguments);
-        });
-    }
+    if(typeof Button.action == "function") Button.addTapEventListener("tapped", function() { return Button.isAvailable() ? Button.action.apply(Button, arguments) : false; });
 
     Button.Busy = false;
 
@@ -3684,7 +3504,7 @@ I.createButton = function(Par) {
 };
 
 
-I.createSubPanel = function(Par) {
+I.createSubPanel = (Par) => {
 
     if(!Par || typeof Par != "object") return null;
 
@@ -3702,12 +3522,12 @@ I.createSubPanel = function(Par) {
     const SubPanel = O.Body.appendChild(sML.create("div", Par));
     SubPanel.Sections = [];
 
-    SubPanel.addEventListener(O["pointerdown"], function(Eve) { Eve.stopPropagation(); });
-    SubPanel.addEventListener(O["pointerup"],   function(Eve) { Eve.stopPropagation(); });
+    SubPanel.addEventListener(O["pointerdown"], Eve => Eve.stopPropagation());
+    SubPanel.addEventListener(O["pointerup"],   Eve => Eve.stopPropagation());
 
     I.setToggleAction(SubPanel, {
         onopened: function(Opt) {
-            I.SubPanels.forEach(function(SP) {
+            I.SubPanels.forEach(SP => {
                 if(SP == SubPanel) return;
                 SP.close({ ForAnotherSubPanel: true });
             });
@@ -3722,7 +3542,7 @@ I.createSubPanel = function(Par) {
         },
         onclosed: function(Opt) {
             this.classList.remove("opened");
-            if(I.SubPanel == this) setTimeout(function() { I.SubPanel = null; }, 222);
+            if(I.SubPanel == this) setTimeout(() => I.SubPanel = null, 222);
             if(!Opt || !Opt.ForAnotherSubPanel) {
                 O.HTML.classList.remove("subpanel-opened");
             }
@@ -3732,7 +3552,7 @@ I.createSubPanel = function(Par) {
             if(Par.onclosed) Par.onclosed.apply(SubPanel, arguments);
         }
     });
-    if(SubPanel.Opener) SubPanel.Opener.addTapEventListener("tapped", function() { SubPanel.toggle(); });
+    if(SubPanel.Opener) SubPanel.Opener.addTapEventListener("tapped", () => SubPanel.toggle());
 
     E.add("bibi:opened-panel",      SubPanel.close);
     E.add("bibi:closes-utilities",  SubPanel.close);
@@ -3757,14 +3577,14 @@ I.createSubPanel = function(Par) {
         this.Sections.push(SubPanelSection);
         return SubPanelSection;
     };
-    SectionsToAdd.forEach(function(SectionToAdd) { SubPanel.addSection(SectionToAdd); });
+    SectionsToAdd.forEach(SectionToAdd => SubPanel.addSection(SectionToAdd));
 
     return SubPanel;
 
 };
 
 
-I.createSubPanelSection = function(Par) {
+I.createSubPanelSection = (Par) => {
 
     if(!Par || typeof Par != "object") return null;
 
@@ -3806,38 +3626,36 @@ I.createSubPanelSection = function(Par) {
         this.ButtonGroups.push(ButtonGroup);
         return ButtonGroup;
     };
-    ButtonGroupsToAdd.forEach(function(ButtonGroupToAdd) { SubPanelSection.addButtonGroup(ButtonGroupToAdd); });
+    ButtonGroupsToAdd.forEach(ButtonGroupToAdd => SubPanelSection.addButtonGroup(ButtonGroupToAdd));
 
     return SubPanelSection;
 
 };
 
 
-I.createHelp = function() {
+I.createHelp = () => {
 
     I.Help = O.Body.appendChild(sML.create("div", { id: "bibi-help" }));
     I.Help.Message = I.Help.appendChild(sML.create("p", { className: "hidden", id: "bibi-help-message" }));
 
-    I.Help.show = function(HelpText) {
+    I.Help.show = (HelpText) => {
         clearTimeout(I.Help.Timer_deactivate1);
         clearTimeout(I.Help.Timer_deactivate2);
         I.Help.classList.add("active");
         I.Help.Message.innerHTML = HelpText;
-        setTimeout(function() {
-            I.Help.classList.add("shown");
-        }, 0);
+        setTimeout(() => I.Help.classList.add("shown"), 0);
     };
-    I.Help.hide = function() {
-        I.Help.Timer_deactivate1 = setTimeout(function() {
+    I.Help.hide = () => {
+        I.Help.Timer_deactivate1 = setTimeout(() => {
             I.Help.classList.remove("shown");
-            I.Help.Timer_deactivate2 = setTimeout(function() { 
+            I.Help.Timer_deactivate2 = setTimeout(() => { 
                 I.Help.classList.remove("active");
             }, 200);
         }, 100);
     };
 
     // Optimize to Scrollbar Size
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-paged div#bibi-help",
         "html.view-horizontal div#bibi-help",
         "html.page-rtl.panel-opened div#bibi-help"
@@ -3846,20 +3664,12 @@ I.createHelp = function() {
 };
 
 
-I.createPoweredBy = function() {
+I.createPoweredBy = () => {
 
-    I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: [
-        '<p>',
-            '<a href="' + Bibi["href"] + '" target="_blank" title="BiB/i | Official Website">',
-                '<span>BiB/i</span>',
-                '<img class="bibi-logo-white" alt="" src="' + O.RootPath + 'res/images/bibi-logo_white.png" />',
-                '<img class="bibi-logo-black" alt="" src="' + O.RootPath + 'res/images/bibi-logo_black.png" />',
-            '</a>',
-        '</p>'
-    ].join("") }));
+    I.PoweredBy = O.Body.appendChild(sML.create("div", { id: "bibi-poweredby", innerHTML: '<p><a href="' + Bibi["href"] + '" target="_blank" title="BiB/i | Official Website">BiB/i</a></p>' }));
 
     // Optimize to Scrollbar Size
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-paged div#bibi-poweredby",
         "html.view-horizontal div#bibi-poweredby",
         "html.page-rtl.panel-opened div#bibi-poweredby"
@@ -3868,30 +3678,30 @@ I.createPoweredBy = function() {
 };
 
 
-I.createNombre = function() {
+I.createNombre = () => {
 
     if(!S["use-nombre"]) return;
 
     // Progress > Nombre
     I.Nombre = O.Body.appendChild(sML.create("div", { id: "bibi-nombre",
-        show: function() {
+        show: () => {
             clearTimeout(I.Nombre.Timer_hot);
             clearTimeout(I.Nombre.Timer_vanish);
             I.Nombre.classList.add("active");
-            I.Nombre.Timer_hot = setTimeout(function() { I.Nombre.classList.add("hot"); }, 10);
+            I.Nombre.Timer_hot = setTimeout(() => I.Nombre.classList.add("hot"), 10);
         },
-        hide: function() {
+        hide: () => {
             clearTimeout(I.Nombre.Timer_hot);
             clearTimeout(I.Nombre.Timer_vanish);
             I.Nombre.classList.remove("hot");
-            I.Nombre.Timer_vanish = setTimeout(function() { I.Nombre.classList.remove("active"); }, 255);
+            I.Nombre.Timer_vanish = setTimeout(() => I.Nombre.classList.remove("active"), 255);
         },
-        progress: function(PageInfo) {
+        progress: (PageInfo) => {
             clearTimeout(I.Nombre.Timer_hide);
             if(!PageInfo || !PageInfo.Pages) PageInfo = R.getCurrent();
             if(typeof PageInfo.Percent != "number") PageInfo.Percent = Math.floor((PageInfo.Pages.EndPage.Index + 1) / R.Pages.length * 100);
             if(!R.Current.Page) return;
-            I.Nombre.Current.innerHTML = (function() {
+            I.Nombre.Current.innerHTML = (() => {
                 let PageNumber = PageInfo.Pages.StartPage.Index + 1;
                 if(PageInfo.Pages.StartPage != PageInfo.Pages.EndPage) PageNumber += '<span class="delimiter">-</span>' + (PageInfo.Pages.EndPage.Index + 1);
                 return PageNumber;
@@ -3907,24 +3717,25 @@ I.createNombre = function() {
     I.Nombre.Delimiter = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-delimiter" }));
     I.Nombre.Total     = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-total"     }));
     I.Nombre.Percent   = I.Nombre.appendChild(sML.create("span", { id: "bibi-nombre-percent"   }));
-    E.add("bibi:scrolls", I.Nombre.progress);
-    E.add("bibi:resized", I.Nombre.progress);
-    E.add("bibi:opened", function() { setTimeout(I.Nombre.progress, 321); });
+    E.add("bibi:scrolls", () =>            I.Nombre.progress()    );
+    E.add("bibi:resized", () =>            I.Nombre.progress()    );
+    E.add("bibi:opened" , () => setTimeout(I.Nombre.progress, 321));
 
-    sML.CSS.appendRule("html.view-paged div#bibi-nombre",      "bottom: " + (O.Scrollbars.Height + 2) + "px;");
-    sML.CSS.appendRule("html.view-horizontal div#bibi-nombre", "bottom: " + (O.Scrollbars.Height + 2) + "px;");
-    sML.CSS.appendRule("html.view-vertical div#bibi-nombre",    "right: " + (O.Scrollbars.Height + 2) + "px;");
+    sML.appendCSSRule("html.view-paged div#bibi-nombre",      "bottom: " + (O.Scrollbars.Height + 2) + "px;");
+    sML.appendCSSRule("html.view-horizontal div#bibi-nombre", "bottom: " + (O.Scrollbars.Height + 2) + "px;");
+    sML.appendCSSRule("html.view-vertical div#bibi-nombre",    "right: " + (O.Scrollbars.Height + 2) + "px;");
 
     E.dispatch("bibi:created-nombre");
 
 };
 
 
-I.createSlider = function() {
+I.createSlider = () => {
 
     I.Slider = O.Body.appendChild(
         sML.create("div", { id: "bibi-slider",
-            zoomOutBook: function() {
+            BookStretchingEach: 0,
+            zoomOutBook: () => {
                 const BookMarginStart = S.ARA == "horizontal" ? I.Menu.offsetHeight : 0;
                 const BookMarginEnd   = 78;
                 const Transformation = {
@@ -3938,8 +3749,8 @@ I.createSlider = function() {
                 if(S.ARA == S.SLA) R.Main.Book.style["padding" + (S.ARA == "horizontal" ? "Right" : "Bottom")] = I.Slider.BookStretchingEach + "px";
                 I.Loupe.transform(Transformation, { Temporary: true }).then(I.Slider.progress);
             },
-            resetZoomingOutOfBook: function() {
-                I.Loupe.transformReset().then(function() {
+            resetZoomingOutOfBook: () => {
+                I.Loupe.transformReset().then(() => {
                     //R.Main.style[S.CC.A.SIZE.l] = "";
                     R.Main.style["padding" + S.CC.A.BASE.B] = R.Main.style["padding" + S.CC.A.BASE.A] = "";
                     if(S.ARA == S.SLA) R.Main.Book.style["padding" + (S.ARA == "horizontal" ? "Right" : "Bottom")] = "";
@@ -3947,7 +3758,7 @@ I.createSlider = function() {
                     I.Slider.progress();
                 });
             },
-            resetThumbAndRail: function() {
+            resetThumbAndRail: () => {
                 I.Slider.Thumb.style.width = I.Slider.Thumb.style.height = I.Slider.Rail.style.width = I.Slider.Rail.style.height = "";
                 I.Slider.Thumb.LengthRatio = R.Main["offset" + S.CC.L.SIZE.L] / R.Main["scroll" + S.CC.L.SIZE.L];
                 I.Slider.Thumb.style[S.CC.A.SIZE.l] = (      I.Slider.Thumb.LengthRatio * 100) + "%";
@@ -3955,7 +3766,7 @@ I.createSlider = function() {
                 I.Slider.Rail.Coords = [O.getElementCoord(I.Slider.Rail)[S.CC.A.AXIS.L]];
                 I.Slider.Rail.Coords.push(I.Slider.Rail.Coords[0] + I.Slider.Rail["offset" + S.CC.A.SIZE.L]);
             },
-            progress: function() {
+            progress: () => {
                 if(I.Slider.Touching) return;
                 I.Slider.Thumb.style.top = I.Slider.Thumb.style.right = I.Slider.Thumb.style.bottom = I.Slider.Thumb.style.left = "";
                 const BASE = (S.RVM == "paged" && S.SLD == "ttb") ? S.CC.A.BASE.b : S.CC.A.OOLT.l;
@@ -3968,17 +3779,17 @@ I.createSlider = function() {
                 if(S.ARD == "rtl") Progress = I.Slider.Rail["offset" + S.CC.A.SIZE.L] - Progress;
                 I.Slider.Rail.Progress.style[S.CC.A.SIZE.l] = (Progress / I.Slider.Rail["offset" + S.CC.A.SIZE.L] * 100) + "%";
             },
-            initializeBookmap: function() {
-                R.Spreads.forEach(function(Spread) {
+            initializeBookmap: () => {
+                R.Spreads.forEach(Spread => {
                     Spread.BookmapSpread = sML.create("div", { className: "bookmap-spread", Box: document.createElement("div") });
                     I.Slider.Bookmap.appendChild(Spread.BookmapSpread.Box).appendChild(Spread.BookmapSpread);
-                    Spread.Items.forEach(function(Item) {
+                    Spread.Items.forEach(Item => {
                         Item.BookmapItem = { Box: document.createElement("div") };
                         Spread.BookmapSpread.appendChild(Item.BookmapItem.Box);
                     });
                 });
             },
-            removeBookmap: function(Lock) {
+            removeBookmap: (Lock) => {
                 clearTimeout(I.Slider.Bookmap.Timer_append);
                 if(I.Slider.Bookmap.Locked) return false;
                 I.Slider.Bookmap.Locked = Lock;
@@ -3988,11 +3799,11 @@ I.createSlider = function() {
                     return false;
                 }
             },
-            appendBookmap: function(Unlock) {
+            appendBookmap: (Unlock) => {
                 if(Unlock) I.Slider.Bookmap.Locked = false;
                 if(I.Slider.Bookmap.Locked) return false;
                 if(!I.Slider.Bookmap.paretElement) {
-                    return I.Slider.Bookmap.Timer_append = setTimeout(function() {
+                    return I.Slider.Bookmap.Timer_append = setTimeout(() => {
                         I.Slider.BookmapBox.appendChild(I.Slider.Bookmap);
                         I.Slider.resetThumbAndRail();
                     }, Unlock ? 0 : 456);
@@ -4000,36 +3811,36 @@ I.createSlider = function() {
                     return false;
                 }
             },
-            resetBookmap: function() {
+            resetBookmap: () => {
                 I.Slider.removeBookmap("Lock");
-                R.Spreads.forEach(function(Spread) { setTimeout(I.Slider.resetBookmapSpread, 0, Spread); });
+                R.Spreads.forEach(Spread => setTimeout(I.Slider.resetBookmapSpread, 0, Spread));
                 I.Slider.appendBookmap("Unlock");
             },
-            resetBookmapSpread: function(Spread) {
+            resetBookmapSpread: (Spread) => {
                 I.Slider.removeBookmap();
                 const SpreadBox = Spread.Box, BmSpread = Spread.BookmapSpread, BmSpreadBox = BmSpread.Box;
-                O.forEach(BmSpread.querySelectorAll("span.bookmap-page"), function(OldBmPage) { OldBmPage.parentElement.removeChild(OldBmPage); });
-                BmSpreadBox.className = "bookmap-spread-box"; O.forEach(SpreadBox.classList, function(ClassName) { if(ClassName != "spread-box") BmSpreadBox.classList.add(ClassName); });
+                sML.forEach(BmSpread.querySelectorAll("span.bookmap-page"), OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
+                BmSpreadBox.className = "bookmap-spread-box"; sML.forEach(SpreadBox.classList, ClassName => { if(ClassName != "spread-box") BmSpreadBox.classList.add(ClassName); });
                 BmSpreadBox.style[S.CC.A.SIZE.b] = BmSpread.style[S.CC.A.SIZE.b] = "";
                 BmSpreadBox.style[S.CC.A.SIZE.l] = (SpreadBox["offset" + S.CC.L.SIZE.L] / R.Main["scroll" + S.CC.L.SIZE.L] * 100) + "%";
                 BmSpread.style[S.CC.A.SIZE.l] = (Spread["offset" + S.CC.L.SIZE.L] / SpreadBox["offset" + S.CC.L.SIZE.L] * 100) + "%";
-                Spread.Items.forEach(function(Item) {
+                Spread.Items.forEach(Item => {
                     const ItemBox = Item.Box, BmItemBox = Item.BookmapItem.Box;
-                    BmItemBox.className = "bookmap-item-box"; O.forEach(ItemBox.classList, function(ClassName) { if(ClassName != "item-box") BmItemBox.classList.add(ClassName); });
+                    BmItemBox.className = "bookmap-item-box"; sML.forEach(ItemBox.classList, ClassName => { if(ClassName != "item-box") BmItemBox.classList.add(ClassName); });
                     BmItemBox.style[S.CC.A.SIZE.b] = (ItemBox["offset" + S.CC.L.SIZE.B] / Spread["offset" + S.CC.L.SIZE.B] * 100) + "%";
                     BmItemBox.style[S.CC.A.SIZE.l] = (ItemBox["offset" + S.CC.L.SIZE.L] / Spread["offset" + S.CC.L.SIZE.L] * 100) + "%";
-                    Item.Pages.forEach(function(Page) {
+                    Item.Pages.forEach(Page => {
                         const BmPage = Page.BookmapPage = sML.create("span", { className: "bookmap-page", Page: Page });
                         BmPage.style[S.CC.A.SIZE.l] = (1 / Item.Pages.length * 100) + "%";
                         if(I.Nombre) {
-                            BmPage.addEventListener(O["pointerover"], function() {
+                            BmPage.addEventListener(O["pointerover"], () => {
                                 if(I.Slider.Touching) return;
                                 clearTimeout(I.Slider.Timer_BookmapPagePointerOut);
                                 I.Nombre.progress({ Pages: { StartPage: Page, EndPage: Page } });
                             });
-                            BmPage.addEventListener(O["pointerout"], function() {
+                            BmPage.addEventListener(O["pointerout"], () => {
                                 if(I.Slider.Touching) return;
-                                I.Slider.Timer_BookmapPagePointerOut = setTimeout(function() {
+                                I.Slider.Timer_BookmapPagePointerOut = setTimeout(() => {
                                     clearTimeout(I.Nombre.Timer_hide);
                                     I.Nombre.hide();
                                 }, 200);
@@ -4046,16 +3857,16 @@ I.createSlider = function() {
                 });
                 I.Slider.appendBookmap();
             },
-            getTouchStartCoord: function(Eve) {
+            getTouchStartCoord: (Eve) => {
                 return (Eve.target == I.Slider.Thumb) ?
                     O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L] : // ← Move Thumb naturally. // ↓ Bring Thumb's center to the touched coord at the next pointer moving.
                     O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb["offset" + S.CC.A.SIZE.L] / 2;
             },
-            onTouchStart: function(Eve) {
+            onTouchStart: (Eve) => {
                 if(!Eve.target || (!I.Slider.contains(Eve.target) && Eve.target != I.Slider)) return;
                 Eve.preventDefault();
                 //R.Main.style.overflow = "hidden"; // ← ↓ to stop momentum scrolling
-                //setTimeout(function() { R.Main.style.overflow = ""; }, 1);
+                //setTimeout(() => R.Main.style.overflow = "", 1);
                 I.Slider.Touching = true;
                 I.Slider.TouchStartThumbCenterCoord = O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb["offset" + S.CC.A.SIZE.L] / 2;
                 I.Slider.TouchStartCoord = I.Slider.TouchingCoord = I.Slider.getTouchStartCoord(Eve);
@@ -4063,18 +3874,18 @@ I.createSlider = function() {
                 O.HTML.classList.add("slider-sliding");
                 E.add("bibi:moved-pointer", I.Slider.onTouchMove);
             },
-            onTouchMove: function(Eve) {
+            onTouchMove: (Eve) => {
                 I.Slider.TouchingCoord = O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L];
                 I.Slider.flip(Eve);
             },
-            onTouchEnd: function(Eve) {
+            onTouchEnd: (Eve) => {
                 if(!I.Slider.Touching) return;
                 I.Slider.Touching = false;
                 E.remove("bibi:moved-pointer", I.Slider.onTouchMove);
                 I.Slider.onTouchMove(Eve);
-                I.Slider.Timer_onTouchEnd = setTimeout(function() { O.HTML.classList.remove("slider-sliding"); }, 125);
+                I.Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove("slider-sliding"), 125);
             },
-            flip: function(Eve) {
+            flip: (Eve) => {
                 //clearTimeout(I.Slider.Timer_flipFocus);
                 if(I.Slider.Touching) {
                     let Translation = I.Slider.TouchingCoord - I.Slider.TouchStartCoord;
@@ -4084,20 +3895,20 @@ I.createSlider = function() {
                     sML.style(I.Slider.Thumb,         { transform: "translate" + S.CC.A.AXIS.L + "(" +      Translation                                                                    + "px)" });
                     sML.style(I.Slider.Rail.Progress, { transform:     "scale" + S.CC.A.AXIS.L + "(" + (1 + Translation / I.Slider.Rail.Progress["offset" + S.CC.A.SIZE.L] * S.CC.A.AXIS.PM) + ")" });
                     I.Slider.focus(Eve, { Turn: false, History: false });/*
-                    new Promise(function(resolve) {
+                    new Promise((resolve) > {
                         if(!S["allow-placeholders"]) return resolve();
-                        I.Slider.Timer_flipFocus = setTimeout(function() { resolve(); }, 0);
-                    }).then(function() {
+                        I.Slider.Timer_flipFocus = setTimeout(() => resolve(), 0);
+                    }).then(() => {
                         I.Slider.focus(Eve, { Turn: false, History: false });
                     });*/
-                } else I.Slider.focus(Eve).then(function() {
+                } else I.Slider.focus(Eve).then(() => {
                     sML.style(I.Slider.Thumb,         { transform: "" });
                     sML.style(I.Slider.Rail.Progress, { transform: "" });
                     I.Slider.progress();
                 });
             },
-            focus: function(Eve, Par) { Par = Par ? Par : {};
-                return new Promise(function(resolve) {
+            focus: (Eve, Par) => { Par = Par ? Par : {};
+                return new Promise(resolve => {
                     Par.Destination = I.Slider.getPageToBeFocusedOn(I.Slider.getTouchEndElement(Eve));
                     if(!R.Current.Pages.includes(Par.Destination)) {
                         Par.Duration = 0;
@@ -4105,14 +3916,14 @@ I.createSlider = function() {
                     } else resolve();
                 });
             },
-            getTouchEndElement: function(Eve) {
-                return I.Slider.Bookmap.contains(Eve.target) ? Eve.target : (function(TouchEndElementPoint) {
-                    TouchEndElementPoint[S.CC.A.AXIS.L] = O.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
+            getTouchEndElement: (Eve) => {
+                return I.Slider.Bookmap.contains(Eve.target) ? Eve.target : (TouchEndElementPoint => {
+                    TouchEndElementPoint[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
                     TouchEndElementPoint[S.CC.A.AXIS.B] = O.getElementCoord(I.Slider)[S.CC.A.AXIS.B] + I.Slider["offset" + S.CC.A.SIZE.B] / 2;
                     return document.elementFromPoint(TouchEndElementPoint.X, TouchEndElementPoint.Y);
                 })({});
             },
-            getPageToBeFocusedOn: function(Ele) {
+            getPageToBeFocusedOn: (Ele) => {
                 if(Ele.classList.contains("bookmap-page")) return Ele.Page;
                 const Ones = (Ele.classList.contains("bookmap-item") || Ele.classList.contains("bookmap-spread")) ? Ele.querySelectorAll("span.bookmap-page") : I.Slider.Bookmap.querySelectorAll("div.bookmap-spread");
                 const TouchingCoord = I.Slider.TouchingCoord * S.CC.A.AXIS.PM;
@@ -4128,7 +3939,7 @@ I.createSlider = function() {
                 }
                 return I.Slider.getPageToBeFocusedOn(TheOne);
             },
-            activate: function() {/*
+            activate: () => {/*
                 if(I.Nombre) {
                     I.Slider.Thumb.addEventListener(O["pointerover"], I.Nombre.show);
                     I.Slider.Thumb.addEventListener(O["pointerout"],  I.Nombre.hide);
@@ -4138,16 +3949,16 @@ I.createSlider = function() {
                 E.add("bibi:scrolls", I.Slider.progress);
                 I.Slider.progress();
             },
-            activateItem: function(Item) {
+            activateItem: (Item) => {
                 Item.HTML.addEventListener(O["pointerup"], I.Slider.onTouchEnd);
             },
-            deactivate: function() {/*
+            deactivate: () => {/*
                 if(I.Nombre) {
                     I.Slider.Thumb.removeEventListener(O["pointerover"], I.Nombre.show);
                     I.Slider.Thumb.removeEventListener(O["pointerout"],  I.Nombre.hide);
                 }*/
                 I.Slider.Bookmap.removeEventListener(O["pointerdown"], I.Slider.onTouchStart);
-                R.Items.concat(O).forEach(function(Ele) { Ele.HTML.removeEventListener(O["pointerup"], I.Slider.onTouchEnd); });
+                R.Items.concat(O).forEach(Ele => Ele.HTML.removeEventListener(O["pointerup"], I.Slider.onTouchEnd));
                 E.remove("bibi:scrolls", I.Slider.progress);
             }
         })
@@ -4159,13 +3970,13 @@ I.createSlider = function() {
     I.Slider.Thumb         = I.Slider.Bookmap.appendChild(sML.create("div", { id: "bibi-slider-thumb", Labels: { default: { default: "Slider Thumb", ja: "スライダー上の好きな位置からドラッグを始められます" } } }));
     I.setFeedback(I.Slider.Thumb);
     I.setToggleAction(I.Slider, {
-        onopened: function() {
+        onopened: () => {
             I.Slider.zoomOutBook();
             I.Slider.progress();
             O.HTML.classList.add("slider-opened");
             E.dispatch("bibi:opened-slider");
         },
-        onclosed: function() {
+        onclosed: () => {
             I.Slider.resetZoomingOutOfBook();
             I.Slider.progress();
             O.HTML.classList.remove("slider-opened");
@@ -4177,27 +3988,27 @@ I.createSlider = function() {
     E.add("bibi:commands:close-slider",  I.Slider.close);
     E.add("bibi:commands:toggle-slider", I.Slider.toggle);
 
-    E.add("bibi:opens-utilities",   function(Opt) { E.dispatch("bibi:commands:open-slider",   Opt); });
-    E.add("bibi:closes-utilities",  function(Opt) { E.dispatch("bibi:commands:close-slider",  Opt); });
-    E.add("bibi:toggles-utilities", function(Opt) { E.dispatch("bibi:commands:toggle-slider", Opt); });
+    E.add("bibi:opens-utilities",   Opt => E.dispatch("bibi:commands:open-slider",   Opt));
+    E.add("bibi:closes-utilities",  Opt => E.dispatch("bibi:commands:close-slider",  Opt));
+    E.add("bibi:toggles-utilities", Opt => E.dispatch("bibi:commands:toggle-slider", Opt));
 
     E.add("bibi:opened", I.Slider.activate); E.add("bibi:loaded-item", I.Slider.activateItem);
-    E.add(["bibi:opened", "bibi:changed-view"], function() { setTimeout(I.Slider.resetBookmap, 456); });
-    E.add("bibi:laid-out",    function() {
+    E.add(["bibi:opened", "bibi:changed-view"], () => setTimeout(I.Slider.resetBookmap, 456));
+    E.add("bibi:laid-out", () => {
         //I.Slider.BookStretchingEach = 0;
         I.Slider.resetZoomingOutOfBook();
         I.Slider.resetThumbAndRail();
         I.Slider.progress();
     });
 
-    I.Slider.addEventListener("wheel", R.Main.onWheeled, { capture: true, passive: false });
+    I.Slider.addEventListener("wheel", R.Main.listenWheel, { capture: true, passive: false });
 
     // Optimize to Scrollbar Size
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-paged div#bibi-slider",
         "html.view-horizontal div#bibi-slider"
     ].join(", "), "height: " + (O.Scrollbars.Height) + "px;");
-    sML.CSS.appendRule([
+    sML.appendCSSRule([
         "html.view-vertical div#bibi-slider"
     ].join(", "), "width: " + (O.Scrollbars.Width) + "px;");
 
@@ -4207,21 +4018,20 @@ I.createSlider = function() {
 };
 
 
-I.createTurner = function() {
-
+I.createTurner = () => {
     I.Turner = {
         Back: { Distance: -1 }, Forward: { Distance: 1 }, "top": undefined, "right": undefined, "bottom": undefined, "left": undefined,
-        update: function() {
+        update: () => {
             if(S.RVM == "vertical") {
-                this["left"] = this["right"] = undefined;
-                this["top"] = this.Back, this["bottom"] = this.Forward;
+                I.Turner["left"] = I.Turner["right"] = undefined;
+                I.Turner["top"] = I.Turner.Back, I.Turner["bottom"] = I.Turner.Forward;
             } else {
-                this["top"] = this["bottom"] = undefined;
-                if(S.PPD == "ltr") this["left"]  = this.Back, this["right"] = this.Forward;
-                else               this["right"] = this.Back, this["left"]  = this.Forward;
+                I.Turner["top"] = I.Turner["bottom"] = undefined;
+                if(S.PPD == "ltr") I.Turner["left"]  = I.Turner.Back, I.Turner["right"] = I.Turner.Forward;
+                else               I.Turner["right"] = I.Turner.Back, I.Turner["left"]  = I.Turner.Forward;
             }
         },
-        isAbleToTurn: function(Par) {
+        isAbleToTurn: (Par) => {
             if(typeof Par.Distance != "number" && typeof Par.Direction == "string") {
                 if(I.Turner[Par.Direction]) Par.Distance = I.Turner[Par.Direction].Distance;
             }
@@ -4234,37 +4044,33 @@ I.createTurner = function() {
             return false;
         }
     };
-
-    E.add("bibi:opened",           function() { I.Turner.update(); });
-    E.add("bibi:updated-settings", function() { I.Turner.update(); });
-
+    E.add("bibi:opened",           () => I.Turner.update());
+    E.add("bibi:updated-settings", () => I.Turner.update());
 };
 
 
-I.createArrows = function() {
+I.createArrows = () => {
 
     if(!S["use-arrows"]) return;
 
     I.Arrows = {
-        navigate: function() {
-            setTimeout(function() {
+        navigate: () => {
+            setTimeout(() => {
                 R.getCurrent();
-                [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-                    if(I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance })) Arrow.classList.add("glowing");
-                });
-                setTimeout(function() {
-                    [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-                        Arrow.classList.remove("glowing");
-                    });
+                [I.Arrows.Back, I.Arrows.Forward].forEach(Arrow => { if(I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance })) Arrow.classList.add("glowing"); });
+                setTimeout(() => {
+                    [I.Arrows.Back, I.Arrows.Forward].forEach(Arrow => Arrow.classList.remove("glowing"));
                 }, 1234);
             }, 400);
         },
-        check: function() {
-            [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-                I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance }) ? O.replaceClass(Arrow, "unavailable", "available") : O.replaceClass(Arrow, "available", "unavailable");
-            });
+        check: () => {
+            [I.Arrows.Back, I.Arrows.Forward].forEach(Arrow =>
+                I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance }) ?
+                    sML.replaceClass(Arrow, "unavailable", "available") :
+                    sML.replaceClass(Arrow, "available", "unavailable")
+            );
         },
-        areAvailable: function(BibiEvent) {
+        areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
             if(I.Panel && I.Panel.UIState == "active") return false;
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
@@ -4294,20 +4100,15 @@ I.createArrows = function() {
     I.Arrows.Back    = I.Turner.Back.Arrow    = O.Body.appendChild(sML.create("div", { id: "bibi-arrow-back",    Labels: { default: { default: 'Back',    ja: '戻る' } }, Turner: I.Turner.Back    }));
     I.Arrows.Forward = I.Turner.Forward.Arrow = O.Body.appendChild(sML.create("div", { id: "bibi-arrow-forward", Labels: { default: { default: 'Forward', ja: '進む' } }, Turner: I.Turner.Forward }));
     I.Arrows.Back.Pair = I.Arrows.Forward, I.Arrows.Forward.Pair = I.Arrows.Back;
-    [I.Arrows.Back, I.Arrows.Forward].forEach(function(Arrow) {
-        //Arrow.isAvailable = function() { return I.Turner.isAbleToTurn(this); };
+    [I.Arrows.Back, I.Arrows.Forward].forEach(Arrow => {
+        //Arrow.isAvailable = () => I.Turner.isAbleToTurn(Arrow);
         I.setFeedback(Arrow);
-        const FunctionsToBeCanceled = [
-            Arrow.showHelp,
-            Arrow.hideHelp,
-            Arrow.onBibiTap
-        ];
-        if(!O.Touch) FunctionsToBeCanceled.push(Arrow.onBibiHover);
-        FunctionsToBeCanceled.forEach(function(FunctionToBeCanceled) { FunctionToBeCanceled = function() { return false; }; });
+        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.onBibiTap]; if(!O.Touch) FunctionsToBeCanceled.push(Arrow.onBibiHover);
+        FunctionsToBeCanceled.forEach(FunctionToBeCanceled => FunctionToBeCanceled = undefined);
     });
 
     if(!O.Touch) {
-        E.add("bibi:moved-pointer", function(Eve) { // try hovering
+        E.add("bibi:moved-pointer", Eve => { // try hovering
             if(!L.Opened) return false;
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
@@ -4323,18 +4124,12 @@ I.createArrows = function() {
             }
             E.dispatch(I.Arrows.Back,    "bibi:unhovers", Eve);
             E.dispatch(I.Arrows.Forward, "bibi:unhovers", Eve);
-            R.Items.concat(O).forEach(function(Item) {
-                Item.HTML.removeAttribute("data-bibi-cursor");
-            });
+            R.Items.concat(O).forEach(Item => Item.HTML.removeAttribute("data-bibi-cursor"));
         });
-        E.add("bibi:opened", function() {
-            R.Items.concat(O).forEach(function(Item) {
-                O.forEach(Item.Body.querySelectorAll("img"), function(Img) { Img.addEventListener(O["pointerdown"], O.preventDefault); });
-            });
-        });
+        E.add("bibi:opened", () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll("img"), Img => Img.addEventListener(O["pointerdown"], O.preventDefault))));
     }
 
-    E.add("bibi:tapped", function(Eve) { // try moving
+    E.add("bibi:tapped", Eve => { // try moving
         if(!L.Opened) return false;
         if(I.isPointerStealth()) return false;
         const BibiEvent = O.getBibiEvent(Eve);
@@ -4349,7 +4144,7 @@ I.createArrows = function() {
         }
     });
 
-    E.add("bibi:commands:move-by", function(Par) { // indicate direction
+    E.add("bibi:commands:move-by", Par => { // indicate direction
         if(!L.Opened || !Par || typeof Par.Distance != "number") return false;
         switch(Par.Distance) {
             case -1: return E.dispatch(I.Arrows.Back,    "bibi:tapped", null);
@@ -4358,58 +4153,93 @@ I.createArrows = function() {
         return false;
     });
 
-    E.add("bibi:loaded-item", function(Item) {
+    E.add("bibi:loaded-item", Item => {
         /*
-        sML.CSS.appendRule('html[data-bibi-cursor="left"]',   "cursor: w-resize;", Item.contentDocument);
-        sML.CSS.appendRule('html[data-bibi-cursor="right"]',  "cursor: e-resize;", Item.contentDocument);
-        sML.CSS.appendRule('html[data-bibi-cursor="top"]',    "cursor: n-resize;", Item.contentDocument);
-        sML.CSS.appendRule('html[data-bibi-cursor="bottom"]', "cursor: s-resize;", Item.contentDocument);
+        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="left"]',   "cursor: w-resize;");
+        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="right"]',  "cursor: e-resize;");
+        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="top"]',    "cursor: n-resize;");
+        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="bottom"]', "cursor: s-resize;");
         */
-        sML.CSS.appendRule('html[data-bibi-cursor]', "cursor: pointer;", Item.contentDocument);
+        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor]', "cursor: pointer;");
     });
 
-    E.add("bibi:opened",           function()    { I.Arrows.check(); I.Arrows.navigate(); });
-    E.add("bibi:changed-view",     function()    { I.Arrows.navigate(); });
-    E.add("bibi:scrolled",         function()    { I.Arrows.check(); });
+    E.add("bibi:opened",       () => { I.Arrows.check(); I.Arrows.navigate(); });
+    E.add("bibi:changed-view", () => { I.Arrows.navigate(); });
+    E.add("bibi:scrolled",     () => { I.Arrows.check(); });
 
     E.dispatch("bibi:created-arrows");
 
 };
 
 
-I.createSwipeListener = function() {
+I.createSwipeListener = () => {
 
     I.SwipeListener = {
-        update: function() {
-            S.RVM == "paged" ? this.open() : this.close();
-            return this.State;
+        update: () => {
+            S.RVM == "paged" ? I.SwipeListener.open() : I.SwipeListener.close();
+            return I.SwipeListener.State;
         },
-        activateElement: function(Ele) {
+        activateElement: (Ele) => {
             Ele.addEventListener("touchstart", I.SwipeListener.onTouchStart);
             Ele.addEventListener("touchmove",  I.SwipeListener.onTouchMove);
             Ele.addEventListener("touchend",   I.SwipeListener.onTouchEnd);
             if(!O.Touch) {
-                Ele.addEventListener('wheel', R.onWheel);
-                O.forEach(Ele.querySelectorAll("img"), function(Img) { Img.addEventListener(O["pointerdown"], O.preventDefault); });
+                Ele.addEventListener('wheel', I.SwipeListener.onWheel, { capture: true, passive: false });
+                sML.forEach(Ele.querySelectorAll("img"), Img => Img.addEventListener(O["pointerdown"], O.preventDefault));
             }
         },
-        deactivateElement: function(Ele) {
+        deactivateElement: (Ele) => {
             Ele.removeEventListener("touchstart", I.SwipeListener.onTouchStart);
             Ele.removeEventListener("touchmove",  I.SwipeListener.onTouchMove);
             Ele.removeEventListener("touchend",   I.SwipeListener.onTouchEnd);
             if(!O.Touch) {
-                Ele.removeEventListener('wheel', R.onWheel);
-                O.forEach(Ele.querySelectorAll("img"), function(Img) { Img.removeEventListener(O["pointerdown"], O.preventDefault); });
+                Ele.removeEventListener('wheel', I.SwipeListener.onWheel, { capture: true, passive: false });
+                sML.forEach(Ele.querySelectorAll("img"), Img => Img.removeEventListener(O["pointerdown"], O.preventDefault));
             }
         },
-        onTouchStart: function(Eve) {
+        PreviousWheels: [],
+        onWheel: (Eve) => {
+            Eve.preventDefault();
+            const WA /* WheelAxis */ = Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY) ? "X" : "Y";
+            if(I.SwipeListener.PreviousWheels.length && I.SwipeListener.PreviousWheels[I.SwipeListener.PreviousWheels.length - 1].Axis != WA) I.SwipeListener.PreviousWheels = [];
+            const CW = {}, PWs = I.SwipeListener.PreviousWheels, PWl = PWs.length;
+            CW.Axis = WA;
+            CW.Distance = (Eve["delta" + WA] < 0 ? -1 : 1) * (WA == "X" && S.ARD == "rtl" ? -1 : 1);
+            CW.Delta = { X: 0, Y: 0 }, CW.Delta[WA] = Math.abs(Eve["delta" + WA]);
+            if(!PWs[PWl - 1]) {
+                CW.Accel = 1, CW.Wheeled = "start";
+            } else if(CW.Distance != PWs[PWl - 1].Distance) {
+                CW.Accel = 1;
+                if(PWl >= 3 && PWs[PWl - 2].Distance != CW.Distance && PWs[PWl - 3].Distance != CW.Distance) CW.Wheeled = "reverse";
+            } else if(CW.Delta[WA] > PWs[PWl - 1].Delta[WA]) {
+                CW.Accel =  1;
+                if(PWl >= 3 && PWs[PWl - 1].Accel == -1 && PWs[PWl - 2].Accel == -1 && PWs[PWl - 3].Accel == -1) CW.Wheeled = "serial";
+            } else if(CW.Delta[WA] < PWs[PWl - 1].Delta[WA]) {
+                CW.Accel = -1;
+            } else {
+                CW.Accel = PWs[PWl - 1].Accel;
+            }
+            if(CW.Wheeled) {
+                if(!I.SwipeListener.Hot) {
+                    clearTimeout(I.SwipeListener.Timer_coolDown);
+                    I.SwipeListener.Hot = true;
+                    I.SwipeListener.Timer_coolDown = setTimeout(() => I.SwipeListener.Hot = false, 192);
+                    R.moveBy({ Distance: CW.Distance });
+                }
+            }
+            if(PWl >= 3) PWs.shift();
+            PWs.push(CW);
+            clearTimeout(I.SwipeListener.Timer_resetWheeling);
+            I.SwipeListener.Timer_resetWheeling = setTimeout(() => I.SwipeListener.PreviousWheels = [], 192);
+        },
+        onTouchStart: (Eve) => {
             const EventCoord = O.getBibiEventCoord(Eve);
             I.SwipeListener.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp, SL: R.Main.scrollLeft, ST: R.Main.scrollTop };
         },
-        onTouchMove: function(Eve) {
+        onTouchMove: (Eve) => {
             if(Eve.touches.length == 1 && document.body.clientWidth / window.innerWidth <= 1) Eve.preventDefault();
         },
-        onTouchEnd: function(Eve) {
+        onTouchEnd: (Eve) => {
             if(!I.SwipeListener.TouchStartedOn) return;
             if(I.SwipeListener.TouchStartedOn.SL != R.Main.scrollLeft || I.SwipeListener.TouchStartedOn.ST != R.Main.scrollTop) return;
             if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - I.SwipeListener.TouchStartedOn.T <= 300) {
@@ -4429,49 +4259,38 @@ I.createSwipeListener = function() {
                 }
             }
             delete I.SwipeListener.TouchStartedOn;
-        },
-        onWheeled: function(Eve) {
-            if(!Eve.BibiWheeled) return;
-            clearTimeout(I.SwipeListener.onWheeled.Timer_cooldown);
-            I.SwipeListener.onWheeled.Timer_cooldown = setTimeout(function() { I.SwipeListener.onWheeled.hot = false; }, 248);
-            if(!I.SwipeListener.onWheeled.hot) {
-                I.SwipeListener.onWheeled.hot = true;
-                R.moveBy({ Distance: Eve.BibiWheeled.Distance });
-            }
         }
     };
 
     I.setToggleAction(I.SwipeListener, {
-        onopened: function() {
+        onopened: () => {
             O.HTML.classList.add("swipe-active");
-            if(!O.Touch) E.add("bibi:wheeled", I.SwipeListener.onWheeled);
             I.SwipeListener.activateElement(R.Main);
-            R.Items.forEach(function(Item) { I.SwipeListener.activateElement(Item.HTML); });
+            R.Items.forEach(Item => I.SwipeListener.activateElement(Item.HTML));
         },
-        onclosed: function() {
+        onclosed: () => {
             O.HTML.classList.remove("swipe-active");
-            if(!O.Touch) E.remove("bibi:wheeled", I.SwipeListener.onWheeled);
             I.SwipeListener.deactivateElement(R.Main);
-            R.Items.forEach(function(Item) { I.SwipeListener.deactivateElement(Item.HTML); });
+            R.Items.forEach(Item => I.SwipeListener.deactivateElement(Item.HTML));
         }
     });
 
-    E.add("bibi:opened", function() {
+    E.add("bibi:opened", () => {
         I.SwipeListener.update();
-        E.add("bibi:updated-settings", function(    ) { I.SwipeListener.update(); });
-        E.add("bibi:loaded-item",      function(Item) { if(S.RVM == "paged") I.SwipeListener.activateElement(Item.HTML); });
+        E.add("bibi:updated-settings", (  ) => I.SwipeListener.update());
+        E.add("bibi:loaded-item",      Item => { if(S.RVM == "paged") I.SwipeListener.activateElement(Item.HTML); });
         //I.SwipeListener.addButton();
     });
-    E.add("bibi:commands:activate-swipe",   function() { I.SwipeListener.open(); });
-    E.add("bibi:commands:deactivate-swipe", function() { I.SwipeListener.close(); });
-    E.add("bibi:commands:toggle-swipe",     function() { I.SwipeListener.toggle(); });
+    E.add("bibi:commands:activate-swipe",   () => I.SwipeListener.open());
+    E.add("bibi:commands:deactivate-swipe", () => I.SwipeListener.close());
+    E.add("bibi:commands:toggle-swipe",     () => I.SwipeListener.toggle());
 
     E.dispatch("bibi:created-swipelistener");
 
 };
 
 
-I.createKeyListener = function() {
+I.createKeyListener = () => {
 
     if(!S["use-keys"]) return;
 
@@ -4479,18 +4298,16 @@ I.createKeyListener = function() {
     I.KeyListener = {
         ActiveKeys: {},
         KeyCodes: { "keydown": {}, "keyup": {}, "keypress": {} },
-        updateKeyCodes: function(EventTypes, KeyCodesToUpdate) {
+        updateKeyCodes: (EventTypes, KeyCodesToUpdate) => {
             if(typeof EventTypes.join != "function")  EventTypes = [EventTypes];
             if(typeof KeyCodesToUpdate == "function") KeyCodesToUpdate = KeyCodesToUpdate();
-            EventTypes.forEach(function(EventType) {
-                I.KeyListener.KeyCodes[EventType] = sML.edit(I.KeyListener.KeyCodes[EventType], KeyCodesToUpdate);
-            });
+            EventTypes.forEach(EventType => I.KeyListener.KeyCodes[EventType] = sML.edit(I.KeyListener.KeyCodes[EventType], KeyCodesToUpdate));
         },
         MovingParameters: {
             "Space":  1,  "Page Up":     -1,  "Page Down":      1,  "End": "foot",  "Home": "head",
             "SPACE": -1,  "PAGE UP": "head",  "PAGE DOWN": "foot",  "END": "foot",  "HOME": "head"
         },
-        updateMovingParameters: function() {
+        updateMovingParameters: () => {
             switch(S.ARD) {
                 case "ttb": return sML.edit(I.KeyListener.MovingParameters, {
                     "Up Arrow":     -1,  "Right Arrow":      0,  "Down Arrow":      1,  "Left Arrow":      0,
@@ -4510,11 +4327,11 @@ I.createKeyListener = function() {
                 });
             }
         },
-        getBibiKeyName: function(Eve) {
+        getBibiKeyName: (Eve) => {
             const KeyName = I.KeyListener.KeyCodes[Eve.type][Eve.keyCode];
             return KeyName ? KeyName : "";
         },
-        onEvent: function(Eve) {
+        onEvent: (Eve) => {
             if(!L.Opened) return false;
             Eve.BibiKeyName = I.KeyListener.getBibiKeyName(Eve);
             Eve.BibiModifierKeys = [];
@@ -4526,7 +4343,7 @@ I.createKeyListener = function() {
             if(Eve.BibiKeyName) Eve.preventDefault();
             return true;
         },
-        onkeydown:  function(Eve) {
+        onkeydown: (Eve) => {
             if(!I.KeyListener.onEvent(Eve)) return false;
             if(Eve.BibiKeyName) {
                 if(!I.KeyListener.ActiveKeys[Eve.BibiKeyName]) {
@@ -4537,7 +4354,7 @@ I.createKeyListener = function() {
             }
             E.dispatch("bibi:downs-key", Eve);
         },
-        onkeyup:    function(Eve) {
+        onkeyup: (Eve) => {
             if(!I.KeyListener.onEvent(Eve)) return false;
             if(I.KeyListener.ActiveKeys[Eve.BibiKeyName] && Date.now() - I.KeyListener.ActiveKeys[Eve.BibiKeyName] < 300) {
                 E.dispatch("bibi:touches-key", Eve);
@@ -4550,16 +4367,14 @@ I.createKeyListener = function() {
             }
             E.dispatch("bibi:ups-key", Eve);
         },
-        onkeypress:  function(Eve) {
+        onkeypress: (Eve) => {
             if(!I.KeyListener.onEvent(Eve)) return false;
             E.dispatch("bibi:presses-key", Eve);
         },
-        observe: function(Doc) {
-            ["keydown", "keyup", "keypress"].forEach(function(EventName) {
-                Doc.addEventListener(EventName, I.KeyListener["on" + EventName], false);
-            });
+        observe: (Doc) => {
+            ["keydown", "keyup", "keypress"].forEach(EventName => Doc.addEventListener(EventName, I.KeyListener["on" + EventName], false));
         },
-        tryMoving: function(Eve) {
+        tryMoving: (Eve) => {
             if(!Eve.BibiKeyName) return false;
             const MovingParameter = I.KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
@@ -4578,35 +4393,32 @@ I.createKeyListener = function() {
         37: "Left Arrow",  38: "Up Arrow",  39: "Right Arrow",  40: "Down Arrow"
     });
 
-    E.add("bibi:updated-settings",   function(    ) { I.KeyListener.updateMovingParameters(); });
-    E.add("bibi:opened",             function(    ) { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(document); });
-    E.add("bibi:postprocessed-item", function(Item) { if(!Item.IsPlaceholder) I.KeyListener.observe(Item.contentDocument); });
-
-    E.add("bibi:touched-key",        function(Eve ) { I.KeyListener.tryMoving(Eve); });
+    E.add("bibi:updated-settings",   (  ) => { I.KeyListener.updateMovingParameters(); });
+    E.add("bibi:opened",             (  ) => { I.KeyListener.updateMovingParameters(); I.KeyListener.observe(document); });
+    E.add("bibi:postprocessed-item", Item => { if(!Item.IsPlaceholder) I.KeyListener.observe(Item.contentDocument); });
+    E.add("bibi:touched-key",        Eve  => { I.KeyListener.tryMoving(Eve); });
 
     E.dispatch("bibi:created-keylistener");
 
 };
 
 
-I.createSpinner = function() {
-
+I.createSpinner = () => {
     I.Spinner = O.Body.appendChild(sML.create("div", { id: "bibi-spinner" }));
     for(let i = 1; i <= 12; i++) I.Spinner.appendChild(document.createElement("span"));
     E.dispatch("bibi:created-spinner");
-
 };
 
 
-I.setToggleAction = function(Obj, Par) {
+I.setToggleAction = (Obj, Par) => {
     if(!Par) Par = {/*
          onopened: Function,
          onclosed: Function
     */};
     return sML.edit(Obj, {
         UIState: "default",
-        open: function(Opt) {
-            return new Promise(function(resolve) {
+        open: (Opt) => {
+            return new Promise(resolve => {
                 if(Obj.UIState == "default") {
                     I.setUIState(Obj, "active");
                     if(Par.onopened) Par.onopened.call(Obj, Opt);
@@ -4614,8 +4426,8 @@ I.setToggleAction = function(Obj, Par) {
                 resolve(Opt);
             });
         },
-        close: function(Opt) {
-            return new Promise(function(resolve) {
+        close: (Opt) => {
+            return new Promise(resolve => {
                 if(Obj.UIState == "active") {
                     I.setUIState(Obj, "default");
                     if(Par.onclosed) Par.onclosed.call(Obj, Opt);
@@ -4623,14 +4435,12 @@ I.setToggleAction = function(Obj, Par) {
                 resolve(Opt);
             });
         },
-        toggle: function(Opt) {
-            return Obj.UIState == "default" ? Obj.open(Opt) : Obj.close(Opt);
-        }
+        toggle: (Opt) => Obj.UIState == "default" ? Obj.open(Opt) : Obj.close(Opt)
     });
 };
 
 
-I.distillLabels = function(Labels) {
+I.distillLabels = (Labels) => {
     if(typeof Labels != "object" || !Labels) Labels = {};
     for(let State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
     if(!Labels["default"])                       Labels["default"]  = I.distillLabels.distillLanguage();
@@ -4639,7 +4449,7 @@ I.distillLabels = function(Labels) {
     return Labels;
 };
 
-I.distillLabels.distillLanguage = function(Label) {
+I.distillLabels.distillLanguage = (Label) => {
     if(typeof Label != "object" || !Label) Label = { default: Label };
     if(typeof Label["default"] != "string")  {
              if(typeof Label["en"] == "string")       Label["default"]  = Label["en"];
@@ -4655,16 +4465,16 @@ I.distillLabels.distillLanguage = function(Label) {
 };
 
 
-I.observeHover = function(Ele) {
-    Ele.onBibiHover = function(On, Eve) { E.dispatch(Ele, On ? "bibi:hovers" : "bibi:unhovers", Eve) };
-    Ele.addEventListener(O["pointerover"], function(Eve) { this.onBibiHover.call(this, true,  Eve); });
-    Ele.addEventListener(O["pointerout"],  function(Eve) { this.onBibiHover.call(this, false, Eve); });
+I.observeHover = (Ele) => {
+    Ele.onBibiHover = (On, Eve) => E.dispatch(Ele, On ? "bibi:hovers" : "bibi:unhovers", Eve);
+    Ele.addEventListener(O["pointerover"], Eve => Ele.onBibiHover(true,  Eve));
+    Ele.addEventListener(O["pointerout"],  Eve => Ele.onBibiHover(false, Eve));
     return Ele;
 };
 
 
-I.setHoverActions = function(Ele) {
-    E.add(Ele, "bibi:hovers", function(Eve) {
+I.setHoverActions = (Ele) => {
+    E.add(Ele, "bibi:hovers", Eve => {
         if(Ele.Hover) return Ele;
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         Ele.Hover = true;
@@ -4672,7 +4482,7 @@ I.setHoverActions = function(Ele) {
         if(Ele.showHelp) Ele.showHelp();
         return Ele;
     });
-    E.add(Ele, "bibi:unhovers", function(Eve) {
+    E.add(Ele, "bibi:unhovers", Eve => {
         if(!Ele.Hover) return Ele;
         Ele.Hover = false;
         Ele.classList.remove("hover");
@@ -4684,19 +4494,19 @@ I.setHoverActions = function(Ele) {
 
 
 
-I.observeTap = function(Ele, Opt) {
+I.observeTap = (Ele, Opt) => {
     if(!Opt) Opt = {};
     if(!Ele.addTapEventListener) {
-        Ele.addTapEventListener = function(EN, Fun) {
+        Ele.addTapEventListener = (EN, Fun) => {
             if(EN == "tap") EN = "taps";
-            E.add(Ele, "bibi:" + EN, function(Eve) { return Fun.call(Ele, Eve); });
+            E.add(Ele, "bibi:" + EN, Eve => Fun.call(Ele, Eve));
             return Ele;
         };
-        Ele.onBibiTap = function(On, Eve) {
+        Ele.onBibiTap = (On, Eve) => {
             if(On) {
                 clearTimeout(Ele.Timer_tap);
                 Ele.TouchStart = { Time: Date.now(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
-                Ele.Timer_tap = setTimeout(function() { delete Ele.TouchStart; }, 333);
+                Ele.Timer_tap = setTimeout(() => delete Ele.TouchStart, 333);
                 if(Opt.PreventDefault)  Eve.preventDefault();
                 if(Opt.StopPropagation) Eve.stopPropagation();
             } else {
@@ -4714,42 +4524,38 @@ I.observeTap = function(Ele, Opt) {
                 if(Opt.StopPropagation) Eve.stopPropagation();
             }
         };
-        Ele.addEventListener(O["pointerdown"], function(Eve) { this.onBibiTap.call(this, 1, Eve); });
-        Ele.addEventListener(O["pointerup"],   function(Eve) { this.onBibiTap.call(this, 0, Eve); });
+        Ele.addEventListener(O["pointerdown"], Eve => Ele.onBibiTap(true,  Eve));
+        Ele.addEventListener(O["pointerup"],   Eve => Ele.onBibiTap(false, Eve));
     }
     return Ele;
 };
 
 
-I.setTapAction = function(Ele) {
-    const onTapped = (function() {
+I.setTapAction = (Ele) => {
+    const onTapped = (() => {
         switch(Ele.Type) {
-            case "toggle": return function(Eve) {
+            case "toggle": return (Eve) => {
                 if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, Ele.UIState == "default" ? "active" : "default");
             };
-            case "radio": return function(Eve) {
+            case "radio": return (Eve) => {
                 if(Ele.UIState == "disabled") return false;
-                Ele.ButtonGroup.Buttons.forEach(function(Button) {
-                    if(Button != Ele) I.setUIState(Button, "");
-                });
+                Ele.ButtonGroup.Buttons.forEach(Button => { if(Button != Ele) I.setUIState(Button, ""); });
                 I.setUIState(Ele, "active");
             };
-            default: return function(Eve) {
+            default: return (Eve) => {
                 if(Ele.UIState == "disabled") return false;
                 I.setUIState(Ele, "active");
                 clearTimeout(Ele.Timer_deactivate);
-                Ele.Timer_deactivate = setTimeout(function() {
-                    I.setUIState(Ele, "");
-                }, 200);
+                Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, ""), 200);
             };
         }
     })();
-    Ele.addTapEventListener("tapped", function(Eve) {
+    Ele.addTapEventListener("tapped", Eve => {
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         if(Ele.Type == "radio" && Ele.UIState == "active") return Ele;
         if(Ele.UIState == "disabled") return Ele;
-        onTapped.call(Ele, Eve);
+        onTapped(Eve);
         if(Ele.hideHelp) Ele.hideHelp();
         if(Ele.note) setTimeout(Ele.note, 0);
         return Ele;
@@ -4758,22 +4564,22 @@ I.setTapAction = function(Ele) {
 };
 
 
-I.setFeedback = function(Ele, Opt) {
+I.setFeedback = (Ele, Opt) => {
     if(!Opt) Opt = {};
     Ele.Labels = I.distillLabels(Ele.Labels);
     if(Ele.Labels) {
         if(Opt.Help) {
-            Ele.showHelp = function() {
+            Ele.showHelp = () => {
                 if(I.Help && Ele.Labels[Ele.UIState]) I.Help.show(Ele.Labels[Ele.UIState][O.Language]);
                 return Ele;
             };
-            Ele.hideHelp = function() {
+            Ele.hideHelp = () => {
                 if(I.Help) I.Help.hide();
                 return Ele;
             };
         }
-        if(Ele.Notes) Ele.note = function() {
-            if(Ele.Labels[Ele.UIState]) setTimeout(function() { I.note(Ele.Labels[Ele.UIState][O.Language]); }, 0);
+        if(Ele.Notes) Ele.note = () => {
+            if(Ele.Labels[Ele.UIState]) setTimeout(() => I.note(Ele.Labels[Ele.UIState][O.Language]), 0);
             return Ele;
         }
     }
@@ -4781,19 +4587,14 @@ I.setFeedback = function(Ele, Opt) {
     I.setHoverActions(Ele);
     I.observeTap(Ele, Opt);
     I.setTapAction(Ele);
-    Ele.addTapEventListener("tap", function(Eve) {
-        if(Ele.isAvailable && !Ele.isAvailable()) return false;
-        E.dispatch("bibi:is-going-to:tap:ui", Ele);
-    });
-    Ele.addTapEventListener("tapped", function(Eve) {
-        E.dispatch("bibi:tapped:ui", Ele);
-    });
+    Ele.addTapEventListener("tap",    Eve => Ele.isAvailable && !Ele.isAvailable() ? false : E.dispatch("bibi:is-going-to:tap:ui", Ele));
+    Ele.addTapEventListener("tapped", Eve =>                                                 E.dispatch("bibi:tapped:ui",          Ele));
     I.setUIState(Ele, "default");
     return Ele;
 };
 
 
-I.setUIState = function(UI, UIState) {
+I.setUIState = (UI, UIState) => {
     if(!UIState) UIState = "default";
     UI.PreviousUIState = UI.UIState;
     if(UIState == UI.UIState) return;
@@ -4803,24 +4604,20 @@ I.setUIState = function(UI, UIState) {
             UI.title = UI.Labels[UI.UIState][O.Language].replace(/<[^>]+>/g, "");
             if(UI.Label) UI.Label.innerHTML = UI.Labels[UI.UIState][O.Language];
         }
-        O.replaceClass(UI, UI.PreviousUIState, UI.UIState);
+        sML.replaceClass(UI, UI.PreviousUIState, UI.UIState);
     }
     return UI.UIState;
 };
 
-I.isPointerStealth = function() {
+I.isPointerStealth = () => {
     let IsPointerStealth = false;
-    I.isPointerStealth.Checkers.forEach(function(checker) { if(checker()) IsPointerStealth = true; });
+    I.isPointerStealth.Checkers.forEach(checker => IsPointerStealth = checker() ? true : IsPointerStealth);
     return IsPointerStealth;
 };
 I.isPointerStealth.Checkers = [];
-I.isPointerStealth.addChecker = function(fun) {
-    if(typeof fun == "function" && !I.isPointerStealth.Checkers.includes(fun)) I.isPointerStealth.Checkers.push(fun);
-};
+I.isPointerStealth.addChecker = (fun) => typeof fun == "function" && !I.isPointerStealth.Checkers.includes(fun) ? I.isPointerStealth.Checkers.push(fun) : I.isPointerStealth.Checkers.length;
 
-I.getBookIcon = function() {
-    return sML.create('div', { className: "book-icon", innerHTML: '<span></span>' });
-};
+I.getBookIcon = () => sML.create('div', { className: "book-icon", innerHTML: '<span></span>' });
 
 
 
@@ -4833,32 +4630,35 @@ I.getBookIcon = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.P = {}; // Bibi.Preset
+export const P = {}; // Bibi.Preset
 
 
-P.initialize = function() {
-    O.applyRtL(P, Bibi.Preset, "ExceptFunctions");
-    O.SettingTypes.Boolean.concat(O.PresetOnlySettingTypes.Boolean).forEach(function(PropertyName) {
+P.initialize = (Preset) => {
+    sML.applyRtL(P, Preset, "ExceptFunctions");
+    O.SettingTypes.Boolean.concat(O.SettingTypes_PresetOnly.Boolean).forEach(PropertyName => {
         if(P[PropertyName] !== true) P[PropertyName] = false;
     });
-    O.SettingTypes.YesNo.concat(O.PresetOnlySettingTypes.YesNo).forEach(function(PropertyName) {
+    O.SettingTypes.YesNo.concat(O.SettingTypes_PresetOnly.YesNo).forEach(PropertyName => {
         if(typeof P[PropertyName] == "string") P[PropertyName] = /^(yes|no|mobile|desktop)$/.test(P[PropertyName]) ? P[PropertyName] : "no";
         else                                   P[PropertyName] = P[PropertyName] ? "yes" : "no";
     });
-    O.SettingTypes.String.concat(O.PresetOnlySettingTypes.String).forEach(function(PropertyName) {
+    O.SettingTypes.String.concat(O.SettingTypes_PresetOnly.String).forEach(PropertyName => {
         if(typeof P[PropertyName] != "string") P[PropertyName] = "";
     });
-    O.SettingTypes.Integer.concat(O.PresetOnlySettingTypes.Integer).forEach(function(PropertyName) {
+    O.SettingTypes.Integer.concat(O.SettingTypes_PresetOnly.Integer).forEach(PropertyName => {
         P[PropertyName] = (typeof P[PropertyName] != "number" || P[PropertyName] < 0) ? 0 : Math.round(P[PropertyName]);
     });
-    O.SettingTypes.Number.concat(O.PresetOnlySettingTypes.Number).forEach(function(PropertyName) {
+    O.SettingTypes.Number.concat(O.SettingTypes_PresetOnly.Number).forEach(PropertyName => {
         if(typeof P[PropertyName] != "number") P[PropertyName] = 0;
     });
-    O.SettingTypes.Array.concat(O.PresetOnlySettingTypes.Array).forEach(function(PropertyName) {
+    O.SettingTypes.Array.concat(O.SettingTypes_PresetOnly.Array).forEach(PropertyName => {
         if(!(P[PropertyName] instanceof Array)) P[PropertyName] = [];
     });
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
+    P["extensions"] = (P["extensions"] instanceof Array) ? P["extensions"].filter(Ext => Ext) : [];
 };
+
+Bibi.preset = P.initialize;
 
 
 
@@ -4870,15 +4670,15 @@ P.initialize = function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.U = {}; // Bibi.SettingsInURI
+export const U = {}; // Bibi.SettingsInURI
 
 
-U.initialize = function() { // formerly O.readExtras
+U.initialize = () => { // formerly O.readExtras
 
     const Q = U.parseQuery(location.search);
     const H = U.parseHash(location.hash);
 
-    ["epub", "zine", "book"].forEach(function(BookType) {
+    ["epub", "zine", "book"].forEach(BookType => {
         const BookPath = Q[BookType] ? Q[BookType] : O.Body.getAttribute("data-bibi-" + BookType);
         U[BookType] = (typeof BookPath == "string") ? decodeURIComponent(BookPath) : "";
     });
@@ -4909,19 +4709,17 @@ U.initialize = function() { // formerly O.readExtras
 
     if(H["epubcfi"]) {
         U["epubcfi"] = H["epubcfi"];
-        E.add("bibi:readied", function() {
-            if(X["EPUBCFI"]) S["to"] = U["to"] = X["EPUBCFI"].getDestination(H["epubcfi"]);
-        });
+        E.add("bibi:readied", () => { if(X["EPUBCFI"]) S["to"] = U["to"] = X["EPUBCFI"].getDestination(H["epubcfi"]); });
     }
 
 };
 
 
-U.parseQuery = function(Q) {
+U.parseQuery = (Q) => {
     if(typeof Q != "string") return {};
     Q = Q.replace(/^\?/, "");
     const Params = {};
-    Q.split("&").forEach(function(PnV) {
+    Q.split("&").forEach(PnV => {
         PnV = PnV.split("=");
         if(/^[a-z]+$/.test(PnV[0])) Params[PnV[0]] = PnV[1];
     });
@@ -4929,12 +4727,12 @@ U.parseQuery = function(Q) {
 };
 
 
-U.parseHash = function(H) {
+U.parseHash = (H) => {
     if(typeof H != "string") return {};
     H = H.replace(/^#/, "");
     const Params = {};
     let CurrentPosition = 0;
-    const parseFragment = function() {
+    const parseFragment = () => {
         const Foothold = CurrentPosition;
         let Label = "";
         while(/[a-z_]/.test(H.charAt(CurrentPosition))) CurrentPosition++;
@@ -4952,9 +4750,9 @@ U.parseHash = function(H) {
 };
 
 
-U.importFromDataString = function(DataString) {
+U.importFromDataString = (DataString) => {
     if(typeof DataString != "string") return false;
-    DataString.replace(" ", "").split(",").forEach(function(PnV) {
+    DataString.replace(" ", "").split(",").forEach(PnV => {
         PnV = PnV.split(":"); if(!PnV[0]) return;
         switch(PnV[0]) {
             case "parent-title":
@@ -4980,15 +4778,15 @@ U.importFromDataString = function(DataString) {
                 if(!/^(horizontal|vertical|paged)$/.test(PnV[1])) return;
                 break;
             default:
-                if(O.SettingTypes.Boolean.concat(O.UserOnlySettingTypes.Boolean).includes(PnV[0])) {
+                if(O.SettingTypes.Boolean.concat(O.SettingTypes_UserOnly.Boolean).includes(PnV[0])) {
                          if(PnV[1] == "true" ) PnV[1] = true;
                     else if(PnV[1] == "false") PnV[1] = false;
                     else return;
-                } else if(O.SettingTypes.YesNo.concat(O.UserOnlySettingTypes.YesNo).includes(PnV[0])) {
+                } else if(O.SettingTypes.YesNo.concat(O.SettingTypes_UserOnly.YesNo).includes(PnV[0])) {
                     if(!/^(yes|no|mobile|desktop)$/.test(PnV[1])) return;
-                } else if(O.SettingTypes.Integer.concat(O.UserOnlySettingTypes.Integer).includes(PnV[0])) {
+                } else if(O.SettingTypes.Integer.concat(O.SettingTypes_UserOnly.Integer).includes(PnV[0])) {
                     if(/^(0|[1-9][0-9]*)$/.test(PnV[1])) PnV[1] *= 1; else return;
-                } else if(O.SettingTypes.Number.concat(O.UserOnlySettingTypes.Number).includes(PnV[0])) {
+                } else if(O.SettingTypes.Number.concat(O.SettingTypes_UserOnly.Number).includes(PnV[0])) {
                     if(/^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(PnV[1])) PnV[1] *= 1; else return;
                 } else {
                     return;
@@ -5011,17 +4809,17 @@ U.importFromDataString = function(DataString) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.S = {}; // Bibi.Settings
+export const S = {}; // Bibi.Settings
 
 
-S.initialize = function() {
+S.initialize = () => {
     for(let Property in S) if(typeof S[Property] != "function") delete S[Property];
-    O.applyRtL(S, P, "ExceptFunctions");
-    O.applyRtL(S, U, "ExceptFunctions");
-    O.SettingTypes.YesNo.concat(O.PresetOnlySettingTypes.YesNo).concat(O.UserOnlySettingTypes.YesNo).forEach(function(Property) {
+    sML.applyRtL(S, P, "ExceptFunctions");
+    sML.applyRtL(S, U, "ExceptFunctions");
+    O.SettingTypes.YesNo.concat(O.SettingTypes_PresetOnly.YesNo).concat(O.SettingTypes_UserOnly.YesNo).forEach(Property => {
         S[Property] = (typeof S[Property] == "string") ? (S[Property] == "yes" || (S[Property] == "mobile" && O.Touch) || (S[Property] == "desktop" && !O.Touch)) : false;
     });
-    S["bookshelf"] = (function() {
+    S["bookshelf"] = (() => {
         if(!S["bookshelf"]) return "";
         if(/^https?:\/\//.test(S["bookshelf"])) return S["bookshelf"];
         if(/^\/\//.test(S["bookshelf"])) return location.protocol + S["bookshelf"];
@@ -5035,7 +4833,7 @@ S.initialize = function() {
     else               S["book-type"] = "";
     delete S["epub"];
     delete S["zine"];
-    S["book"] = (function() {
+    S["book"] = (() => {
         if(!S["book"] || !S["book-type"]) return "";
         if(/^https?:\/\//.test(S["book"])) return S["book"];
         if(/^\/\//.test(S["book"])) return location.protocol + S["book"];
@@ -5043,7 +4841,7 @@ S.initialize = function() {
         return O.getPath(S["bookshelf"], S["book"]);
     })().replace(/^(https?:\/\/[^\/]+.*)?.*$/, "$1");
     if(!S["book"]) S["book-type"] = "";
-    S["unzip-if-necessary"] = (function() {
+    S["unzip-if-necessary"] = (() => {
         if(!S["unzip-if-necessary"].length) return [];
         if(S["unzip-if-necessary"].includes("*")) return ["*"];
         const UnzipIfNecessary = [];
@@ -5055,24 +4853,24 @@ S.initialize = function() {
         }
         return UnzipIfNecessary;
     })();
-    S["accept-local-file"] = (function() {
+    S["accept-local-file"] = (() => {
         if(S["book"] || !window.File || !S["accept-local-file"]) return false;
         return (S["unzip-if-necessary"].includes("*") || S["unzip-if-necessary"].includes(".epub") || S["unzip-if-necessary"].includes(".zip"));
     })();
-    S["accept-blob-converted-data"] = (function() {
+    S["accept-blob-converted-data"] = (() => {
         if(S["book"] || !window.File || !S["accept-blob-converted-data"]) return false;
         return true;
     })();
-    S["accept-base64-encoded-data"] = (function() {
+    S["accept-base64-encoded-data"] = (() => {
         if(S["book"] || !window.File || !S["accept-base64-encoded-data"]) return false;
         return true;
     })();
-    S["autostart"] = (function() {
+    S["autostart"] = (() => {
         if(S["wait"]) return !S["wait"];
         if(!S["book"]) return true;
         return O.WindowEmbedded ? S["autostart-embedded"] : S["autostart"];
     })();
-    S["start-in-new-window"] = (function() {
+    S["start-in-new-window"] = (() => {
         if(S["autostart"]) return false;
         return O.WindowEmbedded ? S["start-embedded-in-new-window"] : false;
     })();
@@ -5080,7 +4878,8 @@ S.initialize = function() {
 
 };
 
-S.willBeUnzipped = function(FileName) {
+
+S.willBeUnzipped = (FileName) => {
     if(!FileName || !S["unzip-if-necessary"].length) return false;
     if(S["unzip-if-necessary"].includes("*")) return true;
     if(S["unzip-if-necessary"].includes("")) return !/(\.[\w\d]+)+$/.test(FileName);
@@ -5088,7 +4887,8 @@ S.willBeUnzipped = function(FileName) {
     return false;
 };
 
-S.update = function(Settings) {
+
+S.update = (Settings) => {
 
     const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA;
 
@@ -5100,8 +4900,8 @@ S.update = function(Settings) {
     S["allow-placeholders"] = (S["allow-placeholders"] && B.AllowPlaceholderItems);
 
     // Font Family
-    if(S.FontFamilyStyleIndex) sML.deleteStyleRule(S.FontFamilyStyleIndex);
-    if(S["ui-font-family"]) S.FontFamilyStyleIndex = sML.CSS.appendRule("html", "font-family: " + S["ui-font-family"] + " !important;");
+    if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
+    if(S["ui-font-family"]) S.FontFamilyStyleIndex = sML.appendCSSRule("html", "font-family: " + S["ui-font-family"] + " !important;");
 
     // Layout Settings
     S.RVM = S["reader-view-mode"];
@@ -5134,19 +4934,20 @@ S.update = function(Settings) {
     };             
 
     // Root Class
-    if(PrevBRL != S.BRL) O.replaceClass(O.HTML, "book-"       + PrevBRL, "book-"       + S.BRL);
-    if(PrevRVM != S.RVM) O.replaceClass(O.HTML, "view-"       + PrevRVM, "view-"       + S.RVM);
-    if(PrevPPD != S.PPD) O.replaceClass(O.HTML, "page-"       + PrevPPD, "page-"       + S.PPD);
-    if(PrevSLA != S.SLA) O.replaceClass(O.HTML, "spread-"     + PrevSLA, "spread-"     + S.SLA);
-    if(PrevSLD != S.SLD) O.replaceClass(O.HTML, "spread-"     + PrevSLD, "spread-"     + S.SLD);
-    if(PrevARD != S.ARD) O.replaceClass(O.HTML, "appearance-" + PrevARD, "appearance-" + S.ARD);
-    if(PrevARA != S.ARA) O.replaceClass(O.HTML, "appearance-" + PrevARA, "appearance-" + S.ARA);
+    if(PrevBRL != S.BRL) sML.replaceClass(O.HTML, "book-"       + PrevBRL, "book-"       + S.BRL);
+    if(PrevRVM != S.RVM) sML.replaceClass(O.HTML, "view-"       + PrevRVM, "view-"       + S.RVM);
+    if(PrevPPD != S.PPD) sML.replaceClass(O.HTML, "page-"       + PrevPPD, "page-"       + S.PPD);
+    if(PrevSLA != S.SLA) sML.replaceClass(O.HTML, "spread-"     + PrevSLA, "spread-"     + S.SLA);
+    if(PrevSLD != S.SLD) sML.replaceClass(O.HTML, "spread-"     + PrevSLD, "spread-"     + S.SLD);
+    if(PrevARD != S.ARD) sML.replaceClass(O.HTML, "appearance-" + PrevARD, "appearance-" + S.ARD);
+    if(PrevARA != S.ARA) sML.replaceClass(O.HTML, "appearance-" + PrevARA, "appearance-" + S.ARA);
 
     E.dispatch("bibi:updated-settings", S);
 
 };
 
-S.getCC = function(Hzt_Vtc, LtR_RtL) { // getCoordinateCondition
+
+S.getCC = (Hzt_Vtc, LtR_RtL) => { // getCoordinateCondition
     const CC = { SIZE: {}, BASE: {}, OOLT: {}, AXIS: {} };
     if(Hzt_Vtc == "horizontal") {
         S.getCC.applyRtL(CC.SIZE, { b: "height", l: "width",  w: "length",  h: "breadth" });
@@ -5175,17 +4976,13 @@ S.getCC = function(Hzt_Vtc, LtR_RtL) { // getCoordinateCondition
     return CC;
 };
 
-S.getCC.applyRtL = function(Left, Right) {
-    for(let Property in Right) {
-        Left[Property] = Right[Property];
-        Left[S.getCC.applyRtL.capitalize(Property)] = S.getCC.applyRtL.capitalize(Right[Property]);
-    }
-    return Left;
+S.getCC.applyRtL = (Left, Right) => {
+    for(let Property in Right)
+        Left[                            Property ] =                             Right[Property] ,
+        Left[S.getCC.applyRtL.capitalize(Property)] = S.getCC.applyRtL.capitalize(Right[Property]); return Left;
 };
 
-S.getCC.applyRtL.capitalize = function(Str) {
-    return Str.charAt(0).toUpperCase() + Str.slice(1);
-};
+S.getCC.applyRtL.capitalize = (Str) => Str.charAt(0).toUpperCase() + Str.slice(1);
 
 
 
@@ -5198,40 +4995,66 @@ S.getCC.applyRtL.capitalize = function(Str) {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.O = {}; // Bibi.Operator
+export const O = {}; // Bibi.Operator
 
 
-O.LogDepth = 0;
-O.log = function(Body, Tag) {
-    if(Tag == "</g>") {
-        if(Bibi.LogDepth >= O.LogDepth) console.groupEnd();
-        O.LogDepth--;
-    }
-    if(!Body || Bibi.LogDepth < O.LogDepth) return false;
-    let Method = "log", Prefix = "‐ ", BodyFontWeight = "normal";
-    switch(Tag) {
-        case "<e/>": Method = "error",          Prefix = "!! ", BodyFontWeight = "bold"; break;
-        case "<i/>":                                            BodyFontWeight = "bold"; break;
-        case "<g!>": Method = "groupCollapsed", Prefix = "📕",  BodyFontWeight = "bold"; break;
-        case "<g:>": Method = "groupCollapsed", Prefix = "┌ "                         ; break;
-        case "<g->": Method = "groupCollapsed"                                         ; break;
-        case "</g>":                            Prefix = "└ "                         ; break;
-    }
-    if(O.LogDepth == 0) {
-        const TimeFromOrigin = O.stamp(Body);
-        Prefix = "Bibi: " + Prefix;
-        if(Tag == "<i/>" && TimeFromOrigin) Body += " %c(" + Math.floor(TimeFromOrigin / 1000) + "." + sML.String.pad(TimeFromOrigin % 1000, 0, 3) + "sec)";
-    }
-    if(Method == "groupCollapsed") {
-        if(Bibi.LogDepth == O.LogDepth) Method = "log";
-        O.LogDepth++;
-    }
-    return console[Method]("%c" + Prefix + "%c" + Body + (/%c/.test(Body) ? "" : "%c"), "font-weight: normal;", "font-weight: " + BodyFontWeight + ";", "font-weight: normal;");
+O.initialize = () => {
+    O.log.initialize();
 };
-if(parent && parent != window) O.log = function() { return false; };
 
 
-O.error = function(Msg) {
+O.log = (Log, Tag) => {        let Prefix = "‐ ", FontWeight = "normal";
+    switch(Tag) {
+        case "<e/>":               Prefix = "!! ", FontWeight = "bold"  ; break;
+        case "<i/>":                               FontWeight = "bold"  ; break;
+        case "<g!>": Tag = "<g:>", Prefix = "📕" , FontWeight = "bold"  ; break;
+        case "<g->": Tag = "<g:>"                                       ; break;
+        case "<g:>":               Prefix = "┌ "                       ; break;
+        case "</g>":               Prefix = "└ "                       ; break;
+    }
+    if(Tag == "</g>") {
+        if(O.log.Depth <= O.log.Limit) console.groupEnd();
+        O.log.Depth--;
+    }
+    if(Log && O.log.Depth <= O.log.Limit) {
+        let Method = "log";
+             if(Tag == "<e/>") Method = "error";
+        else if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";
+        if(O.log.Depth == 0) {
+            const TimeFromOrigin = O.stamp(Log.replace("%c", ""));
+            if(Tag == "<i/>" && TimeFromOrigin) Log += " %c(" + Math.floor(TimeFromOrigin / 1000) + "." + (TimeFromOrigin % 1000 + "").padStart(3, 0) + "sec)";
+            Prefix = "Bibi: " + Prefix;
+        } else {
+            Prefix = "      " + Prefix;
+        }
+        O.log.log(Method, Prefix, Log, FontWeight);
+    }
+    if(Tag == "<g:>") O.log.Depth++;
+};
+
+O.log.initialize = () => {
+    if(!parent || parent == window) {
+        const log = (Method, Prefix, Log, FontWeight) => console[Method]("%c" + Prefix + "%c" + Log + (/%c/.test(Log) ? "" : "%c"), "font-weight: normal;", "font-weight: " + FontWeight + ";", "font-weight: normal;");
+        O.log.Depth = 0;
+        if(sML.UA.Blink || sML.UA.Gecko) {
+            O.log.Limit = 9;
+            O.log.log = log;
+        } else {
+            O.log.Limit = 0;
+            O.log.log = (Method, Prefix, Log, FontWeight) => {
+                if(Method == "groupCollapsed") Method = "log";
+                if(O.log.Depth != 0) Prefix = "Bibi: " + ((D, i) => { while(i++ < O.log.Depth) D += "│ "; return D; })("", 0) + Prefix;
+                O.log.log.log(Method, Prefix, Log, FontWeight);
+            };
+            O.log.log.log = sML.UA.WebKit ? log : (Method, Prefix, Log) => console[Method](Prefix + Log.replace("%c", ""));
+        }
+    } else {
+        O.log = () => false;
+    }
+};
+
+
+O.error = (Msg) => {
     O.Busy = false;
     O.HTML.classList.remove("busy");
     O.HTML.classList.remove("loading");
@@ -5242,84 +5065,43 @@ O.error = function(Msg) {
 
 O.TimeCard = {};
 
-O.getTimeLabel = function(Milliseconds) {
-    return [
-        Milliseconds / 1000 / 60 / 60,
-        Milliseconds / 1000 / 60 % 60,
-        Milliseconds / 1000 % 60
-    ].map(function(Val) {
-        return sML.String.pad(Math.floor(Val), 0, 2);
-    }).join(":") + "." + sML.String.pad(Milliseconds % 1000, 0, 3);
-};
+O.getTimeLabel = (Milliseconds) => [
+    Milliseconds / 1000 / 60 / 60,
+    Milliseconds / 1000 / 60 % 60,
+    Milliseconds / 1000 % 60
+].map(Val => (Math.floor(Val) + "").padStart(2, 0)).join(":") + "." + (Milliseconds % 1000 + "").padStart(3, 0);
 
-O.stamp = function(What, TimeCard) {
-    const TimeFromOrigin = Date.now() - TimeOrigin
+O.stamp = (What, TimeCard) => {
+    const TimeFromOrigin = Date.now() - Bibi.TimeOrigin;
     const TimeLabel = O.getTimeLabel(TimeFromOrigin);
     TimeCard = TimeCard || O.TimeCard;
     if(!TimeCard[TimeLabel]) TimeCard[TimeLabel] = [];
     TimeCard[TimeLabel].push(What);
     return TimeFromOrigin;
 };
-//O.stamp = function() { return ""; };
+//O.stamp = () => "";
 
 
-O.forEach = function(Col, fun) { return Col.forEach ? Col.forEach(fun) : Array.prototype.forEach.call(Col, fun); };
+O.scrollTo = (ScrollTarget, Par) => new Promise(resolve => { Par.callback = resolve; sML.scrollTo(ScrollTarget, Par); });
 
 
-O.applyRtL = function(L, R, ExceptFunctions) {
-    if(ExceptFunctions) {
-        for(let Pro in R) if(typeof L[Pro] != "function" && typeof R[Pro] != "function") L[Pro] = R[Pro];
-    } else {
-        for(let Pro in R)                                                                L[Pro] = R[Pro];
-    }
-    return L;
-};
-
-O.limitMin    = function(Num, Min     ) { return                      (Num < Min) ? Min :                     Num; };
-O.limitMax    = function(Num,      Max) { return                                          (Max < Num) ? Max : Num; };
-O.limitMinMax = function(Num, Min, Max) { return (Max < Min) ? null : (Num < Min) ? Min : (Max < Num) ? Max : Num; };
-
-
-O.scrollTo = function(ScrollTarget, Par) { return new Promise(function(resolve) { Par.callback = resolve; sML.scrollTo(ScrollTarget, Par); }); };
-
-
-O.download = function(URI, MimeType) {
-    return new Promise(function(resolve, reject) {
+O.download = (URI, MimeType) => {
+    return new Promise((resolve, reject) => {
         const XHR = new XMLHttpRequest();
         if(MimeType) XHR.overrideMimeType(MimeType);
         XHR.open('GET', URI, true);
-        XHR.onloadend = function() {
-            XHR.status === 200 ? resolve(XHR) : reject(XHR);
-        };
+        XHR.onloadend = () => (XHR.status === 200 ? resolve : reject)(XHR);
         XHR.send(null);
     });
 };
 
-O.parseDocument = function(Doc, Path) {
-    return (new DOMParser()).parseFromString(Doc, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
-};
+O.parseDocument = (Doc, Path) => (new DOMParser()).parseFromString(Doc, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
 
-O.openDocument = function(Path) {
-    return new Promise(function(resolve, reject) {
-        if(B.Unzipped) {
-            O.download(B.Path + "/" +  Path).then(function(XHR) {
-                resolve(XHR.responseText);
-            }).catch(function(XHR) {
-                reject('XHR HTTP status: ' + XHR.status + ' "' + XHR.responseURL + '"');
-            });
-        } else {
-            B.Files[Path] ? resolve(B.Files[Path]) : reject('Not Included: "' + Path + '"');
-        }
-    }).then(function(TextData) {
-        return O.parseDocument(TextData, Path);
-    }).catch(O.error);
-};
-
-
-O.replaceClass = function(Ele, OC, NC) {
-    Ele.classList.add(NC);
-    Ele.classList.remove(OC);
-    return Ele;
+O.openDocument = (Path) => {
+    return new Promise((resolve, reject) => {
+        if(B.Unzipped) O.download(B.Path + "/" +  Path).then(XHR => resolve(XHR.responseText)).catch(XHR =>  reject('XHR HTTP status: ' + XHR.status + ' "' + XHR.responseURL + '"'));
+        else                              B.Files[Path] ?           resolve(B.Files[Path]) :                 reject('Not Included: "' + Path + '"');
+    }).then(TextData => O.parseDocument(TextData, Path)).catch(O.error);
 };
 
 
@@ -5329,47 +5111,32 @@ O.editCSSRules = function() {
     else if(typeof arguments[1] == "function") Doc = arguments[0], fun = arguments[1];
     if(!Doc) Doc = document;
     if(!Doc.styleSheets || typeof fun != "function") return;
-    O.forEach(Doc.styleSheets, function(StyleSheet) {
-        O.editCSSRules.edit(StyleSheet, fun);
-    });
+    sML.forEach(Doc.styleSheets, StyleSheet => O.editCSSRulesOfStyleSheet(StyleSheet, fun));
 };
 
-O.editCSSRules.edit = function(StyleSheet, fun) {
+O.editCSSRulesOfStyleSheet = (StyleSheet, fun) => {
     try{ if(!StyleSheet.cssRules) return; } catch(Err) { return; }
     for(let l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
         const CSSRule = StyleSheet.cssRules[i];
-        /**/ if(CSSRule.cssRules)   O.editCSSRules.edit(CSSRule,            fun);
-        else if(CSSRule.styleSheet) O.editCSSRules.edit(CSSRule.styleSheet, fun);
-        else                                        fun(CSSRule                );
+        /**/ if(CSSRule.cssRules)   O.editCSSRulesOfStyleSheet(CSSRule,            fun);
+        else if(CSSRule.styleSheet) O.editCSSRulesOfStyleSheet(CSSRule.styleSheet, fun);
+        else                                               fun(CSSRule                );
     }
 };
 
 
-O.appendStyleSheetLink = function(Opt, Doc) {
-    if(!Opt || !Opt.href) return false;
-    if(!Doc) Doc = document;
-    const Link = Doc.createElement("link");
-    Link.rel = "stylesheet";
-    if(typeof Opt.className == "string") Link.className = Opt.className;
-    if(typeof Opt.id        == "string") Link.id = Opt.id;
-    if(typeof Opt.media     == "string") Link.media = Opt.media;
-    Link.href = Opt.href;
-    return Doc.head.appendChild(Link);
-};
+O.isBin = (Hint) => /(^|\.)(gif|jpe?g|png|ttf|otf|woff2?|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(Hint);
 
-
-O.isBin = function(Hint) { return /(^|\.)(gif|jpe?g|png|ttf|otf|woff2?|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(Hint); };
-
-O.getDataURI = function(FilePath, FileContent) {
-    for(let Ext in O.getDataURI.ContentTypes) {
+O.getDataURI = (FilePath, FileContent) => {
+    for(let Ext in O.ContentTypes) {
         if((new RegExp('(^|\.)' + Ext + '$', "i")).test(FilePath)) {
-            return "data:" + O.getDataURI.ContentTypes[Ext] + ";base64," + (O.isBin(FilePath) ? btoa(FileContent) : btoa(unescape(encodeURIComponent(FileContent))));
+            return "data:" + O.ContentTypes[Ext] + ";base64," + (O.isBin(FilePath) ? btoa(FileContent) : btoa(unescape(encodeURIComponent(FileContent))));
         }
     }
     return "";
 };
 
-O.getDataURI.ContentTypes = {
+O.ContentTypes = {
     "gif"   :       "image/gif",
     "png"   :       "image/png",
     "jpe?g" :       "image/jpeg",
@@ -5389,7 +5156,7 @@ O.getDataURI.ContentTypes = {
     "pdf"   : "application/pdf"
 };
 
-O.getWritingMode = function(Ele) {
+O.getWritingMode = (Ele) => {
     const CS = getComputedStyle(Ele);
          if(!O.WritingModeProperty)                            return (CS["direction"] == "rtl" ? "rl-tb" : "lr-tb");
     else if(     /^vertical-/.test(CS[O.WritingModeProperty])) return (CS["direction"] == "rtl" ? "bt" : "tb") + "-" + (/-lr$/.test(CS[O.WritingModeProperty]) ? "lr" : "rl");
@@ -5398,23 +5165,23 @@ O.getWritingMode = function(Ele) {
 };
 
 
-O.getElementInnerText = function(Ele) {
+O.getElementInnerText = (Ele) => {
     let InnerText = "InnerText";
     const Copy = document.createElement("div");
     Copy.innerHTML = Ele.innerHTML.replace(/ (src(set)?|source|(xlink:)?href)=/g, " data-$1=");
-    O.forEach(Copy.querySelectorAll("svg"),    function(Ele) { Ele.parentNode.removeChild(Ele); });
-    O.forEach(Copy.querySelectorAll("video"),  function(Ele) { Ele.parentNode.removeChild(Ele); });
-    O.forEach(Copy.querySelectorAll("audio"),  function(Ele) { Ele.parentNode.removeChild(Ele); });
-    O.forEach(Copy.querySelectorAll("img"),    function(Ele) { Ele.parentNode.removeChild(Ele); });
-    O.forEach(Copy.querySelectorAll("script"), function(Ele) { Ele.parentNode.removeChild(Ele); });
-    O.forEach(Copy.querySelectorAll("style"),  function(Ele) { Ele.parentNode.removeChild(Ele); });
+    sML.forEach(Copy.querySelectorAll("svg"),    Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("video"),  Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("audio"),  Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("img"),    Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("script"), Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("style"),  Ele => Ele.parentNode.removeChild(Ele));
     /**/ if(typeof Copy.textContent != "undefined") InnerText = Copy.textContent;
     else if(typeof Copy.innerText   != "undefined") InnerText = Copy.innerText;
     return InnerText.replace(/[\r\n\s\t ]/g, "");
 };
 
 
-O.getElementCoord = function(Ele, OPa) {
+O.getElementCoord = (Ele, OPa) => {
     const Coord = { X: Ele.offsetLeft, Y: Ele.offsetTop };
     OPa = OPa && OPa.tagName ? OPa : null;
     while(Ele.offsetParent) {
@@ -5428,7 +5195,7 @@ O.getPath = function() {
     let Origin = "", Path = arguments[0];
     if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  =       arguments[1];
     else for(let l = arguments.length, i = 1; i < l; i++)           Path += "/" + arguments[i];
-    Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, function() { Origin = arguments[1], Path = arguments[2]; });
+    Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, (M, P1, P2) => { Origin = P1, Path = P2; });
     while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, "$1/");
     while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   "/");
     while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(/[^\/]+\/\.\.\//g,    "");
@@ -5437,7 +5204,7 @@ O.getPath = function() {
     return Path;
 };
 
-O.getViewportByMetaContentString = function(Str) {
+O.getViewportByMetaContentString = (Str) => {
     if(typeof Str == "string" && /width/.test(Str) && /height/.test(Str)) {
         Str = Str.replace(/\s+/g, "");
         const W = Str.replace( /^.*?width=(\d+).*$/, "$1") * 1;
@@ -5447,7 +5214,7 @@ O.getViewportByMetaContentString = function(Str) {
     return null;
 };
 
-O.getViewportByViewBoxString = function(Str) {
+O.getViewportByViewBoxString = (Str) => {
     if(typeof Str == "string") {
         const XYWH = Str.replace(/^\s+/, "").replace(/\s+$/, "").split(/\s+/);
         if(XYWH.length == 4) {
@@ -5459,7 +5226,7 @@ O.getViewportByViewBoxString = function(Str) {
     return null;
 };
 
-O.getViewportByImage = function(Img) {
+O.getViewportByImage = (Img) => {
     if(Img && /^img$/i.test(Img.tagName)) {
         const ImageStyle = getComputedStyle(Img);
         return { Width: parseInt(ImageStyle.width), Height: parseInt(ImageStyle.height) };
@@ -5467,7 +5234,7 @@ O.getViewportByImage = function(Img) {
     return null;
 };
 
-O.getViewportByOriginalResolutionString = function(Str) {
+O.getViewportByOriginalResolutionString = (Str) => {
     if(typeof Str == "string") {
         const WH = Str.replace(/\s+/, "").split("x");
         if(WH.length == 2) {
@@ -5479,7 +5246,7 @@ O.getViewportByOriginalResolutionString = function(Str) {
     return null;
 };
 
-O.isAnchorContent = function(Ele) {
+O.isAnchorContent = (Ele) => {
     while(Ele) {
         if(/^a$/i.test(Ele.tagName)) return true;
         Ele = Ele.parentElement;
@@ -5487,10 +5254,10 @@ O.isAnchorContent = function(Ele) {
     return false;
 };
 
-O.stopPropagation = function(Eve) { Eve.stopPropagation(); return false; };
-O.preventDefault  = function(Eve) { Eve.preventDefault();  return false; };
+O.stopPropagation = (Eve) => { Eve.stopPropagation(); return false; };
+O.preventDefault  = (Eve) => { Eve.preventDefault();  return false; };
 
-O.getBibiEventCoord = function(Eve) {
+O.getBibiEventCoord = (Eve) => {
     const EventCoord = { X:0, Y:0 };
     if(/^touch/.test(Eve.type)) {
         EventCoord.X = Eve.changedTouches[0].pageX;
@@ -5518,12 +5285,7 @@ O.getBibiEventCoord = function(Eve) {
         //EventCoord = Event-coord
         EventCoord.X = Math.floor(EventCoord.X);
         EventCoord.Y = Math.floor(EventCoord.Y);
-    }
-    //O.getBibiEventCoord.log(EventCoord, Eve);
-    return EventCoord;
-};
-
-O.getBibiEventCoord.log = function(EventCoord, Eve) {
+    }/*
     console.log(
         '[' + (Eve.target.ownerDocument.documentElement == O.HTML ? "PARENT" : "CHILD") + ']',
         EventCoord,
@@ -5532,10 +5294,11 @@ O.getBibiEventCoord.log = function(EventCoord, Eve) {
             Y: Eve.screenY - window.screenY - (window.outerHeight - window.innerHeight)
         },
         Eve
-    );
+    );*/
+    return EventCoord;
 };
 
-O.getBibiEvent = function(Eve) {
+O.getBibiEvent = (Eve) => {
     if(!Eve) return {};
     const Coord = O.getBibiEventCoord(Eve);
     const FlipperWidth = S["flipper-width"];
@@ -5568,13 +5331,14 @@ O.getBibiEvent = function(Eve) {
     };
 };
 
-O.getOrigin = function(Win) {
+O.getOrigin = (Win) => {
     const Loc = (Win ? Win : window).location;
     return Loc.origin || Loc.protocol + "//" + (Loc.host || Loc.hostname + (Loc.port ? ":" + Loc.port : ""));
 };
+
 O.Origin = O.getOrigin();
 
-O.Path = (function() {
+O.Path = (() => {
     if(document.currentScript) return document.currentScript.src;
     const Scripts = document.getElementsByTagName("script");
     return Scripts[Scripts.length - 1].src;
@@ -5583,15 +5347,15 @@ O.Path = (function() {
 O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "/");
 
 O.Cookie = {
-    remember: function(Group) {
+    remember: (Group) => {
         const Cookie = JSON.parse(sML.Cookies.read("bibi") || '{}');
         if(typeof Group != "string" || !Group) return Cookie;
         return Cookie[Group];
     },
-    eat: function(Group, KeyVal, Opt) {
+    eat: (Group, KeyVal, Opt) => {
         if(typeof Group != "string" || !Group) return false;
         if(typeof KeyVal != "object") return false;
-        const Cookie = this.remember();
+        const Cookie = O.Cookie.remember();
         if(typeof Cookie[Group] != "object") Cookie[Group] = {};
         for(let Key in KeyVal) {
             const Val = KeyVal[Key];
@@ -5646,7 +5410,7 @@ O.SettingTypes = {
     ]
 };
 
-O.PresetOnlySettingTypes = {
+O.SettingTypes_PresetOnly = {
     Boolean: [
         "accept-base64-encoded-data",
         "accept-blob-converted-data",
@@ -5669,7 +5433,7 @@ O.PresetOnlySettingTypes = {
     ]
 };
 
-O.UserOnlySettingTypes = {
+O.SettingTypes_UserOnly = {
     Boolean: [
         "wait"
     ],
@@ -5690,74 +5454,16 @@ O.UserOnlySettingTypes = {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Events - Special Thanks: @KitaitiMakoto & @shunito
+//-- Events
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.E = {}; // Bibi.Events
+export const E = {};
 
 
-
-E.add = function(Name, Listener) { let Target = document; if(!arguments[0].hasOwnProperty("length")) Target = arguments[0], Name = arguments[1], Listener = arguments[2];
-    if(Name instanceof Array) return Name.forEach(function(N) { E.add(Target, N, Listener); }) || Listener;
-    if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
-    if(!Listener.bibiEventListener) Listener.bibiEventListener = function(Eve) { return Listener.call(Target, Eve.detail); };
-    Target.addEventListener(Name, Listener.bibiEventListener, false);
-    return Listener;
-};
-
-
-E.remove = function(Name, Listener) { let Target = document; if(!arguments[0].hasOwnProperty("length")) Target = arguments[0], Name = arguments[1], Listener = arguments[2];
-    if(Name instanceof Array) return Name.forEach(function(N) { E.remove(Target, N, Listener); }) || Listener;
-    if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function" || typeof Listener.bibiEventListener != "function") return false;
-    (Target ? Target : document).removeEventListener(Name, Listener.bibiEventListener);
-    return Listener;
-};
-
-
-E.bind = function(Name, Listener) { let Target = document; if(!arguments[0].hasOwnProperty("length")) Target = arguments[0], Name = arguments[1], Listener = arguments[2];
-    if(Name instanceof Array) return Name.forEach(function(N) { E.bind(Target, N, Listener); }) || Listener;
-    if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
-    if(!Target.BibiBindedEventListeners) Target.BibiBindedEventListeners = {};
-    if(!(Target.BibiBindedEventListeners[Name] instanceof Array)) Target.BibiBindedEventListeners[Name] = [];
-    Target.BibiBindedEventListeners[Name] = Target.BibiBindedEventListeners[Name].filter(function(Binded) {
-        if(Binded != Listener) return true;
-        return false;
-    });
-    Target.BibiBindedEventListeners[Name].push(Listener);
-    return Listener;
-};
-
-
-E.unbind = function(Name, Listener) { let Target = document; if(!arguments[0].hasOwnProperty("length")) Target = arguments[0], Name = arguments[1], Listener = arguments[2];
-    if(Name instanceof Array) return Name.forEach(function(N) { E.unbind(Target, N, Listener); }) || Listener;
-    if(typeof Name != "string") return false;
-    if(!Target.BibiBindedEventListeners || !(Target.BibiBindedEventListeners[Name] instanceof Array)) return false;
-    if(typeof Listener == "undefined") {
-        delete Target.BibiBindedEventListeners[Name];
-        return 0;
-    }
-    if(typeof Listener == "number") {
-        if(typeof Target.BibiBindedEventListeners[Name][Listener] != "function") return false;
-        Listener = Target.BibiBindedEventListeners[Name][Listener];
-    }
-    Target.BibiBindedEventListeners[Name] = Target.BibiBindedEventListeners[Name].filter(function(Binded) {
-        if(Binded != Listener) return true;
-        return false;
-    });
-    return Listener;
-};
-
-
-E.dispatch = function(Name, Detail) { let Target = document; if(typeof arguments[0] != "string") Target = arguments[0], Name = arguments[1], Detail = arguments[2];
-    if(typeof Name != "string") return false;
-    if(Target.BibiBindedEventListeners && Target.BibiBindedEventListeners[Name] instanceof Array) {
-        Target.BibiBindedEventListeners[Name].forEach(function(bindedEventListener) {
-            if(typeof bindedEventListener == "function") bindedEventListener.call(Target, Detail);
-        });
-    }
-    return Target.dispatchEvent(new CustomEvent(Name, { detail: Detail }));
+E.initialize = () => {
+    sML.applyRtL(E, new sML.CustomEvents("bibi"));
 };
 
 
@@ -5766,15 +5472,15 @@ E.dispatch = function(Name, Detail) { let Target = document; if(typeof arguments
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Messages - Special Thanks: @KitaitiMakoto
+//-- Messages
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.M = {}; // Bibi.Messages
+export const M = {}; // Bibi.Messages
 
 
-M.post = function(Msg, TargetOrigin) {
+M.post = (Msg, TargetOrigin) => {
     if(!O.WindowEmbedded) return false;
     if(typeof Msg != "string" || !Msg) return false;
     if(typeof TargetOrigin != "string" || !TargetOrigin) TargetOrigin = "*";
@@ -5782,7 +5488,7 @@ M.post = function(Msg, TargetOrigin) {
 };
 
 
-M.receive = function(Data) {
+M.receive = (Data) => {
     try {
         Data = JSON.parse(Data);
         if(typeof Data != "object" || !Data) return false;
@@ -5793,7 +5499,7 @@ M.receive = function(Data) {
 };
 
 
-M.gate = function(Eve) {
+M.gate = (Eve) => {
     if(!Eve || !Eve.data) return;
     for(let l = S["trustworthy-origins"].length, i = 0; i < l; i++) if(S["trustworthy-origins"][i] == Eve.origin) return M.receive(Eve.data);
 };
@@ -5804,109 +5510,61 @@ M.gate = function(Eve) {
 //==============================================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-//-- Extensions - Special Thanks: @shunito
+//-- Extensions
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-____.X = {}; // Bibi.Extensions
-
-
-X.initialize = function() {
-    X.Files = {};
-    X.Presets = {};
-    X.Loaded = [];
-    X.Added = [];
+export const X = { // Bibi.Extensions
+    Extensions: []
 };
 
 
-X.loadFilesInPreset = function() {
-    if((function() {
-        if(S["book"]) return (S["book-type"] == "Zine");
-        return (S["accept-local-file"] || S["accept-blob-converted-data"]);
-    })()) {
-        P["extensions"].unshift({ "name": "Zine", "src": "extensions/zine/zine.js" });
-    }
-    if((function() {
-        if(S["book"]) return S.willBeUnzipped(S["book"]);
-        return (S["accept-local-file"] || S["accept-blob-converted-data"]);
-    })()) {
-        P["extensions"].unshift({ "name": "Unzipper", "src": "extensions/unzipper/unzipper.js" });
-    }
-    const ExtensionsToBeLoaded = [];
-    P["extensions"].forEach(function(FileInfo) {
-        if(
-            typeof FileInfo["name"] != "string" || !FileInfo["name"] || FileInfo["name"] == "Bibi" ||
-            typeof FileInfo["src"]  != "string" || !FileInfo["src"]
-        ) return;
-        FileInfo.FileIndexInPreset = ExtensionsToBeLoaded.length;
-        ExtensionsToBeLoaded.push(FileInfo);
-    });
-    const PXs = P["extensions"] = ExtensionsToBeLoaded;
-    if(!PXs.length) return Promise.resolve();
-    O.log('Loading Extension File' + (PXs.length > 1 ? 's' : '') + '...', "<g:>");
-    return new Promise(function(resolve) {
-        const loadFile = function(FileInfo) {
-            if(X.Files[FileInfo["name"]]) {
-                O.log('"name" of Extension File "' + FileInfo["name"] + '" is already taken.');
-                loadFile(PXs[FileInfo.FileIndexInPreset + 1]);
-                return false;
-            }
-            X.Files[FileInfo["name"]] = FileInfo;
-            X.Presets[FileInfo["name"]] = PXs[FileInfo["name"]] = {};
-            for(let Option in FileInfo) PXs[FileInfo["name"]][Option] = FileInfo[Option];
-            document.head.appendChild(
-                sML.create("script", { className: "bibi-extension-script", id: "bibi-extension-script_" + FileInfo["name"], name: FileInfo["name"], src: FileInfo["src"],// async: "async",
-                    onload: function() {
-                        X.Loaded.push(FileInfo);
-                        O.log("Extension: " + FileInfo["name"]);
-                        if(FileInfo.FileIndexInPreset + 1 == PXs.length) return resolve();
-                        loadFile(PXs[FileInfo.FileIndexInPreset + 1]);
-                    }
-                })
-            );
+X.loadExtensions = () => {
+    if(S["book"] && S["book-type"] == "Zine"    || S["accept-local-file"] || S["accept-blob-converted-data"]) P["extensions"].unshift({ "src":     "extensions/zine/index.js" });
+    if(S["book"] && S.willBeUnzipped(S["book"]) || S["accept-local-file"] || S["accept-blob-converted-data"]) P["extensions"].unshift({ "src": "extensions/unzipper/index.js" });
+    if(P["extensions"].length == 0) return Promise.resolve();
+    return new Promise(resolve => {
+        O.log('Loading Extension' + (P["extensions"].length > 1 ? 's' : '') + '...', "<g:>");
+        const loadExtensionInPreset = (i) => {
+            X.loadExtension(P["extensions"][i]).then(Msg => {
+                O.log(Msg);
+                P["extensions"][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
+            });
         };
-        loadFile(PXs[0]);
-    }).then(function() {
-        O.log('Extension File' + (X.Loaded.length > 1 ? 's' : '') + ' Loaded.', "</g>");
-    });
+        loadExtensionInPreset(0);
+    }).then(() =>
+        O.log(X.Extensions.length ? 'Loaded. (' + X.Extensions.length  + ' Extension' + (X.Extensions.length > 1 ? 's' : '') + ')' : 'No Extension.', "</g>")
+    );
 };
 
-X.add = function(Extension) {
-    if(!Extension || typeof Extension != "object") {
-        return function() { return false };
+X.loadExtension = (Ext) => {
+    return new Promise((resolve, reject) => {
+        if(!Ext["src"] || typeof Ext["src"] != "string") return reject('"src" of the Extension is Invalid.');
+        Ext.Script = document.head.appendChild(sML.create("script", { className: "bibi-extension-script", src: Ext["src"], Extension: Ext, resolve: resolve, reject: reject }));
+    }).then(DefinedExt =>
+        DefinedExt["id"] + ': ' + O.getPath(O.RootPath, DefinedExt["src"])
+    ).catch(Msg =>
+        Msg
+    );
+};
+
+X.add = (XMeta) => {
+    const XScript = document.currentScript;
+    if(!XMeta["id"] || typeof XMeta["id"]  != "string") {
+        XScript.reject( '"id" of the Extension is Invalid.');
+    } else if(XMeta["id"] == "Bibi" || X[XMeta["id"]]) {
+        XScript.reject( '"' + XMeta["id"] + '" is reserved or already taken for "id" of an Extention.');
+    } else {
+        X[XMeta["id"]] = XScript.Extension = sML.applyRtL(XMeta, XScript.Extension);
+        X[XMeta["id"]].Index = X.Extensions.length;
+        X.Extensions.push(X[XMeta["id"]]);
+        XScript.resolve(X[XMeta["id"]]);
     }
-    if(typeof Extension["name"] != "string" || !Extension["name"]) {
-        O.log('Extension name is invalid.');
-        return function() { return false };
-    }
-    if(X[Extension["name"]]) {
-        O.log('Extension name "' + Extension["name"] + '" is reserved or already taken.');
-        return function() { return false };
-    }
-    if(typeof Extension["description"] != "string") Extension["decription"] = undefined;
-    if(typeof Extension["author"]      != "string") Extension["author"]     = undefined;
-    if(typeof Extension["version"]     != "string") Extension["version"]    = undefined;
-    if(typeof Extension["build"]       != "number") Extension["build"]      = undefined;
-    if(!(X.Extensions instanceof Array)) X.Extensions = [];
-    X.Extensions.push(Extension);
-    X[Extension["name"]] = Extension;
-    X[Extension["name"]].Options = {};
-    X.Added.push(Extension);
-    return function(onReadied) {
-        if(typeof onReadied == "function") E.bind("bibi:readied", function() { return onReadied.call(Extension); });
-        return function(onPrepared) {
-            if(typeof onPrepared == "function") E.bind("bibi:prepared", function() { return onPrepared.call(Extension); });
-            return function(onOpened) {
-                if(typeof onOpened == "function") E.bind("bibi:opened", function() { return onOpened.call(Extension); });
-            };
-        };
-    };
+    const Ext = X[XMeta["id"]];
+    return function(onR) {         if(Ext && typeof onR == "function") E.bind("bibi:readied",  () => onR.call(Ext, Ext));
+        return function(onP) {     if(Ext && typeof onP == "function") E.bind("bibi:prepared", () => onP.call(Ext, Ext));
+            return function(onO) { if(Ext && typeof onO == "function") E.bind("bibi:opened",   () => onO.call(Ext, Ext)); }; }; };
 };
 
 Bibi.x = X.add;
-
-
-
-
-})(typeof global != 'undefined' ? global : this);
