@@ -89,7 +89,7 @@ Bibi.preset({
 //-- Extra
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"unzip-if-necessary"           : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try unzipping first. More info is <02> at the bottom of this preset file)
+"extract-if-necessary"         : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try to extract first. More info is <02> at the bottom of this preset file)
 
 "accept-bibizine"              : true, // true or false (If true, BiB/i accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
 "accept-blob-converted-data"   : true, // true or false (If true, BiB/i accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
@@ -126,33 +126,33 @@ Bibi.preset({
         - [AND] The origin allows COR from the origin of this BiB/i.
 
 
-## <02> BiB/i tries to unzip at first in cases of the below:
+## <02> BiB/i tries to extract at first in cases of the below:
 
-    * The "unzip-if-necessary" option includes "*".
-    * [OR] The "unzip-if-necessary" option includes one or more file extensions.
+    * The "extract-if-necessary" option includes "*".
+    * [OR] The "extract-if-necessary" option includes one or more file extensions.
         - [AND] The book name specified as a value of the `book` (or `zine`) query in URL has a file extension.
-        - [AND] The file extension of the book name is included in the "unzip-if-necessary" option.
-    * [OR] The "unzip-if-necessary" option is "".
+        - [AND] The file extension of the book name is included in the "extract-if-necessary" option.
+    * [OR] The "extract-if-necessary" option is "".
         - [AND] The book name specified as a value of the `book` (or `zine`) query in URL has no file extension.
 
     ### Note:
-    * If BiB/i failed to unzip it, automatically tries to load as a folder (directory).
-    * The "unzip-if-necessary" option affects also as conditions for acceptance of local file. Read <03> at the next.
+    * If BiB/i failed to extract it, automatically tries to load as a folder (directory).
+    * The "extract-if-necessary" option affects also as conditions for acceptance of local file. Read <03> at the next.
 
 
 ## <03> BiB/i accepts user's local file in cases of the below:
 
     * The file is an EPUB.
         - [AND] The extension of the file is ".epub".
-        - [AND] The "unzip-if-necessary" option includes ".epub" or "*".
+        - [AND] The "extract-if-necessary" option includes ".epub" or "*".
         - [AND] The MIME-Type sent from the browser is "application/epub+zip".
     * [OR] The file is a bibiZine.
         - [AND] The extension of the file is ".zip".
-        - [AND] The "unzip-if-necessary" includes ".zip" or "*".
+        - [AND] The "extract-if-necessary" includes ".zip" or "*".
         - [AND] The MIME-Type sent from the browser is "application/zip", "application/x-zip", or "application/x-zip-compressed".
 
     ### Note:
-    * Extension of the file is required even if "unzip-if-necessary" is "" (or includes "*").
+    * Extension of the file is required even if "extract-if-necessary" is "" (or includes "*").
 
 
 */

@@ -1,12 +1,3 @@
-/*!
- *                                                                                                                          (℠)
- *  # BiB/i Extension: Share
- *
- *  * Copyright (c) Satoru MATSUSHIMA - https://bibi.epub.link or https://github.com/satorumurmur/bibi
- *  * Licensed under the MIT license. - https://opensource.org/licenses/mit-license.php
- *
- */
-
 Bibi.x({
 
     id: "Share",

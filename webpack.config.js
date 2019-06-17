@@ -1,5 +1,5 @@
 /*!
- *                                                                                                                                (℠)
+ *                                                                                                                         (℠)
  *  # webpack config for BiB/i
  *
  */
@@ -7,6 +7,7 @@
 'use strict';
 
 const Package = require('./package.json');
+const Banners = require('./webpack.config.banners.js');
 
 const Webpack = require('webpack');
 const Path = require('path');
@@ -35,7 +36,8 @@ const Config = {
             'bib/i/extensions/share/index',
             'bib/i/extensions/unaccessibilizer/index',
             'bib/i/extensions/unzipper/index',
-            'bib/i/extensions/zine/index'
+            'bib/i/extensions/zine/index',
+            'bib/i/extensions/lunascape/index'
         ],
         "scss": [
             'bib/i/res/styles/bibi',
@@ -153,10 +155,16 @@ module.exports = (env, argv) => {
                 }
             }
         }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/bibi\.js$/,           raw: true, banner: Banner.BibiJS          }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/bibi\.polyfill\.js$/, raw: true, banner: Banner.BibiPolyfillsJS }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/bib\/i\.js$/,         raw: true, banner: Banner.PipiJS          }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/bibi\.css$/,          raw: true, banner: Banner.BibiCSS         }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:                    /\/bibi\.js$/,  raw: true, banner: Banners.BibiJS             }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:                    /\/bibi\.css$/, raw: true, banner: Banners.BibiCSS            }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:         /\/bibi\.polyfills\.js$/,  raw: true, banner: Banners.BibiPolyfillsJS    }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:                  /\/bib\/i\.js$/,  raw: true, banner: Banners.PipiJS             }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:        /\/analytics\/index\.js$/,  raw: true, banner: Banners.X_Analytics        }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:          /\/epubcfi\/index\.js$/,  raw: true, banner: Banners.X_EPUBCFI          }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:            /\/share\/index\.js$/,  raw: true, banner: Banners.X_Share            }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/unaccessibilizer\/index\.js$/,  raw: true, banner: Banners.X_Unaccessibilizer }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:         /\/unzipper\/index\.js$/,  raw: true, banner: Banners.X_Unzipper         }));
+        Config.plugins.push(new Webpack.BannerPlugin({ test:             /\/zine\/index\.js$/,  raw: true, banner: Banners.X_Zine             }));
         Config.plugins.push(new CopyPlugin([
             //{ from: 'node_modules/@fortawesome/fontawesome-free/LICENSE.txt', to: 'bib/i/res/fonts/fontawesome-free' },
             //{ from: 'node_modules/material-icons/LICENSE',                    to: 'bib/i/res/fonts/material-icons' },
@@ -169,54 +177,3 @@ module.exports = (env, argv) => {
     }
     return Config;
 };
-
-const Banner = {};
-
-Banner.BibiJS = `/*!
- *                                                                                                                                (℠)
- *  # BiB/i v${Package.version} -- EPUB Reader on your website.
- *sss
- *  * Copyright (c) ${Package.author.name} - ${Package.homepage} or https://github.com/satorumurmur/bibi
- *  * Licensed under the MIT license. - https://opensource.org/licenses/mit-license.php
- *
- *  * Including:
- *      - sML.js ... Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML (Licensed under the MIT license.)
- *
- */`;
-
-Banner.BibiPolyfillsJS = `/*!
- *                                                                                                                                (℠)
- *  # BiB/i Polyfills for on Internet Explorer 11
- *
- *  * Including:
- *      - Native Promise Only (NPO) ... Copyright (c) Kyle Simpson - https://github.com/getify/native-promise-only (Licensed under the MIT license.)
- *      - custom-event-polyfill ... Copyright (c) Evan Krambuhl - https://github.com/kumarharsh/custom-event-polyfill (Licensed under the MIT license.)
- *      - document.currentScript Polyfill ... Copyright (c) Adam Miller - https://github.com/amiller-gh/currentScript-polyfill (Licensed under the MIT license.)
- *      - Polyfill Array.prototype.includes ... Copyright (c) Kevin Latusinski - https://github.com/latusinski/polyfill-array-includes (Licensed under the MIT license.)
- *      - String.prototype.padStart ... Copyright (c) Khaled Al-Ansari - https://github.com/KhaledElAnsari/String.prototype.padStart (Licensed under the MIT license.)
- *      - classlist-polyfill ... by Yola Inc. - https://github.com/yola/classlist-polyfill (Released into the public domain under the Unlicense)
- *
- */`;
-
-Banner.PipiJS = `/*!
- *                                                                                                                                (℠)
- *  # Pipi | Putter of BiBi/i v${Package.version}
- *
- *  * Copyright (c) {Package.author.name} - ${Package.homepage} or https://github.com/satorumurmur/bibi
- *  * Licensed under the MIT license. - https://opensource.org/licenses/mit-license.php
- *
- */`;
-
-Banner.BibiCSS = `@charset "UTF-8";
-/*!
- *                                                                                                                                (℠)
- *  # BiB/i Styles
- *
- *  * Copyright (c) ${Package.author.name} - ${Package.homepage} or https://github.com/satorumurmur/bibi
- *  * Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- *
- *  * Including:
- *      - Material Icons ... Copyright (c) Material Design Authors / Google Inc. - https://material.io/icons/ (Licensed under the Apache license version 2.0.)
- *      - Font Awesome Free ... Copyright (c) Dave Gandy - https://fontawesome.com (Licensed under the SIL Open Font License (OFL) 1.1.)
- *
- */`;

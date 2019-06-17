@@ -1,18 +1,7 @@
-/*!
- *                                                                                                                          (℠)
- *  # BiB/i Extension: EPUBCFI
- *
- *  * Copyright (c) Satoru MATSUSHIMA - https://bibi.epub.link or https://github.com/satorumurmur/bibi
- *  * Licensed under the MIT license. - https://opensource.org/licenses/mit-license.php
- *
- */
-
-// An Example Is at the Bottom of This Document.
- 
 Bibi.x({
 
     id: "EPUBCFI",
-    description: "Utilities for EPUBCFI",
+    description: "Utilities for EPUBCFI", // An Example Is at the Bottom of This Document.
     author: "Satoru MATSUSHIMA (@satorumurmur)",
     version: "0.2.0"
 

@@ -1,12 +1,3 @@
-/*!
- *                                                                                                                          (℠)
- *  # BiB/i Extension: Unaccessibilizer ("What a...")
- *
- *  * Reluctantly coded by Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
- *  * Released into the public domain under the Unlicense. - http://unlicense.org/UNLICENSE
- *
- */
-
 Bibi.x({
 
     id: "Unaccessibilizer",

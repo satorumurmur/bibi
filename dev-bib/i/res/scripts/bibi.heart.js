@@ -1,7 +1,6 @@
 /*!
- *                                                                                                                                (℠)
- *  ## BiB/i (heart)
- *  - "Heart of BiB/i"
+ *                                                                                                                          (℠)
+ *  ## BiB/i (heart) | Heart of Bibi.
  *
  */
 
@@ -21,28 +20,31 @@ export const Bibi = { "version": "____bibi-version____", "href": "https://bibi.e
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Bibi.hello = () => {
+Bibi.hello = () => new Promise(resolve => {
     O.initialize();
-    (hello => {
-        document.addEventListener("DOMContentLoaded", typeof Promise != "function" ?
-            () => document.head.insertBefore(sML.create("script", { id: "bibi-polyfills", src: "./res/scripts/bibi.polyfills.js", onload: hello }), document.getElementById("bibi-script")) :
-            hello
-        );
-    })(() => {
-        O.log('Hello! %c(v' + Bibi["version"] + ')', "<g!>");
-        O.log('[ja] ' + Bibi["href"]);
-        O.log('[en] https://github.com/satorumurmur/bibi');
-        O.log('', "</g>");
-        new Promise(resolve => {
-            O.log('Loading Preset...', "<g:>");
-            const PresetSource = document.getElementById("bibi-script").getAttribute("data-bibi-preset") || "./presets/default.js";
-            O.log('Preset: ' + O.getPath(O.RootPath, PresetSource));
-            document.head.appendChild(sML.create("script", { src: PresetSource, onload: resolve }));
-        }).then(() => {
-            O.log('Loaded.', "</g>");
-        }).then(Bibi.initialize).then(X.loadExtensions).then(Bibi.ready).then(L.loadBook);
-    })
-};
+    document.addEventListener("DOMContentLoaded", typeof Promise == "function" ? resolve :
+        () => document.head.insertBefore(sML.create("script", { id: "bibi-polyfills", src: "./res/scripts/bibi.polyfills.js", onload: resolve }), document.getElementById("bibi-script"))
+    );
+}).then(() => {
+    O.log('Hello! %c(v' + Bibi["version"] + ')', "<g!>");
+    O.log('[ja] ' + Bibi["href"]);
+    O.log('[en] https://github.com/satorumurmur/bibi');
+    O.log('', "</g>");
+}).then(Bibi.loadPreset)
+  .then(Bibi.initialize)
+  .then(X.loadExtensions)
+  .then(Bibi.ready)
+  .then(L.loadBook);
+
+
+Bibi.loadPreset = () => new Promise(resolve => {
+    O.log('Loading Preset...', "<g:>");
+    const PresetSource = document.getElementById("bibi-script").getAttribute("data-bibi-preset") || "./presets/default.js";
+    O.log('Preset: ' + O.getPath(O.RootPath, PresetSource));
+    document.head.appendChild(sML.create("script", { src: PresetSource, onload: resolve }));
+}).then(() => {
+    O.log('Loaded.', "</g>");
+});
 
 
 Bibi.initialize = () => {
@@ -56,10 +58,13 @@ Bibi.initialize = () => {
     O.RequestedURL = location.href;
     O.BookURL = O.Origin + location.pathname + location.search;
 
-    O.Language = (() => {
-        if(typeof navigator.language != "string") return "en";
-        return (navigator.language.split("-")[0] == "ja") ? "ja" : "en";
-    })();
+    O.Language = (Lans => {
+        for(let l = Lans.length, i = 0; i < l; i++) {
+            const Lan = Lans[i].split ? Lans[i].split("-")[0] : "";
+            if(Lan == "ja") return "ja";
+            if(Lan == "en") break;
+        }                   return "en";
+    })(navigator.languages instanceof Array ? navigator.languages : navigator.language ? [navigator.language] : []);
 
     O.contentWindow = window;
     O.contentDocument = document;
@@ -143,9 +148,9 @@ Bibi.initialize = () => {
 
     // Fullscreen
     { let FsT = null;
-             if(!O.WindowEmbedded) sML.Fullscreen.fill(window       ), FsT = O.HTML                   ;
-        else if( O.ParentHolder  ) sML.Fullscreen.fill(window.parent), FsT = O.ParentHolder.Bibi.Frame;
-        if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT, O.HTML.classList.add("fullscreen-enabled");
+             if(!O.WindowEmbedded) sML.Fullscreen.polyfill(window       ),  FsT = O.HTML                   ;
+        else if( O.ParentHolder  ) sML.Fullscreen.polyfill(window.parent),  FsT = O.ParentHolder.Bibi.Frame;
+        if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT,  O.HTML.classList.add("fullscreen-enabled");
     }
 
     // Writing Mode & Font Size
@@ -187,14 +192,12 @@ Bibi.initialize = () => {
 };
 
 
-Bibi.ready = () => {
-    return new Promise(resolve => {
-        O.HTML.classList.add("ready");
-        O.ReadiedURL = location.href;
-        E.add("bibi:readied", resolve);
-        E.dispatch("bibi:readied");//setTimeout(() => E.dispatch("bibi:readied"), (O.Touch ? 999 : 0));
-    });
-};
+Bibi.ready = () => new Promise(resolve => {
+    O.HTML.classList.add("ready");
+    O.ReadiedURL = location.href;
+    E.add("bibi:readied", resolve);
+    E.dispatch("bibi:readied");//setTimeout(() => E.dispatch("bibi:readied"), (O.Touch ? 999 : 0));
+});
 
 
 
@@ -213,19 +216,35 @@ export const B = { // Bibi.Book
     Publisher: "",
     Language: "",
     WritingMode: "",
-    Unzipped: false,
+    ExtractionPolicy: "",
     Path: "",
-    PathDelimiter: "",
+    PathDelimiter: " > ",
     Zine:      { Path: "zine.yml" },
-    Mimetype:  { Path: "mimetype" },
     Container: { Path: "META-INF/container.xml" },
     Package:   { Path: "", Dir: "",
         Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
-        Manifest: { "items": {}, "nav": {}, "toc-ncx": {}, "cover-image": {}, Files: {} },
-        Spine:    { "itemrefs": [] }
+        Manifest: { Items: {}, "nav": {}, "toc-ncx": {}, "cover-image": {} },
+        Spine:    { Items: [] }
     },
     Files: {},
     FileDigit: 0
+};
+
+
+B.clearFileCache = (FilePath) => {
+    B.Files[FilePath].Content = "";
+    delete B.Files[FilePath].Preprocessed;
+};
+
+B.clearFileCaches = (Opt = {}) => {
+    const Files = Opt.Files || B.Files;
+    if(Opt.Extensions) {    const RE = new RegExp('\\.(' + Extensions + ')$', "i");
+        for(const FilePath in Files) if( RE.test(FilePath)) B.clearFileCache(FilePath);
+    } else if(Opt.Except) { const RE = new RegExp('\\.(' + Except     + ')$', "i");
+        for(const FilePath in Files) if(!RE.test(FilePath)) B.clearFileCache(FilePath);
+    } else {
+        for(const FilePath in Files)                        B.clearFileCache(FilePath);
+    }
 };
 
 
@@ -246,180 +265,162 @@ export const L = { // Bibi.Loader
 };
 
 
-L.loadBook = () => {
-    return L.getBookData().then(Param => {
-        O.Busy = true;
-        O.HTML.classList.remove("ready");
-        O.HTML.classList.remove("waiting-file");
-        O.HTML.classList.add("busy");
-        O.HTML.classList.add("loading");
-        window.addEventListener(O["resize"], R.resetBibiHeight);
-        I.note('Loading...');
-        O.log("Initializing Book...", "<g:>");
-        return L.initializeBook(Param);
-    }).then((As) => {
-        O.log('As ' + As + (S["book"] ? ': ' + S["book"] : '.'));
-        O.log('Initialized.', "</g>");
-    }).then(() => {
-        // Load Container and Package (or ZineData)
-        return new Promise(resolve => {
-            switch(S["book-type"]) {
-                case "EPUB":
-                    delete B.Zine;
-                    O.log('Loading Container and Package...', "<g:>");
-                    O.log("Container: " + B.Path + B.PathDelimiter + B.Container.Path);
-                    return L.loadContainer().then(() => {
-                        O.log("Package: " + B.Path + B.PathDelimiter + B.Package.Path);
-                        return L.loadPackage().then(resolve);
-                    });
-                case "Zine":
-                    delete B.Mimetype, delete B.Container;
-                    O.log('Loading Zine Data...', "<g:>");
-                    O.log('Zine Data: ' + B.Path + B.PathDelimiter + B.Zine.Path);
-                    return X.Zine.loadZineData().then(resolve);
-            }
-        }).then(() => {
-            E.dispatch("bibi:loaded-package-document");
-            ['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
-            ['rendition:layout', 'rendition:orientation', 'rendition:spread', 'page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
-            O.log('Loaded.', "</g>");
-        });
-    }).then(() => {
-        if(S["use-cookie"]) {
-            const BibiCookie = O.Cookie.remember(O.RootPath);
-            const BookCookie = O.Cookie.remember(B.ID);
-            if(BibiCookie) {
-                if(!U["reader-view-mode"]              && BibiCookie.RVM     ) S["reader-view-mode"]              = BibiCookie.RVM;
-                if(!U["full-breadth-layout-in-scroll"] && BibiCookie.FBL     ) S["full-breadth-layout-in-scroll"] = BibiCookie.FBL;
-            }
-            if(BookCookie) {
-                if(!U["to"]                            && BookCookie.Position) S["to"]                            = BookCookie.Position;
-            }
-        }
-        S.update();
-        R.updateOrientation();
-        R.resetStage();
-    }).then(() => {
-        // Create Cover
-        O.log('Creating Cover...', "<g:>");
-        let Done = "";
-        return new Promise(resolve => {
-            if(B.Package.Manifest["cover-image"].Path) {
-                O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest["cover-image"].Path);
-                resolve();
-            } else reject();
-            L.createCover();
-            E.dispatch("bibi:created-cover", B.Package.Manifest["cover-image"].Path);
-        }).then(() =>
-            O.log('Will Be Created.', "</g>")
-        ).catch(() =>
-            O.log('No Cover Image.', "</g>")
-        );
-    }).then(() => {
-        // Initialize Spine
-        O.log('Initializing Spine...', "<g:>");
-        L.initializeSpine();
-        O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''));
-        O.log('Initialized.', "</g>");
-    }).then(() => {
-        // Load Navigation
-        O.log('Loading Navigation...', "<g:>");
-        return L.loadNavigation().then(() => {
-            O.log(I.Panel.BookInfo.Navigation.Type + ': ' + B.Path + B.PathDelimiter + I.Panel.BookInfo.Navigation.Path);
-            O.log('Loaded.', "</g>");
-            E.dispatch("bibi:loaded-navigation", I.Panel.BookInfo.Navigation.Path);
-        }).catch(() =>
-            O.log('No Navigation.', "</g>")
-        );
-    }).then(() => {
-        // Announce "Prepared" (and Wait, sometime)
-        E.dispatch("bibi:prepared");
-        if(!S["autostart"] && !L.Played) return L.wait();
-    }).then(() => 
-        // Background Preparing
-        L.preprocessResources()
-    ).then(() => {
-        // Load & Layout Items in Spreads and Pages
-        O.log('Loading Items in Spreads' + '...', "<g:>");
-        const LayoutOption = {
-            Destination: S["to"] || { Edge: "head" },
-            resetter:       () => { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
-            addResetter:    () => { window   .addEventListener("resize", LayoutOption.resetter); },
-            removeResetter: () => { window.removeEventListener("resize", LayoutOption.resetter); for(let Pro in LayoutOption) LayoutOption[Pro] = undefined; }
-        };
-        LayoutOption.addResetter();
-        return new Promise(resolve => {
-            let LoadedSpreads = 0, LoadedItems = 0;
-            const TargetSpreadIndex = (() => {
-                if(typeof S["to"] == "object") {
-                    if(S["to"].SpreadIndex)    return S["to"].SpreadIndex;
-                    if(S["to"].ItemIndexInAll) return R.AllItems[S["to"].ItemIndexInAll].Spread.Index;
-                }
-                return 0;
-            })();
-            R.Spreads.forEach(Spread => {
-                L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread.Index == TargetSpreadIndex) }).then(() => {
-                    LoadedSpreads++;
-                    const ItemLogHeaders = [];
-                    Spread.Items.forEach(Item => ItemLogHeaders.push('Item ' + (Item.Index + 1 + "").padStart(B.FileDigit, 0)));
-                    O.log('Spread ' + (Spread.Index + 1 + "").padStart(B.FileDigit, 0) + ' (' + ItemLogHeaders.join(", ") + ')', "<g->");
-                    Spread.Items.forEach(Item => O.log(ItemLogHeaders[Item.IndexInSpread] + ': ' + (Item.FullPath || '(Not Found)')));
-                    O.log('', "</g>");
-                    LoadedItems += Spread.Items.length;
-                    if(B.Package.Metadata["rendition:layout"] == "reflowable") I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
-                    if(!LayoutOption.Reset) R.layOutSpread(Spread);
-                    if(LoadedSpreads == R.Spreads.length) resolve();
-                });
+L.loadBook = () => L.getBookData().then(Param => {
+    O.Busy = true;
+    O.HTML.classList.remove("ready");
+    O.HTML.classList.add("busy");
+    O.HTML.classList.add("loading");
+    window.addEventListener(O["resize"], R.resetBibiHeight);
+    I.note('Loading...');
+    O.log("Initializing Book...", "<g:>");
+    R.reset();
+    return L.initializeBook(Param);
+}).then(InitializedAs => {
+    //O.log('As ' + InitializedAs + (S["book"] ? ': ' + S["book"] : '.'));
+    //O.log('Initialized.', "</g>");
+    O.log('Initialized. (as ' + InitializedAs + ')', "</g>");
+}).then(() => new Promise(resolve => {
+    // Load Container and Package (or ZineData)
+    switch(S["book-type"]) {
+        case "EPUB":
+            O.log('Loading Container and Package...', "<g:>");
+            O.log("Container: " + B.Path + B.PathDelimiter + B.Container.Path);
+            return L.loadContainer().then(() => {
+                O.log("Package: " + B.Path + B.PathDelimiter + B.Package.Path);
+                return L.loadPackage().then(resolve);
             });
-        }).then(() => {
-            B.Files = {};
-            O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
-            return LayoutOption;
-        });
-    }).then(LayoutOption => {
-        window.removeEventListener(O["resize"], R.resetBibiHeight);
+        case "Zine":
+            O.log('Loading Zine Data...', "<g:>");
+            O.log('Zine Data: ' + B.Path + B.PathDelimiter + B.Zine.Path);
+            return X.Zine.loadZineData().then(resolve);
+    }
+})).then(() => {
+    E.dispatch("bibi:loaded-package-document");
+    ['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
+    ['rendition:layout', 'rendition:orientation', 'rendition:spread', 'page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
+    O.log('Loaded.', "</g>");
+}).then(() => {
+    if(S["use-cookie"]) {
+        const BibiCookie = O.Cookie.remember(O.RootPath);
+        const BookCookie = O.Cookie.remember(B.ID);
+        if(BibiCookie) {
+            if(!U["reader-view-mode"]              && BibiCookie.RVM     ) S["reader-view-mode"]              = BibiCookie.RVM;
+            if(!U["full-breadth-layout-in-scroll"] && BibiCookie.FBL     ) S["full-breadth-layout-in-scroll"] = BibiCookie.FBL;
+        }
+        if(BookCookie) {
+            if(!U["to"]                            && BookCookie.Position) S["to"]                            = BookCookie.Position;
+        }
+    }
+    S.update();
+    R.updateOrientation();
+    R.resetStage();
+}).then(() => new Promise(resolve => {
+    // Create Cover
+    O.log('Creating Cover...', "<g:>");
+    if(B.Package.Manifest["cover-image"].Path) {
+        O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest["cover-image"].Path);
+        O.log('Will Be Created.', "</g>");
+    } else O.log('No Cover Image.', "</g>");
+    resolve(); // ←↙ do async
+    L.createCover();
+    E.dispatch("bibi:created-cover", B.Package.Manifest["cover-image"].Path);
+})).then(() => {
+    // Initialize Spine
+    O.log('Initializing Spine...', "<g:>");
+    L.initializeSpine();
+    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''));
+    O.log('Initialized.', "</g>");
+}).then(() => new Promise(resolve => {
+    // Load Navigation
+    O.log('Loading Navigation...', "<g:>");
+    L.loadNavigation().then(() => {
+        O.log(I.Panel.BookInfo.Navigation.Type + ': ' + B.Path + B.PathDelimiter + I.Panel.BookInfo.Navigation.Path);
+        O.log('Loaded.', "</g>");
+        E.dispatch("bibi:loaded-navigation", I.Panel.BookInfo.Navigation.Path);
+    }).catch(() => O.log('No Navigation.', "</g>"))
+    .then(resolve);
+})).then(() => {
+    // Announce "Prepared" (and Wait, sometime)
+    E.dispatch("bibi:prepared");
+    if(!S["autostart"] && !L.Played) return L.wait();
+}).then(() =>
+    // Background Preparing
+    L.preprocessResources()
+).then(() => new Promise(resolve => {
+    // Load & Layout Items in Spreads and Pages
+    O.log('Loading Items in Spreads' + '...', "<g:>");
+    const LayoutOption = {
+        Destination: S["to"] || { Edge: "head" },
+        resetter:       () => { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
+        addResetter:    () => { window   .addEventListener("resize", LayoutOption.resetter); },
+        removeResetter: () => { window.removeEventListener("resize", LayoutOption.resetter); }
+    };
+    LayoutOption.addResetter();
+    const Promises = [], TargetSpreadIndex = (() => {
+        if(typeof S["to"] == "object") {
+            if(S["to"].SpreadIndex)    return S["to"].SpreadIndex;
+            if(S["to"].ItemIndexInAll) return R.AllItems[S["to"].ItemIndexInAll].Spread.Index;
+        }
+        return 0;
+    })();
+    let LoadedItems = 0;
+    R.Spreads.forEach(Spread => Promises.push(
+        L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread.Index == TargetSpreadIndex) }).then(() => {
+            const ItemLogHeaders = [];
+            Spread.Items.forEach(Item => ItemLogHeaders.push('Item ' + (Item.Index + 1 + "").padStart(B.FileDigit, 0)));
+            O.log('Spread ' + (Spread.Index + 1 + "").padStart(B.FileDigit, 0) + ' (' + ItemLogHeaders.join(", ") + ')', "<g->");
+            Spread.Items.forEach(Item => O.log(ItemLogHeaders[Item.IndexInSpread] + ': ' + (Item.FullPath || '(Not Found)')));
+            O.log('', "</g>");
+            LoadedItems += Spread.Items.length;
+            if(B.Package.Metadata["rendition:layout"] == "reflowable") I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
+            if(!LayoutOption.Reset) R.layOutSpread(Spread);
+        })//.catch(() => Promise.resolve())
+    ));
+    Promise.all(Promises).then(() => {
+        O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
         if(!LayoutOption.Reset) {
             R.organizePages();
             R.layOutStage();
         }
-        return R.layOut(LayoutOption).then(LayoutOption.removeResetter);
-    }).then(() => {
-        // Open
-        O.Busy = false;
-        O.HTML.classList.remove("busy");
-        O.HTML.classList.remove("loading");
-        I.Veil.close();
-        L.Opened = true;
-        document.body.click(); // To responce for user scrolling/keypressing immediately
-        I.note('');
-        O.log('Enjoy Readings!', "<i/>");
-        E.dispatch("bibi:opened");
-    }).then(() => {
-        if(S["allow-placeholders"]) setTimeout(R.turnSpreadsOnDemand, 123);
-        E.add("bibi:commands:move-by",     R.moveBy);
-        E.add("bibi:commands:scroll-by",   R.scrollBy);
-        E.add("bibi:commands:focus-on",    R.focusOn);
-        E.add("bibi:commands:change-view", R.changeView);
-        window.addEventListener("message", M.gate, false);
-        /*
-        alert((Alert => {
-            [
-                "document.referrer",
-                "navigator.userAgent",
-                "[navigator.appName, navigator.vendor, navigator.platform]",
-                "window.innerHeight",
-                "[O.HTML.offsetHeight, O.HTML.clientHeight, O.HTML.scrollHeight]",
-                "[O.Body.offsetHeight, O.Body.clientHeight, O.Body.scrollHeight]",
-                "[R.Main.offsetHeight, R.Main.clientHeight, R.Main.scrollHeight]"
-            ].forEach(X => Alert.push("┌ " + X + "\n" + eval(X)));
-            return Alert.join("\n\n");
-        })([]));
-        //*/
-    }).catch(Mes => {
-        I.note(Mes, 99999999999, "ErrorOccured");
-        throw new Error(Mes);
+        R.layOut(LayoutOption).then(LayoutOption.removeResetter).then(resolve);
     });
-};
+})).then(() => {
+    // Open
+    window.removeEventListener(O["resize"], R.resetBibiHeight);
+    O.Busy = false;
+    O.HTML.classList.remove("busy");
+    O.HTML.classList.remove("loading");
+    I.Veil.close();
+    L.Opened = true;
+    document.body.click(); // To responce for user scrolling/keypressing immediately
+    I.note('');
+    O.log('Enjoy Readings!', "<i/>");
+    E.dispatch("bibi:opened");
+}).then(() => {
+    if(S["allow-placeholders"]) setTimeout(R.turnSpreadsOnDemand, 123);
+    E.add("bibi:commands:move-by",     R.moveBy);
+    E.add("bibi:commands:scroll-by",   R.scrollBy);
+    E.add("bibi:commands:focus-on",    R.focusOn);
+    E.add("bibi:commands:change-view", R.changeView);
+    window.addEventListener("message", M.gate, false);
+    /*
+    alert((Alert => {
+        [
+            "document.referrer",
+            "navigator.userAgent",
+            "[navigator.appName, navigator.vendor, navigator.platform]",
+            "window.innerHeight",
+            "[O.HTML.offsetHeight, O.HTML.clientHeight, O.HTML.scrollHeight]",
+            "[O.Body.offsetHeight, O.Body.clientHeight, O.Body.scrollHeight]",
+            "[R.Main.offsetHeight, R.Main.clientHeight, R.Main.scrollHeight]"
+        ].forEach(X => Alert.push("┌ " + X + "\n" + eval(X)));
+        return Alert.join("\n\n");
+    })([]));
+    //*/
+}).catch(Mes => {
+    I.note(Mes, 99999999999, "ErrorOccured");
+    throw new Error(Mes);
+});
 
 
 L.wait = () => {
@@ -429,9 +430,7 @@ L.wait = () => {
     E.dispatch("bibi:waits");
     O.log('(Waiting...)', '<i/>');
     I.note('');
-    return new Promise(resolve => {
-        L.wait.resolve = () => { resolve(); delete L.wait.resolve; };
-    }).then(() => {
+    return new Promise(resolve => L.wait.resolve = resolve).then(() => {
         O.Busy = true;
         O.HTML.classList.add("busy");
         O.HTML.classList.remove("waiting");
@@ -448,143 +447,102 @@ L.play = () => {
 };
 
 
-L.getBookData = () => {
-    return new Promise((resolve, reject) => {
-        if(S["book"])               return resolve({ BookData: S["book"] });
-        if(S.BookDataElement)       return resolve({ BookData: S.BookDataElement.innerText.trim(), BookDataType: S.BookDataElement.getAttribute("data-bibi-book-mimetype") });
-        if(!S["accept-local-file"]) return reject('Tell me EPUB name via ' + (O.WindowEmbedded ? "embedding tag" : "URI") + '.');
-        L.getBookData.resolve = (Param) => { resolve(Param); delete L.getBookData.resolve; };
-        O.HTML.classList.add("waiting-file");
-    });
-};
+L.getBookData = () =>
+    S["book"]              ?     Promise.resolve({ BookData: S["book"] }) :
+    S.BookDataElement      ?     Promise.resolve({ BookData: S.BookDataElement.innerText.trim(), BookDataType: S.BookDataElement.getAttribute("data-bibi-book-mimetype") }) :
+    S["accept-local-file"] ? new Promise(resolve => { L.getBookData.resolve = (Param) => { resolve(Param), O.HTML.classList.remove("waiting-file"); }; O.HTML.classList.add("waiting-file"); }) :
+                                 Promise.reject ('Tell me EPUB name via ' + (O.WindowEmbedded ? "embedding tag" : "URI") + '.');
 
 
-L.initializeBook = (Param) => {
-    R.reset();
-    return new Promise((resolve, reject) => {
-        if(!Param || !Param.BookData) return reject('Book Data Is Undefined.');
-        let BookData = Param.BookData;
-        const BookDataFormat = (() => {
-            switch(typeof BookData) {
-                case "string": return /^https?:\/\//.test(BookData) ? "URI" : "Base64";
-                case "object": return (BookData instanceof File) ? "File" : (BookData instanceof Blob) ? "BLOB" : "";
-                default:       return "";
-            }
-        })();
-        if(!BookDataFormat) return reject('Book Data Is Unknown.');
-        if(BookDataFormat == "URI") {
-            // Online
-            B.Path = BookData;
-            if(!S["trustworthy-origins"].includes(B.Path.replace(/^(\w+:\/\/[^\/]+).*$/, "$1"))) return reject('The Origin of the Path of the Book Is Not Allowed.');
-            const getErrorMessage = (As, Detail) => {
-                let         ErrorMessage  = 'Failed to Open';
-                if(As.join) ErrorMessage += ' Both as ' + As.join(' and ');
-                else        ErrorMessage += ' as ' + As;
-                if(Detail)  ErrorMessage += ' (' + Detail + ')';
-                return      ErrorMessage +  '.';
-            };
-            let ToCheckExistance, As;
-            if(S["book-type"] == "EPUB") {
-                // Online EPUB
-                ToCheckExistance = B.Container.Path;
-                As = ['a Zipped EPUB File', 'an Unzipped EPUB Folder'];
-            } else if(S["book-type"] == "Zine") {
-                // Online Zine
-                ToCheckExistance = B.Zine.Path;
-                As = ['a Zipped Zine File', 'an Unzipped Zine Folder'];
-            }
-            if(S.willBeUnzipped(B.Path)) {
-                // Online Zipped (probably)
-                X.Unzipper.loadBookData(B.Path).then(ContentLog => {
-                    // Online Zipped (definitely)
-                    resolve(As[0]);
-                }).catch(ErrorDetail => {
-                    if(ErrorDetail.BookTypeError) return reject(ErrorDetail.BookTypeError);
-                    O.log(getErrorMessage(As[0], ErrorDetail));
-                    // Online Unzipped (probably)
-                    O.log('Trying as ' + As[1] + '...');
-                    O.download(B.Path + "/" + ToCheckExistance).then(() => {
-                        // Online Unzipped (definitely)
-                        B.Unzipped = true;
-                        resolve(As[1]);
-                    }).catch(XHR => {
-                        const ErrorDetail = ""; //(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
-                        O.log(getErrorMessage(As[1], ErrorDetail));
-                        reject(getErrorMessage(As));
-                    });
-                });
-            } else {
-                // Online Unzipped (probably)
-                As.reverse();
-                O.download(B.Path + "/" + ToCheckExistance).then(() => {
-                    // Online Unzipped (definitely)
-                    B.Unzipped = true;
-                    resolve(As[0]);
-                }).catch(XHR => {
-                    const ErrorDetail = ""; //(XHR.status == 404 ? ToCheckExistance + ' Is Not Found' : '');
-                    O.log(getErrorMessage(As[0], ErrorDetail));
-                    // Online Zipped (probably)
-                    return reject('To Open This Book as ' + As[1] + ', Changing "unzip-if-necessary" May Be Required.');
-                });
-            }
-        } else {
-            let FileOrData;
-            const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
-            const MIMETypeErrorMessage = 'BiB/i Can Not Open This Type of File.';
-            if(BookDataFormat == "File") {
-                // Local Zipped EPUB/Zine File
-                if(!S["accept-local-file"])               return reject('To Open Local Files, Changing "accept-local-file" in default.js Is Required.');
-                if(!BookData.name)                        return reject('Book File Is Invalid.');
-                if(!/\.[\w\d]+$/.test(BookData.name))     return reject('BiB/i Can Not Open Local Files without Extension.');
-                if(!/\.(epub|zip)$/i.test(BookData.name)) return reject(MIMETypeErrorMessage);
-                if(!S.willBeUnzipped(BookData.name))      return reject('To Open This File, Changing "unzip-if-necessary" in default.js Is Required.');
-                if(/\.epub$/i.test(BookData.name)) {
-                    if(!MIMETypeREs["EPUB"].test(BookData.type)) return reject(MIMETypeErrorMessage);
-                } else {
-                    if(!MIMETypeREs["Zine"].test(BookData.type)) return reject(MIMETypeErrorMessage);
-                }
-                FileOrData = "File";
-                B.Path = "[Local File] " + BookData.name;
-            } else {
-                if(BookDataFormat == "Base64") {
-                    // Base64 Encoded EPUB/Zine Data
-                    if(!S["accept-base64-encoded-data"]) return reject('To Open Base64 Encoded Data, Changing "accept-base64-encoded-data" in default.js Is Required.');
-                    try {
-                        const Bin = atob(BookData.replace(/^.*,/, ''));
-                        const Buf = new Uint8Array(Bin.length);
-                        for(let l = Bin.length, i = 0; i < l; i++) Buf[i] = Bin.charCodeAt(i);
-                        BookData = new Blob([Buf.buffer], { type: Param.BookDataType });
-                        if(!BookData || !(BookData instanceof Blob)) throw '';
-                    } catch(Err) {
-                        return reject('Book Data Is Invalid.');
-                    }
-                    B.Path = "[Base64 Encoded Data]";
-                } else {
-                    // BLOB of EPUB/Zine Data
-                    if(!S["accept-blob-converted-data"]) return reject('To Open BLOB Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.');
-                    B.Path = "[BLOB Converted Data]";
-                }
-                if(!MIMETypeREs["EPUB"].test(BookData.type) && !MIMETypeREs["Zine"].test(BookData.type)) return reject(MIMETypeErrorMessage);
-                FileOrData = "Data";
-            }
-            if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
-            X.Unzipper.loadBookData(BookData).then(ContentLog => {
-                if(S["book-type"] == "EPUB") return resolve("an Zipped EPUB " + FileOrData);
-                if(S["book-type"] == "Zine") return resolve( "a Zipped Zine " + FileOrData);
-                return reject('Book ' + FileOrData + ' Is Invalid.');
-            });
+L.initializeBook = (Param) => new Promise((resolve, reject) => {
+    if(!Param || !Param.BookData) return reject('Book Data Is Undefined.');
+    let BookData = Param.BookData;
+    const BookDataFormat =
+        typeof BookData == "string" ? (/^https?:\/\//.test(BookData) ? "URI" : "Base64") :
+        typeof BookData == "object" ? (BookData instanceof File ? "File" : BookData instanceof Blob ? "BLOB" : "") : "";
+    if(!BookDataFormat) return reject('Book Data Is Unknown.');
+    if(BookDataFormat == "URI") {
+        // Online
+        B.Path = BookData;
+        if(!S["trustworthy-origins"].includes(B.Path.replace(/^(\w+:\/\/[^\/]+).*$/, "$1"))) return reject('The Origin of the Path of the Book Is Not Allowed.');
+        let RootFile;
+        switch(S["book-type"]) {
+            case "EPUB": RootFile = B.Container.Path; break; // Online EPUB
+            case "Zine": RootFile = B.Zine.Path     ; break; // Online Zine
         }
-    }).then(As => {
-        B.PathDelimiter = B.Unzipped ? "/" : " > ";
-        return As;
-    }).catch(Log => {
-        I.Veil.Cover.className = "";
-        if(S["accept-local-file"]) O.HTML.classList.add("waiting-file");
-        const Message = 'BiB/i Failed to Open the Book.';
-        O.error(Message + "\n* " + Log);
-        return Promise.reject(Message);
-    });
-};
+        const initialize_as = (FileOrFolder) => ({
+            Promised: (
+                FileOrFolder == "Folder"        ? O.download(RootFile).then(() => { O.retlieve = O.download; B.PathDelimiter = "/"; }).then(() => "") :
+                typeof O.retlieve == "function" ? O.retlieve(RootFile)                                                                .then(() => "on-the-fly") :
+                                                  X.Unzipper.loadBookData(B.Path)                                                     .then(() => "at-once")
+            ).then(ExtractionPolicy => {
+                B.ExtractionPolicy = ExtractionPolicy;
+                //O.log('Succeed to Open as ' + S["book-type"] + ' ' + FileOrFolder + '.');
+                resolve(S["book-type"] + ' ' + FileOrFolder);
+            }).catch(ErrorDetail => {
+                if(ErrorDetail.BookTypeError) return reject(ErrorDetail.BookTypeError);
+                O.log('Failed to Open as ' + S["book-type"] + ' ' + FileOrFolder + '.' + "\n" + '... ' + ErrorDetail);
+                return Promise.reject();
+            }),
+            or:        function(fun) { return this.Promised.catch(ErrorDetail => fun(ErrorDetail)); },
+            or_reject: function(Msg) { return this.or(() => reject(Msg)); }
+        });
+        O.isToBeExtractedIfNecessary(B.Path)
+            ? initialize_as("File").or(() => initialize_as("Folder").or_reject('Failed to Open Both as ' + S["book-type"] + ' File and ' + S["book-type"] + ' Folder.'                 ))
+            :                                initialize_as("Folder").or_reject('Changing "extract-if-necessary" May Be Required to Open This Book as ' + S["book-type"] + ' File.');
+    } else {
+        let FileOrData;
+        const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
+        const MIMETypeErrorMessage = 'BiB/i Can Not Open This Type of File.';
+        if(BookDataFormat == "File") {
+            // Local-Archived EPUB/Zine File
+            if(!S["accept-local-file"])                      return reject('To Open Local Files, Changing "accept-local-file" in default.js Is Required.');
+            if(!BookData.name)                               return reject('Book File Is Invalid.');
+            if(!/\.[\w\d]+$/.test(BookData.name))            return reject('BiB/i Can Not Open Local Files without Extension.');
+            if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject('To Open This File, Changing "extract-if-necessary" in default.js Is Required.');
+            if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs["EPUB"].test(BookData.type) :
+                /\.zip$/i.test(BookData.name) ? !MIMETypeREs["Zine"].test(BookData.type) : true) return reject(MIMETypeErrorMessage);
+            FileOrData = "File";
+            B.Path = "[Local File] " + BookData.name;
+        } else {
+            if(BookDataFormat == "Base64") {
+                // Base64-Encoded EPUB/Zine Data
+                if(!S["accept-base64-encoded-data"]) return reject('To Open Base64 Encoded Data, Changing "accept-base64-encoded-data" in default.js Is Required.');
+                try {
+                    const Bin = atob(BookData.replace(/^.*,/, ''));
+                    const Buf = new Uint8Array(Bin.length);
+                    for(let l = Bin.length, i = 0; i < l; i++) Buf[i] = Bin.charCodeAt(i);
+                    BookData = new Blob([Buf.buffer], { type: Param.BookDataType });
+                    if(!BookData || !(BookData instanceof Blob)) throw '';
+                } catch(Err) {
+                    return reject('Book Data Is Invalid.');
+                }
+                B.Path = "[Base64 Encoded Data]";
+            } else {
+                // BLOB of EPUB/Zine Data
+                if(!S["accept-blob-converted-data"]) return reject('To Open BLOB Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.');
+                B.Path = "[BLOB Converted Data]";
+            }
+            if(!MIMETypeREs["EPUB"].test(BookData.type) && !MIMETypeREs["Zine"].test(BookData.type)) return reject(MIMETypeErrorMessage);
+            FileOrData = "Data";
+        }
+        if(!BookData.size) return reject('Book ' + FileOrData + ' Is Empty.');
+        X.Unzipper.loadBookData(BookData).then(() => {
+            switch(S["book-type"]) {
+                case "EPUB": case "Zine":
+                    B.ExtractionPolicy = "at-once";
+                    return resolve(S["book-type"] + " " + FileOrData);
+                default:
+                    return reject('Book ' + FileOrData + ' Is Invalid.');
+            }
+        }).catch(reject);
+    }
+}).catch(Log => {
+    //if(S["accept-local-file"]) O.HTML.classList.add("waiting-file");
+    const Message = 'BiB/i Failed to Open the Book.';
+    O.error(Message + "\n* " + Log);
+    return Promise.reject(Message);
+});
 
 
 L.loadContainer = () => O.openDocument(B.Container.Path).then(L.processContainer);
@@ -599,88 +557,60 @@ L.loadPackage = () => O.openDocument(B.Package.Path).then(L.processPackage);
 
 L.processPackage = (Doc) => {
 
-    const BPM = B.Package.Metadata;
-    const BPS = B.Package.Spine;
-
-    // Package
-    const Metadata = Doc.getElementsByTagName("metadata")[0];
-    const Manifest = Doc.getElementsByTagName("manifest")[0];
-    const Spine    = Doc.getElementsByTagName("spine"   )[0];
-    const ManifestItems = Manifest.getElementsByTagName("item");
-    const SpineItemrefs = Spine.getElementsByTagName("itemref");
-    if(ManifestItems.length <= 0) return O.error('"' + B.Package.Path + '" has no <item> in <manifest>.');
-    if(SpineItemrefs.length <= 0) return O.error('"' + B.Package.Path + '" has no <itemref> in <spine>.');
+    const _Metadata = Doc.getElementsByTagName("metadata")[0], Metadata = B.Package.Metadata;
+    const _Spine    = Doc.getElementsByTagName("spine"   )[0], Spine    = B.Package.Spine;
+    const _Manifest = Doc.getElementsByTagName("manifest")[0], Manifest = B.Package.Manifest;
 
     // METADATA
-    sML.forEach(Metadata.getElementsByTagName("meta"), Meta => {
-        if(Meta.getAttribute("refines")) return;
-        if(Meta.getAttribute("property")) {
-            // DCTerms
-            const Property = Meta.getAttribute("property").replace(/^dcterms:/, "");
-                 if(          /^(identifier|title)$/.test(Property)) BPM[Property      ] =    Meta.textContent;
-            else if(/^(creator|publisher|language)$/.test(Property)) BPM[Property + "s"].push(Meta.textContent);
-            else if(                                 !BPM[Property]) BPM[Property      ] =    Meta.textContent;
-        }
-        if(Meta.getAttribute("name") && Meta.getAttribute("content")) {
-            // Others
-            BPM[Meta.getAttribute("name")] = Meta.getAttribute("content");
+    sML.forEach(_Metadata.getElementsByTagName("meta"))(_Meta => {
+        if(_Meta.getAttribute("refines")) return;
+        if(_Meta.getAttribute("property")) { // DCTerms
+            const Property = _Meta.getAttribute("property").replace(/^dcterms:/, "");
+                 if(          /^(identifier|title)$/.test(Property)) Metadata[Property      ] =    _Meta.textContent ;
+            else if(/^(creator|publisher|language)$/.test(Property)) Metadata[Property + "s"].push(_Meta.textContent);
+            else if(                            !Metadata[Property]) Metadata[Property      ] =    _Meta.textContent ;
+        } else if(_Meta.getAttribute("name") && _Meta.getAttribute("content")) {
+            Metadata[_Meta.getAttribute("name")] = _Meta.getAttribute("content");
         }
     });
-    const DCNS = Metadata.getAttribute("xmlns:dc");
-    if(!BPM["identifier"])                      sML.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"), DCI => BPM["identifier"] =    DCI.textContent );
-    if(!BPM["identifier"])                      BPM["identifier"] = O.BookURL;
-    if(!BPM["title"     ])                      sML.forEach(Doc.getElementsByTagNameNS(DCNS, "title"),      DCT => BPM["title"     ] =    DCT.textContent );
-    if(!BPM["creators"  ].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "creator"),    DCC => BPM["creators"  ].push(DCC.textContent));
-    if(!BPM["publishers"].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "publisher"),  DCP => BPM["publishers"].push(DCP.textContent));
-    if(!BPM["languages" ].length)               sML.forEach(Doc.getElementsByTagNameNS(DCNS, "language"),   DCL => BPM["languages" ].push(DCL.textContent));
-    if(!BPM["languages" ].length)               BPM["languages"][0] = "en";
-    if(!BPM["cover"])                           BPM["cover"]                 = "";
-    if(!BPM["rendition:layout"])                BPM["rendition:layout"]      = BPM["omf:version"] ? "pre-paginated" : "reflowable";
-    if(!BPM["rendition:orientation"])           BPM["rendition:orientation"] = "auto";
-    if(!BPM["rendition:spread"])                BPM["rendition:spread"]      = "auto";
-    if( BPM["rendition:orientation"] == "auto") BPM["rendition:orientation"] = "portrait";
-    if( BPM["rendition:spread"]      == "auto") BPM["rendition:spread"]      = "landscape";
-
-    if(BPM[     "original-resolution"]) BPM[     "original-resolution"] = O.getViewportByOriginalResolutionString(BPM[     "original-resolution"]);
-    if(BPM[      "rendition:viewport"]) BPM[      "rendition:viewport"] = O.getViewportByMetaContentString(       BPM[      "rendition:viewport"]);
-    if(BPM["fixed-layout-jp:viewport"]) BPM["fixed-layout-jp:viewport"] = O.getViewportByMetaContentString(       BPM["fixed-layout-jp:viewport"]);
-    if(BPM[            "omf:viewport"]) BPM[            "omf:viewport"] = O.getViewportByMetaContentString(       BPM[            "omf:viewport"]);
-
-    B.ICBViewport = (() => {
-        if(BPM[     "original-resolution"]) return BPM[     "original-resolution"];
-        if(BPM[      "rendition:viewport"]) return BPM[      "rendition:viewport"];
-        if(BPM["fixed-layout-jp:viewport"]) return BPM["fixed-layout-jp:viewport"];
-        if(BPM[            "omf:viewport"]) return BPM[            "omf:viewport"];
-        return null;
-    })();
-
-    Doc = undefined;
+    const DCNS = _Metadata.getAttribute("xmlns:dc");
+    if(!Metadata["identifier"]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"))(_Meta => Metadata["identifier"]    = _Meta.textContent ); if(!Metadata["identifier"]) Metadata["identifier"] = O.BookURL;
+    if(!Metadata["title"     ]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "title"     ))(_Meta => Metadata["title"     ]    = _Meta.textContent );
+    if(!Metadata["creators"  ].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "creator"   ))(_Meta => Metadata["creators"  ].push(_Meta.textContent));
+    if(!Metadata["publishers"].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "publisher" ))(_Meta => Metadata["publishers"].push(_Meta.textContent));
+    if(!Metadata["languages" ].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "language"  ))(_Meta => Metadata["languages" ].push(_Meta.textContent)); if(!Metadata["languages"][0]) Metadata["languages"][0] = "en";
+    if(!Metadata["rendition:layout"     ]                                               ) Metadata["rendition:layout"     ] = "reflowable"; if(Metadata["omf:version"]) Metadata["rendition:layout"] = "pre-paginated";
+    if(!Metadata["rendition:orientation"] || Metadata["rendition:orientation"] == "auto") Metadata["rendition:orientation"] = "portrait";
+    if(!Metadata["rendition:spread"     ] || Metadata["rendition:spread"     ] == "auto") Metadata["rendition:spread"     ] = "landscape";
+    if( Metadata[     "original-resolution"]) Metadata[     "original-resolution"] = O.getViewportByOriginalResolution(Metadata[     "original-resolution"]);
+    if( Metadata[      "rendition:viewport"]) Metadata[      "rendition:viewport"] = O.getViewportByMetaContent(       Metadata[      "rendition:viewport"]);
+    if( Metadata["fixed-layout-jp:viewport"]) Metadata["fixed-layout-jp:viewport"] = O.getViewportByMetaContent(       Metadata["fixed-layout-jp:viewport"]);
+    if( Metadata[            "omf:viewport"]) Metadata[            "omf:viewport"] = O.getViewportByMetaContent(       Metadata[            "omf:viewport"]);
+    B.ICBViewport = Metadata["original-resolution"] || Metadata["rendition:viewport"] || Metadata["fixed-layout-jp:viewport"] || Metadata["omf:viewport"] || null;
 
     // MANIFEST
-    const TOCID = Spine.getAttribute("toc");
-    sML.forEach(ManifestItems, ManifestItemSource => {
-        const ManifestItem = {
-            "id"         : ManifestItemSource.getAttribute("id")         || "",
-            "href"       : ManifestItemSource.getAttribute("href")       || "",
-            "media-type" : ManifestItemSource.getAttribute("media-type") || "",
-            "properties" : ManifestItemSource.getAttribute("properties") || "",
-            "fallback"   : ManifestItemSource.getAttribute("fallback")   || ""
+    const TOCID = _Spine.getAttribute("toc");
+    sML.forEach(_Manifest.getElementsByTagName("item"))(_Item => { const Item = {
+            "id"         : _Item.getAttribute("id")         || "",
+            "href"       : _Item.getAttribute("href")       || "",
+            "media-type" : _Item.getAttribute("media-type") || "",
+            "properties" : _Item.getAttribute("properties") || "",
+            "fallback"   : _Item.getAttribute("fallback")   || ""
         };
-        if(!ManifestItem["id"] || !ManifestItem["href"]) return;
-        B.Package.Manifest["items"][ManifestItem["id"]] = ManifestItem;
-        ManifestItem.Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
-        B.Package.Manifest.Files[ManifestItem.Path] = {};
-        (ManifestItemProperties => {
-            if(        / nav /.test(ManifestItemProperties)) B.Package.Manifest["nav"        ].Path = ManifestItem.Path;
-            if(/ cover-image /.test(ManifestItemProperties)) B.Package.Manifest["cover-image"].Path = ManifestItem.Path;
-        })(" " + ManifestItem.properties + " ");
-        if(TOCID && ManifestItem["id"] == TOCID) B.Package.Manifest["toc-ncx"].Path = O.getPath(B.Package.Dir, ManifestItem["href"]);
+        if(!Item["id"] || !Item["href"]) return;
+        Manifest.Items[Item["id"]] = Item;
+        Item.Path = O.getPath(B.Package.Dir, Item["href"]);
+        if(!B.Files[Item.Path]) B.Files[Item.Path] = { Content: "" };
+        Item["properties"] = Item["properties"].trim().replace(/\s+/g, " ").split(" ");
+        if(Item["properties"].includes("nav"        )) Manifest["nav"        ] = Item;
+        if(Item["properties"].includes("cover-image")) Manifest["cover-image"] = Item;
+        if(TOCID && Item["id"] == TOCID) Manifest["toc-ncx"] = Item;
     });
 
     // SPINE
-    BPS["page-progression-direction"] = Spine.getAttribute("page-progression-direction");
-    if(!BPS["page-progression-direction"] || !/^(ltr|rtl)$/.test(BPS["page-progression-direction"])) BPS["page-progression-direction"] = "ltr";//"default";
-    B.PPD = BPS["page-progression-direction"];
+    Spine["page-progression-direction"] = _Spine.getAttribute("page-progression-direction");
+    if(!Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(Spine["page-progression-direction"])) Spine["page-progression-direction"] = "ltr";//"default";
+    B.PPD = Spine["page-progression-direction"];
     const PropertyREs = [
         /(page-spread)-(.+)/,
         /(rendition:layout)-(.+)/,
@@ -689,44 +619,35 @@ L.processPackage = (Doc) => {
         /(rendition:page-spread)-(.+)/,
         /(bibi:[a-z]+)-(.+)/
     ];
-    sML.forEach(SpineItemrefs, SpineItemrefSource => {
-        const SpineItemref = {
-            "idref"                 : SpineItemrefSource.getAttribute("idref")      || "",
-            "linear"                : SpineItemrefSource.getAttribute("linear")     || "",
-            "properties"            : SpineItemrefSource.getAttribute("properties") || "",
-            "page-spread"           : "",
-            "rendition:layout"      : BPM["rendition:layout"],
-            "rendition:orientation" : BPM["rendition:orientation"],
-            "rendition:spread"      : BPM["rendition:spread"]
+    sML.forEach(_Spine.getElementsByTagName("itemref"))(_ItemRef => { const ItemRef = {
+            "idref"                 : _ItemRef.getAttribute("idref")      || "",
+            "linear"                : _ItemRef.getAttribute("linear")     || "",
+            "properties"            : _ItemRef.getAttribute("properties") || "",
+            "rendition:layout"      : Metadata["rendition:layout"],
+            "rendition:orientation" : Metadata["rendition:orientation"],
+            "rendition:spread"      : Metadata["rendition:spread"],
+            "page-spread"           : ""
         };
-        if(SpineItemref["linear"] != "no") SpineItemref["linear"] = "yes";
-        SpineItemref["properties"] = SpineItemref["properties"].replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/g, " ").split(" ");
-        PropertyREs.forEach(RE => {
-            SpineItemref["properties"].forEach(Property => {
-                if(RE.test(Property)) {
-                    SpineItemref[Property.replace(RE, "$1")] = Property.replace(RE, "$2").replace("rendition:", "");
-                    return false;
-                }
-            });
-        });
-        if(SpineItemref["rendition:page-spread"]) SpineItemref["page-spread"] = SpineItemref["rendition:page-spread"];
-        SpineItemref["rendition:page-spread"] = SpineItemref["page-spread"];
-        //SpineItemref["viewport"] = { Width: null, Height: null };
-        BPS["itemrefs"].push(SpineItemref);
+        if(ItemRef["linear"] != "no") ItemRef["linear"] = "yes";
+        ItemRef["properties"] = ItemRef["properties"].trim().replace(/\s+/g, " ").split(" ");
+        ItemRef["properties"].forEach(Pro => PropertyREs.forEach(RE => {
+            if(RE.test(Pro)) return ItemRef[Pro.replace(RE, "$1")] = Pro.replace(RE, "$2");//.replace("rendition:", "");
+        }));
+        if(ItemRef["rendition:page-spread"]) ItemRef["page-spread"] = ItemRef["rendition:page-spread"];
+        ItemRef["rendition:page-spread"] = ItemRef["page-spread"];
+        Spine.Items.push(ItemRef);
     });
-    B.FileDigit = (BPS["itemrefs"].length + "").length;
+    B.FileDigit = (Spine.Items.length + "").length;
 
-    B.ID        = BPM["identifier"];
-    B.Title     = BPM["title"];
-    B.Creator   = BPM["creators"].join(  ", ");
-    B.Publisher = BPM["publishers"].join(", ");
-    B.Language  = BPM["languages"][0].split("-")[0];
-    B.WritingMode = (() => {
-        if(                                                                                            /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) return (B.PPD == "rtl") ? "tb-rl" : "lr-tb";
-        if(/^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language)) return                              "rl-tb";
-        if(                                                                                                            /^(mo?n)$/.test(B.Language)) return                    "tb-lr"          ;
-        /* Default: */                                                                                                                              return                              "lr-tb";
-    })();
+    B.ID        = Metadata["identifier"];
+    B.Title     = Metadata["title"];
+    B.Creator   = Metadata["creators"].join(  ", ");
+    B.Publisher = Metadata["publishers"].join(", ");
+    B.Language  = Metadata["languages"][0].split("-")[0];
+    B.WritingMode =                                                                                 /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == "rtl" ? "tb-rl" : "lr-tb") :
+        /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             "rl-tb"  :
+        /**/                                                                                                        /^(mo?n)$/.test(B.Language) ?                   "tb-lr"            :
+        /**/                                                                                                                                                                  "lr-tb"  ;
 
     if(B.Title) {
         const BookIDFragments = [B.Title];
@@ -738,16 +659,14 @@ L.processPackage = (Doc) => {
         try { O.Info.querySelector("h1").innerHTML = document.title; } catch(Err) {}
     }
 
-    B.AllowPlaceholderItems = (B.Unzipped/* && B.Package.Metadata["rendition:layout"] == "pre-paginated"*/);
+    B.AllowPlaceholderItems = (B.ExtractionPolicy != "at-once"/* && Metadata["rendition:layout"] == "pre-paginated"*/);
 
 };
 
 
 L.createCover = () => {
-    //I.Veil.Cover.ImageBox.innerHTML = I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
     I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
-    try { I.Panel.BookInfo.Cover.removeChild(I.Panel.BookInfo.Cover.getElementsByTagName("img")[0]); } catch(Err) {}
-    const CoverImagePath = B.Package.Manifest["cover-image"].Path;
+    const ImagePath = B.Package.Manifest["cover-image"].Path;
     I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
@@ -755,37 +674,23 @@ L.createCover = () => {
         if(B.Publisher) BookID.push('<span>'   + B.Publisher + '</span>');
         return BookID.join(" ");
     })();
-    if(CoverImagePath) {
-        sML.create("img", {
-            load: function() {
-                //O.log('Loading Cover Image: ' + B.Path + B.PathDelimiter + CoverImagePath + ' ...', "<g:>");
-                const Img = this;
-                Img.src = B.Files[CoverImagePath] ? O.getDataURI(CoverImagePath, B.Files[CoverImagePath]) : B.Path + "/" + CoverImagePath;
-                Img.timeout = setTimeout(() => Img.ontimeout(), 5000);
-                //I.Veil.Cover.ImageBox.appendChild(this);
-            },
-            ontimeout: function() {
-                this.TimedOut = true;
-                //O.log('Cover Image Request Timed Out.', "</g>");
-                I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
-            },
-            on: {
-                load: function() {
-                    if(this.TimedOut) return false;
-                    clearTimeout(this.timeout);
-                    //O.log('Cover Image Loaded.', "</g>");
-                    //I.Panel.BookInfo.Cover.insertBefore(sML.create("img", { src: this.src }), I.Panel.BookInfo.Cover.Info);
-                    sML.style(I.Veil.Cover, { backgroundImage: "url(" + this.src + ")" });
-                    I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
-                    I.Panel.BookInfo.Cover.insertBefore(this, I.Panel.BookInfo.Cover.Info);
-                }
-            }
-        }).load();
-    } else {
+    new Promise((resolve, reject) => {
+        if(!ImagePath) return reject();
+        let TimedOut = false;
+        const TimerID = setTimeout(() => { TimedOut = true; reject(); }, 5000);
+        O.file(ImagePath).then(FileContent => {
+            if(!TimedOut) resolve(B.ExtractionPolicy ? O.getDataURI(ImagePath, FileContent) : B.Path + "/" + ImagePath);
+        }).catch(() => {
+            if(!TimedOut) reject();
+        }).then(() => clearTimeout(TimerID));
+    }).then(ImageURI => {
+        I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
+        sML.style(I.Veil.Cover, { backgroundImage: "url(" + ImageURI + ")" });
+        I.Panel.BookInfo.Cover.insertBefore(sML.create("img", { src: ImageURI }), I.Panel.BookInfo.Cover.Info);
+    }).catch(() => {
         I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
         I.Veil.Cover.appendChild(I.getBookIcon());
-    };
-    return CoverImagePath;
+    });
 };
 
 
@@ -794,19 +699,21 @@ L.initializeSpine = () => {
     let SpreadBefore, SpreadAfter;
     if(B.PPD == "rtl") SpreadBefore = "right", SpreadAfter = "left";
     else               SpreadBefore = "left",  SpreadAfter = "right";
-    sML.forEach(B.Package.Spine["itemrefs"], ItemRef => {
+    B.Package.Spine.Items.forEach(ItemRef => {
         const Item = sML.create("iframe", { className: "item", scrolling: "no", allowtransparency: "true",
-            Box: sML.create("div", { className: "item-box " + ItemRef["rendition:layout"] }),
+            TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
             Ref: ItemRef,
-            Pages: []
+            Path: B.Package.Manifest.Items[ItemRef["idref"]].Path,
+            File: B.Package.Manifest.Items[ItemRef["idref"]].File,
+            Box: sML.create("div", { className: "item-box " + ItemRef["rendition:layout"] }),
+            Pages: [],
+            Index: R.Items.length
         });
-        Item.TimeCard = {};
-        Item.stamp = (What) => { O.stamp(What, Item.TimeCard); };
-        Item.Index = R.Items.length;
-        Item.Path = O.getPath(B.Package.Dir, B.Package.Manifest["items"][ItemRef["idref"]].href);
-        Item.FullPath = Item.Path ? ((!/^https?:\/\//.test(Item.Path) ? B.Path + B.PathDelimiter : "") + Item.Path) : "";
+        Item.FullPath = (/^https?:\/\//.test(Item.Path) ? "" : B.Path + B.PathDelimiter) + Item.Path;
+        B.Files[Item.Path].InSpine = true;
         R.AllItems.push(Item);
-        if(ItemRef["linear"] == "yes") R.Items.push(Item); else return R.NonLinearItems.push(Item);
+        if(ItemRef["linear"] == "yes") R.Items.push(Item);
+        else                { R.NonLinearItems.push(Item); return; }
         let Spread = null;
         if(ItemRef["page-spread"] == SpreadAfter && Item.Index > 0) {
             const PreviousItem = R.Items[Item.Index - 1];
@@ -821,7 +728,8 @@ L.initializeSpine = () => {
         if(!Spread) {
             Spread = Item.Spread = sML.create("div", { className: "spread",
                 Box: sML.create("div", { className: "spread-box " + ItemRef["rendition:layout"] }),
-                Items: [], Pages: []
+                Items: [], Pages: [],
+                Index: R.Spreads.length
             });
             if(ItemRef["page-spread"]) {
                 Spread.Box.classList.add("single-item-spread-" + ItemRef["page-spread"]);
@@ -830,19 +738,17 @@ L.initializeSpine = () => {
                     case SpreadAfter:  Spread.Box.classList.add("single-item-spread-after" ); break;
                 }
             }
-            Spread.Index = R.Spreads.length;
-            R.Spreads.push(Spread);
-            R.Main.Book.appendChild(Spread.Box).appendChild(Spread);
+            R.Spreads.push(R.Main.Book.appendChild(Spread.Box).appendChild(Spread));
         }
         Item.IndexInSpread = Spread.Items.length;
         Spread.Items.push(Item);
         Spread.appendChild(Item.Box);//.appendChild(Item);
         if(ItemRef["rendition:layout"] == "pre-paginated") {
-            const Page = sML.create("span", { className: "page" });
-            Page.Item = Item, Page.Spread = Spread;
-            Page.IndexInItem = 0;
-            Item.Pages.push(Page);
-            Item.Box.appendChild(Page);
+            const Page = sML.create("span", { className: "page",
+                Spread: Spread, Item: Item,
+                IndexInItem: 0
+            });
+            Item.Pages.push(Item.Box.appendChild(Page));
         }
     });
     R.Main.appendChild(R.Main.Book);
@@ -850,60 +756,59 @@ L.initializeSpine = () => {
 };
 
 
-L.loadNavigation = () => {
-    return new Promise((resolve, reject) => {
-        if(B.Package.Manifest["nav"].Path) {
-            I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["nav"].Path;
-            I.Panel.BookInfo.Navigation.Type = "Navigation Document";
-        } else if(B.Package.Manifest["toc-ncx"].Path) {
-            I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
-            I.Panel.BookInfo.Navigation.Type = "TOC-NCX";
+L.loadNavigation = () => new Promise((resolve, reject) => {
+    if(B.Package.Manifest["nav"].Path) {
+        I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["nav"].Path;
+        I.Panel.BookInfo.Navigation.Type = "Navigation Document";
+    } else if(B.Package.Manifest["toc-ncx"].Path) {
+        I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
+        I.Panel.BookInfo.Navigation.Type = "TOC-NCX";
+    }
+    if(!I.Panel.BookInfo.Navigation.Type) return reject();
+    return O.openDocument(I.Panel.BookInfo.Navigation.Path).then(Doc => {
+        I.Panel.BookInfo.Navigation.innerHTML = "";
+        const NavContent = document.createDocumentFragment();
+        if(I.Panel.BookInfo.Navigation.Type == "Navigation Document") {
+            sML.forEach(Doc.querySelectorAll("nav"))(Nav => {
+                switch(Nav.getAttribute("epub:type")) {
+                    case "toc":       Nav.classList.add("bibi-nav-toc"); break;
+                    case "landmarks": Nav.classList.add("bibi-nav-landmarks"); break;
+                    case "page-list": Nav.classList.add("bibi-nav-page-list"); break;
+                }
+                sML.forEach(Nav.getElementsByTagName("*"))(Ele => Ele.removeAttribute("style"));
+                NavContent.appendChild(Nav);
+            });
+        } else {
+            const makeNavULTree = (Ele) => {
+                const ChildNodes = Ele.childNodes;
+                let UL = undefined;
+                for(let l = ChildNodes.length, i = 0; i < l; i++) {
+                    if(ChildNodes[i].nodeType != 1 || !/^navPoint$/i.test(ChildNodes[i].tagName)) continue;
+                    const NavPoint = ChildNodes[i];
+                    const NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
+                    const Content  = NavPoint.getElementsByTagName("content")[0];
+                    const Text = NavPoint.getElementsByTagName("text")[0];
+                    if(!UL) UL = document.createElement("ul");
+                    const LI = sML.create("li", { id: NavPoint.getAttribute("id") }); LI.setAttribute("playorder", NavPoint.getAttribute("playorder"));
+                    const A  = sML.create("a", { href: Content.getAttribute("src"), innerHTML: Text.innerHTML.trim() });
+                    UL.appendChild(LI).appendChild(A);
+                    const ChildUL = makeNavULTree(NavPoint);
+                    if(ChildUL) LI.appendChild(ChildUL);
+                }
+                return UL;
+            };
+            const NavUL = makeNavULTree(Doc.getElementsByTagName("navMap")[0]);
+            if(NavUL) NavContent.appendChild(document.createElement("nav")).appendChild(NavUL);
         }
-        if(!I.Panel.BookInfo.Navigation.Type) return reject();
-        return O.openDocument(I.Panel.BookInfo.Navigation.Path).then(Doc => {
-            I.Panel.BookInfo.Navigation.innerHTML = "";
-            const NavContent = document.createDocumentFragment();
-            if(I.Panel.BookInfo.Navigation.Type == "Navigation Document") {
-                sML.forEach(Doc.getElementsByTagName("nav"), Nav => {
-                    switch(Nav.getAttribute("epub:type")) {
-                        case "toc":       Nav.classList.add("bibi-nav-toc"); break;
-                        case "landmarks": Nav.classList.add("bibi-nav-landmarks"); break;
-                        case "page-list": Nav.classList.add("bibi-nav-page-list"); break;
-                    }
-                    sML.forEach(Nav.getElementsByTagName("*"), Ele => Ele.removeAttribute("style"));
-                    NavContent.appendChild(Nav);
-                });
-            } else {
-                const makeNavULTree = (Ele) => {
-                    const ChildNodes = Ele.childNodes;
-                    let UL = undefined;
-                    for(let l = ChildNodes.length, i = 0; i < l; i++) {
-                        if(ChildNodes[i].nodeType != 1 || !/^navPoint$/i.test(ChildNodes[i].tagName)) continue;
-                        const NavPoint = ChildNodes[i];
-                        const NavLabel = NavPoint.getElementsByTagName("navLabel")[0];
-                        const Content  = NavPoint.getElementsByTagName("content")[0];
-                        const Text = NavPoint.getElementsByTagName("text")[0];
-                        if(!UL) UL = document.createElement("ul");
-                        const LI = sML.create("li", { id: NavPoint.getAttribute("id") }); LI.setAttribute("playorder", NavPoint.getAttribute("playorder"));
-                        const A  = sML.create("a", { href: Content.getAttribute("src"), innerHTML: Text.innerHTML.trim() });
-                        UL.appendChild(LI).appendChild(A);
-                        const ChildUL = makeNavULTree(NavPoint);
-                        if(ChildUL) LI.appendChild(ChildUL);
-                    }
-                    return UL;
-                };
-                const NavUL = makeNavULTree(Doc.getElementsByTagName("navMap")[0]);
-                if(NavUL) NavContent.appendChild(document.createElement("nav")).appendChild(NavUL);
-            }
-            I.Panel.BookInfo.Navigation.appendChild(NavContent);
-            L.coordinateLinkages(I.Panel.BookInfo.Navigation.Path, I.Panel.BookInfo.Navigation, "InNav");
-        }).then(resolve);
-    });
-};
+        I.Panel.BookInfo.Navigation.appendChild(NavContent);
+        L.coordinateLinkages(I.Panel.BookInfo.Navigation.Path, I.Panel.BookInfo.Navigation, "InNav");
+    }).then(resolve);
+});
 
 
 L.coordinateLinkages = (BasePath, RootElement, InNav) => {
-    sML.forEach(RootElement.getElementsByTagName("a"), (A, i) => {
+    const As = RootElement.getElementsByTagName("a"); if(!As) return;
+    for(let l = As.length, i = 0; i < l; i++) { const A = As[i];
         if(InNav) {
             A.NavANumber = i + 1;
             A.addEventListener(O["pointerdown"], Eve => Eve.stopPropagation());
@@ -919,7 +824,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                     A.addEventListener("click", Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
                     A.classList.add("bibi-bookinfo-inactive-link");
                 }
-                return;
+                continue;
             }
         }
         if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
@@ -927,15 +832,15 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 const HrefHashInSource = HrefPathInSource.split("#")[1];
                 HrefPathInSource = (HrefHashInSource ? "#" + HrefHashInSource : R.Items[0].Path)
             } else {
-                return A.setAttribute("target", A.getAttribute("target") || "_blank");
+                A.setAttribute("target", A.getAttribute("target") || "_blank");
+                continue;
             }
         }
         const HrefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ""), (!/^\.*\/+/.test(HrefPathInSource) ? "./" : "") + (/^#/.test(HrefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, "$1") : "") + HrefPathInSource);
         const HrefFnH = HrefPath.split("#");
         const HrefFile = HrefFnH[0] ? HrefFnH[0] : BasePath;
         const HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
-        for(let l = R.Items.length, i = 0; i < l; i++) {
-            const rItem = R.Items[i];
+        for(const rItem in R.Items) {
             if(HrefFile == rItem.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
                 A.setAttribute(HrefAttribute, B.Path + "/" + HrefPath);
@@ -961,236 +866,73 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 A.removeAttribute(HrefAttribute);
                 A.addEventListener("click", () => false);
                 if(!O.Touch) {
-                    A.addEventListener(O["pointerover"], () => I.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)") && false);
-                    A.addEventListener(O["pointerout"],  () => I.Help.hide()                                                       && false);
+                    A.addEventListener(O["pointerover"], () => { I.Help.show("(This link uses EPUBCFI. BiB/i needs the extension.)"); return false; });
+                    A.addEventListener(O["pointerout"],  () => { I.Help.hide()                                                      ; return false; });
                 }
             }
         }
         if(InNav && typeof S["nav"] == (i + 1) && A.Destination) S["to"] = A.Destination;
+    }
+};
+
+L.coordinateLinkages.setJump = (A) => A.addEventListener("click", Eve => {
+    Eve.preventDefault(); 
+    Eve.stopPropagation();
+    if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
+        if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
+        if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
+        S["to"] = A.Destination;
+        L.play();
     });
-};
-
-L.coordinateLinkages.setJump = (A) => {
-    A.addEventListener("click", Eve => {
-        Eve.preventDefault(); 
-        Eve.stopPropagation();
-        if(A.Destination) {
-            new Promise(resolve => {
-                A.InNav ? I.Panel.toggle().then(resolve) : resolve();
-            }).then(() => {
-                if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
-                if(S["start-in-new-window"]) return window.open(location.href + (location.hash ? "," : "#") + "pipi(nav:" + A.NavANumber + ")");
-                S["to"] = A.Destination;
-                L.play();
-            });
-        }
-        return false;
-    });
-};
+    return false;
+});
 
 
-L.preprocessResources = () => {
-    return new Promise((resolve, reject) => {
-        if(B.Unzipped) {
-            if(S.BRL == "pre-paginated") return reject();
-            if(S["book-type"] == "Zine") return reject();
-            const FileTypes = (() => {
-                if(sML.UA.Gecko || sML.UA.Edge) return ["HTML", "CSS"];
-                return null;
-            })();
-            if(!FileTypes) return reject();
-            let FilesToBeLoaded = 0;
-            for(let FilePath in B.Package.Manifest.Files) {
-                for(let l = FileTypes.length, i = 0; i < l; i++) {
-                    if(L.PreprocessSettings[FileTypes[i]].FileExtensionRE.test(FilePath)) {
-                        B.Files[FilePath] = "";
-                        FilesToBeLoaded++;
-                        break;
-                    }
-                }
-            }
-            if(!FilesToBeLoaded) return reject();
-            let FilesLoaded = 0;
-            for(let FilePath in B.Files) {
-                //(FilePath => {
-                    O.download(B.Path + "/" +  FilePath).then(XHR => {
-                        B.Files[FilePath] = XHR.responseText;
-                        FilesLoaded++;
-                        if(FilesLoaded >= FilesToBeLoaded) return resolve();
-                    });
-                //})(FilePath);
-            }
-        } else {
-            for(let FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
-            resolve();
-        }
-    }).then(() => {
-        O.log('Preprocessing Resources...', "<g:>");
-        for(let Type in L.PreprocessSettings) if(L.PreprocessSettings[Type].init) L.PreprocessSettings[Type].init();
-        E.dispatch("bibi:is-going-to:preprocess-resources");
-        let AllCount = 0;
-        ["CSS", "SVG", "HTML"].forEach(Type => {
-            let Count = 0;
-            for(let FilePath in B.Files) {
-                if(!L.PreprocessSettings[Type].FileExtensionRE.test(FilePath)) continue;
-                L.preprocessFile(FilePath, L.PreprocessSettings[Type]);
-                Count++, AllCount++;
-            }
-            if(Count) O.log(Count + ' ' + Type + (Count >= 2 ? 's' : ''));
-        });
-        O.log(AllCount ? 'Preprocessed. (' + AllCount + ' File' + (AllCount > 1 ? 's' : '') + ')' : 'Not Needed.', "</g>");
-        L.Preprocessed = true;
-        E.dispatch("bibi:preprocessed-resources");
-    }).catch(() => {
-        return Promise.resolve();
-    });
-};
+L.preprocessResources = () => new Promise((resolve, reject) => {
+    O.log('Preprocessing Resources...', "<g:>");
+    E.dispatch("bibi:is-going-to:preprocess-resources");
+    if(B.ExtractionPolicy == "at-once") return resolve();
+    if(S.BRL == "pre-paginated") return reject();
+    if(S["book-type"] == "Zine") return reject();
+    //if(!sML.UA.Gecko && !sML.UA.Edge) return reject();
+    resolve();
+}).then(() => {
+    // Cache CSS & JavaScript
+    const Promises = [], ManifestItems = B.Package.Manifest.Items;
+    for(const ID in ManifestItems) if(/\/(css|javascript)$/.test(ManifestItems[ID]["media-type"])) Promises.push(O.file(ManifestItems[ID].Path, { Preprocess: true, Cache: true }));
+    return Promise.all(Promises);
+}).then(() => {
+    // Cache Spine
+    const Promises = [];
+    R.Items.forEach(Item => Promises.push(O.file(Item.Path, { Preprocess: true, Cache: true }).then(() => Item.Preprocessed = true)));
+    return Promise.all(Promises);
+}).catch(() =>
+    Promise.resolve()
+).then(() => {
+    return O.download(O.RootPath + "res/styles/bibi.book.css").then(CSS => B.DefaultStyle = O.getDataURI("css", CSS));
+}).then(() => {
+    O.log('Preprocessed', "</g>");
+    E.dispatch("bibi:preprocessed-resources");
+});
 
 
-L.preprocessFile = (FilePath, Setting) => {
-    if(L.PreprocessedFiles.includes(FilePath)) return B.Files[FilePath];
-    let FileContent = B.Files[FilePath];
-    if(!B.Files[FilePath] || !Setting.FileExtensionRE.test(FilePath)) return FileContent;
-    if(Setting.ReplaceRules) {
-        Setting.ReplaceRules.forEach(ReplaceRule => {
-            if(ReplaceRule) FileContent = FileContent.replace(ReplaceRule[0], ReplaceRule[1]);
-        });
-    }
-    if(Setting.NestingRE) {
-        const Nestings = FileContent.match(Setting.NestingRE);
-        if(Nestings) {
-            Nestings.forEach(Nesting => {
-                const NestingPath = O.getPath(FilePath.replace(/[^\/]+$/, ""), Nesting.replace(Setting.NestingRE, "$2"));
-                if(B.Files[NestingPath]) {
-                    FileContent = FileContent.replace(
-                        Nesting, Nesting.replace(
-                            Setting.NestingRE, "$1" + O.getDataURI(NestingPath, L.preprocessFile(NestingPath, Setting)) + "$3"
-                        )
-                    );
-                }
-            });
-        }
-    }
-    FileContent = L.preprocessResources.replaceResourceRefferences(FilePath, FileContent, Setting);
-    B.Files[FilePath] = FileContent.replace(/[\r\n]+/gm, "\n").trim();
-    L.PreprocessedFiles.push(FilePath);
-    return B.Files[FilePath];
-};
-
-L.PreprocessSettings = {
-    CSS: {
-        FileExtensionRE: /\.css$/,
-        ReplaceRules: [
-            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""]
-        ],
-        NestingRE: /(@import\s*(?:url\()?["']?)(?!(?:https?|data):)(.+?\.css)(['"]?(?:\))?\s*;)/g,
-        ResAttributesAndExtensions: {
-            "url" : "gif|png|jpe?g|svg|ttf|otf|woff"
-        },
-        getResMatchRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
-        init: function() {
-            this.ReplaceRules.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
-            this.ReplaceRules.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
-            if(sML.UA.WebKit || sML.UA.Blink) {
-                return;
-            }
-            this.ReplaceRules.push([/-(epub|webkit)-/gm, '']);
-            if(sML.UA.Gecko) {
-                this.ReplaceRules.push([/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2']);
-                this.ReplaceRules.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
-                return;
-            }
-            if(sML.UA.Edge) {
-                this.ReplaceRules.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
-                this.ReplaceRules.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-horizontal: all; text-combine-upright: all$1']);
-            }
-            if(sML.UA.InternetExplorer) {
-                this.ReplaceRules.push([/writing-mode\s*:\s*vertical-rl\s*([;\}])/gm,   'writing-mode: tb-rl$1']);
-                this.ReplaceRules.push([/writing-mode\s*:\s*vertical-lr\s*([;\}])/gm,   'writing-mode: tb-lr$1']);
-                this.ReplaceRules.push([/writing-mode\s*:\s*horizontal-tb\s*([;\}])/gm, 'writing-mode: lr-tb$1']);
-                this.ReplaceRules.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, '-ms-text-combine-horizontal: $2$3']);
-                this.ReplaceRules.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, '-ms-text-combine-horizontal: all$1']);
-            }
-            if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
-                this.ReplaceRules.push([/text-align\s*:\s*justify\s*([;\}])/gm, 'text-align: justify; text-justify: inter-ideograph$1']);
-            }
-        }
-    },
-    SVG: {
-        FileExtensionRE: /\.svg$/,
-        ReplaceRules: [
-            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
-        ],
-        NestingRE: /(<img\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.svg?)(['"][^>]*>)/g,
-        ResAttributesAndExtensions: {
-            "href"       : "css",
-            "src"        : "gif|png|jpe?g|js",
-            "xlink:href" : "gif|png|jpe?g"
-        }
-    },
-    HTML: {
-        FileExtensionRE: /\.(xht(ml?)?|xml|html?)$/,
-        ReplaceRules: [
-            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
-        ],
-        NestingRE: /(<iframe\s+(?:\w+\s*=\s*["'].*?['"]\s+)*src\s*=\s*["'])(?!(?:https?|data):)(.+?\.(xhtml|xml|html?))(['"][^>]*>)/g,
-        ResAttributesAndExtensions: {
-            "href"       : "css",
-            "src"        : "gif|png|jpe?g|svg|js|mp[34]|m4[av]|webm",
-            "xlink:href" : "gif|png|jpe?g"
-        }
-    }
-};
-
-L.preprocessResources.replaceResourceRefferences = (FilePath, FileContent, Setting) => {
-    if(!FileContent || !FilePath || !Setting || !Setting.ResAttributesAndExtensions) return FileContent;
-    if(typeof Setting.getResMatchRE != "function") Setting.getResMatchRE = (At) => new RegExp('<\\??[a-zA-Z1-6:\-]+[^>]*? ' + At + '[ \t]*=[ \t]*[\'"](?!(?:https?|data):)([^"]+?)[\'"]', "g");
-    const FileDir = FilePath.replace(/\/?[^\/]+$/, "");
-    for(let Attribute in Setting.ResAttributesAndExtensions) {
-        const ResMatchRE = Setting.getResMatchRE(Attribute);
-        const ResMatches = FileContent.match(ResMatchRE);
-        if(ResMatches) {
-            const ExtRE = new RegExp('\.' + Setting.ResAttributesAndExtensions[Attribute] + '$', "i");
-            ResMatches.forEach(Match => {
-                const ResPathInSource = Match.replace(ResMatchRE, "$1");
-                const ResPath = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource);
-                const ResFilePathAndHash = ResPath.split("#");
-                const ResFilePath = ResFilePathAndHash[0];
-                if(ExtRE.test(ResFilePath)) {
-                    if(B.Files[ResFilePath]) {
-                        FileContent = FileContent.replace(Match, Match.replace(ResPathInSource, O.getDataURI(ResFilePath, B.Files[ResFilePath]) + (ResFilePathAndHash[1] ? "#" + ResFilePathAndHash[1] : "")));
-                    } else {
-                        FileContent = FileContent.replace(Match, Match.replace(ResPathInSource, B.Path + "/" + ResPath));
-                    }
-                }
-            });
-        }
-    }
-    return FileContent;
-};
-
-
-L.loadSpread = (Spread, Param) => {
-    if(!Param) Param = {};
-    return new Promise((resolve, reject) => {
-        Spread.AllowPlaceholderItems = (S["allow-placeholders"] && Param.AllowPlaceholderItems);
-        let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
-        Spread.Items.forEach(Item => {
-            L.loadItem(Item, {
-                AllowPlaceholder: Param.AllowPlaceholderItems
-            }).then(() => { // Loaded
-                if(++LoadedItemsInSpread                        == Spread.Items.length) resolve(Spread);
-            }).catch(() => { // Skipped
-                if(++SkippedItemsInSpread + LoadedItemsInSpread == Spread.Items.length)  reject(Spread);
-            });
+L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
+    Spread.AllowPlaceholderItems = (S["allow-placeholders"] && Opt.AllowPlaceholderItems);
+    let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
+    Spread.Items.forEach(Item => {
+        L.loadItem(Item, {
+            AllowPlaceholder: Opt.AllowPlaceholderItems
+        }).then(() => { // Loaded
+            if(                       ++LoadedItemsInSpread == Spread.Items.length) resolve(Spread);
+        }).catch(() => { // Skipped
+            if(++SkippedItemsInSpread + LoadedItemsInSpread == Spread.Items.length)  reject(Spread);
         });
     });
-};
+});
 
 
-L.loadItem = (Item, Param) => { // Don't Call Directly. Use L.loadSpread.
-    if(!Param) Param = {};
-    const IsPlaceholder = (S["allow-placeholders"] && Item.Ref["rendition:layout"] == "pre-paginated" && Param.AllowPlaceholder);
+L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread and load with spread-pair. !!!!
+    const IsPlaceholder = (S["allow-placeholders"] && Item.Ref["rendition:layout"] == "pre-paginated" && Opt.AllowPlaceholder);
     if(typeof Item.IsPlaceholder != "undefined" && Item.IsPlaceholder == IsPlaceholder) return Promise.reject(Item);
     Item.IsPlaceholder = IsPlaceholder;
     const ItemBox = Item.Box;
@@ -1198,72 +940,63 @@ L.loadItem = (Item, Param) => { // Don't Call Directly. Use L.loadSpread.
     if(Item.IsPlaceholder) {
         if(Item.parentElement) {
             Item.parentElement.removeChild(Item);
-            Item.src = "";
+            Item.src = Item.onload = "";
         }
         Item.HTML = Item.Head = Item.Body = Item.Pages[0];
         return Promise.resolve(Item);
     }
     ItemBox.classList.remove("loaded");
     return new Promise(resolve => {
-        if(/\.(xhtml|xml|html?)$/i.test(Item.Path)) { // If HTML or Others
-            return resolve(B.Files[Item.Path] ? { HTML: B.Files[Item.Path] } : { Src: Item.FullPath });
-        }
-        if(/\.(svg)$/i.test(Item.Path)) { // If SVG-in-Spine
-            const Replacement = [/<\?xml-stylesheet\s*(.+?)\s*\?>/g, '<link rel="stylesheet" $1 />'];
-            if(B.Files[Item.Path]) return resolve({ Body: B.Files[Item.Path].replace(Replacement[0], Replacement[1]) });
-            return O.download(Item.FullPath).then(XHR => resolve({ Head: '<base href="' + Item.FullPath + '" />', Body: XHR.responseText.replace(Replacement[0], Replacement[1]) }));
+        if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
+            return B.ExtractionPolicy ?
+                O.file(Item.Path, { Preprocess: (B.ExtractionPolicy == "on-the-fly") }).then(FileContent => resolve(FileContent.replace(/^<\?.+?\?>/, ""))) // Archived
+                : resolve() // Extracted
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
-            return resolve({ Body: [
-                '<img alt="" src="' + (B.Files[Item.Path] ? O.getDataURI(Item.Path, B.Files[Item.Path]) : Item.FullPath) + '"',
-                ' style="display: block; margin: 0; border: none 0; padding: 0; width: auto; height: auto;"',
-                ' />'
-            ].join("") });
+            return O.file(Item.Path, { URI: true }).then(URI => resolve({
+                Body: `<img class="bibi-spine-item-image" alt="" src="${ URI }" />` // URI is DataURI or URI
+            }))
         }
-        if(/\.(pdf)$/i.test(Item.Path)) { // PDF-in-Spine
-            return resolve({ Body: [
-                '<iframe src="' + (B.Files[Item.Path] ? O.getDataURI(Item.Path, B.Files[Item.Path]) : Item.FullPath) + '" scrolling="no" allowtransparency="true"',
-                ' style="display: block; margin: 0; border: none 0; padding: 0; width: 100%; height: 100%;"',
-                ' />'
-            ].join("") });
+        if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
+            return O.file(Item.Path, { Preprocess: (B.ExtractionPolicy == "on-the-fly") }).then(FileContent => {
+                const RE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g;
+                const SSs = FileContent.match(RE);
+                resolve({
+                    Head: (!B.ExtractionPolicy ? `<base href="${ Item.FullPath }" />` : '') + (SSs ? SSs.map(SS => SS.replace(RE, `<link rel="stylesheet" $1 />`)).join("") : ""),
+                    Body: FileContent.replace(RE, '')
+                });
+            })
         }
-        return resolve();
-    }).then(Param => {
-        if(typeof Param != "object") Param = {};
-        return new Promise(resolve => {
-            Item.onLoad = () => {
-                resolve(Item);
-                Item.removeEventListener("load", Item.onLoad);
-                delete Item.onLoad;
-            };
-            if(Param.Src) {
-                Item.src = Param.Src;
-                Item.addEventListener("load", Item.onLoad);
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-            } else {
-                Item.src = "";
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-                if(typeof Param.HTML == "string") {
-                    Item.contentDocument.open();
-                    Item.contentDocument.write(Param.HTML.replace(/^<\?.+?\?>/, ""));
-                    Item.contentDocument.close();
-                    setTimeout(Item.onLoad, 0);
-                } else {
-                    const onLoad = "parent.R.Items[" + Item.Index + "].onLoad(); document.body.removeAttribute('onload'); return false;";
-                    const Style = "margin: 0; border: none 0; padding: 0;";
-                    Item.contentDocument.open();
-                    Item.contentDocument.write([
-                        '<!DOCTYPE html>' + "\n",
-                        '<html style="' + Style + '">',
-                            '<head>' + (typeof Param.Head == "string" ? Param.Head : '') + '</head>',
-                            '<body style="' + Style + '" onload="' + onLoad + '">' + (typeof Param.Body == "string" ? Param.Body : '') + '</body>',
-                        '</html>'
-                    ].join(""));
-                    Item.contentDocument.close();
-                }
-            }
-        });
-    }).then(L.postprocessItem).then(() => {
+        resolve({})
+    }).then(HTML => new Promise(resolve => {
+        Item.onLoaded = () => { resolve(Item); delete Item.onLoaded; };
+        if(HTML) {
+            const UseGeneratedHTML = (typeof HTML == "object");
+            if(UseGeneratedHTML) HTML = [
+                `<!DOCTYPE html>` + "\n",
+                `<html>`,
+                    `<head>`,
+                        `<meta charset="utf-8" />`,
+                        `<title>${ B.Title } - #${ Item.Index + 1 + '/' + R.Items.length }</title>`,
+                        typeof HTML.Head == "string" ? HTML.Head : '',
+                    `</head>`,
+                    `<body onload="parent.R.Items[${ Item.Index }].onLoaded(); return (document.body.removeAttribute('onload'));">`,
+                        typeof HTML.Body == "string" ? HTML.Body : '',
+                    `</body>`,
+                `</html>`
+            ].join("");
+            Item.src = Item.onload = "";
+            ItemBox.insertBefore(Item, ItemBox.firstChild);
+            Item.contentDocument.open();
+            Item.contentDocument.write(HTML);
+            Item.contentDocument.close();
+            if(!UseGeneratedHTML) setTimeout(Item.onLoaded, 0);
+        } else {
+            Item.onload = Item.onLoaded;
+            Item.src = Item.FullPath;
+            ItemBox.insertBefore(Item, ItemBox.firstChild);
+        }
+    }))/*.then(L.applyDefaultStyleSheet)*/.then(L.postprocessItem).then(() => {
         Item.Loaded = true;
         ItemBox.classList.add("loaded");
         E.dispatch("bibi:loaded-item", Item);
@@ -1289,22 +1022,20 @@ L.postprocessItem = (Item) => {
     else if(!XMLLang         ) Item.HTML.setAttribute("xml:lang", Lang);
     else if(            !Lang)                                                 Item.HTML.setAttribute("lang", XMLLang);
 
-    sML.forEach(Item.Body.getElementsByTagName("link"), Link => Item.Head.appendChild(Link));
+    sML.forEach(Item.Body.getElementsByTagName("link"))(Link => Item.Head.appendChild(Link));
 
     sML.appendCSSRule(Item.contentDocument, "html", "-webkit-text-size-adjust: 100%;");
 
-    if(sML.UA.InternetExplorer) {
-        sML.forEach(Item.Body.getElementsByTagName("svg"), SVG => {
-            const ChildImages = SVG.getElementsByTagName("image");
-            if(ChildImages.length == 1) {
-                const ChildImage = ChildImages[0];
-                if(ChildImage.getAttribute("width") && ChildImage.getAttribute("height")) {
-                    SVG.setAttribute("width",  ChildImage.getAttribute("width"));
-                    SVG.setAttribute("height", ChildImage.getAttribute("height"));
-                }
+    if(sML.UA.InternetExplorer) sML.forEach(Item.Body.getElementsByTagName("svg"))(SVG => {
+        const ChildImages = SVG.getElementsByTagName("image");
+        if(ChildImages.length == 1) {
+            const ChildImage = ChildImages[0];
+            if(ChildImage.getAttribute("width") && ChildImage.getAttribute("height")) {
+                SVG.setAttribute("width",  ChildImage.getAttribute("width"));
+                SVG.setAttribute("height", ChildImage.getAttribute("height"));
             }
-        });
-    }
+        }
+    });
 
     Item.contentDocument.addEventListener("wheel", R.Main.listenWheel, { capture: true, passive: false });
 
@@ -1316,46 +1047,22 @@ L.postprocessItem = (Item) => {
 
     L.coordinateLinkages(Item.Path, Item.Body);
 
-    sML.Environments.forEach(EnvironmentClassName => Item.HTML.classList.add(EnvironmentClassName));
+    sML.Environments.forEach(Env => Item.HTML.classList.add(Env));
 
-    const Elements = Item.contentDocument.querySelectorAll("body>*");
-    if(Elements && Elements.length) {
-        let LengthOfElements = 0;
-        for(let l = Elements.length, i = 0; i < l; i++) if(!/^(script|style)$/i.test(Elements[i].tagName)) LengthOfElements++;
-        if(LengthOfElements == 1) {
-            if(/^svg$/i.test(Item.Body.firstElementChild.tagName)) {
-                Item.Outsourcing = true;
-                Item.ImageItem = true;
-                Item.SingleSVGOnlyItem = true;
-            } else if(/^img$/i.test(Item.Body.firstElementChild.tagName)) {
-                Item.Outsourcing = true;
-                Item.ImageItem = true;
-                Item.SingleIMGOnlyItem = true;
-            } else if(/^iframe$/i.test(Item.Body.firstElementChild.tagName)) {
-                Item.Outsourcing = true;
-                Item.FrameItem = true;
-                Item.SingleFrameOnlyItem = true;
-            } else if(!O.getElementInnerText(Item.Body)) {
-                if(Item.Body.querySelectorAll("img, svg, video, audio").length - Item.Body.querySelectorAll("svg img, video img, audio img").length == 1) {
-                    Item.Outsourcing = true;
-                    Item.ImageItem = true;
-                } else if(Item.Body.getElementsByTagName("iframe").length == 1) {
-                    Item.Outsourcing = true;
-                    Item.FrameItem = true;
-                }
-            }
-        }
+    const Lv1Eles = Item.contentDocument.querySelectorAll("body>*:not(script):not(style)");
+    if(Lv1Eles && Lv1Eles.length == 1) {
+        const Lv1Ele = Item.contentDocument.querySelector("body>*:not(script):not(style)");
+             if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = true;
+        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleIMG = true;
+        else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
+        else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
 
-    return new Promise(resolve => {
-        if(Item.Ref["rendition:layout"] == "pre-paginated") {
-            resolve();
-        } else {
-            L.patchItemStyles(Item).then(resolve);
-        }
-    }).then(() => {
-        if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
-        if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
+    L.applyDefaultStyleSheet(Item);
+
+    (Item.Ref["rendition:layout"] == "pre-paginated" ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
+        //if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
+        //if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
         E.dispatch("bibi:postprocessed-item", Item);
         Item.stamp("Postprocessed");
         return Item;
@@ -1364,80 +1071,78 @@ L.postprocessItem = (Item) => {
 };
 
 
-L.patchItemStyles = (Item) => { // All processes are only for reflowable.
+L.applyDefaultStyleSheet = (Item) => Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: B.DefaultStyle }), Item.Head.querySelector("link, style"));
 
-    return new Promise(resolve => {
-        Item.StyleSheets = [];
-        Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: O.RootPath + "res/styles/bibi.book.css" }), Item.HTML.querySelector("link, style"));
-        sML.forEach(Item.HTML.querySelectorAll("link, style"), SSEle => {
-            if(/^link$/i.test(SSEle.tagName)) {
-                if(!/^(alternate )?stylesheet$/.test(SSEle.rel)) return;
-                if((sML.UA.Safari || sML.OS.iOS) && SSEle.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
-            }
-            Item.StyleSheets.push(SSEle);
-        });
-        const checkCSSLoadingAndResolve = () => {
-            if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return false;
-            clearInterval(Item.CSSLoadingTimerID);
-            delete Item.CSSLoadingTimerID;
-            resolve();
-            return true;
-        };
-        if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 100);
-    }).then(() => {
-        if(!L.Preprocessed) {
-            if(B.Package.Metadata["ebpaj:guide-version"]) {
-                const Versions = B.Package.Metadata["ebpaj:guide-version"].split(".");
-                if(Versions[0] * 1 == 1 && Versions[1] * 1 == 1 && Versions[2] * 1 <=3) Item.Body.style.textUnderlinePosition = "under left";
-            }
-            if(sML.UA.InternetExplorer) {
-                //if(!B.Unzipped) return false;
-                const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
-                O.editCSSRules(Item.contentDocument, CSSRule => {
-                    if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.msColumnCount = "auto";
-                    if(/(-(epub|webkit)-)?writing-mode: vertical-rl; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-rl";
-                    if(/(-(epub|webkit)-)?writing-mode: vertical-lr; /.test(  CSSRule.cssText)) CSSRule.style.writingMode = "tb-lr";
-                    if(/(-(epub|webkit)-)?writing-mode: horizontal-tb; /.test(CSSRule.cssText)) CSSRule.style.writingMode = "lr-tb";
-                    if(/(-(epub|webkit)-)?(text-combine-upright|text-combine-horizontal): all; /.test(CSSRule.cssText)) CSSRule.style.msTextCombineHorizontal = "all";
-                    if(IsCJK && / text-align: justify; /.test(CSSRule.cssText)) CSSRule.style.textJustify = "inter-ideograph";
-                });
-            } else {
-                O.editCSSRules(Item.contentDocument, CSSRule => {
-                    if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = "auto";
-                });
-            }
+
+L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
+    Item.StyleSheets = [];
+    sML.forEach(Item.HTML.querySelectorAll("link, style"))(SSEle => {
+        if(/^link$/i.test(SSEle.tagName)) {
+            if(!/^(alternate )?stylesheet$/.test(SSEle.rel)) return;
+            if((sML.UA.Safari || sML.OS.iOS) && SSEle.rel == "alternate stylesheet") return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
         }
-        const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
-        const ItemBodyComputedStyle = getComputedStyle(Item.Body);
-        if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
-        Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
-             if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
-        else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
-        else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
-        [
-            [Item.Box, ItemHTMLComputedStyle, Item.HTML],
-            [Item,     ItemBodyComputedStyle, Item.Body]
-        ].forEach(Par => {
-            [
-                "backgroundColor",
-                "backgroundImage",
-                "backgroundRepeat",
-                "backgroundPosition",
-                "backgroundSize"
-            ].forEach(Pro => Par[0].style[Pro] = Par[1][Pro]);
-            Par[2].style.background = "transparent";
-        });
-        sML.forEach(Item.Body.querySelectorAll("svg, img"), Img => {
-            Img.BibiDefaultStyle = {
-                width: (Img.style.width ? Img.style.width : ""),
-                height: (Img.style.height ? Img.style.height : ""),
-                maxWidth: (Img.style.maxWidth ? Img.style.maxWidth : ""),
-                maxHeight: (Img.style.maxHeight ? Img.style.maxHeight : "")
-            };
-        });
+        Item.StyleSheets.push(SSEle);
     });
-
-};
+    const checkCSSLoadingAndResolve = () => {
+        if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return false;
+        clearInterval(Item.CSSLoadingTimerID);
+        delete Item.CSSLoadingTimerID;
+        resolve();
+        return true;
+    };
+    if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 100);
+}).then(() => {
+    if(!Item.Preprocessed) {
+        if(B.Package.Metadata["ebpaj:guide-version"]) {
+            const Versions = B.Package.Metadata["ebpaj:guide-version"].split(".");
+            if(Versions[0] * 1 == 1 && Versions[1] * 1 == 1 && Versions[2] * 1 <=3) Item.Body.style.textUnderlinePosition = "under left";
+        }
+        if(sML.UA.InternetExplorer) {
+            //if(B.ExtractionPolicy == "at-once") return false;
+            const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
+            O.editCSSRules(Item.contentDocument, CSSRule => {
+                if(/(-(epub|webkit)-)?column-count: 1; /                                    .test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.msColumnCount = "auto";
+                if(/(-(epub|webkit)-)?writing-mode: vertical-rl; /                          .test(CSSRule.cssText)) CSSRule.style.writingMode = "tb-rl";
+                if(/(-(epub|webkit)-)?writing-mode: vertical-lr; /                          .test(CSSRule.cssText)) CSSRule.style.writingMode = "tb-lr";
+                if(/(-(epub|webkit)-)?writing-mode: horizontal-tb; /                        .test(CSSRule.cssText)) CSSRule.style.writingMode = "lr-tb";
+                if(/(-(epub|webkit)-)?(text-combine-upright|text-combine-horizontal): all; /.test(CSSRule.cssText)) CSSRule.style.msTextCombineHorizontal = "all";
+                if(IsCJK && / text-align: justify; /                                        .test(CSSRule.cssText)) CSSRule.style.textJustify = "inter-ideograph";
+            });
+        } else {
+            O.editCSSRules(Item.contentDocument, CSSRule => {
+                if(/(-(epub|webkit)-)?column-count: 1; /.test(CSSRule.cssText)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = "auto";
+            });
+        }
+    }
+    const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+    const ItemBodyComputedStyle = getComputedStyle(Item.Body);
+    if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
+    Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
+         if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
+    else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
+    else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
+    [
+        [Item.Box, ItemHTMLComputedStyle, Item.HTML],
+        [Item,     ItemBodyComputedStyle, Item.Body]
+    ].forEach(Par => {
+        [
+            "backgroundColor",
+            "backgroundImage",
+            "backgroundRepeat",
+            "backgroundPosition",
+            "backgroundSize"
+        ].forEach(Pro => Par[0].style[Pro] = Par[1][Pro]);
+        Par[2].style.background = "transparent";
+    });
+    sML.forEach(Item.Body.querySelectorAll("svg, img"))(Img => {
+        Img.BibiDefaultStyle = {
+               width:  (Img.style.   width  ? Img.style.   width  : ""),
+               height: (Img.style.   height ? Img.style.   height : ""),
+            maxWidth:  (Img.style.maxWidth  ? Img.style.maxWidth  : ""),
+            maxHeight: (Img.style.maxHeight ? Img.style.maxHeight : "")
+        };
+    });
+});
 
 
 
@@ -1568,7 +1273,8 @@ R.resetStage = () => {
     R.Main.Book.style["background"] = S["book-background"] ? S["book-background"] : "";
 };
 
-R.layOutSpread = (Spread) => { const SpreadBox = Spread.Box;
+R.layOutSpread = (Spread) => {
+    const SpreadBox = Spread.Box;
     E.dispatch("bibi:is-going-to:reset-spread", Spread);
     Spread.style.width = Spread.style.height = "";
     SpreadBox.classList.remove("spreaded");
@@ -1657,7 +1363,7 @@ R.renderReflowableItem = (Item) => {
     Item.style[S.CC.L.SIZE.b] = PageCB + "px";
     Item.style[S.CC.L.SIZE.l] = PageCL + "px";
     const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, "*", "word-wrap: break-word;"); ////
-    sML.forEach(Item.Body.querySelectorAll("img, svg"), Img => {
+    sML.forEach(Item.Body.querySelectorAll("img, svg"))(Img => {
         // Fit Image Size
         if(!Img.BibiDefaultStyle) return;
         ["width", "height", "maxWidth", "maxHeight"].forEach(Pro => Img.style[Pro] = Img.BibiDefaultStyle[Pro]);
@@ -1775,75 +1481,60 @@ R.renderPrePaginatedItem = (Item) => {
     return Item;
 };
 
-R.getItemViewport = (Item) => {
-    if(!Item.IsPlaceholder) {
-        const ViewportMeta = Item.Head.querySelector('meta[name="viewport"]');
-        if(ViewportMeta)           return O.getViewportByMetaContentString(ViewportMeta.getAttribute("content"));
-        if(Item.SingleSVGOnlyItem) return O.getViewportByViewBoxString(Item.Body.firstElementChild.getAttribute("viewBox")); // for Item of SVGs-in-Spine, or Fixed-Layout Item including SVG without Viewport
-        if(Item.SingleIMGOnlyItem) return O.getViewportByImage(Item.Body.firstElementChild); // for Item of Bitmaps-in-Spine
-    }
-    return null;
-};
+R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
+    const ViewportMeta = Item.Head.querySelector('meta[name="viewport"]');
+    if(ViewportMeta)       return O.getViewportByMetaContent(           ViewportMeta.getAttribute("content"));
+    if(Item.OnlySingleSVG) return O.getViewportByViewBox(Item.Body.firstElementChild.getAttribute("viewBox")); // It's also for Item of SVGs-in-Spine, or Fixed-Layout Item including SVG without Viewport.
+    if(Item.OnlySingleIMG) return O.getViewportByImage(  Item.Body.firstElementChild                        ); // It's also for Item of Bitmaps-in-Spine.
+                           return null                                                                       ;
+})();
 
-R.getItemLayoutViewport = (Item) => {
-    if(Item.Viewport) return Item.Viewport;
-    if(B.ICBViewport) return B.ICBViewport;
-    return {
-        Width:  R.Stage.Height * S["orientation-border-ratio"] / (Item.Spreaded && /^(left|right)$/.test(Item.Ref["page-spread"]) ? 2 : 1),
-        Height: R.Stage.Height
-    };
+R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewport ? B.ICBViewport : {
+    Width:  R.Stage.Height * S["orientation-border-ratio"] / (Item.Spreaded && /^(left|right)$/.test(Item.Ref["page-spread"]) ? 2 : 1),
+    Height: R.Stage.Height
 };
 
 
-R.turnSpread = (Spread, TF) => {
+R.turnSpread = (Spread, TF) => new Promise(resolve => {
     const AllowPlaceholderItems = !(TF);
-    return new Promise(resolve => {
-        if(!S["allow-placeholders"] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
-        const PreviousSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L];
-        L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
-            resolve(Spread); // ←↙ do asynchronous
-            R.layOutSpread(Spread);
-            const ChangedSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L] - PreviousSpreadBoxLength;
-            if(ChangedSpreadBoxLength != 0) R.Main.Book.style[S.CC.L.SIZE.l] = (parseFloat(getComputedStyle(R.Main.Book)[S.CC.L.SIZE.l]) + ChangedSpreadBoxLength) + "px";
-        }).catch(Spread => {
-            resolve(Spread);
-        });
+    if(!S["allow-placeholders"] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
+    const PreviousSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L];
+    L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
+        resolve(Spread); // ←↙ do asynchronous
+        R.layOutSpread(Spread);
+        const ChangedSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L] - PreviousSpreadBoxLength;
+        if(ChangedSpreadBoxLength != 0) R.Main.Book.style[S.CC.L.SIZE.l] = (parseFloat(getComputedStyle(R.Main.Book)[S.CC.L.SIZE.l]) + ChangedSpreadBoxLength) + "px";
+    }).catch(Spread => {
+        resolve(Spread);
     });
-};
+});
 
-R.turnSpreads = (Spreads, TF) => {
-    let TurnedSpreads = 0;
-    return new Promise(resolve => {
-        if(!S["allow-placeholders"]) return resolve();
-        Spreads.forEach(Spread => {
-            R.turnSpread(Spread, TF).then(() => {
-                if(++TurnedSpreads == Spreads.length) resolve(Spreads);
-            });
-        });
-    });
-};
+R.turnSpreads = (Spreads, TF) => new Promise(resolve => {
+    if(!S["allow-placeholders"]) return resolve(Spreads);
+    const Promises = [];
+    Spreads.forEach(Spread => Promises.push(R.turnSpread(Spread, TF)));
+    Promise.all(Promises).then(() => resolve(Spreads));
+});
 
 R.SpreadsTurnedFaceUp = [];
 R.SpreadsToBeTurnedBack = [];
 
-R.turnSpreadsOnDemand = () => {
-    return new Promise(resolve => {
-        if(!S["allow-placeholders"]) return resolve();
-        const CurrentSpreadIndex = R.Current.Page.Spread.Index;
-        const SpreadsToBeTurnedFaceUp = [R.Spreads[CurrentSpreadIndex]];
-        const DistanceToTheNext = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1;
-        for(let i = 1; i <= 2; i++) if(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]); else break;
-        for(let i = 1; i <= 1; i++) if(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]); else break;
-        R.turnSpreads(SpreadsToBeTurnedFaceUp, true).then(resolve);
-        R.SpreadsTurnedFaceUp = R.SpreadsTurnedFaceUp.filter(SpreadTurnedFaceUp => !SpreadsToBeTurnedFaceUp.includes(SpreadTurnedFaceUp)).concat(SpreadsToBeTurnedFaceUp);
-        while(R.SpreadsTurnedFaceUp.length > 10) R.SpreadsToBeTurnedBack.push(R.SpreadsTurnedFaceUp.shift());
-        R.SpreadsToBeTurnedBack = R.SpreadsToBeTurnedBack.filter(SpreadToBeTurnedBack => !R.SpreadsTurnedFaceUp.includes(SpreadToBeTurnedBack));
-        clearTimeout(R.Timer_turnSpreadsBack);
-        R.Timer_turnSpreadsBack = setTimeout(() => {
-            R.turnSpreads(R.SpreadsToBeTurnedBack, false).then(() => R.SpreadsToBeTurnedBack = []);
-        }, 123);
-    });
-};
+R.turnSpreadsOnDemand = () => new Promise(resolve => {
+    if(!S["allow-placeholders"]) return resolve();
+    const CurrentSpreadIndex = R.Current.Page.Spread.Index;
+    const SpreadsToBeTurnedFaceUp = [R.Spreads[CurrentSpreadIndex]];
+    const DistanceToTheNext = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1;
+    for(let i = 1; i <= 2; i++) if(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex + DistanceToTheNext * i]); else break;
+    for(let i = 1; i <= 1; i++) if(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]) SpreadsToBeTurnedFaceUp.push(R.Spreads[CurrentSpreadIndex - DistanceToTheNext * i]); else break;
+    R.turnSpreads(SpreadsToBeTurnedFaceUp, true).then(resolve);
+    R.SpreadsTurnedFaceUp = R.SpreadsTurnedFaceUp.filter(SpreadTurnedFaceUp => !SpreadsToBeTurnedFaceUp.includes(SpreadTurnedFaceUp)).concat(SpreadsToBeTurnedFaceUp);
+    while(R.SpreadsTurnedFaceUp.length > 10) R.SpreadsToBeTurnedBack.push(R.SpreadsTurnedFaceUp.shift());
+    R.SpreadsToBeTurnedBack = R.SpreadsToBeTurnedBack.filter(SpreadToBeTurnedBack => !R.SpreadsTurnedFaceUp.includes(SpreadToBeTurnedBack));
+    clearTimeout(R.Timer_turnSpreadsBack);
+    R.Timer_turnSpreadsBack = setTimeout(() => {
+        R.turnSpreads(R.SpreadsToBeTurnedBack, false).then(() => R.SpreadsToBeTurnedBack = []);
+    }, 123);
+});
 
 
 R.organizePages = () => {
@@ -1903,7 +1594,7 @@ R.layOut = (Opt) => {
         if(typeof Opt.before == "function") Opt.before();
         if(Opt.Reset) {
             R.resetStage();
-            R.Spreads.forEach(Spread => R.layOutSpread(Spread));
+            R.Spreads.forEach(R.layOutSpread);
             R.organizePages();
             R.layOutStage();
         }
@@ -2078,7 +1769,7 @@ R.getCurrentPages = () => {
         StartPage: Pages[0],              StartPageRatio: Ratio[0],              StartPageStatus: Status[0],
           EndPage: Pages[Pages.length - 1], EndPageRatio: Ratio[Ratio.length - 1], EndPageStatus: Status[Status.length - 1]
     };
-    for(let Property in Params) Pages[Property] = Params[Property];
+    for(const Property in Params) Pages[Property] = Params[Property];
     return Pages;
 };
 
@@ -2119,48 +1810,46 @@ R.classifyCurrent = () => {
 };
 
 
-R.focusOn = (Par) => {
-    return new Promise((resolve, reject) => {
-        if(R.Moving) return reject();
-        if(!Par) return reject();
-        if(typeof Par == "number") Par = { Destination: Par };
-        const Dest = R.hatchDestination(Par.Destination);
-        if(!Dest) return reject();
-        E.dispatch("bibi:is-going-to:focus-on", Par);
-        R.Moving = true;
-        let FocusPoint = 0;
-        if(S["book-rendition-layout"] == "reflowable") {
-            FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
-            if(Dest.Side == "after") FocusPoint += (Dest.Page["offset" + S.CC.L.SIZE.L] - R.Stage[S.CC.L.SIZE.L]) * S.CC.L.AXIS.PM;
-            if(S.SLD == "rtl") FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
+R.focusOn = (Par) => new Promise((resolve, reject) => {
+    if(R.Moving) return reject();
+    if(!Par) return reject();
+    if(typeof Par == "number") Par = { Destination: Par };
+    const Dest = R.hatchDestination(Par.Destination);
+    if(!Dest) return reject();
+    E.dispatch("bibi:is-going-to:focus-on", Par);
+    R.Moving = true;
+    let FocusPoint = 0;
+    if(S["book-rendition-layout"] == "reflowable") {
+        FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
+        if(Dest.Side == "after") FocusPoint += (Dest.Page["offset" + S.CC.L.SIZE.L] - R.Stage[S.CC.L.SIZE.L]) * S.CC.L.AXIS.PM;
+        if(S.SLD == "rtl") FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
+    } else {
+        if(S["allow-placeholders"] && Par.Turn != false) R.turnSpread(Dest.Page.Spread, true);
+        if(R.Stage[S.CC.L.SIZE.L] >= Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) {
+            FocusPoint = O.getElementCoord(Dest.Page.Spread)[S.CC.L.AXIS.L];
+            FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) / 2);
         } else {
-            if(S["allow-placeholders"] && Par.Turn != false) R.turnSpread(Dest.Page.Spread, true);
-            if(R.Stage[S.CC.L.SIZE.L] >= Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) {
-                FocusPoint = O.getElementCoord(Dest.Page.Spread)[S.CC.L.AXIS.L];
-                FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) / 2);
-            } else {
-                FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
-                if(R.Stage[S.CC.L.SIZE.L] > Dest.Page["offset" + S.CC.L.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page["offset" + S.CC.L.SIZE.L]) / 2);
-            }
+            FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
+            if(R.Stage[S.CC.L.SIZE.L] > Dest.Page["offset" + S.CC.L.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page["offset" + S.CC.L.SIZE.L]) / 2);
         }
-        if(typeof Dest.TextNodeIndex == "number") R.selectTextLocation(Dest); // Colorize Destination with Selection
-        const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
-        ScrollTarget[S.CC.L.AXIS.L] = FocusPoint;
-        O.scrollTo(ScrollTarget, {
-            ForceScroll: true,
-            Duration: 0//(S.RVM == "paged" && S.ARD != S.SLD ? 0 : Par.Duration)
-        }).then(() => {
-            R.getCurrent();
-            R.Moving = false;
-            resolve();
-        });
+    }
+    if(typeof Dest.TextNodeIndex == "number") R.selectTextLocation(Dest); // Colorize Destination with Selection
+    const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
+    ScrollTarget[S.CC.L.AXIS.L] = FocusPoint;
+    O.scrollTo(ScrollTarget, {
+        ForceScroll: true,
+        Duration: 0//(S.RVM == "paged" && S.ARD != S.SLD ? 0 : Par.Duration)
     }).then(() => {
-        return new Promise(resolve => {
-            resolve();
-            E.dispatch("bibi:focused-on", Par);
-        });
+        R.getCurrent();
+        R.Moving = false;
+        resolve();
     });
-};
+}).then(() => {
+    return new Promise(resolve => {
+        resolve();
+        E.dispatch("bibi:focused-on", Par);
+    });
+});
 
 
 R.hatchDestination = (Dest) => { // from Page, Element, or Edge
@@ -2280,103 +1969,95 @@ R.selectTextLocation = (Destination) => {
 };
 
 
-R.moveBy = (Par) => {
-    return new Promise((resolve, reject) => {
-        if(R.Moving || !L.Opened) return reject();
-        if(!Par) return reject();
-        if(typeof Par == "number") Par = { Distance: Par };
-        if(!Par.Distance || typeof Par.Distance != "number") return reject();
-        Par.Distance *= 1;
-        if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
-        Par.Distance = Par.Distance < 0 ? -1 : 1;
-        E.dispatch("bibi:is-going-to:move-by", Par);
-        let CurrentEdge = "", Side = "";
-        if(Par.Distance > 0) CurrentEdge = "EndPage",   Side = "before";
-        else                 CurrentEdge = "StartPage", Side = "after";
-        R.getCurrent();
-        const CurrentPage = R.Current.Pages[CurrentEdge];
-        const ToFocus = (
-            R.Columned ||
-            S.BRL == "pre-paginated" ||
-            CurrentPage.Item.Ref["rendition:layout"] == "pre-paginated" ||
-            CurrentPage.Item.Outsourcing ||
-            CurrentPage.Item.Pages.length == 1 ||
-            (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
-            (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
-        );
-        if(!ToFocus) {
-            R.scrollBy(Par).then(resolve);
-        } else {
-            const CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
-            const CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
-            if(/(oversize)/.test(CurrentPageStatus)) {
-                if(Par.Distance > 0) {
-                         if(CurrentPageRatio >= 90)             Side = "before";
-                    else if(/entering/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
-                    else if( /entered/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
-                } else {
-                         if(CurrentPageRatio >= 90)             Side = "after";
-                    else if( /passing/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
-                    else if(  /passed/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
-                }
+R.moveBy = (Par) => new Promise((resolve, reject) => {
+    if(R.Moving || !L.Opened) return reject();
+    if(!Par) return reject();
+    if(typeof Par == "number") Par = { Distance: Par };
+    if(!Par.Distance || typeof Par.Distance != "number") return reject();
+    Par.Distance *= 1;
+    if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
+    Par.Distance = Par.Distance < 0 ? -1 : 1;
+    E.dispatch("bibi:is-going-to:move-by", Par);
+    let CurrentEdge = "", Side = "";
+    if(Par.Distance > 0) CurrentEdge = "EndPage",   Side = "before";
+    else                 CurrentEdge = "StartPage", Side = "after";
+    R.getCurrent();
+    const CurrentPage = R.Current.Pages[CurrentEdge];
+    const ToFocus = (
+        R.Columned ||
+        S.BRL == "pre-paginated" ||
+        CurrentPage.Item.Ref["rendition:layout"] == "pre-paginated" ||
+        CurrentPage.Item.Outsourcing ||
+        CurrentPage.Item.Pages.length == 1 ||
+        (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
+        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
+    );
+    if(!ToFocus) {
+        R.scrollBy(Par).then(resolve);
+    } else {
+        const CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
+        const CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
+        if(/(oversize)/.test(CurrentPageStatus)) {
+            if(Par.Distance > 0) {
+                     if(CurrentPageRatio >= 90)             Side = "before";
+                else if(/entering/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
+                else if( /entered/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             } else {
-                if(Par.Distance > 0) {
-                         if(   /enter/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
-                } else {
-                         if(    /pass/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
-                }
+                     if(CurrentPageRatio >= 90)             Side = "after";
+                else if( /passing/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
+                else if(  /passed/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             }
-            //sML.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
-            let DestinationPageIndex = CurrentPage.Index + Par.Distance;
-                 if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
-            else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
-            let DestinationPage = R.Pages[DestinationPageIndex];
-            if(S.BRL == "pre-paginated" && DestinationPage.Item.SpreadPair) {
-                if(S.SLA == "horizontal" && R.Stage[S.CC.L.SIZE.L] > DestinationPage.Spread["offset" + S.CC.L.SIZE.L]) {
-                    if(Par.Distance < 0 && DestinationPage.IndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
-                    if(Par.Distance > 0 && DestinationPage.IndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
-                }
+        } else {
+            if(Par.Distance > 0) {
+                     if(   /enter/.test(CurrentPageStatus)) Side = "before", Par.Distance =  0;
+            } else {
+                     if(    /pass/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             }
-            Par.Destination = { Page: DestinationPage, Side: Side };
-            R.focusOn(Par).then(resolve);
         }
-    }).then(() => new Promise(resolve => {
-        resolve();
-        E.dispatch("bibi:moved-by", Par);
-    }));
-};
+        //sML.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
+        let DestinationPageIndex = CurrentPage.Index + Par.Distance;
+             if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
+        else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
+        let DestinationPage = R.Pages[DestinationPageIndex];
+        if(S.BRL == "pre-paginated" && DestinationPage.Item.SpreadPair) {
+            if(S.SLA == "horizontal" && R.Stage[S.CC.L.SIZE.L] > DestinationPage.Spread["offset" + S.CC.L.SIZE.L]) {
+                if(Par.Distance < 0 && DestinationPage.IndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
+                if(Par.Distance > 0 && DestinationPage.IndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
+            }
+        }
+        Par.Destination = { Page: DestinationPage, Side: Side };
+        R.focusOn(Par).then(resolve);
+    }
+}).then(() =>
+    E.dispatch("bibi:moved-by", Par)
+);
 
-R.scrollBy = (Par) => {
-    return new Promise((resolve, reject) => {
-        if(!Par) return reject();
-        if(typeof Par == "number") Par = { Distance: Par };
-        if(!Par.Distance || typeof Par.Distance != "number") return reject();
-        E.dispatch("bibi:is-going-to:scroll-by", Par);
-        R.Moving = true;
-        const ScrollTarget = {
-            Frame: R.Main,
-            X: 0, Y: 0
-        };
-        switch(S.SLD) {
-            case "ttb": ScrollTarget.Y = R.Main.scrollTop  + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
-            case "ltr": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
-            case "rtl": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
-        }
-        O.scrollTo(ScrollTarget, {
-            ForceScroll: true,
-            Duration: ((S.RVM == "paged") ? 0 : Par.Duration)
-        }).then(() => {
-            R.getCurrent();
-            R.Moving = false;
-            resolve();
-        });
+R.scrollBy = (Par) => new Promise((resolve, reject) => {
+    if(!Par) return reject();
+    if(typeof Par == "number") Par = { Distance: Par };
+    if(!Par.Distance || typeof Par.Distance != "number") return reject();
+    E.dispatch("bibi:is-going-to:scroll-by", Par);
+    R.Moving = true;
+    const ScrollTarget = {
+        Frame: R.Main,
+        X: 0, Y: 0
+    };
+    switch(S.SLD) {
+        case "ttb": ScrollTarget.Y = R.Main.scrollTop  + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
+        case "ltr": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
+        case "rtl": ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
+    }
+    O.scrollTo(ScrollTarget, {
+        ForceScroll: true,
+        Duration: ((S.RVM == "paged") ? 0 : Par.Duration)
     }).then(() => {
-        return new Promise(resolve => {
-            resolve();
-            E.dispatch("bibi:scrolled-by", Par);
-        });
+        R.getCurrent();
+        R.Moving = false;
+        resolve();
     });
-};
+}).then(() => 
+    E.dispatch("bibi:scrolled-by", Par)
+);
 
 
 
@@ -2519,12 +2200,12 @@ I.createCatcher = () => {
     I.Catcher = O.Body.appendChild(sML.create("div", { id: "bibi-catcher", innerHTML: CatcherInnerHTML }));
     I.Catcher.title = I.Catcher.querySelector('span').innerHTML.replace(/<br( ?\/)?>/g, "\n").replace(/<[^>]+>/g, "").trim();
     I.Catcher.Input = I.Catcher.appendChild(sML.create("input", { type: "file" }));
-    if(!S["unzip-if-necessary"].includes("*") && S["unzip-if-necessary"].length) {
+    if(!S["extract-if-necessary"].includes("*") && S["extract-if-necessary"].length) {
         const Accept = [];
-        if(S["unzip-if-necessary"].includes(".epub")) {
+        if(S["extract-if-necessary"].includes(".epub")) {
             Accept.push("application/epub+zip");
         }
-        if(S["unzip-if-necessary"].includes(".zip")) {
+        if(S["extract-if-necessary"].includes(".zip")) {
             Accept.push("application/zip");
             Accept.push("application/x-zip");
             Accept.push("application/x-zip-compressed");
@@ -2936,8 +2617,8 @@ I.createFontSizeChanger = () => {
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, "") * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
-        if(L.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
-            sML.forEach(Item.contentDocument.documentElement.querySelectorAll("body, body *"), Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem");
+        if(Item.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
+            sML.forEach(Item.HTML.querySelectorAll("body, body *"))(Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + "rem");
         } else {
             O.editCSSRules(Item.contentDocument, CSSRule => {
                 if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
@@ -2953,14 +2634,14 @@ I.createFontSizeChanger = () => {
         if(typeof S["base-font-size"] == "number" && S["base-font-size"] > 0) {
             let MostPopularFontSize = 0;
             const FontSizeCounter = {};
-            sML.forEach(Item.Body.querySelectorAll("p, p *"), Ele => {
+            sML.forEach(Item.Body.querySelectorAll("p, p *"))(Ele => {
                 if(!Ele.innerText.replace(/\s/g, "")) return;
                 const FontSize = Math.round(getComputedStyle(Ele).fontSize.replace(/[^\d]*$/, "") * 100) / 100;
                 if(!FontSizeCounter[FontSize]) FontSizeCounter[FontSize] = [];
                 FontSizeCounter[FontSize].push(Ele);
             });
             let MostPopularFontSizeAmount = 0;
-            for(let FontSize in FontSizeCounter) {
+            for(const FontSize in FontSizeCounter) {
                 if(FontSizeCounter[FontSize].length > MostPopularFontSizeAmount) {
                     MostPopularFontSizeAmount = FontSizeCounter[FontSize].length;
                     MostPopularFontSize = FontSize;
@@ -3138,47 +2819,46 @@ I.createLoupe = () => {
             }
             E.dispatch("bibi:changed-scale", R.Main.Transformation.Scale);
         },
-        transform: (Tfm, Opt) => { // Tfm: Transformation
-            return new Promise((resolve, reject) => {
-                if(!Tfm) return reject();
-                if(!Opt) Opt = {};
-                clearTimeout(I.Loupe.Timer_onTransformEnd);
-                O.HTML.classList.add("transforming");
-                const CurrentTfm = R.Main.Transformation;
-                if(typeof Tfm.Scale != "number") Tfm.Scale = CurrentTfm.Scale;
-                if(!Tfm.Translation) Tfm.Translation = CurrentTfm.Translation;
-                else {
-                    if(typeof Tfm.Translation.X != "number") Tfm.Translation.X = CurrentTfm.Translation.X;
-                    if(typeof Tfm.Translation.Y != "number") Tfm.Translation.Y = CurrentTfm.Translation.Y;
-                }
-                if(Tfm.Scale > 1) {
-                    const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
-                    const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
-                    Tfm.Translation.X = sML.limitMinMax(Tfm.Translation.X, OverflowX * -1, OverflowX);
-                    Tfm.Translation.Y = sML.limitMinMax(Tfm.Translation.Y, OverflowY * -1, OverflowY);
-                }
-                sML.style(R.Main, {
-                    transform: (Ps => {
-                             if(Tfm.Translation.X && Tfm.Translation.Y) Ps.push( "translate(" + Tfm.Translation.X + "px" + ", " + Tfm.Translation.Y + "px" + ")");
-                        else if(Tfm.Translation.X                     ) Ps.push("translateX(" + Tfm.Translation.X + "px"                                   + ")");
-                        else if(                     Tfm.Translation.Y) Ps.push("translateY("                                   + Tfm.Translation.Y + "px" + ")");
-                             if(Tfm.Scale != 1                        ) Ps.push(     "scale(" + Tfm.Scale                                                  + ")");
-                        return Ps.length ? Ps.join(" ") : "";
-                    })([])
-                });
-                R.Main.PreviousTransformation = R.Main.Transformation;
-                R.Main.Transformation = Tfm;
-                I.Loupe.Timer_onTransformEnd = setTimeout(() => {
-                         if(R.Main.Transformation.Scale == 1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.remove("zoomed-out");
-                    else if(R.Main.Transformation.Scale <  1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.add(   "zoomed-out");
-                    else                                      O.HTML.classList.add(   "zoomed-in"), O.HTML.classList.remove("zoomed-out");
-                    O.HTML.classList.remove("transforming");
-                    resolve();
-                    E.dispatch("bibi:transformed-book", Tfm);
-                    if(!Opt.Temporary && S["use-loupe"] && S["use-cookie"]) O.Cookie.eat(O.BookURL, { Loupe: { Transformation: R.Main.Transformation } });
-                }, 345);
+        transform: (Tfm, Opt) => new Promise((resolve, reject) => {
+            // Tfm: Transformation
+            if(!Tfm) return reject();
+            if(!Opt) Opt = {};
+            clearTimeout(I.Loupe.Timer_onTransformEnd);
+            O.HTML.classList.add("transforming");
+            const CurrentTfm = R.Main.Transformation;
+            if(typeof Tfm.Scale != "number") Tfm.Scale = CurrentTfm.Scale;
+            if(!Tfm.Translation) Tfm.Translation = CurrentTfm.Translation;
+            else {
+                if(typeof Tfm.Translation.X != "number") Tfm.Translation.X = CurrentTfm.Translation.X;
+                if(typeof Tfm.Translation.Y != "number") Tfm.Translation.Y = CurrentTfm.Translation.Y;
+            }
+            if(Tfm.Scale > 1) {
+                const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
+                const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
+                Tfm.Translation.X = sML.limitMinMax(Tfm.Translation.X, OverflowX * -1, OverflowX);
+                Tfm.Translation.Y = sML.limitMinMax(Tfm.Translation.Y, OverflowY * -1, OverflowY);
+            }
+            sML.style(R.Main, {
+                transform: (Ps => {
+                         if(Tfm.Translation.X && Tfm.Translation.Y) Ps.push( "translate(" + Tfm.Translation.X + "px" + ", " + Tfm.Translation.Y + "px" + ")");
+                    else if(Tfm.Translation.X                     ) Ps.push("translateX(" + Tfm.Translation.X + "px"                                   + ")");
+                    else if(                     Tfm.Translation.Y) Ps.push("translateY("                                   + Tfm.Translation.Y + "px" + ")");
+                         if(Tfm.Scale != 1                        ) Ps.push(     "scale(" + Tfm.Scale                                                  + ")");
+                    return Ps.length ? Ps.join(" ") : "";
+                })([])
             });
-        },
+            R.Main.PreviousTransformation = R.Main.Transformation;
+            R.Main.Transformation = Tfm;
+            I.Loupe.Timer_onTransformEnd = setTimeout(() => {
+                     if(R.Main.Transformation.Scale == 1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.remove("zoomed-out");
+                else if(R.Main.Transformation.Scale <  1) O.HTML.classList.remove("zoomed-in"), O.HTML.classList.add(   "zoomed-out");
+                else                                      O.HTML.classList.add(   "zoomed-in"), O.HTML.classList.remove("zoomed-out");
+                O.HTML.classList.remove("transforming");
+                resolve();
+                E.dispatch("bibi:transformed-book", Tfm);
+                if(!Opt.Temporary && S["use-loupe"] && S["use-cookie"]) O.Cookie.eat(O.BookURL, { Loupe: { Transformation: R.Main.Transformation } });
+            }, 345);
+        }),
         transformBack:  (Opt) => I.Loupe.transform(R.Main.PreviousTransformation,             Opt) || I.Loupe.transformReset(Opt),
         transformReset: (Opt) => I.Loupe.transform({ Scale: 1, Translation: { X: 0, Y: 0 } }, Opt),
         isAvailable: (Mode) => {
@@ -3819,14 +3499,14 @@ I.createSlider = () => {
             resetBookmapSpread: (Spread) => {
                 I.Slider.removeBookmap();
                 const SpreadBox = Spread.Box, BmSpread = Spread.BookmapSpread, BmSpreadBox = BmSpread.Box;
-                sML.forEach(BmSpread.querySelectorAll("span.bookmap-page"), OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
-                BmSpreadBox.className = "bookmap-spread-box"; sML.forEach(SpreadBox.classList, ClassName => { if(ClassName != "spread-box") BmSpreadBox.classList.add(ClassName); });
+                sML.forEach(BmSpread.querySelectorAll("span.bookmap-page"))(OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
+                BmSpreadBox.className = "bookmap-spread-box"; sML.forEach(SpreadBox.classList)(ClassName => { if(ClassName != "spread-box") BmSpreadBox.classList.add(ClassName); });
                 BmSpreadBox.style[S.CC.A.SIZE.b] = BmSpread.style[S.CC.A.SIZE.b] = "";
                 BmSpreadBox.style[S.CC.A.SIZE.l] = (SpreadBox["offset" + S.CC.L.SIZE.L] / R.Main["scroll" + S.CC.L.SIZE.L] * 100) + "%";
                 BmSpread.style[S.CC.A.SIZE.l] = (Spread["offset" + S.CC.L.SIZE.L] / SpreadBox["offset" + S.CC.L.SIZE.L] * 100) + "%";
                 Spread.Items.forEach(Item => {
                     const ItemBox = Item.Box, BmItemBox = Item.BookmapItem.Box;
-                    BmItemBox.className = "bookmap-item-box"; sML.forEach(ItemBox.classList, ClassName => { if(ClassName != "item-box") BmItemBox.classList.add(ClassName); });
+                    BmItemBox.className = "bookmap-item-box"; sML.forEach(ItemBox.classList)(ClassName => { if(ClassName != "item-box") BmItemBox.classList.add(ClassName); });
                     BmItemBox.style[S.CC.A.SIZE.b] = (ItemBox["offset" + S.CC.L.SIZE.B] / Spread["offset" + S.CC.L.SIZE.B] * 100) + "%";
                     BmItemBox.style[S.CC.A.SIZE.l] = (ItemBox["offset" + S.CC.L.SIZE.L] / Spread["offset" + S.CC.L.SIZE.L] * 100) + "%";
                     Item.Pages.forEach(Page => {
@@ -3907,15 +3587,13 @@ I.createSlider = () => {
                     I.Slider.progress();
                 });
             },
-            focus: (Eve, Par) => { Par = Par ? Par : {};
-                return new Promise(resolve => {
-                    Par.Destination = I.Slider.getPageToBeFocusedOn(I.Slider.getTouchEndElement(Eve));
-                    if(!R.Current.Pages.includes(Par.Destination)) {
-                        Par.Duration = 0;
-                        R.focusOn(Par).then(resolve);
-                    } else resolve();
-                });
-            },
+            focus: (Eve, Par = {}) => new Promise(resolve => {
+                Par.Destination = I.Slider.getPageToBeFocusedOn(I.Slider.getTouchEndElement(Eve));
+                if(!R.Current.Pages.includes(Par.Destination)) {
+                    Par.Duration = 0;
+                    R.focusOn(Par).then(resolve);
+                } else resolve();
+            }),
             getTouchEndElement: (Eve) => {
                 return I.Slider.Bookmap.contains(Eve.target) ? Eve.target : (TouchEndElementPoint => {
                     TouchEndElementPoint[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
@@ -4126,7 +3804,7 @@ I.createArrows = () => {
             E.dispatch(I.Arrows.Forward, "bibi:unhovers", Eve);
             R.Items.concat(O).forEach(Item => Item.HTML.removeAttribute("data-bibi-cursor"));
         });
-        E.add("bibi:opened", () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll("img"), Img => Img.addEventListener(O["pointerdown"], O.preventDefault))));
+        E.add("bibi:opened", () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll("img"))(Img => Img.addEventListener(O["pointerdown"], O.preventDefault))));
     }
 
     E.add("bibi:tapped", Eve => { // try moving
@@ -4185,7 +3863,7 @@ I.createSwipeListener = () => {
             Ele.addEventListener("touchend",   I.SwipeListener.onTouchEnd);
             if(!O.Touch) {
                 Ele.addEventListener('wheel', I.SwipeListener.onWheel, { capture: true, passive: false });
-                sML.forEach(Ele.querySelectorAll("img"), Img => Img.addEventListener(O["pointerdown"], O.preventDefault));
+                sML.forEach(Ele.querySelectorAll("img"))(Img => Img.addEventListener(O["pointerdown"], O.preventDefault));
             }
         },
         deactivateElement: (Ele) => {
@@ -4194,7 +3872,7 @@ I.createSwipeListener = () => {
             Ele.removeEventListener("touchend",   I.SwipeListener.onTouchEnd);
             if(!O.Touch) {
                 Ele.removeEventListener('wheel', I.SwipeListener.onWheel, { capture: true, passive: false });
-                sML.forEach(Ele.querySelectorAll("img"), Img => Img.removeEventListener(O["pointerdown"], O.preventDefault));
+                sML.forEach(Ele.querySelectorAll("img"))(Img => Img.removeEventListener(O["pointerdown"], O.preventDefault));
             }
         },
         PreviousWheels: [],
@@ -4417,24 +4095,20 @@ I.setToggleAction = (Obj, Par) => {
     */};
     return sML.edit(Obj, {
         UIState: "default",
-        open: (Opt) => {
-            return new Promise(resolve => {
-                if(Obj.UIState == "default") {
-                    I.setUIState(Obj, "active");
-                    if(Par.onopened) Par.onopened.call(Obj, Opt);
-                }
-                resolve(Opt);
-            });
-        },
-        close: (Opt) => {
-            return new Promise(resolve => {
-                if(Obj.UIState == "active") {
-                    I.setUIState(Obj, "default");
-                    if(Par.onclosed) Par.onclosed.call(Obj, Opt);
-                }
-                resolve(Opt);
-            });
-        },
+        open: (Opt) => new Promise(resolve => {
+            if(Obj.UIState == "default") {
+                I.setUIState(Obj, "active");
+                if(Par.onopened) Par.onopened.call(Obj, Opt);
+            }
+            resolve(Opt);
+        }),
+        close: (Opt) => new Promise(resolve => {
+            if(Obj.UIState == "active") {
+                I.setUIState(Obj, "default");
+                if(Par.onclosed) Par.onclosed.call(Obj, Opt);
+            }
+            resolve(Opt);
+        }),
         toggle: (Opt) => Obj.UIState == "default" ? Obj.open(Opt) : Obj.close(Opt)
     });
 };
@@ -4442,7 +4116,7 @@ I.setToggleAction = (Obj, Par) => {
 
 I.distillLabels = (Labels) => {
     if(typeof Labels != "object" || !Labels) Labels = {};
-    for(let State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
+    for(const State in Labels) Labels[State] = I.distillLabels.distillLanguage(Labels[State]);
     if(!Labels["default"])                       Labels["default"]  = I.distillLabels.distillLanguage();
     if(!Labels["active"]   && Labels["default"]) Labels["active"]   = Labels["default"];
     if(!Labels["disabled"] && Labels["default"]) Labels["disabled"] = Labels["default"];
@@ -4655,7 +4329,11 @@ P.initialize = (Preset) => {
         if(!(P[PropertyName] instanceof Array)) P[PropertyName] = [];
     });
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
-    P["extensions"] = (P["extensions"] instanceof Array) ? P["extensions"].filter(Ext => Ext) : [];
+    P["extensions"] = !(P["extensions"] instanceof Array) ? [] : P["extensions"].filter(Xtn => {
+        if(!Xtn) return false;
+        if(Xtn["-spell-of-activation-"]) return U.parseQuery(location.search).hasOwnProperty(Xtn["-spell-of-activation-"]);
+        return true;
+    });
 };
 
 Bibi.preset = P.initialize;
@@ -4813,7 +4491,7 @@ export const S = {}; // Bibi.Settings
 
 
 S.initialize = () => {
-    for(let Property in S) if(typeof S[Property] != "function") delete S[Property];
+    for(const Property in S) if(typeof S[Property] != "function") delete S[Property];
     sML.applyRtL(S, P, "ExceptFunctions");
     sML.applyRtL(S, U, "ExceptFunctions");
     O.SettingTypes.YesNo.concat(O.SettingTypes_PresetOnly.YesNo).concat(O.SettingTypes_UserOnly.YesNo).forEach(Property => {
@@ -4841,12 +4519,12 @@ S.initialize = () => {
         return O.getPath(S["bookshelf"], S["book"]);
     })().replace(/^(https?:\/\/[^\/]+.*)?.*$/, "$1");
     if(!S["book"]) S["book-type"] = "";
-    S["unzip-if-necessary"] = (() => {
-        if(!S["unzip-if-necessary"].length) return [];
-        if(S["unzip-if-necessary"].includes("*")) return ["*"];
+    S["extract-if-necessary"] = (() => {
+        if(!S["extract-if-necessary"].length) return [];
+        if(S["extract-if-necessary"].includes("*")) return ["*"];
         const UnzipIfNecessary = [];
-        for(let l = S["unzip-if-necessary"].length, i = 0; i < l; i++) {
-            let Ext = S["unzip-if-necessary"][i];
+        for(let l = S["extract-if-necessary"].length, i = 0; i < l; i++) {
+            let Ext = S["extract-if-necessary"][i];
             if(typeof Ext != "string" || !/^(\.[\w\d]+)*$/.test(Ext)) continue;
             Ext = Ext.toLowerCase();
             if(!UnzipIfNecessary.includes(Ext)) UnzipIfNecessary.push(Ext);
@@ -4855,7 +4533,7 @@ S.initialize = () => {
     })();
     S["accept-local-file"] = (() => {
         if(S["book"] || !window.File || !S["accept-local-file"]) return false;
-        return (S["unzip-if-necessary"].includes("*") || S["unzip-if-necessary"].includes(".epub") || S["unzip-if-necessary"].includes(".zip"));
+        return (S["extract-if-necessary"].includes("*") || S["extract-if-necessary"].includes(".epub") || S["extract-if-necessary"].includes(".zip"));
     })();
     S["accept-blob-converted-data"] = (() => {
         if(S["book"] || !window.File || !S["accept-blob-converted-data"]) return false;
@@ -4875,16 +4553,7 @@ S.initialize = () => {
         return O.WindowEmbedded ? S["start-embedded-in-new-window"] : false;
     })();
     if(!S["trustworthy-origins"].includes(O.Origin)) S["trustworthy-origins"].unshift(O.Origin);
-
-};
-
-
-S.willBeUnzipped = (FileName) => {
-    if(!FileName || !S["unzip-if-necessary"].length) return false;
-    if(S["unzip-if-necessary"].includes("*")) return true;
-    if(S["unzip-if-necessary"].includes("")) return !/(\.[\w\d]+)+$/.test(FileName);
-    for(let l = S["unzip-if-necessary"].length, i = 0; i < l; i++) if(new RegExp(S["unzip-if-necessary"][i].replace(/\./g, "\\.") + "$", "i").test(FileName)) return true;
-    return false;
+    E.dispatch("bibi:initialized-settings");
 };
 
 
@@ -4892,7 +4561,7 @@ S.update = (Settings) => {
 
     const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA;
 
-    if(typeof Settings == "object") for(let Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
+    if(typeof Settings == "object") for(const Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
 
     S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
     S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
@@ -4905,32 +4574,20 @@ S.update = (Settings) => {
 
     // Layout Settings
     S.RVM = S["reader-view-mode"];
-    if(S.BRL == "reflowable") {
-        if(S.BWM == "tb-rl") {
-            S.PPD = S["page-progression-direction"] = "rtl";
-            S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM;
-        } else if(S.BWM == "tb-lr") {
-            S.PPD = S["page-progression-direction"] = "ltr";
-            S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM;
-        } else if(S.BWM == "rl-tb") {
-            S.PPD = S["page-progression-direction"] = "rtl";
-            S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
-        } else {
-            S.PPD = S["page-progression-direction"] = "ltr";
-            S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
-        }
-    } else {
-        S.PPD = S["page-progression-direction"] = (B.PPD == "rtl") ? "rtl" : "ltr";
-        S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
-    }
-    S.SLD = S["spread-layout-direction"] = (S.SLA == "vertical") ? "ttb" : S.PPD;
-    S.ARD = S["apparent-reading-direction"] = (S.RVM == "vertical") ? "ttb" : S.PPD;
-    S.ARA = S["apparent-reading-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
+    if(S.BRL == "reflowable") switch(S.BWM) {
+        case "tb-rl": S.PPD = S["page-progression-direction"] = "rtl", S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM; break;
+        case "tb-lr": S.PPD = S["page-progression-direction"] = "ltr", S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "vertical"   : S.RVM; break;
+        case "rl-tb": S.PPD = S["page-progression-direction"] = "rtl", S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM; break;
+        default     : S.PPD = S["page-progression-direction"] = "ltr", S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM; break;
+    }   else          S.PPD = S["page-progression-direction"] = B.PPD, S.SLA = S["spread-layout-axis"] = (S.RVM == "paged") ? "horizontal" : S.RVM;
+    S.SLD = S["spread-layout-direction"]    = (S.SLA == "vertical") ? "ttb"        : S.PPD;
+    S.ARD = S["apparent-reading-direction"] = (S.RVM == "vertical") ? "ttb"        : S.PPD;
+    S.ARA = S["apparent-reading-axis"]      = (S.RVM == "paged"   ) ? "horizontal" : S.RVM;
 
     // Dictionary
     S.CC = {
-        L: S.getCC(S.SLA, S.PPD), // for "L"ayout-Direction
-        A: S.getCC(S.ARA, S.PPD)  // for "A"pparent-Direction
+        L: S.getCC(S.SLA), // for "L"ayout-Direction
+        A: S.getCC(S.ARA)  // for "A"pparent-Direction
     };             
 
     // Root Class
@@ -4947,42 +4604,31 @@ S.update = (Settings) => {
 };
 
 
-S.getCC = (Hzt_Vtc, LtR_RtL) => { // getCoordinateCondition
-    const CC = { SIZE: {}, BASE: {}, OOLT: {}, AXIS: {} };
-    if(Hzt_Vtc == "horizontal") {
+S.getCC = (AXIS) => { // getCoordinateCondition
+    const CC = { BASE: {/*BeforeAfterStartEnd*/}, SIZE: {}, OOLT: {}, AXIS: {} };
+    const LR_RL = ["left", "right"]; if(S.PPD != "ltr") LR_RL.reverse();
+    if(AXIS == "horizontal") {
+        S.getCC.applyRtL(CC.BASE, { b: LR_RL[0], a: LR_RL[1], s: "top",     e: "bottom"  });
         S.getCC.applyRtL(CC.SIZE, { b: "height", l: "width",  w: "length",  h: "breadth" });
-        S.getCC.applyRtL(CC.BASE, { s: "top", e: "bottom" });
-        S.getCC.applyRtL(CC.OOLT, { b: "top", l: "left" });
-        S.getCC.applyRtL(CC.AXIS, { b: "y", l: "x" });
-        if(LtR_RtL == "ltr") {
-            S.getCC.applyRtL(CC.BASE, { b: "left", a: "right" });
-            CC.AXIS.PM = 1;
-        } else {
-            S.getCC.applyRtL(CC.BASE, { b: "right", a: "left" });
-            CC.AXIS.PM = -1;
-        }
+        S.getCC.applyRtL(CC.OOLT, { b: "top",    l: "left"                               });
+        S.getCC.applyRtL(CC.AXIS, { b: "y",      l: "x"                                  });
+        CC.AXIS.PM = S.PPD == "ltr" ? 1 : -1;
     } else {
-        S.getCC.applyRtL(CC.SIZE, { b: "width", l: "height",  w: "breadth",  h: "length" });
-        S.getCC.applyRtL(CC.BASE, { b: "top", a: "bottom" });
-        S.getCC.applyRtL(CC.OOLT, { b: "left", l: "top" });
-        S.getCC.applyRtL(CC.AXIS, { b: "x", l: "y" });
+        S.getCC.applyRtL(CC.BASE, { b: "top",    a: "bottom", s: LR_RL[0],  e: LR_RL[1]  });
+        S.getCC.applyRtL(CC.SIZE, { b: "width",  l: "height", w: "breadth", h: "length"  });
+        S.getCC.applyRtL(CC.OOLT, { b: "left",   l: "top"                                });
+        S.getCC.applyRtL(CC.AXIS, { b: "x",      l: "y"                                  });
         CC.AXIS.PM = 1;
-        if(LtR_RtL == "ltr") {
-            S.getCC.applyRtL(CC.BASE, { s: "left", e: "right" });
-        } else {
-            S.getCC.applyRtL(CC.BASE, { s: "right", e: "left" });
-        }
     }
     return CC;
 };
 
 S.getCC.applyRtL = (Left, Right) => {
-    for(let Property in Right)
-        Left[                            Property ] =                             Right[Property] ,
-        Left[S.getCC.applyRtL.capitalize(Property)] = S.getCC.applyRtL.capitalize(Right[Property]); return Left;
+    for(const Property in Right) Left[                   Property ] =                    Right[Property] ,
+                                 Left[S.getCC.capitalize(Property)] = S.getCC.capitalize(Right[Property]);
 };
 
-S.getCC.applyRtL.capitalize = (Str) => Str.charAt(0).toUpperCase() + Str.slice(1);
+S.getCC.capitalize = (Str) => Str.charAt(0).toUpperCase() + Str.slice(1);
 
 
 
@@ -4999,27 +4645,30 @@ export const O = {}; // Bibi.Operator
 
 
 O.initialize = () => {
+    O.IsDev = U.parseQuery(location.search).hasOwnProperty("dev");
     O.log.initialize();
 };
 
 
 O.log = (Log, Tag) => {        let Prefix = "‐ ", FontWeight = "normal";
     switch(Tag) {
-        case "<e/>":               Prefix = "!! ", FontWeight = "bold"  ; break;
+        case "<e/>":               Prefix = "\n" , FontWeight = "bold"  ; break;
         case "<i/>":                               FontWeight = "bold"  ; break;
         case "<g!>": Tag = "<g:>", Prefix = "📕" , FontWeight = "bold"  ; break;
         case "<g->": Tag = "<g:>"                                       ; break;
         case "<g:>":               Prefix = "┌ "                       ; break;
         case "</g>":               Prefix = "└ "                       ; break;
     }
-    if(Tag == "</g>") {
+    if(Tag == "<e/>") {
+        while(O.log.Depth) console.groupEnd(), O.log.Depth--;
+        throw Prefix + Log;
+    } else if(Tag == "</g>") {
         if(O.log.Depth <= O.log.Limit) console.groupEnd();
         O.log.Depth--;
     }
     if(Log && O.log.Depth <= O.log.Limit) {
         let Method = "log";
-             if(Tag == "<e/>") Method = "error";
-        else if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";
+        if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";
         if(O.log.Depth == 0) {
             const TimeFromOrigin = O.stamp(Log.replace("%c", ""));
             if(Tag == "<i/>" && TimeFromOrigin) Log += " %c(" + Math.floor(TimeFromOrigin / 1000) + "." + (TimeFromOrigin % 1000 + "").padStart(3, 0) + "sec)";
@@ -5037,7 +4686,7 @@ O.log.initialize = () => {
         const log = (Method, Prefix, Log, FontWeight) => console[Method]("%c" + Prefix + "%c" + Log + (/%c/.test(Log) ? "" : "%c"), "font-weight: normal;", "font-weight: " + FontWeight + ";", "font-weight: normal;");
         O.log.Depth = 0;
         if(sML.UA.Blink || sML.UA.Gecko) {
-            O.log.Limit = 9;
+            O.log.Limit = U.parseQuery(location.search).hasOwnProperty("log") ? 9 : 0;
             O.log.log = log;
         } else {
             O.log.Limit = 0;
@@ -5065,11 +4714,11 @@ O.error = (Msg) => {
 
 O.TimeCard = {};
 
-O.getTimeLabel = (Milliseconds) => [
-    Milliseconds / 1000 / 60 / 60,
-    Milliseconds / 1000 / 60 % 60,
-    Milliseconds / 1000 % 60
-].map(Val => (Math.floor(Val) + "").padStart(2, 0)).join(":") + "." + (Milliseconds % 1000 + "").padStart(3, 0);
+O.getTimeLabel = (TimeFromOrigin = Date.now() - Bibi.TimeOrigin) => [
+    TimeFromOrigin / 1000 / 60 / 60,
+    TimeFromOrigin / 1000 / 60 % 60,
+    TimeFromOrigin / 1000 % 60
+].map(Val => (Math.floor(Val) + "").padStart(2, 0)).join(":") + "." + (TimeFromOrigin % 1000 + "").padStart(3, 0);
 
 O.stamp = (What, TimeCard) => {
     const TimeFromOrigin = Date.now() - Bibi.TimeOrigin;
@@ -5082,27 +4731,191 @@ O.stamp = (What, TimeCard) => {
 //O.stamp = () => "";
 
 
-O.scrollTo = (ScrollTarget, Par) => new Promise(resolve => { Par.callback = resolve; sML.scrollTo(ScrollTarget, Par); });
+O.scrollTo = (ScrollTarget, Par) => sML.scrollTo(ScrollTarget, Par);
 
 
-O.download = (URI, MimeType) => {
-    return new Promise((resolve, reject) => {
-        const XHR = new XMLHttpRequest();
-        if(MimeType) XHR.overrideMimeType(MimeType);
-        XHR.open('GET', URI, true);
-        XHR.onloadend = () => (XHR.status === 200 ? resolve : reject)(XHR);
-        XHR.send(null);
-    });
+O.isToBeExtractedIfNecessary = (Path) => {
+    if(!Path || !S["extract-if-necessary"].length) return false;
+    if(S["extract-if-necessary"].includes("*")) return true;
+    if(S["extract-if-necessary"].includes( "")) return !/(\.[\w\d]+)+$/.test(Path);
+    for(let l = S["extract-if-necessary"].length, i = 0; i < l; i++) if(new RegExp(S["extract-if-necessary"][i].replace(/\./g, "\\.") + "$", "i").test(Path)) return true;
+    return false;
 };
 
-O.parseDocument = (Doc, Path) => (new DOMParser()).parseFromString(Doc, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
+O.file = (FilePath, Opt = {}) => new Promise((resolve, reject) => {
+    if(Opt.URI) if(B.ExtractionPolicy) Opt.URI = false, Opt.DataURI = true; else return resolve(B.Path + "/" + FilePath);
+    let _Promise;
+    if(B.Files[FilePath] && B.Files[FilePath].Content) {
+        if(!Opt.Preprocess || B.Files[FilePath].Preprocessed) return resolve(B.Files[FilePath].Content);
+        _Promise = Promise.resolve(B.Files[FilePath].Content);
+    } else {
+        if(B.ExtractionPolicy == "at-once") return reject('File Not Included: "' + FilePath + '"');
+        _Promise = O.retlieve(FilePath/*, Opt*/);
+    }
+    _Promise.then(FileContent => Opt.Preprocess ? O.preprocessFileContent(FilePath, FileContent) : FileContent).then(resolve).catch(reject);
+}).then(FileContent => {
+    if(Opt.URI) return FileContent;
+    if(Opt.Cache) {
+        B.Files[FilePath].Content = FileContent;
+        if(Opt.Preprocess) B.Files[FilePath].Preprocessed = true;
+    }
+    return Opt.DataURI ? O.getDataURI(FilePath, FileContent) : FileContent;
+}).catch(Rejection => Opt.Preprocess ? Promise.resolve("") : Promise.reject(Rejection));
 
-O.openDocument = (Path) => {
-    return new Promise((resolve, reject) => {
-        if(B.Unzipped) O.download(B.Path + "/" +  Path).then(XHR => resolve(XHR.responseText)).catch(XHR =>  reject('XHR HTTP status: ' + XHR.status + ' "' + XHR.responseURL + '"'));
-        else                              B.Files[Path] ?           resolve(B.Files[Path]) :                 reject('Not Included: "' + Path + '"');
-    }).then(TextData => O.parseDocument(TextData, Path)).catch(O.error);
+O.download = (Path/*, Opt = {}*/) => new Promise((resolve, reject) => {
+    const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
+    const FullPath = (/^[a-z]+:\/\//.test(Path) ? "" : B.Path + "/") + Path;
+    XHR.open('GET', FullPath, true); // async
+    XHR.responseType = O.isBin(Path) ? "arraybuffer" : "text";
+    XHR.onerror   = () => reject((XHR.status === 404 ? 'File Not Found' : 'Could Not Download File') + ': "' + FullPath + '"');
+    XHR.onloadend = () => XHR.status === 200 ? resolve(XHR.responseType == "arraybuffer" ? O.ab2b(XHR.response) : XHR.response) : XHR.onerror();
+    XHR.send(null);
+});
+
+O.ab2b = (ABuf) => O.ui8a2b(new Uint8Array(ABuf));
+O.ab2t = (ABuf) => O.ui8a2t(new Uint8Array(ABuf));
+O.ui8a2b = (UI8A) => { let Bin = ""; for(let l = UI8A.byteLength, i = 0; i < l; i++) Bin += String.fromCharCode(UI8A[i]); return Bin; };
+O.ui8a2t = (UI8A) => new TextDecoder("utf-8").decode(UI8A);
+
+O.getDataURI = (FilePath, FileContent) => {
+    for(const Ext in O.ContentTypes) {
+        if((new RegExp('(^|\.)(' + Ext + ')$', "i")).test(FilePath)) {
+            return "data:" + O.ContentTypes[Ext] + ";base64," + btoa(O.isBin(FilePath) ? FileContent : unescape(encodeURIComponent(FileContent)));
+        }
+    }
+    return "";
 };
+
+O.isBin = (Hint) => /(^|\.)(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Hint);
+
+O.ContentTypes = {
+    "pdf"     : "application/pdf",
+    "xht(ml)?": "application/xhtml+xml",
+    "xml"     : "application/xml",
+    "aac"     :       "audio/aac",
+    "mp3"     :       "audio/mpeg",
+    "otf"     :        "font/opentype",
+    "ttf"     :        "font/truetype",
+    "woff"    :        "font/woff",
+    "woff2"   :        "font/woff2",
+    "gif"     :       "image/gif",
+    "jpe?g"   :       "image/jpeg",
+    "png"     :       "image/png",
+    "svg"     :       "image/svg+xml",
+    "webp"    :       "image/webp",
+    "css"     :        "text/css",
+    "js"      :        "text/javascript",
+    "html?"   :        "text/html",
+    "mp4"     :       "video/mp4",
+    "webm"    :       "video/webm"
+};
+
+O.preprocessFileContent = (FilePath, FileContent) => {
+    const Setting = O.getPreprocessSetting(FilePath); if(!Setting) return Promise.resolve(FileContent);
+    const Promises = [];
+    if(Setting.ReplaceRules) FileContent = Setting.ReplaceRules.reduce((FileContent, Rule) => FileContent.replace(Rule[0], Rule[1]), FileContent);
+    if(Setting.ResolveRules) { // RRR
+        const FileDir = FilePath.replace(/\/?[^\/]+$/, "");
+        Setting.ResolveRules.Patterns.forEach(Pattern => {
+            const ResRE = Setting.ResolveRules.getRE(Pattern.Attribute);
+            const Reses = FileContent.match(ResRE);
+            if(!Reses) return;
+            const ExtRE = new RegExp('\\.(' + Pattern.Extensions + ')$', "i");
+            Reses.forEach(Res => {
+                const ResPathInSource = Res.replace(ResRE, Setting.ResolveRules.PathRef);
+                const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource).split("#");
+                if(!ExtRE.test(ResPaths[0])) return;
+                const Promised = (!B.ExtractionPolicy && !Pattern.ForceDataURI) ? Promise.resolve(B.Path + "/" + ResPaths[0]) : O.file(ResPaths[0], { Preprocess: true, DataURI: true, Cache: !O.isBin(ResPaths[0]) });
+                Promises.push(Promised.then(FileURI => {
+                    ResPaths[0] = FileURI;
+                    FileContent = FileContent.replace(Res, Res.replace(ResPathInSource, ResPaths.join("#")));
+                }));
+            });
+        });
+    }
+    return Promise.all(Promises).then(() => FileContent);
+};
+
+O.getPreprocessSetting = (FilePath) => { const PpSs = O.PreprocessSettings;
+    for(const Ext in PpSs) if(new RegExp('\\.(' + Ext + ')$', "i").test(FilePath)) return typeof PpSs[Ext].init == "function" ? PpSs[Ext].init() : PpSs[Ext];
+    return null;
+};
+
+O.PreprocessSettings = {
+    "css": {
+        ReplaceRules: [
+            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ""]
+        ],
+        ResolveRules: {
+            getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
+            PathRef: "$1",
+            Patterns: [
+                { Extensions: "css", ForceDataURI: true },
+                { Extensions: "gif|png|jpe?g|svg|ttf|otf|woff" }
+            ]
+        },
+        init: function() { const RRs = this.ReplaceRules;
+            RRs.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
+            RRs.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
+            if(sML.UA.WebKit || sML.UA.Blink) {
+                return this;
+            }
+            RRs.push([/-(epub|webkit)-/gm, '']);
+            if(sML.UA.Gecko) {
+                RRs.push([/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2']);
+                RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
+                return this;
+            }
+            if(sML.UA.Edge) {
+                RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
+                RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-horizontal: all; text-combine-upright: all$1']);
+            }
+            if(sML.UA.InternetExplorer) {
+                RRs.push([/writing-mode\s*:\s*vertical-rl\s*([;\}])/gm,   'writing-mode: tb-rl$1']);
+                RRs.push([/writing-mode\s*:\s*vertical-lr\s*([;\}])/gm,   'writing-mode: tb-lr$1']);
+                RRs.push([/writing-mode\s*:\s*horizontal-tb\s*([;\}])/gm, 'writing-mode: lr-tb$1']);
+                RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, '-ms-text-combine-horizontal: $2$3']);
+                RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, '-ms-text-combine-horizontal: all$1']);
+            }
+            if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
+                RRs.push([/text-align\s*:\s*justify\s*([;\}])/gm, 'text-align: justify; text-justify: inter-ideograph$1']);
+            }
+            return this;
+        }
+    },
+    "svg": {
+        ReplaceRules: [
+            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
+        ],
+        ResolveRules: {
+            getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', "g"),
+            PathRef: "$2",
+            Patterns: [
+                { Attribute: "href",           Extensions: "css", ForceDataURI: true },
+                { Attribute: "src",            Extensions: "svg", ForceDataURI: true },
+                { Attribute: "src|xlink:href", Extensions: "gif|png|jpe?g" }
+            ]
+        }
+    },
+    "html?|xht(ml)?|xml": {
+        ReplaceRules: [
+            [/<!--\s+[.\s\S]*?\s+-->/gm, ""]
+        ],
+        ResolveRules: {
+            getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', "g"),
+            PathRef: "$2",
+            Patterns: [
+                { Attribute: "href",           Extensions: "css", ForceDataURI: true },
+                { Attribute: "src",            Extensions: "js|svg", ForceDataURI: true },//{ Attribute: "src",        Extensions: "js|svg|xml|xht(ml?)?|html?", ForceDataURI: true },
+                { Attribute: "src|xlink:href", Extensions: "gif|png|jpe?g" }
+            ]
+        }
+    }
+};
+
+O.parseDocumentFromString = (Str, Path) => (new DOMParser()).parseFromString(Str, /\.(xml|opf|ncx)$/i.test(Path) ? "text/xml" : "text/html");
+
+O.openDocument = (Path) => O.file(Path).then(Str => O.parseDocumentFromString(Str, Path)).catch(O.error);
 
 
 O.editCSSRules = function() {
@@ -5111,7 +4924,7 @@ O.editCSSRules = function() {
     else if(typeof arguments[1] == "function") Doc = arguments[0], fun = arguments[1];
     if(!Doc) Doc = document;
     if(!Doc.styleSheets || typeof fun != "function") return;
-    sML.forEach(Doc.styleSheets, StyleSheet => O.editCSSRulesOfStyleSheet(StyleSheet, fun));
+    sML.forEach(Doc.styleSheets)(StyleSheet => O.editCSSRulesOfStyleSheet(StyleSheet, fun));
 };
 
 O.editCSSRulesOfStyleSheet = (StyleSheet, fun) => {
@@ -5122,38 +4935,6 @@ O.editCSSRulesOfStyleSheet = (StyleSheet, fun) => {
         else if(CSSRule.styleSheet) O.editCSSRulesOfStyleSheet(CSSRule.styleSheet, fun);
         else                                               fun(CSSRule                );
     }
-};
-
-
-O.isBin = (Hint) => /(^|\.)(gif|jpe?g|png|ttf|otf|woff2?|mp[g34]|m4[av]|ogg|webm|pdf)$/i.test(Hint);
-
-O.getDataURI = (FilePath, FileContent) => {
-    for(let Ext in O.ContentTypes) {
-        if((new RegExp('(^|\.)' + Ext + '$', "i")).test(FilePath)) {
-            return "data:" + O.ContentTypes[Ext] + ";base64," + (O.isBin(FilePath) ? btoa(FileContent) : btoa(unescape(encodeURIComponent(FileContent))));
-        }
-    }
-    return "";
-};
-
-O.ContentTypes = {
-    "gif"   :       "image/gif",
-    "png"   :       "image/png",
-    "jpe?g" :       "image/jpeg",
-    "svg"   :       "image/svg+xml",
-    "mp4"   :       "video/mp4",
-    "webm"  :       "video/webm",
-    "mp3"   :       "audio/mpeg",
-    "ttf"   :        "font/truetype",
-    "otf"   :        "font/opentype",
-    "woff"  :        "font/woff",
-    "woff2" :        "font/woff2",
-    "css"   :        "text/css",
-    "js"    :        "text/javascript",
-    "html?" :        "text/html",
-    "xhtml" : "application/xhtml+xml",
-    "xml"   : "application/xml",
-    "pdf"   : "application/pdf"
 };
 
 O.getWritingMode = (Ele) => {
@@ -5169,12 +4950,12 @@ O.getElementInnerText = (Ele) => {
     let InnerText = "InnerText";
     const Copy = document.createElement("div");
     Copy.innerHTML = Ele.innerHTML.replace(/ (src(set)?|source|(xlink:)?href)=/g, " data-$1=");
-    sML.forEach(Copy.querySelectorAll("svg"),    Ele => Ele.parentNode.removeChild(Ele));
-    sML.forEach(Copy.querySelectorAll("video"),  Ele => Ele.parentNode.removeChild(Ele));
-    sML.forEach(Copy.querySelectorAll("audio"),  Ele => Ele.parentNode.removeChild(Ele));
-    sML.forEach(Copy.querySelectorAll("img"),    Ele => Ele.parentNode.removeChild(Ele));
-    sML.forEach(Copy.querySelectorAll("script"), Ele => Ele.parentNode.removeChild(Ele));
-    sML.forEach(Copy.querySelectorAll("style"),  Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("svg"   ))(Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("video" ))(Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("audio" ))(Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("img"   ))(Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("script"))(Ele => Ele.parentNode.removeChild(Ele));
+    sML.forEach(Copy.querySelectorAll("style" ))(Ele => Ele.parentNode.removeChild(Ele));
     /**/ if(typeof Copy.textContent != "undefined") InnerText = Copy.textContent;
     else if(typeof Copy.innerText   != "undefined") InnerText = Copy.innerText;
     return InnerText.replace(/[\r\n\s\t ]/g, "");
@@ -5204,7 +4985,7 @@ O.getPath = function() {
     return Path;
 };
 
-O.getViewportByMetaContentString = (Str) => {
+O.getViewportByMetaContent = (Str) => {
     if(typeof Str == "string" && /width/.test(Str) && /height/.test(Str)) {
         Str = Str.replace(/\s+/g, "");
         const W = Str.replace( /^.*?width=(\d+).*$/, "$1") * 1;
@@ -5214,7 +4995,7 @@ O.getViewportByMetaContentString = (Str) => {
     return null;
 };
 
-O.getViewportByViewBoxString = (Str) => {
+O.getViewportByViewBox = (Str) => {
     if(typeof Str == "string") {
         const XYWH = Str.replace(/^\s+/, "").replace(/\s+$/, "").split(/\s+/);
         if(XYWH.length == 4) {
@@ -5234,7 +5015,7 @@ O.getViewportByImage = (Img) => {
     return null;
 };
 
-O.getViewportByOriginalResolutionString = (Str) => {
+O.getViewportByOriginalResolution = (Str) => {
     if(typeof Str == "string") {
         const WH = Str.replace(/\s+/, "").split("x");
         if(WH.length == 2) {
@@ -5357,7 +5138,7 @@ O.Cookie = {
         if(typeof KeyVal != "object") return false;
         const Cookie = O.Cookie.remember();
         if(typeof Cookie[Group] != "object") Cookie[Group] = {};
-        for(let Key in KeyVal) {
+        for(const Key in KeyVal) {
             const Val = KeyVal[Key];
             if(typeof Val == "function") continue;
             Cookie[Group][Key] = Val;
@@ -5429,7 +5210,7 @@ O.SettingTypes_PresetOnly = {
     ],
     Array: [
         "trustworthy-origins",
-        "unzip-if-necessary"
+        "extract-if-necessary"
     ]
 };
 
@@ -5492,7 +5273,7 @@ M.receive = (Data) => {
     try {
         Data = JSON.parse(Data);
         if(typeof Data != "object" || !Data) return false;
-        for(let EventName in Data) if(/^bibi:commands:/.test(EventName)) E.dispatch(EventName, Data[EventName]);
+        for(const EventName in Data) if(/^bibi:commands:/.test(EventName)) E.dispatch(EventName, Data[EventName]);
         return true;
     } catch(Err) {}
     return false;
@@ -5516,13 +5297,20 @@ M.gate = (Eve) => {
 
 
 export const X = { // Bibi.Extensions
+    Alts: {},
+    Hooks: {},
     Extensions: []
 };
 
 
 X.loadExtensions = () => {
-    if(S["book"] && S["book-type"] == "Zine"    || S["accept-local-file"] || S["accept-blob-converted-data"]) P["extensions"].unshift({ "src":     "extensions/zine/index.js" });
-    if(S["book"] && S.willBeUnzipped(S["book"]) || S["accept-local-file"] || S["accept-blob-converted-data"]) P["extensions"].unshift({ "src": "extensions/unzipper/index.js" });
+    let ReadyForExtraction = false, ReadyForBibiZine = false;
+    if(S["book"]) {
+        if(O.isToBeExtractedIfNecessary(S["book"])) ReadyForExtraction = true;
+        if(S["book-type"] == "Zine")                ReadyForBibiZine = true;
+    } else if(S["accept-local-file"] || S["accept-blob-converted-data"]) ReadyForExtraction = ReadyForBibiZine = true;
+    if(ReadyForBibiZine)   P["extensions"].unshift({ "src": "extensions/zine/index.js"     });
+    if(ReadyForExtraction) P["extensions"].unshift({ "src": "extensions/unzipper/index.js" });
     if(P["extensions"].length == 0) return Promise.resolve();
     return new Promise(resolve => {
         O.log('Loading Extension' + (P["extensions"].length > 1 ? 's' : '') + '...', "<g:>");
@@ -5538,16 +5326,14 @@ X.loadExtensions = () => {
     );
 };
 
-X.loadExtension = (Ext) => {
-    return new Promise((resolve, reject) => {
-        if(!Ext["src"] || typeof Ext["src"] != "string") return reject('"src" of the Extension is Invalid.');
-        Ext.Script = document.head.appendChild(sML.create("script", { className: "bibi-extension-script", src: Ext["src"], Extension: Ext, resolve: resolve, reject: reject }));
-    }).then(DefinedExt =>
-        DefinedExt["id"] + ': ' + O.getPath(O.RootPath, DefinedExt["src"])
-    ).catch(Msg =>
-        Msg
-    );
-};
+X.loadExtension = (Xtn) => new Promise((resolve, reject) => {
+    if(!Xtn["src"] || typeof Xtn["src"] != "string") return reject('"src" of the Extension is Invalid.');
+    Xtn.Script = document.head.appendChild(sML.create("script", { className: "bibi-extension-script", src: Xtn["src"], Extension: Xtn, resolve: resolve, reject: reject }));
+}).then(DefinedExtension =>
+    DefinedExtension["id"] + ': ' + O.getPath(O.RootPath, DefinedExtension["src"])
+).catch(Msg =>
+    Msg
+);
 
 X.add = (XMeta) => {
     const XScript = document.currentScript;
@@ -5556,15 +5342,16 @@ X.add = (XMeta) => {
     } else if(XMeta["id"] == "Bibi" || X[XMeta["id"]]) {
         XScript.reject( '"' + XMeta["id"] + '" is reserved or already taken for "id" of an Extention.');
     } else {
+        XScript.setAttribute("data-bibi-extension-id", XMeta["id"]);
         X[XMeta["id"]] = XScript.Extension = sML.applyRtL(XMeta, XScript.Extension);
         X[XMeta["id"]].Index = X.Extensions.length;
         X.Extensions.push(X[XMeta["id"]]);
         XScript.resolve(X[XMeta["id"]]);
     }
-    const Ext = X[XMeta["id"]];
-    return function(onR) {         if(Ext && typeof onR == "function") E.bind("bibi:readied",  () => onR.call(Ext, Ext));
-        return function(onP) {     if(Ext && typeof onP == "function") E.bind("bibi:prepared", () => onP.call(Ext, Ext));
-            return function(onO) { if(Ext && typeof onO == "function") E.bind("bibi:opened",   () => onO.call(Ext, Ext)); }; }; };
+    const Xtn = X[XMeta["id"]];
+    return function(onR) {         if(Xtn && typeof onR == "function") E.bind("bibi:readied",  () => onR.call(Xtn, Xtn));
+        return function(onP) {     if(Xtn && typeof onP == "function") E.bind("bibi:prepared", () => onP.call(Xtn, Xtn));
+            return function(onO) { if(Xtn && typeof onO == "function") E.bind("bibi:opened",   () => onO.call(Xtn, Xtn)); }; }; };
 };
 
 Bibi.x = X.add;
