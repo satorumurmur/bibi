@@ -96,13 +96,11 @@ Bibi.x({
             if(FolderName) FileName = FileName.replace(FolderNameRE, "");
             BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(FileContent => {
                 B.Files[FileName] = { Content: FileContent.trim() };
-                if(FileTypesToBeCounted.length) {
-                    for(const FileType in FileTypesToBeCounted) {
-                        if(new RegExp("\\.(" + FileTypesToBeCounted[FileType] + ")$", "i").test(FileName)) {
-                            if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;
-                            FileCount.Particular++;
-                            break;
-                        }
+                for(const FileType in FileTypesToBeCounted) {
+                    if(new RegExp("\\.(" + FileTypesToBeCounted[FileType] + ")$", "i").test(FileName)) {
+                        if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;
+                        FileCount.Particular++;
+                        break;
                     }
                 }
                 FileCount.All++;

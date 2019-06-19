@@ -221,11 +221,7 @@ export const B = { // Bibi.Book
     PathDelimiter: " > ",
     Zine:      { Path: "zine.yml" },
     Container: { Path: "META-INF/container.xml" },
-    Package:   { Path: "", Dir: "",
-        Metadata: { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] },
-        Manifest: { Items: {}, "nav": {}, "toc-ncx": {}, "cover-image": {} },
-        Spine:    { Items: [] }
-    },
+    Package:   {},
     Files: {},
     FileDigit: 0
 };
@@ -273,7 +269,6 @@ L.loadBook = () => L.getBookData().then(Param => {
     window.addEventListener(O["resize"], R.resetBibiHeight);
     I.note('Loading...');
     O.log("Initializing Book...", "<g:>");
-    R.reset();
     return L.initializeBook(Param);
 }).then(InitializedAs => {
     //O.log('As ' + InitializedAs + (S["book"] ? ': ' + S["book"] : '.'));
@@ -287,7 +282,7 @@ L.loadBook = () => L.getBookData().then(Param => {
             O.log("Container: " + B.Path + B.PathDelimiter + B.Container.Path);
             return L.loadContainer().then(() => {
                 O.log("Package: " + B.Path + B.PathDelimiter + B.Package.Path);
-                return L.loadPackage().then(resolve);
+                L.loadPackage().then(resolve);
             });
         case "Zine":
             O.log('Loading Zine Data...', "<g:>");
@@ -297,8 +292,9 @@ L.loadBook = () => L.getBookData().then(Param => {
 })).then(() => {
     E.dispatch("bibi:loaded-package-document");
     ['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
-    ['rendition:layout', 'rendition:orientation', 'rendition:spread', 'page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
-    O.log('Loaded.', "</g>");
+    ['rendition:layout', 'rendition:orientation', 'rendition:spread'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
+    ['page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Spine[Pro]));
+    O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
 }).then(() => {
     if(S["use-cookie"]) {
         const BibiCookie = O.Cookie.remember(O.RootPath);
@@ -317,20 +313,15 @@ L.loadBook = () => L.getBookData().then(Param => {
 }).then(() => new Promise(resolve => {
     // Create Cover
     O.log('Creating Cover...', "<g:>");
-    if(B.Package.Manifest["cover-image"].Path) {
-        O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest["cover-image"].Path);
+    if(B.Package.Manifest.CoverImageID) {
+        O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest.Items[B.Package.Manifest.CoverImageID].Path);
         O.log('Will Be Created.', "</g>");
-    } else O.log('No Cover Image.', "</g>");
+    } else {
+        O.log('No Cover Image.', "</g>");
+    }
     resolve(); // ←↙ do async
     L.createCover();
-    E.dispatch("bibi:created-cover", B.Package.Manifest["cover-image"].Path);
-})).then(() => {
-    // Initialize Spine
-    O.log('Initializing Spine...', "<g:>");
-    L.initializeSpine();
-    O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : ''));
-    O.log('Initialized.', "</g>");
-}).then(() => new Promise(resolve => {
+})).then(() => new Promise(resolve => {
     // Load Navigation
     O.log('Loading Navigation...', "<g:>");
     L.loadNavigation().then(() => {
@@ -358,8 +349,8 @@ L.loadBook = () => L.getBookData().then(Param => {
     LayoutOption.addResetter();
     const Promises = [], TargetSpreadIndex = (() => {
         if(typeof S["to"] == "object") {
-            if(S["to"].SpreadIndex)    return S["to"].SpreadIndex;
-            if(S["to"].ItemIndexInAll) return R.AllItems[S["to"].ItemIndexInAll].Spread.Index;
+            if(S["to"].SpreadIndex)      return S["to"].SpreadIndex;
+            if(S["to"].ItemIndexInSpine) return B.Package.Spine.Items[S["to"].ItemIndexInSpine].Spread.Index;
         }
         return 0;
     })();
@@ -557,11 +548,12 @@ L.loadPackage = () => O.openDocument(B.Package.Path).then(L.processPackage);
 
 L.processPackage = (Doc) => {
 
-    const _Metadata = Doc.getElementsByTagName("metadata")[0], Metadata = B.Package.Metadata;
-    const _Spine    = Doc.getElementsByTagName("spine"   )[0], Spine    = B.Package.Spine;
-    const _Manifest = Doc.getElementsByTagName("manifest")[0], Manifest = B.Package.Manifest;
-
+    const _Metadata = Doc.getElementsByTagName("metadata")[0], Metadata = B.Package.Metadata = { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] };
+    const _Manifest = Doc.getElementsByTagName("manifest")[0], Manifest = B.Package.Manifest = { Items: {} };
+    const _Spine    = Doc.getElementsByTagName("spine"   )[0], Spine    = B.Package.Spine    = { Items: [] };
+    
     // METADATA
+    // ================================================================================
     sML.forEach(_Metadata.getElementsByTagName("meta"))(_Meta => {
         if(_Meta.getAttribute("refines")) return;
         if(_Meta.getAttribute("property")) { // DCTerms
@@ -573,6 +565,7 @@ L.processPackage = (Doc) => {
             Metadata[_Meta.getAttribute("name")] = _Meta.getAttribute("content");
         }
     });
+    // --------------------------------------------------------------------------------
     const DCNS = _Metadata.getAttribute("xmlns:dc");
     if(!Metadata["identifier"]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"))(_Meta => Metadata["identifier"]    = _Meta.textContent ); if(!Metadata["identifier"]) Metadata["identifier"] = O.BookURL;
     if(!Metadata["title"     ]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "title"     ))(_Meta => Metadata["title"     ]    = _Meta.textContent );
@@ -588,55 +581,121 @@ L.processPackage = (Doc) => {
     if( Metadata[            "omf:viewport"]) Metadata[            "omf:viewport"] = O.getViewportByMetaContent(       Metadata[            "omf:viewport"]);
     B.ICBViewport = Metadata["original-resolution"] || Metadata["rendition:viewport"] || Metadata["fixed-layout-jp:viewport"] || Metadata["omf:viewport"] || null;
 
+    const _ItemPaths = {};
+
     // MANIFEST
-    const TOCID = _Spine.getAttribute("toc");
-    sML.forEach(_Manifest.getElementsByTagName("item"))(_Item => { const Item = {
-            "id"         : _Item.getAttribute("id")         || "",
-            "href"       : _Item.getAttribute("href")       || "",
-            "media-type" : _Item.getAttribute("media-type") || "",
-            "properties" : _Item.getAttribute("properties") || "",
-            "fallback"   : _Item.getAttribute("fallback")   || ""
+    // ================================================================================
+    sML.forEach(_Manifest.getElementsByTagName("item"))(_Item => {
+        const Item = {
+            "id"         : _Item.getAttribute("id"),
+            "href"       : _Item.getAttribute("href"),
+            "media-type" : _Item.getAttribute("media-type")
         };
-        if(!Item["id"] || !Item["href"]) return;
-        Manifest.Items[Item["id"]] = Item;
+        if(!Item["id"] || !Item["href"] || (!Item["media-type"] && S["book-type"] == "EPUB")) return false;
+        let Properties = _Item.getAttribute("properties");
+        if(Properties) {
+            Properties = Properties.trim().replace(/\s+/g, " ").split(" ");
+            if(Properties.includes("cover-image")) Manifest.CoverImageID = Item["id"];
+            if(Properties.includes("nav"        )) Manifest.NavID        = Item["id"];
+        }
         Item.Path = O.getPath(B.Package.Dir, Item["href"]);
+        Item.FullPath = (/^https?:\/\//.test(Item.Path) ? "" : B.Path + B.PathDelimiter) + Item.Path;
         if(!B.Files[Item.Path]) B.Files[Item.Path] = { Content: "" };
-        Item["properties"] = Item["properties"].trim().replace(/\s+/g, " ").split(" ");
-        if(Item["properties"].includes("nav"        )) Manifest["nav"        ] = Item;
-        if(Item["properties"].includes("cover-image")) Manifest["cover-image"] = Item;
-        if(TOCID && Item["id"] == TOCID) Manifest["toc-ncx"] = Item;
+        const Fallback = _Item.getAttribute("fallback");
+        if(Fallback) Item["fallback"] = Fallback;
+        Manifest.Items[Item.Path] = Item; ////
+        _ItemPaths[Item["id"]] = Item.Path;
     });
 
     // SPINE
+    // ================================================================================
+    const TOCID = _Spine.getAttribute("toc");
+    if(TOCID && Manifest.Items[TOCID]) Manifest.TOCID = TOCID;
+    // --------------------------------------------------------------------------------
     Spine["page-progression-direction"] = _Spine.getAttribute("page-progression-direction");
-    if(!Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(Spine["page-progression-direction"])) Spine["page-progression-direction"] = "ltr";//"default";
+    if(!Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(Spine["page-progression-direction"])) Spine["page-progression-direction"] = "ltr"; // default;
     B.PPD = Spine["page-progression-direction"];
-    const PropertyREs = [
-        /(page-spread)-(.+)/,
-        /(rendition:layout)-(.+)/,
-        /(rendition:orientation)-(.+)/,
-        /(rendition:spread)-(.+)/,
-        /(rendition:page-spread)-(.+)/,
-        /(bibi:[a-z]+)-(.+)/
-    ];
-    sML.forEach(_Spine.getElementsByTagName("itemref"))(_ItemRef => { const ItemRef = {
-            "idref"                 : _ItemRef.getAttribute("idref")      || "",
-            "linear"                : _ItemRef.getAttribute("linear")     || "",
-            "properties"            : _ItemRef.getAttribute("properties") || "",
-            "rendition:layout"      : Metadata["rendition:layout"],
-            "rendition:orientation" : Metadata["rendition:orientation"],
-            "rendition:spread"      : Metadata["rendition:spread"],
-            "page-spread"           : ""
+    // --------------------------------------------------------------------------------
+    const PropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-(.+)$/;
+    let SpreadBefore, SpreadAfter;
+    if(B.PPD == "rtl") SpreadBefore = "right", SpreadAfter = "left";
+    else               SpreadBefore = "left",  SpreadAfter = "right";
+    Spine.SpreadsDocumentFragment = document.createDocumentFragment();
+    sML.forEach(_Spine.getElementsByTagName("itemref"))(_ItemRef => {
+        const ItemRef = {
+            "idref": _ItemRef.getAttribute("idref")
         };
+        if(!ItemRef["idref"]) return false;
+        let Item = Manifest.Items[_ItemPaths[ItemRef["idref"]]];
+        if(!Item) return false;
+        ItemRef["linear"] = _ItemRef.getAttribute("linear");
         if(ItemRef["linear"] != "no") ItemRef["linear"] = "yes";
-        ItemRef["properties"] = ItemRef["properties"].trim().replace(/\s+/g, " ").split(" ");
-        ItemRef["properties"].forEach(Pro => PropertyREs.forEach(RE => {
-            if(RE.test(Pro)) return ItemRef[Pro.replace(RE, "$1")] = Pro.replace(RE, "$2");//.replace("rendition:", "");
-        }));
-        if(ItemRef["rendition:page-spread"]) ItemRef["page-spread"] = ItemRef["rendition:page-spread"];
-        ItemRef["rendition:page-spread"] = ItemRef["page-spread"];
-        Spine.Items.push(ItemRef);
+        let Properties = _ItemRef.getAttribute("properties");
+        if(Properties) {
+            Properties = Properties.trim().replace(/\s+/g, " ").split(" ");
+            Properties.forEach(Pro => { if(PropertyRE.test(Pro)) _ItemRef[Pro.replace(PropertyRE, "$1")] = Pro.replace(PropertyRE, "$4"); });
+        }
+        ItemRef["rendition:layout"]      = _ItemRef["rendition:layout"]      || Metadata["rendition:layout"];
+        ItemRef["rendition:orientation"] = _ItemRef["rendition:orientation"] || Metadata["rendition:orientation"];
+        ItemRef["rendition:spread"]      = _ItemRef["rendition:spread"]      || Metadata["rendition:spread"];
+        const PageSpread = _ItemRef["rendition:page-spread"] || _ItemRef["page-spread"] || undefined;
+        if(PageSpread) ItemRef["rendition:page-spread"] = PageSpread;
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Item = sML.create("iframe", Item, { className: "item", scrolling: "no", allowtransparency: "true",
+            TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
+            IndexInSpine: Spine.Items.length,
+            Ref: ItemRef,
+            Box: sML.create("div", { className: "item-box " + ItemRef["rendition:layout"] }),
+            Pages: []
+        });
+        Spine.Items.push(Item);
+        if(ItemRef["linear"] != "yes") {
+            Item.IndexInNonLinearItems = R.NonLinearItems.length;
+            R.NonLinearItems.push(Item);
+        } else {
+            Item.Index = R.Items.length;
+            R.Items.push(Item);
+            let Spread = null;
+            if(ItemRef["rendition:page-spread"] == SpreadAfter && Item.Index > 0) {
+                const PreviousItem = R.Items[Item.Index - 1];
+                if(PreviousItem.Ref["rendition:page-spread"] == SpreadBefore) {
+                    PreviousItem.SpreadPair = Item;
+                    Item.SpreadPair = PreviousItem;
+                    Spread = Item.Spread = PreviousItem.Spread;
+                    Spread.Box.classList.remove("single-item-spread-before", "single-item-spread-" + SpreadBefore);
+                    Spread.Box.classList.add(ItemRef["rendition:layout"]);
+                }
+            }
+            if(!Spread) {
+                Spread = Item.Spread = sML.create("div", { className: "spread",
+                    Box: sML.create("div", { className: "spread-box " + ItemRef["rendition:layout"] }),
+                    Items: [], Pages: [],
+                    Index: R.Spreads.length
+                });
+                if(ItemRef["rendition:page-spread"]) {
+                    Spread.Box.classList.add("single-item-spread-" + ItemRef["rendition:page-spread"]);
+                    switch(ItemRef["rendition:page-spread"]) {
+                        case SpreadBefore: Spread.Box.classList.add("single-item-spread-before"); break;
+                        case SpreadAfter:  Spread.Box.classList.add("single-item-spread-after" ); break;
+                    }
+                }
+                R.Spreads.push(Spine.SpreadsDocumentFragment.appendChild(Spread.Box).appendChild(Spread));
+            }
+            Item.IndexInSpread = Spread.Items.length;
+            Spread.Items.push(Item);
+            Spread.appendChild(Item.Box);//.appendChild(Item);
+            if(ItemRef["rendition:layout"] == "pre-paginated") {
+                const Page = sML.create("span", { className: "page",
+                    Spread: Spread, Item: Item,
+                    IndexInItem: 0
+                });
+                Item.Pages.push(Item.Box.appendChild(Page));
+            }
+        }
     });
+    R.Main.Book.appendChild(B.Package.Spine.SpreadsDocumentFragment);
+    //E.dispatch("bibi:initialized-spine");
+    // --------------------------------------------------------------------------------
     B.FileDigit = (Spine.Items.length + "").length;
 
     B.ID        = Metadata["identifier"];
@@ -665,9 +724,13 @@ L.processPackage = (Doc) => {
 
 
 L.createCover = () => {
-    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = "";
-    const ImagePath = B.Package.Manifest["cover-image"].Path;
-    I.Veil.Cover.Info.innerHTML = I.Panel.BookInfo.Cover.Info.innerHTML = (() => {
+    const VCover =           I.Veil.Cover =               I.Veil.appendChild(sML.create("div", { id:           "bibi-veil-cover"      }));
+          VCover.Info =                                   VCover.appendChild(sML.create("p",   { id:           "bibi-veil-cover-info" }));
+    const PCover = I.Panel.BookInfo.Cover = I.Panel.BookInfo.Box.appendChild(sML.create("div", { id: "bibi-panel-bookinfo-cover"      }));
+          PCover.Info =                                   PCover.appendChild(sML.create("p",   { id: "bibi-panel-bookinfo-cover-info" }));
+    VCover.Info.innerHTML = PCover.Info.innerHTML = "";
+    const ImagePath = B.Package.Manifest.Items[B.Package.Manifest.CoverImageID].Path;
+    VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
         if(B.Creator)   BookID.push('<em>'     + B.Creator   + '</em>');
@@ -684,91 +747,29 @@ L.createCover = () => {
             if(!TimedOut) reject();
         }).then(() => clearTimeout(TimerID));
     }).then(ImageURI => {
-        I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "with-cover-image";
-        sML.style(I.Veil.Cover, { backgroundImage: "url(" + ImageURI + ")" });
-        I.Panel.BookInfo.Cover.insertBefore(sML.create("img", { src: ImageURI }), I.Panel.BookInfo.Cover.Info);
+        VCover.className = PCover.className = "with-cover-image";
+        sML.style(VCover, { backgroundImage: "url(" + ImageURI + ")" });
+        PCover.insertBefore(sML.create("img", { src: ImageURI }), PCover.Info);
     }).catch(() => {
-        I.Veil.Cover.className = I.Panel.BookInfo.Cover.className = "without-cover-image";
-        I.Veil.Cover.appendChild(I.getBookIcon());
+        VCover.className = PCover.className = "without-cover-image";
+        VCover.appendChild(I.getBookIcon());
     });
 };
 
 
 L.initializeSpine = () => {
-    R.Main.removeChild(R.Main.Book);
-    let SpreadBefore, SpreadAfter;
-    if(B.PPD == "rtl") SpreadBefore = "right", SpreadAfter = "left";
-    else               SpreadBefore = "left",  SpreadAfter = "right";
-    B.Package.Spine.Items.forEach(ItemRef => {
-        const Item = sML.create("iframe", { className: "item", scrolling: "no", allowtransparency: "true",
-            TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
-            Ref: ItemRef,
-            Path: B.Package.Manifest.Items[ItemRef["idref"]].Path,
-            File: B.Package.Manifest.Items[ItemRef["idref"]].File,
-            Box: sML.create("div", { className: "item-box " + ItemRef["rendition:layout"] }),
-            Pages: [],
-            Index: R.Items.length
-        });
-        Item.FullPath = (/^https?:\/\//.test(Item.Path) ? "" : B.Path + B.PathDelimiter) + Item.Path;
-        B.Files[Item.Path].InSpine = true;
-        R.AllItems.push(Item);
-        if(ItemRef["linear"] == "yes") R.Items.push(Item);
-        else                { R.NonLinearItems.push(Item); return; }
-        let Spread = null;
-        if(ItemRef["page-spread"] == SpreadAfter && Item.Index > 0) {
-            const PreviousItem = R.Items[Item.Index - 1];
-            if(PreviousItem.Ref["page-spread"] == SpreadBefore) {
-                PreviousItem.SpreadPair = Item;
-                Item.SpreadPair = PreviousItem;
-                Spread = Item.Spread = PreviousItem.Spread;
-                Spread.Box.classList.remove("single-item-spread-before", "single-item-spread-" + SpreadBefore);
-                Spread.Box.classList.add(ItemRef["rendition:layout"]);
-            }
-        }
-        if(!Spread) {
-            Spread = Item.Spread = sML.create("div", { className: "spread",
-                Box: sML.create("div", { className: "spread-box " + ItemRef["rendition:layout"] }),
-                Items: [], Pages: [],
-                Index: R.Spreads.length
-            });
-            if(ItemRef["page-spread"]) {
-                Spread.Box.classList.add("single-item-spread-" + ItemRef["page-spread"]);
-                switch(ItemRef["page-spread"]) {
-                    case SpreadBefore: Spread.Box.classList.add("single-item-spread-before"); break;
-                    case SpreadAfter:  Spread.Box.classList.add("single-item-spread-after" ); break;
-                }
-            }
-            R.Spreads.push(R.Main.Book.appendChild(Spread.Box).appendChild(Spread));
-        }
-        Item.IndexInSpread = Spread.Items.length;
-        Spread.Items.push(Item);
-        Spread.appendChild(Item.Box);//.appendChild(Item);
-        if(ItemRef["rendition:layout"] == "pre-paginated") {
-            const Page = sML.create("span", { className: "page",
-                Spread: Spread, Item: Item,
-                IndexInItem: 0
-            });
-            Item.Pages.push(Item.Box.appendChild(Page));
-        }
-    });
-    R.Main.appendChild(R.Main.Book);
-    E.dispatch("bibi:initialized-spine");
 };
 
 
 L.loadNavigation = () => new Promise((resolve, reject) => {
-    if(B.Package.Manifest["nav"].Path) {
-        I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["nav"].Path;
-        I.Panel.BookInfo.Navigation.Type = "Navigation Document";
-    } else if(B.Package.Manifest["toc-ncx"].Path) {
-        I.Panel.BookInfo.Navigation.Path = B.Package.Manifest["toc-ncx"].Path;
-        I.Panel.BookInfo.Navigation.Type = "TOC-NCX";
-    }
-    if(!I.Panel.BookInfo.Navigation.Type) return reject();
-    return O.openDocument(I.Panel.BookInfo.Navigation.Path).then(Doc => {
-        I.Panel.BookInfo.Navigation.innerHTML = "";
+    const PNav = I.Panel.BookInfo.Navigation = I.Panel.BookInfo.Box.appendChild(  sML.create("div", { id: "bibi-panel-bookinfo-navigation" }));
+         if(B.Package.Manifest.NavID) PNav.Path = B.Package.Manifest.Items[B.Package.Manifest.NavID].Path, PNav.Type = "Navigation Document";
+    else if(B.Package.Manifest.TOCID) PNav.Path = B.Package.Manifest.Items[B.Package.Manifest.TOCID].Path, PNav.Type = "TOC-NCX";
+    if(!PNav.Type) return reject();
+    return O.openDocument(PNav.Path).then(Doc => {
+        PNav.innerHTML = "";
         const NavContent = document.createDocumentFragment();
-        if(I.Panel.BookInfo.Navigation.Type == "Navigation Document") {
+        if(PNav.Type == "Navigation Document") {
             sML.forEach(Doc.querySelectorAll("nav"))(Nav => {
                 switch(Nav.getAttribute("epub:type")) {
                     case "toc":       Nav.classList.add("bibi-nav-toc"); break;
@@ -800,8 +801,8 @@ L.loadNavigation = () => new Promise((resolve, reject) => {
             const NavUL = makeNavULTree(Doc.getElementsByTagName("navMap")[0]);
             if(NavUL) NavContent.appendChild(document.createElement("nav")).appendChild(NavUL);
         }
-        I.Panel.BookInfo.Navigation.appendChild(NavContent);
-        L.coordinateLinkages(I.Panel.BookInfo.Navigation.Path, I.Panel.BookInfo.Navigation, "InNav");
+        PNav.appendChild(NavContent);
+        L.coordinateLinkages(PNav.Path, PNav, "InNav");
     }).then(resolve);
 });
 
@@ -840,21 +841,21 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         const HrefFnH = HrefPath.split("#");
         const HrefFile = HrefFnH[0] ? HrefFnH[0] : BasePath;
         const HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
-        for(const rItem in R.Items) {
-            if(HrefFile == rItem.Path) {
+        sML.forEach(R.Items)(Item => {
+            if(HrefFile == Item.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
                 A.setAttribute(HrefAttribute, B.Path + "/" + HrefPath);
                 A.InNav = InNav;
-                A.Destination = (rItem.Ref["rendition:layout"] == "pre-paginated") ? {
-                    Page: rItem.Pages[0]
+                A.Destination = (Item.Ref["rendition:layout"] == "pre-paginated") ? {
+                    Page: Item.Pages[0]
                 } : {
-                    Item: rItem,
+                    Item: Item,
                     ElementSelector: (HrefHash ? "#" + HrefHash : undefined)
                 };
                 L.coordinateLinkages.setJump(A);
-                break;
+                return "break";
             }
-        }
+        });
         if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
             A.setAttribute("data-bibi-original-href", HrefPathInSource);
             if(X["EPUBCFI"]) {
@@ -891,25 +892,26 @@ L.coordinateLinkages.setJump = (A) => A.addEventListener("click", Eve => {
 L.preprocessResources = () => new Promise((resolve, reject) => {
     O.log('Preprocessing Resources...', "<g:>");
     E.dispatch("bibi:is-going-to:preprocess-resources");
-    if(B.ExtractionPolicy == "at-once") return resolve();
-    if(S.BRL == "pre-paginated") return reject();
-    if(S["book-type"] == "Zine") return reject();
-    //if(!sML.UA.Gecko && !sML.UA.Edge) return reject();
-    resolve();
-}).then(() => {
-    // Cache CSS & JavaScript
-    const Promises = [], ManifestItems = B.Package.Manifest.Items;
-    for(const ID in ManifestItems) if(/\/(css|javascript)$/.test(ManifestItems[ID]["media-type"])) Promises.push(O.file(ManifestItems[ID].Path, { Preprocess: true, Cache: true }));
-    return Promise.all(Promises);
-}).then(() => {
-    // Cache Spine
     const Promises = [];
-    R.Items.forEach(Item => Promises.push(O.file(Item.Path, { Preprocess: true, Cache: true }).then(() => Item.Preprocessed = true)));
+    // Default StyleSheet
+    const DefaultStylePath = O.RootPath + "res/styles/bibi.book.css"
+    Promises.push(O.download(DefaultStylePath).then(CSS => B.DefaultStyle = O.getDataURI("css", CSS)).then(() => O.log(DefaultStylePath)));
+    // CSSs & JavaScripts
+    const MItems = B.Package.Manifest.Items;
+    for(const ID in MItems) if(/\/(css|javascript)$/.test(MItems[ID]["media-type"])) Promises.push(O.file(MItems[ID].Path, { Preprocess: true, Cache: true }).then(() => O.log(MItems[ID].FullPath)));
+    Promise.all(Promises).then(() => {
+        if(B.ExtractionPolicy == "at-once") return reject();
+        if(S.BRL == "pre-paginated") return resolve();
+        //if(S["book-type"] == "Zine") return resolve();
+        //if(!sML.UA.Gecko && !sML.UA.Edge) return resolve();
+        reject();
+    });
+}).catch(() => {
+    // If Resolved: Cache Spine
+    const Promises = [];
+    R.Items.forEach(Item => Promises.push(O.file(Item.Path, { Preprocess: true, Cache: true }).then(() => Item.Preprocessed = true).then(() => O.log(Item.FullPath))));
     return Promise.all(Promises);
-}).catch(() =>
-    Promise.resolve()
-).then(() => {
-    return O.download(O.RootPath + "res/styles/bibi.book.css").then(CSS => B.DefaultStyle = O.getDataURI("css", CSS));
+    //Promise.resolve();
 }).then(() => {
     O.log('Preprocessed', "</g>");
     E.dispatch("bibi:preprocessed-resources");
@@ -920,13 +922,10 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
     Spread.AllowPlaceholderItems = (S["allow-placeholders"] && Opt.AllowPlaceholderItems);
     let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
     Spread.Items.forEach(Item => {
-        L.loadItem(Item, {
-            AllowPlaceholder: Opt.AllowPlaceholderItems
-        }).then(() => { // Loaded
-            if(                       ++LoadedItemsInSpread == Spread.Items.length) resolve(Spread);
-        }).catch(() => { // Skipped
-            if(++SkippedItemsInSpread + LoadedItemsInSpread == Spread.Items.length)  reject(Spread);
-        });
+        L.loadItem(Item, { AllowPlaceholder: Opt.AllowPlaceholderItems })
+        .then(() =>  LoadedItemsInSpread++) // Loaded
+       .catch(() => SkippedItemsInSpread++) // Skipped
+        .then(() => { if(LoadedItemsInSpread + SkippedItemsInSpread == Spread.Items.length) (SkippedItemsInSpread ? reject : resolve)(Spread); });
     });
 });
 
@@ -1223,17 +1222,13 @@ R.initialize = () => {
         else           E.dispatch("bibi:toggles-utilities", Eve);
     });
 
-};
-
-
-R.reset = () => {
     R.Started = false;
     R.Spreads = [], R.Items = [], R.Pages = [];
-    R.AllItems = [], R.NonLinearItems = [];
+    R.NonLinearItems = [];
     R.CoverImage = { Path: "" };
     R.Current = {};
     R.Past = {};
-    R.Main.Book.innerHTML = R.Sub.innerHTML = "";
+
 };
 
 
@@ -1293,7 +1288,7 @@ R.layOutSpread = (Spread) => {
         // Single Reflowable/Pre-Paginated Item
         SpreadSize.Width  = Spread.Items[0].Box.offsetWidth;
         SpreadSize.Height = Spread.Items[0].Box.offsetHeight;
-        if(Spread.Spreaded && Spread.Items[0].Ref["rendition:layout"] == "pre-paginated" && /^(left|right)$/.test(Spread.Items[0].Ref["page-spread"])) {
+        if(Spread.Spreaded && Spread.Items[0].Ref["rendition:layout"] == "pre-paginated" && /^(left|right)$/.test(Spread.Items[0].Ref["rendition:page-spread"])) {
             // Single Pre-Paginated Spreaded Left/Right Item
             SpreadSize.Width *= 2;
         }
@@ -1449,7 +1444,7 @@ R.renderPrePaginatedItem = (Item) => {
             LoPairItem.Scale *= LoBaseItem.Scale;
         } else {
             const SpreadViewPort = {
-                Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item.Ref["page-spread"]) ? 2 : 1),
+                Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item.Ref["rendition:page-spread"]) ? 2 : 1),
                 Height: ItemLoVp.Height
             };
             Item.Scale = Math.min(
@@ -1490,7 +1485,7 @@ R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
 })();
 
 R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewport ? B.ICBViewport : {
-    Width:  R.Stage.Height * S["orientation-border-ratio"] / (Item.Spreaded && /^(left|right)$/.test(Item.Ref["page-spread"]) ? 2 : 1),
+    Width:  R.Stage.Height * S["orientation-border-ratio"] / (Item.Spreaded && /^(left|right)$/.test(Item.Ref["rendition:page-spread"]) ? 2 : 1),
     Height: R.Stage.Height
 };
 
@@ -1880,7 +1875,7 @@ R.findPageByDestination = (Dest) => {
     if(typeof Dest.PageIndexInItem == "number") try { return R.findItemByDestination(Dest).Pages[Dest.PageIndexInItem]; } catch(Err) { return null; }
     if(typeof Dest.PageIndexInSpread == "number") try { return R.findSpreadByDestination(Dest).Pages[Dest.PageIndexInSpread]; } catch(Err) { return null; }
     if(typeof Dest.PageProgressInSpread == "number") try { const Spread = R.findSpreadByDestination(Dest); return Spread.Pages[Math.floor(Spread.Pages.length * Dest.PageProgressInSpread)]; } catch(Err) { return null; }
-    if(typeof Dest.ElementSelector == "string") try { return R.getNearestPageOfElement(R.findItemByDestination(Dest).querySelector(Dest.ElementSelector)); } catch(Err) { return null; }
+    if(typeof Dest.ElementSelector == "string") try { return R.getNearestPageOfElement(R.findItemByDestination(Dest).contentDocument.querySelector(Dest.ElementSelector)); } catch(Err) { return null; }
     if(Dest.Element) return R.getNearestPageOfElement(Dest.Element);
     try { return R.findItemByDestination(Dest).Pages[0]; } catch(Err) {}
     try { return R.findSpreadByDestination(Dest).Pages[0]; } catch(Err) {}
@@ -1889,8 +1884,8 @@ R.findPageByDestination = (Dest) => {
 
 R.findItemByDestination = (Dest) => {
     if(Dest.Item) return Dest.Item;
-    if(typeof Dest.ItemIndexInAll == "number") return R.AllItems[Dest.ItemIndexInAll];
     if(typeof Dest.ItemIndex == "number") return R.Items[Dest.ItemIndex];
+    if(typeof Dest.ItemIndexInSpine == "number") return B.Package.Spine.Items[Dest.ItemIndexInSpine];
     if(typeof Dest.ItemIndexInSpread == "number") try { return R.findSpreadByDestination(Dest).Items[Dest.ItemIndexInSpread]; } catch(Err) { return null; }
     //if(Dest.Element && Dest.Element.ownerDocument.body.Item && Dest.Element.ownerDocument.body.Item.Pages) return Dest.Element.ownerDocument.body.Item;
     return null;
@@ -1905,10 +1900,10 @@ R.findSpreadByDestination = (Dest) => {
 R.getBibiToDestination = (BibitoString) => {
     if(typeof BibitoString == "number") BibitoString = "" + BibitoString;
     if(typeof BibitoString != "string" || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    let ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInAll = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
+    let ElementSelector = "", InE = BibitoString.split("-"), ItemIndexInSpine = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
     if(ElementIndex) ElementIndex.split(".").forEach(Index => ElementSelector += ">*:nth-child(" + Index + ")");
     return {
-        ItemIndexInAll: ItemIndexInAll,
+        ItemIndexInSpine: ItemIndexInSpine,
         ElementSelector: (ElementSelector ? "body" + ElementSelector : undefined)
     };
 };
@@ -1925,7 +1920,7 @@ R.getNearestPageOfElement = (Ele) => {
             ElementCoordInItem = Item.offsetWidth - (S["item-padding-left"] + S["item-padding-right"]) - ElementCoordInItem - Ele.offsetWidth;
         }
         sML.style(Item.HTML, { "column-width": Item.ColumnLength + "px" });
-        NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth - 1)];
+        NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth)];
     } else {
         ElementCoordInItem = O.getElementCoord(Ele)[S.CC.L.AXIS.L];
         if(S.SLD == "rtl" && S.SLA == "horizontal") {
@@ -2145,10 +2140,6 @@ I.createVeil = () => {
 
     I.Veil.open();
 
-    I.Veil.Cover = I.Veil.appendChild(sML.create("div", { id: "bibi-veil-cover" }));
-    I.Veil.Cover.Info     = I.Veil.Cover.appendChild(sML.create("p", { id: "bibi-veil-cover-info" }));
-    //I.Veil.Cover.ImageBox = I.Veil.Cover.appendChild(sML.create("figure", { id: "bibi-veil-cover-image-box" }));
-
     const PlayButtonTitle = (O.Touch ? 'Tap' : 'Click') + ' to Open';
     I.Veil.PlayButton = I.Veil.appendChild(
         sML.create("p", { id: "bibi-veil-play", title: PlayButtonTitle,
@@ -2263,9 +2254,6 @@ I.createPanel = () => {
     // Book Info
     I.Panel.BookInfo            = I.Panel.appendChild(               sML.create("div", { id: "bibi-panel-bookinfo"            }));
     I.Panel.BookInfo.Box        = I.Panel.BookInfo.appendChild(      sML.create("div", { id: "bibi-panel-bookinfo-box"        }));
-    I.Panel.BookInfo.Navigation = I.Panel.BookInfo.Box.appendChild(  sML.create("div", { id: "bibi-panel-bookinfo-navigation" }));
-    I.Panel.BookInfo.Cover      = I.Panel.BookInfo.Box.appendChild(  sML.create("div", { id: "bibi-panel-bookinfo-cover"      }));
-    I.Panel.BookInfo.Cover.Info = I.Panel.BookInfo.Cover.appendChild(sML.create("p",   { id: "bibi-panel-bookinfo-cover-info" }));
 
     E.dispatch("bibi:created-panel");
 
@@ -4356,14 +4344,13 @@ U.initialize = () => { // formerly O.readExtras
     const Q = U.parseQuery(location.search);
     const H = U.parseHash(location.hash);
 
-    ["epub", "zine", "book"].forEach(BookType => {
-        const BookPath = Q[BookType] ? Q[BookType] : O.Body.getAttribute("data-bibi-" + BookType);
-        U[BookType] = (typeof BookPath == "string") ? decodeURIComponent(BookPath) : "";
-    });
+    const BookPath = Q["book"] ? Q["book"] : O.Body.getAttribute("data-bibi-book");
+    U["book"] = (typeof BookPath == "string") ? decodeURIComponent(BookPath) : "";
+    U["book-type"] = U["book"] ? (Q.hasOwnProperty("zine") ? "Zine" : "EPUB") : "";
 
     const BookDataElement = document.getElementById("bibi-book-data");
     if(BookDataElement) {
-        if(!U["epub"] && !U["zine"] && !U["book"] && BookDataElement.innerText.trim()) {
+        if(!U["book"] && BookDataElement.innerText.trim()) {
             const BookDataMIMEType = BookDataElement.getAttribute("data-bibi-book-mimetype");
             if(typeof BookDataMIMEType == "string" && /^application\/(epub\+zip|zip|x-zip(-compressed)?)$/i.test(BookDataMIMEType)) {
                 U.BookDataElement = BookDataElement;
@@ -4505,12 +4492,6 @@ S.initialize = () => {
         return O.getPath(location.href.split("?")[0].replace(/[^\/]*$/, ""), S["bookshelf"]);
     })().replace(/\/$/, "");
     if(!/^https?:\/\/[^\/]+.*$/.test(S["bookshelf"])) S["bookshelf"] = "";
-         if(S["epub"]) S["book-type"] = "EPUB", S["book"] = S["epub"];
-    else if(S["zine"]) S["book-type"] = "Zine", S["book"] = S["zine"];
-    else if(S["book"]) S["book-type"] = "EPUB";
-    else               S["book-type"] = "";
-    delete S["epub"];
-    delete S["zine"];
     S["book"] = (() => {
         if(!S["book"] || !S["book-type"]) return "";
         if(/^https?:\/\//.test(S["book"])) return S["book"];
@@ -4660,7 +4641,10 @@ O.log = (Log, Tag) => {        let Prefix = "‐ ", FontWeight = "normal";
         case "</g>":               Prefix = "└ "                       ; break;
     }
     if(Tag == "<e/>") {
-        while(O.log.Depth) console.groupEnd(), O.log.Depth--;
+        while(O.log.Depth) {
+            console.groupEnd();
+            O.log.Depth--;
+        }
         throw Prefix + Log;
     } else if(Tag == "</g>") {
         if(O.log.Depth <= O.log.Limit) console.groupEnd();
@@ -4668,14 +4652,17 @@ O.log = (Log, Tag) => {        let Prefix = "‐ ", FontWeight = "normal";
     }
     if(Log && O.log.Depth <= O.log.Limit) {
         let Method = "log";
-        if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";
+        if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";//"group";
         if(O.log.Depth == 0) {
             const TimeFromOrigin = O.stamp(Log.replace("%c", ""));
             if(Tag == "<i/>" && TimeFromOrigin) Log += " %c(" + Math.floor(TimeFromOrigin / 1000) + "." + (TimeFromOrigin % 1000 + "").padStart(3, 0) + "sec)";
             Prefix = "Bibi: " + Prefix;
         } else {
             Prefix = "      " + Prefix;
+            //for(let i = 1; i <= O.log.Depth; i++) Prefix = "│ " + Prefix;
+            //Prefix = "Bibi: " + Prefix;
         }
+        
         O.log.log(Method, Prefix, Log, FontWeight);
     }
     if(Tag == "<g:>") O.log.Depth++;
@@ -4756,6 +4743,7 @@ O.file = (FilePath, Opt = {}) => new Promise((resolve, reject) => {
 }).then(FileContent => {
     if(Opt.URI) return FileContent;
     if(Opt.Cache) {
+        if(!B.Files[FilePath]) B.Files[FilePath] = {};
         B.Files[FilePath].Content = FileContent;
         if(Opt.Preprocess) B.Files[FilePath].Preprocessed = true;
     }
@@ -4772,10 +4760,14 @@ O.download = (Path/*, Opt = {}*/) => new Promise((resolve, reject) => {
     XHR.send(null);
 });
 
-O.ab2b = (ABuf) => O.ui8a2b(new Uint8Array(ABuf));
-O.ab2t = (ABuf) => O.ui8a2t(new Uint8Array(ABuf));
 O.ui8a2b = (UI8A) => { let Bin = ""; for(let l = UI8A.byteLength, i = 0; i < l; i++) Bin += String.fromCharCode(UI8A[i]); return Bin; };
 O.ui8a2t = (UI8A) => new TextDecoder("utf-8").decode(UI8A);
+  O.ab2b = (ABuf) => O.ui8a2b(new Uint8Array(ABuf));
+  O.ab2t = (ABuf) => O.ui8a2t(new Uint8Array(ABuf));
+// O.a2b = (ASC ) => atob(ASC);
+// O.b2a = ( Bin) => btoa(Bin);
+
+O.isBin = (Hint) => /(^|\.)(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Hint);
 
 O.getDataURI = (FilePath, FileContent) => {
     for(const Ext in O.ContentTypes) {
@@ -4785,8 +4777,6 @@ O.getDataURI = (FilePath, FileContent) => {
     }
     return "";
 };
-
-O.isBin = (Hint) => /(^|\.)(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Hint);
 
 O.ContentTypes = {
     "pdf"     : "application/pdf",
@@ -4965,10 +4955,7 @@ O.getElementInnerText = (Ele) => {
 O.getElementCoord = (Ele, OPa) => {
     const Coord = { X: Ele.offsetLeft, Y: Ele.offsetTop };
     OPa = OPa && OPa.tagName ? OPa : null;
-    while(Ele.offsetParent) {
-        Ele = Ele.offsetParent, Coord.X += Ele.offsetLeft, Coord.Y += Ele.offsetTop;
-        if(Ele.offsetParent == OPa) break;
-    }
+    while(Ele.offsetParent != OPa) Ele = Ele.offsetParent, Coord.X += Ele.offsetLeft, Coord.Y += Ele.offsetTop;
     return Coord;
 };
 

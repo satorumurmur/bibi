@@ -36,8 +36,7 @@ const Config = {
             'bib/i/extensions/share/index',
             'bib/i/extensions/unaccessibilizer/index',
             'bib/i/extensions/unzipper/index',
-            'bib/i/extensions/zine/index',
-            'bib/i/extensions/lunascape/index'
+            'bib/i/extensions/zine/index'
         ],
         "scss": [
             'bib/i/res/styles/bibi',

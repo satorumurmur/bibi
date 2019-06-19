@@ -11,6 +11,8 @@ Bibi.x({
 
     'use strict';
 
+    B.Package.Path = B.Package.Dir = "";
+
     this.openYAML = (Path) => O.file(Path).then(jsyaml.safeLoad).catch(O.error);
 
     this.loadZineData = () => this.openYAML(B.Zine.Path).then(this.processZineData).then(L.processPackage);
@@ -35,10 +37,8 @@ Bibi.x({
             Item.setAttribute("href", Data[Pro]);
         });
         const Spine = Doc.appendChild(document.createElement("spine"));
-        if(Data["page-progression-direction"]) {
-            Spine.setAttribute("page-progression-direction", Data["page-progression-direction"]);
-        }
-        Data.spine.forEach((ItemrefData, i) => {
+        if(Data["page-progression-direction"]) Spine.setAttribute("page-progression-direction", Data["page-progression-direction"]);
+        Data["spine"].forEach((ItemrefData, i) => {
             if(!ItemrefData) return;
             ItemrefData = ItemrefData.trim().replace(/\s+/, " ").split(" ");
             const ID = "spine-item-" + (i + 1 + "").padStart(3, 0);
