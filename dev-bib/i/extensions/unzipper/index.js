@@ -66,11 +66,11 @@ Bibi.x({
             });
         }
         if(FilesToBeExtract.includes(FolderName + B.Container.Path)) {
-            if(!S["book-type"]) S["book-type"] = "EPUB";
-            else if(S["book-type"] == "Zine") reject({ BookTypeError: 'It Seems to Be an EPUB. Not a Zine.' });
+            if(!B.Type) B.Type = "EPUB";
+            else if(B.Type == "Zine") reject({ BookTypeError: 'It Seems to Be an EPUB. Not a Zine.' });
         } else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path)) {
-            if(!S["book-type"]) S["book-type"] = "Zine";
-            else if(S["book-type"] == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
+            if(!B.Type) B.Type = "Zine";
+            else if(B.Tyep == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
         } else {
             reject('Required Metafile Is Not Contained.');
         }
