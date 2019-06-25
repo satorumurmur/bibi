@@ -310,6 +310,7 @@ div#bibi-main {
 						display: block;
 					}
 					iframe.item {
+						//overflow: hidden;
 						position: absolute;
 						z-index: 10;
 						@include trbl(0);
@@ -318,13 +319,15 @@ div#bibi-main {
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
+						background: transparent;
 						html.zoomed-in & { will-change: transform; }
 						html.transforming & { will-change: none !important; }
-						html.page-ltr & { transform-origin: 0 0; }
-						html.page-rtl & { transform-origin: 100% 0; }
+						transform-origin: 0 0;
+						//html.page-ltr & { transform-origin: 0 0; }
+						//html.page-rtl & { transform-origin: 100% 0; }
 						//&.non-linear-item { display: none; }
 						opacity: 1;
-						div.item-box:not(.loaded) & { opacity: 0; }
+						div.item-box:not(.loaded) & { visibility: hidden; opacity: 0; }
 						//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
 						div.spread-box.current & { transition: opacity .1s linear; }
 					}

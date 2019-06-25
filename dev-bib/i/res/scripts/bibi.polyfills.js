@@ -1,6 +1,7 @@
-import 'native-promise-only';
-import 'custom-event-polyfill';
+import 'classlist-polyfill';
 import 'current-script-polyfill';
+import 'custom-event-polyfill';
+import 'native-promise-only';
 import 'polyfill-array-includes';
 import 'string.padstart';
-import 'classlist-polyfill';
+import { TextDecoder } from 'text-encoding-utf-8'; self.TextDecoder = TextDecoder;

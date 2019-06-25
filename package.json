@@ -1,6 +1,6 @@
 {
   "name": "bibi",
-  "version": "0.999.9-r9",
+  "version": "1.0.0-pr",
   "author": {
     "name": "Satoru MATSUSHIMA"
   },
@@ -56,9 +56,8 @@
     "style-loader": "^0.23.1",
     "terser-webpack-plugin": "^1.2.4",
     "url-loader": "^1.1.2",
-    "webpack": "^4.34.0",
+    "webpack": "^4.35.0",
     "webpack-cli": "^3.3.4",
-    "webpack-dev-server": "^3.7.1",
     "webpack-fix-style-only-entries": "^0.2.2"
   },
   "dependencies": {
@@ -73,7 +72,8 @@
     "material-icons": "^0.3.1",
     "native-promise-only": "^0.8.1",
     "polyfill-array-includes": "^2.0.0",
-    "sml.js": "^1.0.16",
-    "string.padstart": "^0.1.1"
+    "sml.js": "^1.0.17",
+    "string.padstart": "^0.1.1",
+    "text-encoding-utf-8": "^1.0.2"
   }
 }

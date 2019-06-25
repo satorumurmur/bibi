@@ -19,7 +19,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin')
 const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 
-const BrowsersList = ['last 1 version'];
+const BrowsersList = ['last 1 version', 'ie 11'];
 
 const Config = {
     stats: 'errors-warnings',

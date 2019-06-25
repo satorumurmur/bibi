@@ -20,36 +20,46 @@ export const Bibi = { "version": "____bibi-version____", "href": "https://bibi.e
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Bibi.hello = () => new Promise(resolve => {
-    O.initialize();
-    document.addEventListener("DOMContentLoaded", typeof Promise == "function" ? resolve :
-        () => document.head.insertBefore(sML.create("script", { id: "bibi-polyfills", src: "./res/scripts/bibi.polyfills.js", onload: resolve }), document.getElementById("bibi-script"))
-    );
-}).then(() => {
-    O.log('Hello! %c(v' + Bibi["version"] + ')', "<g!>");
-    O.log('[ja] ' + Bibi["href"]);
-    O.log('[en] https://github.com/satorumurmur/bibi');
-    O.log('', "</g>");
-}).then(Bibi.loadPreset)
-  .then(Bibi.initialize)
-  .then(X.loadExtensions)
-  .then(Bibi.ready)
-  .then(L.loadBook);
+Bibi.hello = () => {
+    (hello => {
+        O.initialize();
+        document.addEventListener("DOMContentLoaded", typeof Promise == "function"
+            ? hello
+            : () => document.head.insertBefore(sML.create("script", { id: "bibi-polyfills", src: "./res/scripts/bibi.polyfills.js", onload: hello }), document.getElementById("bibi-script"))
+        );
+    })(() => {
+        O.log('Hello!', "<b:>");
+        O.log('[ja] ' + Bibi["href"]);
+        O.log('[en] https://github.com/satorumurmur/bibi');
+        Bibi.load();
+    });
+};
+
+
+Bibi.load = () => Promise.resolve()
+    .then(Bibi.loadPreset)
+    .then(Bibi.initialize)
+    .then(Bibi.loadExtensions)
+    .then(Bibi.ready)
+    .then(Bibi.loadBook);
 
 
 Bibi.loadPreset = () => new Promise(resolve => {
     O.log('Loading Preset...', "<g:>");
     const PresetSource = document.getElementById("bibi-script").getAttribute("data-bibi-preset") || "./presets/default.js";
-    O.log('Preset: ' + O.getPath(O.RootPath, PresetSource));
     document.head.appendChild(sML.create("script", { src: PresetSource, onload: resolve }));
 }).then(() => {
+    O.log('Preset:', P, '<o/>');
     O.log('Loaded.', "</g>");
 });
 
 
 Bibi.initialize = () => {
 
-    O.HTML  = document.documentElement; O.HTML.classList.add.apply(O.HTML.classList, sML.Environments.concat(["bibi", "welcome"]));
+    O.contentWindow = window;
+    O.contentDocument = document;
+
+    O.HTML  = document.documentElement; O.HTML.classList.add(...sML.Environments.concat(["bibi", "welcome"]));
     O.Head  = document.head;
     O.Body  = document.body;
     O.Info  = document.getElementById("bibi-info");
@@ -66,9 +76,6 @@ Bibi.initialize = () => {
         }                   return "en";
     })(navigator.languages instanceof Array ? navigator.languages : navigator.language ? [navigator.language] : []);
 
-    O.contentWindow = window;
-    O.contentDocument = document;
-
     // Device & Event
     if(sML.OS.iOS || sML.OS.Android) {
         O.Touch = true;
@@ -84,7 +91,7 @@ Bibi.initialize = () => {
     } else {
         O.Touch = false;
         O["resize"] = "resize";
-        if(sML.UA.InternetExplorer || sML.UA.Edge) {
+        if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
             O["pointerdown"] = "pointerdown";
             O["pointermove"] = "pointermove";
             O["pointerup"]   = "pointerup";
@@ -107,7 +114,7 @@ Bibi.initialize = () => {
         // Say Bye-bye
         const Msg = {
             en: '<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>',
-            ja: '<span>ごめんなさい……</span> <span>お使いのブラウザでは、</span><span>ビビは動きません。</span>'
+            ja: '<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>ビビは動作しません。</span>'
         };
         I.Veil.ByeBye = I.Veil.appendChild(
             sML.create("p", { id: "bibi-veil-byebye",
@@ -117,11 +124,10 @@ Bibi.initialize = () => {
                 ].join("").replace(/(BiB\/i|ビビ)/g, '<a href="' + Bibi["href"] + '" target="_blank">$1</a>')
             })
         );
-        I.note('(Your Browser Is Not Compatible)', 99999999999);
-        O.log(Msg["en"].replace(/<[^>]*>/g, ""));
-        E.dispatch("bibi:says-byebye");
         O.HTML.classList.remove("welcome");
-        return false;
+        I.note('Your Browser Is Not Compatible', 99999999999, "ErrorOccured");
+        E.dispatch("bibi:says-byebye");
+        return O.error(Msg["en"].replace(/<[^>]*>/g, ""));
     }
 
     I.note("Welcome!");
@@ -153,13 +159,13 @@ Bibi.initialize = () => {
         if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT,  O.HTML.classList.add("fullscreen-enabled");
     }
 
-    // Writing Mode & Font Size
+    // Writing Mode/* & Font Size*/
     O.WritingModeProperty = (() => {
         const HTMLCS = getComputedStyle(O.HTML);
         if(/^(vertical|horizontal)-/.test(HTMLCS["-webkit-writing-mode"])) return "-webkit-writing-mode";
         if(/^(vertical|horizontal)-/.test(HTMLCS["writing-mode"]) || sML.UA.InternetExplorer) return "writing-mode";
         else return undefined;
-    })();
+    })();/*
     const SRI4VTC = sML.appendCSSRule("div#bibi-vtc", "position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;");
     const VTC = document.body.appendChild(sML.create("div", { id: "bibi-vtc" })); // VerticalTextChecker
     VTC.Child = VTC.appendChild(sML.create("p", { innerHTML: "aAあ亜" }));
@@ -172,7 +178,7 @@ Bibi.initialize = () => {
     };
     O.DefaultFontSize = Math.min(VTC.Child.offsetWidth, VTC.Child.offsetHeight);
     document.body.removeChild(VTC);
-    sML.deleteCSSRule(SRI4VTC);
+    sML.deleteCSSRule(SRI4VTC);*/
 
     // Scrollbars
     O.Body.style.width = "101vw", O.Body.style.height = "101vh";
@@ -180,8 +186,7 @@ Bibi.initialize = () => {
         Width: window.innerWidth - O.HTML.offsetWidth,
         Height: window.innerHeight - O.HTML.offsetHeight
     };//O.Scrollbars.Height = O.Scrollbars.Width;
-    O.Body.style.width = O.Body.style.height = "";
-    O.HTML.style.width = O.Body.style.width = "100%";
+    O.HTML.style.width = O.Body.style.width = "100%", O.Body.style.height = "";
 
     S.initialize();
 
@@ -189,6 +194,33 @@ Bibi.initialize = () => {
 
     E.dispatch("bibi:initialized");
 
+};
+
+
+Bibi.loadExtensions = () => {
+    let ReadyForExtraction = false, ReadyForBibiZine = false;
+    if(S["book"]) {
+        if(O.isToBeExtractedIfNecessary(S["book"])) ReadyForExtraction = true;
+        if(S["book-type"] == "Zine")                ReadyForBibiZine = true;
+    } else if(S["accept-local-file"] || S["accept-blob-converted-data"]) ReadyForExtraction = ReadyForBibiZine = true;
+    if(ReadyForBibiZine)   P["extensions"].unshift({ "src": "extensions/zine/index.js"     });
+    if(ReadyForExtraction) P["extensions"].unshift({ "src": "extensions/unzipper/index.js" });
+    if(P["extensions"].length == 0) return Promise.resolve();
+    return new Promise(resolve => {
+        O.log('Loading Extension' + (P["extensions"].length > 1 ? 's' : '') + '...', "<g:>");
+        const loadExtensionInPreset = (i) => {
+            X.load(P["extensions"][i]).then(Msg => {
+                //O.log(Msg);
+            }).catch(Msg => {
+            }).then(() => {
+                P["extensions"][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
+            });
+        };
+        loadExtensionInPreset(0);
+    }).then(() => {
+        O.log('Extensions:', X.Extensions, '<o/>');
+        O.log(X.Extensions.length ? 'Loaded. (' + X.Extensions.length  + ' Extension' + (X.Extensions.length > 1 ? 's' : '') + ')' : 'No Extension.', "</g>")
+    });
 };
 
 
@@ -200,68 +232,7 @@ Bibi.ready = () => new Promise(resolve => {
 });
 
 
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Book
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-export const B = { // Bibi.Book
-    Title: "",
-    Creator: "",
-    Publisher: "",
-    Language: "",
-    WritingMode: "",
-    ExtractionPolicy: "",
-    Path: "",
-    PathDelimiter: " > ",
-    Zine:      { Path: "zine.yml" },
-    Container: { Path: "META-INF/container.xml" },
-    Package:   {},
-    Files: {},
-    FileDigit: 0
-};
-
-
-B.clearFileCache = (FilePath) => {
-    B.Files[FilePath].Content = "";
-    delete B.Files[FilePath].Preprocessed;
-};
-
-B.clearFileCaches = (Opt = {}) => {
-    const Files = Opt.Files || B.Files;
-    if(Opt.Extensions) {    const RE = new RegExp('\\.(' + Extensions + ')$', "i");
-        for(const FilePath in Files) if( RE.test(FilePath)) B.clearFileCache(FilePath);
-    } else if(Opt.Except) { const RE = new RegExp('\\.(' + Except     + ')$', "i");
-        for(const FilePath in Files) if(!RE.test(FilePath)) B.clearFileCache(FilePath);
-    } else {
-        for(const FilePath in Files)                        B.clearFileCache(FilePath);
-    }
-};
-
-
-
-
-//==============================================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//-- Loader
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-export const L = { // Bibi.Loader
-    Opened: false,
-    Preprocessed: false,
-    PreprocessedFiles: []
-};
-
-
-L.loadBook = () => L.getBookData().then(Param => {
+Bibi.loadBook = () => L.getBookData().then(Param => {
     O.Busy = true;
     O.HTML.classList.remove("ready");
     O.HTML.classList.add("busy");
@@ -271,30 +242,30 @@ L.loadBook = () => L.getBookData().then(Param => {
     O.log("Initializing Book...", "<g:>");
     return L.initializeBook(Param);
 }).then(InitializedAs => {
-    //O.log('As ' + InitializedAs + (S["book"] ? ': ' + S["book"] : '.'));
-    //O.log('Initialized.', "</g>");
+    O.log(InitializedAs + ':', B.Path, '<o/>');
+    if(B.ExtractionPolicy) O.log('ExtractionPolicy: ' + B.ExtractionPolicy);
     O.log('Initialized. (as ' + InitializedAs + ')', "</g>");
 }).then(() => new Promise(resolve => {
     // Load Container and Package (or ZineData)
+    O.log('Loading Metadata...', "<g:>");
     switch(S["book-type"]) {
         case "EPUB":
-            O.log('Loading Container and Package...', "<g:>");
-            O.log("Container: " + B.Path + B.PathDelimiter + B.Container.Path);
+            //O.log("Container: ", B.Package.Manifest.Items[B.Container.Path]);
             return L.loadContainer().then(() => {
-                O.log("Package: " + B.Path + B.PathDelimiter + B.Package.Path);
+                //O.log("Package: " + B.fullPath(B.Package.Path));
                 L.loadPackage().then(resolve);
             });
         case "Zine":
-            O.log('Loading Zine Data...', "<g:>");
-            O.log('Zine Data: ' + B.Path + B.PathDelimiter + B.Zine.Path);
+            //O.log('Zine Data: ' + B.fullPath(B.ZineData.Path));
             return X.Zine.loadZineData().then(resolve);
     }
 })).then(() => {
     E.dispatch("bibi:loaded-package-document");
-    ['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
-    ['rendition:layout', 'rendition:orientation', 'rendition:spread'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
-    ['page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Spine[Pro]));
-    O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
+    O.log('Package:', B.Package, '<o/>');
+    //['Title', 'Creator', 'Publisher', 'Language'].forEach(Pro => O.log(Pro + ': ' + B[Pro]));
+    //['rendition:layout', 'rendition:orientation', 'rendition:spread'].forEach(Pro => O.log(Pro + ': ' + B.Package.Metadata[Pro]));
+    //['page-progression-direction'].forEach(Pro => O.log(Pro + ': ' + B.Package.Spine[Pro]));
+    O.log('Loaded. (' + B.Package.Metadata["rendition:layout"] + ' / ' + B.Package.Spine["page-progression-direction"] + ')', "</g>");
 }).then(() => {
     if(S["use-cookie"]) {
         const BibiCookie = O.Cookie.remember(O.RootPath);
@@ -313,11 +284,11 @@ L.loadBook = () => L.getBookData().then(Param => {
 }).then(() => new Promise(resolve => {
     // Create Cover
     O.log('Creating Cover...', "<g:>");
-    if(B.Package.Manifest.CoverImageID) {
-        O.log('Cover Image: ' + B.Path + B.PathDelimiter + B.Package.Manifest.Items[B.Package.Manifest.CoverImageID].Path);
+    if(B.Package.Manifest.CoverImage) {
+        O.log('Cover Image:' ,B.fullPath(B.Package.Manifest.CoverImage.Path), '<o/>');
         O.log('Will Be Created.', "</g>");
     } else {
-        O.log('No Cover Image.', "</g>");
+        O.log('Will Be Created. (w/o Image)', "</g>");
     }
     resolve(); // ←↙ do async
     L.createCover();
@@ -325,7 +296,7 @@ L.loadBook = () => L.getBookData().then(Param => {
     // Load Navigation
     O.log('Loading Navigation...', "<g:>");
     L.loadNavigation().then(() => {
-        O.log(I.Panel.BookInfo.Navigation.Type + ': ' + B.Path + B.PathDelimiter + I.Panel.BookInfo.Navigation.Path);
+        O.log(I.Panel.BookInfo.Navigation.Type + ':', B.fullPath(I.Panel.BookInfo.Navigation.Path), '<o/>');
         O.log('Loaded.', "</g>");
         E.dispatch("bibi:loaded-navigation", I.Panel.BookInfo.Navigation.Path);
     }).catch(() => O.log('No Navigation.', "</g>"))
@@ -334,10 +305,15 @@ L.loadBook = () => L.getBookData().then(Param => {
     // Announce "Prepared" (and Wait, sometime)
     E.dispatch("bibi:prepared");
     if(!S["autostart"] && !L.Played) return L.wait();
-}).then(() =>
+}).then(() => {
     // Background Preparing
-    L.preprocessResources()
-).then(() => new Promise(resolve => {
+    O.log('Preprocessing Resources...', "<g:>");
+    return L.preprocessResources().then(Resolved => {
+        O.log('Preprocessed Resources:', Resolved, '<o/>');
+        O.log('Preprocessed. (' + Resolved.length + ' Resource' + (Resolved.length > 1 ? 's' : '') + ')', "</g>");
+        E.dispatch("bibi:preprocessed-resources");
+    });
+}).then(() => new Promise(resolve => {
     // Load & Layout Items in Spreads and Pages
     O.log('Loading Items in Spreads' + '...', "<g:>");
     const LayoutOption = {
@@ -356,19 +332,21 @@ L.loadBook = () => L.getBookData().then(Param => {
     })();
     let LoadedItems = 0;
     R.Spreads.forEach(Spread => Promises.push(
-        L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread.Index == TargetSpreadIndex) }).then(() => {
+        L.loadSpread(Spread, { AllowPlaceholderItems: S["allow-placeholders"] && !(Spread.Index == TargetSpreadIndex) }).then(() => {/*
             const ItemLogHeaders = [];
             Spread.Items.forEach(Item => ItemLogHeaders.push('Item ' + (Item.Index + 1 + "").padStart(B.FileDigit, 0)));
             O.log('Spread ' + (Spread.Index + 1 + "").padStart(B.FileDigit, 0) + ' (' + ItemLogHeaders.join(", ") + ')', "<g->");
-            Spread.Items.forEach(Item => O.log(ItemLogHeaders[Item.IndexInSpread] + ': ' + (Item.FullPath || '(Not Found)')));
-            O.log('', "</g>");
-            LoadedItems += Spread.Items.length;
-            if(B.Package.Metadata["rendition:layout"] == "reflowable") I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
+            Spread.Items.forEach(Item => O.log(ItemLogHeaders[Item.IndexInSpread] + ':', Item));
+            O.log('', "</g>");*/
+            //O.log('', Spread.Items);
+            LoadedItems += Spread.Items.length;/*
+            if(B.Package.Metadata["rendition:layout"] == "reflowable") */I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
             if(!LayoutOption.Reset) R.layOutSpread(Spread);
         })//.catch(() => Promise.resolve())
     ));
     Promise.all(Promises).then(() => {
-        O.log('Loaded. (' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ')', "</g>");
+        O.log('Spreads:', R.Spreads, '<o/>');
+        O.log('Loaded. (' + R.Items.length + ' in ' + R.Spreads.length + ')', "</g>");
         if(!LayoutOption.Reset) {
             R.organizePages();
             R.layOutStage();
@@ -385,7 +363,7 @@ L.loadBook = () => L.getBookData().then(Param => {
     L.Opened = true;
     document.body.click(); // To responce for user scrolling/keypressing immediately
     I.note('');
-    O.log('Enjoy Readings!', "<i/>");
+    O.log('Enjoy Readings!', "</b>");
     E.dispatch("bibi:opened");
 }).then(() => {
     if(S["allow-placeholders"]) setTimeout(R.turnSpreadsOnDemand, 123);
@@ -410,8 +388,77 @@ L.loadBook = () => L.getBookData().then(Param => {
     //*/
 }).catch(Mes => {
     I.note(Mes, 99999999999, "ErrorOccured");
-    throw new Error(Mes);
+    throw Mes;
 });
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Book
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+export const B = { // Bibi.Book
+    Title: "",
+    Creator: "",
+    Publisher: "",
+    Language: "",
+    WritingMode: "",
+    ExtractionPolicy: "",
+    Path: "",
+    PathDelimiter: " > ",
+    Container: { Path: "META-INF/container.xml" },
+    Package: {
+        Manifest: { Items: {} },
+        Spine: { Items: [] }
+    },
+    Files: {},
+    FileDigit: 0
+};
+
+
+B.fullPath = (FilePath) => FilePath ? (/^https?:\/\//.test(FilePath) ? "" : B.Path + B.PathDelimiter) + FilePath : "";
+
+
+B.clearCache = (FilePath) => {
+    const Item = B.Package.Manifest.Items[FilePath];
+    if(!Item) return null;
+    Item.Content = "";
+    delete Item.Preprocessed;
+    return Item;
+};
+
+B.clearCaches = (Opt = {}) => {
+    const FilePaths = Opt.FilePaths || B.Package.Manifest.Items;
+    if(Opt.Extensions) {    const RE = new RegExp('\\.(' + Extensions + ')$', "i");
+        for(const FilePath in FilePaths) if( RE.test(FilePath)) B.clearCache(FilePath);
+    } else if(Opt.Except) { const RE = new RegExp('\\.(' + Except     + ')$', "i");
+        for(const FilePath in FilePaths) if(!RE.test(FilePath)) B.clearCache(FilePath);
+    } else {
+        for(const FilePath in FilePaths)                        B.clearCache(FilePath);
+    }
+};
+
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Loader
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+export const L = { // Bibi.Loader
+    Opened: false,
+    Preprocessed: false,
+    PreprocessedFiles: []
+};
 
 
 L.wait = () => {
@@ -459,7 +506,7 @@ L.initializeBook = (Param) => new Promise((resolve, reject) => {
         let RootFile;
         switch(S["book-type"]) {
             case "EPUB": RootFile = B.Container.Path; break; // Online EPUB
-            case "Zine": RootFile = B.Zine.Path     ; break; // Online Zine
+            case "Zine": RootFile = B.ZineData.Path ; break; // Online Zine
         }
         const initialize_as = (FileOrFolder) => ({
             Promised: (
@@ -548,30 +595,36 @@ L.loadPackage = () => O.openDocument(B.Package.Path).then(L.processPackage);
 
 L.processPackage = (Doc) => {
 
-    const _Metadata = Doc.getElementsByTagName("metadata")[0], Metadata = B.Package.Metadata = { "identifier": "", "title": "", "creators": [], "publishers": [], "languages": [] };
-    const _Manifest = Doc.getElementsByTagName("manifest")[0], Manifest = B.Package.Manifest = { Items: {} };
-    const _Spine    = Doc.getElementsByTagName("spine"   )[0], Spine    = B.Package.Spine    = { Items: [] };
+    const _Metadata = Doc.getElementsByTagName("metadata")[0], Metadata = B.Package.Metadata = {};// = { "identifier": [], "title": [], "creator": [], "publisher": [], "language": [] };
+    const _Manifest = Doc.getElementsByTagName("manifest")[0], Manifest = B.Package.Manifest;
+    const _Spine    = Doc.getElementsByTagName("spine"   )[0], Spine    = B.Package.Spine;
     
     // METADATA
     // ================================================================================
+    const DCNS = _Metadata.getAttribute("xmlns:dc");
+    ["identifier", "title", "creator", "publisher", "language"].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
     sML.forEach(_Metadata.getElementsByTagName("meta"))(_Meta => {
-        if(_Meta.getAttribute("refines")) return;
-        if(_Meta.getAttribute("property")) { // DCTerms
-            const Property = _Meta.getAttribute("property").replace(/^dcterms:/, "");
-                 if(          /^(identifier|title)$/.test(Property)) Metadata[Property      ] =    _Meta.textContent ;
-            else if(/^(creator|publisher|language)$/.test(Property)) Metadata[Property + "s"].push(_Meta.textContent);
-            else if(                            !Metadata[Property]) Metadata[Property      ] =    _Meta.textContent ;
-        } else if(_Meta.getAttribute("name") && _Meta.getAttribute("content")) {
-            Metadata[_Meta.getAttribute("name")] = _Meta.getAttribute("content");
+        if(_Meta.getAttribute("refines")) return; // It's BAD and Wanted to Be FIXed.
+        let Property = _Meta.getAttribute("property");
+        if(Property) {
+            if(/^dcterms:/.test(Property)) {
+                if(!Metadata[Property]) Metadata[Property] = [];
+                Metadata[Property].push(_Meta.textContent.trim()); // "dcterms:~"
+            } else {
+                Metadata[Property] = _Meta.textContent.trim(); // ex.) "rendition:~"
+            }
+        } else {
+            let Name = _Meta.getAttribute("name");
+            if(Name) {
+                Metadata[Name] = _Meta.getAttribute("content").trim(); // ex.) "cover"
+            }
         }
     });
     // --------------------------------------------------------------------------------
-    const DCNS = _Metadata.getAttribute("xmlns:dc");
-    if(!Metadata["identifier"]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "identifier"))(_Meta => Metadata["identifier"]    = _Meta.textContent ); if(!Metadata["identifier"]) Metadata["identifier"] = O.BookURL;
-    if(!Metadata["title"     ]       ) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "title"     ))(_Meta => Metadata["title"     ]    = _Meta.textContent );
-    if(!Metadata["creators"  ].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "creator"   ))(_Meta => Metadata["creators"  ].push(_Meta.textContent));
-    if(!Metadata["publishers"].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "publisher" ))(_Meta => Metadata["publishers"].push(_Meta.textContent));
-    if(!Metadata["languages" ].length) sML.forEach(Doc.getElementsByTagNameNS(DCNS, "language"  ))(_Meta => Metadata["languages" ].push(_Meta.textContent)); if(!Metadata["languages"][0]) Metadata["languages"][0] = "en";
+    if(!Metadata["identifier"]) Metadata["identifier"] = Metadata["dcterms:identifier"] || [O.BookURL];
+    if(!Metadata["title"     ]) Metadata["title"     ] = Metadata["dcterms:title"     ] || Metadata["identifier"];
+    if(!Metadata["language"  ]) Metadata["language"  ] = Metadata["dcterms:language"  ] || ["en"];
+    // --------------------------------------------------------------------------------
     if(!Metadata["rendition:layout"     ]                                               ) Metadata["rendition:layout"     ] = "reflowable"; if(Metadata["omf:version"]) Metadata["rendition:layout"] = "pre-paginated";
     if(!Metadata["rendition:orientation"] || Metadata["rendition:orientation"] == "auto") Metadata["rendition:orientation"] = "portrait";
     if(!Metadata["rendition:spread"     ] || Metadata["rendition:spread"     ] == "auto") Metadata["rendition:spread"     ] = "landscape";
@@ -586,21 +639,21 @@ L.processPackage = (Doc) => {
     // MANIFEST
     // ================================================================================
     sML.forEach(_Manifest.getElementsByTagName("item"))(_Item => {
-        const Item = {
+        let Item = {
             "id"         : _Item.getAttribute("id"),
             "href"       : _Item.getAttribute("href"),
             "media-type" : _Item.getAttribute("media-type")
         };
         if(!Item["id"] || !Item["href"] || (!Item["media-type"] && S["book-type"] == "EPUB")) return false;
+        Item.Path = O.getPath(B.Package.Dir, Item["href"]);
+        if(Manifest.Items[Item.Path]) Item = sML.edit(Manifest.Items[Item.Path], Item);
+        if(!Item.Content) Item.Content = "";
         let Properties = _Item.getAttribute("properties");
         if(Properties) {
             Properties = Properties.trim().replace(/\s+/g, " ").split(" ");
-            if(Properties.includes("cover-image")) Manifest.CoverImageID = Item["id"];
-            if(Properties.includes("nav"        )) Manifest.NavID        = Item["id"];
+            if(Properties.includes("cover-image")) Manifest.CoverImage = { Path: Item.Path };
+            if(Properties.includes("nav"        )) Manifest.Nav        = { Path: Item.Path, Type: "Navigation Document" };
         }
-        Item.Path = O.getPath(B.Package.Dir, Item["href"]);
-        Item.FullPath = (/^https?:\/\//.test(Item.Path) ? "" : B.Path + B.PathDelimiter) + Item.Path;
-        if(!B.Files[Item.Path]) B.Files[Item.Path] = { Content: "" };
         const Fallback = _Item.getAttribute("fallback");
         if(Fallback) Item["fallback"] = Fallback;
         Manifest.Items[Item.Path] = Item; ////
@@ -610,7 +663,7 @@ L.processPackage = (Doc) => {
     // SPINE
     // ================================================================================
     const TOCID = _Spine.getAttribute("toc");
-    if(TOCID && Manifest.Items[TOCID]) Manifest.TOCID = TOCID;
+    if(TOCID && Manifest.Items[TOCID]) Manifest.TOC = { Path: Manifest.Items[_ItemPaths[ItemRef["idref"]]].Path, Type: "TOC-NCX" };
     // --------------------------------------------------------------------------------
     Spine["page-progression-direction"] = _Spine.getAttribute("page-progression-direction");
     if(!Spine["page-progression-direction"] || !/^(ltr|rtl)$/.test(Spine["page-progression-direction"])) Spine["page-progression-direction"] = "ltr"; // default;
@@ -641,7 +694,7 @@ L.processPackage = (Doc) => {
         const PageSpread = _ItemRef["rendition:page-spread"] || _ItemRef["page-spread"] || undefined;
         if(PageSpread) ItemRef["rendition:page-spread"] = PageSpread;
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Item = sML.create("iframe", Item, { className: "item", scrolling: "no", allowtransparency: "true",
+        Item = Manifest.Items[Item.Path] = sML.create("iframe", Item, { className: "item", scrolling: "no", allowtransparency: "true",
             TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
             IndexInSpine: Spine.Items.length,
             Ref: ItemRef,
@@ -698,16 +751,11 @@ L.processPackage = (Doc) => {
     // --------------------------------------------------------------------------------
     B.FileDigit = (Spine.Items.length + "").length;
 
-    B.ID        = Metadata["identifier"];
-    B.Title     = Metadata["title"];
-    B.Creator   = Metadata["creators"].join(  ", ");
-    B.Publisher = Metadata["publishers"].join(", ");
-    B.Language  = Metadata["languages"][0].split("-")[0];
-    B.WritingMode =                                                                                 /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == "rtl" ? "tb-rl" : "lr-tb") :
-        /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             "rl-tb"  :
-        /**/                                                                                                        /^(mo?n)$/.test(B.Language) ?                   "tb-lr"            :
-        /**/                                                                                                                                                                  "lr-tb"  ;
-
+    B.ID        = Metadata["identifier"][0];
+    B.Title     = Metadata["title"     ].join(", ");
+    B.Creator   = Metadata["creator"   ].join(", ");
+    B.Publisher = Metadata["publisher" ].join(", ");
+    B.Language  = Metadata["language"  ][0].split("-")[0];
     if(B.Title) {
         const BookIDFragments = [B.Title];
         if(B.Creator)   BookIDFragments.push(B.Creator);
@@ -717,6 +765,10 @@ L.processPackage = (Doc) => {
         O.Title.appendChild(document.createTextNode(BookIDFragments.join(" - ").replace(/&amp;?/gi, "&").replace(/&lt;?/gi, "<").replace(/&gt;?/gi, ">") + " | " + TitleExtras));
         try { O.Info.querySelector("h1").innerHTML = document.title; } catch(Err) {}
     }
+    B.WritingMode =                                                                                   /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == "rtl" ? "tb-rl" : "lr-tb")
+        : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             "rl-tb"
+        :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   "tb-lr"
+        :                                                                                                                                                                       "lr-tb";
 
     B.AllowPlaceholderItems = (B.ExtractionPolicy != "at-once"/* && Metadata["rendition:layout"] == "pre-paginated"*/);
 
@@ -728,8 +780,6 @@ L.createCover = () => {
           VCover.Info =                                   VCover.appendChild(sML.create("p",   { id:           "bibi-veil-cover-info" }));
     const PCover = I.Panel.BookInfo.Cover = I.Panel.BookInfo.Box.appendChild(sML.create("div", { id: "bibi-panel-bookinfo-cover"      }));
           PCover.Info =                                   PCover.appendChild(sML.create("p",   { id: "bibi-panel-bookinfo-cover-info" }));
-    VCover.Info.innerHTML = PCover.Info.innerHTML = "";
-    const ImagePath = B.Package.Manifest.Items[B.Package.Manifest.CoverImageID].Path;
     VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push('<strong>' + B.Title     + '</strong>');
@@ -738,7 +788,8 @@ L.createCover = () => {
         return BookID.join(" ");
     })();
     new Promise((resolve, reject) => {
-        if(!ImagePath) return reject();
+        if(!B.Package.Manifest.CoverImage) return reject();
+        const ImagePath = B.Package.Manifest.CoverImage.Path; if(!ImagePath) return reject();
         let TimedOut = false;
         const TimerID = setTimeout(() => { TimedOut = true; reject(); }, 5000);
         O.file(ImagePath).then(FileContent => {
@@ -762,10 +813,9 @@ L.initializeSpine = () => {
 
 
 L.loadNavigation = () => new Promise((resolve, reject) => {
-    const PNav = I.Panel.BookInfo.Navigation = I.Panel.BookInfo.Box.appendChild(  sML.create("div", { id: "bibi-panel-bookinfo-navigation" }));
-         if(B.Package.Manifest.NavID) PNav.Path = B.Package.Manifest.Items[B.Package.Manifest.NavID].Path, PNav.Type = "Navigation Document";
-    else if(B.Package.Manifest.TOCID) PNav.Path = B.Package.Manifest.Items[B.Package.Manifest.TOCID].Path, PNav.Type = "TOC-NCX";
-    if(!PNav.Type) return reject();
+    const MNav = B.Package.Manifest.Nav || B.Package.Manifest.TOC || null;
+    if(!MNav) return reject();
+    const PNav = I.Panel.BookInfo.Navigation = I.Panel.BookInfo.Box.appendChild(sML.create("div", MNav, { id: "bibi-panel-bookinfo-navigation" }));
     return O.openDocument(PNav.Path).then(Doc => {
         PNav.innerHTML = "";
         const NavContent = document.createDocumentFragment();
@@ -890,31 +940,27 @@ L.coordinateLinkages.setJump = (A) => A.addEventListener("click", Eve => {
 
 
 L.preprocessResources = () => new Promise((resolve, reject) => {
-    O.log('Preprocessing Resources...', "<g:>");
     E.dispatch("bibi:is-going-to:preprocess-resources");
+    const PreprocessedResources = [];
     const Promises = [];
     // Default StyleSheet
-    const DefaultStylePath = O.RootPath + "res/styles/bibi.book.css"
-    Promises.push(O.download(DefaultStylePath).then(CSS => B.DefaultStyle = O.getDataURI("css", CSS)).then(() => O.log(DefaultStylePath)));
+    B.DefaultStyle = { Path: O.RootPath + "/res/styles/bibi.book.css" };
+    Promises.push(O.download(B.DefaultStyle.Path).then(CSS => B.DefaultStyle.Content = O.getDataURI("css", CSS)).then(() => B.DefaultStyle));
     // CSSs & JavaScripts
     const MItems = B.Package.Manifest.Items;
-    for(const ID in MItems) if(/\/(css|javascript)$/.test(MItems[ID]["media-type"])) Promises.push(O.file(MItems[ID].Path, { Preprocess: true, Cache: true }).then(() => O.log(MItems[ID].FullPath)));
-    Promise.all(Promises).then(() => {
-        if(B.ExtractionPolicy == "at-once") return reject();
-        if(S.BRL == "pre-paginated") return resolve();
-        //if(S["book-type"] == "Zine") return resolve();
-        //if(!sML.UA.Gecko && !sML.UA.Edge) return resolve();
-        reject();
+    for(const FilePath in MItems) if(/\/(css|javascript)$/.test(MItems[FilePath]["media-type"])) Promises.push(O.file(FilePath, { Preprocess: true, Cache: true }).then(() => MItems[FilePath]));
+    Promise.all(Promises).then(Resolved => {
+        if(B.ExtractionPolicy == "at-once") return reject(Resolved);
+        if(S.BRL == "pre-paginated") return resolve(Resolved);
+        if(sML.UA.Chromium || sML.UA.WebKit/* || sML.UA.Gecko*/) /* Including Edge (Chromium) */ return resolve(Resolved);
+        /* Including Edge (Not Chromium) */ reject(Resolved);
     });
-}).catch(() => {
-    // If Resolved: Cache Spine
+}).catch(CommonResolved => {
+    // If Rejected: Cache Spine
     const Promises = [];
-    R.Items.forEach(Item => Promises.push(O.file(Item.Path, { Preprocess: true, Cache: true }).then(() => Item.Preprocessed = true).then(() => O.log(Item.FullPath))));
-    return Promise.all(Promises);
+    R.Items.forEach(Item => Promises.push(O.file(Item.Path, { Preprocess: true, Cache: true }).then(() => Item.Preprocessed = true).then(() => Item)));
+    return Promise.all(Promises).then(Resolved => CommonResolved.concat(Resolved));
     //Promise.resolve();
-}).then(() => {
-    O.log('Preprocessed', "</g>");
-    E.dispatch("bibi:preprocessed-resources");
 });
 
 
@@ -961,7 +1007,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 const RE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g;
                 const SSs = FileContent.match(RE);
                 resolve({
-                    Head: (!B.ExtractionPolicy ? `<base href="${ Item.FullPath }" />` : '') + (SSs ? SSs.map(SS => SS.replace(RE, `<link rel="stylesheet" $1 />`)).join("") : ""),
+                    Head: (!B.ExtractionPolicy ? `<base href="${ B.fullPath(Item.Path) }" />` : '') + (SSs ? SSs.map(SS => SS.replace(RE, `<link rel="stylesheet" $1 />`)).join("") : ""),
                     Body: FileContent.replace(RE, '')
                 });
             })
@@ -992,7 +1038,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
             if(!UseGeneratedHTML) setTimeout(Item.onLoaded, 0);
         } else {
             Item.onload = Item.onLoaded;
-            Item.src = Item.FullPath;
+            Item.src = B.fullPath(Item.Path);
             ItemBox.insertBefore(Item, ItemBox.firstChild);
         }
     }))/*.then(L.applyDefaultStyleSheet)*/.then(L.postprocessItem).then(() => {
@@ -1070,7 +1116,7 @@ L.postprocessItem = (Item) => {
 };
 
 
-L.applyDefaultStyleSheet = (Item) => Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: B.DefaultStyle }), Item.Head.querySelector("link, style"));
+L.applyDefaultStyleSheet = (Item) => Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", href: B.DefaultStyle.Content }), Item.Head.querySelector("link, style"));
 
 
 L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
@@ -1410,8 +1456,7 @@ R.renderReflowableItem = (Item) => {
 };
 
 R.renderPrePaginatedItem = (Item) => {
-    Item.style.visibility = Item.IsPlaceholder ? "hidden" : "";
-    sML.style(Item, { "transform-origin": "", "transformOrigin": "", "transform": "" });
+    sML.style(Item, { width: "", height: "", transform: "" });
     let StageB = R.Stage[S.CC.L.SIZE.B];
     let StageL = R.Stage[S.CC.L.SIZE.L];
     Item.Spreaded = (
@@ -1468,10 +1513,9 @@ R.renderPrePaginatedItem = (Item) => {
     Item.Box.style[S.CC.L.SIZE.l] = PageL + "px";
     Item.Box.style[S.CC.L.SIZE.b] = PageB + "px";
     sML.style(Item, {
-        "width":  ItemLoVp.Width + "px",
-        "height": ItemLoVp.Height + "px",
-        "transformOrigin": "0 0",
-        "transform": "scale(" + Item.Scale + ")"
+        width:  ItemLoVp.Width + "px",
+        height: ItemLoVp.Height + "px",
+        transform: "scale(" + Item.Scale + ")"
     });
     return Item;
 };
@@ -2100,27 +2144,21 @@ I.initialize = () => {
 };
 
 
-I.note = (Msg, Time, ErrorOccured) => {
-    clearTimeout(I.note.Timer);
-    if(!Msg) I.note.Time = 0;
-    else     I.note.Time = (typeof Time == "number") ? Time : (O.Busy ? 9999 : 2222);
-    if(I.Notifier) {
-        I.Notifier.Board.innerHTML = '<p' + (ErrorOccured ? ' class="error"' : '') + '>' + Msg + '</p>';
-        O.HTML.classList.add("notifier-shown");
-        I.note.Timer = setTimeout(() => O.HTML.classList.remove("notifier-shown"), I.note.Time);
-    }
-    if(!O.Touch) {
-        if(O.statusClearer) clearTimeout(O.statusClearer);
-        window.status = 'BiB/i: ' + Msg;
-        O.statusClearer = setTimeout(() => window.status = "", I.note.Time);
-    }
+I.createNotifier = () => {
+    I.Notifier = O.Body.appendChild(sML.create("div", { id: "bibi-notifier" }));
+    E.dispatch("bibi:created-notifier");
 };
 
 
-I.createNotifier = () => {
-    I.Notifier = O.Body.appendChild(sML.create("div", { id: "bibi-notifier" }));
-    I.Notifier.Board = I.Notifier.appendChild(sML.create("div", { id: "bibi-notifier-board" }));
-    E.dispatch("bibi:created-notifier");
+I.note = (Msg, Time, ErrorOccured) => {
+    if(!I.Notifier) return false;
+    clearTimeout(I.note.Timer);
+         if(!Msg)                       I.note.Time = 0;
+    else if(typeof Time == "undefined") I.note.Time = O.Busy ? 9999 : 2222;
+    else                                I.note.Time = Time;
+    I.Notifier.innerHTML = '<p' + (ErrorOccured ? ' class="error"' : '') + '>' + Msg + '</p>';
+    O.HTML.classList.add("notifier-shown");
+    if(typeof I.note.Time == "number") I.note.Timer = setTimeout(() => O.HTML.classList.remove("notifier-shown"), I.note.Time);
 };
 
 
@@ -4319,7 +4357,7 @@ P.initialize = (Preset) => {
     if(!/^(horizontal|vertical|paged)$/.test(P["reader-view-mode"])) P["reader-view-mode"] = "paged";
     P["extensions"] = !(P["extensions"] instanceof Array) ? [] : P["extensions"].filter(Xtn => {
         if(!Xtn) return false;
-        if(Xtn["-spell-of-activation-"]) return U.parseQuery(location.search).hasOwnProperty(Xtn["-spell-of-activation-"]);
+        if(Xtn["-spell-of-activation-"]) return U.hasOwnProperty(Xtn["-spell-of-activation-"]);
         return true;
     });
 };
@@ -4336,17 +4374,24 @@ Bibi.preset = P.initialize;
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-export const U = {}; // Bibi.SettingsInURI
+export const U = (() => { let LS = location.search;
+    if(typeof LS != "string") return {};
+    LS = LS.replace(/^\?/, "");
+    const Qs = {};
+    LS.split("&").forEach(PnV => {
+        PnV = PnV.split("=");
+        if(/^[a-z]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
+    });
+    return Qs;
+})();
 
 
 U.initialize = () => { // formerly O.readExtras
 
-    const Q = U.parseQuery(location.search);
     const H = U.parseHash(location.hash);
 
-    const BookPath = Q["book"] ? Q["book"] : O.Body.getAttribute("data-bibi-book");
-    U["book"] = (typeof BookPath == "string") ? decodeURIComponent(BookPath) : "";
-    U["book-type"] = U["book"] ? (Q.hasOwnProperty("zine") ? "Zine" : "EPUB") : "";
+    U["book"] = decodeURIComponent(U["book"] || O.Body.getAttribute("data-bibi-book") || "") || "";
+    U["book-type"] = U["book"] ? (U.hasOwnProperty("zine") ? "Zine" : "EPUB") : "";
 
     const BookDataElement = document.getElementById("bibi-book-data");
     if(BookDataElement) {
@@ -4377,18 +4422,6 @@ U.initialize = () => { // formerly O.readExtras
         E.add("bibi:readied", () => { if(X["EPUBCFI"]) S["to"] = U["to"] = X["EPUBCFI"].getDestination(H["epubcfi"]); });
     }
 
-};
-
-
-U.parseQuery = (Q) => {
-    if(typeof Q != "string") return {};
-    Q = Q.replace(/^\?/, "");
-    const Params = {};
-    Q.split("&").forEach(PnV => {
-        PnV = PnV.split("=");
-        if(/^[a-z]+$/.test(PnV[0])) Params[PnV[0]] = PnV[1];
-    });
-    return Params;
 };
 
 
@@ -4545,7 +4578,7 @@ S.update = (Settings) => {
     if(typeof Settings == "object") for(const Property in Settings) if(typeof S[Property] != "function") S[Property] = Settings[Property];
 
     S.BRL = S["book-rendition-layout"] = B.Package.Metadata["rendition:layout"];
-    S.BWM = S["book-writing-mode"] = (/^tb/.test(B.WritingMode) && !O.VerticalTextEnabled) ? "lr-tb" : B.WritingMode;
+    S.BWM = S["book-writing-mode"] = B.WritingMode;
 
     S["allow-placeholders"] = (S["allow-placeholders"] && B.AllowPlaceholderItems);
 
@@ -4626,66 +4659,58 @@ export const O = {}; // Bibi.Operator
 
 
 O.initialize = () => {
-    O.IsDev = U.parseQuery(location.search).hasOwnProperty("dev");
+    O.IsDev = U.hasOwnProperty("dev");
     O.log.initialize();
 };
 
 
-O.log = (Log, Tag) => {        let Prefix = "‐ ", FontWeight = "normal";
+O.log = (Log, A2, A3) => { let Method = 'log', Obj = "", Tag = "";
+         if(A3)      Obj = A2, Tag = A3;
+    else if(/^<..>$/.test(A2)) Tag = A2;
+    else if(A2)      Obj = A2;
     switch(Tag) {
-        case "<e/>":               Prefix = "\n" , FontWeight = "bold"  ; break;
-        case "<i/>":                               FontWeight = "bold"  ; break;
-        case "<g!>": Tag = "<g:>", Prefix = "📕" , FontWeight = "bold"  ; break;
-        case "<g->": Tag = "<g:>"                                       ; break;
-        case "<g:>":               Prefix = "┌ "                       ; break;
-        case "</g>":               Prefix = "└ "                       ; break;
+        case '<e/>': throw '\n' + Log;
+        case '</g>': O.log.Depth--;
     }
-    if(Tag == "<e/>") {
-        while(O.log.Depth) {
-            console.groupEnd();
-            O.log.Depth--;
+    if(
+        (Log || Obj)
+            &&
+        (O.log.Depth <= O.log.Limit || Tag == '<b:>' || Tag == '</b>')
+    ) {
+        const Time = (O.log.Depth <= 1) ? O.stamp(Log) : 0;
+        let Ls = [], Ss = [];
+        if(Log) switch(Tag) {
+            case '<b:>': Ls.unshift('📕'); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push('%c(v' + Bibi['version'] + ')'),                                                     Ss.push(O.log.NStyle); break;
+            case '</b>': Ls.unshift('📖'); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push('%c(' + Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) + 'sec)'), Ss.push(O.log.NStyle); break;
+            case '<g:>': Ls.unshift('┌'); Ls.push(Log); break;
+            case '</g>': Ls.unshift('└'); Ls.push(Log); break;
+            case '<o/>': Ls.unshift( '>'); Ls.push(Log); break;
+            default    : Ls.unshift( '-'); Ls.push(Log);
         }
-        throw Prefix + Log;
-    } else if(Tag == "</g>") {
-        if(O.log.Depth <= O.log.Limit) console.groupEnd();
-        O.log.Depth--;
-    }
-    if(Log && O.log.Depth <= O.log.Limit) {
-        let Method = "log";
-        if(Tag == "<g:>" && O.log.Depth != O.log.Limit) Method = "groupCollapsed";//"group";
-        if(O.log.Depth == 0) {
-            const TimeFromOrigin = O.stamp(Log.replace("%c", ""));
-            if(Tag == "<i/>" && TimeFromOrigin) Log += " %c(" + Math.floor(TimeFromOrigin / 1000) + "." + (TimeFromOrigin % 1000 + "").padStart(3, 0) + "sec)";
-            Prefix = "Bibi: " + Prefix;
-        } else {
-            Prefix = "      " + Prefix;
-            //for(let i = 1; i <= O.log.Depth; i++) Prefix = "│ " + Prefix;
-            //Prefix = "Bibi: " + Prefix;
+        for(let i = O.log.Depth; i > 1; i--) Ls.unshift('│');
+        Ls.unshift('%cBibi:'); Ss.unshift(O.log.NStyle);
+        //if(O.log.Limit && /^<g.>$/.test(Tag) && O.log.Depth != O.log.Limit) Method = 'group';
+        switch(Tag) {
+            case '<o/>': O.log.log('groupCollapsed', Ls.join(' '), Ss); console.log(Obj); console.groupEnd(); break;
+            default    : O.log.log(Method, Ls.join(' '), Ss, (Obj ? Obj : undefined));
         }
-        
-        O.log.log(Method, Prefix, Log, FontWeight);
     }
-    if(Tag == "<g:>") O.log.Depth++;
+    switch(Tag) {
+        case '<g:>': O.log.Depth++;
+    }
 };
 
 O.log.initialize = () => {
-    if(!parent || parent == window) {
-        const log = (Method, Prefix, Log, FontWeight) => console[Method]("%c" + Prefix + "%c" + Log + (/%c/.test(Log) ? "" : "%c"), "font-weight: normal;", "font-weight: " + FontWeight + ";", "font-weight: normal;");
-        O.log.Depth = 0;
-        if(sML.UA.Blink || sML.UA.Gecko) {
-            O.log.Limit = U.parseQuery(location.search).hasOwnProperty("log") ? 9 : 0;
-            O.log.log = log;
-        } else {
-            O.log.Limit = 0;
-            O.log.log = (Method, Prefix, Log, FontWeight) => {
-                if(Method == "groupCollapsed") Method = "log";
-                if(O.log.Depth != 0) Prefix = "Bibi: " + ((D, i) => { while(i++ < O.log.Depth) D += "│ "; return D; })("", 0) + Prefix;
-                O.log.log.log(Method, Prefix, Log, FontWeight);
-            };
-            O.log.log.log = sML.UA.WebKit ? log : (Method, Prefix, Log) => console[Method](Prefix + Log.replace("%c", ""));
+    if(parent && parent != window) O['log'] = () => true; else {
+        O.log.Depth = 1;
+        O.log.Limit = !U.hasOwnProperty("log") ? 0 : /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(U["log"]) ? U["log"] : 1;
+        O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
+        O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
+        O.log.log = (Method, Log, Styles, Obj) => Obj ? console[Method](Log, ...Styles, Obj) : console[Method](Log, ...Styles);
+        if(!sML.UA.Chromium && !sML.UA.Gecko) {
+            //if(O.log.Limit) O.log.Limit = 1;
+            if(sML.UA.InternetExplorer) O.log.log = (Method, Log, Styles, Obj) => { Log = Log.replace(/%c/g, ''); Obj ? console[Method](Log, Obj) : console[Method](Log); } // Ignore Styles
         }
-    } else {
-        O.log = () => false;
     }
 };
 
@@ -4732,9 +4757,9 @@ O.isToBeExtractedIfNecessary = (Path) => {
 O.file = (FilePath, Opt = {}) => new Promise((resolve, reject) => {
     if(Opt.URI) if(B.ExtractionPolicy) Opt.URI = false, Opt.DataURI = true; else return resolve(B.Path + "/" + FilePath);
     let _Promise;
-    if(B.Files[FilePath] && B.Files[FilePath].Content) {
-        if(!Opt.Preprocess || B.Files[FilePath].Preprocessed) return resolve(B.Files[FilePath].Content);
-        _Promise = Promise.resolve(B.Files[FilePath].Content);
+    if(B.Package.Manifest.Items[FilePath] && B.Package.Manifest.Items[FilePath].Content) {
+        if(!Opt.Preprocess || B.Package.Manifest.Items[FilePath].Preprocessed) return resolve(B.Package.Manifest.Items[FilePath].Content);
+        _Promise = Promise.resolve(B.Package.Manifest.Items[FilePath].Content);
     } else {
         if(B.ExtractionPolicy == "at-once") return reject('File Not Included: "' + FilePath + '"');
         _Promise = O.retlieve(FilePath/*, Opt*/);
@@ -4743,19 +4768,19 @@ O.file = (FilePath, Opt = {}) => new Promise((resolve, reject) => {
 }).then(FileContent => {
     if(Opt.URI) return FileContent;
     if(Opt.Cache) {
-        if(!B.Files[FilePath]) B.Files[FilePath] = {};
-        B.Files[FilePath].Content = FileContent;
-        if(Opt.Preprocess) B.Files[FilePath].Preprocessed = true;
+        if(!B.Package.Manifest.Items[FilePath]) B.Package.Manifest.Items[FilePath] = {};
+        B.Package.Manifest.Items[FilePath].Content = FileContent;
+        if(Opt.Preprocess) B.Package.Manifest.Items[FilePath].Preprocessed = true;
     }
     return Opt.DataURI ? O.getDataURI(FilePath, FileContent) : FileContent;
 }).catch(Rejection => Opt.Preprocess ? Promise.resolve("") : Promise.reject(Rejection));
 
 O.download = (Path/*, Opt = {}*/) => new Promise((resolve, reject) => {
     const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
-    const FullPath = (/^[a-z]+:\/\//.test(Path) ? "" : B.Path + "/") + Path;
-    XHR.open('GET', FullPath, true); // async
+    const RemotePath = (/^[a-z]+:\/\//.test(Path) ? "" : B.Path + "/") + Path;
+    XHR.open('GET', RemotePath, true); // async
     XHR.responseType = O.isBin(Path) ? "arraybuffer" : "text";
-    XHR.onerror   = () => reject((XHR.status === 404 ? 'File Not Found' : 'Could Not Download File') + ': "' + FullPath + '"');
+    XHR.onerror   = () => reject((XHR.status === 404 ? 'File Not Found' : 'Could Not Download File') + ': "' + RemotePath + '"');
     XHR.onloadend = () => XHR.status === 200 ? resolve(XHR.responseType == "arraybuffer" ? O.ab2b(XHR.response) : XHR.response) : XHR.onerror();
     XHR.send(null);
 });
@@ -4847,7 +4872,7 @@ O.PreprocessSettings = {
         init: function() { const RRs = this.ReplaceRules;
             RRs.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
             RRs.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
-            if(sML.UA.WebKit || sML.UA.Blink) {
+            if(sML.UA.Chromium || sML.UA.WebKit) { // Including Edge (Chromium)
                 return this;
             }
             RRs.push([/-(epub|webkit)-/gm, '']);
@@ -4856,7 +4881,7 @@ O.PreprocessSettings = {
                 RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
                 return this;
             }
-            if(sML.UA.Edge) {
+            if(sML.UA.Edge) { // (Not Chromium)
                 RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
                 RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-horizontal: all; text-combine-upright: all$1']);
             }
@@ -5112,7 +5137,7 @@ O.Path = (() => {
     return Scripts[Scripts.length - 1].src;
 })();
 
-O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "/");
+O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "");
 
 O.Cookie = {
     remember: (Group) => {
@@ -5284,43 +5309,17 @@ M.gate = (Eve) => {
 
 
 export const X = { // Bibi.Extensions
-    Alts: {},
-    Hooks: {},
     Extensions: []
 };
 
-
-X.loadExtensions = () => {
-    let ReadyForExtraction = false, ReadyForBibiZine = false;
-    if(S["book"]) {
-        if(O.isToBeExtractedIfNecessary(S["book"])) ReadyForExtraction = true;
-        if(S["book-type"] == "Zine")                ReadyForBibiZine = true;
-    } else if(S["accept-local-file"] || S["accept-blob-converted-data"]) ReadyForExtraction = ReadyForBibiZine = true;
-    if(ReadyForBibiZine)   P["extensions"].unshift({ "src": "extensions/zine/index.js"     });
-    if(ReadyForExtraction) P["extensions"].unshift({ "src": "extensions/unzipper/index.js" });
-    if(P["extensions"].length == 0) return Promise.resolve();
-    return new Promise(resolve => {
-        O.log('Loading Extension' + (P["extensions"].length > 1 ? 's' : '') + '...', "<g:>");
-        const loadExtensionInPreset = (i) => {
-            X.loadExtension(P["extensions"][i]).then(Msg => {
-                O.log(Msg);
-                P["extensions"][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
-            });
-        };
-        loadExtensionInPreset(0);
-    }).then(() =>
-        O.log(X.Extensions.length ? 'Loaded. (' + X.Extensions.length  + ' Extension' + (X.Extensions.length > 1 ? 's' : '') + ')' : 'No Extension.', "</g>")
-    );
-};
-
-X.loadExtension = (Xtn) => new Promise((resolve, reject) => {
+X.load = (Xtn) => new Promise((resolve, reject) => {
     if(!Xtn["src"] || typeof Xtn["src"] != "string") return reject('"src" of the Extension is Invalid.');
     Xtn.Script = document.head.appendChild(sML.create("script", { className: "bibi-extension-script", src: Xtn["src"], Extension: Xtn, resolve: resolve, reject: reject }));
-}).then(DefinedExtension =>
+})/*.then(DefinedExtension =>
     DefinedExtension["id"] + ': ' + O.getPath(O.RootPath, DefinedExtension["src"])
 ).catch(Msg =>
     Msg
-);
+)*/;
 
 X.add = (XMeta) => {
     const XScript = document.currentScript;

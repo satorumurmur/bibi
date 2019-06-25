@@ -12,6 +12,8 @@ Bibi.x({
 
     'use strict';
 
+    this.Items = {};
+
     this.loadBookData = (BookData) => new Promise(resolve => {
         if(S["autostart"]) return resolve(BookData);
         I.Veil.Cover.Info.innerHTML = [
@@ -49,8 +51,8 @@ Bibi.x({
         }
         if(!FilesToBeExtract.length) return reject('Does Not Contain Any Resources');
         let FolderName = "", FolderNameRE = undefined;
-        if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.Zine.Path)) {
-            [B.Container.Path, B.Zine.Path].forEach(ToBeFound => {
+        if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.ZineData.Path)) {
+            [B.Container.Path, B.ZineData.Path].forEach(ToBeFound => {
                 if(FolderName) return;
                 const RE = new RegExp("^(.+?\\/)" + ToBeFound.replace(/\//g, "\\/").replace(/\./g, "\\.") + "$");
                 for(let l = FilesToBeExtract.length, i = 0; i < l; i++) {
@@ -66,7 +68,7 @@ Bibi.x({
         if(FilesToBeExtract.includes(FolderName + B.Container.Path)) {
             if(!S["book-type"]) S["book-type"] = "EPUB";
             else if(S["book-type"] == "Zine") reject({ BookTypeError: 'It Seems to Be an EPUB. Not a Zine.' });
-        } else if(FilesToBeExtract.includes(FolderName + B.Zine.Path)) {
+        } else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path)) {
             if(!S["book-type"]) S["book-type"] = "Zine";
             else if(S["book-type"] == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
         } else {
@@ -95,7 +97,7 @@ Bibi.x({
         FilesToBeExtract.forEach(FileName => {
             if(FolderName) FileName = FileName.replace(FolderNameRE, "");
             BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(FileContent => {
-                B.Files[FileName] = { Content: FileContent.trim() };
+                B.Package.Manifest.Items[FileName] = { Content: FileContent.trim() };
                 for(const FileType in FileTypesToBeCounted) {
                     if(new RegExp("\\.(" + FileTypesToBeCounted[FileType] + ")$", "i").test(FileName)) {
                         if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;

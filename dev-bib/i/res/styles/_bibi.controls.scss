@@ -3,13 +3,7 @@
 // --------------------------------------------------------------------------------
 
 
-div#bibi-notifier {}
-
-
-// - Board
-// --------------------------------------------------------------------------------
-
-div#bibi-notifier-board {
+div#bibi-notifier {
 	box-sizing: border-box;
 	position: absolute;
 	z-index: $z-index_notifier-board;
@@ -36,7 +30,7 @@ div#bibi-notifier-board {
 	}
 	& {
 		opacity: 0;
-		transform: scaleY(0);
+		transform: translateY(-100%);//scaleY(0);
 		transition: .2s linear;
 	}
 	html.notifier-shown & {
@@ -103,15 +97,27 @@ div#bibi-veil:after {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
 	position: absolute;
 	z-index: $z-index_veil-byebye;
-	@include trbl(69px, 0, auto);
+	@include trbl(0);
 	margin: auto;
+	padding: 10px;
+	border-radius: 20px;
+	width: 240px;
+	height: 240px;
+	max-width: calc(100% - #{ 10px * 2 });
+	max-height: calc(100% - #{ $top-bar-height + 10px * 2 + $bottom-bar-height });
 	line-height: 1.75;
 	text-align: center;
-	font-size: 12px;
+	font-size: 14px;
 	font-weight: bold;
 	color: white;
+	background: rgba(black, .125);
 	a {
 		color: inherit;
 		transition: .2s linear;
@@ -124,9 +130,7 @@ p#bibi-veil-byebye {
 		display: block;
 		position: relative;
 	}
-	span[lang="en"] {
-	}
-	span[lang="ja"] {
+	> span + span {
 		margin-top: 1.5em;
 		padding-top: 1.5em;
 		&:before {
@@ -139,7 +143,7 @@ p#bibi-veil-byebye {
 			margin: auto;
 			width: 2em;
 			height: 1px;
-			background: white;
+			background: rgba(white, .5);
 		}
 	}
 }
