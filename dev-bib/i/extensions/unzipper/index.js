@@ -70,11 +70,11 @@ Bibi.x({
             else if(B.Type == "Zine") reject({ BookTypeError: 'It Seems to Be an EPUB. Not a Zine.' });
         } else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path)) {
             if(!B.Type) B.Type = "Zine";
-            else if(B.Tyep == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
+            else if(B.Type == "EPUB") reject({ BookTypeError: 'It Seems to Be a Zine. Not an EPUB.' });
         } else {
             reject('Required Metafile Is Not Contained.');
         }
-        const FileCount = { All: 0, Particular: 0 };
+        const FileCount = { Particular: 0 };
         const FileTypesToBeCounted = {
             "Meta XML":   "xml|opf|ncx",
             "Meta YAML":  "ya?ml",
@@ -94,31 +94,37 @@ Bibi.x({
             "PlainText":  "txt"
         };
         O.log('Extracting Book Data...', "<g:>");
+        const Promises = [];
         FilesToBeExtract.forEach(FileName => {
             if(FolderName) FileName = FileName.replace(FolderNameRE, "");
-            BookDataArchive.file(FolderName + FileName).async(O.isBin(FileName) ? "binarystring" : "string").then(FileContent => {
-                B.Package.Manifest.Items[FileName] = { Content: FileContent.trim() };
-                for(const FileType in FileTypesToBeCounted) {
-                    if(new RegExp("\\.(" + FileTypesToBeCounted[FileType] + ")$", "i").test(FileName)) {
-                        if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;
-                        FileCount.Particular++;
-                        break;
-                    }
-                }
-                FileCount.All++;
-                if(FileCount.All >= FilesToBeExtract.length) {
+            const IsBin = O.isBin({ Path: FileName });
+            Promises.push(
+                BookDataArchive.file(FolderName + FileName).async(IsBin ? "blob" : "string").then(FileContent => {
+                    const Item = B.Package.Manifest.Items[FileName] = IsBin ?
+                        { Path: FileName, DataType: 'blob', Content: FileContent } :
+                        { Path: FileName, DataType: 'text', Content: FileContent.trim() };
                     for(const FileType in FileTypesToBeCounted) {
-                        const Count = FileCount[FileType];
-                        if(Count) O.log(Count + ' ' + FileType + (Count > 1 ? 's' : ''));
+                        if(new RegExp("\\.(" + FileTypesToBeCounted[FileType] + ")$", "i").test(FileName)) {
+                            if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;
+                            FileCount.Particular++;
+                            break;
+                        }
                     }
-                    if(FileCount.Particular < FileCount.All) {
-                        const EtCCount = FileCount.All - FileCount.Particular;
-                        O.log(EtCCount + ' ' + (EtCCount > 1 ? 'Others' : 'Another'));
-                    }
-                    O.log('Extracted. (' + FileCount.All + ' File' + (FileCount.All > 1 ? 's' : '') + ')', "</g>");
-                    resolve();
-                }
-            });
+                })
+            );
+        });
+        Promise.all(Promises).then(() => {
+            const Total = Promises.length;
+            for(const FileType in FileTypesToBeCounted) {
+                const Count = FileCount[FileType];
+                if(Count) O.log(Count + ' ' + FileType + (Count > 1 ? 's' : ''));
+            }
+            if(FileCount.Particular < Total) {
+                const Others = Total - FileCount.Particular;
+                O.log(Others + ' ' + (Others > 1 ? 'Others' : 'Another'));
+            }
+            O.log('Extracted. (' + Total + ' File' + (Total > 1 ? 's' : '') + ')', "</g>");
+            resolve();
         });
     });
 
