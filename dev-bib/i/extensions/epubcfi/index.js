@@ -1,33 +1,21 @@
-/*!
- *
- * # BiB/i Extension: EPUBCFI Utilities
- *
- * - "EPUBCFI Utilities for BiB/i"
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link/ or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- */
-
-// An Example is at the End of This Document.
- 
 Bibi.x({
 
-    name: 'EPUBCFI',
-    description: "EPUBCFI Utilities",
+    id: "EPUBCFI",
+    description: "Utilities for EPUBCFI", // An Example Is at the Bottom of This Document.
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "0.1.0",
-    build: 20150703.1341
+    version: "0.2.0"
 
 })(function() {
 
     'use strict';
 
-    X.EPUBCFI.CFIString = "";
-    X.EPUBCFI.Current = 0;
-    X.EPUBCFI.Log = false;
-    X.EPUBCFI.LogCorrection = false;
-    X.EPUBCFI.LogCancelation = false;
+    this.CFIString = "";
+    this.Current = 0;
+    this.Log = false;
+    this.LogCorrection = false;
+    this.LogCancelation = false;
 
-    X.EPUBCFI.parse = function(CFIString, Scope) {
+    this.parse = (CFIString, Scope) => {
         if(!CFIString || typeof CFIString != "string") return null;
         try { CFIString = decodeURIComponent(CFIString); } catch(Err) { this.log(0, "Unregulated URIEncoding."); return null; }
         if(!Scope || typeof Scope != "string" || typeof this["parse" + Scope] != "function") Scope = "Fragment";
@@ -41,7 +29,7 @@ Bibi.x({
         return this["parse" + Scope]();
     };
 
-    X.EPUBCFI.parseFragment = function() {
+    this.parseFragment = () => {
         const Foothold = this.Current;
         if(!this.parseString("epubcfi(")) return this.cancel(Foothold, "Fragment");
         const CFI = this.parseCFI();
@@ -49,7 +37,7 @@ Bibi.x({
         if(!this.parseString(")")) return this.cancel(Foothold, "Fragment");
         return CFI;
     };
-    X.EPUBCFI.parseCFI = function() {
+    this.parseCFI = () => {
         const Foothold = this.Current, CFI = { Type: "CFI", Path: this.parsePath() };
         if(!CFI.Path) return this.cancel(Foothold, "CFI");
         if(this.parseString(",")) {
@@ -61,14 +49,14 @@ Bibi.x({
         }
         return CFI;
     };
-    X.EPUBCFI.parsePath = function() {
+    this.parsePath = () => {
         const Foothold = this.Current, Path = { Type: "Path", Steps: [this.parseStep()] }, LocalPath = this.parseLocalPath();
         if(!Path.Steps[0]) return this.cancel(Foothold, "Path");
         if(LocalPath) Path.Steps = Path.Steps.concat(LocalPath.Steps);
         else return this.cancel(Foothold, "Path");
         return Path;
     };
-    X.EPUBCFI.parseLocalPath = function() {
+    this.parseLocalPath = () => {
         const Foothold = this.Current, LocalPath = { Type: "LocalPath", Steps: [] };
         let StepRoot = LocalPath, Step = this.parseStep("Local"), TermStep = null;
         while(Step !== null) {
@@ -87,7 +75,7 @@ Bibi.x({
         if(TermStep) StepRoot.Steps.push(TermStep);
         return (LocalPath.Steps.length ? LocalPath : null);
     };
-    X.EPUBCFI.parseStep = function(Local) {
+    this.parseStep = Local => {
         const Foothold = this.Current, Step = {};
              if(         this.parseString( "/")) Step.Type =         "Step";
         else if(Local && this.parseString("!/")) Step.Type = "IndirectStep";
@@ -114,7 +102,7 @@ Bibi.x({
         }
         return Step;
     };
-    X.EPUBCFI.parseString = function(S) {
+    this.parseString = S => {
         let Correction = null, Matched = false;
         if(S instanceof RegExp) {
             const CFIString = this.CFIString.substr(this.Current, this.CFIString.length - this.Current);
@@ -132,16 +120,16 @@ Bibi.x({
         return this.correct(Correction);
     };
 
-    X.EPUBCFI.correct = function(Correction) {
+    this.correct = Correction => {
         if(this.Log && this.LogCorrection && Correction) this.log(3, Correction);
         return Correction;
     };
-    X.EPUBCFI.cancel = function(Foothold, Parser) {
+    this.cancel = (Foothold, Parser) => {
         if(this.Log && this.LogCancelation) this.log(4, "cancel: parse" + Parser + " (" + Foothold + "-" + this.Current + "/" + this.CFIString.length + ")");
         if(typeof Foothold == "number") this.Current = Foothold;
         return null;
     };
-    X.EPUBCFI.log = function(Lv, Message) {
+    this.log = (Lv, Message) => {
         if(!this.Log || !console || !console.log) return;
              if(Lv == 0) Message = "[ERROR] " + Message;
         else if(Lv == 1) Message = "---------------- " + Message + " ----------------";
@@ -151,14 +139,14 @@ Bibi.x({
         console.log('BiB/i EPUBCFI: ' + Message);
     };
 
-    X.EPUBCFI.getDestination = function(CFIString) {
+    this.getDestination = CFIString => {
         const CFI = X["EPUBCFI"].parse(CFIString);
         if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
         const ItemIndexInAll = CFI.Path.Steps[1].Index / 2 - 1;
         let ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
         if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
             ElementSelector = "";
-            CFI.Path.Steps[2].Steps.forEach(function(Step, i) {
+            CFI.Path.Steps[2].Steps.forEach((Step, i) => {
                 if(Step.Type == "IndirectPath") { IndirectPath = Step; return false; }
                 if(Step.Type == "TermStep")     { TermStep     = Step; return false; }
                 if(Step.Index % 2 == 1) {
