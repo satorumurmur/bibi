@@ -3,13 +3,7 @@
 // --------------------------------------------------------------------------------
 
 
-div#bibi-notifier {}
-
-
-// - Board
-// --------------------------------------------------------------------------------
-
-div#bibi-notifier-board {
+div#bibi-notifier {
 	box-sizing: border-box;
 	position: absolute;
 	z-index: $z-index_notifier-board;
@@ -36,7 +30,7 @@ div#bibi-notifier-board {
 	}
 	& {
 		opacity: 0;
-		transform: scaleY(0);
+		transform: translateY(-100%);//scaleY(0);
 		transition: .2s linear;
 	}
 	html.notifier-shown & {
@@ -103,15 +97,27 @@ div#bibi-veil:after {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
 	position: absolute;
 	z-index: $z-index_veil-byebye;
-	@include trbl(69px, 0, auto);
+	@include trbl(0);
 	margin: auto;
+	padding: 10px;
+	border-radius: 20px;
+	width: 240px;
+	height: 240px;
+	max-width: calc(100% - #{ 10px * 2 });
+	max-height: calc(100% - #{ $top-bar-height + 10px * 2 + $bottom-bar-height });
 	line-height: 1.75;
 	text-align: center;
-	font-size: 12px;
+	font-size: 14px;
 	font-weight: bold;
 	color: white;
+	background: rgba(black, .125);
 	a {
 		color: inherit;
 		transition: .2s linear;
@@ -124,9 +130,7 @@ p#bibi-veil-byebye {
 		display: block;
 		position: relative;
 	}
-	span[lang="en"] {
-	}
-	span[lang="ja"] {
+	> span + span {
 		margin-top: 1.5em;
 		padding-top: 1.5em;
 		&:before {
@@ -139,7 +143,7 @@ p#bibi-veil-byebye {
 			margin: auto;
 			width: 2em;
 			height: 1px;
-			background: white;
+			background: rgba(white, .5);
 		}
 	}
 }
@@ -1395,8 +1399,9 @@ div#bibi-poweredby {
 	display: block;
 	position: absolute;
 	z-index: $z-index-poweredby;
-	top: auto; right: 0; bottom: 0; left: 0; margin: 0 auto;
-	padding: 4px;
+	@include trbl(auto, 0, 0);
+	margin: 0 auto;
+	//padding: 4px;
 	height: $bottom-bar-height;
 	text-align: right;
 	font-size: 14px;
@@ -1418,39 +1423,35 @@ div#bibi-poweredby {
 	}
 	p {
 		a {
+			$logo-image-original-width: 144px;
+			$logo-image-original-height: 72px;
+			$logo-image-height: 16px;
+			$logo-image-width: $logo-image-height * ($logo-image-original-width / $logo-image-original-height);
+			$logo-box-padding-vertical: 4px;
+			$logo-box-padding-horizontal: 8px;
+			$logo-box-height: $logo-image-height + $logo-box-padding-vertical * 2;
+			$logo-box-width: $logo-image-width + $logo-box-padding-horizontal * 2;
+			$logo-box-margin: ($bottom-bar-height - $logo-box-height) / 2;
 			display: block;
-			position: relative;
-			top: ($bottom-bar-height - (4px + 16px + 4px)) / 2 - 4px;
+			box-sizing: border-box;
+			position: absolute;
+			@include trbl(0, auto, 0, $logo-box-margin);
 			text-decoration: none;
 			color: black;
-			padding: 4px 8px;
-			width: 32px;
-			height: 16px;
+			margin: auto 0;
+			width: $logo-box-width;
+			height: $logo-box-height;
 			border-radius: 2px;
 			transition: .2s linear;
-			span, img {
-				position: absolute;
-				display: block;
-				opacity: 0;
-			}
-			span {
-				overflow: hidden;
-				width: 0;
-				height: 0;
-			}
-			img {
-				left: 0; right: 0; top: 6px; bottom: auto; margin: 0 auto;
-				width: auto;
-				height: 16px;
-				vertical-align: top;
-				transition: .2s linear;
-			}
+			background: transparent none no-repeat center (($logo-box-height - $logo-image-height) / 2 + 2px);
+			background-size: $logo-image-width $logo-image-height;
+			text-align: center;
+			font-size: $logo-image-height;
+			line-height: $logo-box-height + 2px;
+			color: transparent;
 		}
 		a:hover {
 			transition: .075s linear;
-			img {
-				transition: .075s linear;
-			}
 		}
 	}
 }
@@ -1459,16 +1460,11 @@ html.waiting-file div#bibi-poweredby,
 html.waiting div#bibi-poweredby {
 	p {
 		a {
-			background: rgba(128,128,128, 0.5);
-			img.bibi-logo-white {
-				opacity: 1;
-			}
+			background-color: rgba(128,128,128, 0.5);
+			background-image: url(../images/bibi-logo_white.png);
 		}
 		a:hover {
-			background: rgba(160,160,160, 0.9);
-			img.bibi-logo-white {
-				opacity: 1.0;
-			}
+			background-color: rgba(160,160,160, 0.9);
 		}
 	}
 }
@@ -1476,22 +1472,12 @@ html.waiting div#bibi-poweredby {
 html.panel-opened div#bibi-poweredby {
 	p {
 		a {
-			background: transparent;
-			img.bibi-logo-white {
-				opacity: 0;
-			}
-			img.bibi-logo-black {
-				opacity: 0.5;
-			}
+			opacity: 0.5;
+			background-color: transparent;
+			background-image: url(../images/bibi-logo_black.png);
 		}
 		a:hover {
-			background: transparent;
-			img.bibi-logo-white {
-				opacity: 0;
-			}
-			img.bibi-logo-black {
-				opacity: 1.0;
-			}
+			opacity: 1;
 		}
 	}
 }
@@ -1711,10 +1697,17 @@ div#bibi-slider-bookmap {
 // - . Spread Box
 // --------------------------------------------------------------------------------
 
+$slider-bookmap-spread-box-color: transparent;
+$slider-bookmap-spread-box-color_hover: rgba(steelblue, .33);
+
 div.bookmap-spread-box {
 	box-sizing: border-box;
 	flex-shrink: 0;
 	position: relative;
+	background: $slider-bookmap-spread-box-color;
+	&.hover {
+		//background: $slider-bookmap-spread-box-color_hover;
+	}
 }
 
 
@@ -1724,7 +1717,7 @@ div.bookmap-spread-box {
 $slider-bookmap-spread-background: rgba(white, .5);
 
 div.bookmap-spread {
-	box-sizing: content-box;
+	box-sizing: border-box;
 	position: absolute;
 	z-index: 1;
 	@include trbl(0);
@@ -1732,13 +1725,16 @@ div.bookmap-spread {
 	display: flex;
 	flex-wrap: nowrap;
 	justify-content: center;
-	html.page-ltr &                                          { flex-direction: row; }
-	html.page-rtl &                                          { flex-direction: row-reverse; }
-	html.view-vertical div.bookmap-spread-box.not-spreaded & { flex-direction: column; }
+	html.page-ltr &                                            { flex-direction: row; }
+	html.page-rtl &                                            { flex-direction: row-reverse; }
+	html.view-vertical div.bookmap-spread-box:not(.spreaded) & { flex-direction: column; }
 	div.bookmap-spread-box.single-item-spread-before & { justify-content: flex-start; }
 	div.bookmap-spread-box.single-item-spread-after &  { justify-content: flex-end; }
 	align-items: center;
-	border: solid 1px white;
+	//border: solid 1px white;
+	//html.appearance-rtl & { transform: translateX(1px); }
+	//html.appearance-ltr & { transform: translateX(-1px); }
+	//html.appearance-ttb &   { transform: translateY(-1px); }
 	//html.appearance-horizontal & { border-width: 0 .5px; }
 	//html.appearance-vertical &   { border-width: .5px 0; }
 	background: $slider-bookmap-spread-background;
@@ -1782,6 +1778,7 @@ div.bookmap-item-box {
 // --------------------------------------------------------------------------------
 
 span.bookmap-item {
+	/*
 	box-sizing: content-box;
 	display: block;
 	position: absolute;
@@ -1793,7 +1790,8 @@ span.bookmap-item {
 	border: none 0;
 	line-height: 1;
 	vertical-align: top;
-	display: none; ////////
+	*/
+	display: none;
 }
 
 
@@ -1802,9 +1800,10 @@ span.bookmap-item {
 
 $slider-bookmap-page-color: white;
 $slider-bookmap-page-color_hover: lighten(steelblue, 33%);
+$slider-bookmap-page-border-color_hover: $slider-bookmap-page-color_hover;
 
 span.bookmap-page {
-	box-sizing: content-box;
+	box-sizing: border-box;
 	display: block;
 	z-index: 10;
 	div.bookmap-item-box.reflowable & {
@@ -1813,14 +1812,14 @@ span.bookmap-page {
 	}
 	div.bookmap-item-box.pre-paginated & {
 		position: absolute;
-		@include trbl(-1px);
+		@include trbl(0);//trbl(-1px);
 		margin: auto;
 		@include size(100%);
 	}
 	background: $slider-bookmap-page-color;
 	&.hover {
 		background: $slider-bookmap-page-color_hover;
-		border: solid 1px $slider-bookmap-page-color_hover;
+		border: solid 1px $slider-bookmap-page-border-color_hover;
 	}
 	/*
 	div.bookmap-item-box:nth-of-type(odd) & { background: red; }
@@ -1835,15 +1834,16 @@ span.bookmap-page {
 // --------------------------------------------------------------------------------
 
 $slider-rail-width_opened: 3px;
-$slider-rail-color:                rgba(gray, 0.33);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-color_hover:          rgba(steelblue, 0.33);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color:       rgba(steelblue, 1.00);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color_hover: rgba(steelblue, 1.00);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-width_opened: 3px;
+$slider-rail-color:                rgba(gray,      0.250);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-color_hover:          rgba(gray,      0.250);//rgba(steelblue, 0.33);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-color:       rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
+$slider-rail-progress-color_hover: rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
 
 div#bibi-slider-rail {
 	& {
 		content: "";
-		overflow: hidden;
+		//overflow: hidden;
 		// display: none; // DO NOT SET `none` !!
 		box-sizing: border-box;
 		position: absolute;
@@ -1879,31 +1879,20 @@ div#bibi-slider-rail {
 div#bibi-slider-rail-progress {
 	& {
 		position: absolute;
-		@include size(100%);
+		@include size(0);
 		background: $slider-rail-progress-color;
 		transition: background-color linear .33s;
 	}
 	div#bibi-slider:hover & {
 		background: $slider-rail-progress-color_hover;
 	}
-	html.appearance-rtl & {
-		right: 0;
-		transform-origin: 100% 50%;
-	}
-	html.appearance-ltr & {
-		left: 0;
-		transform-origin: 0 50%;
-	}
-	html.appearance-vertical & {
-		top: 0;
-		transform-origin: 50% 0;
-	}
-	html.slider-opened & {
-	}
-	html.slider-opened.appearance-horizontal & {
-	}
-	html.slider-opened.appearance-vertical & {
-	}
+	html.appearance-horizontal & { top: -100%; bottom: -100%; margin: auto 0;                                        }
+	html.appearance-rtl &        {                                             right: 0; transform-origin: 100% 50%; }
+	html.appearance-ltr &        {                                             left:  0; transform-origin:   0  50%; }
+	html.appearance-vertical &   { left: -100%; right: -100%; margin: 0 auto;  top:   0; transform-origin:  50%  0 ; }
+	html.slider-opened & {}
+	html.slider-opened.appearance-horizontal & { height: $slider-rail-progress-width_opened; }
+	html.slider-opened.appearance-vertical &   { width:  $slider-rail-progress-width_opened; }
 }
 
 
@@ -2064,53 +2053,26 @@ div#bibi-arrow-forward {
 		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
 	}
 	html.busy & {
-		&:before, &:after {
-			transition: none !important;
-			opacity: 0 !important;
-		}
+		&:before, &:after { opacity: 0 !important; transition: none !important; }
 	}
 	//// Interaction
 	& {
-		&:before, &:after {
-			transition-duration: .4s;
-		}
-		&:before {
-			opacity: 0;
-			transform: scale(1);
-			transition-timing-function: cubic-bezier(.2, .8, .8, 1.6);
-		}
-		&:after {
-			opacity: 1;
-			transition-timing-function: ease-out;
-		}
+		&:before, &:after { transition-duration: .4s; }
+		&:before { opacity: 0.00; transform: scale(1.10); transition-timing-function: cubic-bezier(.2, .8, .8, 1.6); }
+		&:after  { opacity: 1.00;                         transition-timing-function: ease-out; }
 	}
 	&.available.hover {
 		cursor: pointer;
-		&:before, &:after {
-			transition-duration: .2s;
-		}
-		&:before {
-			transform: scale(1.1);
-			opacity: 1;
-		}
+		&:before, &:after { transition-duration: .2s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
 	}
 	&.available.active {
-		&:before, &:after {
-			transition-duration: .1s;
-		}
-		&:before {
-			transform: scale(1.0);
-			opacity: .75;
-		}
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 0.75; transform: scale(1.00); }
 	}
 	&.available.glowing {
-		&:before, &:after {
-			transition-duration: .1s;
-		}
-		&:before {
-			transform: scale(1.1);
-			opacity: 1;
-		}
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
 	}
 }
 
@@ -2119,7 +2081,8 @@ div#bibi-arrow-forward {
 		#{$dir}: 0;
 		&:before, &:after { transform-origin: $transform-origin; }
 		&:before { content: $icon-code; #{$dir}: $button-group-margin; line-height: $icon-line-height; text-indent: $icon-indent; }
-		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		//&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1)); }
 	}
 	&.available.hover, &.available.glowing {
 		&:after { #{$dir}: 0; }
@@ -2129,10 +2092,12 @@ div#bibi-arrow-forward {
 	}
 }
 
-html.appearance-ltr div#bibi-arrow-back, html.appearance-rtl div#bibi-arrow-forward {
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward {
 	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $arrow-icon-size, -.03em); // chevron_left
 }
-html.appearance-ltr div#bibi-arrow-forward, html.appearance-rtl div#bibi-arrow-back {
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back {
 	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $arrow-icon-size, .03em); // chevron_right
 }
 

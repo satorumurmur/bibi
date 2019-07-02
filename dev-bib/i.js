@@ -1,16 +1,8 @@
-/*!
- *                                                                                                                                (℠)
- *  # Pipi: BiB/i Putter
- *
- *  - "Putting EPUBs in a Web Page with BiB/i."
- *  - (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
- *  - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- */
-
 (function() {
     'use strict';
     if(window["bibi:pipi"]) return;
-    const Pipi = window["bibi:pipi"] = { "version": "____bibi-version____", "build": "____bibi-build____",
+    const Pipi = window["bibi:pipi"] = { "version": "____bibi-version____",
+        CSS: require("./i.scss"),
         Status: "",
         Bibis: [],
         Anchors: [],
@@ -185,7 +177,6 @@
             return false;
         }
     }, false);
-    document.getElementsByTagName("head")[0].appendChild(Pipi.create("link", { rel: "stylesheet", id: "bibi-css", href: Pipi.Path.replace(/\.js$/, ".css") }));
     document.addEventListener("bibi:readied",     function(Eve) { console.log("BiB/i: Readied. - "   + Eve.detail.Bibis.length + " Bibi" + (Eve.detail.Bibis.length > 1 ? "s" : "") + "."); }, false);
     document.addEventListener("bibi:loaded",      function(Eve) { console.log("BiB/i: Loaded. - "    + Eve.detail.Bibis.length + " Bibi" + (Eve.detail.Bibis.length > 1 ? "s" : "") + "."); }, false);
     document.addEventListener("bibi:timed-out",   function(Eve) { console.log("BiB/i: Timed Out.");                                                                                         }, false);

@@ -248,6 +248,7 @@ div#bibi-main {
 			html.spread-horizontal &:not(.reflowable) { min-width: 100vw; }
 			html.spread-vertical & { width: 100%; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // [!] To Be Overwritten in Script (if Scrollbars have height)
+			html.book-pre-paginated.view-paged &:not(.current) { visibility: hidden; }
 		}
 			div.spread {
 				box-sizing: border-box;
@@ -259,9 +260,9 @@ div#bibi-main {
 				display: flex;
 				flex-wrap: nowrap;
 				justify-content: center;
-				html.page-ltr &                                  { flex-direction: row; }
-				html.page-rtl &                                  { flex-direction: row-reverse; }
-				html.view-vertical div.spread-box.not-spreaded & { flex-direction: column; }
+				html.page-ltr &                                    { flex-direction: row; }
+				html.page-rtl &                                    { flex-direction: row-reverse; }
+				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
 				div.spread-box.single-item-spread-before & { justify-content: flex-start; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				align-items: center;
@@ -283,9 +284,6 @@ div#bibi-main {
 						justify-content: flex-start;
 						align-items: center;
 					}
-					html.book-pre-paginated.view-paged &:not(.current) {
-						opacity: .125;
-					}
 					html.book-pre-paginated &:after {
 						content: "";
 						display: block;
@@ -302,7 +300,7 @@ div#bibi-main {
 						opacity: 0;
 						transition: opacity 1s ease-in;
 					}
-					html.book-pre-paginated &:not(.placeholder):after {
+					html.book-pre-paginated &:not(.placeholder):not(.loaded):after {
 						content: "Loading...";
 						opacity: 1;
 					}
@@ -312,6 +310,7 @@ div#bibi-main {
 						display: block;
 					}
 					iframe.item {
+						//overflow: hidden;
 						position: absolute;
 						z-index: 10;
 						@include trbl(0);
@@ -320,12 +319,16 @@ div#bibi-main {
 						border: none 0;
 						line-height: 1;
 						vertical-align: top;
+						background: transparent;
 						html.zoomed-in & { will-change: transform; }
 						html.transforming & { will-change: none !important; }
-						html.page-ltr & { transform-origin: 0 0; }
-						html.page-rtl & { transform-origin: 100% 0; }
+						transform-origin: 0 0;
+						//html.page-ltr & { transform-origin: 0 0; }
+						//html.page-rtl & { transform-origin: 100% 0; }
 						//&.non-linear-item { display: none; }
-						opacity: 1; div.item-box:not(.loaded) & { opacity: 0; }
+						opacity: 1;
+						div.item-box:not(.loaded) & { visibility: hidden; opacity: 0; }
+						//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
 						div.spread-box.current & { transition: opacity .1s linear; }
 					}
 					span.page {
