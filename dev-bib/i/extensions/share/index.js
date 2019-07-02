@@ -1,18 +1,9 @@
-/*!
- *
- * # BiB/i Extension: Share
- *
- * - Copyright (c) Satoru MATSUSHIMA - http://bibi.epub.link or https://github.com/satorumurmur/bibi
- * - Licensed under the MIT license. - http://www.opensource.org/licenses/mit-license.php
- */
-
 Bibi.x({
 
-    name: "Share",
+    id: "Share",
     description: "Share the webpage which is holding BiB/i or embedded books through SNS.",
     author: "Satoru MATSUSHIMA (@satorumurmur)",
-    version: "2.0.0",
-    build: Bibi["build"]
+    version: "2.0.0"
 
 })(function() {
 
@@ -32,15 +23,11 @@ Bibi.x({
             Icon: '<span class="bibi-icon bibi-icon-share"></span>'
         }),
         id: "bibi-subpanel_share",
-        open: function() {
-            sML.each(this.querySelectorAll(".parent-title"), function() {
-                this.innerHTML = U["parent-title"];
-            });
-            sML.each(this.querySelectorAll(".book-title"), function() {
-                this.innerHTML = document.title;
-            });
+        open: () => {
+            sML.each(this.querySelectorAll(".parent-title"), () => { this.innerHTML = U["parent-title"]; });
+            sML.each(this.querySelectorAll(".book-title"), () => { this.innerHTML = document.title; });
         },
-        getShareURI: function(ParentOrBook, SNS) {
+        getShareURI: (ParentOrBook, SNS) => {
             let ShareTitle = "", ShareURI = "";
             switch(ParentOrBook) {
                 case "Parent": ShareTitle = U["parent-title"], ShareURI = U["parent-uri"]; break;
@@ -54,7 +41,7 @@ Bibi.x({
             return "";
         }
     });
-    const getShareButton = function(ParentOrBook, SNS, onclick) {
+    const getShareButton = (ParentOrBook, SNS, onclick) => {
         const ButtonObject = {
             Type: "link",
             Labels: { default: { default: SNS } },

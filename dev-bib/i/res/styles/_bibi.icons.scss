@@ -724,7 +724,7 @@ $icon-color_active_border: darken(pink, 5%);
 		box-shadow: none !important;
 	}
 	&:before {
-		@include font-icon("Font Awesome Brands");
+		@include font-icon("Font Awesome\ 5 Brands");
 		content: $content;
 	}
 }
