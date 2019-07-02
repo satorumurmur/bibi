@@ -46,6 +46,7 @@ Banners.BibiPolyfillsJS = banner(`BiB/i Polyfills for on Internet Explorer 11`, 
  *      - Polyfill Array.prototype.includes ... Copyright (c) Kevin Latusinski - https://github.com/latusinski/polyfill-array-includes           (Licensed under the MIT license.)
  *      - String.prototype.padStart         ... Copyright (c) Khaled Al-Ansari - https://github.com/KhaledElAnsari/String.prototype.padStart     (Licensed under the MIT license.)
  *      - text-encoding-utf-8               ...            by Erik Arvidsson   - https://github.com/arv/text-encoding-utf-8 (Released into the public domain under the Unlicense.)
+ *      - url-polyfill                      ... Copyright (c) Valentin Richard - https://github.com/lifaon74/url-polyfill   (Released into the public domain under the Unlicense.)
 `);
 
 // -----------------------------------------------------------------------------------------------------------------------------

@@ -324,7 +324,7 @@ Bibi.loadBook = () => L.getBookData().then(Param => {
             //LoadedSpreads[O.getTimeLabel()] = Spread;
             LoadedItems += Spread.Items.length;/*
             if(B.Package.Metadata["rendition:layout"] == "reflowable") */I.note("Loading... (" + (LoadedItems) + "/" + R.Items.length + " Items Loaded.)");
-            if(!LayoutOption.Reset) R.layOutSpread(Spread);
+            if(!LayoutOption.Reset) return R.layOutSpread(Spread);
         })//.catch(() => Promise.resolve())
     ));
     Promise.all(Promises).then(() => {
@@ -928,7 +928,7 @@ L.preprocessResources = () => new Promise((resolve, reject) => {
     E.dispatch("bibi:is-going-to:preprocess-resources");
     const PpdReses = []; // PreprocessedResources
     const Promises = [O.download({ Path: new URL("res/styles/bibi.book.css", O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true }).then(Item => {
-        Item.URI = O.getDataURI(Item);
+        Item.URI = O.getBlobURL(Item);
         Item.Content = "";
         B.DefaultStyle = Item;
         return PpdReses.push(B.DefaultStyle);
@@ -939,9 +939,10 @@ L.preprocessResources = () => new Promise((resolve, reject) => {
         if(/\/(css|javascript)$/.test(Item["media-type"]) && !Item.Bibitem) pushItemPreprocessingPromise(Item, true); // CSSs & JavaScripts in Manifest
     }
     Promise.all(Promises).then(() => {
-        if(B.ExtractionPolicy != "at-once" && (S.BRL == "pre-paginated" || (sML.UA.Chromium || sML.UA.WebKit/* || sML.UA.Gecko*/))) return resolve(PpdReses);
+        resolve(PpdReses);/*
+        if(B.ExtractionPolicy != "at-once" && (S.BRL == "pre-paginated" || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PpdReses);
         R.Items.forEach(Item => pushItemPreprocessingPromise(Item, O.isBin(Item))); // Spine Items
-        return Promise.all(Promises).then(() => resolve(PpdReses));
+        return Promise.all(Promises).then(() => resolve(PpdReses));*/
     });
 });
 
@@ -953,7 +954,7 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
         L.loadItem(Item, { AllowPlaceholder: Opt.AllowPlaceholderItems })
         .then(() =>  LoadedItemsInSpread++) // Loaded
        .catch(() => SkippedItemsInSpread++) // Skipped
-        .then(() => { if(LoadedItemsInSpread + SkippedItemsInSpread == Spread.Items.length) (SkippedItemsInSpread ? reject : resolve)(Spread); });
+        .then(() => { if(LoadedItemsInSpread + SkippedItemsInSpread == Spread.Items.length) /*(SkippedItemsInSpread ? reject : resolve)*/resolve(Spread); });
     });
 });
 
@@ -973,26 +974,26 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         return Promise.resolve(Item);
     }
     ItemBox.classList.remove("loaded");
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            return B.ExtractionPolicy ?
-                O.file(Item, { Preprocess: (B.ExtractionPolicy == "on-the-fly") }).then(Item => resolve(Item.Content.replace(/^<\?.+?\?>/, ""))) // Archived
-                : resolve() // Extracted
+            //if(!B.ExtractionPolicy) return resolve(); // Extracted
+            return O.file(Item, { Preprocess: true }).then(Item => resolve(Item.Content.replace(/^<\?.+?\?>/, ""))).catch(reject); // Archived
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
             return O.file(Item, { URI: true }).then(Item => resolve({
+                Head: (Item.Ref["rendition:layout"] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
                 Body: `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
-            }))
+            })).catch(reject)
         }
         if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
-            return O.file(Item, { Preprocess: (B.ExtractionPolicy == "on-the-fly") }).then(Item => {
+            return O.file(Item, { Preprocess: true }).then(Item => {
                 const RE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g;
                 const SSs = Item.Content.match(RE);
                 resolve({
                     Head: (!B.ExtractionPolicy ? `<base href="${ O.fullPath(Item.Path) }" />` : '') + (SSs ? SSs.map(SS => SS.replace(RE, `<link rel="stylesheet" $1 />`)).join("") : ""),
                     Body: Item.Content.replace(RE, '')
                 });
-            })
+            }).catch(reject)
         }
         resolve({})
     }).then(HTML => new Promise(resolve => {
@@ -1010,45 +1011,51 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                     `</body>`,
                 `</html>`
             ].join("");
-            HTML = HTML.replace(`</head>`, `<script id="bibi-onload">window.addEventListener("load", function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
-            Item.onLoaded = () => {
-                resolve(Item);
-                console.log('onload: R.Items[' + Item.Index + ']: %O', Item);
-                const Script = Item.contentDocument.getElementById("bibi-onload");
-                Script.parentNode.removeChild(Script);
-                delete Item.onLoaded;
-            };
-            Item.src = "";
-            ItemBox.insertBefore(Item, ItemBox.firstChild);
-            Item.contentDocument.open();
-            Item.contentDocument.write(HTML);
-            Item.contentDocument.close();
+            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="bibi-default-style" href="${ B.DefaultStyle.URI }" />`);
+            const BlobURLAcceptable = !(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)); // Legacy Microsoft Browsers accepts any DataURIs for src of <iframe>.
+            if(BlobURLAcceptable) {
+                Item.URI = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = "";
+                Item.onload = () => resolve(Item);
+                Item.src = Item.URI;
+                ItemBox.insertBefore(Item, ItemBox.firstChild);
+            } else {
+                HTML = HTML.replace(`</head>`, `<script id="bibi-onload">window.addEventListener("load", function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
+                Item.onLoaded = () => {
+                    resolve(Item);
+                    //console.log('onload: R.Items[' + Item.Index + ']: %O', Item);
+                    const Script = Item.contentDocument.getElementById("bibi-onload");
+                    Script.parentNode.removeChild(Script);
+                    delete Item.onLoaded;
+                };
+                Item.src = "";
+                ItemBox.insertBefore(Item, ItemBox.firstChild);
+                Item.contentDocument.open();
+                Item.contentDocument.write(HTML);
+                Item.contentDocument.close();
+            }
         } else {
             Item.onload = () => resolve(Item);
             Item.src = O.fullPath(Item.Path);
             ItemBox.insertBefore(Item, ItemBox.firstChild);
         }
     })).then(L.postprocessItem).then(() => {
-        Item.Content = Item.URI = "", Item.Preprocessed = false;
         Item.Loaded = true;
         ItemBox.classList.add("loaded");
         E.dispatch("bibi:loaded-item", Item);
         Item.stamp("Loaded");
         return Item;
-    });
+    }).catch(() => Promise.reject());
 };
 
 
 L.postprocessItem = (Item) => {
 
-    Item.HTML = Item.contentDocument.documentElement;
-    Item.Head = Item.contentDocument.head;
-    Item.Body = Item.contentDocument.body;
-    Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
-
-    if(Item.IsPlaceholder) return Promise.resolve(Item);
-
     Item.stamp("Postprocess");
+
+    Item.HTML = Item.contentDocument.getElementsByTagName('html')[0];
+    Item.Head = Item.contentDocument.getElementsByTagName('head')[0];
+    Item.Body = Item.contentDocument.getElementsByTagName('body')[0];
+    Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
 
     const XMLLang = Item.HTML.getAttribute("xml:lang"), Lang = Item.HTML.getAttribute("lang");
          if(!XMLLang && !Lang) Item.HTML.setAttribute("xml:lang", B.Language), Item.HTML.setAttribute("lang", B.Language);
@@ -1091,8 +1098,6 @@ L.postprocessItem = (Item) => {
         else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
 
-    L.applyDefaultStyleSheet(Item);
-
     return (Item.Ref["rendition:layout"] == "pre-paginated" ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
         //if(S["epub-additional-stylesheet"]) Item.Head.appendChild(sML.create("link",   { rel: "stylesheet", href: S["epub-additional-stylesheet"] }));
         //if(S["epub-additional-script"])     Item.Head.appendChild(sML.create("script", { src: S["epub-additional-script"] }));
@@ -1102,9 +1107,6 @@ L.postprocessItem = (Item) => {
     });
 
 };
-
-
-L.applyDefaultStyleSheet = (Item) => Item.Head.insertBefore(sML.create("link", { rel: "stylesheet", id: "bibi-default-style", href: B.DefaultStyle.URI }), Item.Head.querySelector("link, style"));
 
 
 L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
@@ -1301,21 +1303,22 @@ R.resetStage = () => {
     R.Main.Book.style["background"] = S["book-background"] ? S["book-background"] : "";
 };
 
-R.layOutSpread = (Spread) => {
-    const SpreadBox = Spread.Box;
+R.layOutSpread = (Spread) => new Promise(resolve => {
     E.dispatch("bibi:is-going-to:reset-spread", Spread);
     Spread.style.width = Spread.style.height = "";
-    SpreadBox.classList.remove("spreaded");
+    Spread.Box.classList.remove("spreaded");
     Spread.Pages = [];
-    Spread.Items.forEach(Item => {
-        R.layOutItem(Item);
-        Item.Pages.forEach(Page => {
-            Page.IndexInSpread = Spread.Pages.length;
-            Spread.Pages.push(Page);
+    R.layOutItem(Spread.Items[0]).then(Item => {
+        Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
+        if(Spread.Items.length == 1) return resolve();
+        R.layOutItem(Spread.Items[1]).then(Item => {
+            Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
+            resolve();
         });
-    });
+    })
+}).then(() => {
     Spread.Spreaded = (Spread.Items[0].Spreaded || (Spread.Items[1] && Spread.Items[1].Spreaded)) ? true : false;
-    if(Spread.Spreaded) SpreadBox.classList.add("spreaded");
+    if(Spread.Spreaded) Spread.Box.classList.add("spreaded");
     const SpreadSize = { Width: 0, Height: 0 };
     if(Spread.Items.length == 1) {
         // Single Reflowable/Pre-Paginated Item
@@ -1350,22 +1353,22 @@ R.layOutSpread = (Spread) => {
         console.log(Spread);
     }
     if(O.Scrollbars.Height && S.SLA == "vertical" && S.ARA != "vertical") {
-        SpreadBox.style.minHeight    = S.RVM == "paged"                           ? "calc(100vh - " + O.Scrollbars.Height + "px)" : "";
-        SpreadBox.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + "px"                    : "";
+        Spread.Box.style.minHeight    = S.RVM == "paged"                           ? "calc(100vh - " + O.Scrollbars.Height + "px)" : "";
+        Spread.Box.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + "px"                    : "";
     } else {
-        SpreadBox.style.minHeight = SpreadBox.style.marginBottom = ""
+        Spread.Box.style.minHeight = Spread.Box.style.marginBottom = ""
     }
-    SpreadBox.style[S.CC.L.SIZE.l] = Math.ceil(SpreadSize[S.CC.L.SIZE.L]) + "px";
-    SpreadBox.style[S.CC.L.SIZE.b] = "";
+    Spread.Box.style[S.CC.L.SIZE.l] = Math.ceil(SpreadSize[S.CC.L.SIZE.L]) + "px";
+    Spread.Box.style[S.CC.L.SIZE.b] = "";
     Spread.style.width  = Math.ceil(SpreadSize.Width) + "px";
     Spread.style.height = Math.ceil(SpreadSize.Height) + "px";
     Spread.style["border-radius"] = S["spread-border-radius"];
     Spread.style["box-shadow"]    = S["spread-box-shadow"];
     E.dispatch("bibi:reset-spread", Spread);
     return Spread;
-};
+});
 
-R.layOutItem = (Item) => {
+R.layOutItem = (Item) => new Promise(resolve => {
     O.stamp("Reset...", Item.TimeCard);
     E.dispatch("bibi:is-going-to:reset-item", Item);
     Item.Scale = 1;
@@ -1373,8 +1376,8 @@ R.layOutItem = (Item) => {
     (Item.Ref["rendition:layout"] != "pre-paginated") ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
     E.dispatch("bibi:reset-item", Item);
     O.stamp("Reset.", Item.TimeCard);
-    return Item;
-};
+    resolve(Item);
+});
 
 R.renderReflowableItem = (Item) => {
     let PageCB  = R.Stage[S.CC.L.SIZE.B] - (S["item-padding-" + S.CC.L.BASE.s] + S["item-padding-" + S.CC.L.BASE.e]); // Page "C"ontent "B"readth
@@ -1525,14 +1528,14 @@ R.SpreadsTurnedFaceUp = [];
 R._turnSpread = (Spread, TF) => new Promise(resolve => {
     const AllowPlaceholderItems = !(TF);
     if(!S["allow-placeholders"] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
-    if(TF) R.SpreadsTurnedFaceUp.push(Spread);
-    else if(O.cancelRetlieving) setTimeout(() => Spread.Items.forEach(Item => O.cancelRetlieving(Item.Path)), 0);
     const PreviousSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L];
     L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
         resolve(); // ←↙ do asynchronous
-        R.layOutSpread(Spread);
-        const ChangedSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L] - PreviousSpreadBoxLength;
-        if(ChangedSpreadBoxLength != 0) R.Main.Book.style[S.CC.L.SIZE.l] = (parseFloat(getComputedStyle(R.Main.Book)[S.CC.L.SIZE.l]) + ChangedSpreadBoxLength) + "px";
+        R.layOutSpread(Spread).then(() => {
+            R.organizePages();
+            const ChangedSpreadBoxLength = Spread.Box["offset" + S.CC.L.SIZE.L] - PreviousSpreadBoxLength;
+            if(ChangedSpreadBoxLength != 0) R.Main.Book.style[S.CC.L.SIZE.l] = (parseFloat(getComputedStyle(R.Main.Book)[S.CC.L.SIZE.l]) + ChangedSpreadBoxLength) + "px";
+        });
     }).catch(Spread => {
         resolve();
     });
@@ -1545,7 +1548,8 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!Opt.Direction) Opt.Direction = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1
     let SpreadsToBeTurnedFaceUp = [];
     let SpreadsToBeTurnedFaceDown = [];
-    Opt.Range.forEach((Distance, i) => {
+    let Promised = {};
+    if(Opt.Range.length) Opt.Range.forEach((Distance, i) => {
         const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
         if(!Spread) return;
         clearTimeout(Spread.Timer_TurningFaceUp);
@@ -1553,18 +1557,23 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         SpreadsToBeTurnedFaceUp.push(Spread);
         //if(R.SpreadsTurnedFaceUp.includes(Spread)) return;
         //console.log(`TurnFaceUp: [${ Spread.Index }] %O`, Spread);
-        Spread.Timer_TurningFaceUp = setTimeout(() => R._turnSpread(Spread, true), 100 * i);
-    });
-    R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp.concat(R.SpreadsTurnedFaceUp.filter(Spread => !SpreadsToBeTurnedFaceUp.includes(Spread)));
-    while(R.SpreadsTurnedFaceUp.length > 4) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
-    SpreadsToBeTurnedFaceDown.forEach(Spread => {
+        if(i == 0) Promised = R._turnSpread(Spread, true);
+        else Spread.Timer_TurningFaceUp = setTimeout(() => R._turnSpread(Spread, true), 333 * i);
+    }); else Promised = Promise.resolve();
+    R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
+    R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
+    while(R.SpreadsTurnedFaceUp.length > 3) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
+    SpreadsToBeTurnedFaceDown.forEach((Spread, i) => {
         clearTimeout(Spread.Timer_TurningFaceUp);
         clearTimeout(Spread.Timer_TurningFaceDown);
         //console.log(`TurnFaceDown: [${ Spread.Index }] %O`, Spread);
-        if(O.cancelRetlieving) Spread.Items.forEach(Item => O.cancelRetlieving(Item.Path));
-        Spread.Timer_TurningFaceDown = setTimeout(() => R._turnSpread(Spread, false), 500);
+        if(O.cancelRetlieving) Spread.Items.forEach(Item => {
+            if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
+            O.cancelRetlieving(Item);
+        });
+        Spread.Timer_TurningFaceDown = setTimeout(() => R._turnSpread(Spread, false), 99 * i);
     });
-    resolve(R.SpreadsTurnedFaceUp);
+    Promised.then(() => resolve(R.SpreadsTurnedFaceUp));
 });
 
 
@@ -1621,13 +1630,18 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
     O.log('Layout: %O', Layout);
     if(typeof Opt.before == "function") Opt.before();
-    if(Opt.Reset) {
+    if(!Opt.Reset) {
+        resolve();
+    } else {
         R.resetStage();
-        R.Spreads.forEach(R.layOutSpread);
-        R.organizePages();
-        R.layOutStage();
+        const Promises = [];
+        R.Spreads.forEach(Spread => Promises.push(R.layOutSpread(Spread)));
+        Promise.all(Promises).then(() => {
+            R.organizePages();
+            R.layOutStage();
+            resolve();
+        });
     }
-    resolve();
 }).then(() => {
     return R.focusOn({ Destination: Opt.Destination, Duration: 0 });
 }).then(() => {
@@ -1771,6 +1785,7 @@ R.getCurrentPages = () => {
     };
     FrameScrollCoord.Before = FrameScrollCoord[S.CC.L.BASE.B];
     FrameScrollCoord.After  = FrameScrollCoord[S.CC.L.BASE.A];
+    //console.log(FrameScrollCoord);
     let Pages = [], Ratio = [], Status = [], BiggestRatio = 0;
     for(let l = R.Pages.length, i = 0; i < l; i++) { const Page = R.Pages[i];
         const PageCoord = sML.getCoord(Page);
@@ -1778,7 +1793,9 @@ R.getCurrentPages = () => {
         PageCoord.Before = PageCoord[S.CC.L.BASE.B];
         PageCoord.After  = PageCoord[S.CC.L.BASE.A];
         const LengthInside = Math.min(FrameScrollCoord.After * S.CC.L.AXIS.PM, PageCoord.After * S.CC.L.AXIS.PM) - Math.max(FrameScrollCoord.Before * S.CC.L.AXIS.PM, PageCoord.Before * S.CC.L.AXIS.PM);
+        //console.log(i, LengthInside);
         const PageRatio = (LengthInside <= 0 || !PageCoord[S.CC.L.SIZE.L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[S.CC.L.SIZE.L] * 100);
+        //console.log(i, PageRatio);
         if(PageRatio <= 0) {
             if(Pages.length) break;
         } else if(PageRatio > BiggestRatio) {
@@ -1851,7 +1868,8 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
         if(Dest.Side == "after") FocusPoint += (Dest.Page["offset" + S.CC.L.SIZE.L] - R.Stage[S.CC.L.SIZE.L]) * S.CC.L.AXIS.PM;
         if(S.SLD == "rtl") FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
-    } else {
+        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
+    }/* else {
         if(S["allow-placeholders"] && Par.Turn != false) R.turnSpreads({ Origin: Dest.Page.Spread });
         if(R.Stage[S.CC.L.SIZE.L] >= Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) {
             FocusPoint = O.getElementCoord(Dest.Page.Spread)[S.CC.L.AXIS.L];
@@ -1860,24 +1878,32 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
             FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
             if(R.Stage[S.CC.L.SIZE.L] > Dest.Page["offset" + S.CC.L.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page["offset" + S.CC.L.SIZE.L]) / 2);
         }
-    }
-    if(typeof Dest.TextNodeIndex == "number") R.selectTextLocation(Dest); // Colorize Destination with Selection
+        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
+    }*/
+    ((S["allow-placeholders"] && Par.Turn != false) ? R.turnSpreads({ Origin: Dest.Page.Spread }) : Promise.resolve()).then(() => {
+        if(R.Stage[S.CC.L.SIZE.L] >= Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) {
+            FocusPoint = O.getElementCoord(Dest.Page.Spread)[S.CC.L.AXIS.L];
+            FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page.Spread["offset" + S.CC.L.SIZE.L]) / 2);
+        } else {
+            FocusPoint = O.getElementCoord(Dest.Page)[S.CC.L.AXIS.L];
+            if(R.Stage[S.CC.L.SIZE.L] > Dest.Page["offset" + S.CC.L.SIZE.L]) FocusPoint -= Math.floor((R.Stage[S.CC.L.SIZE.L] - Dest.Page["offset" + S.CC.L.SIZE.L]) / 2);
+        }
+        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
+    });
+}).then(Par => {
+    if(typeof Par.Dest.TextNodeIndex == "number") R.selectTextLocation(Par.Dest); // Colorize Destination with Selection
     const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
-    ScrollTarget[S.CC.L.AXIS.L] = FocusPoint;
-    O.scrollTo(ScrollTarget, {
+    ScrollTarget[S.CC.L.AXIS.L] = Par.FocusPoint;
+    return O.scrollTo(ScrollTarget, {
         ForceScroll: true,
         Duration: 0//(S.RVM == "paged" && S.ARD != S.SLD ? 0 : Par.Duration)
     }).then(() => {
         R.getCurrent();
         R.Moving = false;
-        resolve();
-    });
-}).then(() => {
-    return new Promise(resolve => {
-        resolve();
         E.dispatch("bibi:focused-on", Par);
+        //console.log("FOCUSED");
     });
-});
+}).catch(() => Promise.resolve());
 
 
 R.hatchDestination = (Dest) => { // from Page, Element, or Edge
@@ -2020,8 +2046,9 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
         (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
         (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
     );
+    let Promised = {};
     if(!ToFocus) {
-        R.scrollBy(Par).then(resolve);
+        Promised = R.scrollBy(Par);
     } else {
         const CurrentPageStatus = R.Current.Pages[CurrentEdge + "Status"];
         const CurrentPageRatio  = R.Current.Pages[CurrentEdge + "Ratio"];
@@ -2042,7 +2069,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
                      if(    /pass/.test(CurrentPageStatus)) Side = "after",  Par.Distance =  0;
             }
         }
-        //sML.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
+        //console.log([CurrentPageStatus, CurrentPageRatio, Par.Distance, Side].join(" / "));
         let DestinationPageIndex = CurrentPage.Index + Par.Distance;
              if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
         else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
@@ -2054,11 +2081,13 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
             }
         }
         Par.Destination = { Page: DestinationPage, Side: Side };
-        R.focusOn(Par).then(resolve);
+        Promised = R.focusOn(Par);
     }
-}).then(() =>
-    E.dispatch("bibi:moved-by", Par)
-);
+    Promised.then(() => {
+        resolve();
+        E.dispatch("bibi:moved-by", Par);
+    });
+}).catch(() => Promise.resolve());
 
 R.scrollBy = (Par) => new Promise((resolve, reject) => {
     if(!Par) return reject();
@@ -2145,9 +2174,11 @@ I.note = (Msg, Time, ErrorOccured) => {
          if(!Msg)                       I.note.Time = 0;
     else if(typeof Time == "undefined") I.note.Time = O.Busy ? 9999 : 2222;
     else                                I.note.Time = Time;
-    I.Notifier.innerHTML = '<p' + (ErrorOccured ? ' class="error"' : '') + '>' + Msg + '</p>';
-    O.HTML.classList.add("notifier-shown");
-    if(typeof I.note.Time == "number") I.note.Timer = setTimeout(() => O.HTML.classList.remove("notifier-shown"), I.note.Time);
+    //setTimeout(() => {
+        I.Notifier.innerHTML = `<p${ ErrorOccured ? ' class="error"' : '' }>${ Msg }</p>`;
+        O.HTML.classList.add("notifier-shown");
+        if(typeof I.note.Time == "number") I.note.Timer = setTimeout(() => O.HTML.classList.remove("notifier-shown"), I.note.Time);
+    //}, 0);
 };
 
 
@@ -4828,6 +4859,7 @@ O.ContentTypes = {
 
 O.preprocess = (Item) => {
     Item = O.item(Item); if(!Item.Content) throw 'No Content.';
+    const ResItems = [];
     const Setting = O.getPreprocessSetting(Item.Path); if(!Setting) return Promise.resolve(Item.Content);
     const Promises = [];
     if(Setting.ReplaceRules) Item.Content = Setting.ReplaceRules.reduce((ItemContent, Rule) => ItemContent.replace(Rule[0], Rule[1]), Item.Content);
@@ -4842,7 +4874,9 @@ O.preprocess = (Item) => {
                 const ResPathInSource = Res.replace(ResRE, Setting.ResolveRules.PathRef);
                 const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? "./" : "") + ResPathInSource).split("#");
                 if(!ExtRE.test(ResPaths[0])) return;
-                const Promised = (!B.ExtractionPolicy && !Pattern.ForceURI) ? Promise.resolve(B.Path + "/" + ResPaths[0]) : O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true });
+                ResItems.push(O.item({ Path: ResPaths[0] }));
+                //const Promised = (!B.ExtractionPolicy && !Pattern.ForceURI) ? Promise.resolve(B.Path + "/" + ResPaths[0]) : O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true });
+                const Promised = O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true });
                 Promises.push(Promised.then(ChildItem => {
                     ResPaths[0] = ChildItem.URI;
                     Item.Content = Item.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join("#")));
@@ -4852,6 +4886,7 @@ O.preprocess = (Item) => {
     }
     return Promise.all(Promises).then(() => {
         Item.Preprocessed = true;
+        Item.ResItems = ResItems;
         return Item;
     });
 };
@@ -4900,6 +4935,7 @@ O.PreprocessSettings = {
             if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
                 RRs.push([/text-align\s*:\s*justify\s*([;\}])/gm, 'text-align: justify; text-justify: inter-ideograph$1']);
             }
+            //delete this.init;
             return this;
         }
     },
@@ -5138,7 +5174,10 @@ O.getOrigin = (Win) => {
 
 O.Origin = O.getOrigin();
 
-O.Path = document.currentScript.src;
+O.Path = (DCS => {
+    if(DCS) return DCS.src;
+    return document.getElementById("bibi-script").src;
+})(document.currentScript);
 
 O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, "");
 
