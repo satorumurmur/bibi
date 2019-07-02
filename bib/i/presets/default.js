@@ -1,4 +1,4 @@
-Bibi.Preset = {
+Bibi.preset({
 
 
 //==============================================================================================================================================
@@ -30,6 +30,8 @@ Bibi.Preset = {
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
+"allow-placeholders"           : "yes", // "yes" or "no" or "desktop" or "mobile"
+
 "use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 
@@ -47,6 +49,8 @@ Bibi.Preset = {
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
 
+"orientation-border-ratio"     : 1 * 2 / 1.5, // Number (Width per Height)
+
 "base-font-size"               : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"     : 1.25, // Number of scale
 "loupe-max-scale"              : 4, // Number of scale
@@ -60,7 +64,7 @@ Bibi.Preset = {
 "item-padding-top"             : 40, // Number of pixel
 "item-padding-bottom"          : 20, // Number of pixel
 
-"spread-gap"                   : 2, // Number of pixel
+"spread-gap"                   : 8, // Number of pixel
 "spread-margin"                : 0, // Number of pixel
 
 "spread-border-radius"         : "", // CSS border-radius value or ""
@@ -74,20 +78,18 @@ Bibi.Preset = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "extensions": [
-    { "name": "Analytics", "src" : "extensions/analytics/analytics.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
-    { "name": "Share", "src" : "extensions/share/share.js" },
-    //{ "name": "EPUBCFI", "src": "extensions/epubcfi/epubcfi.js" },
-    //{ "name": "Unaccessibilizer", "src": "extensions/unaccessibilizer/unaccessibilizer.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
-    // ------------------------------------------------------------------------------------------
-    { "name": "Bibi", "4U" : "w/0" } // (*'-'*)
-],
+    //{ "src": "extensions/analytics/index.js", "tracking-id": "" }, // "tracking-id": Your own Google Analytics tracking id, as "UA-********-*"
+    //{ "src": "extensions/share/index.js" },
+    //{ "src": "extensions/epubcfi/index.js" },
+    //{ "src": "extensions/unaccessibilizer/index.js", "select-elements": "prevent", "save-images": "prevent", "use-contextmenu": "prevent" },
+""], // "id" must be defined in each script. "Unzipper", "Zine", and "Bibi" are reserved for "id".
 
 
 //==============================================================================================================================================
 //-- Extra
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"unzip-if-necessary"           : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try unzipping first. More info is <02> at the bottom of this preset file)
+"extract-if-necessary"         : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try to extract first. More info is <02> at the bottom of this preset file)
 
 "accept-bibizine"              : true, // true or false (If true, BiB/i accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
 "accept-blob-converted-data"   : true, // true or false (If true, BiB/i accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
@@ -101,14 +103,12 @@ Bibi.Preset = {
 
 "loupe-mode"                   : "", // "with-keys" or ""
 
-"preprocess-html-always"       : "no", // "yes" or "no" or "desktop" or "mobile"
-
 "epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
 "epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""
 
 "cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
 
-"trustworthy-origins"          : []
+"trustworthy-origins"          : [],
 
 
 /*
@@ -126,36 +126,36 @@ Bibi.Preset = {
         - [AND] The origin allows COR from the origin of this BiB/i.
 
 
-## <02> BiB/i tries to unzip at first in cases of the below:
+## <02> BiB/i tries to extract at first in cases of the below:
 
-    * The "unzip-if-necessary" option includes "*".
-    * [OR] The "unzip-if-necessary" option includes one or more file extensions.
+    * The "extract-if-necessary" option includes "*".
+    * [OR] The "extract-if-necessary" option includes one or more file extensions.
         - [AND] The book name specified as a value of the `book` (or `zine`) query in URL has a file extension.
-        - [AND] The file extension of the book name is included in the "unzip-if-necessary" option.
-    * [OR] The "unzip-if-necessary" option is "".
+        - [AND] The file extension of the book name is included in the "extract-if-necessary" option.
+    * [OR] The "extract-if-necessary" option is "".
         - [AND] The book name specified as a value of the `book` (or `zine`) query in URL has no file extension.
 
     ### Note:
-    * If BiB/i failed to unzip it, automatically tries to load as a folder (directory).
-    * The "unzip-if-necessary" option affects also as conditions for acceptance of local file. Read <03> at the next.
+    * If BiB/i failed to extract it, automatically tries to load as a folder (directory).
+    * The "extract-if-necessary" option affects also as conditions for acceptance of local file. Read <03> at the next.
 
 
 ## <03> BiB/i accepts user's local file in cases of the below:
 
     * The file is an EPUB.
         - [AND] The extension of the file is ".epub".
-        - [AND] The "unzip-if-necessary" option includes ".epub" or "*".
+        - [AND] The "extract-if-necessary" option includes ".epub" or "*".
         - [AND] The MIME-Type sent from the browser is "application/epub+zip".
     * [OR] The file is a bibiZine.
         - [AND] The extension of the file is ".zip".
-        - [AND] The "unzip-if-necessary" includes ".zip" or "*".
+        - [AND] The "extract-if-necessary" includes ".zip" or "*".
         - [AND] The MIME-Type sent from the browser is "application/zip", "application/x-zip", or "application/x-zip-compressed".
 
     ### Note:
-    * Extension of the file is required even if "unzip-if-necessary" is "" (or includes "*").
+    * Extension of the file is required even if "extract-if-necessary" is "" (or includes "*").
 
 
 */
 
 
-};
+"bibi": "EPUB Reader on your website." });

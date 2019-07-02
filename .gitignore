@@ -13,10 +13,6 @@ Icon
 node_modules
 npm-debug.log
 
-# Bower
-# --------------------------------------------------------------------------------
-bower_components
-
 # SourceMaps
 # --------------------------------------------------------------------------------
 *.map
@@ -24,11 +20,11 @@ bower_components
 # BiB/i: Compiled CSS/JavaScript files
 # --------------------------------------------------------------------------------
 bib/i/extensions
-bib/i/res/styles
 bib/i/res/scripts
+bib/i/res/styles
+bib/i/res/fonts
 bib/i.css
 bib/i.js
-bower_components.js
 
 # BiB/i: Bookshelf
 # --------------------------------------------------------------------------------
