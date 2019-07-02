@@ -520,8 +520,10 @@ L.initializeBook = (Param) => new Promise((resolve, reject) => {
             if(!BookData.name)                               return reject(`Book File Is Invalid.`);
             if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`BiB/i Can Not Open Local Files without Extension.`);
             if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`To Open This File, Changing "extract-if-necessary" in default.js Is Required.`);
-            if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs['EPUB'].test(BookData.type) :
-                /\.zip$/i.test(BookData.name) ? !MIMETypeREs['Zine'].test(BookData.type) : true) return reject(MIMETypeErrorMessage);
+            if(BookData.type) {
+                if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs['EPUB'].test(BookData.type) :
+                    /\.zip$/i.test(BookData.name) ? !MIMETypeREs['Zine'].test(BookData.type) : true) return reject(MIMETypeErrorMessage);
+            }
             FileOrData = 'File';
             B.Path = '[Local File] ' + BookData.name;
         } else {
