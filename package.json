@@ -20,14 +20,13 @@
   "bugs": "https://github.com/satorumurmur/bibi/issues",
   "readmeFilename": "README.md",
   "scripts": {
-    "produce": "webpack --config webpack.config.js --progress --colors false --mode production",
+    "build": "webpack --config webpack.config.js --progress --colors false --mode production",
+    "build+watch": "webpack --config webpack.config.js --progress --colors --mode production --watch",
     "develop": "webpack --config webpack.config.js --progress --colors --mode development",
-    "produce:watch": "webpack --config webpack.config.js --progress --colors --mode production --watch",
-    "develop:watch": "webpack --config webpack.config.js --progress --colors --mode development --watch",
+    "develop+watch": "webpack --config webpack.config.js --progress --colors --mode development --watch",
+    "make:distribution": "npm run build && gulp make:distribution",
     "serve": "browser-sync --config bs-config.js",
-    "build": "npm run produce",
-    "start": "npm run develop:watch",
-    "distribute": "npm run build && gulp distribute"
+    "start": "npm run develop+watch"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
