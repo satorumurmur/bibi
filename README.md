@@ -9,7 +9,8 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a permalink for each book, and you can embed it in other webpages (just like a YouTube video).
+You can publish EPUB books on the web, with a permalink for each book.
+And you can embed it in other webpages, just like YouTube videos.
 
 
 
@@ -116,26 +117,26 @@ How to Arrange Development Environment
 ### Requirements
 
 * [Node.js + npm](https://nodejs.org/en/)
-    - [Downloads](https://nodejs.org/en/download/)
     - [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/).
+    - Or [Downloads](https://nodejs.org/en/download/)
 
 
 
 ### Arrangements
 
 1. Clone [this repository](https://github.com/satorumurmur/bibi/). 
-2. `$ cd <the local repository>`
-3. `$ npm install`
+2. $ `cd <the local repository>`
+3. $ `npm install`
 
 
 
 ### How to Develop
 
-1. `$ npm start` (or `$ npm run develop:watch`)
-    - webpack generates development version of files and watch change.
+1. $ `npm start`
+    - webpack generates development version of files and start to watch changes of the files.
     - BrowserSync webserver launches and navigate your browser to `http://localhost:61671/bib/i/?book=`.
 2. Edit source files.
-    - webpack watches change and updates development version of the file you edited.
+    - webpack watches your modification and updates development version of the file(s) with sourcemaps.
     - BrowserSync reloads your browser(s) or inject changes of CSS.
 
 * SCSS source file(s) of...
@@ -146,23 +147,23 @@ How to Arrange Development Environment
     - `bib/i.js` is `dev-bib/i.js`,
     - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 
-* These files are not processed by gulp tasks:
-    - Index file `bib/i/index.html`
+* These files are not processed by webpack:
+    - Root HTML file of BiB/i: `bib/i/index.html`
     - Preset file in `bib/i/presets/`
-    - Files in `bib/bookshelf/`
+    - Files in `bib/bookshelf/` (this directory contains `.gitkeep`)
 
 
 
 ### How to Build
 
-* `$ npm run build` (or `$ npm run produce`)
+* $ `npm run build`
     - webpack generates production version of files.
 
 
 
-### How to Ditribute
+### How to Make a Ditribution
 
-* `$npm run distribute`
+* $ `npm run distribute`
     1. webpack generates production version of files.
     2. gulp generates zipped archive.
 
@@ -173,7 +174,7 @@ License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
-### [BiB/i](https://bibi.epub.link) ([en](https://github.com/satorumurmur/bibi))
+### BiB/i ([ja](https://bibi.epub.link) / [en](https://github.com/satorumurmur/bibi))
 
 * Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
 * Licensed under [the MIT license](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
