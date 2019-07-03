@@ -13,10 +13,6 @@ Icon
 node_modules
 npm-debug.log
 
-# SourceMaps
-# --------------------------------------------------------------------------------
-*.map
-
 # BiB/i: Compiled CSS/JavaScript files
 # --------------------------------------------------------------------------------
 bib/i/extensions
@@ -32,6 +28,11 @@ bib/bookshelf/*
 !bib/bookshelf/.gitkeep
 dev-bib/bookshelf/*
 !dev-bib/bookshelf/.gitkeep
+
+# BiB/i: Copies of LICENSE & README.md
+# --------------------------------------------------------------------------------
+bib/LICENSE
+bib/README.md
 
 # Others
 # --------------------------------------------------------------------------------
