@@ -40,13 +40,13 @@ Banners.BibiCSS = '@charset "UTF-8";\n' + banner(`BiB/i Styles`, 'default', `
 Banners.BibiPolyfillsJS = banner(`BiB/i Polyfills for on Internet Explorer 11`, 'none', `
  *  * Including:
  *      - classlist-polyfill                ...            by Yola Inc.        - https://github.com/yola/classlist-polyfill (Released into the public domain under the Unlicense.)
+ *      - text-encoding-utf-8               ...            by Erik Arvidsson   - https://github.com/arv/text-encoding-utf-8 (Released into the public domain under the Unlicense.)
  *      - document.currentScript Polyfill   ... Copyright (c) Adam Miller      - https://github.com/amiller-gh/currentScript-polyfill            (Licensed under the MIT license.)
  *      - custom-event-polyfill             ... Copyright (c) Evan Krambuhl    - https://github.com/kumarharsh/custom-event-polyfill             (Licensed under the MIT license.)
  *      - Native Promise Only (NPO)         ... Copyright (c) Kyle Simpson     - https://github.com/getify/native-promise-only                   (Licensed under the MIT license.)
  *      - Polyfill Array.prototype.includes ... Copyright (c) Kevin Latusinski - https://github.com/latusinski/polyfill-array-includes           (Licensed under the MIT license.)
  *      - String.prototype.padStart         ... Copyright (c) Khaled Al-Ansari - https://github.com/KhaledElAnsari/String.prototype.padStart     (Licensed under the MIT license.)
- *      - text-encoding-utf-8               ...            by Erik Arvidsson   - https://github.com/arv/text-encoding-utf-8 (Released into the public domain under the Unlicense.)
- *      - url-polyfill                      ... Copyright (c) Valentin Richard - https://github.com/lifaon74/url-polyfill   (Released into the public domain under the Unlicense.)
+ *      - url-polyfill                      ... Copyright (c) Valentin Richard - https://github.com/lifaon74/url-polyfill                        (Licensed under the MIT license.)
 `);
 
 // -----------------------------------------------------------------------------------------------------------------------------
