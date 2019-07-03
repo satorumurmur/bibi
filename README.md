@@ -176,7 +176,7 @@ License
 ### [BiB/i](https://bibi.epub.link) ([en](https://github.com/satorumurmur/bibi))
 
 * Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
-* Licensed under [the MIT license](https://github.com/satorumurmur/bibi/blob/master/LICENSE). - https://opensource.org/licenses/mit-license.php
+* Licensed under [the MIT license](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
 
 
 ### Distribution is including these open source softwares:
@@ -190,12 +190,14 @@ License
     - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT license or the GPLv3 license](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
     - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT license](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
 * Polyfills (for Internet Explorer):
-    - [Native Promise Only (NPO)](https://www.npmjs.com/package/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT license](http://getify.mit-license.org/).)
-    - [custom-event-polyfill](https://www.npmjs.com/package/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT license](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
+    - [classlist-polyfill](https://www.npmjs.com/package/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
+    - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)
     - [document.currentScript Polyfill](https://www.npmjs.com/package/current-script-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT license](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
+    - [custom-event-polyfill](https://www.npmjs.com/package/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT license](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
+    - [Native Promise Only (NPO)](https://www.npmjs.com/package/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT license](http://getify.mit-license.org/).)
     - [Polyfill Array.prototype.includes](https://www.npmjs.com/package/polyfill-array-includes) ... Copyright &copy; Kevin Latusinski (Licensed under the MIT license.)
     - [String.prototype.padStart](https://www.npmjs.com/package/string.padstart) ... Copyright &copy; Khaled Al-Ansari (Licensed under [the MIT license](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE).)
-    - [classlist-polyfill](https://www.npmjs.com/package/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
+    - [url-polyfill](https://github.com/lifaon74/url-polyfill) ... Copyright &copy; Valentin Richard (Licensed under [the MIT license](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE).)
 
 
 Special Thanks
