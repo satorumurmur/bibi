@@ -1548,8 +1548,8 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!Opt.Direction) Opt.Direction = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1
     let SpreadsToBeTurnedFaceUp = [];
     let SpreadsToBeTurnedFaceDown = [];
-    let Promised = {};
-    if(Opt.Range.length) Opt.Range.forEach((Distance, i) => {
+    let Promised = null;
+    Opt.Range.forEach((Distance, i) => {
         const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
         if(!Spread) return;
         clearTimeout(Spread.Timer_TurningFaceUp);
@@ -1559,7 +1559,8 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         //console.log(`TurnFaceUp: [${ Spread.Index }] %O`, Spread);
         if(i == 0) Promised = R._turnSpread(Spread, true);
         else Spread.Timer_TurningFaceUp = setTimeout(() => R._turnSpread(Spread, true), 333 * i);
-    }); else Promised = Promise.resolve();
+    });
+    if(!Promised) Promised = Promise.resolve();
     R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
     R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
     while(R.SpreadsTurnedFaceUp.length > 3) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
