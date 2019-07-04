@@ -111,22 +111,11 @@ Bibi.initialize = () => {
 
     if(sML.UA.InternetExplorer < 11) {
         // Say Bye-bye
-        const Msg = {
-            en: `<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible with BiB/i.</span>`,
-            ja: `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>ビビは動作しません。</span>`
-        };
-        I.Veil.ByeBye = I.Veil.appendChild(
-            sML.create('p', { id: 'bibi-veil-byebye',
-                innerHTML: [
-                    `<span lang="en">${ Msg['en'] }</span>`,
-                    `<span lang="ja">${ Msg['ja'] }</span>`,
-                ].join('').replace(/(BiB\/i|ビビ)/g, `<a href="${ Bibi['href'] }" target="_blank">$1</a>`)
-            })
-        );
-        O.HTML.classList.remove('welcome');
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
-        E.dispatch('bibi:says-byebye');
-        return O.error(Msg['en'].replace(/<[^>]*>/g, ''));
+        return O.error(I.Veil.byebye({
+            'en': `<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
+            'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
+        }));
     }
 
     I.note(`Welcome!`);
@@ -513,12 +502,12 @@ L.initializeBook = (Param) => new Promise((resolve, reject) => {
     } else {
         let FileOrData;
         const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
-        const MIMETypeErrorMessage = 'BiB/i Can Not Open This Type of File.';
+        const MIMETypeErrorMessage = 'Can Not Open This Type of File.';
         if(BookDataFormat == 'File') {
             // Local-Archived EPUB/Zine File
             if(!S['accept-local-file'])                      return reject(`To Open Local Files, Changing "accept-local-file" in default.js Is Required.`);
             if(!BookData.name)                               return reject(`Book File Is Invalid.`);
-            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`BiB/i Can Not Open Local Files without Extension.`);
+            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`Can Not Open Local Files without Extension.`);
             if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`To Open This File, Changing "extract-if-necessary" in default.js Is Required.`);
             if(BookData.type) {
                 if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs['EPUB'].test(BookData.type) :
@@ -569,7 +558,7 @@ L.initializeBook = (Param) => new Promise((resolve, reject) => {
     return InitializedAs;
 })).catch(Log => {
     //if(S['accept-local-file']) O.HTML.classList.add('waiting-file');
-    const Message = `BiB/i Failed to Open the Book.`;
+    const Message = `Failed to Open the Book.`;
     O.error(Message + '\n* ' + Log);
     return Promise.reject(Message);
 });
@@ -904,8 +893,8 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 A.removeAttribute(HrefAttribute);
                 A.addEventListener('click', () => false);
                 if(!O.Touch) {
-                    A.addEventListener(O['pointerover'], () => { I.Help.show('(This link uses EPUBCFI. BiB/i needs the extension.)'); return false; });
-                    A.addEventListener(O['pointerout'],  () => { I.Help.hide()                                                      ; return false; });
+                    A.addEventListener(O['pointerover'], () => { I.Help.show('(This link uses EPUBCFI. "EPUBCFI" extension is required.)'); return false; });
+                    A.addEventListener(O['pointerout'],  () => { I.Help.hide()                                                            ; return false; });
                 }
             }
         }
@@ -1525,7 +1514,43 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 
 R.SpreadsTurnedFaceUp = [];
 
-R._turnSpread = (Spread, TF) => new Promise(resolve => {
+R.turnSpreads = (Opt = {}) => new Promise(resolve => {
+    if(!S['allow-placeholders']) return;
+    if(!Opt.Origin   ) Opt.Origin    = R.Current.Page.Spread;
+    if(!Opt.Range    ) Opt.Range     = [0, 1];//[0, 1, 2, -1];
+    if(!Opt.Direction) Opt.Direction = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1
+    let SpreadsToBeTurnedFaceUp = [];
+    let SpreadsToBeTurnedFaceDown = [];
+    let Promised = null;
+    Opt.Range.forEach((Distance, i) => {
+        const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
+        if(!Spread) return;
+        clearTimeout(Spread.Timer_TurningFaceUp);
+        clearTimeout(Spread.Timer_TurningFaceDown);
+        SpreadsToBeTurnedFaceUp.push(Spread);
+        //if(R.SpreadsTurnedFaceUp.includes(Spread)) return;
+        //console.log(`TurnFaceUp: [${ Spread.Index }] %O`, Spread);
+        if(i == 0) Promised = R.turnSpread(Spread, true);
+        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 333 * i);
+    });
+    if(!Promised) Promised = Promise.resolve();
+    R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
+    R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
+    while(R.SpreadsTurnedFaceUp.length > 3) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
+    SpreadsToBeTurnedFaceDown.forEach((Spread, i) => {
+        clearTimeout(Spread.Timer_TurningFaceUp);
+        clearTimeout(Spread.Timer_TurningFaceDown);
+        //console.log(`TurnFaceDown: [${ Spread.Index }] %O`, Spread);
+        if(O.cancelRetlieving) Spread.Items.forEach(Item => {
+            if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
+            O.cancelRetlieving(Item);
+        });
+        Spread.Timer_TurningFaceDown = setTimeout(() => R.turnSpread(Spread, false), 99 * i);
+    });
+    Promised.then(() => resolve(R.SpreadsTurnedFaceUp));
+});
+
+R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
     const AllowPlaceholderItems = !(TF);
     if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
     const PreviousSpreadBoxLength = Spread.Box['offset' + S.CC.L.SIZE.L];
@@ -1540,41 +1565,6 @@ R._turnSpread = (Spread, TF) => new Promise(resolve => {
         resolve();
     });
 }).then(() => Spread);
-
-R.turnSpreads = (Opt = {}) => new Promise(resolve => {
-    if(!S['allow-placeholders']) return;
-    if(!Opt.Origin   ) Opt.Origin    = R.Current.Page.Spread;
-    if(!Opt.Range    ) Opt.Range     = [0, 1];//[0, 1, 2, -1];
-    if(!Opt.Direction) Opt.Direction = R.Past.Page && R.Past.Page.Index > R.Current.Page.Index ? -1 : 1
-    let SpreadsToBeTurnedFaceUp = [];
-    let SpreadsToBeTurnedFaceDown = [];
-    let Promised = {};
-    if(Opt.Range.length) Opt.Range.forEach((Distance, i) => {
-        const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
-        if(!Spread) return;
-        clearTimeout(Spread.Timer_TurningFaceUp);
-        clearTimeout(Spread.Timer_TurningFaceDown);
-        SpreadsToBeTurnedFaceUp.push(Spread);
-        //if(R.SpreadsTurnedFaceUp.includes(Spread)) return;
-        //console.log(`TurnFaceUp: [${ Spread.Index }] %O`, Spread);
-        if(i == 0) Promised = R._turnSpread(Spread, true);
-        else Spread.Timer_TurningFaceUp = setTimeout(() => R._turnSpread(Spread, true), 333 * i);
-    }); else Promised = Promise.resolve();
-    R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
-    R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
-    while(R.SpreadsTurnedFaceUp.length > 3) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
-    SpreadsToBeTurnedFaceDown.forEach((Spread, i) => {
-        clearTimeout(Spread.Timer_TurningFaceUp);
-        clearTimeout(Spread.Timer_TurningFaceDown);
-        //console.log(`TurnFaceDown: [${ Spread.Index }] %O`, Spread);
-        if(O.cancelRetlieving) Spread.Items.forEach(Item => {
-            if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
-            O.cancelRetlieving(Item);
-        });
-        Spread.Timer_TurningFaceDown = setTimeout(() => R._turnSpread(Spread, false), 99 * i);
-    });
-    Promised.then(() => resolve(R.SpreadsTurnedFaceUp));
-});
 
 
 R.organizePages = () => {
@@ -1729,14 +1719,14 @@ R.onPointerUp = (Eve) => {
 };
 
 R.onPointerMove = (Eve) => {
-    const CC = O.getBibiEventCoord(Eve), PC = R.onPointerMove.PreviousCoord;
+    const CC = O.getBibiEventCoord(Eve), PC = R.PreviousPointerCoord;
     if(PC.X != CC.X || PC.Y != CC.Y) E.dispatch('bibi:moved-pointer',   Eve);
     else                             E.dispatch('bibi:stopped-pointer', Eve);
-    R.onPointerMove.PreviousCoord = CC;
+    R.PreviousPointerCoord = CC;
     //Eve.preventDefault();
     Eve.stopPropagation();
 };
-R.onPointerMove.PreviousCoord = { X:0, Y:0 };
+R.PreviousPointerCoord = { X:0, Y:0 };
 
 R.changeView = (Param) => {
     if(
@@ -2220,6 +2210,15 @@ I.createVeil = () => {
         })
     );
     E.add('bibi:played', () => I.Veil.PlayButton.hide());
+
+    I.Veil.byebye = (Msg = {}) => {
+        I.Veil.innerHTML = '';
+        I.Veil.ByeBye = I.Veil.appendChild(sML.create('p', { id: 'bibi-veil-byebye' }));
+        ['en', 'ja'].forEach(Lang => I.Veil.ByeBye.innerHTML += `<span lang="${ Lang }">${ Msg[Lang] }</span>`);
+        O.HTML.classList.remove('welcome');
+        I.Veil.open();
+        return Msg['en'] ? Msg['en'].replace(/<[^>]*>/g, '') : '';
+    };
 
     E.dispatch('bibi:created-veil');
 
