@@ -89,6 +89,8 @@ Bibi.preset({
 //-- Extra
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
+"prioritise-fallbacks"         : true, // true or false (If true, BiB/i uses <item> at the end of the fallback-chain.
+
 "extract-if-necessary"         : [".epub", ".zip"], // File extensions of the book specified in URL, which you want BiB/i to try to extract first. More info is <02> at the bottom of this preset file)
 
 "accept-bibizine"              : true, // true or false (If true, BiB/i accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)

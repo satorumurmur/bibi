@@ -621,9 +621,9 @@ L.processPackage = (Doc) => {
     // ================================================================================
     sML.forEach(_Manifest.getElementsByTagName('item'))(_Item => {
         let Item = {
-            'id'         : _Item.getAttribute('id'),
-            'href'       : _Item.getAttribute('href'),
-            'media-type' : _Item.getAttribute('media-type')
+            'id': _Item.getAttribute('id'),
+            'href': _Item.getAttribute('href'),
+            'media-type': _Item.getAttribute('media-type')
         };
         if(!Item['id'] || !Item['href'] || (!Item['media-type'] && B.Type == 'EPUB')) return false;
         Item.Path = O.getPath(B.Package.Dir, Item['href']);
@@ -635,8 +635,8 @@ L.processPackage = (Doc) => {
                  if(Properties.includes('cover-image')) B.CoverImageItem = Item;
             else if(Properties.includes('nav'        )) B.NavItem        = Item, Item.NavType = 'Navigation Document';
         }
-        const Fallback = _Item.getAttribute('fallback');
-        if(Fallback) Item['fallback'] = Fallback;
+        const FallbackItemID = _Item.getAttribute('fallback');
+        if(FallbackItemID) Item['fallback'] = FallbackItemID;
         Manifest.Items[Item.Path] = Item; ////
         _ItemPaths[Item['id']] = Item.Path;
     });
@@ -687,13 +687,14 @@ L.processPackage = (Doc) => {
         const PageSpread = _ItemRef['rendition:page-spread'] || _ItemRef['page-spread'] || undefined;
         if(PageSpread) ItemRef['rendition:page-spread'] = PageSpread;
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Item = Manifest.Items[Item.Path] = sML.create('iframe', Item, { className: 'item', scrolling: 'no', allowtransparency: 'true',
+        Item = sML.create('iframe', Item, { className: 'item', scrolling: 'no', allowtransparency: 'true',
             TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
             IndexInSpine: Spine.Items.length,
             Ref: ItemRef,
             Box: sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'] }),
             Pages: []
         });
+        FallbackChain.concat(Item.Path).forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
         Spine.Items.push(Item);
         if(ItemRef['linear'] != 'yes') {
             Item.IndexInNonLinearItems = R.NonLinearItems.length;
@@ -764,6 +765,12 @@ L.processPackage = (Doc) => {
         :                                                                                                                                                                       'lr-tb';
 
     B.AllowPlaceholderItems = (B.ExtractionPolicy != 'at-once'/* && Metadata['rendition:layout'] == 'pre-paginated'*/);
+
+    [B.Container.Path, B.Package.Path].forEach(Path => {
+        const Item = B.Package.Manifest.Items[Path];
+        delete Item.Path, delete Item.Content, delete Item.DataType;
+        delete B.Package.Manifest.Items[Path];
+    });
 
 };
 
@@ -5215,6 +5222,7 @@ O.Cookie = {
 
 O.SettingTypes = {
     'boolean': [
+        'prioritise-fallbacks'
     ],
     'yes-no': [
         'allow-placeholders',
