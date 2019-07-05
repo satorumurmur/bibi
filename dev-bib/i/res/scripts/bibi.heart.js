@@ -663,6 +663,16 @@ L.processPackage = (Doc) => {
         };
         if(!ItemRef['idref']) return false;
         let Item = Manifest.Items[_ItemPaths[ItemRef['idref']]];
+        const FallbackChain = [];
+        if(S['prioritise-fallbacks']) {
+            while(Item['fallback']) {
+                const FallbackItem = Manifest.Items[_ItemPaths[Item['fallback']]];
+                if(FallbackItem) {
+                    FallbackChain.push(Item.Path);
+                    Item = FallbackItem;
+                } else delete Item['fallback'];
+            }
+        }
         if(!Item) return false;
         ItemRef['linear'] = _ItemRef.getAttribute('linear');
         if(ItemRef['linear'] != 'no') ItemRef['linear'] = 'yes';
