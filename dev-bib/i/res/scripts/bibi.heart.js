@@ -621,9 +621,9 @@ L.processPackage = (Doc) => {
     // ================================================================================
     sML.forEach(_Manifest.getElementsByTagName('item'))(_Item => {
         let Item = {
-            'id'         : _Item.getAttribute('id'),
-            'href'       : _Item.getAttribute('href'),
-            'media-type' : _Item.getAttribute('media-type')
+            'id': _Item.getAttribute('id'),
+            'href': _Item.getAttribute('href'),
+            'media-type': _Item.getAttribute('media-type')
         };
         if(!Item['id'] || !Item['href'] || (!Item['media-type'] && B.Type == 'EPUB')) return false;
         Item.Path = O.getPath(B.Package.Dir, Item['href']);
@@ -635,8 +635,8 @@ L.processPackage = (Doc) => {
                  if(Properties.includes('cover-image')) B.CoverImageItem = Item;
             else if(Properties.includes('nav'        )) B.NavItem        = Item, Item.NavType = 'Navigation Document';
         }
-        const Fallback = _Item.getAttribute('fallback');
-        if(Fallback) Item['fallback'] = Fallback;
+        const FallbackItemID = _Item.getAttribute('fallback');
+        if(FallbackItemID) Item['fallback'] = FallbackItemID;
         Manifest.Items[Item.Path] = Item; ////
         _ItemPaths[Item['id']] = Item.Path;
     });
@@ -663,6 +663,16 @@ L.processPackage = (Doc) => {
         };
         if(!ItemRef['idref']) return false;
         let Item = Manifest.Items[_ItemPaths[ItemRef['idref']]];
+        const FallbackChain = [];
+        if(S['prioritise-fallbacks']) {
+            while(Item['fallback']) {
+                const FallbackItem = Manifest.Items[_ItemPaths[Item['fallback']]];
+                if(FallbackItem) {
+                    FallbackChain.push(Item.Path);
+                    Item = FallbackItem;
+                } else delete Item['fallback'];
+            }
+        }
         if(!Item) return false;
         ItemRef['linear'] = _ItemRef.getAttribute('linear');
         if(ItemRef['linear'] != 'no') ItemRef['linear'] = 'yes';
@@ -677,13 +687,14 @@ L.processPackage = (Doc) => {
         const PageSpread = _ItemRef['rendition:page-spread'] || _ItemRef['page-spread'] || undefined;
         if(PageSpread) ItemRef['rendition:page-spread'] = PageSpread;
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Item = Manifest.Items[Item.Path] = sML.create('iframe', Item, { className: 'item', scrolling: 'no', allowtransparency: 'true',
+        Item = sML.create('iframe', Item, { className: 'item', scrolling: 'no', allowtransparency: 'true',
             TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
             IndexInSpine: Spine.Items.length,
             Ref: ItemRef,
             Box: sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'] }),
             Pages: []
         });
+        FallbackChain.concat(Item.Path).forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
         Spine.Items.push(Item);
         if(ItemRef['linear'] != 'yes') {
             Item.IndexInNonLinearItems = R.NonLinearItems.length;
@@ -754,6 +765,12 @@ L.processPackage = (Doc) => {
         :                                                                                                                                                                       'lr-tb';
 
     B.AllowPlaceholderItems = (B.ExtractionPolicy != 'at-once'/* && Metadata['rendition:layout'] == 'pre-paginated'*/);
+
+    [B.Container.Path, B.Package.Path].forEach(Path => {
+        const Item = B.Package.Manifest.Items[Path];
+        delete Item.Path, delete Item.Content, delete Item.DataType;
+        delete B.Package.Manifest.Items[Path];
+    });
 
 };
 
@@ -4354,23 +4371,23 @@ export const P = {}; // Bibi.Preset
 
 P.initialize = (Preset) => {
     sML.applyRtL(P, Preset, 'ExceptFunctions');
-    O.SettingTypes.Boolean.concat(O.SettingTypes_PresetOnly.Boolean).forEach(PropertyName => {
+    O.SettingTypes['boolean'].concat(O.SettingTypes_PresetOnly['boolean']).forEach(PropertyName => {
         if(P[PropertyName] !== true) P[PropertyName] = false;
     });
-    O.SettingTypes.YesNo.concat(O.SettingTypes_PresetOnly.YesNo).forEach(PropertyName => {
+    O.SettingTypes['yes-no'].concat(O.SettingTypes_PresetOnly['yes-no']).forEach(PropertyName => {
         if(typeof P[PropertyName] == 'string') P[PropertyName] = /^(yes|no|mobile|desktop)$/.test(P[PropertyName]) ? P[PropertyName] : 'no';
         else                                   P[PropertyName] = P[PropertyName] ? 'yes' : 'no';
     });
-    O.SettingTypes.String.concat(O.SettingTypes_PresetOnly.String).forEach(PropertyName => {
+    O.SettingTypes['string'].concat(O.SettingTypes_PresetOnly['string']).forEach(PropertyName => {
         if(typeof P[PropertyName] != 'string') P[PropertyName] = '';
     });
-    O.SettingTypes.Integer.concat(O.SettingTypes_PresetOnly.Integer).forEach(PropertyName => {
+    O.SettingTypes['integer'].concat(O.SettingTypes_PresetOnly['integer']).forEach(PropertyName => {
         P[PropertyName] = (typeof P[PropertyName] != 'number' || P[PropertyName] < 0) ? 0 : Math.round(P[PropertyName]);
     });
-    O.SettingTypes.Number.concat(O.SettingTypes_PresetOnly.Number).forEach(PropertyName => {
+    O.SettingTypes['number'].concat(O.SettingTypes_PresetOnly['number']).forEach(PropertyName => {
         if(typeof P[PropertyName] != 'number') P[PropertyName] = 0;
     });
-    O.SettingTypes.Array.concat(O.SettingTypes_PresetOnly.Array).forEach(PropertyName => {
+    O.SettingTypes['array'].concat(O.SettingTypes_PresetOnly['array']).forEach(PropertyName => {
         if(!(P[PropertyName] instanceof Array)) P[PropertyName] = [];
     });
     if(!/^(horizontal|vertical|paged)$/.test(P['reader-view-mode'])) P['reader-view-mode'] = 'paged';
@@ -4495,15 +4512,15 @@ U.importFromDataString = (DataString) => {
                 if(!/^(horizontal|vertical|paged)$/.test(PnV[1])) return;
                 break;
             default:
-                if(O.SettingTypes.Boolean.concat(O.SettingTypes_UserOnly.Boolean).includes(PnV[0])) {
+                if(O.SettingTypes['boolean'].concat(O.SettingTypes_UserOnly['boolean']).includes(PnV[0])) {
                          if(PnV[1] == 'true' ) PnV[1] = true;
                     else if(PnV[1] == 'false') PnV[1] = false;
                     else return;
-                } else if(O.SettingTypes.YesNo.concat(O.SettingTypes_UserOnly.YesNo).includes(PnV[0])) {
+                } else if(O.SettingTypes['yes-no'].concat(O.SettingTypes_UserOnly['yes-no']).includes(PnV[0])) {
                     if(!/^(yes|no|mobile|desktop)$/.test(PnV[1])) return;
-                } else if(O.SettingTypes.Integer.concat(O.SettingTypes_UserOnly.Integer).includes(PnV[0])) {
+                } else if(O.SettingTypes['integer'].concat(O.SettingTypes_UserOnly['integer']).includes(PnV[0])) {
                     if(/^(0|[1-9][0-9]*)$/.test(PnV[1])) PnV[1] *= 1; else return;
-                } else if(O.SettingTypes.Number.concat(O.SettingTypes_UserOnly.Number).includes(PnV[0])) {
+                } else if(O.SettingTypes['number'].concat(O.SettingTypes_UserOnly['number']).includes(PnV[0])) {
                     if(/^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(PnV[1])) PnV[1] *= 1; else return;
                 } else {
                     return;
@@ -4533,7 +4550,7 @@ S.initialize = () => {
     for(const Property in S) if(typeof S[Property] != 'function') delete S[Property];
     sML.applyRtL(S, P, 'ExceptFunctions');
     sML.applyRtL(S, U, 'ExceptFunctions');
-    O.SettingTypes.YesNo.concat(O.SettingTypes_PresetOnly.YesNo).concat(O.SettingTypes_UserOnly.YesNo).forEach(Property => {
+    O.SettingTypes['yes-no'].concat(O.SettingTypes_PresetOnly['yes-no']).concat(O.SettingTypes_UserOnly['yes-no']).forEach(Property => {
         S[Property] = (typeof S[Property] == 'string') ? (S[Property] == 'yes' || (S[Property] == 'mobile' && O.Touch) || (S[Property] == 'desktop' && !O.Touch)) : false;
     });
     S['bookshelf'] = (() => {
@@ -5204,9 +5221,10 @@ O.Cookie = {
 };
 
 O.SettingTypes = {
-    Boolean: [
+    'boolean': [
+        'prioritise-fallbacks'
     ],
-    YesNo: [
+    'yes-no': [
         'allow-placeholders',
         'autostart',
         'autostart-embedded',
@@ -5222,10 +5240,10 @@ O.SettingTypes = {
         'use-menubar',
         'use-nombre'
     ],
-    String: [
+    'string': [
         'loupe-mode'
     ],
-    Integer: [
+    'integer': [
         'item-padding-bottom',
         'item-padding-left',
         'item-padding-right',
@@ -5233,52 +5251,52 @@ O.SettingTypes = {
         'spread-gap',
         'spread-margin'
     ],
-    Number: [
+    'number': [
         'base-font-size',
         'flipper-width',
         'font-size-scale-per-step',
         'loupe-max-scale',
         'orientation-border-ratio'
     ],
-    Array: [
+    'array': [
     ]
 };
 
 O.SettingTypes_PresetOnly = {
-    Boolean: [
+    'boolean': [
         'accept-base64-encoded-data',
         'accept-blob-converted-data',
         'remove-bibi-website-link'
     ],
-    YesNo: [
+    'yes-no': [
         'accept-local-file',
         'use-cookie'
     ],
-    String: [
+    'string': [
     ],
-    Integer: [
+    'integer': [
     ],
-    Number: [
+    'number': [
         'cookie-expires'
     ],
-    Array: [
+    'array': [
         'trustworthy-origins',
         'extract-if-necessary'
     ]
 };
 
 O.SettingTypes_UserOnly = {
-    Boolean: [
+    'boolean': [
         'wait'
     ],
-    YesNo: [
+    'yes-no': [
     ],
-    Integer: [
+    'integer': [
         'nav'
     ],
-    Number: [
+    'number': [
     ],
-    Array: [
+    'array': [
     ]
 };
 
