@@ -637,7 +637,7 @@ L.processPackage = (Doc) => {
         }
         const FallbackItemID = _Item.getAttribute('fallback');
         if(FallbackItemID) Item['fallback'] = FallbackItemID;
-        Manifest.Items[Item.Path] = Item; ////
+        Manifest.Items[Item.Path] = Item;
         _ItemPaths[Item['id']] = Item.Path;
     });
 
@@ -663,6 +663,7 @@ L.processPackage = (Doc) => {
         };
         if(!ItemRef['idref']) return false;
         let Item = Manifest.Items[_ItemPaths[ItemRef['idref']]];
+        if(!Item) return false;
         const FallbackChain = [];
         if(S['prioritise-fallbacks']) {
             while(Item['fallback']) {
@@ -673,7 +674,6 @@ L.processPackage = (Doc) => {
                 } else delete Item['fallback'];
             }
         }
-        if(!Item) return false;
         ItemRef['linear'] = _ItemRef.getAttribute('linear');
         if(ItemRef['linear'] != 'no') ItemRef['linear'] = 'yes';
         let Properties = _ItemRef.getAttribute('properties');
