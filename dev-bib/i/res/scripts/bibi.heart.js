@@ -637,7 +637,7 @@ L.processPackage = (Doc) => {
         }
         const FallbackItemID = _Item.getAttribute('fallback');
         if(FallbackItemID) Item['fallback'] = FallbackItemID;
-        Manifest.Items[Item.Path] = Item; ////
+        Manifest.Items[Item.Path] = Item;
         _ItemPaths[Item['id']] = Item.Path;
     });
 
@@ -663,6 +663,7 @@ L.processPackage = (Doc) => {
         };
         if(!ItemRef['idref']) return false;
         let Item = Manifest.Items[_ItemPaths[ItemRef['idref']]];
+        if(!Item) return false;
         const FallbackChain = [];
         if(S['prioritise-fallbacks']) {
             while(Item['fallback']) {
@@ -673,7 +674,7 @@ L.processPackage = (Doc) => {
                 } else delete Item['fallback'];
             }
         }
-        if(!Item) return false;
+        Item.RefChain = FallbackChain.concat(Item.Path);
         ItemRef['linear'] = _ItemRef.getAttribute('linear');
         if(ItemRef['linear'] != 'no') ItemRef['linear'] = 'yes';
         let Properties = _ItemRef.getAttribute('properties');
@@ -694,7 +695,7 @@ L.processPackage = (Doc) => {
             Box: sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'] }),
             Pages: []
         });
-        FallbackChain.concat(Item.Path).forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
+        Item.RefChain.forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
         Spine.Items.push(Item);
         if(ItemRef['linear'] != 'yes') {
             Item.IndexInNonLinearItems = R.NonLinearItems.length;
@@ -874,7 +875,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
             if(HrefPathInSource.split('#')[0] == location.href.split('#')[0]) {
                 const HrefHashInSource = HrefPathInSource.split('#')[1];
-                HrefPathInSource = (HrefHashInSource ? '#' + HrefHashInSource : R.Items[0].Path)
+                HrefPathInSource = (HrefHashInSource ? '#' + HrefHashInSource : R.Items[0].RefChain[0])
             } else {
                 A.setAttribute('target', A.getAttribute('target') || '_blank');
                 continue;
@@ -885,7 +886,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         const HrefFile = HrefFnH[0] ? HrefFnH[0] : BasePath;
         const HrefHash = HrefFnH[1] ? HrefFnH[1] : '';
         sML.forEach(R.Items)(Item => {
-            if(HrefFile == Item.Path) {
+            if(HrefFile == Item.RefChain[0]) {
                 A.setAttribute('data-bibi-original-href', HrefPathInSource);
                 A.setAttribute(HrefAttribute, B.Path + '/' + HrefPath);
                 A.InNav = InNav;

@@ -7,7 +7,7 @@
 'use strict';
 
 const gulp = require('gulp'), del = require('del');
-const Dest = 'archives', Dist = 'bibi-v' + JSON.parse(require('fs').readFileSync('package.json')).version;
+const Package = JSON.parse(require('fs').readFileSync('package.json')), Dest = 'archives', Dist = Package.name + '-v' + Package.version;
 
 gulp.task('clean:files',   done => { del.sync(Dest + '/' + Dist         ), done(); });
 gulp.task('clean:archive', done => { del.sync(Dest + '/' + Dist + '.zip'), done(); });
