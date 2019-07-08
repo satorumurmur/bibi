@@ -1039,7 +1039,6 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 return;
             } else {
                 Item.Src = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
-                Item.HTML
             }
         }
         Item.onload = () => resolve(Item);
@@ -4820,7 +4819,6 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
     }
     let _Promise;
     if(Item.Content) {
-        if(!Opt.Preprocess || Item.Preprocessed) return resolve(Item);
         _Promise = Promise.resolve(Item);
     } else {
              if(!B.ExtractionPolicy                ) _Promise = O.download(Item);
