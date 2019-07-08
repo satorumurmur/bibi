@@ -1239,8 +1239,6 @@ R.initialize = () => {
         }, 222);
     });
 
-    E.add('bibi:resized', () => R.layOut({ Reset: true }));
-
     I.observeTap(O.HTML);
 
     O.HTML.addTapEventListener('tap',         R.onTap);
@@ -1620,8 +1618,8 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     if(Opt) O.log(`Option: %O`, Opt); else Opt = {};
     E.dispatch('bibi:closes-utilities');
     E.dispatch('bibi:is-going-to:lay-out', Opt);
-    window.removeEventListener(O['resize'], R.onresize);
-    R.Main.removeEventListener('scroll', R.onscroll);
+    window.removeEventListener(O['resize'], R.onResize);
+    R.Main.removeEventListener('scroll', R.onScroll);
     O.Busy = true;
     O.HTML.classList.add('busy');
     O.HTML.classList.add('laying-out');
@@ -1657,8 +1655,8 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('laying-out');
     if(!Opt.NoNotification) I.note('');
-    window.addEventListener(O['resize'], R.onresize);
-    R.Main.addEventListener('scroll', R.onscroll);
+    window.addEventListener(O['resize'], R.onResize);
+    R.Main.addEventListener('scroll', R.onScroll);
     R.LayingOut = false;
     E.dispatch('bibi:laid-out');
     O.log(`Laid out.`, '</g>');
@@ -1682,42 +1680,59 @@ R.updateOrientation = () => {
     }
 };
 
-R.onscroll = (Eve) => {
+R.onScroll = (Eve) => {
     if(!L.Opened) return;
-    if(!R.Scrolling) {
-        O.HTML.classList.add('scrolling');
-        R.Scrolling = true;
-        Eve.BibiScrollingBegun = true;
-    }
+    if(!R.Scrolling) R.onScroll.start(Eve);
     E.dispatch('bibi:scrolls', Eve);
-    clearTimeout(R.Timer_onscrolled);
-    R.Timer_onscrolled = setTimeout(() => {
+    clearTimeout(R.Timer_onScrollEnd);
+    R.Timer_onScrollEnd = setTimeout(() => R.onScroll.end(Eve), 123);
+};
+    R.onScroll.start = (Eve) => {
+        R.Scrolling = true;
+        O.HTML.classList.add('scrolling');
+    };
+    R.onScroll.end = (Eve) => {
         R.Scrolling = false;
         O.HTML.classList.remove('scrolling');
         E.dispatch('bibi:scrolled', Eve);
-    }, 123);
-};
+    };
 
-R.onresize = (Eve) => {
+R.onResize = (Eve) => {
     if(!L.Opened) return;
-    if(!R.Resizing) O.HTML.classList.add('resizing');
-    R.Resizing = true;
-    E.dispatch('bibi:resizes', Eve);
-    clearTimeout(R.Timer_afterresized);
-    clearTimeout(R.Timer_onresized);
-    R.Timer_onresized = setTimeout(() => {
+    if(!R.Resizing) R.onResize.start(Eve);
+    clearTimeout(R.Timer_onResizeEnd);
+    R.Timer_onResizeEnd = setTimeout(() => R.onResize.end(Eve), O.Touch ? 444 : 222);
+};
+    R.onResize.start = (Eve) => {
+        R.Resizing = true;
+        R.PageBeforeResizing = R.Current.Page;
+        R.Main.style.visibility = 'hidden';
+        R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
         O.HTML.classList.add('busy');
+        O.HTML.classList.add('resizing');
+    };
+    R.onResize.end = (Eve) => {
+        //R.Past = R.Current = R.Current_BeforeResizing;
         R.updateOrientation();
-        R.Timer_afterresized = setTimeout(() => {
+        const CurrentPage = R.PageBeforeResizing;
+        R.layOut({
+            Reset: true,
+            Destination: {
+                SpreadIndex: CurrentPage.Spread.Index,
+                PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
+            }
+        }).then(() => {
             E.dispatch('bibi:resized', Eve);
-            O.Busy = false;
-            R.Resizing = false;
-            O.HTML.classList.remove('busy');
             O.HTML.classList.remove('resizing');
-        }, 100);
-    }, O.Touch ? 444 : 222);
-};
+            O.HTML.classList.remove('busy');
+            O.Busy = false;
+            R.Main.addEventListener('scroll', R.onScroll);
+            R.Main.style.visibility = '';
+            //R.onScroll();
+            R.Resizing = false;
+        });
+    };
 
 R.onTap = (Eve) => {
     E.dispatch('bibi:taps',   Eve);
@@ -3461,7 +3476,6 @@ I.createNombre = () => {
     I.Nombre.Total     = I.Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-total'     }));
     I.Nombre.Percent   = I.Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-percent'   }));
     E.add('bibi:scrolls', () =>            I.Nombre.progress()    );
-    E.add('bibi:resized', () =>            I.Nombre.progress()    );
     E.add('bibi:opened' , () => setTimeout(I.Nombre.progress, 321));
 
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
