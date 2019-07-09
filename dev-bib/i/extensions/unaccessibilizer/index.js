@@ -3,21 +3,21 @@ Bibi.x({
     id: 'Unaccessibilizer',
     description: 'What a...',
     author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '0.3.2'
+    version: '0.3.3'
 
 })(function() {
 
     'use strict';
 
     const VPs = ['-webkit-', '-moz-', '-ms-', ''], unaccessibilize = (Item) => {
-        if(this['select-elements']) {
+        if(this['select-elements'] == 'prevent') {
             VPs.forEach(Prefix => {
                 ['user-select', 'user-drag'].forEach(Property => {
                     Item.Body.style[Prefix + Property] = 'none';
                 });
             });
         }
-        if(this['save-images']) {
+        if(this['save-images'] == 'prevent') {
             sML.forEach(Item.Body.querySelectorAll('img, svg, image'))(Img => {
                 VPs.forEach(Prefix => {
                     ['user-select', 'user-drag'].forEach(Property => {
@@ -29,7 +29,7 @@ Bibi.x({
                 Img.addEventListener('contextmenu', O.preventDefault);
             });
         }
-        if(this['use-contextmenu']) {
+        if(this['use-contextmenu'] == 'prevent') {
             Item.contentDocument.addEventListener('contextmenu', O.preventDefault);
         }
     };
