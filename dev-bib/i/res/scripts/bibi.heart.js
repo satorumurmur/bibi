@@ -3499,7 +3499,7 @@ I.createSlider = () => {
                     Translation: {}
                 };
                 Transformation.Translation[S.CC.A.AXIS.L] = (S.RVM == 'vertical' ? I.Menu.offsetHeight / 4 : 0);
-                Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - (R.Main['offset' + S.CC.A.SIZE.B]) * (1 - Transformation.Scale) / 2 - (S.RVM != 'paged' ? O.Scrollbars[S.CC.A.SIZE.B] / 2 : 0);
+                Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - (R.Main['offset' + S.CC.A.SIZE.B]) * (1 - Transformation.Scale) / 2/* - (S.RVM != 'paged' ? O.Scrollbars[S.CC.A.SIZE.B] / 2 : 0)*/;
                 I.Slider.BookStretchingEach = (O.Body['offset' + S.CC.A.SIZE.L] / Transformation.Scale - R.Main['offset' + S.CC.A.SIZE.L]) / 2;
                 R.Main.style['padding' + S.CC.A.BASE.B] = R.Main.style['padding' + S.CC.A.BASE.A] = I.Slider.BookStretchingEach + 'px';
                 if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = I.Slider.BookStretchingEach + 'px';
@@ -3671,11 +3671,11 @@ I.createSlider = () => {
                 } else resolve();
             }),
             getTouchEndElement: (Eve) => {
-                return I.Slider.Bookmap.contains(Eve.target) ? Eve.target : (TouchEndElementPoint => {
-                    TouchEndElementPoint[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
-                    TouchEndElementPoint[S.CC.A.AXIS.B] = O.getElementCoord(I.Slider)[S.CC.A.AXIS.B] + I.Slider['offset' + S.CC.A.SIZE.B] / 2;
-                    return document.elementFromPoint(TouchEndElementPoint.X, TouchEndElementPoint.Y);
-                })({});
+                if(!O.Touch && (Eve.target == I.Slider.Bookmap || I.Slider.Bookmap.contains(Eve.target))) return Eve.target;
+                const TouchEndPoint = {};
+                TouchEndPoint[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
+                TouchEndPoint[S.CC.A.AXIS.B] = O.getElementCoord(I.Slider)[S.CC.A.AXIS.B] + I.Slider['offset' + S.CC.A.SIZE.B] / 2;
+                return document.elementFromPoint(TouchEndPoint.X, TouchEndPoint.Y);
             },
             getPageToBeFocusedOn: (Ele) => {
                 if(Ele.classList.contains('bookmap-page')) return Ele.Page;
@@ -3719,9 +3719,9 @@ I.createSlider = () => {
     );
     I.Slider.BookmapBox    = I.Slider.appendChild(sML.create('div', { id: 'bibi-slider-bookmap-box' }));
     I.Slider.Bookmap       = sML.create('div', { id: 'bibi-slider-bookmap' }); // to be appended to BookmapBox
-    I.Slider.Rail          = I.Slider.Bookmap.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
+    I.Slider.Rail          = I.Slider.BookmapBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
     I.Slider.Rail.Progress = I.Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
-    I.Slider.Thumb         = I.Slider.Bookmap.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
+    I.Slider.Thumb         = I.Slider.BookmapBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
     I.setFeedback(I.Slider.Thumb);
     I.setToggleAction(I.Slider, {
         onopened: () => {
@@ -4817,14 +4817,11 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
         if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
         if(Item.URI) return resolve(Item);
     }
-    let _Promise;
-    if(Item.Content) {
-        _Promise = Promise.resolve(Item);
-    } else {
-             if(!B.ExtractionPolicy                ) _Promise = O.download(Item);
-        else if( B.ExtractionPolicy == 'on-the-fly') _Promise = O.retlieve(Item);
-        else return reject(`File Not Included: "${ Item.Path }"`);
-    }
+    let _Promise = null;
+         if(Item.Content                       ) _Promise = Promise.resolve(Item);
+    else if(!B.ExtractionPolicy                ) _Promise =      O.download(Item);
+    else if( B.ExtractionPolicy == 'on-the-fly') _Promise =      O.retlieve(Item);
+    else                                         return reject(`File Not Included: "${ Item.Path }"`);
     _Promise.then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
         if(Opt.URI) Item.URI = O.getBlobURL(Item), Item.Content = '';
         resolve(Item);

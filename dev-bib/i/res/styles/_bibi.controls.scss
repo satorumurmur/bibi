@@ -1646,21 +1646,28 @@ $slider-bookmap-margin: $scrollbar-thumb-size;
 div#bibi-slider-bookmap-box {
 	box-sizing: border-box;
 	position: absolute;
-	@include trbl(-100vw, -100vh);
+	//@include trbl(-100vw, -100vh);
+	@include trbl(0);
 	z-index: 10;
 	margin: auto;
 	background: transparent;
 	html.appearance-horizontal & {
-		@include size(calc(100% - #{$scrollbar-thumb-size}), calc(100% - #{$slider-bookmap-margin * 2}));
+		@include trbl(1px, 0, auto, 0);
+		height: calc(100% - 1px);
+		width: calc(100% - #{$scrollbar-thumb-size});
 	}
 	html.appearance-horizontal.slider-opened & {
-		//width: calc(100% - #{$scrollbar-thumb-size * 2});
+		top: 1px + $slider-bookmap-margin;
+		height: calc(100% - #{1px + $slider-bookmap-margin * 2});
 	}
 	html.appearance-vertical & {
-		@include size(calc(100% - #{$slider-bookmap-margin * 2}), calc(100% - #{$scrollbar-thumb-size}));
+		@include trbl(0, auto, 0, 1px);
+		width: calc(100% - 1px);
+		height: calc(100% - #{$scrollbar-thumb-size});
 	}
 	html.appearance-vertical.slider-opened & {
-		//height: calc(100% - #{$scrollbar-thumb-size * 2});
+		left: 1px + $slider-bookmap-margin;
+		width: calc(100% - #{1px + $slider-bookmap-margin * 2});
 	}
 }
 
@@ -1677,11 +1684,10 @@ div#bibi-slider-bookmap {
 	html.appearance-ttb & { flex-direction: column; }
 	box-sizing: border-box;
 	position: absolute;
+	z-index: 10;
 	@include trbl(0);
 	@include size(100%);
 	margin: auto;
-	background: transparent;
-	@include size(100%);
 }
 
 	div.bookmap-spread-box,
@@ -1690,7 +1696,7 @@ div#bibi-slider-bookmap {
 	span.bookmap-item,
 	span.bookmap-page {
 		html.appearance-horizontal & { height: 100%; }
-		html.appearance-vertical &   { width: 100%; }
+		html.appearance-vertical   & { width: 100%; }
 	}
 
 
@@ -1798,9 +1804,9 @@ span.bookmap-item {
 // - . Page
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-page-color: white;
-$slider-bookmap-page-color_hover: lighten(steelblue, 33%);
-$slider-bookmap-page-border-color_hover: $slider-bookmap-page-color_hover;
+$slider-bookmap-page-color_opened: white;
+$slider-bookmap-page-color_opened_hover: lighten(steelblue, 33%);
+$slider-bookmap-page-border-color_opened_hover: $slider-bookmap-page-color_opened_hover;
 
 span.bookmap-page {
 	box-sizing: border-box;
@@ -1816,10 +1822,13 @@ span.bookmap-page {
 		margin: auto;
 		@include size(100%);
 	}
-	background: $slider-bookmap-page-color;
-	&.hover {
-		background: $slider-bookmap-page-color_hover;
-		border: solid 1px $slider-bookmap-page-border-color_hover;
+	background: transparent;
+	html.slider-opened & {
+		background-color: $slider-bookmap-page-color_opened;
+	}
+	html.slider-opened &.hover {
+		background-color: $slider-bookmap-page-color_opened_hover;
+		border: solid 1px $slider-bookmap-page-border-color_opened_hover;
 	}
 	/*
 	div.bookmap-item-box:nth-of-type(odd) & { background: red; }
@@ -1848,7 +1857,8 @@ div#bibi-slider-rail {
 		box-sizing: border-box;
 		position: absolute;
 		z-index: 10000;
-		@include trbl(-100vh, -100vw);
+		//@include trbl(-100vh, -100vw);
+		@include trbl(0);
 		margin: auto;
 		background: $slider-rail-color;
 		pointer-events: none;
@@ -1934,13 +1944,15 @@ div#bibi-slider-thumb {
 		pointer-events: none;
 	}
 	html.appearance-horizontal & {
-		top: -100vh;
-		bottom: -100vh;
+		//top: -100vh;
+		//bottom: -100vh;
+		top: 0; bottom: 0;
 		height: $scrollbar-thumb-size;
 	}
 	html.appearance-vertical & {
-		left: -100vw;
-		right: -100vw;
+		//left: -100vw;
+		//right: -100vw;
+		left: 0; right: 0;
 		width: $scrollbar-thumb-size;
 	}
 	&.hover {
@@ -2130,7 +2142,7 @@ $spinner-bits: 12;
 div#bibi-spinner {
 	box-sizing: border-box;
 	display: none;
-	position: absolute;
+	position: fixed;
 	z-index: $z-index_spinner;
 	left: -100%;
 	right: -100%;
