@@ -4817,14 +4817,11 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
         if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
         if(Item.URI) return resolve(Item);
     }
-    let _Promise;
-    if(Item.Content) {
-        _Promise = Promise.resolve(Item);
-    } else {
-             if(!B.ExtractionPolicy                ) _Promise = O.download(Item);
-        else if( B.ExtractionPolicy == 'on-the-fly') _Promise = O.retlieve(Item);
-        else return reject(`File Not Included: "${ Item.Path }"`);
-    }
+    let _Promise = null;
+         if(Item.Content                       ) _Promise = Promise.resolve(Item);
+    else if(!B.ExtractionPolicy                ) _Promise =      O.download(Item);
+    else if( B.ExtractionPolicy == 'on-the-fly') _Promise =      O.retlieve(Item);
+    else                                         return reject(`File Not Included: "${ Item.Path }"`);
     _Promise.then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
         if(Opt.URI) Item.URI = O.getBlobURL(Item), Item.Content = '';
         resolve(Item);
