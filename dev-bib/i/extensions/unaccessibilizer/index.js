@@ -3,23 +3,23 @@ Bibi.x({
     id: 'Unaccessibilizer',
     description: 'What a...',
     author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '0.3.1'
+    version: '0.3.2'
 
 })(function() {
 
     'use strict';
 
-    const unaccessibilize = (Item) => {
+    const VPs = ['-webkit-', '-moz-', '-ms-', ''], unaccessibilize = (Item) => {
         if(this['select-elements']) {
-            ['-webkit-', '-moz-', '-ms-', ''].forEach(Prefix => {
+            VPs.forEach(Prefix => {
                 ['user-select', 'user-drag'].forEach(Property => {
                     Item.Body.style[Prefix + Property] = 'none';
                 });
             });
         }
         if(this['save-images']) {
-            Array.prototype.forEach.call(Item.Body.querySelectorAll('img, svg, image'), Img => {
-                ['-webkit-', '-moz-', '-ms-', ''].forEach(Prefix => {
+            sML.forEach(Item.Body.querySelectorAll('img, svg, image'))(Img => {
+                VPs.forEach(Prefix => {
                     ['user-select', 'user-drag'].forEach(Property => {
                         Img.style[Prefix + Property] = 'none';
                     });
@@ -33,7 +33,6 @@ Bibi.x({
             Item.contentDocument.addEventListener('contextmenu', O.preventDefault);
         }
     };
-
     unaccessibilize(O), E.bind('bibi:postprocessed-item', unaccessibilize);
 
 });
