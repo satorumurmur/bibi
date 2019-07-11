@@ -29,9 +29,9 @@
     "start": "npm run develop+watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
-    "autoprefixer": "^9.6.0",
+    "@babel/core": "^7.5.4",
+    "@babel/preset-env": "^7.5.4",
+    "autoprefixer": "^9.6.1",
     "babel-loader": "^8.0.6",
     "browser-sync": "^2.26.7",
     "browser-sync-webpack-plugin": "^2.2.2",
@@ -39,7 +39,7 @@
     "core-js": "^3.1.4",
     "css-loader": "^3.0.0",
     "cssnano": "^4.1.10",
-    "del": "^4.1.1",
+    "del": "^5.0.0",
     "file-loader": "^4.0.0",
     "gulp": "^4.0.2",
     "gulp-zip": "^5.0.0",
@@ -55,7 +55,7 @@
     "style-loader": "^0.23.1",
     "terser-webpack-plugin": "^1.3.0",
     "url-loader": "^2.0.1",
-    "webpack": "^4.35.2",
+    "webpack": "^4.35.3",
     "webpack-cli": "^3.3.5",
     "webpack-fix-style-only-entries": "^0.3.0"
   },
@@ -66,14 +66,14 @@
     "custom-event-polyfill": "^1.0.7",
     "easing-js": "^1.1.2",
     "js-yaml": "^3.13.1",
-    "jszip": "^3.2.1",
-    "jszip-utils": "0.0.2",
+    "jszip": "^3.2.2",
+    "jszip-utils": "0.1.0",
     "material-icons": "^0.3.1",
     "native-promise-only": "^0.8.1",
     "polyfill-array-includes": "^2.0.0",
     "sml.js": "^1.0.17",
     "string.padstart": "^0.1.1",
     "text-encoding-utf-8": "^1.0.2",
-    "url-polyfill": "^1.1.5"
+    "url-polyfill": "^1.1.6"
   }
 }
