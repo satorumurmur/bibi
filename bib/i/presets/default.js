@@ -53,7 +53,7 @@ Bibi.preset({
 
 "base-font-size"               : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"     : 1.25, // Number of scale
-"loupe-max-scale"              : 4, // Number of scale
+"loupe-max-scale"              : 4, // Number of scale (minimum: 2)
 
 "ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
@@ -103,7 +103,8 @@ Bibi.preset({
 "website-href"                 : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
 "remove-bibi-website-link"     : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
 
-"loupe-mode"                   : "", // "with-keys" or ""
+"slider-mode"                  : "auto", // "edgebar" or "bookmap" or "auto"
+"loupe-mode"                   : "auto", // "pointer-only" or "with-keys" or "auto"
 
 "epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
 "epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""

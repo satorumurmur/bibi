@@ -2853,8 +2853,8 @@ I.createLoupe = () => {
 
     I.Loupe = {};
 
-    if(typeof S['loupe-mode']      != 'string' || S['loupe-mode']      != 'with-keys') S['loupe-mode']      = 'pointer-only';
-    if(typeof S['loupe-max-scale'] != 'number' || S['loupe-max-scale'] <=           1) S['loupe-max-scale'] = 4;
+    if(!/^(pointer-only|with-keys)$/.test(S['loupe-mode'])) S['loupe-mode'] = 'pointer-only';
+    if(S['loupe-max-scale'] <= 2) S['loupe-max-scale'] = 4;
 
     if(S['loupe-mode'] == 'with-keys' && !S['use-keys']) return;
 
@@ -3488,241 +3488,281 @@ I.createNombre = () => {
 
 I.createSlider = () => {
 
-    I.Slider = O.Body.appendChild(
-        sML.create('div', { id: 'bibi-slider',
-            BookStretchingEach: 0,
-            zoomOutBook: () => {
-                const BookMarginStart = S.ARA == 'horizontal' ? I.Menu.offsetHeight : 0;
-                const BookMarginEnd   = 78;
-                const Transformation = {
-                    Scale: (R.Main['offset' + S.CC.A.SIZE.B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + S.CC.A.SIZE.B] - O.Scrollbars[S.CC.A.SIZE.B]),
-                    Translation: {}
-                };
-                Transformation.Translation[S.CC.A.AXIS.L] = (S.RVM == 'vertical' ? I.Menu.offsetHeight / 4 : 0);
-                Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - (R.Main['offset' + S.CC.A.SIZE.B]) * (1 - Transformation.Scale) / 2/* - (S.RVM != 'paged' ? O.Scrollbars[S.CC.A.SIZE.B] / 2 : 0)*/;
-                I.Slider.BookStretchingEach = (O.Body['offset' + S.CC.A.SIZE.L] / Transformation.Scale - R.Main['offset' + S.CC.A.SIZE.L]) / 2;
-                R.Main.style['padding' + S.CC.A.BASE.B] = R.Main.style['padding' + S.CC.A.BASE.A] = I.Slider.BookStretchingEach + 'px';
-                if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = I.Slider.BookStretchingEach + 'px';
-                I.Loupe.transform(Transformation, { Temporary: true }).then(I.Slider.progress);
-            },
-            resetZoomingOutOfBook: () => {
-                I.Loupe.transformReset().then(() => {
-                    //R.Main.style[S.CC.A.SIZE.l] = '';
-                    R.Main.style['padding' + S.CC.A.BASE.B] = R.Main.style['padding' + S.CC.A.BASE.A] = '';
-                    if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = '';
-                    I.Slider.BookStretchingEach = 0;
-                    I.Slider.progress();
-                });
-            },
-            resetThumbAndRail: () => {
-                I.Slider.Thumb.style.width = I.Slider.Thumb.style.height = I.Slider.Rail.style.width = I.Slider.Rail.style.height = '';
-                I.Slider.Thumb.LengthRatio = R.Main['offset' + S.CC.L.SIZE.L] / R.Main['scroll' + S.CC.L.SIZE.L];
-                I.Slider.Thumb.style[S.CC.A.SIZE.l] = (      I.Slider.Thumb.LengthRatio * 100) + '%';
-                I.Slider.Rail.style[ S.CC.A.SIZE.l] = (100 - I.Slider.Thumb.LengthRatio * 100) + '%';
-                I.Slider.Rail.Coords = [O.getElementCoord(I.Slider.Rail)[S.CC.A.AXIS.L]];
-                I.Slider.Rail.Coords.push(I.Slider.Rail.Coords[0] + I.Slider.Rail['offset' + S.CC.A.SIZE.L]);
-            },
-            progress: () => {
-                if(I.Slider.Touching) return;
-                I.Slider.Thumb.style.top = I.Slider.Thumb.style.right = I.Slider.Thumb.style.bottom = I.Slider.Thumb.style.left = '';
-                const BASE = (S.RVM == 'paged' && S.SLD == 'ttb') ? S.CC.A.BASE.b : S.CC.A.OOLT.l;
-                let ScrollBefore = R.Main['scroll' + S.CC.L.OOLT.L];
-                let ScrollLength = R.Main['scroll' + S.CC.L.SIZE.L];
-                if(S.RVM != 'paged' || S.SLD != 'ttb') ScrollLength -= I.Slider.BookStretchingEach * 2;
-                I.Slider.Thumb.style[BASE] = ((ScrollBefore / ScrollLength) * 100) + '%';
-                I.Slider.Rail.Progress.style.width = I.Slider.Rail.Progress.style.height = '';
-                let Progress = O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2 - O.getElementCoord(I.Slider.Rail)[S.CC.A.AXIS.L];
-                if(S.ARD == 'rtl') Progress = I.Slider.Rail['offset' + S.CC.A.SIZE.L] - Progress;
-                I.Slider.Rail.Progress.style[S.CC.A.SIZE.l] = (Progress / I.Slider.Rail['offset' + S.CC.A.SIZE.L] * 100) + '%';
-            },
-            initializeBookmap: () => {
-                R.Spreads.forEach(Spread => {
-                    Spread.BookmapSpread = sML.create('div', { className: 'bookmap-spread', Box: document.createElement('div') });
-                    I.Slider.Bookmap.appendChild(Spread.BookmapSpread.Box).appendChild(Spread.BookmapSpread);
-                    Spread.Items.forEach(Item => {
-                        Item.BookmapItem = { Box: document.createElement('div') };
-                        Spread.BookmapSpread.appendChild(Item.BookmapItem.Box);
-                    });
-                });
-            },
-            removeBookmap: (Lock) => {
-                clearTimeout(I.Slider.Bookmap.Timer_append);
-                if(I.Slider.Bookmap.Locked) return false;
-                I.Slider.Bookmap.Locked = Lock;
-                if(I.Slider.Bookmap.paretElement) {
-                    return I.Slider.BookmapBox.removeChild(I.Slider.Bookmap);
-                } else {
-                    return false;
-                }
-            },
-            appendBookmap: (Unlock) => {
-                if(Unlock) I.Slider.Bookmap.Locked = false;
-                if(I.Slider.Bookmap.Locked) return false;
-                if(!I.Slider.Bookmap.paretElement) {
-                    return I.Slider.Bookmap.Timer_append = setTimeout(() => {
-                        I.Slider.BookmapBox.appendChild(I.Slider.Bookmap);
-                        I.Slider.resetThumbAndRail();
-                    }, Unlock ? 0 : 456);
-                } else {
-                    return false;
-                }
-            },
-            resetBookmap: () => {
-                I.Slider.removeBookmap('Lock');
-                R.Spreads.forEach(Spread => setTimeout(I.Slider.resetBookmapSpread, 0, Spread));
-                I.Slider.appendBookmap('Unlock');
-            },
-            resetBookmapSpread: (Spread) => {
-                I.Slider.removeBookmap();
-                const SpreadBox = Spread.Box, BmSpread = Spread.BookmapSpread, BmSpreadBox = BmSpread.Box;
-                sML.forEach(BmSpread.querySelectorAll('span.bookmap-page'))(OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
-                BmSpreadBox.className = 'bookmap-spread-box'; sML.forEach(SpreadBox.classList)(ClassName => { if(ClassName != 'spread-box') BmSpreadBox.classList.add(ClassName); });
-                BmSpreadBox.style[S.CC.A.SIZE.b] = BmSpread.style[S.CC.A.SIZE.b] = '';
-                BmSpreadBox.style[S.CC.A.SIZE.l] = (SpreadBox['offset' + S.CC.L.SIZE.L] / R.Main['scroll' + S.CC.L.SIZE.L] * 100) + '%';
-                BmSpread.style[S.CC.A.SIZE.l] = (Spread['offset' + S.CC.L.SIZE.L] / SpreadBox['offset' + S.CC.L.SIZE.L] * 100) + '%';
-                Spread.Items.forEach(Item => {
-                    const ItemBox = Item.Box, BmItemBox = Item.BookmapItem.Box;
-                    BmItemBox.className = 'bookmap-item-box'; sML.forEach(ItemBox.classList)(ClassName => { if(ClassName != 'item-box') BmItemBox.classList.add(ClassName); });
-                    BmItemBox.style[S.CC.A.SIZE.b] = (ItemBox['offset' + S.CC.L.SIZE.B] / Spread['offset' + S.CC.L.SIZE.B] * 100) + '%';
-                    BmItemBox.style[S.CC.A.SIZE.l] = (ItemBox['offset' + S.CC.L.SIZE.L] / Spread['offset' + S.CC.L.SIZE.L] * 100) + '%';
-                    Item.Pages.forEach(Page => {
-                        const BmPage = Page.BookmapPage = sML.create('span', { className: 'bookmap-page', Page: Page });
-                        BmPage.style[S.CC.A.SIZE.l] = (1 / Item.Pages.length * 100) + '%';
-                        if(I.Nombre) {
-                            BmPage.addEventListener(O['pointerover'], () => {
-                                if(I.Slider.Touching) return;
-                                clearTimeout(I.Slider.Timer_BookmapPagePointerOut);
-                                I.Nombre.progress({ Pages: { StartPage: Page, EndPage: Page } });
-                            });
-                            BmPage.addEventListener(O['pointerout'], () => {
-                                if(I.Slider.Touching) return;
-                                I.Slider.Timer_BookmapPagePointerOut = setTimeout(() => {
-                                    clearTimeout(I.Nombre.Timer_hide);
-                                    I.Nombre.hide();
-                                }, 200);
-                            });
-                        }
-                        //BmPage.Labels = { default: { default: `P.${ Page.Index + 1 }` } };
-                        I.setFeedback(BmPage);
-                        if(Item.SpreadPair && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.SpreadPair.Ref['rendition:layout'] == 'pre-paginated') {
-                            E.add(BmPage, 'bibi:hovers',   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.add(   'hover'); });
-                            E.add(BmPage, 'bibi:unhovers', function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.remove('hover'); });
-                        }
-                        BmItemBox.appendChild(BmPage);
-                    });
-                });
-                I.Slider.appendBookmap();
-            },
-            getTouchStartCoord: (Eve) => {
-                return (Eve.target == I.Slider.Thumb) ?
-                    O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L] : // ← Move Thumb naturally. // ↓ Bring Thumb's center to the touched coord at the next pointer moving.
-                    O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2;
-            },
-            onTouchStart: (Eve) => {
-                if(!Eve.target || (!I.Slider.contains(Eve.target) && Eve.target != I.Slider)) return;
-                Eve.preventDefault();
-                //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
-                //setTimeout(() => R.Main.style.overflow = '', 1);
-                I.Slider.Touching = true;
-                I.Slider.TouchStartThumbCenterCoord = O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2;
-                I.Slider.TouchStartCoord = I.Slider.TouchingCoord = I.Slider.getTouchStartCoord(Eve);
-                clearTimeout(I.Slider.Timer_onTouchEnd);
-                O.HTML.classList.add('slider-sliding');
-                E.add('bibi:moved-pointer', I.Slider.onTouchMove);
-            },
-            onTouchMove: (Eve) => {
-                I.Slider.TouchingCoord = O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L];
-                I.Slider.flip(Eve);
-            },
-            onTouchEnd: (Eve) => {
-                if(!I.Slider.Touching) return;
-                I.Slider.Touching = false;
-                E.remove('bibi:moved-pointer', I.Slider.onTouchMove);
-                I.Slider.onTouchMove(Eve);
-                I.Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 125);
-            },
-            flip: (Eve) => {
-                //clearTimeout(I.Slider.Timer_flipFocus);
-                if(I.Slider.Touching) {
-                    let Translation = I.Slider.TouchingCoord - I.Slider.TouchStartCoord;
-                    let TranslatedCenter = I.Slider.TouchStartThumbCenterCoord + Translation;
-                         if(TranslatedCenter < I.Slider.Rail.Coords[0]) Translation = I.Slider.Rail.Coords[0] - I.Slider.TouchStartThumbCenterCoord;
-                    else if(TranslatedCenter > I.Slider.Rail.Coords[1]) Translation = I.Slider.Rail.Coords[1] - I.Slider.TouchStartThumbCenterCoord;
-                    sML.style(I.Slider.Thumb,         { transform: 'translate' + S.CC.A.AXIS.L + '(' +      Translation                                                                    + 'px)' });
-                    sML.style(I.Slider.Rail.Progress, { transform:     'scale' + S.CC.A.AXIS.L + '(' + (1 + Translation / I.Slider.Rail.Progress['offset' + S.CC.A.SIZE.L] * S.CC.A.AXIS.PM) + ')' });
-                    I.Slider.focus(Eve, { Turn: false, History: false });/*
-                    new Promise((resolve) > {
-                        if(!S['allow-placeholders']) return resolve();
-                        I.Slider.Timer_flipFocus = setTimeout(() => resolve(), 0);
-                    }).then(() => {
-                        I.Slider.focus(Eve, { Turn: false, History: false });
-                    });*/
-                } else I.Slider.focus(Eve).then(() => {
-                    sML.style(I.Slider.Thumb,         { transform: '' });
-                    sML.style(I.Slider.Rail.Progress, { transform: '' });
-                    I.Slider.progress();
-                });
-            },
-            focus: (Eve, Par = {}) => new Promise(resolve => {
-                Par.Destination = I.Slider.getPageToBeFocusedOn(I.Slider.getTouchEndElement(Eve));
-                if(!R.Current.Pages.includes(Par.Destination)) {
-                    Par.Duration = 0;
-                    R.focusOn(Par).then(resolve);
-                } else resolve();
-            }),
-            getTouchEndElement: (Eve) => {
-                if(!O.Touch && (Eve.target == I.Slider.Bookmap || I.Slider.Bookmap.contains(Eve.target))) return Eve.target;
-                const TouchEndPoint = {};
-                TouchEndPoint[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
-                TouchEndPoint[S.CC.A.AXIS.B] = O.getElementCoord(I.Slider)[S.CC.A.AXIS.B] + I.Slider['offset' + S.CC.A.SIZE.B] / 2;
-                return document.elementFromPoint(TouchEndPoint.X, TouchEndPoint.Y);
-            },
-            getPageToBeFocusedOn: (Ele) => {
-                if(Ele.classList.contains('bookmap-page')) return Ele.Page;
-                const Ones = (Ele.classList.contains('bookmap-item') || Ele.classList.contains('bookmap-spread')) ? Ele.querySelectorAll('span.bookmap-page') : I.Slider.Bookmap.querySelectorAll('div.bookmap-spread');
-                const TouchingCoord = I.Slider.TouchingCoord * S.CC.A.AXIS.PM;
-                let TheOne = Ones[Ones.length - 1], PrevOne = null, PrevOneFootCoord = 0;
-                for(let l = Ones.length, i = 0; i < l; i++) {
-                    const One = Ones[i], OneCoord = O.getElementCoord(One)[S.CC.A.AXIS.L], OneFootCoord = (OneCoord + (S.ARD != 'rtl' ? One['offset' + S.CC.A.SIZE.L] : 0)) * S.CC.A.AXIS.PM;
-                    if(OneFootCoord < TouchingCoord) {
-                        PrevOne = One, PrevOneFootCoord = OneFootCoord;
-                        continue;
-                    }
-                    const OneHeadCoord = (OneCoord + (S.ARD == 'rtl' ? One['offset' + S.CC.A.SIZE.L] : 0)) * S.CC.A.AXIS.PM;
-                    TheOne = (TouchingCoord < OneHeadCoord && PrevOne && TouchingCoord - PrevOneFootCoord < OneHeadCoord - TouchingCoord) ? PrevOne : One;
-                }
-                return I.Slider.getPageToBeFocusedOn(TheOne);
-            },
-            activate: () => {/*
-                if(I.Nombre) {
-                    I.Slider.Thumb.addEventListener(O['pointerover'], I.Nombre.show);
-                    I.Slider.Thumb.addEventListener(O['pointerout'],  I.Nombre.hide);
-                }*/
-                I.Slider.Bookmap.addEventListener(O['pointerdown'], I.Slider.onTouchStart);
-                O.HTML.addEventListener(O['pointerup'], I.Slider.onTouchEnd);
-                E.add('bibi:scrolls', I.Slider.progress);
+    I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
+        BookStretchingEach: 0,
+        initialize: () => {
+            if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (50 < R.Items.length) ? 'edgebar' : 'bookmap';
+            I.Slider.UI = I.Slider[S['slider-mode']].create().initialize(); delete I.Slider['edgebar'], delete I.Slider['bookmap'];
+            const UIBox = I.Slider.appendChild(I.Slider.UI.Box);
+            I.Slider.Thumb         = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
+            I.Slider.Rail          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
+            I.Slider.Rail.Progress = I.Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
+            I.setFeedback(I.Slider.Thumb);
+        },
+        resetThumbAndRail: () => {
+            I.Slider.Thumb.style.width = I.Slider.Thumb.style.height = I.Slider.Rail.style.width = I.Slider.Rail.style.height = '';
+            I.Slider.Thumb.LengthRatio = R.Main['offset' + S.CC.L.SIZE.L] / R.Main['scroll' + S.CC.L.SIZE.L];
+            I.Slider.Thumb.style[S.CC.A.SIZE.l] = (      I.Slider.Thumb.LengthRatio * 100) + '%';
+            I.Slider.Rail.style[ S.CC.A.SIZE.l] = (100 - I.Slider.Thumb.LengthRatio * 100) + '%';
+            I.Slider.Rail.Coords = [O.getElementCoord(I.Slider.Rail)[S.CC.A.AXIS.L]];
+            I.Slider.Rail.Coords.push(I.Slider.Rail.Coords[0] + I.Slider.Rail['offset' + S.CC.A.SIZE.L]);
+        },
+        progress: () => {
+            if(I.Slider.Touching) return;
+            I.Slider.Thumb.style.top = I.Slider.Thumb.style.right = I.Slider.Thumb.style.bottom = I.Slider.Thumb.style.left = '';
+            const BASE = (S.RVM == 'paged' && S.SLD == 'ttb') ? S.CC.A.BASE.b : S.CC.A.OOLT.l;
+            let ScrollBefore = R.Main['scroll' + S.CC.L.OOLT.L];
+            let ScrollLength = R.Main['scroll' + S.CC.L.SIZE.L];
+            if(S.RVM != 'paged' || S.SLD != 'ttb') ScrollLength -= I.Slider.BookStretchingEach * 2;
+            I.Slider.Thumb.style[BASE] = ((ScrollBefore / ScrollLength) * 100) + '%';
+            I.Slider.Rail.Progress.style.width = I.Slider.Rail.Progress.style.height = '';
+            let Progress = O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2 - O.getElementCoord(I.Slider.Rail)[S.CC.A.AXIS.L];
+            if(S.ARD == 'rtl') Progress = I.Slider.Rail['offset' + S.CC.A.SIZE.L] - Progress;
+            I.Slider.Rail.Progress.style[S.CC.A.SIZE.l] = (Progress / I.Slider.Rail['offset' + S.CC.A.SIZE.L] * 100) + '%';
+        },
+        getTouchStartCoord: (Eve) => {
+            return (Eve.target == I.Slider.Thumb) ?
+                O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L] : // ← Move Thumb naturally. // ↓ Bring Thumb's center to the touched coord at the next pointer moving.
+                O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2;
+        },
+        onTouchStart: (Eve) => {
+            if(!Eve.target || (!I.Slider.contains(Eve.target) && Eve.target != I.Slider)) return;
+            Eve.preventDefault();
+            //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
+            //setTimeout(() => R.Main.style.overflow = '', 1);
+            I.Slider.Touching = true;
+            I.Slider.TouchStartThumbCenterCoord = O.getElementCoord(I.Slider.Thumb)[S.CC.A.AXIS.L] + I.Slider.Thumb['offset' + S.CC.A.SIZE.L] / 2;
+            I.Slider.TouchStartCoord = I.Slider.TouchingCoord = I.Slider.getTouchStartCoord(Eve);
+            clearTimeout(I.Slider.Timer_onTouchEnd);
+            O.HTML.classList.add('slider-sliding');
+            E.add('bibi:moved-pointer', I.Slider.onTouchMove);
+        },
+        onTouchMove: (Eve) => {
+            I.Slider.TouchingCoord = O.getBibiEventCoord(Eve)[S.CC.A.AXIS.L];
+            I.Slider.flip(Eve);
+        },
+        onTouchEnd: (Eve) => {
+            if(!I.Slider.Touching) return;
+            I.Slider.Touching = false;
+            E.remove('bibi:moved-pointer', I.Slider.onTouchMove);
+            I.Slider.onTouchMove(Eve);
+            I.Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 125);
+        },
+        flip: (Eve) => {
+            //clearTimeout(I.Slider.Timer_flipFocus);
+            if(I.Slider.Touching) {
+                let Translation = I.Slider.TouchingCoord - I.Slider.TouchStartCoord;
+                let TranslatedCenter = I.Slider.TouchStartThumbCenterCoord + Translation;
+                     if(TranslatedCenter < I.Slider.Rail.Coords[0]) Translation = I.Slider.Rail.Coords[0] - I.Slider.TouchStartThumbCenterCoord;
+                else if(TranslatedCenter > I.Slider.Rail.Coords[1]) Translation = I.Slider.Rail.Coords[1] - I.Slider.TouchStartThumbCenterCoord;
+                sML.style(I.Slider.Thumb,         { transform: 'translate' + S.CC.A.AXIS.L + '(' +      Translation                                                                    + 'px)' });
+                sML.style(I.Slider.Rail.Progress, { transform:     'scale' + S.CC.A.AXIS.L + '(' + (1 + Translation / I.Slider.Rail.Progress['offset' + S.CC.A.SIZE.L] * S.CC.A.AXIS.PM) + ')' });
+                I.Slider.focus(Eve, { Turn: false, History: false });/*
+                new Promise((resolve) > {
+                    if(!S['allow-placeholders']) return resolve();
+                    I.Slider.Timer_flipFocus = setTimeout(() => resolve(), 0);
+                }).then(() => {
+                    I.Slider.focus(Eve, { Turn: false, History: false });
+                });*/
+            } else I.Slider.focus(Eve).then(() => {
+                sML.style(I.Slider.Thumb,         { transform: '' });
+                sML.style(I.Slider.Rail.Progress, { transform: '' });
                 I.Slider.progress();
-            },
-            activateItem: (Item) => {
-                Item.HTML.addEventListener(O['pointerup'], I.Slider.onTouchEnd);
-            },
-            deactivate: () => {/*
-                if(I.Nombre) {
-                    I.Slider.Thumb.removeEventListener(O['pointerover'], I.Nombre.show);
-                    I.Slider.Thumb.removeEventListener(O['pointerout'],  I.Nombre.hide);
-                }*/
-                I.Slider.Bookmap.removeEventListener(O['pointerdown'], I.Slider.onTouchStart);
-                R.Items.concat(O).forEach(Ele => Ele.HTML.removeEventListener(O['pointerup'], I.Slider.onTouchEnd));
-                E.remove('bibi:scrolls', I.Slider.progress);
+            });
+        },
+        focus: (Eve, Par = {}) => new Promise(resolve => {
+            Par.Destination = I.Slider.UI.identifyPage(Eve);
+            if(!R.Current.Pages.includes(Par.Destination)) {
+                Par.Duration = 0;
+                R.focusOn(Par).then(resolve);
+            } else resolve();
+        }),
+        getTouchEndCoord: () => {
+            const TouchEndCoord = {};
+            TouchEndCoord[S.CC.A.AXIS.L] = sML.limitMinMax(I.Slider.TouchingCoord, I.Slider.Rail.Coords[0], I.Slider.Rail.Coords[1]);
+            TouchEndCoord[S.CC.A.AXIS.B] = O.getElementCoord(I.Slider)[S.CC.A.AXIS.B] + I.Slider['offset' + S.CC.A.SIZE.B] / 2;
+            return TouchEndCoord;
+        },
+        getTouchEndElement: (Eve) => {
+            const TouchEndCoord = I.Slider.getTouchEndCoord();
+            return document.elementFromPoint(TouchEndCoord.X, TouchEndCoord.Y);
+        },
+        zoomOutBook: () => {
+            const BookMarginStart = S.ARA == 'horizontal' ? I.Menu.offsetHeight : 0;
+            const BookMarginEnd   = 78;
+            const Transformation = {
+                Scale: (R.Main['offset' + S.CC.A.SIZE.B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + S.CC.A.SIZE.B] - O.Scrollbars[S.CC.A.SIZE.B]),
+                Translation: {}
+            };
+            Transformation.Translation[S.CC.A.AXIS.L] = (S.RVM == 'vertical' ? I.Menu.offsetHeight / 4 : 0);
+            Transformation.Translation[S.CC.A.AXIS.B] = BookMarginStart - (R.Main['offset' + S.CC.A.SIZE.B]) * (1 - Transformation.Scale) / 2/* - (S.RVM != 'paged' ? O.Scrollbars[S.CC.A.SIZE.B] / 2 : 0)*/;
+            I.Slider.BookStretchingEach = (O.Body['offset' + S.CC.A.SIZE.L] / Transformation.Scale - R.Main['offset' + S.CC.A.SIZE.L]) / 2;
+            R.Main.style['padding' + S.CC.A.BASE.B] = R.Main.style['padding' + S.CC.A.BASE.A] = I.Slider.BookStretchingEach + 'px';
+            if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = I.Slider.BookStretchingEach + 'px';
+            I.Loupe.transform(Transformation, { Temporary: true }).then(I.Slider.progress);
+        },
+        resetZoomingOutOfBook: () => {
+            I.Loupe.transformReset().then(() => {
+                //R.Main.style[S.CC.A.SIZE.l] = '';
+                R.Main.style['padding' + S.CC.A.BASE.B] = R.Main.style['padding' + S.CC.A.BASE.A] = '';
+                if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = '';
+                I.Slider.BookStretchingEach = 0;
+                I.Slider.progress();
+            });
+        },
+        activate: () => {/*
+            if(I.Nombre) {
+                I.Slider.Thumb.addEventListener(O['pointerover'], I.Nombre.show);
+                I.Slider.Thumb.addEventListener(O['pointerout'],  I.Nombre.hide);
+            }*/
+            I.Slider.UI.addEventListener(O['pointerdown'], I.Slider.onTouchStart);
+            O.HTML.addEventListener(O['pointerup'], I.Slider.onTouchEnd);
+            E.add('bibi:scrolls', I.Slider.progress);
+            I.Slider.progress();
+        },
+        activateItem: (Item) => {
+            Item.HTML.addEventListener(O['pointerup'], I.Slider.onTouchEnd);
+        },
+        deactivate: () => {/*
+            if(I.Nombre) {
+                I.Slider.Thumb.removeEventListener(O['pointerover'], I.Nombre.show);
+                I.Slider.Thumb.removeEventListener(O['pointerout'],  I.Nombre.hide);
+            }*/
+            I.Slider.UI.removeEventListener(O['pointerdown'], I.Slider.onTouchStart);
+            R.Items.concat(O).forEach(Ele => Ele.HTML.removeEventListener(O['pointerup'], I.Slider.onTouchEnd));
+            E.remove('bibi:scrolls', I.Slider.progress);
+        }
+    }));
+
+    I.Slider['edgebar'] = { create: () => sML.create('div', { id: 'bibi-slider-edgebar',
+        initialize: function() {
+            this.Box = sML.create('div', { id: 'bibi-slider-edgebar-box' });
+            return I.Slider.Edgebar = this.Box.appendChild(this);
+        },
+        reset: () => false,
+        identifyPage: () => {
+            const Ratio = (I.Slider.getTouchEndCoord()[S.CC.A.AXIS.L] - I.Slider.Rail.Coords[0]) / I.Slider.Rail['offset' + S.CC.A.SIZE.L];
+            const CoordInBook = R.Main.Book['offset' + S.CC.L.SIZE.L] * Ratio;
+            const APM = (S.ARA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
+            const Reversed = 0.5 * APM < Ratio * APM;
+            const PPM = !Reversed ? 1 : -1;
+            const DPM = APM * PPM;
+            for(let si = !Reversed ? 0 : R.Spreads.length - 1; R.Spreads[si]; si += PPM) { const Spread = R.Spreads[si];
+                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[S.CC.L.AXIS.L] + (DPM == 1 ? Spread['offset' + S.CC.L.SIZE.L] : 0);
+                if(SpreadCoord * DPM < CoordInBook * DPM) continue;
+                for(let pi = !Reversed ? 0 : Spread.Pages.length - 1; Spread.Pages[pi]; pi += PPM) { const Page = Spread.Pages[pi];
+                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[S.CC.L.AXIS.L] + (DPM == 1 ? Page['offset' + S.CC.L.SIZE.L] : 0);
+                    if(PageCoord * DPM < CoordInBook * DPM) continue;
+                    return Page;
+                }
             }
-        })
-    );
-    I.Slider.BookmapBox    = I.Slider.appendChild(sML.create('div', { id: 'bibi-slider-bookmap-box' }));
-    I.Slider.Bookmap       = sML.create('div', { id: 'bibi-slider-bookmap' }); // to be appended to BookmapBox
-    I.Slider.Rail          = I.Slider.BookmapBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
-    I.Slider.Rail.Progress = I.Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
-    I.Slider.Thumb         = I.Slider.BookmapBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
-    I.setFeedback(I.Slider.Thumb);
+            return null;
+        }
+    }) };
+
+    I.Slider['bookmap'] = { create: () => sML.create('div', { id: 'bibi-slider-bookmap',
+        initialize: function() {
+            this.Box = sML.create('div', { id: 'bibi-slider-bookmap-box' });
+            R.Spreads.forEach(Spread => {
+                Spread.BookmapSpread = sML.create('div', { className: 'bookmap-spread', Box: this.appendChild(document.createElement('div')) });
+                Spread.Items.forEach(Item => Item.BookmapItem = { Box: Spread.BookmapSpread.appendChild(document.createElement('div')) });
+                Spread.BookmapSpread.Box.appendChild(Spread.BookmapSpread);
+            });
+            return I.Slider.Bookmap = this;
+        },
+        putAway: (Lock) => {
+            clearTimeout(I.Slider.Bookmap.Timer_putIn);
+            if(I.Slider.Bookmap.Locked) return false;
+            I.Slider.Bookmap.Locked = Lock;
+            if(I.Slider.Bookmap.paretElement) {
+                return I.Slider.Bookmap.Box.removeChild(I.Slider.Bookmap);
+            } else {
+                return false;
+            }
+        },
+        putIn: (Unlock) => {
+            if(Unlock) I.Slider.Bookmap.Locked = false;
+            if(I.Slider.Bookmap.Locked) return false;
+            if(!I.Slider.Bookmap.paretElement) {
+                return I.Slider.Bookmap.Timer_putIn = setTimeout(() => {
+                    I.Slider.Bookmap.Box.appendChild(I.Slider.Bookmap);
+                    I.Slider.resetThumbAndRail();
+                }, Unlock ? 0 : 456);
+            } else {
+                return false;
+            }
+        },
+        reset: () => setTimeout(() => {
+            I.Slider.Bookmap.putAway('Lock');
+            R.Spreads.forEach(Spread => setTimeout(I.Slider.Bookmap.resetSpread, 0, Spread));
+            I.Slider.Bookmap.putIn('Unlock');
+        }, 456),
+        resetSpread: (Spread) => {
+            I.Slider.Bookmap.putAway();
+            const SpreadBox = Spread.Box, BmSpread = Spread.BookmapSpread, BmSpreadBox = BmSpread.Box;
+            sML.forEach(BmSpread.querySelectorAll('span.bookmap-page'))(OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
+            BmSpreadBox.className = 'bookmap-spread-box'; sML.forEach(SpreadBox.classList)(ClassName => { if(ClassName != 'spread-box') BmSpreadBox.classList.add(ClassName); });
+            BmSpreadBox.style[S.CC.A.SIZE.b] = BmSpread.style[S.CC.A.SIZE.b] = '';
+            BmSpreadBox.style[S.CC.A.SIZE.l] = (SpreadBox['offset' + S.CC.L.SIZE.L] / R.Main['scroll' + S.CC.L.SIZE.L] * 100) + '%';
+            BmSpread.style[S.CC.A.SIZE.l] = (Spread['offset' + S.CC.L.SIZE.L] / SpreadBox['offset' + S.CC.L.SIZE.L] * 100) + '%';
+            Spread.Items.forEach(Item => {
+                const ItemBox = Item.Box, BmItemBox = Item.BookmapItem.Box;
+                BmItemBox.className = 'bookmap-item-box'; sML.forEach(ItemBox.classList)(ClassName => { if(ClassName != 'item-box') BmItemBox.classList.add(ClassName); });
+                BmItemBox.style[S.CC.A.SIZE.b] = (ItemBox['offset' + S.CC.L.SIZE.B] / Spread['offset' + S.CC.L.SIZE.B] * 100) + '%';
+                BmItemBox.style[S.CC.A.SIZE.l] = (ItemBox['offset' + S.CC.L.SIZE.L] / Spread['offset' + S.CC.L.SIZE.L] * 100) + '%';
+                Item.Pages.forEach(Page => {
+                    const BmPage = Page.BookmapPage = sML.create('span', { className: 'bookmap-page', Page: Page });
+                    BmPage.style[S.CC.A.SIZE.l] = (1 / Item.Pages.length * 100) + '%';
+                    if(I.Nombre) {
+                        BmPage.addEventListener(O['pointerover'], () => {
+                            if(I.Slider.Touching) return;
+                            clearTimeout(I.Slider.Timer_BookmapPagePointerOut);
+                            I.Nombre.progress({ Pages: { StartPage: Page, EndPage: Page } });
+                        });
+                        BmPage.addEventListener(O['pointerout'], () => {
+                            if(I.Slider.Touching) return;
+                            I.Slider.Timer_BookmapPagePointerOut = setTimeout(() => {
+                                clearTimeout(I.Nombre.Timer_hide);
+                                I.Nombre.hide();
+                            }, 200);
+                        });
+                    }
+                    //BmPage.Labels = { default: { default: `P.${ Page.Index + 1 }` } };
+                    I.setFeedback(BmPage);
+                    if(Item.SpreadPair && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.SpreadPair.Ref['rendition:layout'] == 'pre-paginated') {
+                        E.add(BmPage, 'bibi:hovers',   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.add(   'hover'); });
+                        E.add(BmPage, 'bibi:unhovers', function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.remove('hover'); });
+                    }
+                    BmItemBox.appendChild(BmPage);
+                });
+            });
+            I.Slider.Bookmap.putIn();
+        },
+        identifyPage: (Eve) => I.Slider.Bookmap.narrowDownToPage(
+            !O.Touch && (Eve.target == I.Slider.Bookmap || I.Slider.Bookmap.contains(Eve.target))
+                ? Eve.target
+                : I.Slider.getTouchEndElement()
+        ),
+        narrowDownToPage: (Ele) => {
+            if(Ele.classList.contains('bookmap-page')) return Ele.Page;
+            const Ones = (Ele.classList.contains('bookmap-item') || Ele.classList.contains('bookmap-spread')) ? Ele.querySelectorAll('span.bookmap-page') : I.Slider.Bookmap.querySelectorAll('div.bookmap-spread');
+            const TouchingCoord = I.Slider.TouchingCoord * S.CC.A.AXIS.PM;
+            let TheOne = Ones[Ones.length - 1], PrevOne = null, PrevOneFootCoord = 0;
+            for(let l = Ones.length, i = 0; i < l; i++) {
+                const One = Ones[i], OneCoord = O.getElementCoord(One)[S.CC.A.AXIS.L], OneFootCoord = (OneCoord + (S.ARD != 'rtl' ? One['offset' + S.CC.A.SIZE.L] : 0)) * S.CC.A.AXIS.PM;
+                if(OneFootCoord < TouchingCoord) {
+                    PrevOne = One, PrevOneFootCoord = OneFootCoord;
+                    continue;
+                }
+                const OneHeadCoord = (OneCoord + (S.ARD == 'rtl' ? One['offset' + S.CC.A.SIZE.L] : 0)) * S.CC.A.AXIS.PM;
+                TheOne = (TouchingCoord < OneHeadCoord && PrevOne && TouchingCoord - PrevOneFootCoord < OneHeadCoord - TouchingCoord) ? PrevOne : One;
+            }
+            return I.Slider.Bookmap.narrowDownToPage(TheOne);
+        }
+    }) };
+
+    I.Slider.initialize();
+
     I.setToggleAction(I.Slider, {
         onopened: () => {
             I.Slider.zoomOutBook();
@@ -3735,7 +3775,7 @@ I.createSlider = () => {
             I.Slider.progress();
             O.HTML.classList.remove('slider-opened');
             E.dispatch('bibi:closed-slider');
-            setTimeout(I.Slider.resetBookmap, 456);
+            I.Slider.UI.reset();
         }
     });
     E.add('bibi:commands:open-slider',   I.Slider.open);
@@ -3747,7 +3787,7 @@ I.createSlider = () => {
     E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-slider', Opt));
 
     E.add('bibi:opened', I.Slider.activate); E.add('bibi:loaded-item', I.Slider.activateItem);
-    E.add(['bibi:opened', 'bibi:changed-view'], () => setTimeout(I.Slider.resetBookmap, 456));
+    E.add(['bibi:opened', 'bibi:changed-view'], I.Slider.UI.reset);
     E.add('bibi:laid-out', () => {
         //I.Slider.BookStretchingEach = 0;
         I.Slider.resetZoomingOutOfBook();
@@ -3766,7 +3806,6 @@ I.createSlider = () => {
         'html.view-vertical div#bibi-slider'
     ].join(', '), 'width: ' + (O.Scrollbars.Width) + 'px;');
 
-    I.Slider.initializeBookmap();
     E.dispatch('bibi:created-slider');
 
 };
@@ -5251,6 +5290,7 @@ O.SettingTypes = {
         'use-nombre'
     ],
     'string': [
+        'slider-mode',
         'loupe-mode'
     ],
     'integer': [

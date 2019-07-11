@@ -1638,11 +1638,12 @@ div#bibi-slider {
 }
 
 
-// - Book Map Box
+// - UI Box (Edgebar Box, Bookmap Box)
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-margin: $scrollbar-thumb-size;
+$slider-padding: $scrollbar-thumb-size;
 
+div#bibi-slider-edgebar-box,
 div#bibi-slider-bookmap-box {
 	box-sizing: border-box;
 	position: absolute;
@@ -1657,8 +1658,8 @@ div#bibi-slider-bookmap-box {
 		width: calc(100% - #{$scrollbar-thumb-size});
 	}
 	html.appearance-horizontal.slider-opened & {
-		top: 1px + $slider-bookmap-margin;
-		height: calc(100% - #{1px + $slider-bookmap-margin * 2});
+		top: 1px + $slider-padding;
+		height: calc(100% - #{1px + $slider-padding * 2});
 	}
 	html.appearance-vertical & {
 		@include trbl(0, auto, 0, 1px);
@@ -1666,13 +1667,35 @@ div#bibi-slider-bookmap-box {
 		height: calc(100% - #{$scrollbar-thumb-size});
 	}
 	html.appearance-vertical.slider-opened & {
-		left: 1px + $slider-bookmap-margin;
-		width: calc(100% - #{1px + $slider-bookmap-margin * 2});
+		left: 1px + $slider-padding;
+		width: calc(100% - #{1px + $slider-padding * 2});
 	}
 }
 
 
-// - Book Map
+// - Edgebar, Bookmap
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar,
+div#bibi-slider-bookmap {
+	box-sizing: border-box;
+	position: absolute;
+	z-index: 10;
+	@include trbl(0);
+	@include size(100%);
+	margin: auto;
+}
+
+
+// - Edgebar
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar {
+	background: white;
+}
+
+
+// - Bookmap
 // --------------------------------------------------------------------------------
 
 div#bibi-slider-bookmap {
@@ -1700,7 +1723,7 @@ div#bibi-slider-bookmap {
 	}
 
 
-// - . Spread Box
+// - . Bookmap > Spread Box
 // --------------------------------------------------------------------------------
 
 $slider-bookmap-spread-box-color: transparent;
@@ -1717,7 +1740,7 @@ div.bookmap-spread-box {
 }
 
 
-// - . Spread
+// - . Bookmap > Spread Box > Spread
 // --------------------------------------------------------------------------------
 
 $slider-bookmap-spread-background: rgba(white, .5);
@@ -1747,7 +1770,7 @@ div.bookmap-spread {
 }
 
 
-// - . Item Box
+// - . Bookmap > Spread Box > Spread > Item Box
 // --------------------------------------------------------------------------------
 
 $slider-bookmap-item-box_reflowable-border-color: rgb(216,216,216);
@@ -1780,7 +1803,7 @@ div.bookmap-item-box {
 }
 
 
-// - . Item
+// - . Bookmap > Spread Box > Spread > Item Box > Item
 // --------------------------------------------------------------------------------
 
 span.bookmap-item {
@@ -1801,7 +1824,7 @@ span.bookmap-item {
 }
 
 
-// - . Page
+// - . Bookmap > Spread Box > Spread > Item Box > Page
 // --------------------------------------------------------------------------------
 
 $slider-bookmap-page-color_opened: white;
@@ -1968,10 +1991,10 @@ div#bibi-slider-thumb {
 		background: transparent;//$slider-thumb-bar-background_opened;
 	}
 	html.slider-opened.appearance-horizontal & {
-		height: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
+		height: 100%;
 	}
 	html.slider-opened.appearance-vertical & {
-		width: 100%;//calc(100% - #{$slider-bookmap-margin / 2 * 2});
+		width: 100%;
 	}
 	html.slider-opened &:hover {
 		background: transparent;//$slider-thumb-bar-background_opened_hover;
@@ -1987,7 +2010,7 @@ div#bibi-slider-thumb {
 			display: block;
 			position: absolute;
 			z-index: 10;
-			@include trbl(-100%);
+			@include trbl($slider-thumb-circle-size_opened * -1);
 			margin: auto;
 			border-radius: 50%;
 			@include size(0);
