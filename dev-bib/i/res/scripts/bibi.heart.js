@@ -2853,8 +2853,8 @@ I.createLoupe = () => {
 
     I.Loupe = {};
 
-    if(typeof S['loupe-mode']      != 'string' || S['loupe-mode']      != 'with-keys') S['loupe-mode']      = 'pointer-only';
-    if(typeof S['loupe-max-scale'] != 'number' || S['loupe-max-scale'] <=           1) S['loupe-max-scale'] = 4;
+    if(!/^(pointer-only|with-keys)$/.test(S['loupe-mode'])) S['loupe-mode'] = 'pointer-only';
+    if(S['loupe-max-scale'] <= 2) S['loupe-max-scale'] = 4;
 
     if(S['loupe-mode'] == 'with-keys' && !S['use-keys']) return;
 
