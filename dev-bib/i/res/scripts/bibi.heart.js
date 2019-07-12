@@ -746,11 +746,11 @@ L.processPackage = (Doc) => {
     // --------------------------------------------------------------------------------
     B.FileDigit = (Spine.Items.length + '').length;
 
-    B.ID        = Metadata['identifier'][0];
-    B.Title     = Metadata['title'     ].join(', ');
-    B.Creator   = Metadata['creator'   ].join(', ');
-    B.Publisher = Metadata['publisher' ].join(', ');
-    B.Language  = Metadata['language'  ][0].split('-')[0];
+    B.ID        =  Metadata['identifier'][0];
+    B.Title     =  Metadata['title'     ].join(', ');
+    B.Language  =  Metadata['language'  ][0].split('-')[0];
+    B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
+    B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
     if(B.Title) {
         const BookIDFragments = [B.Title];
         if(B.Creator)   BookIDFragments.push(B.Creator);
