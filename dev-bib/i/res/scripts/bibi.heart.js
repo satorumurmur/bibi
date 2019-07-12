@@ -746,11 +746,11 @@ L.processPackage = (Doc) => {
     // --------------------------------------------------------------------------------
     B.FileDigit = (Spine.Items.length + '').length;
 
-    B.ID        = Metadata['identifier'][0];
-    B.Title     = Metadata['title'     ].join(', ');
-    B.Creator   = Metadata['creator'   ].join(', ');
-    B.Publisher = Metadata['publisher' ].join(', ');
-    B.Language  = Metadata['language'  ][0].split('-')[0];
+    B.ID        =  Metadata['identifier'][0];
+    B.Title     =  Metadata['title'     ].join(', ');
+    B.Language  =  Metadata['language'  ][0].split('-')[0];
+    B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
+    B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
     if(B.Title) {
         const BookIDFragments = [B.Title];
         if(B.Creator)   BookIDFragments.push(B.Creator);
@@ -936,14 +936,13 @@ L.coordinateLinkages.setJump = (A) => A.addEventListener('click', Eve => {
 L.preprocessResources = () => new Promise((resolve, reject) => {
     E.dispatch('bibi:is-going-to:preprocess-resources');
     const PpdReses = []; // PreprocessedResources
-    const Promises = [O.download({ Path: new URL('res/styles/bibi.book.css', O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true }).then(Item => {
-        Item.URI = O.getBlobURL(Item);
+    const Promises = [O.download({ Path: new URL('res/styles/bibi.book.css', O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true }).then(O.getBlobURL).then(Item => {
         Item.Content = '';
         B.DefaultStyle = Item;
         return PpdReses.push(B.DefaultStyle);
     })]; // Default StyleSheet
     const pushItemPreprocessingPromise = (Item, URI) => Promises.push(O.file(Item, { Preprocess: true, URI: URI }).then(() => PpdReses.push(Item)));
-    for(const FilePath in B.Package.Manifest.Items) {
+    if(B.ExtractionPolicy) for(const FilePath in B.Package.Manifest.Items) {
         const Item = B.Package.Manifest.Items[FilePath];
         if(/\/(css|javascript)$/.test(Item['media-type']) && !Item.Bibitem) pushItemPreprocessingPromise(Item, true); // CSSs & JavaScripts in Manifest
     }
@@ -986,7 +985,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     return new Promise((resolve, reject) => {
         if(Item.Src) return resolve();
         if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            //if(!B.ExtractionPolicy) return resolve(); // Extracted
+            if(!B.ExtractionPolicy) return resolve(); // Extracted
             return O.file(Item, { Preprocess: true }).then(Item => resolve(Item.Content.replace(/^<\?.+?\?>/, ''))).catch(reject); // Archived
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
@@ -1040,6 +1039,8 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
             } else {
                 Item.Src = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
             }
+        } else {
+            Item.Src = O.fullPath(Item.Path);
         }
         Item.onload = () => resolve(Item);
         Item.src = Item.Src;
@@ -3641,18 +3642,19 @@ I.createSlider = () => {
         },
         reset: () => false,
         identifyPage: () => {
-            const Ratio = (I.Slider.getTouchEndCoord()[S.CC.A.AXIS.L] - I.Slider.Rail.Coords[0]) / I.Slider.Rail['offset' + S.CC.A.SIZE.L];
+            let Ratio = (I.Slider.getTouchEndCoord()[S.CC.A.AXIS.L] - I.Slider.Rail.Coords[0]) / I.Slider.Rail['offset' + S.CC.A.SIZE.L];
+            if(S.ARA != S.SLA) Ratio = 1 - Ratio;
             const CoordInBook = R.Main.Book['offset' + S.CC.L.SIZE.L] * Ratio;
-            const APM = (S.ARA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
+            const APM = (S.SLA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
             const Reversed = 0.5 * APM < Ratio * APM;
             const PPM = !Reversed ? 1 : -1;
             const DPM = APM * PPM;
             for(let si = !Reversed ? 0 : R.Spreads.length - 1; R.Spreads[si]; si += PPM) { const Spread = R.Spreads[si];
-                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[S.CC.L.AXIS.L] + (DPM == 1 ? Spread['offset' + S.CC.L.SIZE.L] : 0);
-                if(SpreadCoord * DPM < CoordInBook * DPM) continue;
+                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[S.CC.L.AXIS.L];
+                if((SpreadCoord + (DPM == 1 ? Spread['offset' + S.CC.L.SIZE.L] : 0)) * DPM < CoordInBook * DPM) continue;
                 for(let pi = !Reversed ? 0 : Spread.Pages.length - 1; Spread.Pages[pi]; pi += PPM) { const Page = Spread.Pages[pi];
-                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[S.CC.L.AXIS.L] + (DPM == 1 ? Page['offset' + S.CC.L.SIZE.L] : 0);
-                    if(PageCoord * DPM < CoordInBook * DPM) continue;
+                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[S.CC.L.AXIS.L];
+                    if((PageCoord + (DPM == 1 ? Page['offset' + S.CC.L.SIZE.L] : 0)) * DPM < CoordInBook * DPM) continue;
                     return Page;
                 }
             }
@@ -4853,7 +4855,7 @@ O.item = (Item) => {
 O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
     Item = O.item(Item);
     if(Opt.URI) {
-        if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
+        //if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
         if(Item.URI) return resolve(Item);
     }
     let _Promise = null;
@@ -4862,8 +4864,14 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
     else if( B.ExtractionPolicy == 'on-the-fly') _Promise =      O.retlieve(Item);
     else                                         return reject(`File Not Included: "${ Item.Path }"`);
     _Promise.then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
-        if(Opt.URI) Item.URI = O.getBlobURL(Item), Item.Content = '';
-        resolve(Item);
+        if(Opt.URI) {
+            O.getBlobURL(Item).then(Item => {
+                Item.Content = '';
+                resolve(Item);
+            });
+        } else {
+            resolve(Item);
+        }
      }).catch(reject);
 });
 
@@ -4887,18 +4895,28 @@ O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
 
 O.isBin = (Item) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Item.Path);
 
-O.getBlobURL = (Item) => {
+O.getBlobURL = (Item) => new Promise(resolve => {
     Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    if(Item.URI) return Item.URI;
-    return URL.createObjectURL(Item.DataType == 'blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
-};
+    if(!Item.URI) Item.URI = URL.createObjectURL(Item.DataType == 'blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
+    resolve(Item);
+});
 
-O.getDataURI = (Item) => {
+O.getDataURI = (Item) => new Promise(resolve => {
     Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    if(Item.DataType != 'text') throw `Item Content Is Not Text.`;
-    if(Item.URI) return Item.URI;
-    return 'data:' + Item['media-type'] + ';base64,' + btoa(unescape(encodeURIComponent(Item.Content)));
-};
+    //if(Item.DataType != 'text') throw `Item Content Is Not Text.`;
+    if(Item.URI) resolve(Item);
+    else if(Item.DataType == 'text') {
+        Item.URI = 'data:' + Item['media-type'] + ';base64,' + btoa(unescape(encodeURIComponent(Item.Content)));
+        resolve(Item);
+    } else {
+        const FR = new FileReader();
+        FR.onload = () => {
+            Item.URI = FR.result;
+            resolve(Item);
+        };
+        FR.readAsDataURL(Item.Content);
+    }
+});
 
 O.ContentTypes = {
     'pdf'     : 'application/pdf',
