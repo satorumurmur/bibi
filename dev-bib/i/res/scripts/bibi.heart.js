@@ -3642,18 +3642,19 @@ I.createSlider = () => {
         },
         reset: () => false,
         identifyPage: () => {
-            const Ratio = (I.Slider.getTouchEndCoord()[S.CC.A.AXIS.L] - I.Slider.Rail.Coords[0]) / I.Slider.Rail['offset' + S.CC.A.SIZE.L];
+            let Ratio = (I.Slider.getTouchEndCoord()[S.CC.A.AXIS.L] - I.Slider.Rail.Coords[0]) / I.Slider.Rail['offset' + S.CC.A.SIZE.L];
+            if(S.ARA != S.SLA) Ratio = 1 - Ratio;
             const CoordInBook = R.Main.Book['offset' + S.CC.L.SIZE.L] * Ratio;
-            const APM = (S.ARA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
+            const APM = (S.SLA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
             const Reversed = 0.5 * APM < Ratio * APM;
             const PPM = !Reversed ? 1 : -1;
             const DPM = APM * PPM;
             for(let si = !Reversed ? 0 : R.Spreads.length - 1; R.Spreads[si]; si += PPM) { const Spread = R.Spreads[si];
-                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[S.CC.L.AXIS.L] + (DPM == 1 ? Spread['offset' + S.CC.L.SIZE.L] : 0);
-                if(SpreadCoord * DPM < CoordInBook * DPM) continue;
+                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[S.CC.L.AXIS.L];
+                if((SpreadCoord + (DPM == 1 ? Spread['offset' + S.CC.L.SIZE.L] : 0)) * DPM < CoordInBook * DPM) continue;
                 for(let pi = !Reversed ? 0 : Spread.Pages.length - 1; Spread.Pages[pi]; pi += PPM) { const Page = Spread.Pages[pi];
-                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[S.CC.L.AXIS.L] + (DPM == 1 ? Page['offset' + S.CC.L.SIZE.L] : 0);
-                    if(PageCoord * DPM < CoordInBook * DPM) continue;
+                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[S.CC.L.AXIS.L];
+                    if((PageCoord + (DPM == 1 ? Page['offset' + S.CC.L.SIZE.L] : 0)) * DPM < CoordInBook * DPM) continue;
                     return Page;
                 }
             }
