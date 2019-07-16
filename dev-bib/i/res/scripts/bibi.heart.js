@@ -583,7 +583,7 @@ L.processPackage = (Doc) => {
     // METADATA
     // ================================================================================
     const DCNS = _Metadata.getAttribute('xmlns:dc');
-    ['identifier', 'title', 'creator', 'publisher', 'language'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
+    ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
     sML.forEach(_Metadata.getElementsByTagName('meta'))(_Meta => {
         if(_Meta.getAttribute('refines')) return; // It's BAD and Wanted to Be FIXed.
         let Property = _Meta.getAttribute('property');
@@ -603,8 +603,8 @@ L.processPackage = (Doc) => {
     });
     // --------------------------------------------------------------------------------
     if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [O.BookURL];
-    if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
     if(!Metadata['language'  ]) Metadata['language'  ] = Metadata['dcterms:language'  ] || ['en'];
+    if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
     // --------------------------------------------------------------------------------
     if(!Metadata['rendition:layout'     ]                                               ) Metadata['rendition:layout'     ] = 'reflowable'; if(Metadata['omf:version']) Metadata['rendition:layout'] = 'pre-paginated';
     if(!Metadata['rendition:orientation'] || Metadata['rendition:orientation'] == 'auto') Metadata['rendition:orientation'] = 'portrait';
@@ -747,8 +747,8 @@ L.processPackage = (Doc) => {
     B.FileDigit = (Spine.Items.length + '').length;
 
     B.ID        =  Metadata['identifier'][0];
-    B.Title     =  Metadata['title'     ].join(', ');
     B.Language  =  Metadata['language'  ][0].split('-')[0];
+    B.Title     =  Metadata['title'     ].join(', ');
     B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
     B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
     if(B.Title) {
