@@ -4471,8 +4471,12 @@ export const U = (LS => {
     const Qs = {};
     LS.split('&').forEach(PnV => {
         PnV = PnV.split('=');
-        if(/^[a-z]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
+        if(/^[a-zA-Z0-9_\-]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
     });
+    if(Qs.hasOwnProperty('debug')) {
+        Bibi.Debug = true;
+        Qs['log'] = 9;
+    }
     return Qs;
 })(location.search);
 
