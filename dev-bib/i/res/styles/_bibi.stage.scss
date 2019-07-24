@@ -164,18 +164,17 @@ div#bibi-main {
 		z-index: $z-index_main;
 		//@include trbl(-100vh, -100vw);
 		//margin: auto;
-		@include size(100%);
+		width: 100%;
 		background: $main-background;
 		transition:
-			opacity .15s ease,
-			transform .15s ease;
+			padding .1s ease,
+			transform .1s ease,
+			opacity .15s ease;
 		transform-origin: 50% 50%;
-		will-change: scroll-position, opacity, transform;
+		will-change: scroll-position, padding, transform, opacity;
 	}
 	html.book-full-height & {
-	}
-	html:not(.book-full-height) & {
-		padding-top: $top-bar-height;
+		height: 100%;
 	}
     html.view-paged & {
     	overflow: hidden;
@@ -190,11 +189,23 @@ div#bibi-main {
  	}
 	html.appearance-horizontal & {
 		@include trbl(0, -100%, auto, -100%);
-		margin: 0 auto;
+		//margin: 0 auto;
+		//@include trbl(-100%);
+		margin: auto;
+	}
+	html.appearance-horizontal:not(.book-full-height) & {
+		top: $top-bar-height;
+		height: calc(100% - #{$top-bar-height});
 	}
 	html.appearance-vertical & {
 		@include trbl(-100%, auto, -100%, 0);
-		margin: auto 0;
+		//margin: auto 0;
+		//@include trbl(-100%);
+		margin: auto;
+	}
+	html.appearance-vertical:not(.book-full-height) & {
+		padding-top: $top-bar-height;
+		height: calc(100% - #{$top-bar-height});
 	}
 	html.laying-out & {
 		opacity: 0;
@@ -245,10 +256,12 @@ div#bibi-main {
 			flex-shrink: 0;
 			position: relative;
 			html.spread-horizontal & { height: 100%; }
-			html.spread-horizontal &:not(.reflowable) { min-width: 100vw; }
+			html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
+			html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
 			html.spread-vertical & { width: 100%; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // [!] To Be Overwritten in Script (if Scrollbars have height)
-			html.book-pre-paginated.view-paged &:not(.current) { visibility: hidden; }
+			//html.book-pre-paginated.view-paged &.spreaded:not(.current) { opacity: 0.5; }
+			//html.book-pre-paginated.view-paged &:not(.spreaded):not(.current) { visibility: hidden; }
 		}
 			div.spread {
 				box-sizing: border-box;

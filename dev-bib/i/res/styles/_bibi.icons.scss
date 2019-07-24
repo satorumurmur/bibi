@@ -217,7 +217,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 // - Icon Fonts
 // --------------------------------------------------------------------------------
 
-.bibi-icon-setting,
+.bibi-icon-config,
 .bibi-icon-share,
 .bibi-icon-full-breadth-layout,
 .bibi-icon-toggle-fullscreen,
@@ -241,7 +241,7 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	}
 }
 
-.bibi-icon-setting {
+.bibi-icon-config {
 	&:before {
 		content: /*touch_app*/ "\e8b8";
 		font-size: $icon-size * 0.75;

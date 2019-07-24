@@ -13,7 +13,7 @@ Bibi.x({
 
     B.ZineData = { Path: 'zine.yaml', Dir: '' };
 
-    this.loadZineData = () => this.openYAML(B.ZineData.Path).then(this.processZineData).then(L.processPackage);
+    this.loadZineData = () => this.openYAML(B.ZineData.Path).then(this.processZineData).then(L.loadPackage.process);
 
     this.openYAML = (Path) => O.file(Path).then(jsyaml.safeLoad);
 

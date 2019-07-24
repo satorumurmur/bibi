@@ -195,6 +195,7 @@ License
 * Polyfills (for Internet Explorer):
     - [classlist-polyfill](https://github.com/yola/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
     - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)
+    - [IntersectionObserver polyfill](https://github.com/w3c/IntersectionObserver) ... Copyright (c) W3C (Licensed under [the W3C Software and Document License](https://github.com/w3c/IntersectionObserver/blob/master/LICENSE.md).)
     - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
     - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
     - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT License](http://getify.mit-license.org/).)

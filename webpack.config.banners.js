@@ -41,6 +41,7 @@ Banners.BibiPolyfillsJS = banner(`BiB/i Polyfills for on Internet Explorer 11`, 
  *  * Including:
  *      - classlist-polyfill                ...            by Yola Inc.        - https://github.com/yola/classlist-polyfill   (Released into the public domain under the Unlicense.)
  *      - text-encoding-utf-8               ...            by Erik Arvidsson   - https://github.com/arv/text-encoding-utf-8   (Released into the public domain under the Unlicense.)
+ *      - IntersectionObserver polyfill     ... Copyright (c) W3C              - https://github.com/w3c/IntersectionObserver (Licensed under the W3C Software and Document License.)
  *      - document.currentScript Polyfill   ... Copyright (c) Adam Miller      - https://github.com/amiller-gh/currentScript-polyfill              (Licensed under the MIT License.)
  *      - custom-event-polyfill             ... Copyright (c) Evan Krambuhl    - https://github.com/kumarharsh/custom-event-polyfill               (Licensed under the MIT License.)
  *      - Native Promise Only (NPO)         ... Copyright (c) Kyle Simpson     - https://github.com/getify/native-promise-only                     (Licensed under the MIT License.)
