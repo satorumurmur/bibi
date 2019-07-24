@@ -13,8 +13,8 @@
 // - Colors
 // --------------------------------------------------------------------------------
 
-$html-background: rgb(96,96,96);
-$main-background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//linear-gradient(to top, rgb(144,144,144), rgb(192,192,192));//rgb(64,64,64);
+$html-background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+$main-background: transparent;//$html-background;//linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//linear-gradient(to top, rgb(144,144,144), rgb(192,192,192));//rgb(64,64,64);
 $veil-background: linear-gradient(to bottom, rgb(96,96,96), rgb(192,192,192));//rgb(216,216,216);
 
 $color_blue-hilight: saturate(steelblue, 20%);

@@ -3,6 +3,7 @@ import { TextDecoder } from 'text-encoding-utf-8'; self.TextDecoder = TextDecode
 
 import 'current-script-polyfill';
 import 'custom-event-polyfill';
+import 'intersection-observer';
 import 'native-promise-only';
 import 'polyfill-array-includes';
 import 'string.padstart';

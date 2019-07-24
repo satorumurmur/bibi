@@ -1115,6 +1115,20 @@ div.bibi-subpanel {
 // --------------------------------------------------------------------------------
 
 div#bibi-menu {
+	$background-color:        rgba(white, 0  );
+	$background-color_hover:  rgba(white,  .9);
+	$background-color_active: rgba(white, 1  );
+	$border-bottom-color: rgba(black, 0);
+	$border-bottom-color_hover: $border-bottom-color;
+	$border-bottom-color_active: $border-bottom-color_hover;
+	$box-shadow_active: 0 0 16px rgba(black, 0.125);
+	$background-color_not-book-full-height:        rgba(white, 1  );
+	$background-color_not-book-full-height_hover:  $background-color_not-book-full-height;
+	$background-color_not-book-full-height_active: $background-color_not-book-full-height_hover;
+	$border-bottom-color_not-book-full-height: rgba(black, .05);
+	$border-bottom-color_not-book-full-height_hover: $border-bottom-color_not-book-full-height;
+	$border-bottom-color_not-book-full-height_active: $border-bottom-color_not-book-full-height_hover;
+	$box-shadow_not-book-full-height_active: 0 0 16px rgba(black, 0.125);
 	& {
 		box-sizing: border-box;
 		position: absolute;
@@ -1128,22 +1142,24 @@ div#bibi-menu {
 		width: 100%;
 		background: transparent;
 	}
-	html.book-full-height &                       {  background-color: rgba(white, 0  );  border-bottom-color: rgba(black, 0);  }
-	html.book-full-height &:hover                 {  background-color: rgba(white,  .9);  }
-	html.book-full-height.subpanel-opened &       {  background-color: rgba(white,  .9);  }
-	html:not(.book-full-height) &                 {  background-color: rgba(white, 1  );  border-bottom-color: rgba(black, .05);  }
-	html:not(.book-full-height) &:hover           {}
-	html:not(.book-full-height).subpanel-opened & {}
-	html.book-full-height.menu-opened &,
-	html:not(.book-full-height).menu-opened &     {  background-color: rgba(white, 1  );  box-shadow: 0 0 16px rgba(black, 0.125);  }
+	&, & ul {
+		transition: .125s linear;
+	}
+	html.book-full-height &                       {  background-color: $background-color;  border-bottom-color: $border-bottom-color;  }
+	html.book-full-height &.hover,
+	html.book-full-height.subpanel-opened &       {  background-color: $background-color_hover;  border-bottom-color: $border-bottom-color_hover;  }
+	html.book-full-height.menu-opened &           {  background-color: $background-color_active;  border-bottom-color: $border-bottom-color_active;  box-shadow: $box-shadow_active;  }
+	html:not(.book-full-height) &                 {  background-color: $background-color_not-book-full-height;  border-bottom-color: $border-bottom-color_not-book-full-height;  }
+	html:not(.book-full-height) &.hover,
+	html:not(.book-full-height).subpanel-opened & {  background-color: $background-color_not-book-full-height_hover;  border-bottom-color: $border-bottom-color_not-book-full-height_hover;  }
+	html:not(.book-full-height).menu-opened &     {  background-color: $background-color_not-book-full-height_active;  border-bottom-color: $border-bottom-color_not-book-full-height_active;  box-shadow: $box-shadow_not-book-full-height_active;  }
 	html.without-menubar &,
 	html.waiting-file &  {
 		display: none !important;
 	}
-	&, & ul {
-		transition: .125s linear;
-	}
 }
+
+
 
 html.slider-opened.view-vertical div#bibi-menu {
 	width: calc(100% - #{$slider-size});
@@ -1168,34 +1184,37 @@ div#bibi-menu-r {
 	color: white;
 	transition: opacity 0.75s linear;
 	ul {
-		position: relative;
-		padding: $button-group-margin;
-		height: $icon-size;
-		opacity: 0;
-		&.sticky {
-			opacity: 0.5;
-		}
-		&:before {
-			content: "";
-			display: block;
-			position: absolute;
-			top: $button-group-margin;
-			width: 1px;
+		& {
+			position: relative;
+			padding: $button-group-margin;
 			height: $icon-size;
-			background: rgba(216,216,216, 0.5);
-		}
-		li {
-			width: $icon-size;
-			height: $icon-size;
-			.bibi-button {
-				position: relative;
-				z-index: 1;
-				&.hover, &.active {
-					z-index: 10;
-				}
-				span.bibi-button-label {
-					font-size: 0;
-					color: transparent;
+			opacity: 0;
+			&.sticky {
+				//opacity: 0.5;
+				opacity: 0;
+			}
+			&:before {
+				content: "";
+				display: block;
+				position: absolute;
+				top: $button-group-margin;
+				width: 1px;
+				height: $icon-size;
+				background: rgba(216,216,216, 0.5);
+			}
+			li {
+				width: $icon-size;
+				height: $icon-size;
+				.bibi-button {
+					position: relative;
+					z-index: 1;
+					&.hover, &.active {
+						z-index: 10;
+					}
+					span.bibi-button-label {
+						font-size: 0;
+						color: transparent;
+					}
 				}
 			}
 		}
@@ -1203,8 +1222,12 @@ div#bibi-menu-r {
 		div#bibi-menu.hot &,
 		html.menu-opened &,
 		html.panel-opened &,
-		html.subpanel-opened & {
+		html.subpanel-opened &,
+		html:not(.book-full-height) & {
 			opacity: 1;
+			&.sticky {
+				opacity: 1;
+			}
 		}
 	}
 	ul.bibi-buttongroup-tiled {
@@ -1578,6 +1601,7 @@ div#bibi-slider {
 		z-index: $z-index_slider;
 		cursor: pointer;
 		transition: $slider-transition;
+		will-change: height;
 		&:after {
 			content: "";
 			display: block;
@@ -1655,7 +1679,8 @@ div#bibi-slider-bookmap-box {
 	html.appearance-horizontal & {
 		@include trbl(1px, 0, auto, 0);
 		height: calc(100% - 1px);
-		width: calc(100% - #{$scrollbar-thumb-size});
+		width: calc(100% - #{$scrollbar-thumb-size * 2});
+		//width: 100%;
 	}
 	html.appearance-horizontal.slider-opened & {
 		top: 1px + $slider-padding;
@@ -1664,7 +1689,8 @@ div#bibi-slider-bookmap-box {
 	html.appearance-vertical & {
 		@include trbl(0, auto, 0, 1px);
 		width: calc(100% - 1px);
-		height: calc(100% - #{$scrollbar-thumb-size});
+		height: calc(100% - #{$scrollbar-thumb-size * 2});
+		//height: 100%;
 	}
 	html.appearance-vertical.slider-opened & {
 		left: 1px + $slider-padding;
@@ -1965,6 +1991,7 @@ div#bibi-slider-thumb {
 		background: $slider-thumb-bar-background;
 		transition: background-color .1s linear;
 		pointer-events: none;
+		will-change: left, top;
 	}
 	html.appearance-horizontal & {
 		//top: -100vh;
@@ -2074,18 +2101,37 @@ div#bibi-arrow-forward {
 			z-index: 1;
 		}
 	}
-	html.appearance-ttb & {
+	html.appearance-vertical & {
 		// ↑↓
-		left: 0; right: 0; width: 100%; width: 100vw; height: 0;
+		left: 0; right: auto; height: 0;
 		&:before { left: 0; right: 0; }
 		&:after  { left: 0; right: 0; width: 100%; height: $arrow-bar-length; }
 	}
-	html.appearance-ltr &,
-	html.appearance-rtl & {
+	html.appearance-vertical:not(.slider-opened) & {
+		width: 100%; width: 100vw;
+	}
+	html.appearance-vertical.slider-opened & {
+		width: calc(100% - 78px); width: calc(100vw - 78px);
+	}
+	html.appearance-horizontal & {
 		// ←→
-		top: 0; bottom: 0; width: 0; height: 100%; height: 100vh;
+		bottom: auto; width: 0;
 		&:before { top: 0; bottom: 0; }
 		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
+	}
+	html.appearance-horizontal.book-full-height:not(.slider-opened) & {
+		top: 0;
+		height: 100%; height: 100vh;
+	}
+	html.appearance-horizontal.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height) & {
+		top: $top-bar-height;
+	}
+	html.appearance-horizontal:not(.book-full-height) & {
+		height: calc(100% - #{$top-bar-height}); height: calc(100vh - #{$top-bar-height});
+	}
+	html.appearance-horizontal.slider-opened & {
+		height: calc(100% - #{$top-bar-height + 78px}); height: calc(100vh - #{$top-bar-height + 78px});
 	}
 	html.busy & {
 		&:before, &:after { opacity: 0 !important; transition: none !important; }
@@ -2108,6 +2154,12 @@ div#bibi-arrow-forward {
 	&.available.glowing {
 		&:before, &:after { transition-duration: .1s; }
 		&:before { opacity: 1.00; transform: scale(1.10); }
+	}
+}
+
+html:not(.book-full-height).appearance-ttb div#bibi-arrow-back {
+	& {
+		&:before { margin-top: $top-bar-height; }
 	}
 }
 
@@ -2141,13 +2193,6 @@ html.appearance-ttb div#bibi-arrow-back {
 }
 html.appearance-ttb div#bibi-arrow-forward {
 	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $arrow-icon-size * 1.03, 0); // expand_more
-}
-
-html.appearance-ttb.notifier-shown div#bibi-arrow-back {
-	/* ↑ */ // with Notifier
-	&.available.glowing {
-		&:before { top: 8px + $top-bar-height; }
-	}
 }
 
 

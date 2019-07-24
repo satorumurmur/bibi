@@ -18,7 +18,7 @@ And you can embed it in other webpages, just like YouTube videos.
 
 * EPUB 3+ and 2 compliant. Supports both fixed-layout and reflow books of various language.
 * Made with JavaScript. Works compatibly with all major web browsers on various OS/devices.
-* Open source software released under the MIT license.
+* Open source software released under the MIT License.
 
 
 
@@ -163,7 +163,7 @@ How to Arrange Development Environment
 
 ### How to Make a Ditribution
 
-* $ `npm run distribute`
+* $ `npm run make:distribution`
     1. webpack generates production version of files.
     2. gulp generates zipped archive.
 
@@ -174,31 +174,34 @@ License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
+
 ### BiB/i ([ja](https://bibi.epub.link) / [en](https://github.com/satorumurmur/bibi))
 
 * Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
-* Licensed under [the MIT license](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
+* Licensed under [the MIT License](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
+
 
 
 ### Distribution is including these open source softwares:
 
 * Core components:
-    - [sML.js](https://www.npmjs.com/package/sml.js) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT license](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
-    - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache license version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
+    - [sML.js](https://www.npmjs.com/package/sml.js) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
+    - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache License version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
     - [Font Awesome Free](https://fontawesome.com) ... Copyright &copy; Dave Gandy (Licensed under [the SIL Open Font License (OFL) 1.1](https://fontawesome.com/license/free).)
 * Extensions:
-    - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT license or the GPLv3 license](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
-    - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT license or the GPLv3 license](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
-    - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT license](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
+    - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
+    - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
+    - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
 * Polyfills (for Internet Explorer):
-    - [classlist-polyfill](https://www.npmjs.com/package/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
-    - [text-encoding-utf-8](https://www.npmjs.com/package/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)
-    - [document.currentScript Polyfill](https://www.npmjs.com/package/current-script-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT license](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
-    - [custom-event-polyfill](https://www.npmjs.com/package/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT license](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
-    - [Native Promise Only (NPO)](https://www.npmjs.com/package/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT license](http://getify.mit-license.org/).)
-    - [Polyfill Array.prototype.includes](https://www.npmjs.com/package/polyfill-array-includes) ... Copyright &copy; Kevin Latusinski (Licensed under the MIT license.)
-    - [String.prototype.padStart](https://www.npmjs.com/package/string.padstart) ... Copyright &copy; Khaled Al-Ansari (Licensed under [the MIT license](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE).)
-    - [url-polyfill](https://www.npmjs.com/package/url-polyfill) ... Copyright &copy; Valentin Richard (Licensed under [the MIT license](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE).)
+    - [classlist-polyfill](https://github.com/yola/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
+    - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)
+    - [IntersectionObserver polyfill](https://github.com/w3c/IntersectionObserver) ... Copyright (c) W3C (Licensed under [the W3C Software and Document License](https://github.com/w3c/IntersectionObserver/blob/master/LICENSE.md).)
+    - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
+    - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
+    - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT License](http://getify.mit-license.org/).)
+    - [Polyfill Array.prototype.includes](https://github.com/latusinski/polyfill-array-includes) ... Copyright &copy; Kevin Latusinski (Licensed under [the MIT License](https://www.npmjs.com/package/polyfill-array-includes).)
+    - [String.prototype.padStart](https://github.com/KhaledElAnsari/String.prototype.padStart) ... Copyright &copy; Khaled Al-Ansari (Licensed under [the MIT License](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE).)
+    - [url-polyfill](https://github.com/lifaon74/url-polyfill) ... Copyright &copy; Valentin Richard (Licensed under [the MIT License](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE).)
 
 
 Special Thanks

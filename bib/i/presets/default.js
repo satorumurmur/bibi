@@ -59,10 +59,10 @@ Bibi.preset({
 
 "flipper-width"                : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
 
-"item-padding-left"            : 28, // Number of pixel
-"item-padding-right"           : 28, // Number of pixel
-"item-padding-top"             : 40, // Number of pixel
-"item-padding-bottom"          : 20, // Number of pixel
+"item-padding-left"            : 28, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-right"           : 28, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-top"             : 40, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-bottom"          : 20, // Number of pixel (It is used only if the book is reflowable.)
 
 "spread-gap"                   : 8, // Number of pixel
 "spread-margin"                : 0, // Number of pixel
