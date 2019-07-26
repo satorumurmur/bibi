@@ -346,7 +346,7 @@ Bibi.openBook = () => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
-    E.bind(['bibi:changing-intersection', 'bibi:scrolled'], R.updateCurrent);
+    E.bind(['bibi:changing-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
     if(S['allow-placeholders']) E.add(['bibi:changing-intersection', 'bibi:scrolled'], () => R.turnSpreads()), setTimeout(() => R.turnSpreads(), 123);
     if(S['use-cookie']) E.add('bibi:changed-intersection', () => {
         const CurrentPage = R.Current.List[0].Page;
@@ -1199,39 +1199,41 @@ R.initialize = () => {
     R.Main      = O.Body.insertBefore(sML.create('div', { id: 'bibi-main', Transformation: { Scale: 1, Translation: { X: 0, Y: 0 } } }), O.Body.firstElementChild);
     R.Sub       = O.Body.insertBefore(sML.create('div', { id: 'bibi-sub' }),  R.Main.nextSibling);
     R.Main.Book =  R.Main.appendChild(sML.create('div', { id: 'bibi-main-book' }));
-    R.Main.listenWheel = (Eve) => {
-        if(S.RVM == 'paged') return;
-        Eve.preventDefault();
-        Eve.stopPropagation();
-        R.Main.scrollLeft = R.Main.scrollLeft + Eve.deltaX;
-        R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
-    };
-    //R.Main.addEventListener('wheel', R.onWheel, { capture: true, passive: true });
-    I.observeTap(O.HTML);
-    O.HTML.addTapEventListener('tap',         R.onTap);
-    O.HTML.addEventListener(O['pointermove'], R.onPointerMove);
-    O.HTML.addEventListener(O['pointerdown'], R.onPointerDown);
-    O.HTML.addEventListener(O['pointerup'],   R.onPointerUp);
-    E.add('bibi:tapped', Eve => {
-        if(I.isPointerStealth()) return false;
-        const BibiEvent = O.getBibiEvent(Eve);
-        //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
-        switch(S.RVM) {
-            case 'horizontal': if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; else break;
-            case 'vertical':   if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; else break;
-        }
-        if(BibiEvent.Target.tagName) {
-            if(/*I.Slider.UI && */(I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
-            if(O.isAnchorContent(BibiEvent.Target)) return false;
-        }
-        switch(S.ARD) {
-            case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
-            default   : return (BibiEvent.Division.X == 'center') ? E.dispatch('bibi:tapped-center', Eve) : false;
-        }
-    });
-    E.add('bibi:tapped-center', Eve => {
-        if(I.OpenedSubPanel) E.dispatch('bibi:closes-utilities',  Eve);
-        else                 E.dispatch('bibi:toggles-utilities', Eve);
+    E.bind('bibi:readied', () => {
+        R.Main.listenWheel = (Eve) => {
+            if(S.RVM == 'paged') return;
+            Eve.preventDefault();
+            Eve.stopPropagation();
+            R.Main.scrollLeft = R.Main.scrollLeft + Eve.deltaX;
+            R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
+        };
+        //R.Main.addEventListener('wheel', R.onWheel, { capture: true, passive: true });
+        I.observeTap(O.HTML);
+        O.HTML.addTapEventListener('tap',         R.onTap);
+        O.HTML.addEventListener(O['pointermove'], R.onPointerMove);
+        O.HTML.addEventListener(O['pointerdown'], R.onPointerDown);
+        O.HTML.addEventListener(O['pointerup'],   R.onPointerUp);
+        E.add('bibi:tapped', Eve => {
+            if(I.isPointerStealth()) return false;
+            const BibiEvent = O.getBibiEvent(Eve);
+            //if(BibiEvent.Coord.Y < I.Menu.offsetHeight) return false;
+            switch(S.RVM) {
+                case 'horizontal': if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; else break;
+                case 'vertical':   if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; else break;
+            }
+            if(BibiEvent.Target.tagName) {
+                if(I.Slider.UI && (I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
+                if(O.isAnchorContent(BibiEvent.Target)) return false;
+            }
+            switch(S.ARD) {
+                case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
+                default   : return (BibiEvent.Division.X == 'center') ? E.dispatch('bibi:tapped-center', Eve) : false;
+            }
+        });
+        E.add('bibi:tapped-center', Eve => {
+            if(I.OpenedSubpanel) E.dispatch('bibi:closes-utilities',  Eve);
+            else                 E.dispatch('bibi:toggles-utilities', Eve);
+        });
     });
 };
 
@@ -1276,8 +1278,7 @@ R.resetStage = () => {
 
 R.layOutSpread = (Spread) => new Promise(resolve => {
     E.dispatch('bibi:is-going-to:reset-spread', Spread);
-    Spread.style.width = Spread.style.height = '';
-    Spread.Box.classList.remove('spreaded');
+    //Spread.style.width = Spread.style.height = '';
     Spread.Pages = [];
     R.layOutItem(Spread.Items[0]).then(Item => {
         Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
@@ -1289,7 +1290,7 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
     })
 }).then(() => {
     Spread.Spreaded = (Spread.Items[0].Spreaded || (Spread.Items[1] && Spread.Items[1].Spreaded)) ? true : false;
-    if(Spread.Spreaded) Spread.Box.classList.add('spreaded');
+    Spread.Box.classList.toggle('spreaded', Spread.Spreaded);
     const SpreadSize = { Width: 0, Height: 0 };
     if(Spread.Items.length == 1) {
         // Single Reflowable/Pre-Paginated Item
@@ -1335,10 +1336,11 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
     } else {
         Spread.Box.style.minHeight = Spread.Box.style.marginBottom = ''
     }
-    Spread.Box.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
+    SpreadSize[C.L_SIZE_B] = Math.ceil(SpreadSize[C.L_SIZE_B]);
+    SpreadSize[C.L_SIZE_L] = Math.ceil(SpreadSize[C.L_SIZE_L]);
     Spread.Box.style[C.L_SIZE_b] = '';
-    Spread.style.width  = Math.ceil(SpreadSize.Width) + 'px';
-    Spread.style.height = Math.ceil(SpreadSize.Height) + 'px';
+                                   Spread.style[C.L_SIZE_b] = SpreadSize[C.L_SIZE_B] + 'px';
+    Spread.Box.style[C.L_SIZE_l] = Spread.style[C.L_SIZE_l] = SpreadSize[C.L_SIZE_L] + 'px';
     Spread.style['border-radius'] = S['spread-border-radius'];
     Spread.style['box-shadow']    = S['spread-box-shadow'];
     E.dispatch('bibi:reset-spread', Spread);
@@ -1350,7 +1352,7 @@ R.layOutItem = (Item) => new Promise(resolve => {
     O.stamp('Reset...', Item.TimeCard);
     E.dispatch('bibi:is-going-to:reset-item', Item);
     Item.Scale = 1;
-    Item.Box.style.width = Item.Box.style.height = Item.style.width = Item.style.height = '';
+    //Item.Box.style.width = Item.Box.style.height = Item.style.width = Item.style.height = '';
     (Item.Ref['rendition:layout'] != 'pre-paginated') ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
     E.dispatch('bibi:reset-item', Item);
     O.stamp('Reset.', Item.TimeCard);
@@ -1513,10 +1515,14 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 R.SpreadsTurnedFaceUp = [];
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
-    if(!S['allow-placeholders']) return;
-    if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
-    if(!Opt.Origin   ) Opt.Origin    = (Opt.Direction > 0 ? R.Current.List.slice(-1) : R.Current.List)[0].Page.Spread;
+    if(!S['allow-placeholders']) return resolve(R.SpreadsTurnedFaceUp);
     if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3];
+    if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
+    if(!Opt.Origin) {
+             if(      R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?       R.Current.List.slice(-1) :       R.Current.List)[0].Page.Spread;
+        else if(R.IntersectiongPages.length) Opt.Origin = (Opt.Direction > 0 ? R.IntersectiongPages.slice(-1) : R.IntersectiongPages)[0     ].Spread;
+        else                                 return resolve(R.SpreadsTurnedFaceUp);
+    }
     let SpreadsToBeTurnedFaceUp = [];
     let SpreadsToBeTurnedFaceDown = [];
     let Promised = null;
@@ -1527,7 +1533,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsToBeTurnedFaceUp.push(Spread);
         if(i == 0) Promised = R.turnSpread(Spread, true);
-        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 9 * i);
+        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 99 * i);
     });
     if(!Promised) Promised = Promise.resolve();
     R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
@@ -2340,14 +2346,14 @@ I.Menu = { create: () => {
         };
     });
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-vertical div#bibi-menu'
+        'html:not(.veil-opened).view-vertical div#bibi-menu'
     ].join(', '), 'width: calc(100% - ' + (O.Scrollbars.Width) + 'px);');
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-vertical.panel-opened div#bibi-menu',
-        'html.view-vertical.subpanel-opened div#bibi-menu'
+        'html:not(.veil-opened).view-vertical.panel-opened div#bibi-menu',
+        'html:not(.veil-opened).view-vertical.subpanel-opened div#bibi-menu'
     ].join(', '), 'width: 100%; padding-right: ' + (O.Scrollbars.Width) + 'px;');
-    I.OpenedSubPanel = null;
-    I.SubPanels = [];
+    I.OpenedSubpanel = null;
+    I.Subpanels = [];
     Menu.Panel.create();
     Menu.Config.create();
     E.dispatch('bibi:created-menu');
@@ -2404,7 +2410,7 @@ I.Menu = { create: () => {
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
         if(!S['remove-bibi-website-link'])                                                                 Components.push('BibiWebsiteLink');
         if(!Components.length) return;
-        const Config = Menu.Config = sML.applyRtL(I.createSubPanel({ id: 'bibi-subpanel_config' }), Menu.Config); delete Config.create;
+        const Config = Menu.Config = sML.applyRtL(I.createSubpanel({ id: 'bibi-subpanel_config' }), Menu.Config); delete Config.create;
         const Opener = Config.bindOpener(Menu.R.addButtonGroup({ Sticky: true }).addButton({
             Type: 'toggle',
             Labels: {
@@ -2689,7 +2695,7 @@ I.FontSizeChanger = { create: () => {
                 after:  () => Button.ButtonGroup.Busy = false
             });
         };
-        I.createSubPanel({
+        I.createSubpanel({
             Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_font-size' }).addButton({
                 Type: 'toggle',
                 Labels: {
@@ -2820,11 +2826,11 @@ I.Loupe = { create: () => {
             if(Loupe.UIState != 'active') return false;
             if(S.BRL == 'reflowable') return false;
             if(Mode == 'TAP') {
-                if(!I.KeyListener || !I.KeyListener.ActiveKeys['Space']) return false;
-                if(/*I.Slider.UI && */I.Slider.UIState == 'active') return false;
+                if(!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space']) return false;
+                if(I.Slider.UIState == 'active') return false;
             } else if(Mode == 'MOVE') {
                 if(R.Main.Transformation.Scale == 1) return false;
-                if(/*I.Slider.UI && */I.Slider.UIState == 'active') return false;
+                if(I.Slider.UIState == 'active') return false;
             } else {
                 if(!R.PointerIsDowned) return false;
             }
@@ -2885,7 +2891,7 @@ I.Loupe = { create: () => {
     };
     I.isPointerStealth.addChecker(() => {
         if(Loupe.Dragging) return true;
-        if(!I.KeyListener || !I.KeyListener.ActiveKeys['Space']) return false;
+        if(!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space']) return false;
         return true;
     });
     I.setToggleAction(Loupe, {
@@ -2917,7 +2923,7 @@ I.Loupe = { create: () => {
     E.add('bibi:closed-slider', () => Loupe.unlock());
     if(S['use-loupe']) {
         if(S['loupe-mode'] == 'with-keys') {
-            const ButtonGroup = I.createSubPanel({
+            const ButtonGroup = I.createSubpanel({
                 Opener: I.Menu.R.addButtonGroup({
                     Sticky: true,
                     Tiled: true,
@@ -3429,7 +3435,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             if(I.Menu.Panel && I.Menu.Panel.UIState == 'active') return false;
             if(BibiEvent.Coord.Y < I.Menu.offsetHeight * 1.5) return false;
             if(S.RVM == 'paged') {
-                if(/*I.Slider.UI && */BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
+                if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
             } else {
                 if(S['full-breadth-layout-in-scroll']) return false;
                      if(S.RVM == 'horizontal') { if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; }
@@ -3511,6 +3517,14 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
     E.add('bibi:changed-view', () => Arrows.navigate());
     E.add('bibi:scrolled',     () => Arrows.check());
     E.dispatch('bibi:created-arrows');
+     // Optimize to Scrollbar Size
+    (_ => _('html.appearance-horizontal.book-full-height:not(.slider-opened)',       'height', O.Scrollbars.Width)
+       && _('html.appearance-horizontal:not(.book-full-height):not(.slider-opened)', 'height', O.Scrollbars.Width + (I.Menu.offsetHeight || parseFloat(getComputedStyle(I.Menu).height)))
+       && _('html.appearance-vertical:not(.slider-opened)',                          'width',  O.Scrollbars.Width)
+    )((Context, WidthOrHeight, Margin) => sML.appendCSSRule(
+        `${ Context } div#bibi-arrow-back, ${ Context } div#bibi-arrow-forward`,
+        `${ WidthOrHeight }: calc(100% - ${ Margin }px); ${ WidthOrHeight }: calc(100v${ WidthOrHeight.charAt(0) } - ${ Margin }px);`
+    ));
 }};
 
 
@@ -3811,7 +3825,7 @@ I.createButton = (Par = {}) => {
 };
 
 
-I.createSubPanel = (Par = {}) => {
+I.createSubpanel = (Par = {}) => {
     if(typeof Par.className != 'string' || !Par.className) delete Par.className;
     if(typeof Par.id        != 'string' || !Par.id       ) delete Par.id;
     const ClassNames = ['bibi-subpanel'];
@@ -3820,69 +3834,69 @@ I.createSubPanel = (Par = {}) => {
     const SectionsToAdd = Par.Sections instanceof Array ? Par.Sections : Par.Section ? [Par.Section] : [];
     delete Par.Sections;
     delete Par.Section;
-    const SubPanel = O.Body.appendChild(sML.create('div', Par));
-    SubPanel.Sections = [];
-    SubPanel.addEventListener(O['pointerdown'], Eve => Eve.stopPropagation());
-    SubPanel.addEventListener(O['pointerup'],   Eve => Eve.stopPropagation());
-    I.setToggleAction(SubPanel, {
+    const Subpanel = O.Body.appendChild(sML.create('div', Par));
+    Subpanel.Sections = [];
+    Subpanel.addEventListener(O['pointerdown'], Eve => Eve.stopPropagation());
+    Subpanel.addEventListener(O['pointerup'],   Eve => Eve.stopPropagation());
+    I.setToggleAction(Subpanel, {
         onopened: function(Opt) {
-            I.SubPanels.forEach(SP => {
-                if(SP == SubPanel) return;
-                SP.close({ ForAnotherSubPanel: true });
+            I.Subpanels.forEach(SP => {
+                if(SP == Subpanel) return;
+                SP.close({ ForAnotherSubpanel: true });
             });
-            I.OpenedSubPanel = this;
+            I.OpenedSubpanel = this;
             this.classList.add('opened');
             O.HTML.classList.add('subpanel-opened');
-            if(SubPanel.Opener) {
-                SubPanel.Bit.adjust(SubPanel.Opener);
-                I.setUIState(SubPanel.Opener, 'active');
+            if(Subpanel.Opener) {
+                Subpanel.Bit.adjust(Subpanel.Opener);
+                I.setUIState(Subpanel.Opener, 'active');
             }
-            if(Par.onopened) Par.onopened.apply(SubPanel, arguments);
+            if(Par.onopened) Par.onopened.apply(Subpanel, arguments);
         },
         onclosed: function(Opt) {
             this.classList.remove('opened');
-            if(I.OpenedSubPanel == this) setTimeout(() => I.OpenedSubPanel = null, 222);
-            if(!Opt || !Opt.ForAnotherSubPanel) {
+            if(I.OpenedSubpanel == this) setTimeout(() => I.OpenedSubpanel = null, 222);
+            if(!Opt || !Opt.ForAnotherSubpanel) {
                 O.HTML.classList.remove('subpanel-opened');
             }
-            if(SubPanel.Opener) {
-                I.setUIState(SubPanel.Opener, 'default');
+            if(Subpanel.Opener) {
+                I.setUIState(Subpanel.Opener, 'default');
             }
-            if(Par.onclosed) Par.onclosed.apply(SubPanel, arguments);
+            if(Par.onclosed) Par.onclosed.apply(Subpanel, arguments);
         }
     });
-    SubPanel.bindOpener = (Opener) => {
-        Opener.addTapEventListener('tapped', () => SubPanel.toggle());
-        SubPanel.Opener = Opener;
-        return SubPanel.Opener;
+    Subpanel.bindOpener = (Opener) => {
+        Opener.addTapEventListener('tapped', () => Subpanel.toggle());
+        Subpanel.Opener = Opener;
+        return Subpanel.Opener;
     }
-    if(SubPanel.Opener) SubPanel.bindOpener(SubPanel.Opener);
-    E.add('bibi:opened-panel',      SubPanel.close);
-    E.add('bibi:closes-utilities',  SubPanel.close);
-    SubPanel.Bit = SubPanel.appendChild(sML.create('span', { className: 'bibi-subpanel-bit',
-        SubPanel: SubPanel,
+    if(Subpanel.Opener) Subpanel.bindOpener(Subpanel.Opener);
+    E.add('bibi:opened-panel',      Subpanel.close);
+    E.add('bibi:closes-utilities',  Subpanel.close);
+    Subpanel.Bit = Subpanel.appendChild(sML.create('span', { className: 'bibi-subpanel-bit',
+        Subpanel: Subpanel,
         adjust: function(Ele) {
             if(!Ele) return;
-            const Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.SubPanel).X;
-            sML.style(this.SubPanel, { transformOrigin: Center + 'px 0' });
-            sML.style(this.SubPanel.Bit, { left: Center + 'px' });
+            const Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.Subpanel).X;
+            sML.style(this.Subpanel, { transformOrigin: Center + 'px 0' });
+            sML.style(this.Subpanel.Bit, { left: Center + 'px' });
         }
     }));
-    I.SubPanels.push(SubPanel);
-    SubPanel.addSection = function(Par = {}) {
-        const SubPanelSection = I.createSubPanelSection(Par);
-        if(!SubPanelSection) return null;
-        SubPanelSection.SubPanel = this;
-        this.appendChild(SubPanelSection)
-        this.Sections.push(SubPanelSection);
-        return SubPanelSection;
+    I.Subpanels.push(Subpanel);
+    Subpanel.addSection = function(Par = {}) {
+        const SubpanelSection = I.createSubpanelSection(Par);
+        if(!SubpanelSection) return null;
+        SubpanelSection.Subpanel = this;
+        this.appendChild(SubpanelSection)
+        this.Sections.push(SubpanelSection);
+        return SubpanelSection;
     };
-    SectionsToAdd.forEach(SectionToAdd => SubPanel.addSection(SectionToAdd));
-    return SubPanel;
+    SectionsToAdd.forEach(SectionToAdd => Subpanel.addSection(SectionToAdd));
+    return Subpanel;
 };
 
 
-I.createSubPanelSection = (Par = {}) => {
+I.createSubpanelSection = (Par = {}) => {
     if(typeof Par.className != 'string' || !Par.className) delete Par.className;
     if(typeof Par.id        != 'string' || !Par.id       ) delete Par.id;
     const ClassNames = ['bibi-subpanel-section'];
@@ -3894,23 +3908,23 @@ I.createSubPanelSection = (Par = {}) => {
     const ButtonGroupsToAdd = Par.ButtonGroups instanceof Array ? Par.ButtonGroups : Par.ButtonGroup ? [Par.ButtonGroup] : [];
     delete Par.ButtonGroups;
     delete Par.ButtonGroup;
-    const SubPanelSection = sML.create('div', Par);
-    if(SubPanelSection.Labels) { // HGroup
-        SubPanelSection.Labels = I.distillLabels(SubPanelSection.Labels);
-        SubPanelSection
+    const SubpanelSection = sML.create('div', Par);
+    if(SubpanelSection.Labels) { // HGroup
+        SubpanelSection.Labels = I.distillLabels(SubpanelSection.Labels);
+        SubpanelSection
             .appendChild(sML.create('div', { className: 'bibi-hgroup' }))
                 .appendChild(sML.create('p', { className: 'bibi-h' }))
-                    .appendChild(sML.create('span', { className: 'bibi-h-label', innerHTML: SubPanelSection.Labels['default'][O.Language] }));
+                    .appendChild(sML.create('span', { className: 'bibi-h-label', innerHTML: SubpanelSection.Labels['default'][O.Language] }));
     }
-    SubPanelSection.ButtonGroups = []; // ButtonGroups
-    SubPanelSection.addButtonGroup = function(Par = {}) {
+    SubpanelSection.ButtonGroups = []; // ButtonGroups
+    SubpanelSection.addButtonGroup = function(Par = {}) {
         const ButtonGroup = I.createButtonGroup(Par);
         this.appendChild(ButtonGroup);
         this.ButtonGroups.push(ButtonGroup);
         return ButtonGroup;
     };
-    ButtonGroupsToAdd.forEach(ButtonGroupToAdd => SubPanelSection.addButtonGroup(ButtonGroupToAdd));
-    return SubPanelSection;
+    ButtonGroupsToAdd.forEach(ButtonGroupToAdd => SubpanelSection.addButtonGroup(ButtonGroupToAdd));
+    return SubpanelSection;
 };
 
 

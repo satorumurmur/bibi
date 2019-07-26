@@ -49,8 +49,7 @@
 		box-sizing: border-box;
 		display: inline-block;
 		padding: 0;
-		border-style: none;
-		border-width: 0;
+		border: none 0;
 		text-align: center;
 		vertical-align: middle;
 		text-decoration: none;
@@ -60,12 +59,10 @@
 		position: relative;
 		border: solid 1px;
 		border-radius: 3px;
-		width: $icon-size;
-		height: $icon-size;
+		@include size($GLOBAL__Icon_Size);
 	}
 	.bibi-subpanel & {
-		width: $icon-size_in-subpanel;
-		height: $icon-size_in-subpanel;
+		@include size($GLOBAL__Subpanel-Icon_Size);
 	}
 	& *,
 	&:before {
@@ -78,50 +75,38 @@
 // - Shapes
 // --------------------------------------------------------------------------------
 
-$shape-item-width: 9px;
-$shape-item-height: 16px;
-$shape-spread-width: $shape-item-width * 2 - 1px;
-$shape-spread-height: $shape-item-height;
+$ItemShape_Width : 9px;   $SpreadShape_Width : $ItemShape_Width * 2 - 1px;
+$ItemShape_Height: 16px;  $SpreadShape_Height: $ItemShape_Height;
 
-$shape-item-width_in-subpanel: 7px;
-$shape-item-height_in-subpanel: 11px;
-$shape-spread-width_in-subpanel: $shape-item-width_in-subpanel * 2 - 1px;
-$shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
+$Subpanel-ItemShape_Width : 7px;   $Subpanel-SpreadShape_Width : $Subpanel-ItemShape_Width * 2 - 1px;
+$Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemShape_Height;
 
 .bibi-icon-view-paged,
 .bibi-icon-view-horizontal,
 .bibi-icon-view-vertical {
 	span.bibi-shape-spreads {
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
+		@include trbl(0);
 		margin: auto;
-		width: $shape-spread-width;
-		height: $shape-spread-height;
+		@include size($SpreadShape_Width, $SpreadShape_Height);
 		span.bibi-shape-spread {
 			left: 0;
 			top: 0;
-			width: 100%;
-			height: 100%;
+			@include size(100%);
 			span.bibi-shape-item {
 				top: 0;
 				border: solid 1px;
-				width: $shape-item-width;
-				height: $shape-item-height;
+				@include size($ItemShape_Width, $ItemShape_Height);
 				&:first-child { left: 0; }
-				&:last-child  { left: ($shape-item-width - 1px); }
+				&:last-child  { left: ($ItemShape_Width - 1px); }
 			}
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
-		width: $shape-spread-width_in-subpanel;
-		height: $shape-spread-height_in-subpanel;
+		@include size($Subpanel-SpreadShape_Width, $Subpanel-SpreadShape_Height);
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				width: $shape-item-width_in-subpanel;
-				height: $shape-item-height_in-subpanel;
-				&:last-child  { left: ($shape-item-width_in-subpanel - 1px); }
+				@include size($Subpanel-ItemShape_Width, $Subpanel-ItemShape_Height);
+				&:last-child  { left: ($Subpanel-ItemShape_Width - 1px); }
 			}
 		}
 	}
@@ -139,14 +124,14 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 .bibi-icon-view-horizontal {
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
-			&:first-child { left: ($shape-spread-width + 1px) * -1; }
-			&:last-child  { left: ($shape-spread-width + 1px); }
+			&:first-child { left: ($SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($SpreadShape_Width + 1px); }
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
 		span.bibi-shape-spread {
-			&:first-child { left: ($shape-spread-width_in-subpanel + 1px) * -1; }
-			&:last-child  { left: ($shape-spread-width_in-subpanel + 1px); }
+			&:first-child { left: ($Subpanel-SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($Subpanel-SpreadShape_Width + 1px); }
 		}
 	}
 }
@@ -154,62 +139,44 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 .bibi-icon-view-vertical {
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
-			&:first-child { top: ($shape-spread-height + 1px) * -1; }
-			&:last-child  { top: ($shape-spread-height + 1px); }
+			&:first-child { top: ($SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($SpreadShape_Height + 1px); }
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
 		span.bibi-shape-spread {
-			&:first-child { top: ($shape-spread-height_in-subpanel + 1px) * -1; }
-			&:last-child  { top: ($shape-spread-height_in-subpanel + 1px); }
+			&:first-child { top: ($Subpanel-SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($Subpanel-SpreadShape_Height + 1px); }
 		}
 	}
 }
 
 
-// - Bars
+// - PanelToggler (Bars)
 // --------------------------------------------------------------------------------
 
+$PanelToggler-Bar_Width: 19px;
+$PanelToggler-Bar_Height: 2px;
+$PanelToggler-Bar_Isolation: 4px;
+
 .bibi-icon-toggle-panel {
-	$bar-width: 19px;
-	$bar-height: 2px;
-	$bar-isolation: 4px;
-	$bar-block-height: $bar-height + $bar-isolation;
-	$bars-width: $bar-width;
-	$bars-height: $bar-height * 3 + $bar-isolation * 2 + 1px;
-	$bars-top: ($icon-size - $bars-height) / 2 - 0.5px;
 	>span {
 		left: 0;
 		right: 0;
 		margin: auto;
-		width: $bar-width;
-		height: $bar-height;
+		@include size($PanelToggler-Bar_Width, $PanelToggler-Bar_Height);
 		border-radius: 1px;
 	}
 	& {
-		>span.bar-1 {
-			top: $bars-top;
-		}
-		>span.bar-2 {
-			top: $bars-top + $bar-block-height;
-		}
-		>span.bar-3 {
-			top: $bars-top + $bar-block-height * 2;
-		}
+		$Bars_Top: ($GLOBAL__Icon_Size - ($PanelToggler-Bar_Height * 3 + $PanelToggler-Bar_Isolation * 2)) / 2 - 1px;
+		>span.bar-1 { top: $Bars_Top; }
+		>span.bar-2 { top: $Bars_Top + $PanelToggler-Bar_Height + $PanelToggler-Bar_Isolation; }
+		>span.bar-3 { top: $Bars_Top + $PanelToggler-Bar_Height + $PanelToggler-Bar_Isolation + $PanelToggler-Bar_Height + $PanelToggler-Bar_Isolation; }
 	}
 	.bibi-button.active & {
-		>span.bar-1 {
-			opacity: 1;
-			transform: translateY(($bar-isolation + $bar-height) *  1) rotate(135deg);
-		}
-		>span.bar-2 {
-			opacity: 0;
-			transform: rotate(-360deg);
-		}
-		>span.bar-3 {
-			opacity: 1;
-			transform: translateY(($bar-isolation + $bar-height) * -1) rotate(225deg);
-		}
+		>span.bar-1 { opacity: 1; transform: translateY(($PanelToggler-Bar_Isolation + $PanelToggler-Bar_Height) *  1) rotate( 135deg); }
+		>span.bar-2 { opacity: 0; transform: translateY(($PanelToggler-Bar_Isolation + $PanelToggler-Bar_Height) *  0) rotate(-360deg); }
+		>span.bar-3 { opacity: 1; transform: translateY(($PanelToggler-Bar_Isolation + $PanelToggler-Bar_Height) * -1) rotate( 225deg); }
 	}
 }
 
@@ -225,72 +192,38 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 	text-decoration: none;
 	&:before {
 		@include font-icon("Material Icons");
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
+		@include trbl(0);
 		margin: 0;
-		width: 100%;
-		height: 100%;
+		@include size(100%);
 		text-align: center;
 		vertical-align: middle;
-		line-height: $icon-size * 0.98;
-		.bibi-subpanel & {
-			line-height: $icon-size_in-subpanel * 0.98;
-		}
+		line-height: $GLOBAL__Icon_Size * 0.98;
 	}
+	.bibi-subpanel &:before { line-height: $GLOBAL__Subpanel-Icon_Size * 0.98; }
 }
 
 .bibi-icon-config {
-	&:before {
-		content: /*touch_app*/ "\e8b8";
-		font-size: $icon-size * 0.75;
-	}
+	&:before { content: /*touch_app*/ "\e8b8"; font-size: $GLOBAL__Icon_Size * 0.75; }
 }
 
 .bibi-icon-share {
-	&:before {
-		content: /*share*/ "\e80d";
-		font-size: $icon-size * 20/31;
-		font-weight: bold;
-		html.InternetExplorer & { font-weight: normal; }
-	}
+	&:before { content: /*share*/ "\e80d"; font-size: $GLOBAL__Icon_Size * 20/31; font-weight: bold; html.InternetExplorer & { font-weight: normal; } }
 }
 
 .bibi-icon-full-breadth-layout {
-	&:before {
-		content: /*settings_overscan*/ "\e8c4";
-		font-size: $icon-size * 0.5;
-		.bibi-subpanel & {
-			line-height: $icon-size_in-subpanel * .95238;
-		}
-	}
+	&:before { content: /*settings_overscan*/ "\e8c4"; font-size: $GLOBAL__Icon_Size * 0.5; }
+	.bibi-subpanel &:before { line-height: $GLOBAL__Subpanel-Icon_Size * .95238; }
 }
 
 .bibi-icon-toggle-fullscreen {
-	&:before {
-		.bibi-subpanel & {
-			font-size: $icon-size_in-subpanel * 0.9;
-			html.InternetExplorer & { top: -.05em; }
-		}
-	}
-	&:before {
-		content: /*fullscreen*/ "\e5d0";
-	}
-	*:fullscreen &:before {
-		content: /*fullscreen_exit*/ "\e5d1";
-	}
+	&:before { content: /*fullscreen*/ "\e5d0"; }
+	*:fullscreen &:before { content: /*fullscreen_exit*/ "\e5d1"; }
+	.bibi-subpanel &:before { font-size: $GLOBAL__Subpanel-Icon_Size * 0.9; html.InternetExplorer & { top: -.05em; } }
 }
 
 .bibi-icon-open-newwindow {
-	&:before {
-		content: /*open_in_new*/ "\e89e";
-		font-size: $icon-size * 21/31;
-		.bibi-subpanel & {
-			margin-top: -.025em;
-			font-size: $icon-size_in-subpanel * 16/21;
-		}
-	}
+	&:before { content: /*open_in_new*/ "\e89e"; font-size: $GLOBAL__Icon_Size * 21/31; }
+	.bibi-subpanel &:before { margin-top: -.025em; font-size: $GLOBAL__Subpanel-Icon_Size * 16/21; }
 }
 
 .bibi-icon-font-size {
@@ -300,41 +233,33 @@ $shape-spread-height_in-subpanel: $shape-item-height_in-subpanel;
 		position: absolute;
 		@include trbl(-100%);
 		margin: auto;
-		width: 1em;
-		height: 1em;
+		@include size(1em);
 		line-height: 1.1;
 	}
 }
 .bibi-icon-font-size-change {
-	&:before {
-		content: "format_size";
-		font-size: 24px;
-	}
+	&:before { content: "format_size"; font-size: 24px; }
 }
 .bibi-icon-font-size-exlarge,
 .bibi-icon-font-size-large,
 .bibi-icon-font-size-medium,
 .bibi-icon-font-size-small,
 .bibi-icon-font-size-exsmall {
-	&:before {
-		content: "title";
-		font-size: 13px;
-	}
+	&:before { content: "title"; font-size: 13px; }
 }
-$bibi-icon-font-size-scaling: 1.44;
-.bibi-icon-font-size-exlarge { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
-.bibi-icon-font-size-large   { &:before { transform: rotate(  0deg) scale(1 * $bibi-icon-font-size-scaling); } }
+$FontSizeIcon_ScaleStep: 1.44;
+.bibi-icon-font-size-exlarge { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+.bibi-icon-font-size-large   { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep); } }
 .bibi-icon-font-size-medium  { &:before { transform: rotate(  0deg) scale(1); } }
-.bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling); } }
-.bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+.bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+.bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
 
 .bibi-icon-loupe {
 	&:before, &:after {
 		display: block;
 		position: absolute;
 		margin: auto;
-		width: 1em;
-		height: 1em;
+		@include size(1em);
 		line-height: 1;
 	}
 	&:before {
@@ -350,49 +275,35 @@ $bibi-icon-font-size-scaling: 1.44;
 		font-size: 26px;
 		line-height: 26px;
 		text-indent: 1px;
-		//font-weight: bold;
-		.bibi-subpanel & {
-			font-size: 22px;
-			line-height: 22px;
-		}
+	}
+	.bibi-subpanel &:before {
+		font-size: 22px;
+		line-height: 22px;
 	}
 }
 .bibi-icon-loupe-menu {
-	&:before {
-		content: /*zoom_in*/ "\e8ff";
-	}
+	&:before { content: /*zoom_in*/ "\e8ff"; }
 }
 .bibi-icon-loupe-zoomin {
-	&:before {
-		content: /*zoom_in*/ "\e8ff";
-	}
+	&:before { content: /*zoom_in*/ "\e8ff"; }
 }
 .bibi-icon-loupe-zoomout {
-	&:before {
-		content: /*zoom_out*/ "\e900";
-	}
+	&:before { content: /*zoom_out*/ "\e900"; }
 }
 .bibi-icon-loupe-reset {
-	&:before {
-		content: /*search*/ "\e8b6";
-	}
+	&:before { content: /*search*/ "\e8b6"; }
 	&:after {
 		content: "=";
 		display: block;
 		position: absolute;
 		@include trbl(21%, auto, auto, 24%);
 		margin: auto;
-		width: 1em;
-		height: 1em;
+		@include size(1em);
 		font-size: 1em * (13px / 18px);
 		line-height: 1;
 	}
-	html.Windows &:after {
-		@include trbl(27%, auto, auto, 25%);
-	}
-	#bibi-subpanel_loupe &:after {
-		@include trbl(11%, auto, auto, 17%);
-	}
+	html.Windows &:after { @include trbl(27%, auto, auto, 25%); }
+	#bibi-subpanel_loupe &:after { @include trbl(11%, auto, auto, 17%); }
 }
 
 
@@ -407,128 +318,113 @@ $bibi-icon-font-size-scaling: 1.44;
 // --------------------------------------------------------------------------------
 
 // Default
-$icon-color_font-paint:    rgb(144,144,144);
-$icon-color_font-outline:  transparent;
-$icon-color_shape-paint:   white;
-$icon-color_shape-outline: $icon-color_font-paint;
-$icon-color_background:    rgba(white, 0.9);
-$icon-color_border:        rgb(236,236,236);
-
-// Default in Sub Panel
-$icon-color_font-paint_in-subpanel:    rgb(128,128,128);
-$icon-color_font-outline_in-subpanel:  transparent;
-$icon-color_shape-paint_in-subpanel:   white;
-$icon-color_shape-outline_in-subpanel: rgb(144,144,144);
-$icon-color_background_in-subpanel:    rgb(248,248,248);
-$icon-color_border_in-subpanel:        rgb(192,192,192);
+$Icon-Font_PaintColor:    rgb(144,144,144);
+$Icon-Font_OutlineColor:  transparent;
+$Icon-Shape_PaintColor:   white;
+$Icon-Shape_OutlineColor: $Icon-Font_PaintColor;
+$Icon_BackgroundColor:    rgba(white, 0.9);
+$Icon_BorderColor:        rgb(236,236,236);
 
 // Default:Hover
-$icon-color_default-hover_font-paint:    rgb(64,64,64);
-$icon-color_default-hover_font-outline:  $icon-color_font-outline;
-$icon-color_default-hover_shape-paint:   $icon-color_shape-paint;
-$icon-color_default-hover_shape-outline: $icon-color_default-hover_font-paint;
-$icon-color_default-hover_background:    $icon-color_background;
-$icon-color_default-hover_border:        rgb(192,192,192);
-
-// Default:Hover in Sub Panel
-$icon-color_default-hover_font-paint_in-subpanel:    $color-in-subpanel;
-$icon-color_default-hover_font-outline_in-subpanel:  transparent;
-$icon-color_default-hover_shape-paint_in-subpanel:   white;
-$icon-color_default-hover_shape-outline_in-subpanel: $color-in-subpanel;
-$icon-color_default-hover_background_in-subpanel:    lighten($color-in-subpanel, 45%);
-$icon-color_default-hover_border_in-subpanel:        $color-in-subpanel;
+$Icon-Font_PaintColor__Default-Hover:    rgb(64,64,64);
+$Icon-Font_OutlineColor__Default-Hover:  $Icon-Font_OutlineColor;
+$Icon-Shape_PaintColor__Default-Hover:   $Icon-Shape_PaintColor;
+$Icon-Shape_OutlineColor__Default-Hover: $Icon-Font_PaintColor__Default-Hover;
+$Icon_BackgroundColor__Default-Hover:    $Icon_BackgroundColor;
+$Icon_BorderColor__Default-Hover:        rgb(192,192,192);
 
 // Active
-$icon-color_active_font-paint:    $icon-color_background;
-$icon-color_active_font-outline:  transparent;
-$icon-color_active_shape-paint:   $icon-color_shape-paint;
-$icon-color_active_shape-outline: $icon-color_font-paint;
-$icon-color_active_background:    $icon-color_font-paint;
-$icon-color_active_border:        darken($icon-color_border, 30%);
-
-// Active in Sub Panel
-$icon-color_active_font-paint_in-subpanel:    white;
-$icon-color_active_font-outline_in-subpanel:  transparent;
-$icon-color_active_shape-paint_in-subpanel:   white;
-$icon-color_active_shape-outline_in-subpanel: $color-in-subpanel;
-$icon-color_active_background_in-subpanel:    $color-in-subpanel;
-$icon-color_active_border_in-subpanel:        $color-in-subpanel;
+$Icon-Font_PaintColor__Active:    $Icon_BackgroundColor;
+$Icon-Font_OutlineColor__Active:  transparent;
+$Icon-Shape_PaintColor__Active:   $Icon-Shape_PaintColor;
+$Icon-Shape_OutlineColor__Active: $Icon-Font_PaintColor;
+$Icon_BackgroundColor__Active:    $Icon-Font_PaintColor;
+$Icon_BorderColor__Active:        darken($Icon_BorderColor, 30%);
 
 // Active:Hover
-$icon-color_active-hover_font-paint:    $icon-color_active_font-paint;
-$icon-color_active-hover_font-outline:  transparent;
-$icon-color_active-hover_shape-paint:   $icon-color_active_shape-paint;
-$icon-color_active-hover_shape-outline: lighten($icon-color_active_shape-outline, 10%);
-$icon-color_active-hover_background:    rgb(96,96,96);
-$icon-color_active-hover_border:        lighten($icon-color_active_border, 10%);
+$Icon-Font_PaintColor__Active-Hover:    $Icon-Font_PaintColor__Active;
+$Icon-Font_OutlineColor__Active-Hover:  transparent;
+$Icon-Shape_PaintColor__Active-Hover:   $Icon-Shape_PaintColor__Active;
+$Icon-Shape_OutlineColor__Active-Hover: lighten($Icon-Shape_OutlineColor__Active, 10%);
+$Icon_BackgroundColor__Active-Hover:    rgb(96,96,96);
+$Icon_BorderColor__Active-Hover:        lighten($Icon_BorderColor__Active, 10%);
 
-// Active:Hover in Sub Panel
-$icon-color_active-hover_font-paint_in-subpanel:    white;
-$icon-color_active-hover_font-outline_in-subpanel:  transparent;
-$icon-color_active-hover_shape-paint_in-subpanel:   white;
-$icon-color_active-hover_shape-outline_in-subpanel: $color-in-subpanel;
-$icon-color_active-hover_background_in-subpanel:    lighten($color-in-subpanel, 20%);
-$icon-color_active-hover_border_in-subpanel:        $color-in-subpanel;
-/*
-$icon-color_default-hover_font-paint: $icon-color_shape-paint;
-$icon-color_default-hover_font-outline: $icon-color_font-paint;
-$icon-color_default-hover_shape-paint: $icon-color_shape-paint;
-$icon-color_default-hover_shape-outline: $icon-color_hover_font-outline;
-$icon-color_default-hover_background: rgba($icon-color_font-paint, 0.8);
-$icon-color_default-hover_border: $icon-color_font-paint;
+// [In Subpanel] Default
+$Subpanel-Icon-Font_PaintColor:    rgb(128,128,128);
+$Subpanel-Icon-Font_OutlineColor:  transparent;
+$Subpanel-Icon-Shape_PaintColor:   white;
+$Subpanel-Icon-Shape_OutlineColor: rgb(144,144,144);
+$Subpanel-Icon_BackgroundColor:    rgb(248,248,248);
+$Subpanel-Icon_BorderColor:        rgb(192,192,192);
 
-$icon-color_active_font-paint: $icon-color_shape-paint;
-$icon-color_active_font-outline: darken(pink, 5%);
-$icon-color_active_shape-paint: $icon-color_shape-paint;
-$icon-color_active_shape-outline: darken(pink, 5%);
-$icon-color_active_background: lighten(pink, 5%);
-$icon-color_active_border: darken(pink, 5%);
-*/
+// [In Subpanel] Default:Hover
+$Subpanel-Icon-Font_PaintColor__Default-Hover:    $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon-Font_OutlineColor__Default-Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Default-Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Default-Hover: $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Default-Hover:    lighten($GLOBAL__Subpanel_KeyColor, 45%);
+$Subpanel-Icon_BorderColor__Default-Hover:        $GLOBAL__Subpanel_KeyColor;
+
+// [In Subpanel] Active
+$Subpanel-Icon-Font_PaintColor__Active:    white;
+$Subpanel-Icon-Font_OutlineColor__Active:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active: $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active:    $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon_BorderColor__Active:        $GLOBAL__Subpanel_KeyColor;
+
+// [In Subpanel] Active:Hover
+$Subpanel-Icon-Font_PaintColor__Active-Hover:    white;
+$Subpanel-Icon-Font_OutlineColor__Active-Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active-Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($GLOBAL__Subpanel_KeyColor, 20%);
+$Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 
 
-// - Mix Ins
+// - MixIns
 // --------------------------------------------------------------------------------
 
-@mixin outline-color($tb, $color) {
-	#{$tb}-shadow:
-		-1px -1px 0px $color,
-		 0px -1px 0px $color,
-		 1px -1px 0px $color,
-		 1px  0px 0px $color,
-		 1px  1px 0px $color,
-		 0px  1px 0px $color,
-		-1px  1px 0px $color,
-		-1px  0px 0px $color,
-		 0px  0px 1px $color;
+@mixin outline-color($TB, $Color) {
+	#{$TB}-shadow:
+		-1px -1px 0px $Color,
+		 0px -1px 0px $Color,
+		 1px -1px 0px $Color,
+		 1px  0px 0px $Color,
+		 1px  1px 0px $Color,
+		 0px  1px 0px $Color,
+		-1px  1px 0px $Color,
+		-1px  0px 0px $Color,
+		 0px  0px 1px $Color;
 }
 
 @mixin colour-icons(
-	$color_font-paint,
-	$color_font-outline,
-	$color_shape-paint,
-	$color_shape-outline,
-	$color_background,
-	$color_border
+	$Font-PaintColor,
+	$Font-OutlineColor,
+	$Shape-PaintColor,
+	$Shape-OutlineColor,
+	$BackgroundColor,
+	$BorderColor
 ) {
-	color: $color_border;
-	border-color: $color_border;
-	background-color: $color_background;
+	color: $BorderColor;
+	border-color: $BorderColor;
+	background-color: $BackgroundColor;
 	&:before, &:after {
-		color: $color_font-paint;
-		@include outline-color("text", $color_font-outline);
+		color: $Font-PaintColor;
+		@include outline-color("text", $Font-OutlineColor);
 	}
 	span.bibi-shape-spreads {
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				border-color: $color_shape-outline;
-				background-color: $color_shape-paint;
+				border-color: $Shape-OutlineColor;
+				background-color: $Shape-PaintColor;
 			}
 		}
 	}
 	&.bibi-icon-toggle-panel {
 		>span {
-			background-color: $color_font-paint;
-			@include outline-color("box", $color_font-outline);
+			background-color: $Font-PaintColor;
+			@include outline-color("box", $Font-OutlineColor);
 		}
 	}
 }
@@ -539,21 +435,21 @@ $icon-color_active_border: darken(pink, 5%);
 
 .bibi-icon {
 	@include colour-icons(
-		$icon-color_font-paint,
-		$icon-color_font-outline,
-		$icon-color_shape-paint,
-		$icon-color_shape-outline,
-		$icon-color_background,
-		$icon-color_border
+		$Icon-Font_PaintColor,
+		$Icon-Font_OutlineColor,
+		$Icon-Shape_PaintColor,
+		$Icon-Shape_OutlineColor,
+		$Icon_BackgroundColor,
+		$Icon_BorderColor
 	);
 	.bibi-subpanel & {
 		@include colour-icons(
-			$icon-color_font-paint_in-subpanel,
-			$icon-color_font-outline_in-subpanel,
-			$icon-color_shape-paint_in-subpanel,
-			$icon-color_shape-outline_in-subpanel,
-			$icon-color_background_in-subpanel,
-			$icon-color_border_in-subpanel
+			$Subpanel-Icon-Font_PaintColor,
+			$Subpanel-Icon-Font_OutlineColor,
+			$Subpanel-Icon-Shape_PaintColor,
+			$Subpanel-Icon-Shape_OutlineColor,
+			$Subpanel-Icon_BackgroundColor,
+			$Subpanel-Icon_BorderColor
 		);
 	}
 	&, &:before, &:after, * {
@@ -575,21 +471,21 @@ $icon-color_active_border: darken(pink, 5%);
 .bibi-button.default.hover .bibi-icon,
 .bibi-button.default:hover .bibi-icon {
 	@include colour-icons(
-		$icon-color_default-hover_font-paint,
-		$icon-color_default-hover_font-outline,
-		$icon-color_default-hover_shape-paint,
-		$icon-color_default-hover_shape-outline,
-		$icon-color_default-hover_background,
-		$icon-color_default-hover_border
+		$Icon-Font_PaintColor__Default-Hover,
+		$Icon-Font_OutlineColor__Default-Hover,
+		$Icon-Shape_PaintColor__Default-Hover,
+		$Icon-Shape_OutlineColor__Default-Hover,
+		$Icon_BackgroundColor__Default-Hover,
+		$Icon_BorderColor__Default-Hover
 	);
 	.bibi-subpanel & {
 		@include colour-icons(
-			$icon-color_default-hover_font-paint_in-subpanel,
-			$icon-color_default-hover_font-outline_in-subpanel,
-			$icon-color_default-hover_shape-paint_in-subpanel,
-			$icon-color_default-hover_shape-outline_in-subpanel,
-			$icon-color_default-hover_background_in-subpanel,
-			$icon-color_default-hover_border_in-subpanel
+			$Subpanel-Icon-Font_PaintColor__Default-Hover,
+			$Subpanel-Icon-Font_OutlineColor__Default-Hover,
+			$Subpanel-Icon-Shape_PaintColor__Default-Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Default-Hover,
+			$Subpanel-Icon_BackgroundColor__Default-Hover,
+			$Subpanel-Icon_BorderColor__Default-Hover
 		);
 		transition: inherit;
 	}
@@ -607,32 +503,32 @@ $icon-color_active_border: darken(pink, 5%);
 .bibi-button.active {
 	.bibi-icon {
 		@include colour-icons(
-			$icon-color_active_font-paint,
-			$icon-color_active_font-outline,
-			$icon-color_active_shape-paint,
-			$icon-color_active_shape-outline,
-			$icon-color_active_background,
-			$icon-color_active_border
+			$Icon-Font_PaintColor__Active,
+			$Icon-Font_OutlineColor__Active,
+			$Icon-Shape_PaintColor__Active,
+			$Icon-Shape_OutlineColor__Active,
+			$Icon_BackgroundColor__Active,
+			$Icon_BorderColor__Active
 		);
 		&:before, &:after {
 			transform: rotate(360deg);
 		}
 		.bibi-subpanel & {
 			@include colour-icons(
-				$icon-color_active_font-paint_in-subpanel,
-				$icon-color_active_font-outline_in-subpanel,
-				$icon-color_active_shape-paint_in-subpanel,
-				$icon-color_active_shape-outline_in-subpanel,
-				$icon-color_active_background_in-subpanel,
-				$icon-color_active_border_in-subpanel
+				$Subpanel-Icon-Font_PaintColor__Active,
+				$Subpanel-Icon-Font_OutlineColor__Active,
+				$Subpanel-Icon-Shape_PaintColor__Active,
+				$Subpanel-Icon-Shape_OutlineColor__Active,
+				$Subpanel-Icon_BackgroundColor__Active,
+				$Subpanel-Icon_BorderColor__Active
 			);
 		}
 	}
-	.bibi-icon-font-size-exlarge { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling * $bibi-icon-font-size-scaling); } }
-	.bibi-icon-font-size-large   { &:before { transform: rotate(360deg) scale(1 * $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-exlarge { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-font-size-large   { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep); } }
 	.bibi-icon-font-size-medium  { &:before { transform: rotate(360deg) scale(1); } }
-	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling); } }
-	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $bibi-icon-font-size-scaling / $bibi-icon-font-size-scaling); } }
+	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
 	.bibi-icon-loupe-zoomin {
 		&:before {
 			html.loupe-with-keys & {
@@ -664,21 +560,21 @@ $icon-color_active_border: darken(pink, 5%);
 .bibi-button-toggle.active.hover .bibi-icon,
 .bibi-button-toggle.active:hover .bibi-icon {
 	@include colour-icons(
-		$icon-color_active-hover_font-paint,
-		$icon-color_active-hover_font-outline,
-		$icon-color_active-hover_shape-paint,
-		$icon-color_active-hover_shape-outline,
-		$icon-color_active-hover_background,
-		$icon-color_active-hover_border
+		$Icon-Font_PaintColor__Active-Hover,
+		$Icon-Font_OutlineColor__Active-Hover,
+		$Icon-Shape_PaintColor__Active-Hover,
+		$Icon-Shape_OutlineColor__Active-Hover,
+		$Icon_BackgroundColor__Active-Hover,
+		$Icon_BorderColor__Active-Hover
 	);
 	.bibi-subpanel & {
 		@include colour-icons(
-			$icon-color_active-hover_font-paint_in-subpanel,
-			$icon-color_active-hover_font-outline_in-subpanel,
-			$icon-color_active-hover_shape-paint_in-subpanel,
-			$icon-color_active-hover_shape-outline_in-subpanel,
-			$icon-color_active-hover_background_in-subpanel,
-			$icon-color_active-hover_border_in-subpanel
+			$Subpanel-Icon-Font_PaintColor__Active-Hover,
+			$Subpanel-Icon-Font_OutlineColor__Active-Hover,
+			$Subpanel-Icon-Shape_PaintColor__Active-Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Active-Hover,
+			$Subpanel-Icon_BackgroundColor__Active-Hover,
+			$Subpanel-Icon_BorderColor__Active-Hover
 		);
 	}
 	cursor: pointer;
@@ -705,33 +601,33 @@ $icon-color_active_border: darken(pink, 5%);
 // + SNS Icons
 // --------------------------------------------------------------------------------
 
-@mixin SNS-icon($content, $color) {
+@mixin sns-icon($Content, $Color) {
 	margin-top: .05em;
 	margin-right: -.1em;
 	border: none 0;
 	border-radius: 0;
 	background: transparent !important;
-	font-size: $icon-size;
-	line-height: $icon-size * .96;
+	font-size: $GLOBAL__Icon_Size;
+	line-height: $GLOBAL__Icon_Size * .96;
 	.bibi-subpanel & {
-		font-size: $icon-size_in-subpanel;
-		line-height: $icon-size_in-subpanel * .96;
+		font-size: $GLOBAL__Subpanel-Icon_Size;
+		line-height: $GLOBAL__Subpanel-Icon_Size * .96;
 	}
 	&:before, &:after {
 		display: inline-block;
-		color: $color !important;
+		color: $Color !important;
 		@include trbl(0); margin: auto;
 		box-shadow: none !important;
 	}
 	&:before {
 		@include font-icon("Font Awesome\ 5 Brands");
-		content: $content;
+		content: $Content;
 	}
 }
 
-.bibi-icon-Twitter    { @include SNS-icon("\f081", rgb( 29,161,242)); }
-.bibi-icon-Facebook   { @include SNS-icon("\f082", rgb( 58, 89,153)); }
-.bibi-icon-GooglePlus { @include SNS-icon("\f0d4", rgb(219, 68, 55)); }
+.bibi-icon-Twitter    { @include sns-icon("\f081", rgb( 29,161,242)); }
+.bibi-icon-Facebook   { @include sns-icon("\f082", rgb( 58, 89,153)); }
+.bibi-icon-GooglePlus { @include sns-icon("\f0d4", rgb(219, 68, 55)); }
 
 .bibi-icon-colorless  { &:before { color: inherit; } }
 
@@ -742,11 +638,11 @@ $icon-color_active_border: darken(pink, 5%);
 // + Book Icon
 // --------------------------------------------------------------------------------
 
-@mixin book-icon($icon-size, $outer-color, $inner-color) {
+@mixin book-icon($BookIcon_Size, $BookIcon_OuterColor, $BookIcon_InnerColor) {
 	box-sizing: border-box;
 	display: block;
 	position: relative;
-	@include size($icon-size);
+	@include size($BookIcon_Size);
 	&:before,
 	&:after,
 	span,
@@ -757,53 +653,47 @@ $icon-color_active_border: darken(pink, 5%);
 		display: block;
 		position: absolute;
 	}
-	$line-width: $icon-size * 8/128;
-	$book-width: $icon-size - $line-width * 2.5;
-	$book-height: $icon-size;
-	$cover-width: $book-width - $line-width * 2;
-	$cover-height: $book-height - $line-width * 4;
-	$page-breadth: $book-height - $line-width - $cover-height;
-	$book-breadth: $page-breadth + $line-width * 2;
-	$left: ($icon-size - $book-width) * 0.5 - $line-width * 0.5;
-	$top: 0;
+	$BookIcon-Line_Width: $BookIcon_Size * 8/128;
+	$BookIcon-Book_Width: $BookIcon_Size - $BookIcon-Line_Width * 2.5;
+	$BookIcon-Book_Height: $BookIcon_Size;
+	$BookIcon-Cover_Width: $BookIcon-Book_Width - $BookIcon-Line_Width * 2;
+	$BookIcon-Cover_Height: $BookIcon-Book_Height - $BookIcon-Line_Width * 4;
+	$BookIcon-Page_Breadth: $BookIcon-Book_Height - $BookIcon-Line_Width - $BookIcon-Cover_Height;
+	$BookIcon-Book_Breadth: $BookIcon-Page_Breadth + $BookIcon-Line_Width * 2;
+	$BookIcon_OffsetLeft: ($BookIcon_Size - $BookIcon-Book_Width) * 0.5 - $BookIcon-Line_Width * 0.5;
+	$BookIcon_OffsetTop: 0;
 	span {
 		// Back Cover
 		z-index: 10;
-		left: $left;
-		top: $top;
-		border-radius: ($book-breadth * 0.5) $line-width $line-width 0;
-		width: $cover-width + $line-width * 2;
-		height: $icon-size - $line-width * 3;
+		left: $BookIcon_OffsetLeft;
+		top: $BookIcon_OffsetTop;
+		border-radius: ($BookIcon-Book_Breadth * 0.5) $BookIcon-Line_Width $BookIcon-Line_Width 0;
+		@include size($BookIcon-Cover_Width + $BookIcon-Line_Width * 2, $BookIcon_Size - $BookIcon-Line_Width * 3);
 		&:before {
 			// Pages
 			z-index: 100;
-			left: ($book-breadth * 0.5);
-			top: $line-width;
-			border-radius: 0 2px $line-width * 3.5 0;
-			width: $cover-width - ($line-width + $page-breadth * 0.5) + $line-width;
-			height: $icon-size - $line-width;
+			left: ($BookIcon-Book_Breadth * 0.5);
+			top: $BookIcon-Line_Width;
+			border-radius: 0 2px $BookIcon-Line_Width * 3.5 0;
+			@include size($BookIcon-Cover_Width - ($BookIcon-Line_Width + $BookIcon-Page_Breadth * 0.5) + $BookIcon-Line_Width, $BookIcon_Size - $BookIcon-Line_Width);
 		}
 		&:after {
 			// Top of Spine
 			z-index: 1000;
-			left: $line-width;
-			top: $line-width;
-			border-radius: ($page-breadth * 0.5) 0 0 ($page-breadth * 0.5);
-			width: $page-breadth;// * 0.5;
-			height: $page-breadth;
+			left: $BookIcon-Line_Width;
+			top: $BookIcon-Line_Width;
+			border-radius: ($BookIcon-Page_Breadth * 0.5) 0 0 ($BookIcon-Page_Breadth * 0.5);
+			@include size($BookIcon-Page_Breadth/* * 0.5*/, $BookIcon-Page_Breadth);
 		}
 	}
 	&:after {
 		// Front Cover
 		z-index: 10000;
-		left: $left;
-		top: $top + ($icon-size - $cover-height);
-		border-radius: 0 $line-width $line-width ($book-breadth * 0.5);
-		width: $cover-width;
-		height: $cover-height;
+		left: $BookIcon_OffsetLeft;
+		top: $BookIcon_OffsetTop + ($BookIcon_Size - $BookIcon-Cover_Height);
+		border-radius: 0 $BookIcon-Line_Width $BookIcon-Line_Width ($BookIcon-Book_Breadth * 0.5);
+		@include size($BookIcon-Cover_Width, $BookIcon-Cover_Height);
 	}
-	span, &:after { background: $outer-color; }
-	span:before, span:after { background: $inner-color; }
+	span, &:after { background: $BookIcon_OuterColor; }
+	span:before, span:after { background: $BookIcon_InnerColor; }
 }
-
-
