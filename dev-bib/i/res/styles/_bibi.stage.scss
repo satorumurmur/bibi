@@ -10,15 +10,14 @@ html {
 	overflow: hidden; &.welcome { overflow: scroll !important; }
 	position: absolute; // for InAppBrowsers
 	@include trbl(0,0,auto); // for InAppBrowsers
-	width: 100%;
-	height: 100%;
+	@include size(100%);
 	font-family: sans-serif;
 	&.macOS   { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
 	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
 	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
-	background: $html-background;//$html-background;
+	background: $GLOBAL__HTML_Background;
 	/*
 	&[data-bibi-cursor="left"]   { cursor: w-resize; }
 	&[data-bibi-cursor="right"]  { cursor: e-resize; }
@@ -41,43 +40,40 @@ body {
 	position: absolute;
 	@include trbl(0,0,auto);
 	overflow: hidden;
-	width: 100%;
-	height: 100%;
+	@include size(100%);
 	//max-height: 150vw;
 	background: transparent no-repeat center center;
 	transition: opacity .25s ease;
 }
 
-html.WebKit, html.Blink {
-	::-webkit-scrollbar { // scrollbar
-		height: $scrollbar-track-size;
-		width: $scrollbar-track-size;
+html.WebKit, html.Chromium {
+	::-webkit-scrollbar {
+		@include size($GLOBAL__Scrollbar-Track_Size);
 	}
-	::-webkit-scrollbar-track { // scrollbar track
-		background: $scrollbar-track-background-color;
+	::-webkit-scrollbar-track {
+		background: $GLOBAL__Scrollbar-Track_BackgroundColor;
 	}
-	::-webkit-scrollbar-thumb { // scrollbar thumb
-		border-radius: $scrollbar-track-size * 0.5;
-		border: solid (($scrollbar-track-size - $scrollbar-thumb-size) * 0.5) $scrollbar-track-background-color;
-		background: $scrollbar-thumb-background-color;
+	::-webkit-scrollbar-thumb {
+		border-radius: $GLOBAL__Scrollbar-Track_Size * 0.5;
+		border: solid (($GLOBAL__Scrollbar-Track_Size - $GLOBAL__Scrollbar-Thumb_Size) * 0.5) $GLOBAL__Scrollbar-Track_BackgroundColor;
+		background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
 		&:hover {
-			background: $scrollbar-thumb-background-color_hover;
+			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover;
 		}
 		&:active {
-			background: $scrollbar-thumb-background-color_active;
+			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active;
 		}
 	}
 	&.touch,
 	&.zoomed-in,
 	&.slider-opened {
-		::-webkit-scrollbar { // scrollbar
-			height: 0;
-			width: 0;
+		::-webkit-scrollbar {
+			@include size(0);
 		}
-		::-webkit-scrollbar-track { // scrollbar track
+		::-webkit-scrollbar-track {
 			background: transparent;
 		}
-		::-webkit-scrollbar-thumb { // scrollbar thumb
+		::-webkit-scrollbar-thumb {
 			border-color: transparent;
 			background: transparent;
 			&:hover {
@@ -89,13 +85,13 @@ html.WebKit, html.Blink {
 		}
 	}
 	&.view-horizontal, &.view-vertical {
-		body:after { // scrollbar border
+		body:after { // Scrollbar Border
 			content: "";
 			display: block;
 			position: absolute;
-			z-index: $z-index_scrollbar;
+			z-index: $GLOBAL__Scrollbar_ZIndex;
 			margin: auto;
-			background: $scrollbar-track-border-color;
+			background: $GLOBAL__Scrollbar-Track_BorderColor;
 			transition: opacity .1s linear;
 			opacity: 1;
 		}
@@ -103,28 +99,24 @@ html.WebKit, html.Blink {
 	&.busy,
 	&.laying-out,
 	&.shade-opened {
-		body:after { // scrollbar border
+		body:after { // Scrollbar Border
 			opacity: 0;
 		}
 	}
 	&.view-horizontal {
-		body:after { // scrollbar border
-			left: 0; right: 0; top: auto;
-			bottom: $scrollbar-track-size - 1px;
-			width: 100%;
-			height: 1px;
+		body:after { // Scrollbar Border
+			@include trbl(auto, 0, $GLOBAL__Scrollbar-Track_Size - 1px, 0);
+			@include size(100%, 1px);
 		}
 	}
 	&.view-vertical {
-		body:after { // scrollbar border
-			top: 0; bottom: 0; left: auto;
-			right: $scrollbar-track-size - 1px;
-			width: 1px;
-			height: 100%;
+		body:after { // Scrollbar Border
+			@include trbl(0, $GLOBAL__Scrollbar-Track_Size - 1px, 0, auto);
+			@include size(1px, 100%);
 		}
 	}
 	&.touch {
-		body:after { // scrollbar border
+		body:after { // Scrollbar Border
 			display: none !important;
 		}
 	}
@@ -136,8 +128,7 @@ html.WebKit, html.Blink {
 
 div#bibi-info {
 	overflow: hidden;
-	width: 0;
-	height: 0;
+	@include size(0);
 }
 
 
@@ -161,11 +152,11 @@ div#bibi-main {
 		//padding: 35px 0;
 		//transition: .2s ease-out;
 		position: absolute;
-		z-index: $z-index_main;
+		z-index: $GLOBAL__Main_ZIndex;
 		//@include trbl(-100vh, -100vw);
 		//margin: auto;
 		width: 100%;
-		background: $main-background;
+		background: $GLOBAL__Main_Background;
 		transition:
 			padding .1s ease,
 			transform .1s ease,
@@ -194,8 +185,8 @@ div#bibi-main {
 		margin: auto;
 	}
 	html.appearance-horizontal:not(.book-full-height) & {
-		top: $top-bar-height;
-		height: calc(100% - #{$top-bar-height});
+		top: $GLOBAL__TopBar_Height;
+		height: calc(100% - #{$GLOBAL__TopBar_Height});
 	}
 	html.appearance-vertical & {
 		@include trbl(-100%, auto, -100%, 0);
@@ -204,8 +195,8 @@ div#bibi-main {
 		margin: auto;
 	}
 	html.appearance-vertical:not(.book-full-height) & {
-		padding-top: $top-bar-height;
-		height: calc(100% - #{$top-bar-height});
+		padding-top: $GLOBAL__TopBar_Height;
+		height: calc(100% - #{$GLOBAL__TopBar_Height});
 	}
 	html.laying-out & {
 		opacity: 0;
@@ -244,7 +235,7 @@ div#bibi-main {
 		justify-content: space-between;
 		//align-items: center;
 		position: relative;
-		z-index: $z-index_main-book;
+		z-index: $GLOBAL__Main-Book_ZIndex;
 		@include size(100%);
 		transition: 0.5s ease-in-out;
 		transition-property: transform;
@@ -260,7 +251,7 @@ div#bibi-main {
 			html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
 			html.spread-vertical & { width: 100%; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // [!] To Be Overwritten in Script (if Scrollbars have height)
-			//html.book-pre-paginated.view-paged &.spreaded:not(.current) { opacity: 0.5; }
+			//html.book-pre-paginated.view-paged &.spreaded:not(.current) { visibility: hidden; }
 			//html.book-pre-paginated.view-paged &:not(.spreaded):not(.current) { visibility: hidden; }
 		}
 			div.spread {
@@ -272,12 +263,13 @@ div#bibi-main {
 				margin: auto;
 				display: flex;
 				flex-wrap: nowrap;
-				justify-content: center;
+				justify-content: flex-start;
 				html.page-ltr &                                    { flex-direction: row; }
 				html.page-rtl &                                    { flex-direction: row-reverse; }
 				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
-				div.spread-box.single-item-spread-before & { justify-content: flex-start; }
+				//div.spread-box.single-item-spread-before & { justify-content: flex-start; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
+				div.spread-box.single-item-spread-center & { justify-content: center; }
 				align-items: center;
 				div.spread-box.reflowable & { background: white; }
 			}
@@ -358,31 +350,3 @@ div#bibi-main {
 					}
 
 div#bibi-sub {}
-
-
-// ================================================================================
-// + Factory / Dev.
-// --------------------------------------------------------------------------------
-
-div#__bs_notify__ {
-	box-sizing: border-box !important;
-	display: table-cell !important;
-	position: fixed !important;
-	@include trbl(0 !important);
-	margin: auto !important;
-	border-radius: 1.5em !important;
-	padding: 0 !important;
-	width: 16em !important;
-	height: 3em !important;
-	line-height: 3em !important;
-	font-size: 14px !important;
-	font-weight: bold !important;
-	text-indent: -.25em !important;
-	text-shadow: 0 0 2px black !important;
-	background: rgba(black, 0.5) !important;
-	//transform-origin: 0 100% !important;
-	//transform: translateY(-2em) rotate(90deg) !important;
-}
-
-
-

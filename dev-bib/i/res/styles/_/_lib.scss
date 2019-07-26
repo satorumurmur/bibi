@@ -13,119 +13,105 @@
 // - Colors
 // --------------------------------------------------------------------------------
 
-$html-background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
-$main-background: transparent;//$html-background;//linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//linear-gradient(to top, rgb(144,144,144), rgb(192,192,192));//rgb(64,64,64);
-$veil-background: linear-gradient(to bottom, rgb(96,96,96), rgb(192,192,192));//rgb(216,216,216);
+$GLOBAL__HTML_Background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+$GLOBAL__Main_Background: transparent;//$GLOBAL__HTML_Background;//linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//linear-gradient(to top, rgb(144,144,144), rgb(192,192,192));//rgb(64,64,64);
+$GLOBAL__Veil_Background: linear-gradient(to bottom, rgb(96,96,96), rgb(192,192,192));//rgb(216,216,216);
 
-$color_blue-hilight: saturate(steelblue, 20%);
-$color_red-hilight: rgb(255,96,81);
+$GLOBAL__Subpanel_KeyColor: saturate(steelblue, 20%);
 
-$color-in-subpanel: $color_blue-hilight;
+$GLOBAL__Scrollbar-Track_BackgroundColor: rgb(255,255,255);
+$GLOBAL__Scrollbar-Track_BorderColor: rgb(232,232,232);
 
-$scrollbar-track-background-color: rgb(255,255,255);
-$scrollbar-track-border-color: rgb(232,232,232);
-
-$scrollbar-thumb-background-color: rgb(160,160,160);//rgb(192,192,192);
-$scrollbar-thumb-background-color_hover: rgb(128,128,128);
-$scrollbar-thumb-background-color_active: rgb(160,160,160);
-$scrollbar-thumb-border-color: transparent;//rgb(32,32,32);
-
-$nombre-box-background-color: rgba(240,240,240,0.9);
-$nombre-box-background-color: rgb(240,240,240);
-
-$nombre-color: rgb(64,64,64);
-$nombre-current-color: darken($nombre-color, 25%);
-$nombre-percent-color: lighten($nombre-color, 25%);
+$GLOBAL__Scrollbar-Thumb_BackgroundColor: rgb(160,160,160);//rgb(192,192,192);
+$GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover: rgb(128,128,128);
+$GLOBAL__Scrollbar-Thumb_BackgroundColor__Active: rgb(160,160,160);
+$GLOBAL__Scrollbar-Thumb_BorderColor: transparent;//rgb(32,32,32);
 
 
 // - Sizes
 // --------------------------------------------------------------------------------
 
-$scrollbar-track-size: 16px;
-$scrollbar-thumb-size: 8px;
+$GLOBAL__Scrollbar-Track_Size: 16px;
+$GLOBAL__Scrollbar-Thumb_Size: 8px;
 
-$icon-size: 31px;
-$icon-size_in-subpanel: 21px;
+$GLOBAL__Icon_Size: 31px;
+$GLOBAL__Subpanel-Icon_Size: 21px;
 
-$button-group-margin: 4px;
+$GLOBAL__ButtonGroup_Margin: 4px;
 
-$top-bar-height: $icon-size + $button-group-margin * 2;
-$bottom-bar-height: $top-bar-height;
+$GLOBAL__TopBar_Height: $GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2;
+$GLOBAL__BottomBar_Height: $GLOBAL__TopBar_Height;
 
-$slider-size: $bottom-bar-height * 2;
-
-$nombre-box-width: 120px;
-$nombre-box-height: 20px;
+$GLOBAL__Slider_Size: $GLOBAL__BottomBar_Height * 2;
 
 
 // - Z-Indexes
 // --------------------------------------------------------------------------------
 
-$z-index_main: 1;
-	$z-index_main-book: 1;
-	$z-index_main-touchpanel: 10;
+$GLOBAL__Main_ZIndex: 1;
+	$GLOBAL__Main-Book_ZIndex: 1;
 
-$z-index_scrollbar: $z-index_main + 1;
+$GLOBAL__Scrollbar_ZIndex: $GLOBAL__Main_ZIndex + 1;
 
-$z-index_sub: 10;
+$GLOBAL__Sub_ZIndex: 10;
 
-//$z-index_shade: $z-index_sub + 1;
+//$GLOBAL__Shade_ZIndex: $GLOBAL__Sub_ZIndex + 1;
 
-$z-index_veil: 100;
-	$z-index_veil-bottombar: 1;
-	$z-index_veil-cover: 10;
-	$z-index_veil-play: 10;
-	$z-index_veil-byebye: 10;
+$GLOBAL__Slider_ZIndex: 100;
+$GLOBAL__Nombre_ZIndex: $GLOBAL__Slider_ZIndex + 1;
 
-$z-index_catcher: $z-index_veil + 1;
+$GLOBAL__Veil_ZIndex: 1000;
+	$GLOBAL__Veil-BottomBar_ZIndex: 1;
+	$GLOBAL__Veil-Cover_ZIndex: 10;
+	$GLOBAL__Veil-Play_ZIndex: 100;
+	$GLOBAL__Veil-ByeBye_ZIndex: 1000;
 
-$z-index_slider: 1000;
-$z-index_nombre: $z-index_slider + 1;
+$GLOBAL__Catcher_ZIndex: $GLOBAL__Veil_ZIndex + 1;
 
-$z-index_panel: 10000;
-	$z-index_panel-bookinfo: 1;
-	$z-index_panel-bottombar: $z-index_panel-bookinfo + 1;
-	$z-index_panel-topbar: 1000;
+$GLOBAL__Panel_ZIndex: 10000;
+	$GLOBAL__Panel-BookInfo_ZIndex: 1;
+	$GLOBAL__Panel-BottomBar_ZIndex: $GLOBAL__Panel-BookInfo_ZIndex + 1;
+	$GLOBAL__Panel-TopBar_ZIndex: 1000;
 
-$z-index-help: $z-index_panel + 1;
-$z-index-poweredby: $z-index_panel + 1;
-$z-index_arrow: $z-index_panel + 1;
+$GLOBAL__Help_ZIndex: $GLOBAL__Panel_ZIndex + 1;
+$GLOBAL__PoweredBy_ZIndex: $GLOBAL__Panel_ZIndex + 1;
+$GLOBAL__Arrow_ZIndex: $GLOBAL__Panel_ZIndex + 1;
 
-$z-index_menu: 100000;
-$z-index_subpanel: $z-index_menu + 1;
+$GLOBAL__Menu_ZIndex: 100000;
+$GLOBAL__Subpanel_ZIndex: $GLOBAL__Menu_ZIndex + 1;
 
-$z-index_notifier-board: 99999999999;
-$z-index_spinner: $z-index_notifier-board - 1;
+$GLOBAL__Notifier_ZIndex: 99999999999;
+$GLOBAL__Spinner_ZIndex: $GLOBAL__Notifier_ZIndex - 1;
 
 
 
 
 // ================================================================================
-// + Mix-Ins
+// + MixIns
 // --------------------------------------------------------------------------------
 
-@mixin trbl($t: auto, $r: $t, $b: $t, $l: $r) { top: $t; right: $r; bottom: $b; left: $l; }
-@mixin tb($t: auto, $b: $t) { top: $t; bottom: $b; }
-@mixin lr($l: auto, $r: $l) { left: $l; right: $r; }
+@mixin trbl($T: auto, $R: $T, $B: $T, $L: $R) { top: $T; right: $R; bottom: $B; left: $L; }
+@mixin tb($T: auto, $B: $T) { top: $T; bottom: $B; }
+@mixin lr($L: auto, $R: $L) { left: $L; right: $R; }
 
-@mixin margin-v($t: 0, $b: $t) { margin-top: $t; margin-bottom: $b; }
-@mixin margin-h($l: 0, $r: $l) { margin-left: $l; margin-right: $r; }
+@mixin margin-v($T: 0, $B: $T) { margin-top: $T; margin-bottom: $B; }
+@mixin margin-h($L: 0, $R: $L) { margin-left: $L; margin-right: $R; }
 
-@mixin padding-v($t, $b: $t) { padding-top: $t; padding-bottom: $b; }
-@mixin padding-h($l, $r: $l) { padding-left: $l; padding-right: $r; }
+@mixin padding-v($T, $B: $T) { padding-top: $T; padding-bottom: $B; }
+@mixin padding-h($L, $R: $L) { padding-left: $L; padding-right: $R; }
 
-@mixin size($w, $h: $w) { width: $w; height: $h; }
-@mixin max-size($w, $h: $w) { max-width: $w; max-height: $h; }
-@mixin min-size($w, $h: $w) { min-width: $w; min-height: $h; }
+@mixin size($W, $H: $W) { width: $W; height: $H; }
+@mixin max-size($W, $H: $W) { max-width: $W; max-height: $H; }
+@mixin min-size($W, $H: $W) { min-width: $W; min-height: $H; }
 
-@mixin wh($w, $h: $w) { @include size($w, $h); }
-@mixin max-wh($w, $h: $w) { @include max-size($w, $h); }
-@mixin min-wh($w, $h: $w) { @include min-size($w, $h); }
+@mixin wh($W, $H: $W) { @include size($W, $H); }
+@mixin max-wh($W, $H: $W) { @include max-size($W, $H); }
+@mixin min-wh($W, $H: $W) { @include min-size($W, $H); }
 
-@mixin min($min) { @media screen and (min-width: #{$min}) { @content; } }
-@mixin max($max) { @media screen and (max-width: #{$max}) { @content; } }
-@mixin min-max($min, $max) { @media screen and (min-width: #{$min}) and (max-width: #{$max}) { @content; } }
-@mixin max-min($max, $min) { @include min-max($min, $max) { @content; } }
+@mixin min($Min) { @media screen and (min-width: #{$Min}) { @content; } }
+@mixin max($Max) { @media screen and (max-width: #{$Max}) { @content; } }
+@mixin min-max($Min, $Max) { @media screen and (min-width: #{$Min}) and (max-width: #{$Max}) { @content; } }
+@mixin max-min($Max, $Min) { @include min-max($Min, $Max) { @content; } }
 
 @mixin keyframes($N) { @-webkit-keyframes #{$N} { @content; } @-epub-keyframes #{$N} { @content; } @-moz-keyframes #{$N} { @content; } @-ms-keyframes #{$N} { @content; } @keyframes #{$N} { @content; } }
 
@@ -164,9 +150,6 @@ $z-index_spinner: $z-index_notifier-board - 1;
 }
 
 
-
-
-
 // ================================================================================
 // + Common Classes
 // --------------------------------------------------------------------------------
@@ -198,4 +181,29 @@ $z-index_spinner: $z-index_notifier-board - 1;
 
 .uppercase {
 	text-transform: uppercase !important;
+}
+
+
+// ================================================================================
+// + Factory / Dev.
+// --------------------------------------------------------------------------------
+
+div#__bs_notify__ {
+	box-sizing: border-box !important;
+	display: table-cell !important;
+	position: fixed !important;
+	@include trbl(0 !important);
+	margin: auto !important;
+	border-radius: 1.5em !important;
+	padding: 0 !important;
+	width: 16em !important;
+	height: 3em !important;
+	line-height: 3em !important;
+	font-size: 14px !important;
+	font-weight: bold !important;
+	text-indent: -.25em !important;
+	text-shadow: 0 0 2px black !important;
+	background: rgba(black, 0.5) !important;
+	//transform-origin: 0 100% !important;
+	//transform: translateY(-2em) rotate(90deg) !important;
 }

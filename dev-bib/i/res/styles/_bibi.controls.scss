@@ -6,11 +6,10 @@
 div#bibi-notifier {
 	box-sizing: border-box;
 	position: absolute;
-	z-index: $z-index_notifier-board;
+	z-index: $GLOBAL__Notifier_ZIndex;
 	top: 0;
 	padding: 0 8px;
-	width: 100%;
-	height: $top-bar-height;
+	@include size(100%, $GLOBAL__TopBar_Height);
 	color: rgb(69,69,69);
 	background: rgba(252,252,252,0.96);
 	box-shadow: 0 2px 4px rgba(0,0,0,0.125);
@@ -20,7 +19,7 @@ div#bibi-notifier {
 		text-align: center;
 		font-size: 12px;
 		font-weight: bold;
-		line-height: ($icon-size + $button-group-margin * 2) * 1.05;
+		line-height: ($GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2) * 1.05;
 		&.error {
 			color: rgb(192,64,0);
 		}
@@ -53,14 +52,13 @@ div#bibi-veil {
 	overflow: hidden;
 	display: block;
 	position: absolute;
-	z-index: $z-index_veil;
+	z-index: $GLOBAL__Veil_ZIndex;
 	left: 0;
 	top: 0;
-	width: 100%;
-	height: 100%;
+	@include size(100%);
 	font-size: 15px;
 	color: white;
-	background: $veil-background;
+	background: $GLOBAL__Veil_Background;
 	opacity: 1;
 	transition: ease-in .5s;
 	&.closed {
@@ -73,7 +71,7 @@ div#bibi-veil {
 }
 
 
-// - Bottombar
+// - BottomBar
 // --------------------------------------------------------------------------------
 
 div#bibi-veil:after {
@@ -81,19 +79,18 @@ div#bibi-veil:after {
 	box-sizing: border-box;
 	display: block;
 	position: absolute;
-	z-index: $z-index_veil-bottombar;
+	z-index: $GLOBAL__Veil-BottomBar_ZIndex;
 	left: 0; right: 0; bottom: 0;
 	margin: 0 auto;
 	padding: 4px;
 	border-style: solid; border-width: 1px 0;
-	width: 100%;
-	height: $bottom-bar-height;
+	@include size(100%, $GLOBAL__BottomBar_Height);
 	border-color: transparent;//rgb(104,104,104);
 	background: rgb(128,128,128);
 }
 
 
-// - Bye Bye
+// - ByeBye
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
@@ -103,15 +100,13 @@ p#bibi-veil-byebye {
 	align-items: center;
 	box-sizing: border-box;
 	position: absolute;
-	z-index: $z-index_veil-byebye;
+	z-index: $GLOBAL__Veil-ByeBye_ZIndex;
 	@include trbl(0);
 	margin: auto;
 	padding: 10px;
 	border-radius: 20px;
-	width: 240px;
-	height: 240px;
-	max-width: calc(100% - #{ 10px * 2 });
-	max-height: calc(100% - #{ $top-bar-height + 10px * 2 + $bottom-bar-height });
+	@include size(240px);
+	@include max-size(calc(100% - #{ 10px * 2 }), calc(100% - #{ $GLOBAL__TopBar_Height + 10px * 2 + $GLOBAL__BottomBar_Height }));
 	line-height: 1.75;
 	text-align: center;
 	font-size: 14px;
@@ -137,12 +132,9 @@ p#bibi-veil-byebye {
 			content: "";
 			display: block;
 			position: absolute;
-			left: 0;
-			right: 0;
-			top: 0;
+			@include trbl(0, 0, auto);
 			margin: auto;
-			width: 2em;
-			height: 1px;
+			@include size(2em, 1px);
 			background: rgba(white, .5);
 		}
 	}
@@ -156,14 +148,14 @@ div#bibi-veil-cover {
 	& {
 		overflow: hidden;
 		position: absolute;
-		z-index: $z-index_veil-cover;
+		z-index: $GLOBAL__Veil-Cover_ZIndex;
 		left: 0;
 		top: 0;
 		box-sizing: border-box;
 		border: solid transparent;
-		border-width: 4px; border-width: ($top-bar-height + 4px) 4px;
-		width: 100%;
-		height: 100%;
+		border-width: 4px;
+		//border-bottom-width: ($GLOBAL__TopBar_Height + 4px);
+		@include size(100%);
 		opacity: 0;
 		transition: opacity 0.5s linear;
 		background: transparent no-repeat center center;
@@ -179,33 +171,29 @@ div#bibi-veil-cover {
 		}/*
 		p {
 			overflow: hidden;
-			width: 0;
-			height: 0;
+			@include size(0);
 		}
 		figure {
-			width: 100%;
-			height: 100%;
+			@include size(100%);
 			img {
 				display: block;
 				margin: auto;
-				max-width: 100%;
-				max-height: 100%;
+				@include max-size(100%);
 			}
 		}*/
 	}
 	&.without-cover-image {
-		$icon-size: 144px;
+		$Veil-Cover-Icon_Size: 144px;
 		p {
 			z-index: 2;
-			width: 100%;
-			height: 1.2em;
+			@include size(100%, 1.2em);
 			line-height: 1.2;
 			font-size: 14px;
 			font-weight: bold;
 			color: white;
 			text-align: center;
 			text-shadow: 0 0 4px rgb(128,128,128);
-			transform: translateY($icon-size * -0.1);
+			transform: translateY($Veil-Cover-Icon_Size * -0.1);
 			strong, em, small, span {
 				display: block;
 			}
@@ -228,9 +216,9 @@ div#bibi-veil-cover {
 			}
 		}
 		.book-icon {
-			@include book-icon($icon-size, white, rgb(136,136,136));
+			@include book-icon($Veil-Cover-Icon_Size, white, rgb(136,136,136));
 			z-index: 1;
-			transform: translateY($icon-size * -0.125);
+			transform: translateY($Veil-Cover-Icon_Size * -0.125);
 			opacity: .25;
 		}
 		p,
@@ -238,10 +226,7 @@ div#bibi-veil-cover {
 			display: block;
 			position: absolute;
 			margin: auto;
-			left: -100%;
-			top: -100%;
-			right: -100%;
-			bottom: -100%;
+			@include trbl(-100%);
 		}/*
 		figure {
 			display: none;
@@ -263,28 +248,29 @@ div#bibi-veil-cover {
 // - Play
 // --------------------------------------------------------------------------------
 
+$Veil-Play-Icon_Size: 96px;
+$Veil-Play-Icon_Offset: 8px;
+
+$Veil-Play_TransitionDuration: .2s;
+$Veil-Play_TransitionTimingFunction__ForColor: ease;
+$Veil-Play_TransitionTimingFunction__ForForm: cubic-bezier(.2,.8,.8,1.6);
+
 p#bibi-veil-play {
-	$size: 96px;
-	$offset: 8px;
 	display: none; html.waiting & { display: block; }
 	box-sizing: border-box;
-	position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
-	z-index: $z-index_veil-play;
-	width: 100%;
-	height: 100%;
+	position: absolute; @include trbl(0); margin: auto;
+	z-index: $GLOBAL__Veil-Play_ZIndex;
+	@include size(100%);
 	cursor: pointer;
 	background: rgba(black, 0);
 	&, &:before {
-		$transition-duration: .2s;
-		$transition-timing-function_color: ease;
-		$transition-timing-function_form: cubic-bezier(.2,.8,.8,1.6);
 		transition:
-			color $transition-duration $transition-timing-function_color,
-			background-color $transition-duration $transition-timing-function_color,
-			left $transition-duration $transition-timing-function_form,
-			right $transition-duration $transition-timing-function_form,
-			bottom $transition-duration $transition-timing-function_form,
-			transform $transition-duration $transition-timing-function_form;
+			color $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForColor,
+			background-color $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForColor,
+			left $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			right $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			bottom $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			transform $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm;
 	}
 	&:before { // icon
 		@include font-icon("Material Icons");
@@ -295,13 +281,12 @@ p#bibi-veil-play {
 		position: absolute;
 		margin: auto;
 		//border-radius: 50%;
-		width: $size;
-		height: $size;
-		line-height: $size * 0.98;
+		@include size($Veil-Play-Icon_Size);
+		line-height: $Veil-Play-Icon_Size * 0.98;
 		text-align: center;
 		vertical-align: middle;
 		text-indent: -.05em;
-		font-size: $size;
+		font-size: $Veil-Play-Icon_Size;
 		color: rgba(236,236,236, 0.9);
 		//text-shadow: 0 0 4px rgb(160,160,160)
 		//color: rgb(69,69,69);
@@ -312,17 +297,17 @@ p#bibi-veil-play {
 	}
 	&,
 	html.appearance-ttb & { // ↓
-		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include trbl(auto, 0, $offset, 0); }
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include trbl(auto, 0, $Veil-Play-Icon_Offset, 0); }
 		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate(90deg); }
 		&:active:before { transform: translateY( 10%) scale(1.1) rotate(90deg); }
 	}
 	html.appearance-rtl & { // ←
-		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  @include trbl(0, auto, 0, $offset); }
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  @include trbl(0, auto, 0, $Veil-Play-Icon_Offset); }
 		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
 		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
 	}
 	html.appearance-ltr & { // →
-		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  @include trbl(0, $offset, 0, auto); }
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  @include trbl(0, $Veil-Play-Icon_Offset, 0, auto); }
 		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
 		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
 	}
@@ -332,27 +317,28 @@ p#bibi-veil-play {
 // - Catcher
 // --------------------------------------------------------------------------------
 
+$Catcher-Icon_Size: 128px;
+$Catcher-CenterLine_Bottom: 56%;
+$Catcher-Area_Margin: 24px;
+$Catcher-Area_Narrow_Margin: $Catcher-Area_Margin * 0.5;
+$Catcher_Transition: .2s ease;
+$Catcher-Icon_Transition: .125s cubic-bezier(.2,.8,.8,1.6);
+
 div#bibi-catcher {
-	$icon-size: 128px;
-	$center-line-from-the-bottom: 56%;
-	$area-margin: 24px;
-	$area-margin-narrow: $area-margin * 0.5;
-	$base-transition: .2s ease;
-	$icon-transition: .125s cubic-bezier(.2,.8,.8,1.6);
 	display: none; html.waiting-file & { display: block; }
 	position: absolute;
-	z-index: $z-index_catcher;
+	z-index: $GLOBAL__Catcher_ZIndex;
 	@include trbl(0);
 	margin: 0;
 	@include size(100%);
 	color: white;
 	cursor: pointer;
-	transition: $base-transition;
+	transition: $Catcher_Transition;
 	> .pgroup {
 		box-sizing: border-box;
 		position: absolute;
 		z-index: 100;
-		@include trbl(100% - $center-line-from-the-bottom, 0, auto);
+		@include trbl(100% - $Catcher-CenterLine_Bottom, 0, auto);
 		margin: 0 auto;
 		width: 100%;
 		vertical-align: middle;
@@ -365,7 +351,7 @@ div#bibi-catcher {
 			strong, em, span, small {
 				display: block;
 				font-weight: bold;
-				transition: $base-transition;
+				transition: $Catcher_Transition;
 			}
 			strong {
 				box-sizing: border-box;
@@ -410,14 +396,14 @@ div#bibi-catcher {
 		}
 	}
 	> .book-icon {
-		@include book-icon($icon-size, white, rgb(136,136,136));
+		@include book-icon($Catcher-Icon_Size, white, rgb(136,136,136));
 		position: absolute;
 		z-index: 10;
-		@include trbl(auto, 0, $center-line-from-the-bottom);
+		@include trbl(auto, 0, $Catcher-CenterLine_Bottom);
 		margin: 0 auto;
 		opacity: .8;
 		//transform-origin: 50% 100%;
-		transition: $icon-transition;
+		transition: $Catcher-Icon_Transition;
 	}
 	> input {
 		visibility: hidden;
@@ -432,15 +418,19 @@ div#bibi-catcher {
 		margin: auto;
 		border: dashed 4px rgba(white, 0.5);
 		border-radius: 24px;
-		width:  calc(100% - #{$area-margin * 2                     });
-		height: calc(100% - #{$area-margin * 2 + $bottom-bar-height});
+		@include size(
+			calc(100% - #{$Catcher-Area_Margin * 2 }),
+			calc(100% - #{$Catcher-Area_Margin * 2 + $GLOBAL__BottomBar_Height})
+		);
 		@include max(768px) {
-			width:  calc(100% - #{$area-margin-narrow * 2                     });
-			height: calc(100% - #{$area-margin-narrow * 2 + $bottom-bar-height});
+			@include size(
+				calc(100% - #{$Catcher-Area_Narrow_Margin * 2 }),
+				calc(100% - #{$Catcher-Area_Narrow_Margin * 2 + $GLOBAL__BottomBar_Height})
+			);
 		}
 		background: rgba(white, 0);
-		transform: translateY(#{$bottom-bar-height * -0.5});
-		transition: $base-transition;
+		transform: translateY(#{$GLOBAL__BottomBar_Height * -0.5});
+		transition: $Catcher_Transition;
 	}
 	html.dragenter &,
 	&:hover {
@@ -495,12 +485,11 @@ div#bibi-catcher {
 div#bibi-panel {
 	box-sizing: border-box;
 	overflow: hidden;
-	z-index: $z-index_panel;
+	z-index: $GLOBAL__Panel_ZIndex;
 	position: absolute;
 	left: 0;
 	top: 0;
-	width: 100%;
-	height: 100%;
+	@include size(100%);
 	background: rgb(246,246,246);
 	opacity: 0;
 	transition: 0.15s ease-out;
@@ -514,7 +503,7 @@ div#bibi-panel {
 }
 
 
-// - Bottombar
+// - BottomBar
 // --------------------------------------------------------------------------------
 
 div#bibi-panel:after {
@@ -522,18 +511,17 @@ div#bibi-panel:after {
 	box-sizing: border-box;
 	display: block;
 	position: absolute;
-	z-index: $z-index_panel-bottombar;
+	z-index: $GLOBAL__Panel-BottomBar_ZIndex;
 	left: 0; right: 0; bottom: 0;
 	margin: 0 auto;
 	padding: 4px;
 	border-style: solid; border-width: 1px 0;
-	width: 100%;
-	height: $bottom-bar-height;
+	@include size(100%, $GLOBAL__BottomBar_Height);
 	border-color: rgb(232,232,232);
 	background: rgba(240,240,240,0.9);
 	html.view-horizontal &,
 	html.page-rtl.panel-opened & {
-		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+		bottom: $GLOBAL__Scrollbar-Track_Size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,
@@ -549,16 +537,14 @@ div#bibi-panel:after {
 div#bibi-panel-bookinfo {
 	box-sizing: border-box;
 	position: relative;
-	z-index: $z-index_panel-bookinfo;
-	width: 100%;
-	height: 100%;
+	z-index: $GLOBAL__Panel-BookInfo_ZIndex;
+	@include size(100%);
 }
 	div#bibi-panel-bookinfo-box {
 		box-sizing: border-box;
-		margin-top: $top-bar-height;
+		margin-top: $GLOBAL__TopBar_Height;
 		padding: 20px 30px;
-		width: 100%;
-		height: calc(100% - #{$bottom-bar-height});
+		@include size(100%, calc(100% - #{$GLOBAL__BottomBar_Height}));
 		-webkit-overflow-scrolling: touch;
 		html.page-ltr &, html.Android.page-rtl & { overflow-x: hidden; overflow-y: scroll; @include writing-mode(horizontal-tb); }
 		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; @include writing-mode(vertical-rl); }
@@ -635,8 +621,8 @@ div#bibi-panel-bookinfo-navigation {
 						$breadth: 4px;
 						$length: 100%;
 						background: white;
-						html.page-ltr &, html.Android.page-rtl & { left: $start; top: $before; width: $breadth; height: $length; }
-						html.page-rtl & { top: $start; right: $before; width: $length; height: $breadth; }
+						html.page-ltr &, html.Android.page-rtl & { left: $start; top: $before; @include size($breadth, $length); }
+						html.page-rtl & { top: $start; right: $before; @include size($length, $breadth); }
 					}
 					li {
 						$margin-before: .5em;
@@ -703,8 +689,7 @@ div#bibi-panel-bookinfo-cover {
 	html.page-ltr &, html.Android.page-rtl & { margin: 2em 30px 0 0; padding: 2em 0; border-width: 1px 0 0 0; }
 	html.page-rtl & { margin: 0 2em 30px 0; padding: 0 2em; border-width: 0 1px 0 0; }
 	img {
-		max-width:  40%; max-width:  40vw;
-		max-height: 40%; max-height: 40vh;
+		@include max-size(40%); @include max-size(40vw, 40vh);
 		html.page-ltr &, html.Android.page-rtl & { margin: 0 0 .75em 0; }
 		html.page-rtl & { margin: 0 0 0 .75em; }
 	}
@@ -741,10 +726,11 @@ div#bibi-panel-bookinfo-cover {
 div#bibi-shade {
 	display: none;
 	position: absolute;
-	z-index: $z-index_shade;
-	left: 0; right: 0; top: 0; bottom: 0; margin: 0;
-	width: 100%; height: 100%;
-	background: black;//$bibi-background;
+	z-index: $GLOBAL__Shade_ZIndex;
+	@include trbl(0);
+	margin: 0;
+	@include size(100%);
+	background: black;//$bibi-Background;
 	opacity: 0;
 	transition: .15s ease;
 	html.shade-opened & {
@@ -762,73 +748,68 @@ div#bibi-shade {
 
 
 // ================================================================================
-// + Sub Panel
+// + Subpanel
 // --------------------------------------------------------------------------------
 
-$subpanel-background-color: rgba(252,252,252, 0.96);
-$subpanel-margin: $button-group-margin;
-$subpanel-triangle-size: $subpanel-margin * 1.5;
+$Subpanel_BackgroundColor: rgba(252,252,252, 0.96);
+$Subpanel_Margin: $GLOBAL__ButtonGroup_Margin;
+$Subpanel-Triangle_Size: $Subpanel_Margin * 1.5;
 
 div.bibi-subpanel {
 	&,
 	& span.bibi-subpanel-bit {
 		box-sizing: border-box;
 		opacity: 0.25;
-		transform: translateY($subpanel-margin * -2) scale(0);
+		transform: translateY($Subpanel_Margin * -2) scale(0);
 		transition: transform 0.15s ease-out;
 	}
 	& {
 		position: absolute;
-		z-index: $z-index_subpanel;
-		right: $subpanel-margin;
-		top: $top-bar-height + $subpanel-margin;
+		z-index: $GLOBAL__Subpanel_ZIndex;
+		right: $Subpanel_Margin;
+		top: $GLOBAL__TopBar_Height + $Subpanel_Margin;
 		margin: auto;
-		width: calc(100% - #{$subpanel-margin * 2});
-		max-width: 320px - $subpanel-margin * 2;
+		width: calc(100% - #{$Subpanel_Margin * 2});
+		max-width: 320px - $Subpanel_Margin * 2;
 		border-radius: 4px;
-		background: $subpanel-background-color;
+		background: $Subpanel_BackgroundColor;
 	}
 	html.appearance-horizontal & {
-		max-height: calc(100% - #{$top-bar-height + $scrollbar-track-size + $subpanel-margin * 2});
+		max-height: calc(100% - #{$GLOBAL__TopBar_Height + $GLOBAL__Scrollbar-Track_Size + $Subpanel_Margin * 2});
 	}
 	html.appearance-vertical & {
-		max-height: calc(100% - #{$top-bar-height + $subpanel-margin * 2});
+		max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2});
 	}
 	& {
 		overflow: auto; -webkit-overflow-scrolling: touch;
-		$subpanel-scrollbar-track-size: 6px;
-		$subpanel-scrollbar-thumb-size: 2px;
-		$subpanel-scrollbar-thumb-background-color: rgb(128,128,128);
-		$subpanel-scrollbar-track-background-color: rgb(248,248,248);
+		$Subpanel-Scrollbar-Track_Size: 6px;
+		$Subpanel-Scrollbar-Thumb_Size: 2px;
+		$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
+		$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
 		&::-webkit-scrollbar { // scrollbar
-			height: $subpanel-scrollbar-track-size;
-			width: $subpanel-scrollbar-track-size;
+			@include size($Subpanel-Scrollbar-Track_Size);
 		}
-		&::-webkit-scrollbar-track { // scrollbar track
-			background: $subpanel-scrollbar-track-background-color;
+		&::-webkit-scrollbar-track {
+			background: $Subpanel-Scrollbar-Track_BackgroundColor;
 		}
-		&::-webkit-scrollbar-thumb { // scrollbar thumb
-			border-radius: $subpanel-scrollbar-track-size * 0.5;
-			border: solid (($subpanel-scrollbar-track-size - $subpanel-scrollbar-thumb-size) * 0.5) $subpanel-scrollbar-track-background-color;
-			background: $subpanel-scrollbar-thumb-background-color;
-			&:hover {
-				background: $scrollbar-thumb-background-color_hover;
-			}
-			&:active {
-				background: $scrollbar-thumb-background-color_active;
-			}
+		&::-webkit-scrollbar-thumb {
+			border-radius: $Subpanel-Scrollbar-Track_Size * 0.5;
+			border: solid (($Subpanel-Scrollbar-Track_Size - $Subpanel-Scrollbar-Thumb_Size) * 0.5) $Subpanel-Scrollbar-Track_BackgroundColor;
+			background: $Subpanel-Scrollbar-Thumb_BackgroundColor;
+			&:hover  { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
+			&:active { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
 		}
 	}
 	& span.bibi-subpanel-bit {
 		display: block;
 		position: absolute;
-		top: $subpanel-triangle-size * -2;
+		top: $Subpanel-Triangle_Size * -2;
 		left: 0; // overrided by script
-		margin-left: $subpanel-triangle-size * -1;
+		margin-left: $Subpanel-Triangle_Size * -1;
 		display: block;
-		width: 0; height: 0;
-		border: solid $subpanel-triangle-size transparent;
-		border-bottom-color: $subpanel-background-color;
+		@include size(0);
+		border: solid $Subpanel-Triangle_Size transparent;
+		border-bottom-color: $Subpanel_BackgroundColor;
 		transform-origin: 50% 0;
 	}
 	&.opened,
@@ -849,7 +830,7 @@ div.bibi-subpanel {
 // --------------------------------------------------------------------------------
 
 .bibi-subpanel-section {
-	margin: ($button-group-margin * 4) 0;
+	margin: ($GLOBAL__ButtonGroup_Margin * 4) 0;
 	strong {
 		font-weight: bold;
 	}
@@ -862,12 +843,12 @@ div.bibi-subpanel {
 		}
 		.bibi-h,
 		.bibi-button {
-			padding-left: ($button-group-margin * 2);
-			padding-right: ($button-group-margin * 2);
+			padding-left: ($GLOBAL__ButtonGroup_Margin * 2);
+			padding-right: ($GLOBAL__ButtonGroup_Margin * 2);
 		}
 		.bibi-p {
-			padding-left: ($button-group-margin * 2.5);
-			padding-right: ($button-group-margin * 2);
+			padding-left: ($GLOBAL__ButtonGroup_Margin * 2.5);
+			padding-right: ($GLOBAL__ButtonGroup_Margin * 2);
 		}
 			a.bibi-button {
 				text-decoration: none;
@@ -877,7 +858,7 @@ div.bibi-subpanel {
 		.bibi-h {
 		}
 			.bibi-h-label {
-				padding-bottom: ($button-group-margin * 1.5);
+				padding-bottom: ($GLOBAL__ButtonGroup_Margin * 1.5);
 				line-height: 1.2;
 				font-size: 12px;
 				font-weight: bold;
@@ -954,7 +935,7 @@ div.bibi-subpanel {
 		overflow: hidden;
 	}
 	.bibi-buttongroup + .bibi-buttongroup { // ul
-		margin-top: $top-bar-height / 6;
+		margin-top: $GLOBAL__TopBar_Height / 6;
 	}
 		.bibi-buttonbox { // li
 			line-height: 1.2;
@@ -965,7 +946,7 @@ div.bibi-subpanel {
 				z-index: 1;
 				margin: -1px 0;
 				border: solid rgba(black, 0.1); border-width: 1px 0; &.bibi-button-radio { border-style: dashed; }// &:first-child { border-top-width: 0; }
-				min-height: $top-bar-height;
+				min-height: $GLOBAL__TopBar_Height;
 				color: rgb(64,64,64);
 				background: white;//rgba(white, 0.9);
 				.bibi-button-iconbox,
@@ -974,7 +955,7 @@ div.bibi-subpanel {
 					vertical-align: top;
 				}
 				.bibi-button-iconbox {
-					margin-top: ($top-bar-height - $icon-size_in-subpanel) / 2;
+					margin-top: ($GLOBAL__TopBar_Height - $GLOBAL__Subpanel-Icon_Size) / 2;
 					margin-right: 6px;
 				}
 				.bibi-button-label {
@@ -996,15 +977,14 @@ div.bibi-subpanel {
 					content: "";
 					z-index: 10;
 					@include trbl(0);
-					width: 100%;
-					height: 100%;
+					@include size(100%);
 				}
 				&:after {
 					z-index: 1;
 					@include font-icon("Material Icons");
-					left: auto; right: $button-group-margin * 2; top: 0; bottom: 0; margin: auto;
-					//width: 20px;
-					height: 0.9em;
+					@include trbl(0, $GLOBAL__ButtonGroup_Margin * 2, 0, auto);
+					margin: auto;
+					@include size(/*20px*/auto, .9em);
 					line-height: 1;
 					font-size: 16px;
 					text-align: right;
@@ -1016,13 +996,13 @@ div.bibi-subpanel {
 				&.bibi-button-toggle.active.hover,
 				&.bibi-button-toggle.active:hover {
 					border-style: solid;
-					border-color: rgba($color-in-subpanel, 0.1);
+					border-color: rgba($GLOBAL__Subpanel_KeyColor, 0.1);
 					background: rgba(244,248,252, 0.8);
 					cursor: pointer;
-					color: $color-in-subpanel;
+					color: $GLOBAL__Subpanel_KeyColor;
 					z-index: 2;
 					&:after {
-						color: $color-in-subpanel;
+						color: $GLOBAL__Subpanel_KeyColor;
 					}
 				}
 				&.disabled,
@@ -1051,7 +1031,7 @@ div.bibi-subpanel {
 					&:after {
 						//margin-right: -1px;
 						//font-size: 18px;
-						color: $color-in-subpanel;
+						color: $GLOBAL__Subpanel_KeyColor;
 					}
 				}
 			}
@@ -1088,7 +1068,7 @@ div.bibi-subpanel {
 			.bibi-button {
 				margin: 0 -1px;
 				border-width: 0 1px;
-				padding-right: $button-group-margin;
+				padding-right: $GLOBAL__ButtonGroup_Margin;
 				.bibi-button-iconbox {
 					
 				}
@@ -1114,61 +1094,62 @@ div.bibi-subpanel {
 // + Menu
 // --------------------------------------------------------------------------------
 
+$Menu_BackgroundColor:         rgba(white, 0  );
+$Menu_BackgroundColor__Hover:  rgba(white,  .9);
+$Menu_BackgroundColor__Active: rgba(white, 1  );
+$Menu_BorderBottomColor:         rgba(black, 0);
+$Menu_BorderBottomColor__Hover:  $Menu_BorderBottomColor;
+$Menu_BorderBottomColor__Active: $Menu_BorderBottomColor__Hover;
+$Menu_BoxShadow__Active: 0 0 16px rgba(black, 0.125);
+
+// Not-BookFullHeight (NotBFH)
+$NotBFH-Menu_BackgroundColor:         rgba(white, 1  );
+$NotBFH-Menu_BackgroundColor__Hover:  $NotBFH-Menu_BackgroundColor;
+$NotBFH-Menu_BackgroundColor__Active: $NotBFH-Menu_BackgroundColor__Hover;
+$NotBFH-Menu_BorderBottomColor:         rgba(black, .05);
+$NotBFH-Menu_BorderBottomColor__Hover:  $NotBFH-Menu_BorderBottomColor;
+$NotBFH-Menu_BorderBottomColor__Active: $NotBFH-Menu_BorderBottomColor__Hover;
+$NotBFH-Menu_BoxShadow__Active: $Menu_BoxShadow__Active;
+
 div#bibi-menu {
-	$background-color:        rgba(white, 0  );
-	$background-color_hover:  rgba(white,  .9);
-	$background-color_active: rgba(white, 1  );
-	$border-bottom-color: rgba(black, 0);
-	$border-bottom-color_hover: $border-bottom-color;
-	$border-bottom-color_active: $border-bottom-color_hover;
-	$box-shadow_active: 0 0 16px rgba(black, 0.125);
-	$background-color_not-book-full-height:        rgba(white, 1  );
-	$background-color_not-book-full-height_hover:  $background-color_not-book-full-height;
-	$background-color_not-book-full-height_active: $background-color_not-book-full-height_hover;
-	$border-bottom-color_not-book-full-height: rgba(black, .05);
-	$border-bottom-color_not-book-full-height_hover: $border-bottom-color_not-book-full-height;
-	$border-bottom-color_not-book-full-height_active: $border-bottom-color_not-book-full-height_hover;
-	$box-shadow_not-book-full-height_active: 0 0 16px rgba(black, 0.125);
 	& {
 		box-sizing: border-box;
 		position: absolute;
-		z-index: $z-index_menu;
+		z-index: $GLOBAL__Menu_ZIndex;
 		@include trbl(0, 0, auto);
 		left: 0;
 		right: 0;
 		margin: 0;
 		border-bottom: solid 1px transparent;
-		height: $top-bar-height;
+		height: $GLOBAL__TopBar_Height;
 		width: 100%;
 		background: transparent;
 	}
 	&, & ul {
 		transition: .125s linear;
 	}
-	html.book-full-height &                       {  background-color: $background-color;  border-bottom-color: $border-bottom-color;  }
+	html.book-full-height &                       {  background-color: $Menu_BackgroundColor;                 border-bottom-color: $Menu_BorderBottomColor; }
 	html.book-full-height &.hover,
-	html.book-full-height.subpanel-opened &       {  background-color: $background-color_hover;  border-bottom-color: $border-bottom-color_hover;  }
-	html.book-full-height.menu-opened &           {  background-color: $background-color_active;  border-bottom-color: $border-bottom-color_active;  box-shadow: $box-shadow_active;  }
-	html:not(.book-full-height) &                 {  background-color: $background-color_not-book-full-height;  border-bottom-color: $border-bottom-color_not-book-full-height;  }
+	html.book-full-height.subpanel-opened &       {  background-color: $Menu_BackgroundColor__Hover;           border-bottom-color: $Menu_BorderBottomColor__Hover; }
+	html.book-full-height.menu-opened &           {  background-color: $Menu_BackgroundColor__Active;          border-bottom-color: $Menu_BorderBottomColor__Active;          box-shadow: $Menu_BoxShadow__Active; }
+	html:not(.book-full-height) &                 {  background-color: $NotBFH-Menu_BackgroundColor;         border-bottom-color: $NotBFH-Menu_BorderBottomColor; }
 	html:not(.book-full-height) &.hover,
-	html:not(.book-full-height).subpanel-opened & {  background-color: $background-color_not-book-full-height_hover;  border-bottom-color: $border-bottom-color_not-book-full-height_hover;  }
-	html:not(.book-full-height).menu-opened &     {  background-color: $background-color_not-book-full-height_active;  border-bottom-color: $border-bottom-color_not-book-full-height_active;  box-shadow: $box-shadow_not-book-full-height_active;  }
+	html:not(.book-full-height).subpanel-opened & {  background-color: $NotBFH-Menu_BackgroundColor__Hover;   border-bottom-color: $NotBFH-Menu_BorderBottomColor__Hover; }
+	html:not(.book-full-height).menu-opened &     {  background-color: $NotBFH-Menu_BackgroundColor__Active;  border-bottom-color: $NotBFH-Menu_BorderBottomColor__Active;  box-shadow: $NotBFH-Menu_BoxShadow__Active; }
 	html.without-menubar &,
 	html.waiting-file &  {
 		display: none !important;
 	}
 }
 
-
-
 html.slider-opened.view-vertical div#bibi-menu {
-	width: calc(100% - #{$slider-size});
+	width: calc(100% - #{$GLOBAL__Slider_Size});
 }
 
 html.view-vertical.slider-opened.panel-opened div#bibi-menu,
 html.view-vertical.slider-opened.subpanel-opened div#bibi-menu {
 	width: 100%;
-	padding-right: $slider-size;
+	padding-right: $GLOBAL__Slider_Size;
 }
 
 
@@ -1186,25 +1167,22 @@ div#bibi-menu-r {
 	ul {
 		& {
 			position: relative;
-			padding: $button-group-margin;
-			height: $icon-size;
+			padding: $GLOBAL__ButtonGroup_Margin;
+			height: $GLOBAL__Icon_Size;
 			opacity: 0;
 			&.sticky {
-				//opacity: 0.5;
 				opacity: 0;
 			}
 			&:before {
 				content: "";
 				display: block;
 				position: absolute;
-				top: $button-group-margin;
-				width: 1px;
-				height: $icon-size;
+				top: $GLOBAL__ButtonGroup_Margin;
+				@include size(1px, $GLOBAL__Icon_Size);
 				background: rgba(216,216,216, 0.5);
 			}
 			li {
-				width: $icon-size;
-				height: $icon-size;
+				@include size($GLOBAL__Icon_Size);
 				.bibi-button {
 					position: relative;
 					z-index: 1;
@@ -1216,6 +1194,12 @@ div#bibi-menu-r {
 						color: transparent;
 					}
 				}
+			}
+		}
+		html.waiting & {
+			opacity: 0.5;
+			&.sticky {
+				opacity: 0.5;
 			}
 		}
 		div#bibi-menu.hover &,
@@ -1247,19 +1231,19 @@ div#bibi-menu-l {
 	float: left;
 	ul {
 		float: left;
-		padding-left: $button-group-margin + 1px;
+		padding-left: $GLOBAL__ButtonGroup_Margin + 1px;
 		&:before {
 			left: 0;
 		}
 		&:first-child {
-			padding-left: $button-group-margin;
+			padding-left: $GLOBAL__ButtonGroup_Margin;
 			&:before {
 				display: none;
 			}
 		}
 		li {
 			float: left;
-			margin-left: $button-group-margin / 2; &:first-child { margin-left: 0; }
+			margin-left: $GLOBAL__ButtonGroup_Margin / 2; &:first-child { margin-left: 0; }
 		}
 	}
 	ul.bibi-buttongroup-tiled {
@@ -1293,19 +1277,19 @@ div#bibi-menu-r {
 	float: right;
 	ul {
 		float: right;
-		padding-right: $button-group-margin + 1px;
+		padding-right: $GLOBAL__ButtonGroup_Margin + 1px;
 		&:before {
 			right: 0;
 		}
 		&:first-child {
-			padding-right: $button-group-margin;
+			padding-right: $GLOBAL__ButtonGroup_Margin;
 			&:before {
 				display: none;
 			}
 		}
 		li {
 			float: right;
-			margin-right: $button-group-margin / 2; &:first-child { margin-right: 0; }
+			margin-right: $GLOBAL__ButtonGroup_Margin / 2; &:first-child { margin-right: 0; }
 		}
 	}
 	ul.bibi-buttongroup-tiled {
@@ -1363,12 +1347,11 @@ div#bibi-help {
 	box-sizing: border-box;
 	display: none;
 	position: absolute;
-	z-index: $z-index-help;
+	z-index: $GLOBAL__Help_ZIndex;
 	margin: 0;
 	border-top: solid 1px rgb(240,240,240);
 	padding: 0 8px 0 56px;
-	width: 100%;
-	height: $bottom-bar-height;
+	@include size(100%, $GLOBAL__BottomBar_Height);
 	left: 0;
 	bottom: 0;
 	opacity: 0;
@@ -1376,7 +1359,7 @@ div#bibi-help {
 	background: rgba(240,240,240,0.96);
 	html.view-horizontal &,
 	html.page-rtl.panel-opened & {
-		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+		bottom: $GLOBAL__Scrollbar-Track_Size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,
@@ -1385,10 +1368,10 @@ div#bibi-help {
 	}
 	html.slider-opened.view-paged &,
 	html.slider-opened.view-horizontal & {
-		bottom: $slider-size !important;
+		bottom: $GLOBAL__Slider_Size !important;
 	}
 	p {
-		line-height: $bottom-bar-height * 1.1;
+		line-height: $GLOBAL__BottomBar_Height * 1.1;
 		text-align: center;
 		font-size: 12px;
 		font-weight: bold;
@@ -1406,7 +1389,7 @@ div#bibi-help {
 }
 
 html.slider-opened:not(.panel-opened).view-vertical div#bibi-help {
-	width: calc(100% - #{$slider-size});
+	width: calc(100% - #{$GLOBAL__Slider_Size});
 }
 
 
@@ -1421,11 +1404,11 @@ div#bibi-poweredby {
 	box-sizing: border-box;
 	display: block;
 	position: absolute;
-	z-index: $z-index-poweredby;
+	z-index: $GLOBAL__PoweredBy_ZIndex;
 	@include trbl(auto, 0, 0);
 	margin: 0 auto;
 	//padding: 4px;
-	height: $bottom-bar-height;
+	height: $GLOBAL__BottomBar_Height;
 	text-align: right;
 	font-size: 14px;
 	transition: .1s linear;
@@ -1437,7 +1420,7 @@ div#bibi-poweredby {
 	}
 	html.view-horizontal &,
     html.page-rtl.panel-opened & {
-		bottom: $scrollbar-track-size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+		bottom: $GLOBAL__Scrollbar-Track_Size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,
@@ -1446,31 +1429,30 @@ div#bibi-poweredby {
 	}
 	p {
 		a {
-			$logo-image-original-width: 144px;
-			$logo-image-original-height: 72px;
-			$logo-image-height: 16px;
-			$logo-image-width: $logo-image-height * ($logo-image-original-width / $logo-image-original-height);
-			$logo-box-padding-vertical: 4px;
-			$logo-box-padding-horizontal: 8px;
-			$logo-box-height: $logo-image-height + $logo-box-padding-vertical * 2;
-			$logo-box-width: $logo-image-width + $logo-box-padding-horizontal * 2;
-			$logo-box-margin: ($bottom-bar-height - $logo-box-height) / 2;
+			$PowerdBy-Logo-Image_OriginalWidth: 144px;
+			$PowerdBy-Logo-Image_OriginalHeight: 72px;
+			$PowerdBy-Logo-Image_Height: 16px;
+			$PowerdBy-Logo-Image_Width: $PowerdBy-Logo-Image_Height * ($PowerdBy-Logo-Image_OriginalWidth / $PowerdBy-Logo-Image_OriginalHeight);
+			$PowerdBy-Logo-Box_PaddingVertical: 4px;
+			$PowerdBy-Logo-Box_PaddingHorizontal: 8px;
+			$PowerdBy-Logo-Box_Height: $PowerdBy-Logo-Image_Height + $PowerdBy-Logo-Box_PaddingVertical * 2;
+			$PowerdBy-Logo-Box_Width: $PowerdBy-Logo-Image_Width + $PowerdBy-Logo-Box_PaddingHorizontal * 2;
+			$PowerdBy-Logo-Box_Margin: ($GLOBAL__BottomBar_Height - $PowerdBy-Logo-Box_Height) / 2;
 			display: block;
 			box-sizing: border-box;
 			position: absolute;
-			@include trbl(0, auto, 0, $logo-box-margin);
+			@include trbl(0, auto, 0, $PowerdBy-Logo-Box_Margin);
 			text-decoration: none;
 			color: black;
 			margin: auto 0;
-			width: $logo-box-width;
-			height: $logo-box-height;
+			@include size($PowerdBy-Logo-Box_Width, $PowerdBy-Logo-Box_Height);
 			border-radius: 2px;
 			transition: .2s linear;
-			background: transparent none no-repeat center (($logo-box-height - $logo-image-height) / 2 + 2px);
-			background-size: $logo-image-width $logo-image-height;
+			background: transparent none no-repeat center (($PowerdBy-Logo-Box_Height - $PowerdBy-Logo-Image_Height) / 2 + 2px);
+			background-size: $PowerdBy-Logo-Image_Width $PowerdBy-Logo-Image_Height;
 			text-align: center;
-			font-size: $logo-image-height;
-			line-height: $logo-box-height + 2px;
+			font-size: $PowerdBy-Logo-Image_Height;
+			line-height: $PowerdBy-Logo-Box_Height + 2px;
 			color: transparent;
 		}
 		a:hover {
@@ -1511,43 +1493,55 @@ html.panel-opened div#bibi-poweredby {
 // + Nombre
 // --------------------------------------------------------------------------------
 
+$Nombre_Width: 120px;
+$Nombre_Height: 20px;
+
+$Nombre_Color: rgb(64,64,64);
+$Nombre-Current_Color: darken($Nombre_Color, 25%);
+$Nombre-Percent_Color: lighten($Nombre_Color, 25%);
+
+$Nombre_BackgroundColor: rgba(240,240,240,0.9);
+$Nombre_BackgroundColor: rgb(240,240,240);
+
 div#bibi-nombre {
 	box-sizing: border-box;
 	overflow: hidden;
 	position: absolute;
-	z-index: $z-index_nombre;
+	z-index: $GLOBAL__Nombre_ZIndex;
 	margin: auto;
-	border-radius: $nombre-box-height * 0.5;
-	width: $nombre-box-width;
-	height: $nombre-box-height;
-	line-height: $nombre-box-height;
+	border-radius: $Nombre_Height * 0.5;
+	@include size($Nombre_Width, $Nombre_Height);
+	line-height: $Nombre_Height;
 	font-size: 12px;
 	text-align: center;
-	color: $nombre-color;
-	background: $nombre-box-background-color;
+	color: $Nombre_Color;
+	background: $Nombre_BackgroundColor;
 	opacity: 0;
 	transition: 0.125s ease-out;
 	html.view-paged &,
 	html.view-horizontal & {
-		top: auto;
-		left: -100%; right: -100%;
+		@include trbl(auto, -100%);
 	}
 	html.view-paged & {
 		bottom: 2px;
 	}
 	html.view-horizontal & {
-		bottom: $scrollbar-track-size + 2px; // `bottom` is to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
+		bottom: $GLOBAL__Scrollbar-Track_Size + 2px; // `bottom` is to be overwritten by JavaScript ... (O.ScrollBars.Height + 2) + "px"
 	}
 	html.view-vertical & {
-		top: -100%;  bottom: -100%;
-		left: auto;  right: $scrollbar-track-size + 2px; // `right` is to be overwritten by JavaScript ... (O.ScrollBars.Width  + 2) + "px"
-		transform: rotate(90deg) translateY(($nombre-box-width - $nombre-box-height) * -0.5);
+		@include trbl(
+			-100%,
+			$GLOBAL__Scrollbar-Track_Size + 2px, // `right` is to be overwritten by JavaScript ... (O.ScrollBars.Width  + 2) + "px"
+			-100%,
+			auto
+		);
+		transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
 	}
 	html.slider-opened.appearance-horizontal & {
-		bottom: $slider-size + 2px !important;
+		bottom: $GLOBAL__Slider_Size + 2px !important;
 	}
 	html.slider-opened.appearance-vertical & {
-		right: $slider-size + 2px !important;
+		right: $GLOBAL__Slider_Size + 2px !important;
 	}
 	& {
 		display: none;
@@ -1566,7 +1560,7 @@ div#bibi-nombre {
 	span#bibi-nombre-current {
 		font-size: 1.2em;
 		font-weight: bold;
-		color: $nombre-current-color;
+		color: $Nombre-Current_Color;
 	}
 	span#bibi-nombre-delimiter {
 		margin: 0 0.1em 0 0.2em;
@@ -1575,7 +1569,7 @@ div#bibi-nombre {
 	}
 	span#bibi-nombre-percent {
 		margin-left: .25em;
-		color: $nombre-percent-color;
+		color: $Nombre-Percent_Color;
 		span.unit {
 			margin-left: .125em;
 			font-size: .75em;
@@ -1589,7 +1583,7 @@ div#bibi-nombre {
 // --------------------------------------------------------------------------------
 
 
-$slider-transition: .15s ease;
+$Slider_Transition: .15s ease;
 
 div#bibi-slider {
 	& {
@@ -1598,9 +1592,9 @@ div#bibi-slider {
 		box-sizing: border-box;
 		display: block;
 		position: absolute;
-		z-index: $z-index_slider;
+		z-index: $GLOBAL__Slider_ZIndex;
 		cursor: pointer;
-		transition: $slider-transition;
+		transition: $Slider_Transition;
 		will-change: height;
 		&:after {
 			content: "";
@@ -1608,23 +1602,21 @@ div#bibi-slider {
 			box-sizing: border-box;
 			position: absolute;
 			z-index: 1;
-			border: solid 0 $scrollbar-track-border-color;
+			border: solid 0 $GLOBAL__Scrollbar-Track_BorderColor;
 			@include size(100%);
-			background: $scrollbar-track-background-color;
+			background: $GLOBAL__Scrollbar-Track_BackgroundColor;
 		}
 	}
 	html.appearance-horizontal & {
 		@include trbl(auto, 0, 0, 0);
-		width: 100%;
-		height: $scrollbar-track-size;
+		@include size(100%, $GLOBAL__Scrollbar-Track_Size);
 		&:after {
 			border-top-width: 1px;
 		}
 	}
 	html.appearance-vertical & {
 		@include trbl(0, 0, 0, auto);
-		width: $scrollbar-track-size;
-		height: 100%;
+		@include size($GLOBAL__Scrollbar-Track_Size, 100%);
 		&:after {
 			border-left-width: 1px;
 		}
@@ -1637,19 +1629,19 @@ div#bibi-slider {
 		}
 	}
 	html.slider-opened.appearance-horizontal & {
-		height: $slider-size !important;
+		height: $GLOBAL__Slider_Size !important;
 		&:after {
-			border-top-color: darken($scrollbar-track-background-color, 20%);
-			//background: linear-gradient(to top, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, rgba($scrollbar-track-background-color, .75) 100%);
-			//background: linear-gradient(to top, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, darken($scrollbar-track-background-color, 10%) 100%);
+			border-top-color: darken($GLOBAL__Scrollbar-Track_BackgroundColor, 20%);
+			//background: linear-gradient(to top, $GLOBAL__Scrollbar-Track_BackgroundColor 0, $GLOBAL__Scrollbar-Track_BackgroundColor 16px, rgba($GLOBAL__Scrollbar-Track_BackgroundColor, .75) 100%);
+			//background: linear-gradient(to top, $GLOBAL__Scrollbar-Track_BackgroundColor 0, $GLOBAL__Scrollbar-Track_BackgroundColor 16px, darken($GLOBAL__Scrollbar-Track_BackgroundColor, 10%) 100%);
 		}
 	}
 	html.slider-opened.appearance-vertical & {
-		width: $slider-size !important;
+		width: $GLOBAL__Slider_Size !important;
 		&:after {
-			border-left-color: darken($scrollbar-track-background-color, 20%);
-			//background: linear-gradient(to left, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, rgba($scrollbar-track-background-color, .75) 100%);
-			//background: linear-gradient(to left, $scrollbar-track-background-color 0, $scrollbar-track-background-color 16px, darken($scrollbar-track-background-color, 10%) 100%);
+			border-left-color: darken($GLOBAL__Scrollbar-Track_BackgroundColor, 20%);
+			//background: linear-gradient(to left, $GLOBAL__Scrollbar-Track_BackgroundColor 0, $GLOBAL__Scrollbar-Track_BackgroundColor 16px, rgba($GLOBAL__Scrollbar-Track_BackgroundColor, .75) 100%);
+			//background: linear-gradient(to left, $GLOBAL__Scrollbar-Track_BackgroundColor 0, $GLOBAL__Scrollbar-Track_BackgroundColor 16px, darken($GLOBAL__Scrollbar-Track_BackgroundColor, 10%) 100%);
 		}
 	}
 	html.slider-sliding & {
@@ -1665,7 +1657,7 @@ div#bibi-slider {
 // - UI Box (Edgebar Box, Bookmap Box)
 // --------------------------------------------------------------------------------
 
-$slider-padding: $scrollbar-thumb-size;
+$Slider_Padding: $GLOBAL__Scrollbar-Thumb_Size;
 
 div#bibi-slider-edgebar-box,
 div#bibi-slider-bookmap-box {
@@ -1678,23 +1670,25 @@ div#bibi-slider-bookmap-box {
 	background: transparent;
 	html.appearance-horizontal & {
 		@include trbl(1px, 0, auto, 0);
-		height: calc(100% - 1px);
-		width: calc(100% - #{$scrollbar-thumb-size * 2});
-		//width: 100%;
+		@include size(
+			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}), // 100%,
+			calc(100% - 1px)
+		);
 	}
 	html.appearance-horizontal.slider-opened & {
-		top: 1px + $slider-padding;
-		height: calc(100% - #{1px + $slider-padding * 2});
+		top: 1px + $Slider_Padding;
+		height: calc(100% - #{1px + $Slider_Padding * 2});
 	}
 	html.appearance-vertical & {
 		@include trbl(0, auto, 0, 1px);
-		width: calc(100% - 1px);
-		height: calc(100% - #{$scrollbar-thumb-size * 2});
-		//height: 100%;
+		@include size(
+			calc(100% - 1px),
+			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}) // 100%
+		);
 	}
 	html.appearance-vertical.slider-opened & {
-		left: 1px + $slider-padding;
-		width: calc(100% - #{1px + $slider-padding * 2});
+		left: 1px + $Slider_Padding;
+		width: calc(100% - #{1px + $Slider_Padding * 2});
 	}
 }
 
@@ -1752,16 +1746,16 @@ div#bibi-slider-bookmap {
 // - . Bookmap > Spread Box
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-spread-box-color: transparent;
-$slider-bookmap-spread-box-color_hover: rgba(steelblue, .33);
+$Slider-Bookmap-SpreadBox_Color: transparent;
+$Slider-Bookmap-SpreadBox_Color__Hover: rgba(steelblue, .33);
 
 div.bookmap-spread-box {
 	box-sizing: border-box;
 	flex-shrink: 0;
 	position: relative;
-	background: $slider-bookmap-spread-box-color;
+	background: $Slider-Bookmap-SpreadBox_Color;
 	&.hover {
-		//background: $slider-bookmap-spread-box-color_hover;
+		//background: $Slider-Bookmap-SpreadBox_Color__Hover;
 	}
 }
 
@@ -1769,7 +1763,7 @@ div.bookmap-spread-box {
 // - . Bookmap > Spread Box > Spread
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-spread-background: rgba(white, .5);
+$Slider-Bookmap-Spread_Background: rgba(white, .5);
 
 div.bookmap-spread {
 	box-sizing: border-box;
@@ -1792,14 +1786,14 @@ div.bookmap-spread {
 	//html.appearance-ttb &   { transform: translateY(-1px); }
 	//html.appearance-horizontal & { border-width: 0 .5px; }
 	//html.appearance-vertical &   { border-width: .5px 0; }
-	background: $slider-bookmap-spread-background;
+	background: $Slider-Bookmap-Spread_Background;
 }
 
 
 // - . Bookmap > Spread Box > Spread > Item Box
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-item-box_reflowable-border-color: rgb(216,216,216);
+$Slider-Bookmap-ItemBox_BorderColor__ForReflowable: rgb(216,216,216);
 
 div.bookmap-item-box {
 	box-sizing: border-box;
@@ -1817,7 +1811,7 @@ div.bookmap-item-box {
 			content: "";
 			display: block;
 			position: absolute;
-			background: $slider-bookmap-item-box_reflowable-border-color;
+			background: $Slider-Bookmap-ItemBox_BorderColor__ForReflowable;
 			html.book-reflowable.appearance-horizontal & { @include size(1px, calc(100% + 2px)); top: -1px; bottom: -1px; margin: auto 0; }
 			html.book-reflowable.appearance-vertical & { @include size(calc(100% + 2px), 1px); left: -1px; right: -1px; margin: 0 auto; }
 			html.book-reflowable.appearance-rtl & { right: -1px; left: auto; }
@@ -1853,9 +1847,9 @@ span.bookmap-item {
 // - . Bookmap > Spread Box > Spread > Item Box > Page
 // --------------------------------------------------------------------------------
 
-$slider-bookmap-page-color_opened: white;
-$slider-bookmap-page-color_opened_hover: lighten(steelblue, 33%);
-$slider-bookmap-page-border-color_opened_hover: $slider-bookmap-page-color_opened_hover;
+$Slider-Bookmap-Page_Color_SliderOpened: white;
+$Slider-Bookmap-Page_Color_SliderOpened__Hover: lighten(steelblue, 33%);
+$Slider-Bookmap-Page_BorderColor_SliderOpened__Hover: $Slider-Bookmap-Page_Color_SliderOpened__Hover;
 
 span.bookmap-page {
 	box-sizing: border-box;
@@ -1873,11 +1867,11 @@ span.bookmap-page {
 	}
 	background: transparent;
 	html.slider-opened & {
-		background-color: $slider-bookmap-page-color_opened;
+		background-color: $Slider-Bookmap-Page_Color_SliderOpened;
 	}
 	html.slider-opened &.hover {
-		background-color: $slider-bookmap-page-color_opened_hover;
-		border: solid 1px $slider-bookmap-page-border-color_opened_hover;
+		background-color: $Slider-Bookmap-Page_Color_SliderOpened__Hover;
+		border: solid 1px $Slider-Bookmap-Page_BorderColor_SliderOpened__Hover;
 	}
 	/*
 	div.bookmap-item-box:nth-of-type(odd) & { background: red; }
@@ -1891,12 +1885,12 @@ span.bookmap-page {
 // - . Rail
 // --------------------------------------------------------------------------------
 
-$slider-rail-width_opened: 3px;
-$slider-rail-progress-width_opened: 3px;
-$slider-rail-color:                rgba(gray,      0.250);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-color_hover:          rgba(gray,      0.250);//rgba(steelblue, 0.33);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color:       rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
-$slider-rail-progress-color_hover: rgba(steelblue, 1.000);//rgba($scrollbar-thumb-background-color, .5);
+$Slider-Rail_Width_SliderOpened: 3px;
+$Slider-Rail-Progress_Width_SliderOpened: 3px;
+$Slider-Rail_Color:                rgba(gray,      0.250);//rgba($GLOBAL__Scrollbar-Thumb_BackgroundColor, .5);
+$Slider-Rail_Color__Hover:          rgba(gray,      0.250);//rgba(steelblue, 0.33);//rgba($GLOBAL__Scrollbar-Thumb_BackgroundColor, .5);
+$Slider-Rail-Progress_Color:       rgba(steelblue, 1.000);//rgba($GLOBAL__Scrollbar-Thumb_BackgroundColor, .5);
+$Slider-Rail-Progress_Color__Hover: rgba(steelblue, 1.000);//rgba($GLOBAL__Scrollbar-Thumb_BackgroundColor, .5);
 
 div#bibi-slider-rail {
 	& {
@@ -1909,29 +1903,29 @@ div#bibi-slider-rail {
 		//@include trbl(-100vh, -100vw);
 		@include trbl(0);
 		margin: auto;
-		background: $slider-rail-color;
+		background: $Slider-Rail_Color;
 		pointer-events: none;
 		transition: background-color linear .33s;
 	}
 	div#bibi-slider:hover & {
-		background: $slider-rail-color_hover;
+		background: $Slider-Rail_Color__Hover;
 	}
 	html.appearance-horizontal & {
-		//@include trbl(auto, auto, $scrollbar-track-size / 2, auto);
+		//@include trbl(auto, auto, $GLOBAL__Scrollbar-Track_Size / 2, auto);
 		height: 0;
 	}
 	html.appearance-vertical & {
-		//@include trbl(auto, $scrollbar-track-size / 2, auto, auto);
+		//@include trbl(auto, $GLOBAL__Scrollbar-Track_Size / 2, auto, auto);
 		width: 0;
 	}
 	html.slider-opened & {
-		border-radius: $slider-rail-width_opened / 2;
+		border-radius: $Slider-Rail_Width_SliderOpened / 2;
 	}
 	html.slider-opened.appearance-horizontal & {
-		height: $slider-rail-width_opened;
+		height: $Slider-Rail_Width_SliderOpened;
 	}
 	html.slider-opened.appearance-vertical & {
-		width: $slider-rail-width_opened;
+		width: $Slider-Rail_Width_SliderOpened;
 	}
 }
 
@@ -1939,45 +1933,47 @@ div#bibi-slider-rail-progress {
 	& {
 		position: absolute;
 		@include size(0);
-		background: $slider-rail-progress-color;
+		background: $Slider-Rail-Progress_Color;
 		transition: background-color linear .33s;
 	}
 	div#bibi-slider:hover & {
-		background: $slider-rail-progress-color_hover;
+		background: $Slider-Rail-Progress_Color__Hover;
 	}
 	html.appearance-horizontal & { top: -100%; bottom: -100%; margin: auto 0;                                        }
 	html.appearance-rtl &        {                                             right: 0; transform-origin: 100% 50%; }
 	html.appearance-ltr &        {                                             left:  0; transform-origin:   0  50%; }
 	html.appearance-vertical &   { left: -100%; right: -100%; margin: 0 auto;  top:   0; transform-origin:  50%  0 ; }
 	html.slider-opened & {}
-	html.slider-opened.appearance-horizontal & { height: $slider-rail-progress-width_opened; }
-	html.slider-opened.appearance-vertical &   { width:  $slider-rail-progress-width_opened; }
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width_SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width_SliderOpened; }
 }
 
 
 // - . Thumb
 // --------------------------------------------------------------------------------
 
-$slider-thumb-bar-border-color: transparent;
-$slider-thumb-bar-background: $scrollbar-thumb-background-color;
-$slider-thumb-bar-background_hover: $scrollbar-thumb-background-color_hover;
-$slider-thumb-bar-background_active: $scrollbar-thumb-background-color_active;
+$Slider-Thumb-Bar_BorderColor: transparent;
+$Slider-Thumb-Bar_Background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
+$Slider-Thumb-Bar_Background__Hover: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover;
+$Slider-Thumb-Bar_Background__Active: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active;
 
-$slider-thumb-bar-border-color_opened: rgba(steelblue, .125);
-//$slider-thumb-bar-background_opened: rgba(white, 0) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
-//$slider-thumb-bar-background_opened_hover: rgba(white, .5) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
-$slider-thumb-bar-background_opened: rgba(steelblue, .125);
-$slider-thumb-bar-background_opened_hover: rgba(steelblue, .25);
-$slider-thumb-bar-background_opened_active: rgba(steelblue, .25);//$slider-thumb-bar-background_opened;
+$Slider-Thumb-Bar_BorderColor_SliderOpened: rgba(steelblue, .125);
+//$Slider-Thumb-Bar_Background_SliderOpened: rgba(white, 0) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
+//$Slider-Thumb-Bar_Background_SliderOpened__Hover: rgba(white, .5) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
+$Slider-Thumb-Bar_Background_SliderOpened: rgba(steelblue, .125);
+$Slider-Thumb-Bar_Background_SliderOpened__Hover: rgba(steelblue, .25);
+$Slider-Thumb-Bar_Background_SliderOpened__Active: rgba(steelblue, .25);//$Slider-Thumb-Bar_Background_SliderOpened;
 
-$slider-thumb-circle-background_opened: steelblue;//lighten(steelblue, 50%);
-$slider-thumb-circle-size_opened: $scrollbar-thumb-size * 2;
+$Slider-Thumb-Circle_Background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;//lighten(steelblue, 50%);
 
-$slider-thumb-circle-border-width_opened: 0;//($slider-thumb-circle-size_opened - $slider-rail-width_opened * 1.5) / 2;
-$slider-thumb-circle-border-color_opened: transparent;//rgba(steelblue, 1);
+$Slider-Thumb-Circle_Size_SliderOpened: $GLOBAL__Scrollbar-Thumb_Size * 2;
+$Slider-Thumb-Circle_Background_SliderOpened: steelblue;//lighten(steelblue, 50%);
 
-$slider-thumb-circle-halo-width_opened: 2px;
-$slider-thumb-circle-halo-color_opened: rgba(white, .75);
+$Slider-Thumb-Circle_BorderWidth_SliderOpened: 0;//($Slider-Thumb-Circle_Size_SliderOpened - $Slider-Rail_Width_SliderOpened * 1.5) / 2;
+$Slider-Thumb-Circle_BorderColor_SliderOpened: transparent;//rgba(steelblue, 1);
+
+$Slider-Thumb-Circle-Halo_Width_SliderOpened: 2px;
+$Slider-Thumb-Circle-Halo_Color_SliderOpened: rgba(white, .75);
 
 div#bibi-slider-thumb {
 	& {
@@ -1986,10 +1982,6 @@ div#bibi-slider-thumb {
 		position: absolute;
 		z-index: 100000;
 		margin: auto;
-		border: solid 1px $slider-thumb-bar-border-color;
-		border-radius: $scrollbar-thumb-size * 0.5;
-		background: $slider-thumb-bar-background;
-		transition: background-color .1s linear;
 		pointer-events: none;
 		will-change: left, top;
 	}
@@ -1997,25 +1989,25 @@ div#bibi-slider-thumb {
 		//top: -100vh;
 		//bottom: -100vh;
 		top: 0; bottom: 0;
-		height: $scrollbar-thumb-size;
+		height: $GLOBAL__Scrollbar-Thumb_Size;
 	}
 	html.appearance-vertical & {
 		//left: -100vw;
 		//right: -100vw;
 		left: 0; right: 0;
-		width: $scrollbar-thumb-size;
+		width: $GLOBAL__Scrollbar-Thumb_Size;
 	}
 	&.hover {
-		background: $slider-thumb-bar-background_hover;
+		background: $Slider-Thumb-Bar_Background__Hover;
 	}
 	&:active,
 	&.active {
-		background: $slider-thumb-bar-background_active;
+		background: $Slider-Thumb-Bar_Background__Active;
 	}
 	html.slider-opened & {
-		border-radius: 1px;//$scrollbar-thumb-size;
-		border-color: transparent;//$slider-thumb-bar-border-color_opened;
-		background: transparent;//$slider-thumb-bar-background_opened;
+		border-radius: 1px;//$GLOBAL__Scrollbar-Thumb_Size;
+		border-color: transparent;//$Slider-Thumb-Bar_BorderColor_SliderOpened;
+		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened;
 	}
 	html.slider-opened.appearance-horizontal & {
 		height: 100%;
@@ -2024,11 +2016,11 @@ div#bibi-slider-thumb {
 		width: 100%;
 	}
 	html.slider-opened &:hover {
-		background: transparent;//$slider-thumb-bar-background_opened_hover;
+		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened__Hover;
 	}
 	html.slider-opened &:active,
 	html.slider-opened &.active {
-		background: transparent;//$slider-thumb-bar-background_opened_active;
+		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened__Active;
 	}
 	&:before {
 		& {
@@ -2037,20 +2029,28 @@ div#bibi-slider-thumb {
 			display: block;
 			position: absolute;
 			z-index: 10;
-			@include trbl($slider-thumb-circle-size_opened * -1);
+			@include trbl($GLOBAL__Scrollbar-Thumb_Size * -1);
 			margin: auto;
+			@include size(100%);
 			border-radius: 50%;
-			@include size(0);
-			background: transparent;
+			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
 			//transform: scale(0);
-			transition: $slider-transition;
+			transition: $Slider_Transition;
 			//pointer-events: auto;
 		}
+		html.appearance-horizontal & {
+			min-width: $GLOBAL__Scrollbar-Thumb_Size;
+		}
+		html.appearance-vertical & {
+			min-height: $GLOBAL__Scrollbar-Thumb_Size;
+		}
 		html.slider-opened & {
-			@include size($slider-thumb-circle-size_opened);
-			border: solid $slider-thumb-circle-border-width_opened $slider-thumb-circle-border-color_opened;
-			background: $slider-thumb-circle-background_opened;
-			box-shadow: 0 0 0 $slider-thumb-circle-halo-width_opened $slider-thumb-circle-halo-color_opened;
+			@include trbl($Slider-Thumb-Circle_Size_SliderOpened * -1);
+			@include size($Slider-Thumb-Circle_Size_SliderOpened);
+			@include min-size(0);
+			border: solid $Slider-Thumb-Circle_BorderWidth_SliderOpened $Slider-Thumb-Circle_BorderColor_SliderOpened;
+			background: $Slider-Thumb-Circle_Background_SliderOpened;
+			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width_SliderOpened $Slider-Thumb-Circle-Halo_Color_SliderOpened;
 		}
 		html.slider-opened.appearance-horizontal & { cursor: col-resize; }
 		html.slider-opened.appearance-vertical &   { cursor: row-resize; }
@@ -2064,10 +2064,8 @@ div#bibi-slider-thumb {
 // + Arrows
 // --------------------------------------------------------------------------------
 
-
-$arrow-bar-length: $top-bar-height;
-$arrow-icon-size: $arrow-bar-length * 1;
-
+$Arrow-Bar_Length: $GLOBAL__TopBar_Height;
+$Arrow-Icon_Size: $Arrow-Bar_Length * 1;
 
 div#bibi-arrow-back,
 div#bibi-arrow-forward {
@@ -2075,7 +2073,7 @@ div#bibi-arrow-forward {
 	& {
 		display: none; html.arrows-active & { display: block; }
 		position: absolute;
-		z-index: $z-index_arrow;
+		z-index: $GLOBAL__Arrow_ZIndex;
 		margin: auto;
 		line-height: 1;
 		&:before, &:after {
@@ -2087,11 +2085,10 @@ div#bibi-arrow-forward {
 			@include font-icon("Material Icons");
 			z-index: 2;
 			margin: auto;
-			width: $arrow-icon-size;
-			height: $arrow-icon-size;
+			@include size($Arrow-Icon_Size);
 			text-align: center;
 			vertical-align: middle;
-			font-size: $arrow-icon-size;
+			font-size: $Arrow-Icon_Size;
 			border-radius: 50%;
 			color: white;//rgb(96,96,96);
 			background: black;
@@ -2101,37 +2098,38 @@ div#bibi-arrow-forward {
 			z-index: 1;
 		}
 	}
-	html.appearance-vertical & {
-		// ↑↓
-		left: 0; right: auto; height: 0;
-		&:before { left: 0; right: 0; }
-		&:after  { left: 0; right: 0; width: 100%; height: $arrow-bar-length; }
-	}
-	html.appearance-vertical:not(.slider-opened) & {
-		width: 100%; width: 100vw;
-	}
-	html.appearance-vertical.slider-opened & {
-		width: calc(100% - 78px); width: calc(100vw - 78px);
-	}
 	html.appearance-horizontal & {
 		// ←→
 		bottom: auto; width: 0;
 		&:before { top: 0; bottom: 0; }
-		&:after  { top: 0; bottom: 0; width: $arrow-bar-length; height: 100%; }
+		&:after  { top: 0; bottom: 0; @include size($Arrow-Bar_Length, 100%); }
 	}
 	html.appearance-horizontal.book-full-height:not(.slider-opened) & {
 		top: 0;
-		height: 100%; height: 100vh;
+		height: 100%; height: 100vh; // overrided by script
 	}
-	html.appearance-horizontal.slider-opened &,
+	html.appearance-horizontal.book-full-height.slider-opened &,
 	html.appearance-horizontal:not(.book-full-height) & {
-		top: $top-bar-height;
+		top: $GLOBAL__TopBar_Height;
 	}
-	html.appearance-horizontal:not(.book-full-height) & {
-		height: calc(100% - #{$top-bar-height}); height: calc(100vh - #{$top-bar-height});
+	html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
+		height: calc(100% - #{$GLOBAL__TopBar_Height}); height: calc(100vh - #{$GLOBAL__TopBar_Height}); // overrided by script
 	}
-	html.appearance-horizontal.slider-opened & {
-		height: calc(100% - #{$top-bar-height + 78px}); height: calc(100vh - #{$top-bar-height + 78px});
+	html.appearance-horizontal.book-full-height.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height).slider-opened & {
+		height: calc(100% - #{$GLOBAL__TopBar_Height + 78px}); height: calc(100vh - #{$GLOBAL__TopBar_Height + 78px});
+	}
+	html.appearance-vertical & {
+		// ↑↓
+		left: 0; right: auto; height: 0;
+		&:before { left: 0; right: 0; }
+		&:after  { left: 0; right: 0; @include size(100%, $Arrow-Bar_Length); }
+	}
+	html.appearance-vertical:not(.slider-opened) & {
+		width: 100%; width: 100vw; // overrided by script
+	}
+	html.appearance-vertical.slider-opened & {
+		width: calc(100% - 78px); width: calc(100vw - 78px);
 	}
 	html.busy & {
 		&:before, &:after { opacity: 0 !important; transition: none !important; }
@@ -2159,41 +2157,42 @@ div#bibi-arrow-forward {
 
 html:not(.book-full-height).appearance-ttb div#bibi-arrow-back {
 	& {
-		&:before { margin-top: $top-bar-height; }
+		&:before { margin-top: $GLOBAL__TopBar_Height; }
 	}
 }
 
-@mixin arrow-variation($dir, $transform-origin, $icon-code, $icon-code_glowing, $icon-line-height, $icon-indent) {
+@mixin arrow-variation($Arrow_Dir, $Arrow_TransformOrigin, $Arrow-Icon_Code, $Arrow-Icon_Code__Glowing, $Arrow-Icon_LineHeight, $Arrow-Icon_Indent) {
 	& {
-		#{$dir}: 0;
-		&:before, &:after { transform-origin: $transform-origin; }
-		&:before { content: $icon-code; #{$dir}: $button-group-margin; line-height: $icon-line-height; text-indent: $icon-indent; }
-		//&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
-		&:after { #{$dir}: $arrow-bar-length * -1; background: linear-gradient(to $dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1)); }
+		#{$Arrow_Dir}: 0;
+		&:before, &:after { transform-origin: $Arrow_TransformOrigin; }
+		&:before { content: $Arrow-Icon_Code; #{$Arrow_Dir}: $GLOBAL__ButtonGroup_Margin; line-height: $Arrow-Icon_LineHeight; text-indent: $Arrow-Icon_Indent; }
+		//&:after { #{$Arrow_Dir}: $Arrow-Bar_Length * -1; background: linear-gradient(to $Arrow_Dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		&:after { #{$Arrow_Dir}: $Arrow-Bar_Length * -1; background: linear-gradient(to $Arrow_Dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1)); }
 	}
 	&.available.hover, &.available.glowing {
-		&:after { #{$dir}: 0; }
+		&:after { #{$Arrow_Dir}: 0; }
 	}
 	&.available.glowing {
-		&:before { content: $icon-code_glowing; #{$dir}: 8px; }
+		&:before { content: $Arrow-Icon_Code__Glowing; #{$Arrow_Dir}: 8px; }
 	}
 }
 
 html.appearance-ltr div#bibi-arrow-back,
 html.appearance-rtl div#bibi-arrow-forward {
-	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $arrow-icon-size, -.03em); // chevron_left
+	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $Arrow-Icon_Size, -.03em); // chevron_left
 }
 html.appearance-ltr div#bibi-arrow-forward,
 html.appearance-rtl div#bibi-arrow-back {
-	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $arrow-icon-size, .03em); // chevron_right
+	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $Arrow-Icon_Size, .03em); // chevron_right
 }
 
 html.appearance-ttb div#bibi-arrow-back {
-	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\e5ce", "\e5ce", $arrow-icon-size * .97, 0); // expand_less
+	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\e5ce", "\e5ce", $Arrow-Icon_Size * .97, 0); // expand_less
 }
 html.appearance-ttb div#bibi-arrow-forward {
-	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $arrow-icon-size * 1.03, 0); // expand_more
+	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $Arrow-Icon_Size * 1.03, 0); // expand_more
 }
+
 
 
 
@@ -2202,59 +2201,49 @@ html.appearance-ttb div#bibi-arrow-forward {
 // --------------------------------------------------------------------------------
 
 
-$spinner-size: 56px;
-$spinner-halo-size: 32px; $spinner-halo-color: rgba(192,192,192,0.50);
-$spinner-core-size: 24px; $spinner-core-color: rgba(192,192,192,0.75);
-$spinner-bits: 12;
+$Spinner_Size: 56px;
+$Spinner-Halo_Size: 32px; $Spinner-halo-color: rgba(192,192,192,0.50);
+$Spinner-Core_Size: 24px; $Spinner-core-color: rgba(192,192,192,0.75);
+$Spinner_HowManyBits: 12;
 
 div#bibi-spinner {
 	box-sizing: border-box;
 	display: none;
 	position: fixed;
-	z-index: $z-index_spinner;
-	left: -100%;
-	right: -100%;
-	top: 48%;
-	bottom: auto;
+	z-index: $GLOBAL__Spinner_ZIndex;
+	@include trbl(48%, -100%, auto);
 	margin: auto;
-	width: $spinner-size;
-	height: $spinner-size;
+	@include size($Spinner_Size);
 	&:before, &:after {
 		content: "";
 		position: absolute;
 		box-sizing: border-box;
-		left: 0; right: 0; top: 0; bottom: 0;
+		@include trbl(0);
 		margin: auto;
 		border-radius: 50%;
 		opacity: 0.75;
 	}
 	&:before { // core
-		width: $spinner-core-size;
-		height: $spinner-core-size;
-		background: $spinner-core-color;
+		@include size($Spinner-Core_Size);
+		background: $Spinner-core-color;
 	}
 	&:after { // halo
-		width: $spinner-halo-size;
-		height: $spinner-halo-size;
-		border: solid 1.5px $spinner-halo-color;
+		@include size($Spinner-Halo_Size);
+		border: solid 1.5px $Spinner-halo-color;
 	}
 	span {
 		display: block;
 		position: absolute;
-		left: -100%;
-		right: -100%;
-		top: 0;
-		bottom: auto;
+		@include trbl(0, -100%, auto);
 		margin: 0 auto;
 		border-radius: 50%;
-		width: 3px;
-		height: 3px;
-		transform-origin: 50% ($spinner-size * 0.5);
+		@include size(3px);
+		transform-origin: 50% ($Spinner_Size * 0.5);
 		//background: rgba(128,128,128,0.5);
-		@for $i from 1 through $spinner-bits {
+		@for $i from 1 through $Spinner_HowManyBits {
 			&:nth-child(#{$i}) {
-				background: darken(rgb(255,255,255), (72% / $spinner-bits * $i));
-				transform: rotate(360deg / $spinner-bits * $i);
+				background: darken(rgb(255,255,255), (72% / $Spinner_HowManyBits * $i));
+				transform: rotate(360deg / $Spinner_HowManyBits * $i);
 			}
 		}
 	}
@@ -2284,9 +2273,9 @@ div#bibi-spinner {
 }
 /*
 @keyframes GLOW {
-	  0% { width: 3px; height: 3px; opacity: 1.0; }
-	 25% { width: 1px; height: 1px; }
-	 50% { width: 1px; height: 6px; opacity: 1.0; }
-	 75% { width: 1px; height: 1px; }
-	100% { width: 3px; height: 3px; opacity: 1.0; }
+	  0% { @include size(3px     ); opacity: 1.0; }
+	 25% { @include size(1px     ); }
+	 50% { @include size(1px, 6px); opacity: 1.0; }
+	 75% { @include size(1px     ); }
+	100% { @include size(3px     ); opacity: 1.0; }
 }*/
