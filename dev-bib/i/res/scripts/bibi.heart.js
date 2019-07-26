@@ -1533,7 +1533,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsToBeTurnedFaceUp.push(Spread);
         if(i == 0) Promised = R.turnSpread(Spread, true);
-        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 99 * i);
+        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 9 * i);
     });
     if(!Promised) Promised = Promise.resolve();
     R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
