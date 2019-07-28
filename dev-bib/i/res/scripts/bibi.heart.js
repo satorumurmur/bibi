@@ -2346,11 +2346,11 @@ I.Menu = { create: () => {
         };
     });
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html:not(.veil-opened).view-vertical div#bibi-menu'
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened) div#bibi-menu'
     ].join(', '), 'width: calc(100% - ' + (O.Scrollbars.Width) + 'px);');
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html:not(.veil-opened).view-vertical.panel-opened div#bibi-menu',
-        'html:not(.veil-opened).view-vertical.subpanel-opened div#bibi-menu'
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).panel-opened div#bibi-menu',
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).subpanel-opened div#bibi-menu'
     ].join(', '), 'width: 100%; padding-right: ' + (O.Scrollbars.Width) + 'px;');
     I.OpenedSubpanel = null;
     I.Subpanels = [];
