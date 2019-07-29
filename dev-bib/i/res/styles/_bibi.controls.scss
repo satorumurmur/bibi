@@ -2036,6 +2036,7 @@ div#bibi-slider-thumb {
 			@include size($Slider-Thumb-Circle_Size_SliderOpened);
 			@include min-size(0);
 			border: solid $Slider-Thumb-Circle_BorderWidth_SliderOpened $Slider-Thumb-Circle_BorderColor_SliderOpened;
+			border-radius: 50%;
 			background: $Slider-Thumb-Circle_Background_SliderOpened;
 			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width_SliderOpened $Slider-Thumb-Circle-Halo_Color_SliderOpened;
 		}
