@@ -753,17 +753,15 @@ div#bibi-shade {
 
 $Subpanel_BackgroundColor: rgba(252,252,252, 0.96);
 $Subpanel_Margin: $GLOBAL__ButtonGroup_Margin;
-$Subpanel-Triangle_Size: $Subpanel_Margin * 1.5;
+
+$Subpanel-Scrollbar-Track_Size: 6px;
+$Subpanel-Scrollbar-Thumb_Size: 2px;
+$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
+$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
 
 div.bibi-subpanel {
-	&,
-	& span.bibi-subpanel-bit {
-		box-sizing: border-box;
-		opacity: 0.25;
-		transform: translateY($Subpanel_Margin * -2) scale(0);
-		transition: transform 0.15s ease-out;
-	}
 	& {
+		box-sizing: border-box;
 		position: absolute;
 		z-index: $GLOBAL__Subpanel_ZIndex;
 		right: $Subpanel_Margin;
@@ -773,20 +771,11 @@ div.bibi-subpanel {
 		max-width: 320px - $Subpanel_Margin * 2;
 		border-radius: 4px;
 		background: $Subpanel_BackgroundColor;
-	}
-	html.appearance-horizontal & {
-		max-height: calc(100% - #{$GLOBAL__TopBar_Height + $GLOBAL__Scrollbar-Track_Size + $Subpanel_Margin * 2});
-	}
-	html.appearance-vertical & {
-		max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2});
-	}
-	& {
+		transform: translateY($Subpanel_Margin * -2) scale(0);
+		opacity: 0.25;
+		transition: transform 0.15s ease-out;
 		overflow: auto; -webkit-overflow-scrolling: touch;
-		$Subpanel-Scrollbar-Track_Size: 6px;
-		$Subpanel-Scrollbar-Thumb_Size: 2px;
-		$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
-		$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
-		&::-webkit-scrollbar { // scrollbar
+		&::-webkit-scrollbar {
 			@include size($Subpanel-Scrollbar-Track_Size);
 		}
 		&::-webkit-scrollbar-track {
@@ -800,28 +789,13 @@ div.bibi-subpanel {
 			&:active { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
 		}
 	}
-	& span.bibi-subpanel-bit {
-		display: block;
-		position: absolute;
-		top: $Subpanel-Triangle_Size * -2;
-		left: 0; // overrided by script
-		margin-left: $Subpanel-Triangle_Size * -1;
-		display: block;
-		@include size(0);
-		border: solid $Subpanel-Triangle_Size transparent;
-		border-bottom-color: $Subpanel_BackgroundColor;
-		transform-origin: 50% 0;
-	}
-	&.opened,
-	&.opened span.bibi-subpanel-bit {
+	html.appearance-horizontal & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $GLOBAL__Scrollbar-Track_Size + $Subpanel_Margin * 2}); }
+	html.appearance-vertical   & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
+	&.opened {
 		opacity: 1;
 		transform: none;
 		transition: transform 0.2s cubic-bezier(.2,.8,.8,1.1);
-	}
-	&.opened {
 		box-shadow: rgba(black, 0.1) 0 2px 2px;
-	}
-	&.opened span.bibi-subpanel-bit {
 	}
 }
 
@@ -1102,7 +1076,7 @@ $Menu_BorderBottomColor__Hover:  $Menu_BorderBottomColor;
 $Menu_BorderBottomColor__Active: $Menu_BorderBottomColor__Hover;
 $Menu_BoxShadow__Active: 0 0 16px rgba(black, 0.125);
 
-// Not-BookFullHeight (NotBFH)
+// Not-BookFullHeight (NotBFH) ... html:not(.book-full-height)
 $NotBFH-Menu_BackgroundColor:         rgba(white, 1  );
 $NotBFH-Menu_BackgroundColor__Hover:  $NotBFH-Menu_BackgroundColor;
 $NotBFH-Menu_BackgroundColor__Active: $NotBFH-Menu_BackgroundColor__Hover;
@@ -1128,28 +1102,37 @@ div#bibi-menu {
 	&, & ul {
 		transition: .125s linear;
 	}
-	html.book-full-height &                       {  background-color: $Menu_BackgroundColor;                 border-bottom-color: $Menu_BorderBottomColor; }
-	html.book-full-height &.hover,
-	html.book-full-height.subpanel-opened &       {  background-color: $Menu_BackgroundColor__Hover;           border-bottom-color: $Menu_BorderBottomColor__Hover; }
-	html.book-full-height.menu-opened &           {  background-color: $Menu_BackgroundColor__Active;          border-bottom-color: $Menu_BorderBottomColor__Active;          box-shadow: $Menu_BoxShadow__Active; }
-	html:not(.book-full-height) &                 {  background-color: $NotBFH-Menu_BackgroundColor;         border-bottom-color: $NotBFH-Menu_BorderBottomColor; }
-	html:not(.book-full-height) &.hover,
-	html:not(.book-full-height).subpanel-opened & {  background-color: $NotBFH-Menu_BackgroundColor__Hover;   border-bottom-color: $NotBFH-Menu_BorderBottomColor__Hover; }
-	html:not(.book-full-height).menu-opened &     {  background-color: $NotBFH-Menu_BackgroundColor__Active;  border-bottom-color: $NotBFH-Menu_BorderBottomColor__Active;  box-shadow: $NotBFH-Menu_BoxShadow__Active; }
-	html.without-menubar &,
-	html.waiting-file &  {
-		display: none !important;
-	}
 }
 
-html.slider-opened.view-vertical div#bibi-menu {
-	width: calc(100% - #{$GLOBAL__Slider_Size});
+html.book-full-height {
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor;         border-bottom-color: $Menu_BorderBottomColor; }
+	&                 div#bibi-menu.hover,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover;  border-bottom-color: $Menu_BorderBottomColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; border-bottom-color: $Menu_BorderBottomColor__Active; box-shadow: $Menu_BoxShadow__Active; }
 }
 
-html.view-vertical.slider-opened.panel-opened div#bibi-menu,
-html.view-vertical.slider-opened.subpanel-opened div#bibi-menu {
-	width: 100%;
-	padding-right: $GLOBAL__Slider_Size;
+html:not(.book-full-height) {
+	&                 div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor;         border-bottom-color: $NotBFH-Menu_BorderBottomColor; }
+	&                 div#bibi-menu.hover,
+	&.subpanel-opened div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Hover;  border-bottom-color: $NotBFH-Menu_BorderBottomColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Active; border-bottom-color: $NotBFH-Menu_BorderBottomColor__Active; box-shadow: $NotBFH-Menu_BoxShadow__Active; }
+}
+
+/*html.appearance-vertical:not(.veil-opened):not(.slider-opened) {
+	&                 div#bibi-menu,
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { width: 100%; } // override by script
+}*/
+
+html.appearance-vertical:not(.veil-opened).slider-opened {
+	&                 div#bibi-menu { width: calc(100% - #{$GLOBAL__Slider_Size}); }
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { width: 100%; padding-right: $GLOBAL__Slider_Size; }
+}
+
+html.without-menubar,
+html.waiting-file {
+	&                 div#bibi-menu { display: none !important; }
 }
 
 
@@ -1674,6 +1657,7 @@ div#bibi-slider-bookmap-box {
 			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}), // 100%,
 			calc(100% - 1px)
 		);
+		will-change: height;
 	}
 	html.appearance-horizontal.slider-opened & {
 		top: 1px + $Slider_Padding;
@@ -1685,6 +1669,7 @@ div#bibi-slider-bookmap-box {
 			calc(100% - 1px),
 			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}) // 100%
 		);
+		will-change: width;
 	}
 	html.appearance-vertical.slider-opened & {
 		left: 1px + $Slider_Padding;
@@ -1935,6 +1920,7 @@ div#bibi-slider-rail-progress {
 		@include size(0);
 		background: $Slider-Rail-Progress_Color;
 		transition: background-color linear .33s;
+		will-change: transform;
 	}
 	div#bibi-slider:hover & {
 		background: $Slider-Rail-Progress_Color__Hover;
@@ -1983,19 +1969,20 @@ div#bibi-slider-thumb {
 		z-index: 100000;
 		margin: auto;
 		pointer-events: none;
-		will-change: left, top;
 	}
 	html.appearance-horizontal & {
 		//top: -100vh;
 		//bottom: -100vh;
 		top: 0; bottom: 0;
 		height: $GLOBAL__Scrollbar-Thumb_Size;
+		will-change: width, height, transform, left;
 	}
 	html.appearance-vertical & {
 		//left: -100vw;
 		//right: -100vw;
 		left: 0; right: 0;
 		width: $GLOBAL__Scrollbar-Thumb_Size;
+		will-change: width, height, transform, top;
 	}
 	&.hover {
 		background: $Slider-Thumb-Bar_Background__Hover;
@@ -2032,7 +2019,7 @@ div#bibi-slider-thumb {
 			@include trbl($GLOBAL__Scrollbar-Thumb_Size * -1);
 			margin: auto;
 			@include size(100%);
-			border-radius: 50%;
+			border-radius: $GLOBAL__Scrollbar-Thumb_Size * 0.5;
 			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
 			//transform: scale(0);
 			transition: $Slider_Transition;
@@ -2049,6 +2036,7 @@ div#bibi-slider-thumb {
 			@include size($Slider-Thumb-Circle_Size_SliderOpened);
 			@include min-size(0);
 			border: solid $Slider-Thumb-Circle_BorderWidth_SliderOpened $Slider-Thumb-Circle_BorderColor_SliderOpened;
+			border-radius: 50%;
 			background: $Slider-Thumb-Circle_Background_SliderOpened;
 			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width_SliderOpened $Slider-Thumb-Circle-Halo_Color_SliderOpened;
 		}
@@ -2155,7 +2143,8 @@ div#bibi-arrow-forward {
 	}
 }
 
-html:not(.book-full-height).appearance-ttb div#bibi-arrow-back {
+html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
+html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
 	& {
 		&:before { margin-top: $GLOBAL__TopBar_Height; }
 	}

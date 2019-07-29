@@ -1364,7 +1364,7 @@ R.renderReflowableItem = (Item) => {
     let PageCB  = R.Stage[C.L_SIZE_B] - (S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e]); // Page "C"ontent "B"readth
     let PageCL  = R.Stage[C.L_SIZE_L] - (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]); // Page "C"ontent "L"ength
     let PageGap = R.Stage.PageGap     + (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]);
-    ['b','a','s','e'].forEach(base => { const trbl = C.L.BASE[base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
+    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
     Item.HTML.classList.remove('bibi-columned');
     Item.HTML.style.width = Item.HTML.style.height = '';
     sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
@@ -1516,7 +1516,7 @@ R.SpreadsTurnedFaceUp = [];
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!S['allow-placeholders']) return resolve(R.SpreadsTurnedFaceUp);
-    if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3];
+    if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3, 4, -2];
     if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
     if(!Opt.Origin) {
              if(      R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?       R.Current.List.slice(-1) :       R.Current.List)[0].Page.Spread;
@@ -1538,7 +1538,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!Promised) Promised = Promise.resolve();
     R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
     R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
-    while(R.SpreadsTurnedFaceUp.length > 8) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
+    while(R.SpreadsTurnedFaceUp.length > 12) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
     SpreadsToBeTurnedFaceDown.forEach((Spread, i) => {
         clearTimeout(Spread.Timer_TurningFaceUp);
         clearTimeout(Spread.Timer_TurningFaceDown);
@@ -2273,7 +2273,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
     }
     Catcher.Input.addEventListener('change', Eve => {
         let FileData = {};  try { FileData = Eve.target.files[0]; } catch(_) {}
-        L.getBookData.resolve({ BookData: FileData });
+        Bibi.getBookData.resolve({ BookData: FileData });
     });
     Catcher.addEventListener('click', Eve => Catcher.Input.click(Eve));
     if(!O.Touch) {
@@ -2282,7 +2282,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
         Catcher.addEventListener('dragleave', Eve => { Eve.preventDefault(); O.HTML.classList.remove('dragenter'); }, 1);
         Catcher.addEventListener('drop',      Eve => { Eve.preventDefault();
             let FileData = {};  try { FileData = Eve.dataTransfer.files[0]; } catch(_) {}
-            L.getBookData.resolve({ BookData: FileData });
+            Bibi.getBookData.resolve({ BookData: FileData });
         }, 1);
     }
     Catcher.appendChild(I.getBookIcon());
@@ -2346,11 +2346,11 @@ I.Menu = { create: () => {
         };
     });
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html:not(.veil-opened).view-vertical div#bibi-menu'
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened) div#bibi-menu'
     ].join(', '), 'width: calc(100% - ' + (O.Scrollbars.Width) + 'px);');
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html:not(.veil-opened).view-vertical.panel-opened div#bibi-menu',
-        'html:not(.veil-opened).view-vertical.subpanel-opened div#bibi-menu'
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).panel-opened div#bibi-menu',
+        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).subpanel-opened div#bibi-menu'
     ].join(', '), 'width: 100%; padding-right: ' + (O.Scrollbars.Width) + 'px;');
     I.OpenedSubpanel = null;
     I.Subpanels = [];
@@ -3081,7 +3081,15 @@ I.Slider = { create: () => {
         },
         resetThumbAndRail: () => {
             Slider.Thumb.style.width = Slider.Thumb.style.height = Slider.Rail.style.width = Slider.Rail.style.height = '';
-            Slider.Thumb.LengthRatio = R.Main['offset' + C.L_SIZE_L] / R.Main['scroll' + C.L_SIZE_L];
+            let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
+            if(S.ARA == S.SLA) {
+                if(S.SLA == 'horizontal') {
+                    ScrollLength -= Slider.BookStretchingEach * 2;
+                } else {
+                    ScrollLength -= Slider.BookStretchingEach * 3;
+                }
+            }
+            Slider.Thumb.LengthRatio = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength;
             Slider.Thumb.style[C.A_SIZE_l] = (      Slider.Thumb.LengthRatio * 100) + '%';
             Slider.Rail.style[ C.A_SIZE_l] = (100 - Slider.Thumb.LengthRatio * 100) + '%';
             Slider.Rail.Coords = [O.getElementCoord(Slider.Rail)[C.A_AXIS_L]];
@@ -3090,9 +3098,17 @@ I.Slider = { create: () => {
         progress: () => {
             if(Slider.Touching) return;
             Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
-            const Scrolled = R.Main['scroll' + C.L_OOBL_L];
+            let Scrolled = R.Main['scroll' + C.L_OOBL_L];
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-            if(S.ARA != S.SLA) ScrollLength -= Slider.BookStretchingEach * 2;
+            if(S.ARA == S.SLA) {
+                if(S.SLA == 'horizontal') {
+                    ScrollLength -= Slider.BookStretchingEach * 2;
+                } else {
+                    ScrollLength -= Slider.BookStretchingEach * 3;
+                }
+            } else { // Paged (HorizontalAppearance) && VerticalText
+                if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height;
+            }
             Slider.Thumb.style[C.A_OOBL_l] = (Scrolled / ScrollLength * 100) + '%';
             Slider.Rail.Progress.style.width = Slider.Rail.Progress.style.height = '';
             let Progress = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2 - O.getElementCoord(Slider.Rail)[C.A_AXIS_L];
@@ -3183,11 +3199,13 @@ I.Slider = { create: () => {
             R.Main.style['padding' + C.A_BASE_B] = Slider.BookStretchingEach + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.offsetHeight : 0) + 'px';
             R.Main.style['padding' + C.A_BASE_A] = Slider.BookStretchingEach + 'px';
             if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = Slider.BookStretchingEach + 'px';
-            I.Loupe.transform(Transformation, { Temporary: true }).then(Slider.progress);
+            return I.Loupe.transform(Transformation, { Temporary: true }).then(() => {
+                Slider.progress();
+            });
         },
         resetZoomingOutOfBook: () => {
             R.Main.style['padding' + C.A_BASE_B] = R.Main.style['padding' + C.A_BASE_A] = '';
-            I.Loupe.transformReset().then(() => {
+            return I.Loupe.transformReset().then(() => {
                 //R.Main.style[C.A_SIZE_l] = '';
                 if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = '';
                 Slider.BookStretchingEach = 0;
@@ -3340,16 +3358,15 @@ I.Slider = { create: () => {
     I.setToggleAction(Slider, {
         onopened: () => {
             Slider.zoomOutBook();
-            Slider.progress();
             O.HTML.classList.add('slider-opened');
             E.dispatch('bibi:opened-slider');
         },
         onclosed: () => {
-            Slider.resetZoomingOutOfBook();
-            Slider.progress();
+            Slider.resetZoomingOutOfBook().then(() => {
+                if(Slider.UI.reset) Slider.UI.reset();
+            });
             O.HTML.classList.remove('slider-opened');
             E.dispatch('bibi:closed-slider');
-            if(Slider.UI.reset) Slider.UI.reset();
         }
     });
     E.add('bibi:commands:open-slider',   Slider.open);
@@ -3847,10 +3864,7 @@ I.createSubpanel = (Par = {}) => {
             I.OpenedSubpanel = this;
             this.classList.add('opened');
             O.HTML.classList.add('subpanel-opened');
-            if(Subpanel.Opener) {
-                Subpanel.Bit.adjust(Subpanel.Opener);
-                I.setUIState(Subpanel.Opener, 'active');
-            }
+            if(Subpanel.Opener) I.setUIState(Subpanel.Opener, 'active');
             if(Par.onopened) Par.onopened.apply(Subpanel, arguments);
         },
         onclosed: function(Opt) {
@@ -3873,15 +3887,6 @@ I.createSubpanel = (Par = {}) => {
     if(Subpanel.Opener) Subpanel.bindOpener(Subpanel.Opener);
     E.add('bibi:opened-panel',      Subpanel.close);
     E.add('bibi:closes-utilities',  Subpanel.close);
-    Subpanel.Bit = Subpanel.appendChild(sML.create('span', { className: 'bibi-subpanel-bit',
-        Subpanel: Subpanel,
-        adjust: function(Ele) {
-            if(!Ele) return;
-            const Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.Subpanel).X;
-            sML.style(this.Subpanel, { transformOrigin: Center + 'px 0' });
-            sML.style(this.Subpanel.Bit, { left: Center + 'px' });
-        }
-    }));
     I.Subpanels.push(Subpanel);
     Subpanel.addSection = function(Par = {}) {
         const SubpanelSection = I.createSubpanelSection(Par);
