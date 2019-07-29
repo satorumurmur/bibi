@@ -2019,7 +2019,7 @@ div#bibi-slider-thumb {
 			@include trbl($GLOBAL__Scrollbar-Thumb_Size * -1);
 			margin: auto;
 			@include size(100%);
-			border-radius: 50%;
+			border-radius: $GLOBAL__Scrollbar-Thumb_Size * 0.5;
 			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
 			//transform: scale(0);
 			transition: $Slider_Transition;

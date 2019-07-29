@@ -1364,7 +1364,7 @@ R.renderReflowableItem = (Item) => {
     let PageCB  = R.Stage[C.L_SIZE_B] - (S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e]); // Page "C"ontent "B"readth
     let PageCL  = R.Stage[C.L_SIZE_L] - (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]); // Page "C"ontent "L"ength
     let PageGap = R.Stage.PageGap     + (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]);
-    ['b','a','s','e'].forEach(base => { const trbl = C.L.BASE[base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
+    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
     Item.HTML.classList.remove('bibi-columned');
     Item.HTML.style.width = Item.HTML.style.height = '';
     sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
@@ -3847,10 +3847,7 @@ I.createSubpanel = (Par = {}) => {
             I.OpenedSubpanel = this;
             this.classList.add('opened');
             O.HTML.classList.add('subpanel-opened');
-            if(Subpanel.Opener) {
-                Subpanel.Bit.adjust(Subpanel.Opener);
-                I.setUIState(Subpanel.Opener, 'active');
-            }
+            if(Subpanel.Opener) I.setUIState(Subpanel.Opener, 'active');
             if(Par.onopened) Par.onopened.apply(Subpanel, arguments);
         },
         onclosed: function(Opt) {
@@ -3873,15 +3870,6 @@ I.createSubpanel = (Par = {}) => {
     if(Subpanel.Opener) Subpanel.bindOpener(Subpanel.Opener);
     E.add('bibi:opened-panel',      Subpanel.close);
     E.add('bibi:closes-utilities',  Subpanel.close);
-    Subpanel.Bit = Subpanel.appendChild(sML.create('span', { className: 'bibi-subpanel-bit',
-        Subpanel: Subpanel,
-        adjust: function(Ele) {
-            if(!Ele) return;
-            const Center = O.getElementCoord(Ele).X + Ele.offsetWidth / 2 - O.getElementCoord(this.Subpanel).X;
-            sML.style(this.Subpanel, { transformOrigin: Center + 'px 0' });
-            sML.style(this.Subpanel.Bit, { left: Center + 'px' });
-        }
-    }));
     I.Subpanels.push(Subpanel);
     Subpanel.addSection = function(Par = {}) {
         const SubpanelSection = I.createSubpanelSection(Par);
