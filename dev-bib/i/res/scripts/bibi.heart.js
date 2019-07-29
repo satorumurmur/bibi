@@ -2273,7 +2273,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
     }
     Catcher.Input.addEventListener('change', Eve => {
         let FileData = {};  try { FileData = Eve.target.files[0]; } catch(_) {}
-        L.getBookData.resolve({ BookData: FileData });
+        Bibi.getBookData.resolve({ BookData: FileData });
     });
     Catcher.addEventListener('click', Eve => Catcher.Input.click(Eve));
     if(!O.Touch) {
@@ -2282,7 +2282,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
         Catcher.addEventListener('dragleave', Eve => { Eve.preventDefault(); O.HTML.classList.remove('dragenter'); }, 1);
         Catcher.addEventListener('drop',      Eve => { Eve.preventDefault();
             let FileData = {};  try { FileData = Eve.dataTransfer.files[0]; } catch(_) {}
-            L.getBookData.resolve({ BookData: FileData });
+            Bibi.getBookData.resolve({ BookData: FileData });
         }, 1);
     }
     Catcher.appendChild(I.getBookIcon());
