@@ -3398,15 +3398,18 @@ I.Slider = { create: () => {
 
 I.Turner = { create: () => {
     const Turner = I.Turner = {
-        Back: { Distance: -1 }, Forward: { Distance: 1 }, 'top': undefined, 'right': undefined, 'bottom': undefined, 'left': undefined,
+        Back: { Distance: -1 }, Forward: { Distance: 1 },
         update: () => {
-            if(S.RVM == 'vertical') {
-                Turner['left'] = Turner['right'] = undefined;
-                Turner['top'] = Turner.Back, Turner['bottom'] = Turner.Forward;
-            } else {
-                Turner['top'] = Turner['bottom'] = undefined;
-                if(S.PPD == 'ltr') Turner['left']  = Turner.Back, Turner['right'] = Turner.Forward;
-                else               Turner['right'] = Turner.Back, Turner['left']  = Turner.Forward;
+            switch(B.PPD) {
+                case 'ltr': Turner['left']  = Turner.Back, Turner['right'] = Turner.Forward; break;
+                case 'rtl': Turner['right'] = Turner.Back, Turner['left']  = Turner.Forward; break;
+                default   : Turner['left'] = Turner['right'] = undefined;
+            }
+        },
+        getDirection: (Division) => {
+            switch(S.ARA) {
+                case 'horizontal': return Division.X != 'center' ? Division.X : Division.Y;
+                case 'vertical'  : return Division.Y != 'middle' ? Division.Y : Division.X;
             }
         },
         isAbleToTurn: (Par) => {
@@ -3421,14 +3424,20 @@ I.Turner = { create: () => {
                         case -1: CurrentEdge = R.Current.List[          0], BookEdgePage = R.Pages[          0]; break;
                         case  1: CurrentEdge = R.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0]; break;
                     }
-                    return (L.Opened && (CurrentEdge.Page != BookEdgePage || !CurrentEdge.IntersectionStatus.Contained));
+                    if(L.Opened && (CurrentEdge.Page != BookEdgePage || !CurrentEdge.IntersectionStatus.Contained)) {
+                        switch(Par.Direction) {
+                            case 'left': case  'right': return S.ARA == 'horizontal' ? 1 : -1;
+                            case  'top': case 'bottom': return S.ARA ==   'vertical' ? 1 : -1;
+                        }
+                        return true;
+                    }
                 }
             }
             return false;
         }
     };
-    E.add('bibi:opened',           () => Turner.update());
-    E.add('bibi:updated-settings', () => Turner.update());
+    Turner['top'] = Turner.Back, Turner['bottom'] = Turner.Forward;
+    E.add('bibi:opened', () => Turner.update());
 }};
 
 
@@ -3436,7 +3445,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
     const Arrows = I.Arrows = {
         navigate: () => {
             setTimeout(() => {
-                [Arrows.Back, Arrows.Forward].forEach(Arrow => { if(I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance })) Arrow.classList.add('glowing'); });
+                [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Turner.isAbleToTurn({ Distance: Arrow.Turner.Distance }) ? Arrow.classList.add('glowing') : false);
                 setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
             }, 400);
         },
@@ -3484,11 +3493,15 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
             if(Arrows.areAvailable(BibiEvent)) {
-                const Dir = (S.RVM == 'vertical') ? BibiEvent.Division.Y : BibiEvent.Division.X;
-                if(I.Turner.isAbleToTurn({ Direction: Dir })) {
+                const Dir = I.Turner.getDirection(BibiEvent.Division);/*
+                const Dir = (S.RVM == 'vertical') ? BibiEvent.Division.Y : BibiEvent.Division.X;*/
+                const Availability = I.Turner.isAbleToTurn({ Direction: Dir });
+                if(Availability) {
                     const Arrow = I.Turner[Dir].Arrow;
-                    E.dispatch(Arrow,      'bibi:hovers',   Eve);
-                    E.dispatch(Arrow.Pair, 'bibi:unhovers', Eve);
+                    if(Availability != -1) {
+                        E.dispatch(Arrow,      'bibi:hovers',   Eve);
+                        E.dispatch(Arrow.Pair, 'bibi:unhovers', Eve);
+                    }
                     BibiEvent.Target.ownerDocument.documentElement.setAttribute('data-bibi-cursor', Dir);
                     return;
                 }
@@ -3505,7 +3518,8 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         const BibiEvent = O.getBibiEvent(Eve);
         //if(/^bibi-arrow-/.test(BibiEvent.Target.id)) return false;
         if(!Arrows.areAvailable(BibiEvent)) return false;
-        const Dir = (S.RVM == 'vertical') ? BibiEvent.Division.Y : BibiEvent.Division.X;
+        const Dir = I.Turner.getDirection(BibiEvent.Division);/*
+        const Dir = (S.RVM == 'vertical') ? BibiEvent.Division.Y : BibiEvent.Division.X;*/
         if(I.Turner.isAbleToTurn({ Direction: Dir })) {
             const Arrow = I.Turner[Dir].Arrow;
             E.dispatch(Arrow, 'bibi:taps',   Eve);
@@ -3667,26 +3681,22 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             EventTypes.forEach(EventType => KeyListener.KeyCodes[EventType] = sML.edit(KeyListener.KeyCodes[EventType], KeyCodesToUpdate));
         },
         MovingParameters: {
-            'Space':  1,  'Page Up':     -1,  'Page Down':      1,  'End': 'foot',  'Home': 'head',
-            'SPACE': -1,  'PAGE UP': 'head',  'PAGE DOWN': 'foot',  'END': 'foot',  'HOME': 'head'
+            'Up Arrow':     -1,  'Down Arrow':      1,  'Page Up':     -1,  'Page Down':      1,  'End': 'foot',  'Home': 'head',//  'Space':  1,
+            'UP ARROW': 'head',  'DOWN ARROW': 'foot',  'PAGE UP': 'head',  'PAGE DOWN': 'foot',  'END': 'foot',  'HOME': 'head'//,  'SPACE': -1
         },
         updateMovingParameters: () => {
-            switch(S.ARD) {
-                case 'ttb': return sML.edit(KeyListener.MovingParameters, {
-                    'Up Arrow':     -1,  'Right Arrow':      0,  'Down Arrow':      1,  'Left Arrow':      0,
-                    'UP ARROW': 'head',  'RIGHT ARROW':     '',  'DOWN ARROW': 'foot',  'LEFT ARROW':     ''
-                });
+            switch(B.PPD) {
                 case 'ltr': return sML.edit(KeyListener.MovingParameters, {
-                    'Up Arrow':      0,  'Right Arrow':      1,  'Down Arrow':      0,  'Left Arrow':     -1,
-                    'UP ARROW':     '',  'RIGHT ARROW': 'foot',  'DOWN ARROW':     '',  'LEFT ARROW': 'head'
+                    'Right Arrow':      1,  'Left Arrow':     -1,
+                    'RIGHT ARROW': 'foot',  'LEFT ARROW': 'head'
                 });
                 case 'rtl': return sML.edit(KeyListener.MovingParameters, {
-                    'Up Arrow':      0,  'Right Arrow':     -1,  'Down Arrow':      0,  'Left Arrow':      1,
-                    'UP ARROW':     '',  'RIGHT ARROW': 'head',  'DOWN ARROW':     '',  'LEFT ARROW': 'foot'
+                    'Right Arrow':     -1,  'Left Arrow':      1,
+                    'RIGHT ARROW': 'head',  'LEFT ARROW': 'foot'
                 });
                 default: return sML.edit(KeyListener.MovingParameters, {
-                    'Up Arrow':      0,  'Right Arrow':      0,  'Down Arrow':      0,  'Left Arrow':      0,
-                    'UP ARROW':     '',  'RIGHT ARROW':     '',  'DOWN ARROW':     '',  'LEFT ARROW':     ''
+                    'Right Arrow':      0,  'Left Arrow':      0,
+                    'RIGHT ARROW':     '',  'LEFT ARROW':     ''
                 });
             }
         },
@@ -3706,7 +3716,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             if(Eve.BibiKeyName) Eve.preventDefault();
             return true;
         },
-        onkeydown: (Eve) => {
+        onKeyDown: (Eve) => {
             if(!KeyListener.onEvent(Eve)) return false;
             if(Eve.BibiKeyName) {
                 if(!KeyListener.ActiveKeys[Eve.BibiKeyName]) {
@@ -3717,7 +3727,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             }
             E.dispatch('bibi:downs-key', Eve);
         },
-        onkeyup: (Eve) => {
+        onKeyUp: (Eve) => {
             if(!KeyListener.onEvent(Eve)) return false;
             if(KeyListener.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyListener.ActiveKeys[Eve.BibiKeyName] < 300) {
                 E.dispatch('bibi:touches-key', Eve);
@@ -3730,12 +3740,12 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             }
             E.dispatch('bibi:ups-key', Eve);
         },
-        onkeypress: (Eve) => {
+        onKeyPress: (Eve) => {
             if(!KeyListener.onEvent(Eve)) return false;
             E.dispatch('bibi:presses-key', Eve);
         },
         observe: (Doc) => {
-            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyListener['on' + EventName], false));
+            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyListener['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
         },
         tryMoving: (Eve) => {
             if(!Eve.BibiKeyName) return false;
@@ -3754,10 +3764,9 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
         35: 'End',         36: 'Home',
         37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
     });
-    E.add('bibi:updated-settings',   (  ) => { KeyListener.updateMovingParameters(); });
-    E.add('bibi:opened',             (  ) => { KeyListener.updateMovingParameters(); KeyListener.observe(document); });
-    E.add('bibi:postprocessed-item', Item => { if(!Item.IsPlaceholder) KeyListener.observe(Item.contentDocument); });
-    E.add('bibi:touched-key',        Eve  => { KeyListener.tryMoving(Eve); });
+    E.add('bibi:opened',             (  ) => KeyListener.updateMovingParameters() && KeyListener.observe(document));
+    E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyListener.observe(Item.contentDocument));
+    E.add('bibi:touched-key',        Eve  => KeyListener.tryMoving(Eve));
     E.dispatch('bibi:created-keylistener');
 }};
 
@@ -4914,6 +4923,39 @@ O.stopPropagation = (Eve) => { Eve.stopPropagation(); return false; };
 O.preventDefault  = (Eve) => { Eve.preventDefault();  return false; };
 
 
+O.getBibiEvent = (Eve) => {
+    if(!Eve) return {};
+    const Coord = O.getBibiEventCoord(Eve);
+    const FlipperWidth = S['flipper-width'];
+    const Ratio = {
+        X: Coord.X / window.innerWidth,
+        Y: Coord.Y / window.innerHeight
+    };
+    let BorderT, BorderR, BorderB, BorderL;
+    if(FlipperWidth < 1) { // Ratio
+        BorderL = BorderT =     FlipperWidth;
+        BorderR = BorderB = 1 - FlipperWidth;
+    } else { // Pixel to Ratio
+        BorderL = FlipperWidth / window.innerWidth;
+        BorderT = FlipperWidth / window.innerHeight;
+        BorderR = 1 - BorderL;
+        BorderB = 1 - BorderT;
+    }
+    const Division = {};
+         if(Ratio.X < BorderL) Division[9]  = 1, Division.X = 'left';
+    else if(BorderR < Ratio.X) Division[9]  = 3, Division.X = 'right';
+    else                       Division[9]  = 2, Division.X = 'center';
+         if(Ratio.Y < BorderT) Division[9] += 0, Division.Y = 'top';
+    else if(BorderB < Ratio.Y) Division[9] += 6, Division.Y = 'bottom';
+    else                       Division[9] += 3, Division.Y = 'middle';
+    return {
+        Target: Eve.target,
+        Coord: Coord,
+        Ratio: Ratio,
+        Division: Division
+    };
+};
+
 O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
     if(/^touch/.test(Eve.type)) {
         EventCoord.X = Eve.changedTouches[0].pageX;
@@ -4956,39 +4998,6 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
         Eve
     );*/
     return EventCoord;
-};
-
-O.getBibiEvent = (Eve) => {
-    if(!Eve) return {};
-    const Coord = O.getBibiEventCoord(Eve);
-    const FlipperWidth = S['flipper-width'];
-    const Ratio = {
-        X: Coord.X / window.innerWidth,
-        Y: Coord.Y / window.innerHeight
-    };
-    let BorderT, BorderR, BorderB, BorderL;
-    if(FlipperWidth < 1) { // Ratio
-        BorderL = BorderT =     FlipperWidth;
-        BorderR = BorderB = 1 - FlipperWidth;
-    } else { // Pixel to Ratio
-        BorderL = FlipperWidth / window.innerWidth;
-        BorderT = FlipperWidth / window.innerHeight;
-        BorderR = 1 - BorderL;
-        BorderB = 1 - BorderT;
-    }
-    const Division = {};
-         if(Ratio.X < BorderL) Division.X = 'left';
-    else if(BorderR < Ratio.X) Division.X = 'right';
-    else                       Division.X = 'center';
-         if(Ratio.Y < BorderT) Division.Y = 'top';
-    else if(BorderB < Ratio.Y) Division.Y = 'bottom';
-    else                       Division.Y = 'middle';
-    return {
-        Target: Eve.target,
-        Coord: Coord,
-        Ratio: Ratio,
-        Division: Division
-    };
 };
 
 
