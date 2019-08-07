@@ -1,4 +1,4 @@
-@import "_/_fonts";
+@import "_/fonts";
 
 /*!
  *                                                                                                                                (℠)
@@ -7,9 +7,27 @@
  *
  */
 
-@import "_/_lib";
-@import "_/_foundation";
+@import "_/vars";
+@import "_/mixins";
+@import "_/foundation";
 
-@import "_bibi.icons";
-@import "_bibi.stage";
-@import "_bibi.controls";
+@import "modules/bibi_icons";
+@import "modules/bibi_stage";
+@import "modules/bibi_dev";
+
+@import "modules/#bibi-main";
+
+@import "modules/#bibi-notifier";
+@import "modules/#bibi-veil";
+@import "modules/#bibi-help";
+
+@import "modules/#bibi-menu";
+@import "modules/#bibi-panel";
+@import "modules/.bibi-subpanel";
+
+@import "modules/#bibi-spinner";
+@import "modules/#bibi-nombre";
+@import "modules/#bibi-slider";
+@import "modules/.bibi-arrow";
+
+@import "modules/#bibi-poweredby";

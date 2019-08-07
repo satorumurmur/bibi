@@ -1,0 +1,91 @@
+// ================================================================================
+// + PoweredBy
+// --------------------------------------------------------------------------------
+
+
+div#bibi-poweredby {
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	z-index: $GLOBAL__PoweredBy_ZIndex;
+	@include offset(auto, 0, 0);
+	margin: 0 auto;
+	//padding: 4px;
+	height: $GLOBAL__BottomBar_Height;
+	text-align: right;
+	font-size: 14px;
+	transition: .1s linear;
+	transform: scale(0);
+	html.waiting-file &,
+	html.waiting &,
+	html.panel-opened & {
+		transform: none;
+	}
+	html.view-horizontal &,
+    html.page-rtl.panel-opened & {
+		bottom: $GLOBAL__Scrollbar-Track_Size; // to be overwritten by JavaScript ... O.ScrollBars.Height + "px"
+	}
+	html.veil-opened &,
+	html.panel-opened &,
+	html.subpanel-opened & {
+		bottom: 0 !important;
+	}
+	p {
+		a {
+			$PowerdBy-Logo-Image_OriginalWidth: 144px;
+			$PowerdBy-Logo-Image_OriginalHeight: 72px;
+			$PowerdBy-Logo-Image_Height: 16px;
+			$PowerdBy-Logo-Image_Width: $PowerdBy-Logo-Image_Height * ($PowerdBy-Logo-Image_OriginalWidth / $PowerdBy-Logo-Image_OriginalHeight);
+			$PowerdBy-Logo-Box_PaddingVertical: 4px;
+			$PowerdBy-Logo-Box_PaddingHorizontal: 8px;
+			$PowerdBy-Logo-Box_Height: $PowerdBy-Logo-Image_Height + $PowerdBy-Logo-Box_PaddingVertical * 2;
+			$PowerdBy-Logo-Box_Width: $PowerdBy-Logo-Image_Width + $PowerdBy-Logo-Box_PaddingHorizontal * 2;
+			$PowerdBy-Logo-Box_Margin: ($GLOBAL__BottomBar_Height - $PowerdBy-Logo-Box_Height) / 2;
+			display: block;
+			box-sizing: border-box;
+			position: absolute;
+			@include offset(0, auto, 0, $PowerdBy-Logo-Box_Margin);
+			text-decoration: none;
+			color: black;
+			margin: auto 0;
+			@include size($PowerdBy-Logo-Box_Width, $PowerdBy-Logo-Box_Height);
+			border-radius: 2px;
+			transition: .2s linear;
+			background: transparent none no-repeat center (($PowerdBy-Logo-Box_Height - $PowerdBy-Logo-Image_Height) / 2 + 2px);
+			background-size: $PowerdBy-Logo-Image_Width $PowerdBy-Logo-Image_Height;
+			text-align: center;
+			font-size: $PowerdBy-Logo-Image_Height;
+			line-height: $PowerdBy-Logo-Box_Height + 2px;
+			color: transparent;
+		}
+		a:hover {
+			transition: .075s linear;
+		}
+	}
+}
+
+html.waiting-file div#bibi-poweredby,
+html.waiting div#bibi-poweredby {
+	p {
+		a {
+			background-color: rgba(128,128,128, 0.5);
+			background-image: url(../images/bibi-logo_white.png);
+		}
+		a:hover {
+			background-color: rgba(160,160,160, 0.9);
+		}
+	}
+}
+
+html.panel-opened div#bibi-poweredby {
+	p {
+		a {
+			opacity: 0.5;
+			background-color: transparent;
+			background-image: url(../images/bibi-logo_black.png);
+		}
+		a:hover {
+			opacity: 1;
+		}
+	}
+}

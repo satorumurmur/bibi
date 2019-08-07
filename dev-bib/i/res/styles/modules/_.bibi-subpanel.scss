@@ -1,0 +1,362 @@
+// ================================================================================
+// + Subpanel
+// --------------------------------------------------------------------------------
+
+/*
+
+<div class="bibi-subpanel opened">
+	<div class="bibi-subpanel-section">
+		<div class="bibi-hgroup">
+			<p class="bibi-h"><span class="bibi-h-label">{ Heading Text }</span></p>
+		</div>
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+	<div class="bibi-subpanel-section">
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+</div>
+
+*/
+
+$Subpanel_BackgroundColor: rgba(252,252,252, 0.96);
+$Subpanel_Margin: $GLOBAL__ButtonGroup_Margin;
+
+$Subpanel-Scrollbar-Track_Size: 6px;
+$Subpanel-Scrollbar-Thumb_Size: 2px;
+$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
+$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
+
+div.bibi-subpanel {
+	& {
+		box-sizing: border-box;
+		position: absolute;
+		z-index: $GLOBAL__Subpanel_ZIndex;
+		right: $Subpanel_Margin;
+		top: $GLOBAL__TopBar_Height + $Subpanel_Margin;
+		margin: auto;
+		width: calc(100% - #{$Subpanel_Margin * 2});
+		max-width: 320px - $Subpanel_Margin * 2;
+		border-radius: 4px;
+		background: $Subpanel_BackgroundColor;
+		transform: translateY($Subpanel_Margin * -2) scale(0);
+		opacity: 0.25;
+		transition: transform 0.15s ease-out;
+		overflow: auto; -webkit-overflow-scrolling: touch;
+		&::-webkit-scrollbar {
+			@include size($Subpanel-Scrollbar-Track_Size);
+		}
+		&::-webkit-scrollbar-track {
+			background: $Subpanel-Scrollbar-Track_BackgroundColor;
+		}
+		&::-webkit-scrollbar-thumb {
+			border-radius: $Subpanel-Scrollbar-Track_Size * 0.5;
+			border: solid (($Subpanel-Scrollbar-Track_Size - $Subpanel-Scrollbar-Thumb_Size) * 0.5) $Subpanel-Scrollbar-Track_BackgroundColor;
+			background: $Subpanel-Scrollbar-Thumb_BackgroundColor;
+			&:hover  { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
+			&:active { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
+		}
+	}
+	html.appearance-horizontal & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $GLOBAL__Scrollbar-Track_Size + $Subpanel_Margin * 2}); }
+	html.appearance-vertical   & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
+	&.opened {
+		opacity: 1;
+		transform: none;
+		transition: transform 0.2s cubic-bezier(.2,.8,.8,1.1);
+		box-shadow: rgba(black, 0.1) 0 2px 2px;
+	}
+}
+
+
+// - Sub Panel > Section
+// --------------------------------------------------------------------------------
+
+.bibi-subpanel-section {
+	margin: ($GLOBAL__ButtonGroup_Margin * 4) 0;
+	strong {
+		font-weight: bold;
+	}
+	.bibi-hgroup, .bibi-pgroup, .bibi-buttongroup {
+	}
+		.bibi-h, .bibi-p, .bibi-buttonbox,
+		.bibi-h-label, .bibi-button {
+			display: block;
+			box-sizing: border-box;
+		}
+		.bibi-h,
+		.bibi-button {
+			padding-left: ($GLOBAL__ButtonGroup_Margin * 2);
+			padding-right: ($GLOBAL__ButtonGroup_Margin * 2);
+		}
+		.bibi-p {
+			padding-left: ($GLOBAL__ButtonGroup_Margin * 2.5);
+			padding-right: ($GLOBAL__ButtonGroup_Margin * 2);
+		}
+			a.bibi-button {
+				text-decoration: none;
+			}
+	.bibi-hgroup {
+	}
+		.bibi-h {
+		}
+			.bibi-h-label {
+				padding-bottom: ($GLOBAL__ButtonGroup_Margin * 1.5);
+				line-height: 1.2;
+				font-size: 12px;
+				font-weight: bold;
+				color: rgb(64,64,64);
+				>small {
+					display: block;
+					position: relative;
+					overflow: hidden;
+					padding: .2em 0 0 .9em;
+					text-overflow: ellipsis;
+					word-break: keep-all;
+					white-space: nowrap;
+					font-size: 10px;
+					color: rgb(128,128,128);
+					&:before {
+						@include font-icon("Material Icons");
+						position: absolute;
+						left: -.1em;
+						top: .225em;
+						font-size: 1.1em;
+						content: "\e5cc"; // chevron_right
+						color: rgb(160,160,160);
+					}
+				}
+			}
+	.bibi-pgroup {
+		border: solid 0 rgba(black, 0.1);
+		overflow: hidden;
+		color: rgb(64,64,64);
+		background: white;//rgba(white, 0.9);
+	}
+	.bibi-hgroup + .bibi-pgroup,
+	.bibi-pgroup + .bibi-pgroup,
+	.bibi-pgroup:first-child {
+		border-top-width:    1px;
+	}
+	.bibi-pgroup:last-child  {
+		border-bottom-width: 1px;
+	}
+		.bibi-p {
+			margin: 4px 0 0;
+			&:first-child { margin-top: 8px; }
+			&:last-child  { margin-bottom: 6px; }
+			line-height: 1.4;
+			font-size: 12px;
+			text-align: justify;
+			small {
+				font-size: 10px;
+			}
+			.code {
+				font-size: 12px;
+				font-family: monospace;
+				word-break: break-all;
+				color: rgb(96,96,96);
+			}
+			.block {
+				box-sizing: border-box;
+				display: block;
+				width: 100%;
+			}
+			input.block {
+				border: solid 1px rgb(234,234,234);
+				padding: .5em;
+			}
+			strong {
+				font-weight: bold;
+			}
+			em {
+				background: rgba(black, 0.075);
+			}
+		}
+	.bibi-buttongroup { // ul
+		border: solid rgba(black, 0.1); border-width: 1px 0;
+		overflow: hidden;
+	}
+	.bibi-buttongroup + .bibi-buttongroup { // ul
+		margin-top: $GLOBAL__TopBar_Height / 6;
+	}
+		.bibi-buttonbox { // li
+			line-height: 1.2;
+			font-size: 14px;
+		}
+			.bibi-button { // a, span
+				position: relative;
+				z-index: 1;
+				margin: -1px 0;
+				border: solid rgba(black, 0.1); border-width: 1px 0; &.bibi-button-radio { border-style: dashed; }// &:first-child { border-top-width: 0; }
+				min-height: $GLOBAL__TopBar_Height;
+				color: rgb(64,64,64);
+				background: white;//rgba(white, 0.9);
+				.bibi-button-iconbox,
+				.bibi-button-label {
+					display: inline-block;
+					vertical-align: top;
+				}
+				.bibi-button-iconbox {
+					margin-top: ($GLOBAL__TopBar_Height - $GLOBAL__Subpanel-Icon_Size) / 2;
+					margin-right: 6px;
+				}
+				.bibi-button-label {
+					margin-top: 12px;
+					font-size: 13px;
+					line-height: 1.2;
+					small {
+						font-size: .875em;
+					}
+					span.non-visual-in-label {
+						@extend .non-visual;
+					}
+				}
+				&:before, &:after {
+					display: block;
+					position: absolute;
+				}
+				&:before {
+					content: "";
+					z-index: 10;
+					@include offset(0);
+					@include size(100%);
+				}
+				&:after {
+					z-index: 1;
+					@include font-icon("Material Icons");
+					@include offset(0, $GLOBAL__ButtonGroup_Margin * 2, 0, auto);
+					margin: auto;
+					@include size(/*20px*/auto, .9em);
+					line-height: 1;
+					font-size: 16px;
+					text-align: right;
+					color: rgb(160,160,160);
+					transition: .2s ease-in-out;
+				}
+				&.default.hover,
+				&.default:hover,
+				&.bibi-button-toggle.active.hover,
+				&.bibi-button-toggle.active:hover {
+					border-style: solid;
+					border-color: rgba($GLOBAL__Subpanel_KeyColor, 0.1);
+					background: rgba(244,248,252, 0.8);
+					cursor: pointer;
+					color: $GLOBAL__Subpanel_KeyColor;
+					z-index: 2;
+					&:after {
+						color: $GLOBAL__Subpanel_KeyColor;
+					}
+				}
+				&.disabled,
+				&.disabled.hover,
+				&.disabled:hover {
+					.bibi-button-iconbox,
+					.bibi-button-label {
+						opacity: 0.5 !important;
+					}
+				}
+			}
+			.bibi-button-link {
+				&:after {
+					content: "\e5cc"; // chevron_right
+				}
+			}
+			.bibi-button-toggle,
+			.bibi-button-radio {
+				&:after {
+					color: rgb(160,160,160);
+				}
+				&.active {
+					.bibi-button-label {
+						font-weight: bold;
+					}
+					&:after {
+						//margin-right: -1px;
+						//font-size: 18px;
+						color: $GLOBAL__Subpanel_KeyColor;
+					}
+				}
+			}
+			.bibi-button-toggle {
+				&:after {
+					content: "\e835"; // check_box_outline_blank
+				}
+				&.active {
+					&:after {
+						content: "\e834"; // check_box
+					}
+				}
+			}
+			.bibi-button-radio {
+				&:after {
+					content: "\e836"; // radio_button_unchecked
+				}
+				&.active {
+					&:after {
+						//content: "\e837"; // radio_button_checked
+						content: "\e86c"; // check_circle
+					}
+				}
+			}
+	.bibi-buttongroup-tiled {
+		display: flex;
+		align-items: stretch;
+		align-content: center;
+		flex: auto;
+		width: 100%;
+		.bibi-buttonbox {
+			width: 100%;
+			margin: 0;
+			.bibi-button {
+				margin: 0 -1px;
+				border-width: 0 1px;
+				padding-right: $GLOBAL__ButtonGroup_Margin;
+				.bibi-button-iconbox {
+					
+				}
+				.bibi-button-label {
+					margin-top: 12.5px;
+					font-size: 12px;
+				}
+			}
+			.bibi-button-link {
+				&:after {
+					margin-right: -5px;
+				}
+			}
+		}
+	}
+}
