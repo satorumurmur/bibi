@@ -347,7 +347,11 @@ Bibi.openBook = () => new Promise(resolve => {
     resolve();
 }).then(() => {
     E.bind(['bibi:changing-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
-    if(S['allow-placeholders']) E.add(['bibi:changing-intersection', 'bibi:scrolled'], () => R.turnSpreads()), setTimeout(() => R.turnSpreads(), 123);
+    if(S['allow-placeholders']) {
+        E.add('bibi:scrolled', () => R.turnSpreads());
+        E.add('bibi:changing-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
+    }
+    setTimeout(() => R.turnSpreads(), 123);
     if(S['use-cookie']) E.add('bibi:changed-intersection', () => {
         const CurrentPage = R.Current.List[0].Page;
         O.Cookie.eat(B.ID, {
@@ -740,12 +744,16 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
                 Spread.Items.push(Item);
                 Spread.appendChild(Item.Box);//.appendChild(Item);
                 if(ItemRef['rendition:layout'] == 'pre-paginated') {
+                    Item.PrePaginated = true;
+                    if(Item.IndexInSpread == 0) Spread.PrePaginated = true;
                     const Page = sML.create('span', { className: 'page',
                         Spread: Spread, Item: Item,
                         IndexInItem: 0
                     });
                     Item.Pages.push(Item.Box.appendChild(Page));
                     Bibi.Eyes.observe(Page);
+                } else {
+                    Item.PrePaginated = Spread.PrePaginated = false;
                 }
             }
         });
@@ -777,6 +785,8 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
             delete Item.Path, delete Item.Content, delete Item.DataType;
             delete B.Package.Manifest.Items[Path];
         });
+        // ================================================================================
+        E.dispatch('bibi:processed-package');
     };
 
 
@@ -1515,7 +1525,7 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 R.SpreadsTurnedFaceUp = [];
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
-    if(!S['allow-placeholders']) return resolve(R.SpreadsTurnedFaceUp);
+    if(!S['allow-placeholders']) return resolve();
     if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3, 4, -2];
     if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
     if(!Opt.Origin) {
@@ -1523,63 +1533,79 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         else if(R.IntersectiongPages.length) Opt.Origin = (Opt.Direction > 0 ? R.IntersectiongPages.slice(-1) : R.IntersectiongPages)[0     ].Spread;
         else                                 return resolve(R.SpreadsTurnedFaceUp);
     }
-    let SpreadsToBeTurnedFaceUp = [];
-    let SpreadsToBeTurnedFaceDown = [];
     let Promised = null;
-    Opt.Range.forEach((Distance, i) => {
+    const SpreadsToBeTurnedFaceUp = []; /* <== */ Opt.Range.forEach(Distance => {
         const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
         if(!Spread) return;
-        clearTimeout(Spread.Timer_TurningFaceUp);
         clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsToBeTurnedFaceUp.push(Spread);
-        if(i == 0) Promised = R.turnSpread(Spread, true);
-        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 9 * i);
     });
-    if(!Promised) Promised = Promise.resolve();
-    R.SpreadsTurnedFaceUp.forEach(Spread => { if(!SpreadsToBeTurnedFaceUp.includes(Spread)) SpreadsToBeTurnedFaceUp.push(Spread); });
-    R.SpreadsTurnedFaceUp = SpreadsToBeTurnedFaceUp;
-    while(R.SpreadsTurnedFaceUp.length > 12) SpreadsToBeTurnedFaceDown.push(R.SpreadsTurnedFaceUp.pop());
-    SpreadsToBeTurnedFaceDown.forEach((Spread, i) => {
-        clearTimeout(Spread.Timer_TurningFaceUp);
-        clearTimeout(Spread.Timer_TurningFaceDown);
-        if(O.cancelRetlieving) Spread.Items.forEach(Item => {
+    const SpreadsAlreadyTurnedFaceUp = []; /* <== */ R.SpreadsTurnedFaceUp.forEach(Spread => {
+        if(SpreadsToBeTurnedFaceUp.includes(Spread)) return;
+        SpreadsAlreadyTurnedFaceUp.push(Spread);
+        if(O.cancelRetlieving) setTimeout(() => Spread.Items.forEach(Item => {
             if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
             O.cancelRetlieving(Item);
-        });
-        Spread.Timer_TurningFaceDown = setTimeout(() => R.turnSpread(Spread, false), 3 * i);
+        }), 0);
     });
-    Promised.then(() => resolve(R.SpreadsTurnedFaceUp));
+    const SpreadsTurnedFaceUp = [], SpreadsToBeTurnedFaceDown = []; let ItemAmountTurnedFaceUp = 0; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsAlreadyTurnedFaceUp].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
+        clearTimeout(Spread.Timer_TurningFaceUp);
+        const ItemLength = Spread.Items.length;
+        if(ItemAmountTurnedFaceUp + ItemLength > 30) return SpreadsToBeTurnedFaceDown.push(Spread);
+        if(i == 0 && j == 0) Promised = new Promise(resolveTargetSpread => R.turnSpread(Spread, true).then(resolveTargetSpread));
+        else Spread.Timer_TurningFaceUp = setTimeout(                () => R.turnSpread(Spread, true),           99 * i + 9 * j);
+        SpreadsTurnedFaceUp.push(Spread);
+        ItemAmountTurnedFaceUp += ItemLength;
+    }));
+    R.SpreadsTurnedFaceUp = SpreadsTurnedFaceUp;
+    (Promised || Promise.resolve()).then(resolve);
+    SpreadsToBeTurnedFaceDown.reverse().forEach((Spread, i) => Spread.Timer_TurningFaceDown = setTimeout(() => R.turnSpread(Spread, false), 999 + 99 * i));
+    /*
+    console.log([
+        'ItemAmountTurnedFaceUp: ' + ItemAmountTurnedFaceUp,//R.SpreadsTurnedFaceUp.reduce((Amount, Spread) => Amount + Spread.Items.length, 0),
+        'R.SpreadsTurnedFaceUp: ' + R.SpreadsTurnedFaceUp.length,
+        'SpreadsToBeTurnedFaceDown: ' + SpreadsToBeTurnedFaceDown.length
+    ].join('\n'));
+    //*/
 });
 
     R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
         const AllowPlaceholderItems = !(TF);
         if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
-        if(Bibi.Debug && !AllowPlaceholderItems) {
-            sML.style(Spread.Box, { background: 'rgba(255,0,0,0.5)', transition: '' });
-            setTimeout(() => sML.style(Spread.Box, { background: '', transition: 'background linear .5s' }), 0);
-        }
+        /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: '' }, { background: 'rgba(255,0,0,0.5)' });
         const PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
+        const OldPages = Spread.Pages.reduce((OldPages, OldPage) => { OldPages.push(OldPage); return OldPages; }, []);
         L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
             resolve(); // ←↙ do asynchronous
             R.layOutSpread(Spread).then(() => {
-                R.organizePages();
+                if(!Spread.PrePaginated) R.replacePages(OldPages, Spread.Pages);
                 const ChangedSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L] - PreviousSpreadBoxLength;
                 if(ChangedSpreadBoxLength != 0) R.Main.Book.style[C.L_SIZE_l] = (parseFloat(getComputedStyle(R.Main.Book)[C.L_SIZE_l]) + ChangedSpreadBoxLength) + 'px';
             });
-        }).catch(Spread => {
-            resolve();
-        });
-    }).then(() => Spread);
+        }).catch(Spread => resolve());
+    }).then(() => {
+        /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: 'background linear .5s' }, { background: '' });
+        Spread.TurnedFaceUp = TF;
+        return Spread;
+    });
 
 
 R.organizePages = () => {
-    R.Pages = [];
-    R.Spreads.forEach(Spread => {
-        Spread.Pages.forEach(Page => {
-            Page.Index = R.Pages.length; R.Pages.push(Page);
-            Page.id = 'page-' + (Page.Index + 1 + '').padStart(B.FileDigit, 0);
-        });
-    });
+    const NewPages = [];
+    R.Spreads.forEach(Spread => Spread.Pages.forEach(Page => { Page.Index = NewPages.length; NewPages.push(Page); /* Page.id = 'page-' + (Page.Index + 1 + '').padStart(B.FileDigit, 0); */ }));
+    return R.Pages = NewPages;
+};
+
+
+R.replacePages = (OldPages, NewPages) => {
+    const StartIndex = OldPages[0].Index, OldLength = OldPages.length, NewLength = NewPages.length;
+    NewPages.forEach((NewPage, i) => NewPage.Index = StartIndex + i);
+    if(NewLength != OldLength) {
+        const Dif = NewLength - OldLength;
+        let i = OldPages[OldLength - 1].Index + 1;
+        while(R.Pages[i]) R.Pages[i].Index += Dif, i++;
+    }
+    R.Pages.splice(StartIndex, OldLength, ...NewPages);
     return R.Pages;
 };
 
