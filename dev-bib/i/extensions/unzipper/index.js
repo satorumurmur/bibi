@@ -34,7 +34,7 @@ Bibi.x({
     );
 
     const extractArchive = (BookDataArchive) => new Promise((resolve, reject) => {
-        if(I.Catcher) I.Catcher.style.opacity = 0;
+        if(I.Catcher.Input) I.Catcher.style.opacity = 0;
         const FilesToBeExtract = [];
         for(let FileName in BookDataArchive.files) {
             if(
