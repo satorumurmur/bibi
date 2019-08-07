@@ -1225,10 +1225,11 @@ R.initialize = () => {
                 if(I.Slider.UI && (I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
             }
+            return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : false;/*
             switch(S.ARD) {
                 case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
                 default   : return (BibiEvent.Division.X == 'center') ? E.dispatch('bibi:tapped-center', Eve) : false;
-            }
+            }*/
         });
         E.add('bibi:tapped-center', Eve => {
             if(I.OpenedSubpanel) E.dispatch('bibi:closes-utilities',  Eve);
