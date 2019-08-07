@@ -85,7 +85,7 @@ $Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemS
 .bibi-icon-view-horizontal,
 .bibi-icon-view-vertical {
 	span.bibi-shape-spreads {
-		@include trbl(0);
+		@include offset(0);
 		margin: auto;
 		@include size($SpreadShape_Width, $SpreadShape_Height);
 		span.bibi-shape-spread {
@@ -192,7 +192,7 @@ $PanelToggler-Bar_Isolation: 4px;
 	text-decoration: none;
 	&:before {
 		@include font-icon("Material Icons");
-		@include trbl(0);
+		@include offset(0);
 		margin: 0;
 		@include size(100%);
 		text-align: center;
@@ -226,33 +226,33 @@ $PanelToggler-Bar_Isolation: 4px;
 	.bibi-subpanel &:before { margin-top: -.025em; font-size: $GLOBAL__Subpanel-Icon_Size * 16/21; }
 }
 
-.bibi-icon-font-size {
+.bibi-icon-fontsize {
 	&:before {
 		@include font-icon("Material Icons");
 		display: block;
 		position: absolute;
-		@include trbl(-100%);
+		@include offset(-100%);
 		margin: auto;
 		@include size(1em);
 		line-height: 1.1;
 	}
 }
-.bibi-icon-font-size-change {
+.bibi-icon-fontsize-change {
 	&:before { content: "format_size"; font-size: 24px; }
 }
-.bibi-icon-font-size-exlarge,
-.bibi-icon-font-size-large,
-.bibi-icon-font-size-medium,
-.bibi-icon-font-size-small,
-.bibi-icon-font-size-exsmall {
+.bibi-icon-fontsize-exlarge,
+.bibi-icon-fontsize-large,
+.bibi-icon-fontsize-medium,
+.bibi-icon-fontsize-small,
+.bibi-icon-fontsize-exsmall {
 	&:before { content: "title"; font-size: 13px; }
 }
 $FontSizeIcon_ScaleStep: 1.44;
-.bibi-icon-font-size-exlarge { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
-.bibi-icon-font-size-large   { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep); } }
-.bibi-icon-font-size-medium  { &:before { transform: rotate(  0deg) scale(1); } }
-.bibi-icon-font-size-small   { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep); } }
-.bibi-icon-font-size-exsmall { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
+.bibi-icon-fontsize-exlarge { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+.bibi-icon-fontsize-large   { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep); } }
+.bibi-icon-fontsize-medium  { &:before { transform: rotate(  0deg) scale(1); } }
+.bibi-icon-fontsize-small   { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+.bibi-icon-fontsize-exsmall { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
 
 .bibi-icon-loupe {
 	&:before, &:after {
@@ -264,7 +264,7 @@ $FontSizeIcon_ScaleStep: 1.44;
 	}
 	&:before {
 		@include font-icon("Material Icons");
-		@include trbl(-100%);
+		@include offset(-100%);
 	}
 }
 .bibi-icon-loupe-menu,
@@ -296,14 +296,14 @@ $FontSizeIcon_ScaleStep: 1.44;
 		content: "=";
 		display: block;
 		position: absolute;
-		@include trbl(21%, auto, auto, 24%);
+		@include offset(21%, auto, auto, 24%);
 		margin: auto;
 		@include size(1em);
 		font-size: 1em * (13px / 18px);
 		line-height: 1;
 	}
-	html.Windows &:after { @include trbl(27%, auto, auto, 25%); }
-	#bibi-subpanel_loupe &:after { @include trbl(11%, auto, auto, 17%); }
+	html.Windows &:after { @include offset(27%, auto, auto, 25%); }
+	#bibi-subpanel_loupe &:after { @include offset(11%, auto, auto, 17%); }
 }
 
 
@@ -524,30 +524,22 @@ $Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 			);
 		}
 	}
-	.bibi-icon-font-size-exlarge { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
-	.bibi-icon-font-size-large   { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep); } }
-	.bibi-icon-font-size-medium  { &:before { transform: rotate(360deg) scale(1); } }
-	.bibi-icon-font-size-small   { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep); } }
-	.bibi-icon-font-size-exsmall { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-fontsize-exlarge { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-fontsize-large   { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-fontsize-medium  { &:before { transform: rotate(360deg) scale(1); } }
+	.bibi-icon-fontsize-small   { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+	.bibi-icon-fontsize-exsmall { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
 	.bibi-icon-loupe-zoomin {
 		&:before {
-			html.loupe-with-keys & {
-				transform: rotate(360deg);
-			}
-			html.loupe-pointer-only & {
-				transform: scale(1.5);
-			}
+			html.loupe-with-keys & { transform: rotate(360deg); }
+			html.loupe-pointer-only & { transform: scale(1.5); }
 		}
 	}
 	.bibi-icon-loupe-zoomout {
-		&:before {
-			transform: scale(0.67);
-		}
+		&:before { transform: scale(0.67); }
 	}
 	.bibi-icon-loupe-reset {
-		&:before, &:after {
-			transform: scale(0.67);
-		}
+		&:before, &:after { transform: scale(0.67); }
 	}
 }
 
@@ -616,7 +608,7 @@ $Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 	&:before, &:after {
 		display: inline-block;
 		color: $Color !important;
-		@include trbl(0); margin: auto;
+		@include offset(0); margin: auto;
 		box-shadow: none !important;
 	}
 	&:before {
@@ -639,20 +631,6 @@ $Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 // --------------------------------------------------------------------------------
 
 @mixin book-icon($BookIcon_Size, $BookIcon_OuterColor, $BookIcon_InnerColor) {
-	box-sizing: border-box;
-	display: block;
-	position: relative;
-	@include size($BookIcon_Size);
-	&:before,
-	&:after,
-	span,
-	span:before,
-	span:after {
-		content: "";
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-	}
 	$BookIcon-Line_Width: $BookIcon_Size * 8/128;
 	$BookIcon-Book_Width: $BookIcon_Size - $BookIcon-Line_Width * 2.5;
 	$BookIcon-Book_Height: $BookIcon_Size;
@@ -662,23 +640,31 @@ $Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 	$BookIcon-Book_Breadth: $BookIcon-Page_Breadth + $BookIcon-Line_Width * 2;
 	$BookIcon_OffsetLeft: ($BookIcon_Size - $BookIcon-Book_Width) * 0.5 - $BookIcon-Line_Width * 0.5;
 	$BookIcon_OffsetTop: 0;
-	span {
-		// Back Cover
+	box-sizing: border-box;
+	display: block;
+	position: relative;
+	@include size($BookIcon_Size);
+	&:before, &:after,
+	span, span:before, span:after {
+		content: "";
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+	}
+	span { // Back Cover
 		z-index: 10;
 		left: $BookIcon_OffsetLeft;
 		top: $BookIcon_OffsetTop;
 		border-radius: ($BookIcon-Book_Breadth * 0.5) $BookIcon-Line_Width $BookIcon-Line_Width 0;
 		@include size($BookIcon-Cover_Width + $BookIcon-Line_Width * 2, $BookIcon_Size - $BookIcon-Line_Width * 3);
-		&:before {
-			// Pages
+		&:before { // Pages
 			z-index: 100;
 			left: ($BookIcon-Book_Breadth * 0.5);
 			top: $BookIcon-Line_Width;
 			border-radius: 0 2px $BookIcon-Line_Width * 3.5 0;
 			@include size($BookIcon-Cover_Width - ($BookIcon-Line_Width + $BookIcon-Page_Breadth * 0.5) + $BookIcon-Line_Width, $BookIcon_Size - $BookIcon-Line_Width);
 		}
-		&:after {
-			// Top of Spine
+		&:after { // Top of Spine
 			z-index: 1000;
 			left: $BookIcon-Line_Width;
 			top: $BookIcon-Line_Width;
@@ -686,8 +672,7 @@ $Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
 			@include size($BookIcon-Page_Breadth/* * 0.5*/, $BookIcon-Page_Breadth);
 		}
 	}
-	&:after {
-		// Front Cover
+	&:after { // Front Cover
 		z-index: 10000;
 		left: $BookIcon_OffsetLeft;
 		top: $BookIcon_OffsetTop + ($BookIcon_Size - $BookIcon-Cover_Height);
