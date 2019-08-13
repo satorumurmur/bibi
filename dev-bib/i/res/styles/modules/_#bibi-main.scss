@@ -15,7 +15,6 @@ main#bibi-main {
 		//@include offset(-100vh, -100vw);
 		//margin: auto;
 		width: 100%;
-		background: $GLOBAL__Main_Background;
 		transition:
 			padding .1s ease,
 			transform .1s ease,
@@ -133,40 +132,44 @@ main#bibi-main {
 				div.spread-box.reflowable & { background: white; }
 			}
 				div.item-box {
-					box-sizing: border-box;
-					flex-shrink: 0;
-					position: relative;
-					//z-index: 1;
-					overflow: hidden;
-					background: white;
+					& {
+						box-sizing: border-box;
+						flex-shrink: 0;
+						position: relative;
+						//z-index: 1;
+						overflow: hidden;
+						background: white;
+					}
 					&.reflowable {
 						display: flex;
 						html.spread-ltr & { flex-direction: row; }
 						html.spread-rtl & { flex-direction: row-reverse; }
 						html.spread-ttb & { flex-direction: column; }
 						flex-wrap: nowrap;
-						justify-content: flex-start;
+						justify-content: space-between;
 						align-items: center;
 					}
-					html.book-pre-paginated &:after {
-						content: "";
-						display: block;
-						position: absolute;
-						z-index: 2;
-						@include offset(0);
-						margin: auto;
-						@include size(100%, 2em);
-						text-align: center;
-						font-family: sans-serif;
-						font-size: 18px;
-						font-weight: bold;
-						color: rgb(192,192,192);
-						opacity: 0;
-						transition: opacity 1s ease-in;
-					}
-					html.book-pre-paginated &:not(.placeholder):not(.loaded):after {
-						content: "Loading...";
-						opacity: 1;
+					html.book-pre-paginated & {
+						&:after {
+							content: "";
+							display: block;
+							position: absolute;
+							z-index: 2;
+							@include offset(0);
+							margin: auto;
+							@include size(100%, 2em);
+							text-align: center;
+							font-family: sans-serif;
+							font-size: 18px;
+							font-weight: bold;
+							color: rgb(192,192,192);
+							opacity: 0;
+							transition: opacity 1s ease-in;
+						}
+						&:not(.placeholder):not(.loaded):after {
+							content: "Loading...";
+							opacity: 1;
+						}
 					}
 				}
 					iframe.item, span.page {
@@ -196,11 +199,13 @@ main#bibi-main {
 						div.spread-box.current & { transition: opacity .1s linear; }
 					}
 					span.page {
-						z-index: 1;
-						@include size(100%);
+						& {
+							z-index: 1;
+							@include size(100%);
+						}
 						div.item-box.reflowable & {
 							position: relative;
-							flex-shrink: 0;
+							//flex-shrink: 0;
 						}
 						div.item-box.pre-paginated & {
 							position: absolute;

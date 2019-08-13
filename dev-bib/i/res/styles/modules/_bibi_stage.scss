@@ -51,3 +51,19 @@ div#bibi-info {
 	overflow: hidden;
 	@include size(0);
 }
+
+
+// - Checker
+// --------------------------------------------------------------------------------
+
+div#bibi-style-checker {
+	@include writing-mode(vertical-rl);
+	position: absolute;
+	z-index: 0;
+	left: $GLOBAL__Slider_Size * -1; top: $GLOBAL__TopBar_Height * -1; left: 0; top: 0;
+	@include size($GLOBAL__Slider_Size, $GLOBAL__TopBar_Height);
+	font-size: 1rem;
+	line-height: 1em;
+	white-space: nowrap;
+	opacity: 0;
+}

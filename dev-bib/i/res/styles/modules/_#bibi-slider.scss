@@ -2,8 +2,8 @@
 // + Slider
 // --------------------------------------------------------------------------------
 
-
-$Slider_Transition: .15s ease;
+$Slider_Transition__Open: .01s ease;
+$Slider_Transition__Close: .1s ease;
 
 div#bibi-slider {
 	& {
@@ -14,7 +14,7 @@ div#bibi-slider {
 		position: absolute;
 		z-index: $GLOBAL__Slider_ZIndex;
 		cursor: pointer;
-		transition: $Slider_Transition;
+		transition: $Slider_Transition__Close;
 		will-change: height;
 		&:after {
 			content: "";
@@ -50,6 +50,7 @@ div#bibi-slider {
 	html.slider-opened & {
 		overflow: visible;
 		box-shadow: 0 0 16px rgba(black, 0.125);
+		transition: $Slider_Transition__Open;
 		&:after {
 			background: rgb(222,222,222);
 		}
@@ -94,13 +95,13 @@ div#bibi-slider-bookmap-box {
 	z-index: 10;
 	margin: auto;
 	background: transparent;
+	will-change: width, height;
 	html.appearance-horizontal & {
 		@include offset(1px, 0, auto, 0);
 		@include size(
 			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}), // 100%,
 			calc(100% - 1px)
 		);
-		will-change: height;
 	}
 	html.appearance-horizontal.slider-opened & {
 		top: 1px + $Slider_Padding;
@@ -112,7 +113,6 @@ div#bibi-slider-bookmap-box {
 			calc(100% - 1px),
 			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}) // 100%
 		);
-		will-change: width;
 	}
 	html.appearance-vertical.slider-opened & {
 		left: 1px + $Slider_Padding;
@@ -132,6 +132,7 @@ div#bibi-slider-bookmap {
 	@include offset(0);
 	@include size(100%);
 	margin: auto;
+	will-change: width, height;
 }
 
 
@@ -379,28 +380,14 @@ div#bibi-slider-rail-progress {
 // - . Thumb
 // --------------------------------------------------------------------------------
 
-$Slider-Thumb-Bar_BorderColor: transparent;
-$Slider-Thumb-Bar_Background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
-$Slider-Thumb-Bar_Background__Hover: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover;
-$Slider-Thumb-Bar_Background__Active: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active;
+$Slider-Thumb-Circle_Size: $GLOBAL__Scrollbar-Thumb_Size * 2;
+$Slider-Thumb-Circle_BackgroundColor: steelblue;
 
-$Slider-Thumb-Bar_BorderColor_SliderOpened: rgba(steelblue, .125);
-//$Slider-Thumb-Bar_Background_SliderOpened: rgba(white, 0) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
-//$Slider-Thumb-Bar_Background_SliderOpened__Hover: rgba(white, .5) radial-gradient(circle farthest-side at center, rgba(steelblue, .1), rgba(steelblue, .4));
-$Slider-Thumb-Bar_Background_SliderOpened: rgba(steelblue, .125);
-$Slider-Thumb-Bar_Background_SliderOpened__Hover: rgba(steelblue, .25);
-$Slider-Thumb-Bar_Background_SliderOpened__Active: rgba(steelblue, .25);//$Slider-Thumb-Bar_Background_SliderOpened;
+$Slider-Thumb-Circle_BorderColor: $Slider-Thumb-Circle_BackgroundColor;
+$Slider-Thumb-Circle_BorderWidth: 0;
 
-$Slider-Thumb-Circle_Background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;//lighten(steelblue, 50%);
-
-$Slider-Thumb-Circle_Size_SliderOpened: $GLOBAL__Scrollbar-Thumb_Size * 2;
-$Slider-Thumb-Circle_Background_SliderOpened: steelblue;//lighten(steelblue, 50%);
-
-$Slider-Thumb-Circle_BorderWidth_SliderOpened: 0;//($Slider-Thumb-Circle_Size_SliderOpened - $Slider-Rail_Width_SliderOpened * 1.5) / 2;
-$Slider-Thumb-Circle_BorderColor_SliderOpened: transparent;//rgba(steelblue, 1);
-
-$Slider-Thumb-Circle-Halo_Width_SliderOpened: 2px;
-$Slider-Thumb-Circle-Halo_Color_SliderOpened: rgba(white, .75);
+$Slider-Thumb-Circle-Halo_Width: 2px;
+$Slider-Thumb-Circle-Halo_Color: rgba(white, .75);
 
 div#bibi-slider-thumb {
 	& {
@@ -409,79 +396,70 @@ div#bibi-slider-thumb {
 		position: absolute;
 		z-index: 100000;
 		margin: auto;
-		pointer-events: none;
+		//pointer-events: none;
+		background: transparent;
+		will-change: width, height, transform, left, top;
 	}
 	html.appearance-horizontal & {
-		//top: -100vh;
-		//bottom: -100vh;
 		top: 0; bottom: 0;
 		height: $GLOBAL__Scrollbar-Thumb_Size;
-		will-change: width, height, transform, left;
+	}
+	html.appearance-horizontal.slider-opened & {
+		height: 100%;
+		cursor: col-resize;
 	}
 	html.appearance-vertical & {
-		//left: -100vw;
-		//right: -100vw;
 		left: 0; right: 0;
 		width: $GLOBAL__Scrollbar-Thumb_Size;
-		will-change: width, height, transform, top;
 	}
-	&.hover {
-		background: $Slider-Thumb-Bar_Background__Hover;
-	}
-	&:active,
-	&.active {
-		background: $Slider-Thumb-Bar_Background__Active;
-	}
-	html.slider-opened & {
-		border-radius: 1px;//$GLOBAL__Scrollbar-Thumb_Size;
-		border-color: transparent;//$Slider-Thumb-Bar_BorderColor_SliderOpened;
-		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened;
-	}
-	html.slider-opened.appearance-horizontal & {
-		height: 100%;
-	}
-	html.slider-opened.appearance-vertical & {
+	html.appearance-vertical.slider-opened & {
 		width: 100%;
+		cursor: row-resize;
 	}
-	html.slider-opened &:hover {
-		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened__Hover;
-	}
-	html.slider-opened &:active,
-	html.slider-opened &.active {
-		background: transparent;//$Slider-Thumb-Bar_Background_SliderOpened__Active;
-	}
-	&:before {
+	&:before,
+	&:after {
 		& {
 			content: "";
-			box-sizing: border-box;
 			display: block;
 			position: absolute;
 			z-index: 10;
 			@include offset($GLOBAL__Scrollbar-Thumb_Size * -1);
 			margin: auto;
+			transition: $Slider_Transition__Close;
+		}
+		html.slider-opened & {
+			transition: $Slider_Transition__Open;
+		}
+	}
+	&:before {
+		& {
 			@include size(100%);
 			border-radius: $GLOBAL__Scrollbar-Thumb_Size * 0.5;
 			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
-			//transform: scale(0);
-			transition: $Slider_Transition;
-			//pointer-events: auto;
 		}
-		html.appearance-horizontal & {
-			min-width: $GLOBAL__Scrollbar-Thumb_Size;
-		}
-		html.appearance-vertical & {
-			min-height: $GLOBAL__Scrollbar-Thumb_Size;
-		}
+		html.appearance-horizontal & { min-width: $GLOBAL__Scrollbar-Thumb_Size; }
+		html.appearance-vertical & { min-height: $GLOBAL__Scrollbar-Thumb_Size; }
 		html.slider-opened & {
-			@include offset($Slider-Thumb-Circle_Size_SliderOpened * -1);
-			@include size($Slider-Thumb-Circle_Size_SliderOpened);
-			@include min-size(0);
-			border: solid $Slider-Thumb-Circle_BorderWidth_SliderOpened $Slider-Thumb-Circle_BorderColor_SliderOpened;
-			border-radius: 50%;
-			background: $Slider-Thumb-Circle_Background_SliderOpened;
-			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width_SliderOpened $Slider-Thumb-Circle-Halo_Color_SliderOpened;
+			transform: scale(0);
+			opacity: 0;
 		}
-		html.slider-opened.appearance-horizontal & { cursor: col-resize; }
-		html.slider-opened.appearance-vertical &   { cursor: row-resize; }
+	}
+	html:not(.slider-opened):not(.touch) & {
+		&:hover:before  { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
+		&:active:before { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
+	}
+	&:after {
+		& {
+			@include offset($Slider-Thumb-Circle_Size * -1);
+			@include size($Slider-Thumb-Circle_Size);
+			border: solid $Slider-Thumb-Circle_BorderWidth $Slider-Thumb-Circle_BorderColor;
+			border-radius: 50%;
+			background: $Slider-Thumb-Circle_BackgroundColor;
+			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
+		}
+		html:not(.slider-opened) & {
+			transform: scale(0);
+			opacity: 0;
+		}
 	}
 }

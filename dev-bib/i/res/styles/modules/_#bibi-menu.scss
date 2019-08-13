@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------
 
 $Menu_BackgroundColor:         rgba(white, 0  );
-$Menu_BackgroundColor__Hover:  rgba(white,  .9);
+$Menu_BackgroundColor__Hover:  $Menu_BackgroundColor;//rgba(white,  .9);
 $Menu_BackgroundColor__Active: rgba(white, 1  );
 $Menu_BorderBottomColor:         rgba(black, 0);
 $Menu_BorderBottomColor__Hover:  $Menu_BorderBottomColor;

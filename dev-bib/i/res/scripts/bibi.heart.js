@@ -20,34 +20,25 @@ export const Bibi = { 'version': '____bibi-version____', 'href': 'https://bibi.e
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Bibi.hello = () => (hello => {
+Bibi.hello = () => new Promise(resolve => {
     O.initialize();
-    document.addEventListener('DOMContentLoaded',
-        (sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium))
-            ? () => document.head.insertBefore(sML.create('script', { id: 'bibi-polyfills', src: './res/scripts/bibi.polyfills.js', onload: hello }), document.getElementById('bibi-script'))
-            : hello
-    );
-})(() => {
     O.log(`Hello!`, '<b:>');
     O.log(`[ja] ${ Bibi['href'] }`);
     O.log(`[en] https://github.com/satorumurmur/bibi`);
-    Bibi.load();
+    resolve();
+})
+.then(Bibi.loadPreset)
+.then(Bibi.initialize)
+.then(Bibi.loadExtensions)
+.then(Bibi.ready)
+.then(Bibi.getBookData)
+.then(Bibi.loadBook)
+.then(Bibi.bindBook)
+.then(Bibi.openBook)
+.catch(Mes => {
+    I.note(Mes, 99999999999, 'ErrorOccured');
+    throw Mes;
 });
-
-
-Bibi.load = () => Promise.resolve()
-    .then(Bibi.loadPreset)
-    .then(Bibi.initialize)
-    .then(Bibi.loadExtensions)
-    .then(Bibi.ready)
-    .then(Bibi.getBookData)
-    .then(Bibi.loadBook)
-    .then(Bibi.bindBook)
-    .then(Bibi.openBook)
-    .catch(Mes => {
-        I.note(Mes, 99999999999, 'ErrorOccured');
-        throw Mes;
-    });
 
 
 Bibi.loadPreset = () => new Promise(resolve => {
@@ -142,32 +133,29 @@ Bibi.initialize = () => {
         else if( O.ParentHolder  ) sML.Fullscreen.polyfill(window.parent),  FsT = O.ParentHolder.Bibi.Frame;
         if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT,  O.HTML.classList.add('fullscreen-enabled');
     }
-    // Writing Mode/* & Font Size*/
+    // Writing Mode, Font Size, Slider Size, Menu Height
     O.WritingModeProperty = (() => {
-        const HTMLCS = getComputedStyle(O.HTML);
-        if(/^(vertical|horizontal)-/.test(HTMLCS['-webkit-writing-mode'])) return '-webkit-writing-mode';
-        if(/^(vertical|horizontal)-/.test(HTMLCS['writing-mode']) || sML.UA.InternetExplorer) return 'writing-mode';
-        else return undefined;
-    })();/*
-    const SRI4VTC = sML.appendCSSRule('div#bibi-vtc', 'position: absolute; left: -100px; top: -100px; width: 100px; height: 100px; -webkit-writing-mode: vertical-rl; -ms-writing-mode: tb-rl; writing-mode: vertical-rl;');
-    const VTC = document.body.appendChild(sML.create('div', { id: 'bibi-vtc' })); // VerticalTextChecker
-    VTC.Child = VTC.appendChild(sML.create('p', { innerHTML: 'aAあ亜' }));
-    if(VTC.Child.offsetWidth < VTC.Child.offsetHeight) {
-        O.HTML.className = O.HTML.className + ' vertical-text-enabled';
-        O.VerticalTextEnabled = true;
-    } else {
-        O.HTML.className = O.HTML.className + ' vertical-text-not-enabled';
-        O.VerticalTextEnabled = false;
-    };
-    O.DefaultFontSize = Math.min(VTC.Child.offsetWidth, VTC.Child.offsetHeight);
-    document.body.removeChild(VTC);
-    sML.deleteCSSRule(SRI4VTC);*/
+        const HTMLComputedStyle = getComputedStyle(O.HTML);
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.InternetExplorer) return         'writing-mode';
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                           ) return '-webkit-writing-mode';
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                           ) return   '-epub-writing-mode';
+        return undefined;
+    })();
+    const StyleChecker = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker', innerHTML: ' aAａＡあ亜　', style: { width: 'auto', height: 'auto', left: '-1em', top: '-1em' } }));
+    O.VerticalTextEnabled = (StyleChecker.offsetWidth < StyleChecker.offsetHeight);
+    O.DefaultFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
+    StyleChecker.style.fontSize = '0.01px';
+    O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
+    StyleChecker.style = StyleChecker.innerHTML = '';
+    I.Slider.Size = StyleChecker.offsetWidth;
+    I.Menu.Height = StyleChecker.offsetHeight;
+    delete document.body.removeChild(StyleChecker);
     // Scrollbars
     O.Body.style.width = '101vw', O.Body.style.height = '101vh';
     O.Scrollbars = {
         Width: window.innerWidth - O.HTML.offsetWidth,
         Height: window.innerHeight - O.HTML.offsetHeight
-    };//O.Scrollbars.Height = O.Scrollbars.Width;
+    };
     O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
     S.initialize();
     O.HTML.classList.remove('welcome');
@@ -352,7 +340,7 @@ Bibi.openBook = () => new Promise(resolve => {
         E.add('bibi:changing-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
     }
     setTimeout(() => R.turnSpreads(), 123);
-    if(S['use-cookie']) E.add('bibi:changed-intersection', () => {
+    if(S['use-cookie']) E.add('bibi:changed-intersection', () => { try {
         const CurrentPage = R.Current.List[0].Page;
         O.Cookie.eat(B.ID, {
             'Position': {
@@ -360,7 +348,7 @@ Bibi.openBook = () => new Promise(resolve => {
                 PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
             }
         });
-    });
+    } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
@@ -1035,7 +1023,8 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 `</html>`
             ].join('');
             HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="bibi-default-style" href="${ B.DefaultStyle.URI }" />`);
-            if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) { // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
+            if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
+                // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
                 HTML = HTML.replace(`</head>`, `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
                 Item.onLoaded = () => {
                     resolve(Item);
@@ -1071,7 +1060,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
 
 L.postprocessItem = (Item) => {
     Item.stamp('Postprocess');
-    Item.HTML = Item.contentDocument.getElementsByTagName('html')[0];
+    Item.HTML = Item.contentDocument.getElementsByTagName('html')[0]; Item.HTML.classList.add(...sML.Environments);
     Item.Head = Item.contentDocument.getElementsByTagName('head')[0];
     Item.Body = Item.contentDocument.getElementsByTagName('body')[0];
     Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
@@ -1098,7 +1087,6 @@ L.postprocessItem = (Item) => {
     Item.HTML.addEventListener(O['pointerdown'], R.onPointerDown);
     Item.HTML.addEventListener(O['pointerup'],   R.onPointerUp);
     L.coordinateLinkages(Item.Path, Item.Body);
-    sML.Environments.forEach(Env => Item.HTML.classList.add(Env));
     const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
     if(Lv1Eles && Lv1Eles.length == 1) {
         const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
@@ -1257,15 +1245,15 @@ R.resetBibiHeight = () => {
 
 R.resetStage = () => {
     const WIH = R.resetBibiHeight(WIH);
-    //try {  I.Veil.style.height = WIH + 'px'; } catch(_) {}
-    //try { I.Menu.Panel.style.height = WIH + 'px'; } catch(_) {}
     R.Stage = {};
     R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = '';
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = '';
     const BookBreadthIsolationStartEnd = (S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
-    R.Main.Book.style[C.A_SIZE_b] = (BookBreadthIsolationStartEnd > 0 ? 'calc(100% - ' + BookBreadthIsolationStartEnd + 'px)' : '');
-    R.Main.Book.style[C.A_SIZE_l] = '';
+    sML.style(R.Main.Book, {
+        [C.A_SIZE_b]: (BookBreadthIsolationStartEnd > 0 ? 'calc(100% - ' + BookBreadthIsolationStartEnd + 'px)' : ''),
+        [C.A_SIZE_l]: ''
+    });
     R.Stage.Width  = O.Body.clientWidth;
     R.Stage.Height = WIH;
     R.Stage[C.A_SIZE_B] -= O.Scrollbars[C.A_SIZE_B] + S['spread-margin'] * 2;
@@ -1276,12 +1264,7 @@ R.resetStage = () => {
         O.HTML.classList.remove('book-full-height');
         R.Stage.Height -= I.Menu.Height;
     }
-    if(0 && S.RVM == 'paged') {
-        R.Stage.PageGap = 0;
-    } else {
-        R.Stage.PageGap = S['spread-gap'];
-        R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
-    }
+    if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
     R.Main.Book.style['background'] = S['book-background'] ? S['book-background'] : '';
 };
 
@@ -1341,18 +1324,17 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
         }
     }
     if(O.Scrollbars.Height && S.SLA == 'vertical' && S.ARA != 'vertical') {
-        Spread.Box.style.minHeight    = S.RVM == 'paged' ? 'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
-        Spread.Box.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + 'px' : '';
+        Spread.Box.style.minHeight    = S.RVM == 'paged' ?   'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
+        Spread.Box.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + 'px'  : '';
     } else {
         Spread.Box.style.minHeight = Spread.Box.style.marginBottom = ''
     }
-    SpreadSize[C.L_SIZE_B] = Math.ceil(SpreadSize[C.L_SIZE_B]);
-    SpreadSize[C.L_SIZE_L] = Math.ceil(SpreadSize[C.L_SIZE_L]);
-    Spread.Box.style[C.L_SIZE_b] = '';
-                                   Spread.style[C.L_SIZE_b] = SpreadSize[C.L_SIZE_B] + 'px';
-    Spread.Box.style[C.L_SIZE_l] = Spread.style[C.L_SIZE_l] = SpreadSize[C.L_SIZE_L] + 'px';
-    Spread.style['border-radius'] = S['spread-border-radius'];
-    Spread.style['box-shadow']    = S['spread-box-shadow'];
+    Spread.Box.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
+    Spread.Box.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
+    sML.style(Spread, {
+        'border-radius': S['spread-border-radius'],
+        'box-shadow':    S['spread-box-shadow']
+    });
     E.dispatch('bibi:reset-spread', Spread);
     return Spread;
 });
@@ -1371,47 +1353,55 @@ R.layOutItem = (Item) => new Promise(resolve => {
 
 
 R.renderReflowableItem = (Item) => {
-    let PageCB  = R.Stage[C.L_SIZE_B] - (S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e]); // Page "C"ontent "B"readth
-    let PageCL  = R.Stage[C.L_SIZE_L] - (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]); // Page "C"ontent "L"ength
-    let PageGap = R.Stage.PageGap     + (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]);
+    const ItemPaddingSE = S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
+    const ItemPaddingBA = S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
+    const PageCB = R.Stage[C.L_SIZE_B] - ItemPaddingSE; // Page "C"ontent "B"readth
+    let   PageCL = R.Stage[C.L_SIZE_L] - ItemPaddingBA; // Page "C"ontent "L"ength
+    const PageGap = ItemPaddingBA;
     ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
     Item.HTML.classList.remove('bibi-columned');
     Item.HTML.style.width = Item.HTML.style.height = '';
     sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+    Item.Half = false;
     if(!S['single-page-always'] && /-tb$/.test(Item.HTML.WritingMode) && S.SLA == 'horizontal') {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
-        if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) PageCL = HalfL;
+        if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) {
+            PageCL = HalfL;
+            Item.Half = true;
+        }
     }
-    Item.style[C.L_SIZE_b] = PageCB + 'px';
-    Item.style[C.L_SIZE_l] = PageCL + 'px';
+    sML.style(Item, {
+        [C.L_SIZE_b]: PageCB + 'px',
+        [C.L_SIZE_l]: PageCL + 'px'
+    });
     const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, '*', 'word-wrap: break-word;'); ////
     sML.forEach(Item.Body.querySelectorAll('img, svg'))(Img => {
         // Fit Image Size
         if(!Img.BibiDefaultStyle) return;
         ['width', 'height', 'maxWidth', 'maxHeight'].forEach(Pro => Img.style[Pro] = Img.BibiDefaultStyle[Pro]);
         if(S.RVM == 'horizontal' && /-(rl|lr)$/.test(Item.HTML.WritingMode) || S.RVM == 'vertical' && /-tb$/.test(Item.HTML.WritingMode)) return;
-        const B = parseFloat(getComputedStyle(Img)[C.L_SIZE_b]), MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_b]), PageCB));
-        const L = parseFloat(getComputedStyle(Img)[C.L_SIZE_l]), MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_l]), PageCL));
-        if(B > MaxB || L > MaxL) {
-            Img.style[C.L_SIZE_b] = Math.floor(parseFloat(getComputedStyle(Img)[C.L_SIZE_b]) * Math.min(MaxB / B, MaxL / L)) + 'px';
-            Img.style[C.L_SIZE_l] = 'auto';
-            Img.style.maxWidth = '100vw';
-            Img.style.maxHeight = '100vh';
-        }
+        const NaturalB = parseFloat(getComputedStyle(Img)[C.L_SIZE_b]), MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_b]), PageCB));
+        const NaturalL = parseFloat(getComputedStyle(Img)[C.L_SIZE_l]), MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_l]), PageCL));
+        if(NaturalB > MaxB || NaturalL > MaxL) sML.style(Img, {
+            [C.L_SIZE_b]: Math.floor(parseFloat(getComputedStyle(Img)[C.L_SIZE_b]) * Math.min(MaxB / NaturalB, MaxL / NaturalL)) + 'px',
+            [C.L_SIZE_l]: 'auto',
+            maxWidth: '100vw',
+            maxHeight: '100vh'
+        });
     });
-    Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0, Item.ColumnGap = 0;
+    Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
     if(!Item.Outsourcing && (S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB)) {
         // Columify
-        R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL, Item.ColumnGap = PageGap;
         Item.HTML.classList.add('bibi-columned');
-        Item.HTML.style[C.L_SIZE_b] = PageCB + 'px';
-        Item.HTML.style[C.L_SIZE_l] = PageCL + 'px';
         sML.style(Item.HTML, {
+            [C.L_SIZE_b]: PageCB + 'px',
+            [C.L_SIZE_l]: PageCL + 'px',
             'column-fill': 'auto',
-            'column-width': Item.ColumnLength + 'px',
-            'column-gap': Item.ColumnGap + 'px',
+            'column-width': PageCL + 'px',
+            'column-gap': PageGap + 'px',
             'column-rule': ''
         });
+        R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
     }
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
     let ItemL = sML.UA.InternetExplorer ? Item.Body['client' + C.L_SIZE_L] : Item.HTML['scroll' + C.L_SIZE_L];
@@ -1419,8 +1409,8 @@ R.renderReflowableItem = (Item) => {
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
     Item.style[C.L_SIZE_l] = ItemL + 'px';
     if(sML.UA.InternetExplorer) Item.HTML.style[C.L_SIZE_l] = '100%';
-    let ItemBoxB = PageCB + (S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e]);
-    let ItemBoxL = ItemL  + (S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a]);// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
+    let ItemBoxB = PageCB + ItemPaddingSE;
+    let ItemBoxL = ItemL  + ItemPaddingBA;// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
     Item.Box.style[C.L_SIZE_b] = ItemBoxB + 'px';
     Item.Box.style[C.L_SIZE_l] = ItemBoxL + 'px';
     Item.Pages.forEach(Page => {
@@ -1428,10 +1418,9 @@ R.renderReflowableItem = (Item) => {
         Item.Box.removeChild(Page);
     });
     Item.Pages = [];
-    const PageL = ItemBoxL / HowManyPages;
     for(let i = 0; i < HowManyPages; i++) {
         const Page = Item.Box.appendChild(sML.create('span', { className: 'page' }));
-        Page.style[C.L_SIZE_l] = PageL + 'px';
+        Page.style[C.L_SIZE_l] = R.Stage[C.L_SIZE_L] + 'px';
         Page.Item = Item, Page.Spread = Item.Spread;
         Page.IndexInItem = Item.Pages.length;
         Item.Pages.push(Page);
@@ -1529,9 +1518,9 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3, 4, -2];
     if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
     if(!Opt.Origin) {
-             if(      R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?       R.Current.List.slice(-1) :       R.Current.List)[0].Page.Spread;
-        else if(R.IntersectiongPages.length) Opt.Origin = (Opt.Direction > 0 ? R.IntersectiongPages.slice(-1) : R.IntersectiongPages)[0     ].Spread;
-        else                                 return resolve(R.SpreadsTurnedFaceUp);
+             if(     R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread;
+        else if(R.IntersectingPages.length) Opt.Origin = (Opt.Direction > 0 ? R.IntersectingPages.slice(-1) : R.IntersectingPages)[0     ].Spread;
+        else                                return resolve(R.SpreadsTurnedFaceUp);
     }
     let Promised = null;
     const SpreadsToBeTurnedFaceUp = []; /* <== */ Opt.Range.forEach(Distance => {
@@ -1614,7 +1603,7 @@ R.layOutStage = () => {
     //E.dispatch('bibi:is-going-to:lay-out-stage');
     let MainContentLayoutLength = 0;
     R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box['offset' + C.L_SIZE_L]);
-    MainContentLayoutLength += R.Stage.PageGap * (R.Spreads.length - 1);
+    MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
     R.Main.Book.style[C.L_SIZE_l] = MainContentLayoutLength + 'px';
     //E.dispatch('bibi:laid-out-stage');
 };
@@ -1833,7 +1822,7 @@ R.updateCurrent = () => {
     Frame.Length = R.Main['offset' + C.L_SIZE_L];
     Frame[C.L_OOBL_L                              ] = R.Main['scroll' + C.L_OOBL_L];
     Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
-    if(Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return R.Current;
+    if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return R.Current;
     R.Current.Frame = { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
     const CurrentList = R.updateCurrent.getList();
     if(CurrentList) {
@@ -1903,56 +1892,34 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     if(R.Moving) return reject();
     if(!Par) return reject();
     if(typeof Par == 'number') Par = { Destination: Par };
-    const Dest = R.hatchDestination(Par.Destination);
-    if(!Dest) return reject();
+    Par.Destination = R.hatchDestination(Par.Destination);
+    if(!Par.Destination) return reject();
     E.dispatch('bibi:is-going-to:focus-on', Par);
     R.Moving = true;
-    let FocusPoint = 0;
+    Par.FocusPoint = 0;
     if(S['book-rendition-layout'] == 'reflowable') {
-        FocusPoint = O.getElementCoord(Dest.Page)[C.L_AXIS_L];
-        if(Dest.Side == 'after') FocusPoint += (Dest.Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
-        if(S.SLD == 'rtl') FocusPoint += Dest.Page.offsetWidth - R.Stage.Width;
-        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
-    } else
-    //*
-    {
-        if(S['allow-placeholders'] && Par.Turn != false) R.turnSpreads({ Origin: Dest.Page.Spread });
-        if(R.Stage[C.L_SIZE_L] >= Dest.Page.Spread['offset' + C.L_SIZE_L]) {
-            FocusPoint = O.getElementCoord(Dest.Page.Spread)[C.L_AXIS_L];
-            FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Dest.Page.Spread['offset' + C.L_SIZE_L]) / 2);
+        Par.FocusPoint = O.getElementCoord(Par.Destination.Page)[C.L_AXIS_L];
+        if(Par.Destination.Side == 'after') Par.FocusPoint += (Par.Destination.Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
+        if(S.SLD == 'rtl') Par.FocusPoint += Par.Destination.Page.offsetWidth - R.Stage.Width;
+    } else {
+        if(S['allow-placeholders'] && Par.Turn != false) R.turnSpreads({ Origin: Par.Destination.Page.Spread });
+        if(R.Stage[C.L_SIZE_L] >= Par.Destination.Page.Spread['offset' + C.L_SIZE_L]) {
+            Par.FocusPoint = O.getElementCoord(Par.Destination.Page.Spread)[C.L_AXIS_L];
+            Par.FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Par.Destination.Page.Spread['offset' + C.L_SIZE_L]) / 2);
         } else {
-            FocusPoint = O.getElementCoord(Dest.Page)[C.L_AXIS_L];
-            if(R.Stage[C.L_SIZE_L] > Dest.Page['offset' + C.L_SIZE_L]) FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Dest.Page['offset' + C.L_SIZE_L]) / 2);
+            Par.FocusPoint = O.getElementCoord(Par.Destination.Page)[C.L_AXIS_L];
+            if(R.Stage[C.L_SIZE_L] > Par.Destination.Page['offset' + C.L_SIZE_L]) Par.FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Par.Destination.Page['offset' + C.L_SIZE_L]) / 2);
         }
-        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
     }
-    //*/
-    /*
-    ((S['allow-placeholders'] && Par.Turn != false) ? R.turnSpreads({ Origin: Dest.Page.Spread }) : Promise.resolve()).then(() => {
-        if(R.Stage[C.L_SIZE_L] >= Dest.Page.Spread['offset' + C.L_SIZE_L]) {
-            FocusPoint = O.getElementCoord(Dest.Page.Spread)[C.L_AXIS_L];
-            FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Dest.Page.Spread['offset' + C.L_SIZE_L]) / 2);
-        } else {
-            FocusPoint = O.getElementCoord(Dest.Page)[C.L_AXIS_L];
-            if(R.Stage[C.L_SIZE_L] > Dest.Page['offset' + C.L_SIZE_L]) FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Dest.Page['offset' + C.L_SIZE_L]) / 2);
-        }
-        return resolve({ FocusPoint: FocusPoint, Dest: Dest });
-    });
-    //*/
-}).then(Par => {
-    /*
-    const TargetPage = Par.Dest.Page, TargetElements = [TargetPage.Spread.Box, TargetPage.Item.Box, TargetPage];
-    R.Current.List.forEach(Current => [Current.Page.Spread.Box, Current.Page.Item.Box, Current.Page].forEach(Ele => !TargetElements.includes(Ele) ? Ele.classList.remove('current') : true));
-    TargetElements.forEach(Ele => Ele.classList.add('current'));
-    */
-    if(typeof Par.Dest.TextNodeIndex == 'number') R.selectTextLocation(Par.Dest); // Colorize Destination with Selection
+    if(typeof Par.Destination.TextNodeIndex == 'number') R.selectTextLocation(Par.Destination); // Colorize Destination with Selection
     const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     ScrollTarget[C.L_AXIS_L] = Par.FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     return sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: 0//(S.RVM == 'paged' && S.ARD != S.SLD ? 0 : 1000)
+        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
     }).then(() => {
         R.Moving = false;
+        resolve();
         E.dispatch('bibi:focused-on', Par);
         //console.log(`FOCUSED`);
     });
@@ -2081,7 +2048,8 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     E.dispatch('bibi:is-going-to:move-by', Par);
     const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0];
     const CurrentPage = Current.Page;
-    const ToFocus = (
+    let Promised = {};
+    if(
         R.Columned ||
         S.BRL == 'pre-paginated' ||
         CurrentPage.Item.Ref['rendition:layout'] == 'pre-paginated' ||
@@ -2089,11 +2057,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
         CurrentPage.Item.Pages.length == 1 ||
         (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
         (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
-    );
-    let Promised = {};
-    if(!ToFocus) {
-        Promised = R.scrollBy(Par);
-    } else {
+    ) {
         let Side = Par.Distance > 0 ? 'before' : 'after';
         const CurrentIntersectionStatus = Current.IntersectionStatus;
         if(CurrentIntersectionStatus.Oversize) {
@@ -2123,6 +2087,8 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
         }
         Par.Destination = { Page: DestinationPage, Side: Side };
         Promised = R.focusOn(Par);
+    } else {
+        Promised = R.scrollBy(Par);
     }
     Promised.then(() => {
         resolve();
@@ -2130,25 +2096,22 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     });
 }).catch(() => Promise.resolve());
 
-
+//*
 R.scrollBy = (Par) => new Promise((resolve, reject) => {
     if(!Par) return reject();
     if(typeof Par == 'number') Par = { Distance: Par };
     if(!Par.Distance || typeof Par.Distance != 'number') return reject();
     E.dispatch('bibi:is-going-to:scroll-by', Par);
     R.Moving = true;
-    const ScrollTarget = {
-        Frame: R.Main,
-        X: 0, Y: 0
-    };
+    const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     switch(S.SLD) {
-        case 'ttb': ScrollTarget.Y = R.Main.scrollTop  + (R.Stage.Height + R.Stage.PageGap) * Par.Distance;      break;
-        case 'ltr': ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance;      break;
-        case 'rtl': ScrollTarget.X = R.Main.scrollLeft + (R.Stage.Width  + R.Stage.PageGap) * Par.Distance * -1; break;
+        case 'ttb': ScrollTarget.Y = R.Main.scrollTop  + R.Stage.Height * Par.Distance     ; break;
+        case 'ltr': ScrollTarget.X = R.Main.scrollLeft + R.Stage.Width  * Par.Distance     ; break;
+        case 'rtl': ScrollTarget.X = R.Main.scrollLeft + R.Stage.Width  * Par.Distance * -1; break;
     }
     sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: ((S.RVM == 'paged') ? 0 : Par.Duration)
+        Duration: (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
     }).then(() => {
         R.Moving = false;
         resolve();
@@ -2198,22 +2161,34 @@ I.initialize = () => {
 
 
 I.Notifier = { create: () => {
-    const Notifier = I.Notifier = O.Body.appendChild(sML.create('div', { id: 'bibi-notifier' }));
+    const Notifier = I.Notifier = O.Body.appendChild(sML.create('div', { id: 'bibi-notifier',
+        show: (Msg, Err) => {
+            clearTimeout(Notifier.Timer_hide);
+            Notifier.P.className = Err ? 'error' : '';
+            Notifier.P.innerHTML = Msg;
+            O.HTML.classList.add('notifier-shown');
+            if(L.Opened && !Err) Notifier.addEventListener(O[O.Touch ? 'pointerdown' : 'pointerover'], Notifier.hide);
+        },
+        hide: (Time = 0) => {
+            clearTimeout(Notifier.Timer_hide);
+            Notifier.Timer_hide = setTimeout(() => {
+                if(L.Opened) Notifier.removeEventListener(O[O.Touch ? 'pointerdown' : 'pointerover'], Notifier.hide);
+                O.HTML.classList.remove('notifier-shown');
+            }, Time);
+        },
+        note: (Msg, Time, Err) => {
+            if(!Msg) return Notifier.hide();
+            Notifier.show(Msg, Err);
+            if(typeof Time == 'undefined') Time = O.Busy ? 9999 : 2222;
+            if(typeof Time == 'number') Notifier.hide(Time);
+        }
+    }));
+    Notifier.P = Notifier.appendChild(document.createElement('p'));
+    I.note = Notifier.note;
     E.dispatch('bibi:created-notifier');
 }};
 
-    I.note = (Msg, Time, ErrorOccured) => {
-        if(!I.Notifier) return false;
-        clearTimeout(I.note.Timer);
-             if(!Msg)                       I.note.Time = 0;
-        else if(typeof Time == 'undefined') I.note.Time = O.Busy ? 9999 : 2222;
-        else                                I.note.Time = Time;
-        //setTimeout(() => {
-            I.Notifier.innerHTML = `<p${ ErrorOccured ? ' class="error"' : '' }>${ Msg }</p>`;
-            O.HTML.classList.add('notifier-shown');
-            if(typeof I.note.Time == 'number') I.note.Timer = setTimeout(() => O.HTML.classList.remove('notifier-shown'), I.note.Time);
-        //}, 0);
-    };
+    I.note = () => false;
 
 
 I.Veil = { create: () => {
@@ -2347,7 +2322,7 @@ I.Menu = { create: () => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(Menu.Timer_close);
-            if(BibiEvent.Coord.Y < Menu.offsetHeight * 1.5) {
+            if(BibiEvent.Division.Y == 'top') { //if(BibiEvent.Coord.Y < Menu.Height * 1.5) {
                 E.dispatch(Menu, 'bibi:hovers', Eve);
             } else if(Menu.Hover) {
                 Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovers', Eve), 123);
@@ -2376,7 +2351,6 @@ I.Menu = { create: () => {
     I.Subpanels = [];
     Menu.Panel.create();
     Menu.Config.create();
-    Menu.Height = Menu.offsetHeight || parseFloat(getComputedStyle(Menu).height);
     E.dispatch('bibi:created-menu');
 }};
 
@@ -2424,7 +2398,10 @@ I.Menu = { create: () => {
         if(O.FullscreenTarget && !O.Touch)                                                                 Components.push('FullscreenButton');
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
         if(!S['remove-bibi-website-link'])                                                                 Components.push('BibiWebsiteLink');
-        if(!Components.length) return;
+        if(!Components.length) {
+            delete I.Menu.Config;
+            return;
+        }
         const Config = Menu.Config = sML.applyRtL(I.createSubpanel({ id: 'bibi-subpanel_config' }), Menu.Config); delete Config.create;
         const Opener = Config.bindOpener(Menu.R.addButtonGroup({ Sticky: true }).addButton({
             Type: 'toggle',
@@ -2435,9 +2412,9 @@ I.Menu = { create: () => {
             Help: true,
             Icon: `<span class="bibi-icon bibi-icon-config"></span>`
         }));
-        if(Components.includes('ViewModeSection')                                           ) Config.ViewModeSection.create();
-        if(Components.includes('NewWindowButton') || Components.includes('FullscreenButton')) Config.WindowSection.create(Components);
-        if(Components.includes('WebsiteLink')     || Components.includes('BibiWebsiteLink') ) Config.LinkageSection.create(Components);
+        if(Components.includes('ViewModeSection')                                           ) Config.ViewModeSection.create(          ); else delete Config.ViewModeSection;
+        if(Components.includes('NewWindowButton') || Components.includes('FullscreenButton'))   Config.WindowSection.create(Components); else delete   Config.WindowSection;
+        if(Components.includes('WebsiteLink')     || Components.includes('BibiWebsiteLink') )  Config.LinkageSection.create(Components); else delete  Config.LinkageSection;
         E.dispatch('bibi:created-config');
     }};
 
@@ -3064,6 +3041,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
 
 I.Slider = { create: () => {
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
+        Size: I.Slider.Size,
         BookStretchingEach: 0,
         initialize: () => {
             if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (30 < R.Items.length) ? 'edgebar' : 'bookmap';
@@ -3112,6 +3090,7 @@ I.Slider = { create: () => {
         },
         activate: () => {
             Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
+            Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
             O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
             E.add('bibi:changing-intersection', () => Slider.progress());
             Slider.progress();
@@ -3183,12 +3162,13 @@ I.Slider = { create: () => {
         },
         zoomOutBook: () => {
             const BookMarginStart = (S['use-full-height'] && S.ARA == 'horizontal' ? I.Menu.Height : 0);
-            const BookMarginEnd   = 78;
+            const BookMarginEnd   = Slider.Size;
             const Transformation = {
                 Scale: (R.Main['offset' + C.A_SIZE_B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + C.A_SIZE_B] - O.Scrollbars[C.A_SIZE_B]),
                 Translation: {}
             };
-            Transformation.Translation[C.A_AXIS_L] = (S.ARA == 'horizontal' || !S['use-full-height'] ? 0 : I.Menu.Height / 2);
+            //Transformation.Translation[C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
+            Transformation.Translation[C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Transformation.Scale) - I.Menu.Height) / 2 : 0;
             Transformation.Translation[C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Transformation.Scale) / 2;
             Slider.BookStretchingEach = (O.Body['offset' + C.A_SIZE_L] / Transformation.Scale - R.Main['offset' + C.A_SIZE_L]) / 2;
             R.Main.style['padding' + C.A_BASE_B] = Slider.BookStretchingEach + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0) + 'px';
@@ -3437,7 +3417,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
             if(I.Menu.Panel && I.Menu.Panel.UIState == 'active') return false;
-            if(BibiEvent.Coord.Y < I.Menu.Height * 1.5) return false;
+            //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
             if(S.RVM == 'paged') {
                 if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
             } else {
