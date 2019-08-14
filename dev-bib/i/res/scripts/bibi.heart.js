@@ -2106,7 +2106,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     });
 }).catch(() => Promise.resolve());
 
-//*
+
 R.scrollBy = (Par) => new Promise((resolve, reject) => {
     if(!Par) return reject();
     if(typeof Par == 'number') Par = { Distance: Par };
