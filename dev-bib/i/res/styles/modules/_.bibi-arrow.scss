@@ -31,6 +31,7 @@ div.bibi-arrow {
 			background: black;
 		}
 		&:after { // edge shadow
+			display: none !important;
 			content: "";
 			z-index: 1;
 		}
@@ -93,6 +94,7 @@ div.bibi-arrow {
 }
 
 html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
+//html.appearance-ttb.book-full-height #bibi-menu.hover ~ div#bibi-arrow-back,
 html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
 	& {
 		&:before { margin-top: $GLOBAL__TopBar_Height; }

@@ -2,6 +2,8 @@
 // + Main
 // --------------------------------------------------------------------------------
 
+$Main_Background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+
 
 main#bibi-main {
 	& {
@@ -21,6 +23,7 @@ main#bibi-main {
 			opacity .15s ease;
 		transform-origin: 50% 50%;
 		will-change: scroll-position, padding, transform, opacity;
+		background: $Main_Background;
 	}
 	html.book-full-height & {
 		height: 100%;

@@ -1008,6 +1008,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         }
         resolve({})
     }).then(HTML => new Promise(resolve => {
+        const DefaultStyleID = 'bibi-default-style', DefaultStyleURI = B.DefaultStyle.URI;
         if(HTML) {
             if(typeof HTML == 'object') HTML = [
                 `<!DOCTYPE html>` + '\n',
@@ -1015,14 +1016,14 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                     `<head>`,
                         `<meta charset="utf-8" />`,
                         `<title>${ B.Title } - #${ Item.Index + 1 + '/' + R.Items.length }</title>`,
-                        typeof HTML.Head == 'string' ? HTML.Head : '',
+                        HTML.Head ? HTML.Head : '',
                     `</head>`,
                     `<body>`,
-                        typeof HTML.Body == 'string' ? HTML.Body : '',
+                        HTML.Body ? HTML.Body : '',
                     `</body>`,
                 `</html>`
             ].join('');
-            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="bibi-default-style" href="${ B.DefaultStyle.URI }" />`);
+            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ DefaultStyleURI }" />`);
             if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
                 // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
                 HTML = HTML.replace(`</head>`, `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
@@ -1039,13 +1040,17 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 Item.contentDocument.write(HTML);
                 Item.contentDocument.close();
                 return;
-            } else {
-                Item.Src = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
             }
+            Item.onload = () => resolve(Item);
+            Item.Src = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
         } else {
+            Item.onload = () => {
+                const Head = Item.contentDocument.getElementsByTagName('head')[0];
+                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: DefaultStyleURI, onload: () => resolve(Item) });
+                Head.insertBefore(Link, Head.firstChild);
+            };
             Item.Src = O.fullPath(Item.Path);
         }
-        Item.onload = () => resolve(Item);
         Item.src = Item.Src;
         ItemBox.insertBefore(Item, ItemBox.firstChild);
     })).then(L.postprocessItem).then(() => {
@@ -1121,8 +1126,9 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
         resolve();
         return true;
     };
-    if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 100);
+    if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 33);
 }).then(() => {
+    //console.log(Item.StyleSheets);
     if(!Item.Preprocessed) {
         if(B.Package.Metadata['ebpaj:guide-version']) {
             const Versions = B.Package.Metadata['ebpaj:guide-version'].split('.');
@@ -1148,10 +1154,14 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
     const ItemBodyComputedStyle = getComputedStyle(Item.Body);
     if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
-    Item.HTML.WritingMode = O.getWritingMode(Item.HTML);
-         if(/-rl$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
-    else if(/-lr$/.test(Item.HTML.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
-    else                                        if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
+    Item.WritingMode = O.getWritingMode(Item.HTML);
+         if(/-rl$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
+    else if(/-lr$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
+    /*
+         if(/-rl$/.test(Item.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
+    else if(/-lr$/.test(Item.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
+    else                                   if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
+    //*/
     [
         [Item.Box, ItemHTMLComputedStyle, Item.HTML],
         [Item,     ItemBodyComputedStyle, Item.Body]
@@ -1265,7 +1275,7 @@ R.resetStage = () => {
         R.Stage.Height -= I.Menu.Height;
     }
     if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
-    R.Main.Book.style['background'] = S['book-background'] ? S['book-background'] : '';
+    R.Main.style['background'] = S['book-background'] ? S['book-background'] : '';
 };
 
 
@@ -1363,7 +1373,7 @@ R.renderReflowableItem = (Item) => {
     Item.HTML.style.width = Item.HTML.style.height = '';
     sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
     Item.Half = false;
-    if(!S['single-page-always'] && /-tb$/.test(Item.HTML.WritingMode) && S.SLA == 'horizontal') {
+    if(!S['single-page-always'] && /-tb$/.test(Item.WritingMode) && S.SLA == 'horizontal') {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
         if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) {
             PageCL = HalfL;
@@ -1379,7 +1389,7 @@ R.renderReflowableItem = (Item) => {
         // Fit Image Size
         if(!Img.BibiDefaultStyle) return;
         ['width', 'height', 'maxWidth', 'maxHeight'].forEach(Pro => Img.style[Pro] = Img.BibiDefaultStyle[Pro]);
-        if(S.RVM == 'horizontal' && /-(rl|lr)$/.test(Item.HTML.WritingMode) || S.RVM == 'vertical' && /-tb$/.test(Item.HTML.WritingMode)) return;
+        if(S.RVM == 'horizontal' && /-(rl|lr)$/.test(Item.WritingMode) || S.RVM == 'vertical' && /-tb$/.test(Item.WritingMode)) return;
         const NaturalB = parseFloat(getComputedStyle(Img)[C.L_SIZE_b]), MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_b]), PageCB));
         const NaturalL = parseFloat(getComputedStyle(Img)[C.L_SIZE_l]), MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_l]), PageCL));
         if(NaturalB > MaxB || NaturalL > MaxL) sML.style(Img, {
@@ -3052,8 +3062,7 @@ I.Slider = { create: () => {
             Slider.Rail.Progress = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
             I.setFeedback(Slider.Thumb);
         },
-        resetThumbAndRail: () => {
-            Slider.Thumb.style.width = Slider.Thumb.style.height = Slider.Rail.style.width = Slider.Rail.style.height = '';
+        resetThumbAndRailSize: () => {
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
             if(S.ARA == S.SLA) {
                 if(S.SLA == 'horizontal') {
@@ -3062,11 +3071,16 @@ I.Slider = { create: () => {
                     ScrollLength -= Slider.BookStretchingEach * 3;
                 }
             }
-            Slider.Thumb.LengthRatio = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength;
-            Slider.Thumb.style[C.A_SIZE_l] = (      Slider.Thumb.LengthRatio * 100) + '%';
-            Slider.Rail.style[ C.A_SIZE_l] = (100 - Slider.Thumb.LengthRatio * 100) + '%';
+            const ThumbLengthPercent = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength * 100;
+            Slider.Thumb.style[C.A_SIZE_l] = (      ThumbLengthPercent) + '%';
+            Slider.Rail.style[ C.A_SIZE_l] = (100 - ThumbLengthPercent) + '%';
+            Slider.Thumb.style[C.A_SIZE_b] = Slider.Rail.style[C.A_SIZE_b] = '';
+            Slider.resetRailCoords();
+        },
+        resetRailCoords: () => {
             Slider.Rail.Coords = [O.getElementCoord(Slider.Rail)[C.A_AXIS_L]];
             Slider.Rail.Coords.push(Slider.Rail.Coords[0] + Slider.Rail['offset' + C.A_SIZE_L]);
+            //console.log(Slider.Rail.Coords);
         },
         progress: () => {
             if(Slider.Touching) return;
@@ -3098,7 +3112,7 @@ I.Slider = { create: () => {
         activateItem: (Item) => {
             Item.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
         },
-        onTouchStart: (Eve) => {
+        onTouchStart: (Eve) => { // console.log(Eve);
             //if(!Eve.target || (!Slider.contains(Eve.target) && Eve.target != Slider)) return;
             Eve.preventDefault();
             //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
@@ -3241,7 +3255,7 @@ I.Slider = { create: () => {
             if(Unlock) Slider.Bookmap.Locked = false;
             if(Slider.Bookmap.Locked) return false;
             return !Slider.Bookmap.parentElement
-                ? (Slider.Bookmap.Timer_putIn = setTimeout(() => Slider.Bookmap.Box.appendChild(Slider.Bookmap) && Slider.resetThumbAndRail(), Unlock ? 0 : 456))
+                ? (Slider.Bookmap.Timer_putIn = setTimeout(() => Slider.Bookmap.Box.appendChild(Slider.Bookmap) && Slider.resetThumbAndRailSize(), Unlock ? 0 : 456))
                 : false;
         },
         reset: () => setTimeout(() => {
@@ -3320,8 +3334,9 @@ I.Slider = { create: () => {
     Slider.initialize();
     I.setToggleAction(Slider, {
         onopened: () => {
-            Slider.zoomOutBook();
             O.HTML.classList.add('slider-opened');
+            setTimeout(Slider.resetRailCoords, 0);
+            Slider.zoomOutBook();
             E.dispatch('bibi:opened-slider');
         },
         onclosed: () => {
@@ -3329,6 +3344,7 @@ I.Slider = { create: () => {
                 if(Slider.UI.reset) Slider.UI.reset();
             });
             O.HTML.classList.remove('slider-opened');
+            setTimeout(Slider.resetRailCoords, 0);
             E.dispatch('bibi:closed-slider');
         }
     });
@@ -3344,7 +3360,7 @@ I.Slider = { create: () => {
     E.add('bibi:laid-out', () => {
         //Slider.BookStretchingEach = 0;
         Slider.resetZoomingOutOfBook();
-        Slider.resetThumbAndRail();
+        Slider.resetThumbAndRailSize();
         Slider.progress();
     });
     Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
@@ -3394,7 +3410,7 @@ I.Turner = { create: () => {
             return false;
         }
     };
-    Turner['top'] = Turner.Back, Turner['bottom'] = Turner.Forward;
+    Turner['top'] = Turner[-1] = Turner.Back, Turner['bottom'] = Turner[1] = Turner.Forward;
     E.add('bibi:opened', () => Turner.update());
 }};
 
@@ -3479,10 +3495,11 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         const Dir = I.Turner.getDirection(BibiEvent.Division);/*
         const Dir = (S.RVM == 'vertical') ? BibiEvent.Division.Y : BibiEvent.Division.X;*/
         if(I.Turner.isAbleToTurn({ Direction: Dir })) {
-            const Arrow = I.Turner[Dir].Arrow;
+            const Turner = I.Turner[Dir];
+            const Arrow = Turner.Arrow;
             E.dispatch(Arrow, 'bibi:taps',   Eve);
             E.dispatch(Arrow, 'bibi:tapped', Eve);
-            R.moveBy({ Distance: I.Turner[Dir].Distance });
+            R.moveBy({ Distance: Turner.Distance });
         }
     });
     E.add('bibi:commands:move-by', Par => { // indicate direction
@@ -3710,8 +3727,16 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             const MovingParameter = KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
             Eve.preventDefault();
-                 if(typeof MovingParameter == 'number') R.moveBy( { Distance:    MovingParameter });
-            else if(typeof MovingParameter == 'string') R.focusOn({ Destination: MovingParameter });
+            if(typeof MovingParameter == 'string') return R.focusOn({ Destination: MovingParameter, Duration: 0 });
+            if(typeof MovingParameter == 'number') {
+                if(I.Turner.isAbleToTurn({ Distance: MovingParameter })) {
+                    const Turner = I.Turner[MovingParameter];
+                    const Arrow = Turner.Arrow;
+                    E.dispatch(Arrow, 'bibi:taps',   Eve);
+                    E.dispatch(Arrow, 'bibi:tapped', Eve);
+                    R.moveBy({ Distance: Turner.Distance });
+                }
+            }
         }
     };
     KeyListener.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
@@ -4953,7 +4978,7 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
             Y: Eve.screenY - window.screenY - (window.outerHeight - window.innerHeight)
         },
         Eve
-    );*/
+    );//*/
     return EventCoord;
 };
 

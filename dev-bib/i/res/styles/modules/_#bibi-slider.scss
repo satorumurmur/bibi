@@ -84,7 +84,8 @@ div#bibi-slider {
 // - UI Box (Edgebar Box, Bookmap Box)
 // --------------------------------------------------------------------------------
 
-$Slider_Padding: $GLOBAL__Scrollbar-Thumb_Size;
+$Slider_PaddingStartEnd_SliderOpened: $GLOBAL__Scrollbar-Thumb_Size;
+$Slider_PaddingBeforeAfter_SliderOpened: $GLOBAL__Scrollbar-Thumb_Size;//$GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2;
 
 div#bibi-slider-edgebar-box,
 div#bibi-slider-bookmap-box {
@@ -98,25 +99,23 @@ div#bibi-slider-bookmap-box {
 	will-change: width, height;
 	html.appearance-horizontal & {
 		@include offset(1px, 0, auto, 0);
-		@include size(
-			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}), // 100%,
-			calc(100% - 1px)
-		);
+		height: calc(100% -    1px                                                );
+		width:  calc(100% - #{       $GLOBAL__Scrollbar-Thumb_Size * 0.5     * 2 });
 	}
 	html.appearance-horizontal.slider-opened & {
-		top: 1px + $Slider_Padding;
-		height: calc(100% - #{1px + $Slider_Padding * 2});
+		top: 1px + $Slider_PaddingStartEnd_SliderOpened;
+		height: calc(100% - #{ 1px + $Slider_PaddingStartEnd_SliderOpened    * 2 });
+		width:  calc(100% - #{       $Slider_PaddingBeforeAfter_SliderOpened * 2 });
 	}
 	html.appearance-vertical & {
 		@include offset(0, auto, 0, 1px);
-		@include size(
-			calc(100% - 1px),
-			calc(100% - #{$GLOBAL__Scrollbar-Thumb_Size * 2}) // 100%
-		);
+		width:  calc(100% -    1px                                                );
+		height: calc(100% - #{       $GLOBAL__Scrollbar-Thumb_Size * 0.5     * 2 });
 	}
 	html.appearance-vertical.slider-opened & {
-		left: 1px + $Slider_Padding;
-		width: calc(100% - #{1px + $Slider_Padding * 2});
+		left: 1px + $Slider_PaddingStartEnd_SliderOpened;
+		width:  calc(100% - #{ 1px + $Slider_PaddingStartEnd_SliderOpened    * 2 });
+		height: calc(100% - #{       $Slider_PaddingBeforeAfter_SliderOpened * 2 });
 	}
 }
 
