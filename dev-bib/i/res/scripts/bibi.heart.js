@@ -1400,6 +1400,7 @@ R.renderReflowableItem = (Item) => {
         });
     });
     Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
+    //* //:TestingCSSShapes:Current
     if(!Item.Outsourcing && (S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB)) {
         // Columify
         Item.HTML.classList.add('bibi-columned');
@@ -1413,6 +1414,58 @@ R.renderReflowableItem = (Item) => {
         });
         R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
     }
+    //*/
+    /* //:TestingCSSShapes
+    if(!Item.Outsourcing) {
+        if(Item.Spacer) {
+            Item.Body.removeChild(Item.Spacer);
+            delete Item.Spacer;
+        }
+        if(Item.HTML['offset'+ C.L_SIZE_B] > PageCB) {
+            // Columify
+            console.log('R.Items[' + Item.Index + ']: ' + Item.HTML['offset'+ C.L_SIZE_B] + ' > ' + PageCB);
+            Item.HTML.classList.add('bibi-columned');
+            sML.style(Item.HTML, {
+                [C.L_SIZE_b]: PageCB + 'px',
+                [C.L_SIZE_l]: PageCL + 'px',
+                'column-fill': 'auto',
+                'column-width': PageCL + 'px',
+                'column-gap': PageGap + 'px',
+                'column-rule': ''
+            });
+            R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
+        } else if(Item.HTML['offset'+ C.L_SIZE_L] > PageCL && S.RVM == 'paged') {
+            const HowManyPages = Math.ceil(Item.HTML['offset'+ C.L_SIZE_L] / PageCL);
+            console.log('R.Items[' + Item.Index + ']: ' + Item.HTML['offset'+ C.L_SIZE_L] + ' > ' + PageCL + ' / ' + HowManyPages + ' pages');
+            const ItemLength = (PageCL + PageGap) * HowManyPages - PageGap
+            Item.HTML.style[C.L_SIZE_L] = ItemLength + 'px';
+            const Points = [0, 0];
+            for(let i = 1; i < HowManyPages; i++) {
+                const   End = (PageCL + PageGap) * i;
+                const Start = End - PageGap;
+                Points.push(     0), Points.push(Start);
+                Points.push(PageCB), Points.push(Start);
+                Points.push(PageCB), Points.push(  End);
+                Points.push(     0), Points.push(  End);
+            }
+            if(/^tb-/.test(B.WritingMode)) Points.reverse();
+            const Polygon = [];
+            Points.forEach((Point, i) => {
+                if(i % 2 == 0) Polygon.push(Point + 'px'); else Polygon[(i - 1) / 2] += ' ' + Point + 'px';
+            });
+            Item.Spacer = Item.Body.insertBefore(sML.create('span', {
+                style: {
+                    'display': 'block',
+                    'float': 'left',
+                    [C.L_SIZE_b]: PageCB + 'px',
+                    [C.L_SIZE_l]: ItemLength + 'px',
+                    'background': 'red',
+                    'shape-outside': 'polygon(' + Polygon.join(', ') + ')'
+                }
+            }), Item.Body.firstChild);
+        }
+    }
+    //*/
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
     let ItemL = sML.UA.InternetExplorer ? Item.Body['client' + C.L_SIZE_L] : Item.HTML['scroll' + C.L_SIZE_L];
     const HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
@@ -4386,8 +4439,10 @@ S.update = (Settings) => {
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
     S.RVM = S['reader-view-mode'];
     if(S.BRL == 'reflowable') switch(S.BWM) {
-        case 'tb-rl': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break;
-        case 'tb-lr': S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break;
+        case 'tb-rl': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break; //:TestingCSSShapes:Current
+        case 'tb-lr': S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break; //:TestingCSSShapes:Current
+      //case 'tb-rl': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break; //:TestingCSSShapes
+      //case 'tb-lr': S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break; //:TestingCSSShapes
         case 'rl-tb': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
         default     : S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
     }   else          S.PPD = S['page-progression-direction'] = B.PPD, S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM;
