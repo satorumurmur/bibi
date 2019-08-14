@@ -1,150 +1,11 @@
 // ================================================================================
-// + Stage
+// + Main
 // --------------------------------------------------------------------------------
 
-
-// - HTML / Body
-// --------------------------------------------------------------------------------
-
-html {
-	overflow: hidden; &.welcome { overflow: scroll !important; }
-	position: absolute; // for InAppBrowsers
-	@include trbl(0,0,auto); // for InAppBrowsers
-	@include size(100%);
-	font-family: sans-serif;
-	&.macOS   { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.iOS     { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif; }
-	&.Windows { font-family: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif; }
-	-webkit-font-smoothing: subpixel-antialiased;
-	-webkit-text-size-adjust: 100%;
-	background: $GLOBAL__HTML_Background;
-	/*
-	&[data-bibi-cursor="left"]   { cursor: w-resize; }
-	&[data-bibi-cursor="right"]  { cursor: e-resize; }
-	&[data-bibi-cursor="top"]    { cursor: n-resize; }
-	&[data-bibi-cursor="bottom"] { cursor: s-resize; }
-	*/
-	&[data-bibi-cursor="left"],
-	&[data-bibi-cursor="right"],
-	&[data-bibi-cursor="top"],
-	&[data-bibi-cursor="bottom"] { cursor: pointer; }
-	user-select: none;
-	&.Blink { touch-action: none; }
-}
-
-body {
-	* {
-		-webkit-tap-highlight-color: rgba(255,255,255,0);
-		-webkit-tap-highlight-color: transparent;
-	}
-	position: absolute;
-	@include trbl(0,0,auto);
-	overflow: hidden;
-	@include size(100%);
-	//max-height: 150vw;
-	background: transparent no-repeat center center;
-	transition: opacity .25s ease;
-}
-
-html.WebKit, html.Chromium {
-	::-webkit-scrollbar {
-		@include size($GLOBAL__Scrollbar-Track_Size);
-	}
-	::-webkit-scrollbar-track {
-		background: $GLOBAL__Scrollbar-Track_BackgroundColor;
-	}
-	::-webkit-scrollbar-thumb {
-		border-radius: $GLOBAL__Scrollbar-Track_Size * 0.5;
-		border: solid (($GLOBAL__Scrollbar-Track_Size - $GLOBAL__Scrollbar-Thumb_Size) * 0.5) $GLOBAL__Scrollbar-Track_BackgroundColor;
-		background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
-		&:hover {
-			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover;
-		}
-		&:active {
-			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active;
-		}
-	}
-	&.touch,
-	&.zoomed-in,
-	&.slider-opened {
-		::-webkit-scrollbar {
-			@include size(0);
-		}
-		::-webkit-scrollbar-track {
-			background: transparent;
-		}
-		::-webkit-scrollbar-thumb {
-			border-color: transparent;
-			background: transparent;
-			&:hover {
-				background: transparent;
-			}
-			&:active {
-				background: transparent;
-			}
-		}
-	}
-	&.view-horizontal, &.view-vertical {
-		body:after { // Scrollbar Border
-			content: "";
-			display: block;
-			position: absolute;
-			z-index: $GLOBAL__Scrollbar_ZIndex;
-			margin: auto;
-			background: $GLOBAL__Scrollbar-Track_BorderColor;
-			transition: opacity .1s linear;
-			opacity: 1;
-		}
-	}
-	&.busy,
-	&.laying-out,
-	&.shade-opened {
-		body:after { // Scrollbar Border
-			opacity: 0;
-		}
-	}
-	&.view-horizontal {
-		body:after { // Scrollbar Border
-			@include trbl(auto, 0, $GLOBAL__Scrollbar-Track_Size - 1px, 0);
-			@include size(100%, 1px);
-		}
-	}
-	&.view-vertical {
-		body:after { // Scrollbar Border
-			@include trbl(0, $GLOBAL__Scrollbar-Track_Size - 1px, 0, auto);
-			@include size(1px, 100%);
-		}
-	}
-	&.touch {
-		body:after { // Scrollbar Border
-			display: none !important;
-		}
-	}
-}
+$Main_Background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
 
 
-// - BiB/i Info
-// --------------------------------------------------------------------------------
-
-div#bibi-info {
-	overflow: hidden;
-	@include size(0);
-}
-
-
-// - EPUB-Metafiles
-// --------------------------------------------------------------------------------
-
-div#epub-metafiles,
-div#epub-metafiles * {
-	display: none;
-}
-
-
-// - EPUB-Content
-// --------------------------------------------------------------------------------
-
-div#bibi-main {
+main#bibi-main {
 	& {
 		overflow: hidden;
 		-webkit-overflow-scrolling: touch;
@@ -153,16 +14,16 @@ div#bibi-main {
 		//transition: .2s ease-out;
 		position: absolute;
 		z-index: $GLOBAL__Main_ZIndex;
-		//@include trbl(-100vh, -100vw);
+		//@include offset(-100vh, -100vw);
 		//margin: auto;
 		width: 100%;
-		background: $GLOBAL__Main_Background;
 		transition:
 			padding .1s ease,
 			transform .1s ease,
 			opacity .15s ease;
 		transform-origin: 50% 50%;
 		will-change: scroll-position, padding, transform, opacity;
+		background: $Main_Background;
 	}
 	html.book-full-height & {
 		height: 100%;
@@ -179,9 +40,9 @@ div#bibi-main {
     	overflow-y: scroll;
  	}
 	html.appearance-horizontal & {
-		@include trbl(0, -100%, auto, -100%);
+		@include offset(0, -100%, auto, -100%);
 		//margin: 0 auto;
-		//@include trbl(-100%);
+		//@include offset(-100%);
 		margin: auto;
 	}
 	html.appearance-horizontal:not(.book-full-height) & {
@@ -189,9 +50,9 @@ div#bibi-main {
 		height: calc(100% - #{$GLOBAL__TopBar_Height});
 	}
 	html.appearance-vertical & {
-		@include trbl(-100%, auto, -100%, 0);
+		@include offset(-100%, auto, -100%, 0);
 		//margin: auto 0;
-		//@include trbl(-100%);
+		//@include offset(-100%);
 		margin: auto;
 	}
 	html.appearance-vertical:not(.book-full-height) & {
@@ -259,7 +120,7 @@ div#bibi-main {
 				overflow: hidden;
 				position: absolute;
 				z-index: 1;
-				@include trbl(0);
+				@include offset(0);
 				margin: auto;
 				display: flex;
 				flex-wrap: nowrap;
@@ -274,40 +135,44 @@ div#bibi-main {
 				div.spread-box.reflowable & { background: white; }
 			}
 				div.item-box {
-					box-sizing: border-box;
-					flex-shrink: 0;
-					position: relative;
-					//z-index: 1;
-					overflow: hidden;
-					background: white;
+					& {
+						box-sizing: border-box;
+						flex-shrink: 0;
+						position: relative;
+						//z-index: 1;
+						overflow: hidden;
+						background: white;
+					}
 					&.reflowable {
 						display: flex;
 						html.spread-ltr & { flex-direction: row; }
 						html.spread-rtl & { flex-direction: row-reverse; }
 						html.spread-ttb & { flex-direction: column; }
 						flex-wrap: nowrap;
-						justify-content: flex-start;
+						justify-content: space-between;
 						align-items: center;
 					}
-					html.book-pre-paginated &:after {
-						content: "";
-						display: block;
-						position: absolute;
-						z-index: 2;
-						@include trbl(0);
-						margin: auto;
-						@include size(100%, 2em);
-						text-align: center;
-						font-family: sans-serif;
-						font-size: 18px;
-						font-weight: bold;
-						color: rgb(192,192,192);
-						opacity: 0;
-						transition: opacity 1s ease-in;
-					}
-					html.book-pre-paginated &:not(.placeholder):not(.loaded):after {
-						content: "Loading...";
-						opacity: 1;
+					html.book-pre-paginated & {
+						&:after {
+							content: "";
+							display: block;
+							position: absolute;
+							z-index: 2;
+							@include offset(0);
+							margin: auto;
+							@include size(100%, 2em);
+							text-align: center;
+							font-family: sans-serif;
+							font-size: 18px;
+							font-weight: bold;
+							color: rgb(192,192,192);
+							opacity: 0;
+							transition: opacity 1s ease-in;
+						}
+						&:not(.placeholder):not(.loaded):after {
+							content: "Loading...";
+							opacity: 1;
+						}
 					}
 				}
 					iframe.item, span.page {
@@ -318,7 +183,7 @@ div#bibi-main {
 						//overflow: hidden;
 						position: absolute;
 						z-index: 10;
-						@include trbl(0);
+						@include offset(0);
 						margin: 0;
 						padding: 0;
 						border: none 0;
@@ -337,16 +202,16 @@ div#bibi-main {
 						div.spread-box.current & { transition: opacity .1s linear; }
 					}
 					span.page {
-						z-index: 1;
-						@include size(100%);
+						& {
+							z-index: 1;
+							@include size(100%);
+						}
 						div.item-box.reflowable & {
 							position: relative;
-							flex-shrink: 0;
+							//flex-shrink: 0;
 						}
 						div.item-box.pre-paginated & {
 							position: absolute;
-							@include trbl(0);
+							@include offset(0);
 						}
 					}
-
-div#bibi-sub {}

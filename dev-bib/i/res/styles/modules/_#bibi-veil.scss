@@ -1,0 +1,434 @@
+// ================================================================================
+// + Veil
+// --------------------------------------------------------------------------------
+
+$Veil_Background: linear-gradient(to top, rgb(192,192,192), rgb(96,96,96));//rgb(216,216,216);
+
+
+div#bibi-veil {
+	box-sizing: border-box;
+	overflow: hidden;
+	display: block;
+	position: absolute;
+	z-index: $GLOBAL__Veil_ZIndex;
+	left: 0;
+	top: 0;
+	@include size(100%);
+	font-size: 15px;
+	color: white;
+	background: $Veil_Background;
+	opacity: 1;
+	transition: ease-in .5s;
+	&.closed {
+		opacity: 0;
+		transition: ease-out .5s;
+		html.appearance-ltr & { transform: translateX(-240%); }
+		html.appearance-rtl & { transform: translateX( 240%); }
+		html.appearance-ttb & { transform: translateY(-240%); }
+	}
+}
+
+
+// - BottomBar
+// --------------------------------------------------------------------------------
+
+div#bibi-veil:after {
+	content: "";
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	z-index: $GLOBAL__Veil-BottomBar_ZIndex;
+	left: 0; right: 0; bottom: 0;
+	margin: 0 auto;
+	padding: 4px;
+	border-style: solid; border-width: 1px 0;
+	@include size(100%, $GLOBAL__BottomBar_Height);
+	border-color: transparent;//rgb(104,104,104);
+	background: rgb(128,128,128);
+}
+
+
+// - ByeBye
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-byebye {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $GLOBAL__Veil-ByeBye_ZIndex;
+	@include offset(0);
+	margin: auto;
+	padding: 10px;
+	border-radius: 20px;
+	@include size(240px);
+	@include max-size(calc(100% - #{ 10px * 2 }), calc(100% - #{ $GLOBAL__TopBar_Height + 10px * 2 + $GLOBAL__BottomBar_Height }));
+	line-height: 1.75;
+	text-align: center;
+	font-size: 14px;
+	font-weight: bold;
+	color: white;
+	background: rgba(black, .125);
+	a {
+		color: inherit;
+		transition: .2s linear;
+		&:hover {
+			color: rgb(216,216,216);
+			transition: .1s linear;
+		}
+	}
+	span {
+		display: block;
+		position: relative;
+	}
+	> span + span {
+		margin-top: 1.5em;
+		padding-top: 1.5em;
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			@include offset(0, 0, auto);
+			margin: auto;
+			@include size(2em, 1px);
+			background: rgba(white, .5);
+		}
+	}
+}
+
+
+// - Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-veil-cover {
+	& {
+		overflow: hidden;
+		position: absolute;
+		z-index: $GLOBAL__Veil-Cover_ZIndex;
+		left: 0;
+		top: 0;
+		box-sizing: border-box;
+		border: solid transparent;
+		border-width: 4px;
+		//border-bottom-width: ($GLOBAL__TopBar_Height + 4px);
+		@include size(100%);
+		opacity: 0;
+		transition: opacity 0.5s linear;
+		background: transparent no-repeat center center;
+		background-size: contain;
+	}
+	&.with-cover-image,
+	&.without-cover-image {
+		opacity: 1;
+	}
+	&.with-cover-image {
+		p {
+			opacity: 0;
+		}/*
+		p {
+			overflow: hidden;
+			@include size(0);
+		}
+		figure {
+			@include size(100%);
+			img {
+				display: block;
+				margin: auto;
+				@include max-size(100%);
+			}
+		}*/
+	}
+	&.without-cover-image {
+		$Veil-Cover-Icon_Size: 144px;
+		p {
+			z-index: 2;
+			@include size(100%, 1.2em);
+			line-height: 1.2;
+			font-size: 14px;
+			font-weight: bold;
+			color: white;
+			text-align: center;
+			text-shadow: 0 0 4px rgb(128,128,128);
+			transform: translateY($Veil-Cover-Icon_Size * -0.1);
+			strong, em, small, span {
+				display: block;
+			}
+			strong {
+				margin-top: -1em;
+				font-size: 1em * 18/14;
+				font-weight: bold;
+			}
+			em {
+				margin-top: .75em;
+				font-size: 1em * 14/14;
+			}
+			small {
+				margin-top: .75em;
+				font-size: 1em * 12/14;
+			}
+			span {
+				margin-top: .75em;
+				font-size: 1em * 10/14;
+			}
+		}
+		.book-icon {
+			@include book-icon($Veil-Cover-Icon_Size, white, rgb(136,136,136));
+			z-index: 1;
+			transform: translateY($Veil-Cover-Icon_Size * -0.125);
+			opacity: .25;
+		}
+		p,
+		.book-icon {
+			display: block;
+			position: absolute;
+			margin: auto;
+			@include offset(-100%);
+		}/*
+		figure {
+			display: none;
+		}*/
+	}
+	&.without-cover-image.waiting-for-unzipping {
+		p {
+			strong {
+				font-size: 1em * 24/14;
+			}
+			small {
+				color: rgb(216,216,216);
+			}
+		}
+	}
+}
+
+
+// - Play
+// --------------------------------------------------------------------------------
+
+$Veil-Play-Icon_Size: 96px;
+$Veil-Play-Icon_Offset: 8px;
+
+$Veil-Play_TransitionDuration: .2s;
+$Veil-Play_TransitionTimingFunction__ForColor: ease;
+$Veil-Play_TransitionTimingFunction__ForForm: cubic-bezier(.2,.8,.8,1.6);
+
+p#bibi-veil-play {
+	display: none; html.waiting & { display: block; }
+	box-sizing: border-box;
+	position: absolute; @include offset(0); margin: auto;
+	z-index: $GLOBAL__Veil-Play_ZIndex;
+	@include size(100%);
+	cursor: pointer;
+	background: rgba(black, 0);
+	&, &:before {
+		transition:
+			color $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForColor,
+			background-color $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForColor,
+			left $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			right $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			bottom $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm,
+			transform $Veil-Play_TransitionDuration $Veil-Play_TransitionTimingFunction__ForForm;
+	}
+	&:before { // icon
+		@include font-icon("Material Icons");
+		content: "\e038"; // play_circle_filled color: white;
+		box-sizing: border-box;
+		display: block;
+		z-index: 10;
+		position: absolute;
+		margin: auto;
+		//border-radius: 50%;
+		@include size($Veil-Play-Icon_Size);
+		line-height: $Veil-Play-Icon_Size * 0.98;
+		text-align: center;
+		vertical-align: middle;
+		text-indent: -.05em;
+		font-size: $Veil-Play-Icon_Size;
+		color: rgba(236,236,236, 0.9);
+		//text-shadow: 0 0 4px rgb(160,160,160)
+		//color: rgb(69,69,69);
+		//background: rgba(236,236,236, 0.9);
+	}
+	&:hover {
+		background: rgba(black, 0.4);
+	}
+	&,
+	html.appearance-ttb & { // ↓
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate(90deg);  @include offset(auto, 0, $Veil-Play-Icon_Offset, 0); }
+		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate(90deg); }
+		&:active:before { transform: translateY( 10%) scale(1.1) rotate(90deg); }
+	}
+	html.appearance-rtl & { // ←
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  @include offset(0, auto, 0, $Veil-Play-Icon_Offset); }
+		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
+		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
+	}
+	html.appearance-ltr & { // →
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  @include offset(0, $Veil-Play-Icon_Offset, 0, auto); }
+		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
+		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
+	}
+}
+
+
+// - Catcher
+// --------------------------------------------------------------------------------
+
+$Catcher-CenterLine_Bottom: 56%;
+$Catcher-Area_Margin: 24px;
+$Catcher-Area_Narrow_Margin: $Catcher-Area_Margin * 0.5;
+$Catcher_Transition: .2s ease;
+
+$Catcher-Icon_Size: 128px;
+$Catcher-Icon_Transition: .125s cubic-bezier(.2,.8,.8,1.6);
+
+div#bibi-catcher {
+	display: none; html.waiting-file & { display: block; }
+	position: absolute;
+	z-index: $GLOBAL__Catcher_ZIndex;
+	@include offset(0);
+	margin: 0;
+	@include size(100%);
+	color: white;
+	cursor: pointer;
+	transition: $Catcher_Transition;
+	> .pgroup {
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 100;
+		@include offset(100% - $Catcher-CenterLine_Bottom, 0, auto);
+		margin: 0 auto;
+		width: 100%;
+		vertical-align: middle;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+		p {
+			strong, em, span, small {
+				display: block;
+				font-weight: bold;
+				transition: $Catcher_Transition;
+			}
+			strong {
+				box-sizing: border-box;
+				margin-top: 18px;
+				padding: 0 1em;
+				border: solid 1px white;
+				height: 2.5em;
+				line-height: 2.5em;
+				border-radius: 1.25em;
+				font-size: 16px;
+				background: rgba(white, 0);
+			}
+			em, span, small {
+				text-shadow: rgb(64,64,64) 0 0 1px;
+			}
+			em {
+				margin-top: 14px;
+				font-size: 16px;
+				line-height: 1.5;
+			}
+			span {
+				margin-top: 10px;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+			small {
+				margin-top: 6px;
+				font-size: 12px;
+			}
+		}
+		&[lang="en"] p {
+			strong { text-indent: .125em; }
+			em     { margin-right: -.125em; }
+			span   { margin-right: -.125em; }
+			small  {}
+		}
+		&[lang="ja"] p {
+			strong { text-indent: .5em; }
+			em     { margin-right: -.67em; text-indent: -.67em; }
+			span   { margin-right: -.67em; text-indent: 0; }
+			small  {}
+		}
+	}
+	> .book-icon {
+		@include book-icon($Catcher-Icon_Size, white, rgb(136,136,136));
+		position: absolute;
+		z-index: 10;
+		@include offset(auto, 0, $Catcher-CenterLine_Bottom);
+		margin: 0 auto;
+		opacity: .8;
+		//transform-origin: 50% 100%;
+		transition: $Catcher-Icon_Transition;
+	}
+	> input {
+		visibility: hidden;
+	}
+	&:after {
+		content: "";
+		display: block;
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 1;
+		@include offset(0);
+		margin: auto;
+		border: dashed 4px rgba(white, 0.5);
+		border-radius: 24px;
+		@include size(
+			calc(100% - #{$Catcher-Area_Margin * 2 }),
+			calc(100% - #{$Catcher-Area_Margin * 2 + $GLOBAL__BottomBar_Height})
+		);
+		@include max(768px) {
+			@include size(
+				calc(100% - #{$Catcher-Area_Narrow_Margin * 2 }),
+				calc(100% - #{$Catcher-Area_Narrow_Margin * 2 + $GLOBAL__BottomBar_Height})
+			);
+		}
+		background: rgba(white, 0);
+		transform: translateY(#{$GLOBAL__BottomBar_Height * -0.5});
+		transition: $Catcher_Transition;
+	}
+	html.dragenter &,
+	&:hover {
+		> .pgroup {
+			p {
+				strong {
+					color: rgb(128,128,128);
+					background-color: rgba(white, 1);
+				}
+			}
+		}
+		> .book-icon {
+			opacity: 1;
+			transform: rotate(4deg) scale(1.04);
+			//span, &:after { background-color: gold; }
+			//span:before, span:after { background-color: rgb(160,160,160); }
+		}
+		&:after {
+			border-style: solid;
+			border-width: 8px;
+			border-color: rgba(white, .88);
+			//background: rgb(160,160,160);
+		}
+	}
+	&:active {
+		> .pgroup {
+			p {
+				strong {
+					opacity: .8;
+				}
+			}
+		}
+		> .book-icon {
+			//opacity: .5;
+			transform: rotate(8deg) scale(1);
+		}
+		&:after {
+			border-width: 16px;
+			border-color: rgba(white, .44);
+		}
+	}
+}

@@ -1,15 +1,25 @@
 html, body {
-    margin: 0;
-    padding: 0;
-    border: none 0;
-    //width: 100%;
-    //height: 100%;
-}
+	margin: 0;
+	padding: 0;
+	border: none 0;
+}/*
+
+html.bibi-vertical-text { &, & body {
+	max-height: 100%;
+}}
+
+html.bibi-horizontal-text { &, & body {
+	max-width: 100%;
+}}
+
+html {
+	overflow: hidden;
+}*/
 
 html.bibi-columned {
-    img, svg, video, picture, image, iframe {
-        break-inside: avoid;
-    }
+	img, svg, video, picture, image, iframe {
+		break-inside: avoid;
+	}
 }
 
 img.bibi-spine-item-image {

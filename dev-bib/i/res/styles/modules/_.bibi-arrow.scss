@@ -1,0 +1,134 @@
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
+
+$Arrow-Bar_Length: $GLOBAL__TopBar_Height;
+$Arrow-Icon_Size: $Arrow-Bar_Length * 1;
+
+div.bibi-arrow {
+	//// Layout
+	& {
+		display: none; html.arrows-active & { display: block; }
+		position: absolute;
+		z-index: $GLOBAL__Arrow_ZIndex;
+		margin: auto;
+		line-height: 1;
+		&:before, &:after {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+		}
+		&:before { // icon
+			@include font-icon("Material Icons");
+			z-index: 2;
+			margin: auto;
+			@include size($Arrow-Icon_Size);
+			text-align: center;
+			vertical-align: middle;
+			font-size: $Arrow-Icon_Size;
+			border-radius: 50%;
+			color: white;//rgb(96,96,96);
+			background: black;
+		}
+		&:after { // edge shadow
+			display: none !important;
+			content: "";
+			z-index: 1;
+		}
+	}
+	html.appearance-horizontal & {
+		// ←→
+		bottom: auto; width: 0;
+		&:before { top: 0; bottom: 0; }
+		&:after  { top: 0; bottom: 0; @include size($Arrow-Bar_Length, 100%); }
+	}
+	html.appearance-horizontal.book-full-height:not(.slider-opened) & {
+		top: 0;
+		height: 100%; height: 100vh; // overrided by script
+	}
+	html.appearance-horizontal.book-full-height.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height) & {
+		top: $GLOBAL__TopBar_Height;
+	}
+	html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
+		height: calc(100% - #{$GLOBAL__TopBar_Height}); height: calc(100vh - #{$GLOBAL__TopBar_Height}); // overrided by script
+	}
+	html.appearance-horizontal.book-full-height.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height).slider-opened & {
+		height: calc(100% - #{$GLOBAL__TopBar_Height + 78px}); height: calc(100vh - #{$GLOBAL__TopBar_Height + 78px});
+	}
+	html.appearance-vertical & {
+		// ↑↓
+		left: 0; right: auto; height: 0;
+		&:before { left: 0; right: 0; }
+		&:after  { left: 0; right: 0; @include size(100%, $Arrow-Bar_Length); }
+	}
+	html.appearance-vertical:not(.slider-opened) & {
+		width: 100%; width: 100vw; // overrided by script
+	}
+	html.appearance-vertical.slider-opened & {
+		width: calc(100% - 78px); width: calc(100vw - 78px);
+	}
+	html.busy & {
+		&:before, &:after { opacity: 0 !important; transition: none !important; }
+	}
+	//// Interaction
+	& {
+		&:before, &:after { transition-duration: .4s; }
+		&:before { opacity: 0.00; transform: scale(1.10); transition-timing-function: cubic-bezier(.2, .8, .8, 1.6); }
+		&:after  { opacity: 1.00;                         transition-timing-function: ease-out; }
+	}
+	&.available.hover {
+		cursor: pointer;
+		&:before, &:after { transition-duration: .2s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
+	}
+	&.available.active {
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 0.75; transform: scale(1.00); }
+	}
+	&.available.glowing {
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
+	}
+}
+
+html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
+//html.appearance-ttb.book-full-height #bibi-menu.hover ~ div#bibi-arrow-back,
+html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
+	& {
+		&:before { margin-top: $GLOBAL__TopBar_Height; }
+	}
+}
+
+@mixin arrow-variation($Arrow_Dir, $Arrow_TransformOrigin, $Arrow-Icon_Code, $Arrow-Icon_Code__Glowing, $Arrow-Icon_LineHeight, $Arrow-Icon_Indent) {
+	& {
+		#{$Arrow_Dir}: 0;
+		&:before, &:after { transform-origin: $Arrow_TransformOrigin; }
+		&:before { content: $Arrow-Icon_Code; #{$Arrow_Dir}: $GLOBAL__ButtonGroup_Margin; line-height: $Arrow-Icon_LineHeight; text-indent: $Arrow-Icon_Indent; }
+		//&:after { #{$Arrow_Dir}: $Arrow-Bar_Length * -1; background: linear-gradient(to $Arrow_Dir, rgba(128,128,128, 0), rgba(128,128,128, 0) 25%, rgba(128,128,128, 0.125)); }
+		&:after { #{$Arrow_Dir}: $Arrow-Bar_Length * -1; background: linear-gradient(to $Arrow_Dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1)); }
+	}
+	&.available.hover, &.available.glowing {
+		&:after { #{$Arrow_Dir}: 0; }
+	}
+	&.available.glowing {
+		&:before { content: $Arrow-Icon_Code__Glowing; #{$Arrow_Dir}: 8px; }
+	}
+}
+
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward {
+	/* ← */ @include arrow-variation(  left,   0%  50%, "\e5cb", "\e5cb", $Arrow-Icon_Size, -.03em); // chevron_left
+}
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back {
+	/* → */ @include arrow-variation( right, 100%  50%, "\e5cc", "\e5cc", $Arrow-Icon_Size, .03em); // chevron_right
+}
+
+html.appearance-ttb div#bibi-arrow-back {
+	/* ↑ */ @include arrow-variation(   top,  50%   0%, "\e5ce", "\e5ce", $Arrow-Icon_Size * .97, 0); // expand_less
+}
+html.appearance-ttb div#bibi-arrow-forward {
+	/* ↓ */ @include arrow-variation(bottom,  50% 100%, "\e5cf", "\e5cf", $Arrow-Icon_Size * 1.03, 0); // expand_more
+}
