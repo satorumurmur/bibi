@@ -754,15 +754,13 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
         B.Title     =  Metadata['title'     ].join(', ');
         B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
         B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
-        if(B.Title) {
-            const BookIDFragments = [B.Title];
-            if(B.Creator)   BookIDFragments.push(B.Creator);
-            if(B.Publisher) BookIDFragments.push(B.Publisher);
-            const TitleExtras = S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with BiB/i';
-            O.Title.innerHTML = '';
-            O.Title.appendChild(document.createTextNode(BookIDFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>') + ' | ' + TitleExtras));
-            try { O.Info.querySelector('h1').innerHTML = document.title; } catch(_) {}
-        }
+        const FullTitleFragments = [B.Title];
+        if(B.Creator)   FullTitleFragments.push(B.Creator);
+        if(B.Publisher) FullTitleFragments.push(B.Publisher);
+        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>')
+        O.Title.innerHTML = '';
+        O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with BiB/i')));
+        try { O.Info.querySelector('h1').innerHTML = document.title; } catch(_) {}
         B.WritingMode =                                                                                   /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == 'rtl' ? 'tb-rl' : 'lr-tb')
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
@@ -964,7 +962,9 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
         L.loadItem(Item, { AllowPlaceholder: Opt.AllowPlaceholderItems })
         .then(() =>  LoadedItemsInSpread++) // Loaded
        .catch(() => SkippedItemsInSpread++) // Skipped
-        .then(() => { if(LoadedItemsInSpread + SkippedItemsInSpread == Spread.Items.length) /*(SkippedItemsInSpread ? reject : resolve)*/resolve(Spread); });
+        .then(() => {
+            if(LoadedItemsInSpread + SkippedItemsInSpread == Spread.Items.length) /*(SkippedItemsInSpread ? reject : resolve)*/resolve(Spread);
+        });
     });
 });
 
@@ -976,19 +976,22 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     const ItemBox = Item.Box;
     ItemBox.classList.toggle('placeholder', Item.IsPlaceholder);
     if(Item.IsPlaceholder) {
-        if(Item.parentElement) {
-            Item.parentElement.removeChild(Item);
-            Item.src = Item.onload = '';
-        }
+        if(Item.parentElement) Item.parentElement.removeChild(Item);
+        Item.onload = Item.onLoaded = undefined;
+        Item.src = '';
         Item.HTML = Item.Head = Item.Body = Item.Pages[0];
         return Promise.resolve(Item);
     }
     ItemBox.classList.remove('loaded');
     return new Promise((resolve, reject) => {
-        if(Item.Src) return resolve();
+        if(Item.BlobURL) return resolve({});
         if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            if(!B.ExtractionPolicy) return resolve(); // Extracted
-            return O.file(Item, { Preprocess: true }).then(Item => resolve(Item.Content.replace(/^<\?.+?\?>/, ''))).catch(reject); // Archived
+            if(!B.ExtractionPolicy) return resolve({ // Extracted
+                URL: O.fullPath(Item.Path)
+            });
+            return O.file(Item, { Preprocess: true }).then(Item => resolve({ // Archived
+                HTML: Item.Content.replace(/^<\?.+?\?>/, '')
+            })).catch(reject);
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
             return O.file(Item, { URI: true }).then(Item => resolve({
@@ -998,62 +1001,56 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         }
         if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
             return O.file(Item, { Preprocess: true }).then(Item => {
-                const RE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g;
-                const SSs = Item.Content.match(RE);
+                const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Content.match(StyleSheetRE);
+                let StyleSheets = '', Content = Item.Content;
+                if(MatchedStyleSheets) StyleSheets = MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join(''), Content = Content.replace(StyleSheetRE, '');
                 resolve({
-                    Head: (!B.ExtractionPolicy ? `<base href="${ O.fullPath(Item.Path) }" />` : '') + (SSs ? SSs.map(SS => SS.replace(RE, `<link rel="stylesheet" $1 />`)).join('') : ''),
-                    Body: Item.Content.replace(RE, '')
+                    Head: (!B.ExtractionPolicy ? `<base href="${ O.fullPath(Item.Path) }" />` : '') + StyleSheets,
+                    Body: Content
                 });
             }).catch(reject)
         }
-        resolve({})
-    }).then(HTML => new Promise(resolve => {
+        resolve({});
+    }).then(Source => new Promise(resolve => {
         const DefaultStyleID = 'bibi-default-style', DefaultStyleURI = B.DefaultStyle.URI;
-        if(HTML) {
-            if(typeof HTML == 'object') HTML = [
-                `<!DOCTYPE html>` + '\n',
-                `<html>`,
-                    `<head>`,
-                        `<meta charset="utf-8" />`,
-                        `<title>${ B.Title } - #${ Item.Index + 1 + '/' + R.Items.length }</title>`,
-                        HTML.Head ? HTML.Head : '',
-                    `</head>`,
-                    `<body>`,
-                        HTML.Body ? HTML.Body : '',
-                    `</body>`,
-                `</html>`
-            ].join('');
-            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ DefaultStyleURI }" />`);
-            if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
-                // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
-                HTML = HTML.replace(`</head>`, `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
-                Item.onLoaded = () => {
-                    resolve(Item);
-                    //console.log(`onload: R.Items[${ Item.Index }]: %O`, Item);
-                    const Script = Item.contentDocument.getElementById('bibi-onload');
-                    Script.parentNode.removeChild(Script);
-                    delete Item.onLoaded;
-                };
-                Item.src = '';
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-                Item.contentDocument.open();
-                Item.contentDocument.write(HTML);
-                Item.contentDocument.close();
-                return;
-            }
-            Item.onload = () => resolve(Item);
-            Item.Src = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
-        } else {
+        if(Source.URL) {
             Item.onload = () => {
                 const Head = Item.contentDocument.getElementsByTagName('head')[0];
-                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: DefaultStyleURI, onload: () => resolve(Item) });
+                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: DefaultStyleURI, onload: resolve });
                 Head.insertBefore(Link, Head.firstChild);
             };
-            Item.Src = O.fullPath(Item.Path);
+            Item.src = Source.URL;
+        } else {
+            if(!Item.BlobURL) {
+                let HTML = Source.HTML || `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source.Head || '' }</head><body>${ Source.Body || '' }</body></html>`;
+                HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ DefaultStyleURI }" />`);
+                if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
+                    // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
+                    HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
+                    Item.onLoaded = () => {
+                        resolve();
+                        //console.log(`onload: R.Items[${ Item.Index }]: %O`, Item);
+                        const Script = Item.contentDocument.getElementById('bibi-onload');
+                        Script.parentNode.removeChild(Script);
+                        delete Item.onLoaded;
+                    };
+                    Item.src = '';
+                    ItemBox.insertBefore(Item, ItemBox.firstChild);
+                    Item.contentDocument.open();
+                    Item.contentDocument.write(HTML);
+                    Item.contentDocument.close();
+                    return;
+                }
+                Item.BlobURL = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
+            }
+            Item.onload = resolve;
+            Item.src = Item.BlobURL;
         }
-        Item.src = Item.Src;
         ItemBox.insertBefore(Item, ItemBox.firstChild);
-    })).then(L.postprocessItem).then(() => {
+    })).then(() => {
+        L.postprocessItem(Item);
+    }).then(() => {
+        //console.log(Item.src);
         Item.Loaded = true;
         ItemBox.classList.add('loaded');
         E.dispatch('bibi:loaded-item', Item);
@@ -1589,19 +1586,18 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     const SpreadsToBeTurnedFaceUp = []; /* <== */ Opt.Range.forEach(Distance => {
         const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
         if(!Spread) return;
+        clearTimeout(Spread.Timer_TurningFaceUp);
         clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsToBeTurnedFaceUp.push(Spread);
     });
     const SpreadsAlreadyTurnedFaceUp = []; /* <== */ R.SpreadsTurnedFaceUp.forEach(Spread => {
         if(SpreadsToBeTurnedFaceUp.includes(Spread)) return;
+        clearTimeout(Spread.Timer_TurningFaceUp);
+        clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsAlreadyTurnedFaceUp.push(Spread);
-        if(O.cancelRetlieving) setTimeout(() => Spread.Items.forEach(Item => {
-            if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
-            O.cancelRetlieving(Item);
-        }), 0);
+        setTimeout(() => R.turnSpread(Spread, false), 0);
     });
     const SpreadsTurnedFaceUp = [], SpreadsToBeTurnedFaceDown = []; let ItemAmountTurnedFaceUp = 0; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsAlreadyTurnedFaceUp].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
-        clearTimeout(Spread.Timer_TurningFaceUp);
         const ItemLength = Spread.Items.length;
         if(ItemAmountTurnedFaceUp + ItemLength > 30) return SpreadsToBeTurnedFaceDown.push(Spread);
         if(i == 0 && j == 0) Promised = new Promise(resolveTargetSpread => R.turnSpread(Spread, true).then(resolveTargetSpread));
@@ -1623,10 +1619,11 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
 
     R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
         const AllowPlaceholderItems = !(TF);
-        if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
+        if(!S['allow-placeholders']/* || Spread.AllowPlaceholderItems == AllowPlaceholderItems*/) return resolve(Spread); // no need to turn
         /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: '' }, { background: 'rgba(255,0,0,0.5)' });
         const PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
         const OldPages = Spread.Pages.reduce((OldPages, OldPage) => { OldPages.push(OldPage); return OldPages; }, []);
+        if(!TF) R.cancelSpreadRetlieving(Spread);
         L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
             resolve(); // ←↙ do asynchronous
             R.layOutSpread(Spread).then(() => {
@@ -1640,6 +1637,11 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         Spread.TurnedFaceUp = TF;
         return Spread;
     });
+
+    R.cancelSpreadRetlieving = (Spread) => O.cancelRetlieving ? Spread.Items.forEach(Item => {
+        if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
+        O.cancelRetlieving(Item);
+    }) : false;
 
 
 R.organizePages = () => {
@@ -4656,7 +4658,7 @@ O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
     XHR.onloadend = () => {
         if(XHR.status !== 200) return XHR.onerror();
         Item.Content = XHR.response;
-        Item.DataType = IsBin ? 'blob' : 'text';
+        Item.DataType = IsBin ? 'Blob' : 'Text';
         resolve(Item);
     };
     XHR.send(null);
@@ -4668,16 +4670,16 @@ O.isBin = (Item) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|
 
 O.getBlobURL = (Item) => new Promise(resolve => {
     Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    if(!Item.URI) Item.URI = URL.createObjectURL(Item.DataType == 'blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
+    if(!Item.URI) Item.URI = URL.createObjectURL(Item.DataType == 'Blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
     resolve(Item);
 });
 
 
 O.getDataURI = (Item) => new Promise(resolve => {
     Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    //if(Item.DataType != 'text') throw `Item Content Is Not Text.`;
+    //if(Item.DataType != 'Text') throw `Item Content Is Not Text.`;
     if(Item.URI) resolve(Item);
-    else if(Item.DataType == 'text') {
+    else if(Item.DataType == 'Text') {
         Item.URI = 'data:' + Item['media-type'] + ';base64,' + btoa(unescape(encodeURIComponent(Item.Content)));
         resolve(Item);
     } else {
