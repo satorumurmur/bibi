@@ -1,0 +1,96 @@
+// ================================================================================
+// + Subpanel
+// --------------------------------------------------------------------------------
+
+$Subpanel_Margin: 4px;
+$Subpanel_BorderRadius: 4px;
+$Subpanel_BackgroundColor: rgba(252,252,252, 0.96);
+$Subpanel_BoxShadow: rgba(black, 0.1) 0 2px 2px;
+$Subpanel_TransitionTimingFunction__Open: cubic-bezier(.2,.8,.8,1.1);
+$Subpanel_TransitionTimingFunction__Close: ease-out;
+
+
+// - Sub Panel :: Scrollbar
+// --------------------------------------------------------------------------------
+
+$Subpanel-Scrollbar-Track_Size: 6px;
+$Subpanel-Scrollbar-Thumb_Size: 2px;
+$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
+$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
+
+
+// - Sub Panel > Section
+// --------------------------------------------------------------------------------
+
+$Subpanel-Section_VerticalMargin: 16px;
+
+$Subpanel-Heading_HorizontalPadding: 8px;
+$Subpanel-Heading_Color: rgb(64,64,64);
+
+$Subpanel-ButtonGroup_VerticalMargin: 6px;
+$Subpanel-ButtonGroup_BorderColor: rgba(black, 0.1);
+
+$Subpanel-Button_HorizontalPadding: 8px;
+$Subpanel-Button_Height: 38px;
+$Subpanel-Button-FontSize: 13px;
+$Subpanel-Button_Color: rgb(64,64,64);
+$Subpanel-Button-Check_Color: rgb(160,160,160);
+$Subpanel-Button_BorderColor: rgba(black, 0.1);
+$Subpanel-Button_BackgroundColor: white;
+
+$Subpanel-Button_Color__Hover: $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Button-Check_Color__Hover: $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Button_BorderColor__Hover: rgba($GLOBAL__Subpanel_KeyColor, 0.1);
+$Subpanel-Button_BackgroundColor__Hover: rgba(244,248,252, 0.8);
+
+$Subpanel-Icon_MarginRight: 6px;
+
+/*
+
+<div class="bibi-subpanel opened">
+	<div class="bibi-subpanel-section">
+		<div class="bibi-hgroup">
+			<p class="bibi-h"><span class="bibi-h-label">{ Heading Text }</span></p>
+		</div>
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+	<div class="bibi-subpanel-section">
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+</div>
+
+*/

@@ -1,0 +1,110 @@
+// ================================================================================
+// + Subpanel
+// --------------------------------------------------------------------------------
+
+div.bibi-subpanel {
+	right: $Subpanel_Margin;
+	top: $GLOBAL__TopBar_Height + $Subpanel_Margin;
+	width: calc(100% - #{$Subpanel_Margin * 2});
+	max-width: 320px - $Subpanel_Margin * 2;
+	html.appearance-horizontal & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
+	html.appearance-vertical   & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
+	border-radius: $Subpanel_BorderRadius;
+	background: $Subpanel_BackgroundColor;
+	transform: translateY($Subpanel_Margin * -2) scale(0);
+	transition-timing-function: $Subpanel_TransitionTimingFunction__Close;
+	&.opened {
+		transition-timing-function: $Subpanel_TransitionTimingFunction__Open;
+		box-shadow: $Subpanel_BoxShadow;
+	}
+}
+
+
+// - Sub Panel :: Scrollbar
+// --------------------------------------------------------------------------------
+
+div.bibi-subpanel {
+	&::-webkit-scrollbar {
+		@include size($Subpanel-Scrollbar-Track_Size);
+	}
+	&::-webkit-scrollbar-track {
+		background: $Subpanel-Scrollbar-Track_BackgroundColor;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-width: ($Subpanel-Scrollbar-Track_Size - $Subpanel-Scrollbar-Thumb_Size) * 0.5;
+		border-color: $Subpanel-Scrollbar-Track_BackgroundColor;
+		border-radius: $Subpanel-Scrollbar-Track_Size * 0.5;
+		background: $Subpanel-Scrollbar-Thumb_BackgroundColor;
+		&:hover  { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
+		&:active { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
+	}
+}
+
+
+// - Sub Panel > Section
+// --------------------------------------------------------------------------------
+
+.bibi-subpanel-section {
+	@include margin-v($Subpanel-Section_VerticalMargin);
+	.bibi-hgroup {
+	}
+		.bibi-h {
+		}
+			.bibi-h-label {
+				@include padding-h($Subpanel-Heading_HorizontalPadding);
+				color: $Subpanel-Heading_Color;
+				>small {
+					color: lighten($Subpanel-Heading_Color, 12%);
+					&:before {
+						color: lighten($Subpanel-Heading_Color, 24%);
+					}
+				}
+			}
+	.bibi-buttongroup { // ul
+		border-color: $Subpanel-ButtonGroup_BorderColor;
+	}
+	.bibi-hgroup + .bibi-buttongroup,
+	.bibi-buttongroup + .bibi-buttongroup { // ul
+		margin-top: $Subpanel-ButtonGroup_VerticalMargin;
+	}
+		.bibi-buttonbox { // li
+		}
+			.bibi-button { // a, span
+				@include padding-h($Subpanel-Button_HorizontalPadding);
+				border-color: $Subpanel-Button_BorderColor;
+				min-height: $Subpanel-Button_Height;
+				color: $Subpanel-Button_Color;
+				background: $Subpanel-Button_BackgroundColor;
+				.bibi-button-iconbox {
+					margin-top: ($Subpanel-Button_Height - $GLOBAL__Subpanel-Icon_Size) / 2;
+					margin-right: $Subpanel-Icon_MarginRight;
+				}
+				.bibi-button-label {
+					margin-top: ($Subpanel-Button_Height - $Subpanel-Button-FontSize) / 2 - 0.5px;
+					font-size: $Subpanel-Button-FontSize;
+				}
+				&:after {
+					right: $Subpanel-Button_HorizontalPadding;
+					color: $Subpanel-Button-Check_Color;
+				}
+				&.default.hover,
+				&.default:hover,
+				&.bibi-button-toggle.active.hover,
+				&.bibi-button-toggle.active:hover {
+					border-color: $Subpanel-Button_BorderColor__Hover;
+					color: $Subpanel-Button_Color__Hover;
+					background-color: $Subpanel-Button_BackgroundColor__Hover;
+					&:after { color: $Subpanel-Button-Check_Color__Hover; }
+				}
+			}
+	.bibi-buttongroup-tiled {
+		.bibi-buttonbox {
+			.bibi-button {
+				padding-right: $Subpanel-Button_HorizontalPadding / 2;
+				.bibi-button-label {
+					margin-top: ($Subpanel-Button_Height - 12px) / 2 - 0.5px;
+				}
+			}
+		}
+	}
+}

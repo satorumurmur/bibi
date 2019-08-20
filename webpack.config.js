@@ -7,6 +7,7 @@
 'use strict';
 
 const Package = require('./package.json');
+const Dresses = require('./dev-bib/i/res/styles/wardrobe/_dresses.js');
 
 const Webpack = require('webpack');
 
@@ -25,7 +26,11 @@ const Config = {
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: __dirname, filename: '[name].js' },
-    entry: (L => { const E = {}; for(const X in L) E[X] = __dirname + '/dev-' + X + '.' + L[X]; return E; })({
+    entry: ((Es, Ns) => {
+        if(Dresses instanceof Array && Dresses.length) Dresses.forEach(D => { const N = 'bib/i/res/styles/wardrobe/' + D + '/bibi.dress'; if(!Ns[N]) Ns[N] = 'scss'; });
+        for(const N in Ns) Es[N] = __dirname + '/dev-' + N + '.' + Ns[N];
+        return Es;
+    })({}, {
         'bib/i': 'js',
         'bib/i/res/scripts/bibi': 'js',
         'bib/i/res/scripts/bibi.polyfills': 'js',

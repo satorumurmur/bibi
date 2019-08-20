@@ -1,0 +1,15 @@
+// ================================================================================
+// + Main
+// --------------------------------------------------------------------------------
+
+$Main_Background: linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+
+@mixin ItemBox-Loading() { // [NOTE] It is for `::before` pseudo element. You can use an image by `background` instead of string.
+	content: "Loading...";
+	@include size(100%, 2em);
+	text-align: center;
+	font-family: sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+	color: rgb(192,192,192);
+}
