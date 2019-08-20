@@ -7,10 +7,9 @@
 'use strict';
 
 const Package = require('./package.json');
-const Banners = require('./webpack.config.banners.js');
 
 const Webpack = require('webpack');
-const Path = require('path');
+
 const HardSourcePlugin = require('hard-source-webpack-plugin');
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
 const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
@@ -26,22 +25,18 @@ const Config = {
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: __dirname, filename: '[name].js' },
-    entry: ((E, L) => { for(const X in L) L[X].forEach(N => E[N] = __dirname + '/dev-' + N + '.' + X); return E; })({}, {
-        'js': [
-            'bib/i',
-            'bib/i/res/scripts/bibi',
-            'bib/i/res/scripts/bibi.polyfills',
-            'bib/i/extensions/analytics/index',
-            'bib/i/extensions/epubcfi/index',
-            'bib/i/extensions/share/index',
-            'bib/i/extensions/unaccessibilizer/index',
-            'bib/i/extensions/unzipper/index',
-            'bib/i/extensions/zine/index'
-        ],
-        'scss': [
-            'bib/i/res/styles/bibi',
-            'bib/i/res/styles/bibi.book'
-        ]
+    entry: (L => { const E = {}; for(const X in L) E[X] = __dirname + '/dev-' + X + '.' + L[X]; return E; })({
+        'bib/i': 'js',
+        'bib/i/res/scripts/bibi': 'js',
+        'bib/i/res/scripts/bibi.polyfills': 'js',
+        'bib/i/extensions/analytics/index': 'js',
+        'bib/i/extensions/epubcfi/index': 'js',
+        'bib/i/extensions/share/index': 'js',
+        'bib/i/extensions/unaccessibilizer/index': 'js',
+        'bib/i/extensions/unzipper/index': 'js',
+        'bib/i/extensions/zine/index': 'js',
+        'bib/i/res/styles/bibi': 'scss',
+        'bib/i/res/styles/bibi.book': 'scss'
     }),
     plugins: [
         new StringReplacePlugin(),
@@ -154,21 +149,11 @@ module.exports = (env, argv) => {
                 }
             }
         }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:                    /\/bibi\.js$/,  raw: true, banner: Banners.BibiJS             }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:                    /\/bibi\.css$/, raw: true, banner: Banners.BibiCSS            }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:         /\/bibi\.polyfills\.js$/,  raw: true, banner: Banners.BibiPolyfillsJS    }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:                    /bib\/i\.js$/,  raw: true, banner: Banners.PipiJS             }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:        /\/analytics\/index\.js$/,  raw: true, banner: Banners.X_Analytics        }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:          /\/epubcfi\/index\.js$/,  raw: true, banner: Banners.X_EPUBCFI          }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:            /\/share\/index\.js$/,  raw: true, banner: Banners.X_Share            }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test: /\/unaccessibilizer\/index\.js$/,  raw: true, banner: Banners.X_Unaccessibilizer }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:         /\/unzipper\/index\.js$/,  raw: true, banner: Banners.X_Unzipper         }));
-        Config.plugins.push(new Webpack.BannerPlugin({ test:             /\/zine\/index\.js$/,  raw: true, banner: Banners.X_Zine             }));
+        const Banners = require('./webpack.config.banners.js');
+        for(const N in Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Banners[N], raw: true }));
         Config.plugins.push(new CopyPlugin([
-            //{ from: 'node_modules/@fortawesome/fontawesome-free/LICENSE.txt', to: 'bib/i/res/fonts/fontawesome-free' },
-            //{ from: 'node_modules/material-icons/LICENSE',                    to: 'bib/i/res/fonts/material-icons' },
-            { from: 'LICENSE',   to: 'bib' },
-            { from: 'README.md', to: 'bib' }
+            { from: 'LICENSE',   to: 'bib' }/*,
+            { from: 'README.md', to: 'bib' }*/
         ]));
     } else if(Config.mode === 'development') {
         //Config.plugins.push(new HardSourcePlugin());
