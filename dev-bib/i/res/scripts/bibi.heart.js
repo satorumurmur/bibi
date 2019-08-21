@@ -1029,7 +1029,6 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                     HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
                     Item.onLoaded = () => {
                         resolve();
-                        //console.log(`onload: R.Items[${ Item.Index }]: %O`, Item);
                         const Script = Item.contentDocument.getElementById('bibi-onload');
                         Script.parentNode.removeChild(Script);
                         delete Item.onLoaded;
@@ -1247,7 +1246,7 @@ R.resetBibiHeight = () => {
     const WIH = window.innerHeight;
     O.HTML.style.height = O.Body.style.height = WIH + 'px'; // for In-App Browsers
     return WIH;
-}
+};
 
 
 R.resetStage = () => {
@@ -1287,7 +1286,7 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
             Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
             resolve();
         });
-    })
+    });
 }).then(() => {
     Spread.Spreaded = (Spread.Items[0].Spreaded || (Spread.Items[1] && Spread.Items[1].Spreaded)) ? true : false;
     Spread.Box.classList.toggle('spreaded', Spread.Spreaded);
@@ -1321,7 +1320,7 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
             console.log(`== R.layOutSpread ======================================= Mixed:B ==`);
             SpreadSize.Width  = Math.max(Spread.Items[0].Box.offsetWidth,   Spread.Items[1].Box.offsetWidth);
             SpreadSize.Height =          Spread.Items[0].Box.offsetHeight + Spread.Items[1].Box.offsetHeight;
-        } {
+        } /**/ {
             console.log(`--------------------------------------------------------------------`);
             console.log(`The Structure of this EPUB File is Rare.`);
             console.log(`If This File is Yours and You Can Send It,`);
@@ -1500,6 +1499,7 @@ R.renderPrePaginatedItem = (Item) => {
         (Item.Ref['rendition:spread'] == 'both' || R.Orientation == Item.Ref['rendition:spread'] || R.Orientation == 'landscape')
     );
     if(!Item.Viewport) Item.Viewport = R.getItemViewport(Item);
+  //if( Item.Viewport && !B.ICBViewport) B.ICBViewport = Item.Viewport;
     let ItemLoVp = null; // ItemLayoutViewport
     if(Item.Spreaded) {
         ItemLoVp = R.getItemLayoutViewport(Item);
@@ -1566,7 +1566,7 @@ R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
 
 
 R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewport ? B.ICBViewport : {
-    Width:  R.Stage.Height * S['orientation-border-ratio'] / (Item.Spreaded && /^(left|right)$/.test(Item.Ref['rendition:page-spread']) ? 2 : 1),
+    Width:  R.Stage.Height * S['orientation-border-ratio'] / (/*Item.Spreaded &&*/ /^(left|right)$/.test(Item.Ref['rendition:page-spread']) ? 2 : 1),
     Height: R.Stage.Height
 };
 
@@ -1595,7 +1595,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         clearTimeout(Spread.Timer_TurningFaceUp);
         clearTimeout(Spread.Timer_TurningFaceDown);
         SpreadsAlreadyTurnedFaceUp.push(Spread);
-        setTimeout(() => R.turnSpread(Spread, false), 0);
+        if(!Spread.CompletedToBeTurnedFaceUp) setTimeout(() => R.turnSpread(Spread, false), 0);
     });
     const SpreadsTurnedFaceUp = [], SpreadsToBeTurnedFaceDown = []; let ItemAmountTurnedFaceUp = 0; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsAlreadyTurnedFaceUp].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
         const ItemLength = Spread.Items.length;
@@ -1634,7 +1634,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         }).catch(Spread => resolve());
     }).then(() => {
         /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: 'background linear .5s' }, { background: '' });
-        Spread.TurnedFaceUp = TF;
+        Spread.CompletedToBeTurnedFaceUp = TF;
         return Spread;
     });
 
@@ -3109,7 +3109,8 @@ I.Slider = { create: () => {
         Size: I.Slider.Size,
         BookStretchingEach: 0,
         initialize: () => {
-            if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (30 < R.Items.length) ? 'edgebar' : 'bookmap';
+            //if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (O.Touch || R.Stage.Width / R.Items.length < 20) ? 'edgebar' : 'bookmap';
+            if(S['slider-mode'] != 'bookmap') S['slider-mode'] = 'edgebar';
             Slider.UI = (S['slider-mode'] == 'edgebar' ? Slider.Edgebar : Slider.Bookmap).create().initialize();
             const UIBox = Slider.appendChild(Slider.UI.Box);
             Slider.Thumb         = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
@@ -4476,33 +4477,32 @@ export const C = {};
 
 
 C.update = () => {
-    C.probe('L', S.SLA); // "L"ayout-Direction
-    C.probe('A', S.ARA); // "A"pparent-Direction
+    C.probe('L', S.SLA); // Rules in "L"ayout
+    C.probe('A', S.ARA); // Rules in "A"ppearance
 };
 
-    C.probe = (LA, AXIS) => {
-        const Gauge = {
-            BASE: {},//   BASE-Direction: "B"efore, "A"fter, "S"tart, "E"nd (Top, Bottom, Left, Right on vertical-scrolling)
-            SIZE: {},//             Size: Breadth, Length (Width, Height on vertical-scrolling)
-            AXIS: {} //             Axis: X, Y
-        };
+    C.probe = (L_A, AXIS) => {
         const LR_RL = ['left', 'right']; if(S.PPD != 'ltr') LR_RL.reverse();
         if(AXIS == 'horizontal') {
-            C._app(LA, 'AXIS', { b: 'y',      l: 'x'                             }); C[LA + '_AXIS_D'] = S.PPD == 'ltr' ? 1 : -1;
-            C._app(LA, 'OOBL', { b: 'top',    l: 'left'                          });
-            C._app(LA, 'SIZE', { b: 'height', l: 'width'                         });
-            C._app(LA, 'BASE', { b: LR_RL[0], a: LR_RL[1], s: 'top', e: 'bottom' });
+            C._app(L_A, 'BASE', { b: LR_RL[0], a: LR_RL[1], s: 'top', e: 'bottom' });
+            C._app(L_A, 'SIZE', { b: 'height', l: 'width'                         });
+            C._app(L_A, 'OOBL', { b: 'top',    l: 'left'                          });
+            C._app(L_A, 'AXIS', { b: 'y',      l: 'x'                             }); C[L_A + '_AXIS_D'] = S.PPD == 'ltr' ? 1 : -1;
         } else {
-            C._app(LA, 'AXIS', { b: 'x',      l: 'y'                             }); C[LA + '_AXIS_D'] = 1;
-            C._app(LA, 'OOBL', { b: 'left',   l: 'top'                           });
-            C._app(LA, 'SIZE', { b: 'width',  l: 'height'                        });
-            C._app(LA, 'BASE', { b: 'top', a: 'bottom', s: LR_RL[0], e: LR_RL[1] });
+            C._app(L_A, 'BASE', { b: 'top', a: 'bottom', s: LR_RL[0], e: LR_RL[1] });
+            C._app(L_A, 'SIZE', { b: 'width',  l: 'height'                        });
+            C._app(L_A, 'OOBL', { b: 'left',   l: 'top'                           });
+            C._app(L_A, 'AXIS', { b: 'x',      l: 'y'                             }); C[L_A + '_AXIS_D'] = 1;
         }
+        // BASE: Directions  ("B"efore-"A"fter-"S"tart-"E"nd. Top-Bottom-Left-Right on TtB, Left-Right-Top-Bottom on LtR, and Right-Left-Top-Bottom on RtL.)
+        // SIZE: Breadth, Length (Width-Height on TtB, Height-Width on LtR and RtL.)
+        // OOBL: "O"ffset "O"rigin of "B"readth and "L"ength
+        // AXIS: X or Y for Breadth and Length (X-Y on TtB, Y-X on LtR and RtL), and ±1 for Culcuration of Length (1 on TtB and LtR, -1 on RtL.)
     };
 
-        C._app = (LA, GA, Par) => {
-            for(const Pro in Par) C[[LA, GA,                Pro ].join('_')] =                Par[Pro] ,
-                                  C[[LA, GA, sML.capitalise(Pro)].join('_')] = sML.capitalise(Par[Pro]);
+        C._app = (L_A, Gauge, Par) => {
+            for(const Pro in Par) C[[L_A, Gauge,                Pro ].join('_')] =                Par[Pro] ,
+                                  C[[L_A, Gauge, sML.capitalise(Pro)].join('_')] = sML.capitalise(Par[Pro]);
         };
 
 
