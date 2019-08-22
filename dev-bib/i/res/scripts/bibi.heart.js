@@ -146,7 +146,7 @@ Bibi.initialize = () => {
     O.DefaultFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
     StyleChecker.style.fontSize = '0.01px';
     O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
-    StyleChecker.style = StyleChecker.innerHTML = '';
+    StyleChecker.setAttribute('style', ''), StyleChecker.innerHTML = '';
     I.Slider.Size = StyleChecker.offsetWidth;
     I.Menu.Height = StyleChecker.offsetHeight;
     delete document.body.removeChild(StyleChecker);
