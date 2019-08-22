@@ -1575,7 +1575,7 @@ R.SpreadsTurnedFaceUp = [];
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!S['allow-placeholders']) return resolve();
-    if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3, 4, -2];
+    if(!Opt.Range    ) Opt.Range     = [-1, 0, 1, 2, 3];//[0, 1, -1, 2, 3, 4, -2];
     if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
     if(!Opt.Origin) {
              if(     R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread;
@@ -1641,7 +1641,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     R.cancelSpreadRetlieving = (Spread) => O.cancelRetlieving ? Spread.Items.forEach(Item => {
         if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
         O.cancelRetlieving(Item);
-    }) : false;
+    }) : false;//Spread.Items.forEach(Item => console.log('Canceled Retlieving for: %O', Item));
 
 
 R.organizePages = () => {
