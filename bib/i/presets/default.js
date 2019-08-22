@@ -104,7 +104,6 @@ Bibi.preset({
 "remove-bibi-website-link"     : false, // true or false (if true, the link to BiB/i Website is not to be added in setting-menu)
 
 "slider-mode"                  : "auto", // "edgebar" or "bookmap" or "auto"
-"loupe-mode"                   : "auto", // "pointer-only" or "with-keys" or "auto"
 
 "epub-additional-stylesheet"   : "", // Path from spine-item or URI begins with "http(s)://" or ""
 "epub-additional-script"       : "", // Path from spine-item or URI begins with "http(s)://" or ""
