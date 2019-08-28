@@ -36,7 +36,6 @@ const Config = {
         'bib/i/res/scripts/bibi.polyfills': 'js',
         'bib/i/extensions/analytics/index': 'js',
         'bib/i/extensions/epubcfi/index': 'js',
-        'bib/i/extensions/share/index': 'js',
         'bib/i/extensions/unaccessibilizer/index': 'js',
         'bib/i/extensions/unzipper/index': 'js',
         'bib/i/extensions/zine/index': 'js',

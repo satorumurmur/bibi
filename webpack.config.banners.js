@@ -73,10 +73,6 @@ module.exports = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'/share/index.js': banner(`BiB/i Extension: Share`, 'default'),
-
-// -----------------------------------------------------------------------------------------------------------------------------
-
 '/unaccessibilizer/index.js': banner(`# BiB/i Extension: Unaccessibilizer ("What a...")`, `
  *  * Reluctantly coded by ${ Bibi.author.name } - ${ Bibi.homepage }
  *  * Released into the public domain under the Unlicense. - http://unlicense.org/UNLICENSE

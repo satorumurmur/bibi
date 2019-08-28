@@ -60,7 +60,6 @@
     "webpack-fix-style-only-entries": "^0.3.0"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.10.1",
     "classlist-polyfill": "^1.2.0",
     "current-script-polyfill": "^1.0.0",
     "custom-event-polyfill": "^1.0.7",
