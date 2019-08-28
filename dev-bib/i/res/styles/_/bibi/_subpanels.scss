@@ -122,10 +122,7 @@ div.bibi-subpanel {
 				// @____Bibi:Dress__('-') @include padding-h($Subpanel-Button_HorizontalPadding);
 				border-style: solid;  &.bibi-button-radio { border-style: dashed; }
 				border-width: 1px 0;
-				// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor;
 				// @____Bibi:Dress__('-') min-height: $Subpanel-Button_Height;
-				// @____Bibi:Dress__('-') color: $Subpanel-Button_Color;
-				// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
 				.bibi-button-iconbox,
 				.bibi-button-label {
 					display: inline-block;
@@ -164,13 +161,21 @@ div.bibi-subpanel {
 					line-height: 1;
 					font-size: 16px;
 					text-align: right;
-					// @____Bibi:Dress__('-') color: $Subpanel-Button-Check_Color;
 					transition: .2s ease-in-out;
 				}
-				&.default.hover,
-				&.default:hover,
-				&.bibi-button-toggle.active.hover,
-				&.bibi-button-toggle.active:hover {
+				&.default {
+					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor;
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color;
+					// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
+					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color; }
+				}
+				&.active {
+					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Active;
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Active;
+					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Active;
+					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Active; }
+				}
+				&.default, &.bibi-button-toggle.active { &.hover, &:hover {
 					cursor: pointer;
 					z-index: 2;
 					border-style: solid;  &.bibi-button-radio { border-style: solid; }
@@ -178,13 +183,11 @@ div.bibi-subpanel {
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Hover;
 					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Hover;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Hover; }
-				}
-				&.disabled,
-				&.disabled.hover,
-				&.disabled:hover {
+				}}
+				&.disabled { &, &.hover, &:hover {
 					.bibi-button-iconbox,
 					.bibi-button-label { opacity: 0.5 !important; }
-				}
+				}}
 			}
 			.bibi-button-toggle,
 			.bibi-button-radio {

@@ -228,17 +228,17 @@ $FontSizeIcon_ScaleStep: 1.44;
 
 @mixin ButtonIcon_LoupeZoomIn() {
 	content: "\e8ff"; // zoom_in
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(1.5); }
+	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(1.25); }
 }
 
 @mixin ButtonIcon_LoupeZoomOut() {
 	content: "\e900"; // zoom_out
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(0.67); }
+	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(0.80); }
 }
 
 @mixin ButtonIcon_LoupeReset() {
 	content: "\e8b6"; // search
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(0.33); }
+	.bibi-button.active &,  .bibi-button.active.hover  & { html.zoomed-in & { transform: scale(0.80); } html.zoomed-out & { transform: scale(1.25); } }
 }
 
 @mixin ButtonIcon_LoupeReset_Overlay() {

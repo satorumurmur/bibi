@@ -33,14 +33,20 @@ $Subpanel-ButtonGroup_BorderColor: rgba(black, 0.1);
 $Subpanel-Button_HorizontalPadding: 8px;
 $Subpanel-Button_Height: 38px;
 $Subpanel-Button-FontSize: 13px;
-$Subpanel-Button_Color: rgb(64,64,64);
-$Subpanel-Button-Check_Color: rgb(160,160,160);
-$Subpanel-Button_BorderColor: rgba(black, 0.1);
+
+          $Subpanel-Button_Color: rgb(64,64,64);
+    $Subpanel-Button-Check_Color: rgb(160,160,160);
+    $Subpanel-Button_BorderColor: rgba(black, 0.1);
 $Subpanel-Button_BackgroundColor: white;
 
-$Subpanel-Button_Color__Hover: $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Button-Check_Color__Hover: $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Button_BorderColor__Hover: rgba($GLOBAL__Subpanel_KeyColor, 0.1);
+          $Subpanel-Button_Color__Active: $Subpanel-Button_Color;
+    $Subpanel-Button-Check_Color__Active: $GLOBAL__Subpanel_KeyColor;
+    $Subpanel-Button_BorderColor__Active: $Subpanel-Button_BorderColor;
+$Subpanel-Button_BackgroundColor__Active: $Subpanel-Button_BackgroundColor;
+
+          $Subpanel-Button_Color__Hover: $GLOBAL__Subpanel_KeyColor;
+    $Subpanel-Button-Check_Color__Hover: $GLOBAL__Subpanel_KeyColor;
+    $Subpanel-Button_BorderColor__Hover: rgba($GLOBAL__Subpanel_KeyColor, 0.1);
 $Subpanel-Button_BackgroundColor__Hover: rgba(244,248,252, 0.8);
 
 $Subpanel-Icon_MarginRight: 6px;

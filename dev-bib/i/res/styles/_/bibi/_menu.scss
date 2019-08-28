@@ -159,7 +159,7 @@ div#bibi-menu-l {
 	}
 	ul.bibi-buttongroup-tiled {
 		li {
-			margin-left: -1px;
+			margin-left: -1px !important;
 		}
 		li:first-child:not(:last-child) {
 			.bibi-button {
@@ -208,7 +208,7 @@ div#bibi-menu-r {
 	}
 	ul.bibi-buttongroup-tiled {
 		li {
-			margin-right: -1px;
+			margin-right: -1px !important;
 		}
 		li:first-child:not(:last-child) {
 			.bibi-button {

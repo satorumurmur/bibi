@@ -71,10 +71,7 @@ div.bibi-subpanel {
 		}
 			.bibi-button { // a, span
 				@include padding-h($Subpanel-Button_HorizontalPadding);
-				border-color: $Subpanel-Button_BorderColor;
 				min-height: $Subpanel-Button_Height;
-				color: $Subpanel-Button_Color;
-				background: $Subpanel-Button_BackgroundColor;
 				.bibi-button-iconbox {
 					margin-top: ($Subpanel-Button_Height - $GLOBAL__Subpanel-Icon_Size) / 2;
 					margin-right: $Subpanel-Icon_MarginRight;
@@ -85,17 +82,25 @@ div.bibi-subpanel {
 				}
 				&:after {
 					right: $Subpanel-Button_HorizontalPadding;
-					color: $Subpanel-Button-Check_Color;
 				}
-				&.default.hover,
-				&.default:hover,
-				&.bibi-button-toggle.active.hover,
-				&.bibi-button-toggle.active:hover {
+				&.default {
+					border-color: $Subpanel-Button_BorderColor;
+					color: $Subpanel-Button_Color;
+					background: $Subpanel-Button_BackgroundColor;
+					&:after { color: $Subpanel-Button-Check_Color; }
+				}
+				&.active {
+					border-color: $Subpanel-Button_BorderColor__Active;
+					color: $Subpanel-Button_Color__Active;
+					background-color: $Subpanel-Button_BackgroundColor__Active;
+					&:after { color: $Subpanel-Button-Check_Color__Active; }
+				}
+				&.default, &.bibi-button-toggle.active { &.hover, &:hover {
 					border-color: $Subpanel-Button_BorderColor__Hover;
 					color: $Subpanel-Button_Color__Hover;
 					background-color: $Subpanel-Button_BackgroundColor__Hover;
 					&:after { color: $Subpanel-Button-Check_Color__Hover; }
-				}
+				}}
 			}
 	.bibi-buttongroup-tiled {
 		.bibi-buttonbox {
