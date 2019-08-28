@@ -6,13 +6,16 @@
 
 'use strict';
 
-const Package = require('./package.json');
+const Bibi = {
+    author: { name: 'Satoru MATSUSHIMA' },
+    homepage: 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
+}; // const Package = require('./package.json');
 
 const banner = (Name, Credit, Extra) => '/*!' + `
  *                                                                                                                          (℠)
  *  # ${ Name }
  *` + (!Credit ? '' : (Credit == 'default' ? `
- *  * Copyright (c) ${ Package.author.name } - ${ Package.homepage } or https://github.com/satorumurmur/bibi
+ *  * Copyright (c) ${ Bibi.author.name } - ${ Bibi.homepage }
  *  * Licensed under the MIT License. - https://opensource.org/licenses/mit-license.php` : '\n' + Credit.replace(/^\n|\n$/g, '')) + `
  *`) + (!Extra ? '' : '\n' + Extra.replace(/^\n|\n$/g, '') + `
  *`) + '\n */';
@@ -21,22 +24,24 @@ module.exports = {
 
 // =============================================================================================================================
 
-'/bibi.js': banner(`BiB/i v${ Package.version } | EPUB Reader on your website.`, 'default', `
+'/bibi.js': banner(`BiB/i | EPUB Reader on your website.`, 'default', `
  *  * Including:
- *      - sML.js ... Copyright (c) ${ Package.author.name } - https://github.com/satorumurmur/sML (Licensed under the MIT License.)
+ *      - sML.js ... Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML (Licensed under the MIT License.)
 `),
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'/bibi.css': '@charset "utf-8";\n' + banner(`BiB/i Styles`, `
- *
- *  * Base Design:
- *      - Copyright (c) Satoru MATSUSHIMA - https://bibi.epub.link or https://github.com/satorumurmur/bibi
- *      - Licensed under the MIT License. - https://opensource.org/licenses/mit-license.php
-`, `
+'/bibi.css': '@charset "utf-8";\n' + banner(`BiB/i Style`, 'default', `
  *  * Including:
- *      - Material Icons    ... Copyright (c) Material Design Authors / Google Inc. - https://material.io/icons/ (Licensed under the Apache License version 2.0.)
- *      - Font Awesome Free ... Copyright (c) Dave Gandy                            - https://fontawesome.com    (Licensed under the SIL Open Font License (OFL) 1.1.)
+ *      - Material Icons ... Copyright (c) Material Design Authors / Google Inc. - https://material.io/icons/ (Licensed under the Apache License version 2.0.)
+`),
+
+// -----------------------------------------------------------------------------------------------------------------------------
+
+'/bibi.dress.css': '@charset "utf-8";\n' + banner(`BiB/i Dress`, `
+ *  * Base Design:
+ *      - Copyright (c) ${ Bibi.author.name } - ${ Bibi.homepage }
+ *      - Licensed under the MIT License. - https://opensource.org/licenses/mit-license.php
 `),
 
 // -----------------------------------------------------------------------------------------------------------------------------
@@ -56,7 +61,7 @@ module.exports = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'bib/i.js': banner(`Pipi | Putter of BiBi/i v${ Package.version }`, 'default'),
+'bib/i.js': banner(`Pipi | Putter of BiBi/i`, 'default'),
 
 // =============================================================================================================================
 
@@ -68,12 +73,8 @@ module.exports = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'/share/index.js': banner(`BiB/i Extension: Share`, 'default'),
-
-// -----------------------------------------------------------------------------------------------------------------------------
-
 '/unaccessibilizer/index.js': banner(`# BiB/i Extension: Unaccessibilizer ("What a...")`, `
- *  * Reluctantly coded by ${ Package.author.name } - ${ Package.homepage } or https://github.com/satorumurmur/bibi
+ *  * Reluctantly coded by ${ Bibi.author.name } - ${ Bibi.homepage }
  *  * Released into the public domain under the Unlicense. - http://unlicense.org/UNLICENSE
 `),
 

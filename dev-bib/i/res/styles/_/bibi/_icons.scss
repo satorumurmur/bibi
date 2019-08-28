@@ -1,0 +1,312 @@
+// ================================================================================
+// + Base
+// --------------------------------------------------------------------------------
+
+.bibi-icon {
+	&,
+	& *,
+	&:before {
+		box-sizing: border-box;
+		display: inline-block;
+		padding: 0;
+		border: none 0;
+		text-align: center;
+		vertical-align: middle;
+		text-decoration: none;
+	}
+	& {
+		overflow: hidden;
+		position: relative;
+		border: solid 1px;
+		border-radius: 3px;
+		// @____Bibi:Dress__('-') @include size($GLOBAL__Icon_Size);
+		// @____Bibi:Dress__('-') .bibi-subpanel & { @include size($GLOBAL__Subpanel-Icon_Size); }
+	}
+	& *,
+	&:before {
+		position: absolute;
+		margin: 0;
+	}
+	.bibi-subpanel & {
+		//transition: inherit !important;
+	}
+}
+
+.bibi-button.default.hover .bibi-icon,
+.bibi-button.default:hover .bibi-icon {
+	.bibi-subpanel & {
+		//transition: inherit;
+	}
+}
+
+.bibi-button.default.hover .bibi-icon,
+.bibi-button.default:hover .bibi-icon,
+.bibi-button-normal.active.hover .bibi-icon,
+.bibi-button-normal.active:hover .bibi-icon,
+.bibi-button-toggle.active.hover .bibi-icon,
+.bibi-button-toggle.active:hover .bibi-icon {
+	cursor: pointer;
+}
+
+.bibi-button-radio.active .bibi-icon {
+	cursor: default;
+}
+
+
+
+
+// ================================================================================
+// + Each
+// --------------------------------------------------------------------------------
+
+
+// - Shapes of Items and Spreads
+// --------------------------------------------------------------------------------
+
+$ItemShape_Width : 9px;   $SpreadShape_Width : $ItemShape_Width * 2 - 1px;
+$ItemShape_Height: 16px;  $SpreadShape_Height: $ItemShape_Height;
+
+$Subpanel-ItemShape_Width : 7px;   $Subpanel-SpreadShape_Width : $Subpanel-ItemShape_Width * 2 - 1px;
+$Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemShape_Height;
+
+.bibi-icon-view-paged,
+.bibi-icon-view-horizontal,
+.bibi-icon-view-vertical {
+	span.bibi-shape-spreads {
+		@include offset(0);
+		margin: auto;
+		@include size($SpreadShape_Width, $SpreadShape_Height);
+		span.bibi-shape-spread {
+			left: 0;
+			top: 0;
+			@include size(100%);
+			span.bibi-shape-item {
+				top: 0;
+				border: solid 1px;
+				@include size($ItemShape_Width, $ItemShape_Height);
+				&:first-child { left: 0; }
+				&:last-child  { left: ($ItemShape_Width - 1px); }
+			}
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		@include size($Subpanel-SpreadShape_Width, $Subpanel-SpreadShape_Height);
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				@include size($Subpanel-ItemShape_Width, $Subpanel-ItemShape_Height);
+				&:last-child  { left: ($Subpanel-ItemShape_Width - 1px); }
+			}
+		}
+	}
+}
+
+.bibi-icon-view-paged {
+	span.bibi-shape-spreads-paged {
+		span.bibi-shape-spread {
+			&:first-child { display: none; }
+			&:last-child  { display: none; }
+		}
+	}
+}
+
+.bibi-icon-view-horizontal {
+	span.bibi-shape-spreads-horizontal {
+		span.bibi-shape-spread {
+			&:first-child { left: ($SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($SpreadShape_Width + 1px); }
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			&:first-child { left: ($Subpanel-SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($Subpanel-SpreadShape_Width + 1px); }
+		}
+	}
+}
+
+.bibi-icon-view-vertical {
+	span.bibi-shape-spreads-vertical {
+		span.bibi-shape-spread {
+			&:first-child { top: ($SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($SpreadShape_Height + 1px); }
+		}
+	}
+	.bibi-subpanel & span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			&:first-child { top: ($Subpanel-SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($Subpanel-SpreadShape_Height + 1px); }
+		}
+	}
+}
+
+
+// - PanelToggler (.bibi-icon-toggle-panel)
+// --------------------------------------------------------------------------------
+
+// @____Bibi:Dress__('-') .bibi-icon-toggle-panel {
+// @____Bibi:Dress__('-') 	@include PannelToggler();
+// @____Bibi:Dress__('-') }
+
+
+// - Icons
+// --------------------------------------------------------------------------------
+
+.bibi-icon-config,
+.bibi-icon-share,
+.bibi-icon-full-breadth-layout,
+.bibi-icon-toggle-fullscreen,
+.bibi-icon-open-newwindow,
+.bibi-icon-fontsize,
+.bibi-icon-loupe {
+	text-decoration: none;
+	// @____Bibi:Dress__('-') &:before { @include ButtonIcon(); }
+}
+
+// @____Bibi:Dress__('-') .bibi-icon-config {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e8b8"; // touch_app
+// @____Bibi:Dress__('-') 		font-size: $GLOBAL__Icon_Size * 0.75;
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-share {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e80d"; // share
+// @____Bibi:Dress__('-') 		font-size: $GLOBAL__Icon_Size * 20/31;
+// @____Bibi:Dress__('-') 		font-weight: bold;
+// @____Bibi:Dress__('-') 		html.InternetExplorer & { font-weight: normal; }
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-full-breadth-layout {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e8c4"; // settings_overscan
+// @____Bibi:Dress__('-') 		font-size: $GLOBAL__Icon_Size * 0.5;
+// @____Bibi:Dress__('-') 		.bibi-subpanel & { line-height: $GLOBAL__Subpanel-Icon_Size * .95238; }
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-toggle-fullscreen {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e5d0"; // fullscreen
+// @____Bibi:Dress__('-') 		.bibi-subpanel & {
+// @____Bibi:Dress__('-') 			font-size: $GLOBAL__Subpanel-Icon_Size * 0.9;
+// @____Bibi:Dress__('-') 			html.InternetExplorer & { top: -.05em; }
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') *:fullscreen .bibi-icon-toggle-fullscreen {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e5d1"; // fullscreen_exit
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-open-newwindow {
+// @____Bibi:Dress__('-') 	&:before {
+// @____Bibi:Dress__('-') 		content: "\e89e"; // open_in_new
+// @____Bibi:Dress__('-') 		font-size: $GLOBAL__Icon_Size * 21/31;
+// @____Bibi:Dress__('-') 		.bibi-subpanel & {
+// @____Bibi:Dress__('-') 			margin-top: -.025em;
+// @____Bibi:Dress__('-') 			font-size: $GLOBAL__Subpanel-Icon_Size * 16/21;
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-fontsize {
+// @____Bibi:Dress__('-') 	&:before { line-height: 1.4; }
+// @____Bibi:Dress__('-') 	& {
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-change {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "format_size";
+// @____Bibi:Dress__('-') 				font-size: 24px;
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exlarge,
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-large,
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-medium,
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-small,
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exsmall {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "title";
+// @____Bibi:Dress__('-') 				font-size: 13px;
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exlarge { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-large   { &:before { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-medium  { &:before { transform: rotate(  0deg) scale(1); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-small   { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exsmall { &:before { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') 	.bibi-button.active & {
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exlarge { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-large   { &:before { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-medium  { &:before { transform: rotate(360deg) scale(1); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-small   { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 		&.bibi-icon-fontsize-exsmall { &:before { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); } }
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+// @____Bibi:Dress__('-') .bibi-icon-loupe {
+// @____Bibi:Dress__('-') 	&:before { line-height: 2; }
+// @____Bibi:Dress__('-') 	& {
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-menu,
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomin,
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomout,
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-reset {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				font-size: 26px;
+// @____Bibi:Dress__('-') 				text-indent: 1px;
+// @____Bibi:Dress__('-') 				.bibi-subpanel & { font-size: 22px; }
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-menu {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "\e8ff"; // zoom_in
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomin {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "\e8ff"; // zoom_in
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomout {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "\e900"; // zoom_out
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-reset {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				content: "\e8b6"; // search
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 			&:after {
+// @____Bibi:Dress__('-') 				content: "=";
+// @____Bibi:Dress__('-') 				display: block;
+// @____Bibi:Dress__('-') 				position: absolute;
+// @____Bibi:Dress__('-') 				@include offset(21%, auto, auto, 24%);
+// @____Bibi:Dress__('-') 				margin: auto;
+// @____Bibi:Dress__('-') 				@include size(1em);
+// @____Bibi:Dress__('-') 				font-size: 1em * (13px / 18px);
+// @____Bibi:Dress__('-') 				line-height: 1;
+// @____Bibi:Dress__('-') 				html.Windows & { @include offset(27%, auto, auto, 25%); }
+// @____Bibi:Dress__('-') 				#bibi-subpanel_loupe & { @include offset(11%, auto, auto, 17%); }
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') 	.bibi-button.active & {
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomin {
+// @____Bibi:Dress__('-') 			&:before {
+// @____Bibi:Dress__('-') 				html.loupe-with-keys & { transform: rotate(360deg); }
+// @____Bibi:Dress__('-') 				html.loupe-pointer-only & { transform: scale(1.5); }
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomout {
+// @____Bibi:Dress__('-') 			&:before { transform: scale(0.67); }
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-reset {
+// @____Bibi:Dress__('-') 			&:before, &:after { transform: scale(0.67); }
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') 	.bibi-button.disabled & {
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomin,
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-zoomout,
+// @____Bibi:Dress__('-') 		&.bibi-icon-loupe-reset {
+// @____Bibi:Dress__('-') 			&:before, &:after {
+// @____Bibi:Dress__('-') 				opacity: 0.33;
+// @____Bibi:Dress__('-') 			}
+// @____Bibi:Dress__('-') 		}
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }

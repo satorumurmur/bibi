@@ -1,0 +1,58 @@
+// ================================================================================
+// + Spinner
+// --------------------------------------------------------------------------------
+
+div#bibi-spinner {
+	box-sizing: border-box;
+	display: none;
+	position: fixed;
+	z-index: $INVARIABLE__Spinner_ZIndex;
+	@include offset(48%, -100%, auto);
+	margin: auto;
+	// @____Bibi:Dress__('-') @include size($Spinner_Size);
+	&:before, &:after {
+		content: "";
+		position: absolute;
+		box-sizing: border-box;
+		@include offset(0);
+		margin: auto;
+		border-radius: 50%;
+	}
+	&:before { // Core
+		// @____Bibi:Dress__('-') @include size($Spinner-Core_Size);
+		// @____Bibi:Dress__('-') background: $Spinner-Core_Color;
+		// @____Bibi:Dress__('-') opacity: $Spinner-Core_Opacity;
+	}
+	&:after { // Halo
+		// @____Bibi:Dress__('-') @include size($Spinner-Halo_Size);
+		border-style: solid;
+		// @____Bibi:Dress__('-') border-width: $Spinner-Halo_Width;
+		// @____Bibi:Dress__('-') border-color: $Spinner-Halo_Color;
+		// @____Bibi:Dress__('-') opacity: $Spinner-Halo_Opacity;
+	}
+	span { // Bits
+		display: block;
+		position: absolute;
+		@include offset(0, -100%, auto);
+		margin: 0 auto;
+		border-radius: 50%;
+		// @____Bibi:Dress__('-') @include size($Spinner-Bit_Size);
+		// @____Bibi:Dress__('-') transform-origin: 50% ($Spinner_Size * 0.5);
+		// @____Bibi:Dress__('-') @if $Spinner_HowManyBits > 0 {
+		// @____Bibi:Dress__('-') 	@for $i from 1 through $Spinner_HowManyBits {
+		// @____Bibi:Dress__('-') 		&:nth-child(#{$i}) {
+		// @____Bibi:Dress__('-') 			background: Spinner-Bit_Color($i);
+		// @____Bibi:Dress__('-') 			transform: Spinner-Bit_Transform($i);
+		// @____Bibi:Dress__('-') 		}
+		// @____Bibi:Dress__('-') 	}
+		// @____Bibi:Dress__('-') 	@if $Spinner_HowManyBits < 12 { @for $i from $Spinner_HowManyBits + 1 through 12 { &:nth-child(#{$i}) { display: none; } } }
+		// @____Bibi:Dress__('-') }
+	}
+	html.busy & {
+		display: block;
+		// @____Bibi:Dress__('-') &        { animation: $Spinner_Animation;      }
+		// @____Bibi:Dress__('-') &:before { animation: $Spinner-Core_Animation; }
+		// @____Bibi:Dress__('-') &:after  { animation: $Spinner-Halo_Animation; }
+		// @____Bibi:Dress__('-') span     { animation: $Spinner-Bits_Animation; }
+	}
+}

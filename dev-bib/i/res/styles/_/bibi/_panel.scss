@@ -1,0 +1,242 @@
+// ================================================================================
+// + Panel
+// --------------------------------------------------------------------------------
+
+
+div#bibi-panel {
+	box-sizing: border-box;
+	overflow: hidden;
+	z-index: $INVARIABLE__Panel_ZIndex;
+	position: absolute;
+	left: 0;
+	top: 0;
+	@include size(100%);
+	// @____Bibi:Dress__('-') background: $Panel_Background;
+	opacity: 0;
+	transition: 0.15s ease-out;
+	transform: translateY(-100%);
+	html.panel-opened & {
+		transform: none;
+		opacity: 1;
+		transition: 0.15s ease-in;
+		user-select: auto;
+	}
+}
+
+
+// - BottomBar
+// --------------------------------------------------------------------------------
+
+div#bibi-panel:after {
+	content: "";
+	box-sizing: border-box;
+	display: block;
+	position: absolute;
+	z-index: $INVARIABLE__Panel-BottomBar_ZIndex;
+	left: 0; right: 0; bottom: 0;
+	margin: 0 auto;
+	padding: 4px;
+	border-style: solid; border-width: 1px 0;
+	width: 100%;
+	// @____Bibi:Dress__('-') height: $GLOBAL__BottomBar_Height;
+	// @____Bibi:Dress__('-') border-color: $Panel-BottomBar_BorderTopColor;
+	// @____Bibi:Dress__('-') background: $Panel-BottomBar_Background;
+	html.view-horizontal &,
+	html.page-rtl.panel-opened & {
+		// @____Bibi:Dress__('-') bottom: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
+	}
+	html.veil-opened &,
+	html.panel-opened &,
+	html.subpanel-opened & {
+		bottom: 0 !important;
+	}
+}
+
+
+// - BookInfo
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo {
+	box-sizing: border-box;
+	position: relative;
+	z-index: $INVARIABLE__Panel-BookInfo_ZIndex;
+	@include size(100%);
+}
+	div#bibi-panel-bookinfo-box {
+		box-sizing: border-box;
+		// @____Bibi:Dress__('-') margin-top: $GLOBAL__TopBar_Height;
+		padding: 20px 30px;
+		width: 100%;
+		// @____Bibi:Dress__('-') height: calc(100% - #{$GLOBAL__BottomBar_Height});
+		-webkit-overflow-scrolling: touch;
+		html.page-ltr &, html.Android.page-rtl & { overflow-x: hidden; overflow-y: scroll; @include writing-mode(horizontal-tb); }
+		html.page-rtl & { overflow-x: scroll; overflow-y: hidden; @include writing-mode(vertical-rl); }
+	}
+
+
+// . Navigation
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-navigation {
+	box-sizing: border-box;
+	html.page-ltr &, html.Android.page-rtl & {
+		>*:first-child,
+		>*:first-child >*:first-child,
+		>*:first-child >*:first-child >*:first-child {
+			margin-top: 0 !important;
+		}
+	}
+	html.page-rtl & {
+		>*:first-child,
+		>*:first-child >*:first-child,
+		>*:first-child >*:first-child >*:first-child {
+			margin-right: 0 !important;
+		}
+		span.tcy {
+			@include text-combine-upright_all();
+		}
+	}
+	nav {
+		$SCOPED__MarginBefore: 2em;
+		$SCOPED__MarginAfter: 1em;
+		line-height: 1.2;
+		font-size: 20px;
+		html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+		html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+		h1, h2, h3, h4, h5, h6 {
+			$SCOPED__MarginBefore: 0;
+			$SCOPED__MarginAfter: 1em;
+			font-weight: bold;
+			html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+			html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+		}
+		small {
+			font-size: .8em;
+		}
+		br + small {
+			$SCOPED__MarginStart: 2em;
+			html.page-ltr &, html.Android.page-rtl & { margin: 0 0 0 $SCOPED__MarginStart; }
+			html.page-rtl & { margin: $SCOPED__MarginStart 0 0 0; }
+		}
+		ul, ol {
+			$SCOPED__MarginBefore: 0;
+			$SCOPED__MarginAfter: 1em;
+			font-size: .9em;
+			html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+			html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+			li {
+				$SCOPED__MarginBefore: 1em;
+				$SCOPED__MarginAfter: 0;
+				html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+				html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+				ul, ol {
+					position: relative;
+					$SCOPED__MarginBefore: 0;
+					$SCOPED__MarginAfter: 0;
+					html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+					html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+					&:before {
+						content: "";
+						display: block;
+						position: absolute;
+						$SCOPED__OffsetStart: .175em;
+						$SCOPED__OffsetBefore: 0;
+						$SCOPED__Breadth: 4px;
+						$SCOPED__Length: 100%;
+						background: white;
+						html.page-ltr &, html.Android.page-rtl & { left: $SCOPED__OffsetStart; top: $SCOPED__OffsetBefore; @include size($SCOPED__Breadth, $SCOPED__Length); }
+						html.page-rtl & { top: $SCOPED__OffsetStart; right: $SCOPED__OffsetBefore; @include size($SCOPED__Length, $SCOPED__Breadth); }
+					}
+					li {
+						$SCOPED__MarginBefore: .5em;
+						$SCOPED__MarginAfter: 0;
+						$SCOPED__MarginStart: 1em;
+						html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter $SCOPED__MarginStart; }
+						html.page-rtl & { margin: $SCOPED__MarginStart $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+					}
+				}
+			}
+		}
+		a {
+			border-style: solid;
+			border-width: 0;
+			// @____Bibi:Dress__('-') border-color: $Panel-Nav-A_TextDecorationColor;
+			html.page-rtl & { border-right-width: 1px; padding-right: .1em; }
+			html.page-ltr & { border-bottom-width: 1px; padding-bottom: .1em; }
+			// @____Bibi:Dress__('-') color: $Panel-Nav-A_Color;
+			text-decoration: none;
+			transition: linear .15s;
+			&:hover {
+				// @____Bibi:Dress__('-') border-color: $Panel-Nav-A_TextDecorationColor__Hover;
+				// @____Bibi:Dress__('-') color: $Panel-Nav-A_Color__Hover;
+				transition: none;
+			}
+			&.bibi-bookinfo-inactive-link {
+				color: inherit !important;
+				border: none 0 !important;
+				cursor: default !important;
+				&:hover {
+					color: inherit !important;
+				}
+			}
+		}
+	}
+	nav.bibi-nav-landmarks,
+	nav.bibi-nav-page-list {
+		font-size: 16px;
+		h1, h2, h3, h4, h5, h6 {
+			$SCOPED__MarginBefore: 0;
+			$SCOPED__MarginAfter: .25em;
+			html.page-ltr &, html.Android.page-rtl & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
+			html.page-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
+		}
+		ul, ol {
+			overflow: hidden;
+			$SCOPED__PaddingAfter: .25em;
+			html.page-ltr &, html.Android.page-rtl & { padding: 0 0 $SCOPED__PaddingAfter 0; }
+			html.page-rtl & { padding: 0 0 0 $SCOPED__PaddingAfter; }
+			li {
+				float: left;
+				$SCOPED__PaddingEnd: 1em;
+				html.page-ltr &, html.Android.page-rtl & { padding: 0 $SCOPED__PaddingEnd 0 0; &:last-child { padding: 0; } }
+				html.page-rtl & { padding: 0 0 $SCOPED__PaddingEnd 0; &:last-child { padding: 0; } }
+			}
+		}
+	}
+}
+
+
+// . Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-cover {
+	border-style: solid;
+	border-width: 0;
+	// @____Bibi:Dress__('-') border-color: $Panel-Cover_BorderColor;
+	html.page-ltr &, html.Android.page-rtl & { margin: 2em 30px 0 0; padding: 2em 0; border-top-width: 1px; }
+	html.page-rtl & { margin: 0 2em 30px 0; padding: 0 2em; border-right-width: 1px; }
+	img {
+		@include max-size(40vw, 40vh);
+		html.page-ltr &, html.Android.page-rtl & { margin: 0 0 .75em 0; }
+		html.page-rtl & { margin: 0 0 0 .75em; }
+	}
+	p#bibi-panel-bookinfo-cover-info {
+		// @____Bibi:Dress__('-') color: $Panel-Cover-Info_Color;
+		strong, em, span {
+			display: block;
+			line-height: 1.2;
+			html.page-ltr &, html.Android.page-rtl & { margin: 0 0 .5rem 0; }
+			html.page-rtl & { margin: 0 0 0 .5rem; }
+		}
+		strong {
+			font-size: 16px;
+			font-weight: bold;
+		}
+		em {
+			font-size: 14px;
+		}
+		span {
+			font-size: 12px;
+		}
+	}
+}

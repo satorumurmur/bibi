@@ -1,0 +1,76 @@
+// ================================================================================
+// + Menu
+// --------------------------------------------------------------------------------
+
+
+div#bibi-menu {
+	height: $GLOBAL__TopBar_Height;
+}
+html.appearance-vertical:not(.veil-opened) {
+	&.slider-opened {
+		& {
+			div#bibi-menu {
+				width: calc(100% - #{$GLOBAL__Slider_Size});
+			}
+		}
+		&.panel-opened,
+		&.subpanel-opened {
+			div#bibi-menu {
+				padding-right: $GLOBAL__Slider_Size;
+			}
+		}
+	}
+}
+html.book-full-height {
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor;         border-bottom-color: $Menu_BorderBottomColor; }
+	&                 div#bibi-menu.hover,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover;  border-bottom-color: $Menu_BorderBottomColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; border-bottom-color: $Menu_BorderBottomColor__Active; box-shadow: $Menu_BoxShadow__Active; }
+}
+html:not(.book-full-height) {
+	&                 div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor;         border-bottom-color: $NotBFH-Menu_BorderBottomColor; }
+	&                 div#bibi-menu.hover,
+	&.subpanel-opened div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Hover;  border-bottom-color: $NotBFH-Menu_BorderBottomColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Active; border-bottom-color: $NotBFH-Menu_BorderBottomColor__Active; box-shadow: $NotBFH-Menu_BoxShadow__Active; }
+}
+
+
+// - Menu-L & Menu-R
+// --------------------------------------------------------------------------------
+
+div#bibi-menu-l,
+div#bibi-menu-r {
+	ul {
+		padding: $GLOBAL__ButtonGroup_Margin;
+		height: $GLOBAL__Icon_Size;
+		&:before {
+			width: $Menu-ButtonGroup-Separator_Width;
+			background: $Menu-ButtonGroup-Separator_Color;
+			top: $GLOBAL__ButtonGroup_Margin;
+			height: $GLOBAL__Icon_Size;
+		}
+		li {
+			@include size($GLOBAL__Icon_Size);
+		}
+	}
+}
+
+div#bibi-menu-l {
+	ul {
+		&:first-child       { padding-left: $GLOBAL__ButtonGroup_Margin; }
+		&:not(:first-child) { padding-left: $GLOBAL__ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width; }
+		li {
+			&:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
+		}
+	}
+}
+
+div#bibi-menu-r {
+	ul {
+		&:first-child       { padding-right: $GLOBAL__ButtonGroup_Margin; }
+		&:not(:first-child) { padding-right: $GLOBAL__ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width; }
+		li {
+			&:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
+		}
+	}
+}

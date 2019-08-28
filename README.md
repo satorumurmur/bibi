@@ -139,13 +139,13 @@ How to Arrange Development Environment
     - webpack watches your modification and updates development version of the file(s) with sourcemaps.
     - BrowserSync reloads your browser(s) or inject changes of CSS.
 
-* SCSS source file(s) of...
-    - `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`,
-    - Styles in `bib/i.js` is `dev-bib/i.scss`.
-* JavaScript source file(s) of...
-    - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`,
-    - `bib/i.js` is `dev-bib/i.js`,
-    - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
+* SCSS source file(s):
+    - of CSS files in `bib/i/res/styles/` are in `dev-bib/i/res/styles/`,
+    - of the styles in `bib/i.js` is `dev-bib/i.scss`.
+* JavaScript source file(s):
+    - of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`,
+    - of `bib/i.js` is `dev-bib/i.js`,
+    - of the extension files in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 
 * These files are not processed by webpack:
     - Root HTML file of BiB/i: `bib/i/index.html`
@@ -187,7 +187,6 @@ License
 * Core components:
     - [sML.js](https://www.npmjs.com/package/sml.js) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
     - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache License version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
-    - [Font Awesome Free](https://fontawesome.com) ... Copyright &copy; Dave Gandy (Licensed under [the SIL Open Font License (OFL) 1.1](https://fontawesome.com/license/free).)
 * Extensions:
     - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
     - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)

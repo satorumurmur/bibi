@@ -1,0 +1,37 @@
+// ================================================================================
+// + Spinner
+// --------------------------------------------------------------------------------
+
+div#bibi-spinner {
+	@include size($Spinner_Size);
+	&:before { // Core
+		@include size($Spinner-Core_Size);
+		background: $Spinner-Core_Color;
+		opacity: $Spinner-Core_Opacity;
+	}
+	&:after { // Halo
+		@include size($Spinner-Halo_Size);
+		border-width: $Spinner-Halo_Width;
+		border-color: $Spinner-Halo_Color;
+		opacity: $Spinner-Halo_Opacity;
+	}
+	span { // Bits
+		@include size($Spinner-Bit_Size);
+		transform-origin: 50% ($Spinner_Size * 0.5);
+		@if $Spinner_HowManyBits > 0 {
+			@for $i from 1 through $Spinner_HowManyBits {
+				&:nth-child(#{$i}) {
+					background: Spinner-Bit_Color($i);
+					transform: Spinner-Bit_Transform($i);
+				}
+			}
+			@if $Spinner_HowManyBits < 12 { @for $i from $Spinner_HowManyBits + 1 through 12 { &:nth-child(#{$i}) { display: none; } } }
+		}
+	}
+	html.busy & {
+		&        { animation: $Spinner_Animation;      }
+		&:before { animation: $Spinner-Core_Animation; }
+		&:after  { animation: $Spinner-Halo_Animation; }
+		span     { animation: $Spinner-Bits_Animation; }
+	}
+}

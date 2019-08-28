@@ -1,0 +1,204 @@
+// ================================================================================
+// + Slider
+// --------------------------------------------------------------------------------
+
+div#bibi-slider {
+	& {
+		transition: $Slider_Transition__Close;
+		&:after {
+			border-color: $GLOBAL__Scrollbar-Track_BorderColor;
+			background: $GLOBAL__Scrollbar-Track_BackgroundColor;
+		}
+	}
+	html.appearance-horizontal & {
+		height: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN
+	}
+	html.appearance-vertical & {
+		width: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN
+	}
+	html.slider-opened & {
+		overflow: visible;
+		box-shadow: $Slider_BoxShadow__SliderOpened;
+		transition: $Slider_Transition__Open;
+		&:after { background: $Slider_Background__SliderOpened; }
+	}
+	html.slider-opened.appearance-horizontal & {
+		height: $GLOBAL__Slider_Size !important;
+		&:after { border-top-color: $Slider_BorderColor__SliderOpened; }
+	}
+	html.slider-opened.appearance-vertical & {
+		width: $GLOBAL__Slider_Size !important;
+		&:after { border-left-color: $Slider_BorderColor__SliderOpened; }
+	}
+}
+
+
+// - UI Box (Edgebar Box, Bookmap Box)
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar-box,
+div#bibi-slider-bookmap-box {
+	html.appearance-horizontal & {
+		width:  calc(100% - #{       $GLOBAL__Scrollbar-Thumb_Size * 0.5      * 2 });
+	}
+	html.appearance-vertical & {
+		height: calc(100% - #{       $GLOBAL__Scrollbar-Thumb_Size * 0.5      * 2 });
+	}
+	html.slider-opened.appearance-horizontal & {
+		top: 1px + $Slider_PaddingStartEnd__SliderOpened;
+		height: calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
+		width:  calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
+	}
+	html.slider-opened.appearance-vertical & {
+		left: 1px + $Slider_PaddingStartEnd__SliderOpened;
+		width:  calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
+		height: calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
+	}
+}
+
+
+// - Edgebar, Bookmap
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar,
+div#bibi-slider-bookmap {
+}
+
+
+// - Edgebar
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar {
+	background: $Slider-Edgebar_Background;
+}
+
+
+// - Bookmap
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-bookmap {
+}
+
+	div.bookmap-spread-box,
+	div.bookmap-spread,
+	div.bookmap-item-box,
+	span.bookmap-item,
+	span.bookmap-page {
+	}
+
+
+// - . Bookmap > Spread Box
+// --------------------------------------------------------------------------------
+
+div.bookmap-spread-box {
+	background: $Slider-Bookmap-SpreadBox_Color;
+	&.hover {
+		//background: $Slider-Bookmap-SpreadBox_Color__Hover;
+	}
+}
+
+
+// - . Bookmap > Spread Box > Spread
+// --------------------------------------------------------------------------------
+
+div.bookmap-spread {
+	background: $Slider-Bookmap-Spread_Background;
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box
+// --------------------------------------------------------------------------------
+
+div.bookmap-item-box {
+	&.reflowable {
+		&:before {
+			background: $Slider-Bookmap-ItemBox_BorderColor__ForReflowable;
+		}
+	}
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Item
+// --------------------------------------------------------------------------------
+
+span.bookmap-item {
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Page
+// --------------------------------------------------------------------------------
+
+span.bookmap-page {
+	html.slider-opened & {
+		background-color: $Slider-Bookmap-Page_Color__SliderOpened;
+	}
+	html.slider-opened &.hover {
+		background-color: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
+		border: solid 1px $Slider-Bookmap-Page_BorderColor__SliderOpened__Hover;
+	}
+}
+
+
+// - . Rail
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-rail {
+	& {
+		background: $Slider-Rail_Color;
+	}
+	html.slider-opened                       & { border-radius: $Slider-Rail_Width__SliderOpened / 2; }
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width: $Slider-Rail_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail_Color__Hover; }
+}
+
+div#bibi-slider-rail-progress {
+	& {
+		background: $Slider-Rail-Progress_Color;
+	}
+	html.slider-opened                       & {}
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__Hover; }
+}
+
+
+// - . Thumb
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-thumb {
+	& {
+		&:before,
+		&:after {
+			@include offset($GLOBAL__Scrollbar-Thumb_Size * -1);
+			transition: $Slider_Transition__Close;
+		}
+		&:before {
+			border-radius: $GLOBAL__Scrollbar-Thumb_Size * 0.5;
+			background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
+		}
+		&:after {
+			@include offset($Slider-Thumb-Circle_Size * -1);
+			@include size($Slider-Thumb-Circle_Size);
+			border-width: $Slider-Thumb-Circle_BorderWidth;
+			border-color: $Slider-Thumb-Circle_BorderColor;
+			background: $Slider-Thumb-Circle_BackgroundColor;
+			box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
+		}
+	}
+	html.slider-opened & {
+		&:before, &:after { transition: $Slider_Transition__Open; }
+	}
+	html.appearance-horizontal & {
+		height: $GLOBAL__Scrollbar-Thumb_Size;
+		&:before { min-width: $GLOBAL__Scrollbar-Thumb_Size; }
+	}
+	html.appearance-vertical & {
+		width: $GLOBAL__Scrollbar-Thumb_Size;
+		&:before { min-height: $GLOBAL__Scrollbar-Thumb_Size; }
+	}
+	html:not(.slider-opened):not(.touch) & {
+		&:hover:before  { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
+		&:active:before { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
+	}
+}

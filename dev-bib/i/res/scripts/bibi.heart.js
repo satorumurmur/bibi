@@ -1575,7 +1575,7 @@ R.SpreadsTurnedFaceUp = [];
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!S['allow-placeholders']) return resolve();
-    if(!Opt.Range    ) Opt.Range     = [0, 1, -1, 2, 3, 4, -2];
+    if(!Opt.Range    ) Opt.Range     = [-1, 0, 1, 2, 3];//[0, 1, -1, 2, 3, 4, -2];
     if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
     if(!Opt.Origin) {
              if(     R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread;
@@ -1641,7 +1641,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     R.cancelSpreadRetlieving = (Spread) => O.cancelRetlieving ? Spread.Items.forEach(Item => {
         if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
         O.cancelRetlieving(Item);
-    }) : false;
+    }) : false;//Spread.Items.forEach(Item => console.log('Canceled Retlieving for: %O', Item));
 
 
 R.organizePages = () => {
@@ -2778,9 +2778,7 @@ I.FontSizeChanger = { create: () => {
 
 
 I.Loupe = { create: () => {
-    if(!/^(pointer-only|with-keys)$/.test(S['loupe-mode'])) S['loupe-mode'] = 'pointer-only';
     if(S['loupe-max-scale'] <= 2) S['loupe-max-scale'] = 4;
-    if(S['loupe-mode'] == 'with-keys' && !S['use-keys']) return;
     const Loupe = I.Loupe = {
         scale: (Scl, BibiEvent) => { // Scl: Scale
             if(typeof Scl != 'number') return false;
@@ -2934,11 +2932,9 @@ I.Loupe = { create: () => {
     I.setToggleAction(Loupe, {
         onopened: () => {
             O.HTML.classList.add('loupe-active');
-            O.HTML.classList.add('loupe-' + S['loupe-mode']);
         },
         onclosed: () => {
             Loupe.scale(1);
-            O.HTML.classList.remove('loupe-' + S['loupe-mode']);
             O.HTML.classList.remove('loupe-active');
         }
     });
@@ -2959,93 +2955,37 @@ I.Loupe = { create: () => {
     E.add('bibi:opened-slider', () => Loupe.lock());
     E.add('bibi:closed-slider', () => Loupe.unlock());
     if(S['use-loupe']) {
-        if(S['loupe-mode'] == 'with-keys') {
-            const ButtonGroup = I.createSubpanel({
-                Opener: I.Menu.R.addButtonGroup({
-                    Sticky: true,
-                    Tiled: true,
-                    id: 'bibi-buttongroup_loupe'
-                }).addButton({
-                    Type: 'toggle',
-                    Labels: {
-                        default: { default: `Zoom-in/out`,            ja:`'拡大機能` },
-                        active:  { default: `Close Zoom-in/out Menu`, ja: `拡大機能メニューを閉じる` }
-                    },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-menu"></span>`,
-                    Help: true
-                }),
-                id: 'bibi-subpanel_loupe',
-                open: () => {}
-            }).addSection({
-                Labels: {
-                    default: { default: `Zoom-in/out or Reset`, ja: `拡大縮小とリセット` }
+        const ButtonGroup = I.Menu.R.addButtonGroup({
+            Sticky: true,
+            Tiled: true,
+            id: 'bibi-buttongroup_loupe',
+            Buttons: [{
+                Labels: { default: { default: `Zoom-in`, ja: `拡大する` } },
+                Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>`,
+                Help: true,
+                action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)),
+                updateState: function(State) {
+                    I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale >= S['loupe-max-scale']) ? 'disabled' : 'default');
                 }
-            }).addButtonGroup({
-                Buttons: [{
-                    Type: 'toggle',
-                    Labels: {
-                        default: { default: `Zoom-in/out`,                            ja: `拡大機能` },
-                        active:  { default: `Zoom-in/out <small>(activated)</small>`, ja: `拡大機能<small>（現在有効）</small>` }
-                    },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>`,
-                    action: () => Loupe.toggle(),
-                    updateState: function(State) {
-                        I.setUIState(this, typeof State == 'string' ? State : Loupe.UIState == 'active' ? 'active' : 'default');
-                    }
-                }, {
-                    Type: 'normal',
-                    Labels: {
-                        default: { default: `Reset Zoom-in/out`, ja: `元のサイズに戻す` }
-                    },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>`,
-                    action: () => Loupe.scale(1),
-                    updateState: function(State) {
-                        I.setUIState(this, typeof State == 'string' ? State : R.Main.Transformation.Scale == 1 ? 'disabled' : 'default');
-                    }
-                }]
-            });
-            Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
-            const PGroup = ButtonGroup.parentNode.appendChild(sML.create('div', { className: 'bibi-pgroup' }));
-            [{
-                default: [`<strong>Zoom-in/out is activated</strong>:`, `* Space + Click to Zoom-in`].join(`<br />`),
-                ja: [`<strong>拡大機能が有効のとき</strong>：`, `・スペースキーを押しながらクリックで拡大`].join(`<br />`)
+            }, { 
+                Labels: { default: { default: `Reset Zoom-in/out`, ja: `元のサイズに戻す` } },
+                Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>`,
+                Help: true,
+                action: () => Loupe.scale(1),
+                updateState: function(State) {
+                    I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale == 1) ? 'disabled' : 'default');
+                }
             }, {
-                default: [`<strong>Zoomed-in</strong>:`, `* Space + Shift + Click to Zoom-out`, `* Space + Drag to Move the Book`].join(`<br />`),
-                ja: [`<strong>拡大中</strong>：`, `・スペース + Shift キーを押しながらクリックで縮小`, `・ドラッグで本を移動`].join(`<br />`)
-            }].forEach(PContent => PGroup.appendChild(sML.create('p', { className: 'bibi-p', innerHTML: I.distillLabels.distillLanguage(PContent)[O.Language] })));
-        } else {
-            const ButtonGroup = I.Menu.R.addButtonGroup({
-                Sticky: true,
-                Tiled: true,
-                id: 'bibi-buttongroup_loupe',
-                Buttons: [{
-                    Labels: { default: { default: `Zoom-in`, ja: `拡大する` } },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>`,
-                    Help: true,
-                    action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)),
-                    updateState: function(State) {
-                        I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale >= S['loupe-max-scale']) ? 'disabled' : 'default');
-                    }
-                }, { 
-                    Labels: { default: { default: `Reset Zoom-in/out`, ja: `元のサイズに戻す` } },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>`,
-                    Help: true,
-                    action: () => Loupe.scale(1),
-                    updateState: function(State) {
-                        I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale == 1) ? 'disabled' : 'default');
-                    }
-                }, {
-                    Labels: { default: { default: `Zoom-out`, ja: `縮小する` } },
-                    Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomout"></span>`,
-                    Help: true,
-                    action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)),
-                    updateState: function(State) {
-                        I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale <= 1) ? 'disabled' : 'default');
-                    }
-                }]
-            });
-            Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
-        }
+                Labels: { default: { default: `Zoom-out`, ja: `縮小する` } },
+                Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomout"></span>`,
+                Help: true,
+                action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)),
+                updateState: function(State) {
+                    I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale <= 1) ? 'disabled' : 'default');
+                }
+            }]
+        });
+        Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
         E.add('bibi:opened',           () => Loupe.updateButtonState());
         E.add('bibi:transformed-book', () => Loupe.updateButtonState(Loupe.Locked ? 'disabled' : null));
         E.add('bibi:locked-loupe',     () => Loupe.updateButtonState('disabled'));
@@ -5100,8 +5040,7 @@ O.SettingTypes = {
         'use-nombre'
     ],
     'string': [
-        'slider-mode',
-        'loupe-mode'
+        'slider-mode'
     ],
     'integer': [
         'item-padding-bottom',

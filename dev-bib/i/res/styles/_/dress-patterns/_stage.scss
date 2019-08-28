@@ -1,0 +1,40 @@
+// ================================================================================
+// + Stage
+// --------------------------------------------------------------------------------
+
+
+html {
+	&.iOS     { font-family: $HTML_FontFamily_iOS; }
+	&.macOS   { font-family: $HTML_FontFamily_macOS; }
+	&.Android { font-family: $HTML_FontFamily_Android; }
+	&.Windows { font-family: $HTML_FontFamily_Windows; }
+}
+
+
+// - Checker
+// --------------------------------------------------------------------------------
+
+div#bibi-style-checker {
+	left: $GLOBAL__Slider_Size * -1; top: $GLOBAL__TopBar_Height * -1; // left: 0; top: 0;
+	@include size($GLOBAL__Slider_Size, $GLOBAL__TopBar_Height);
+}
+
+
+// - PoweredBy
+// --------------------------------------------------------------------------------
+
+
+div#bibi-poweredby {
+	height: $GLOBAL__BottomBar_Height;
+	html.view-horizontal &,
+    html.page-rtl.panel-opened & {
+		bottom: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
+	}
+	p {
+		a {
+			& {
+				margin-left: $GLOBAL__BottomBar_Height / -2;
+			}
+		}
+	}
+}
