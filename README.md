@@ -139,13 +139,13 @@ How to Arrange Development Environment
     - webpack watches your modification and updates development version of the file(s) with sourcemaps.
     - BrowserSync reloads your browser(s) or inject changes of CSS.
 
-* SCSS source file(s) of...
-    - `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`,
-    - Styles in `bib/i.js` is `dev-bib/i.scss`.
-* JavaScript source file(s) of...
-    - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`,
-    - `bib/i.js` is `dev-bib/i.js`,
-    - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
+* SCSS source file(s):
+    - of CSS files in `bib/i/res/styles/` are in `dev-bib/i/res/styles/`,
+    - of the styles in `bib/i.js` is `dev-bib/i.scss`.
+* JavaScript source file(s):
+    - of `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/`,
+    - of `bib/i.js` is `dev-bib/i.js`,
+    - of the extension files in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
 
 * These files are not processed by webpack:
     - Root HTML file of BiB/i: `bib/i/index.html`

@@ -1,0 +1,217 @@
+// ================================================================================
+// + Base
+// --------------------------------------------------------------------------------
+
+.bibi-icon {
+	& {
+		@include size($GLOBAL__Icon_Size);
+		.bibi-subpanel & { @include size($GLOBAL__Subpanel-Icon_Size); }
+	}
+}
+
+
+// - MixIns for Colors & Interaction
+// --------------------------------------------------------------------------------
+
+@mixin Icon-OutlineColor($SCOPED__TextOrBox, $SCOPED__Icon-OutlineColor) {
+	#{$SCOPED__TextOrBox}-shadow:
+		-1px -1px 0px $SCOPED__Icon-OutlineColor,
+		 0px -1px 0px $SCOPED__Icon-OutlineColor,
+		 1px -1px 0px $SCOPED__Icon-OutlineColor,
+		 1px  0px 0px $SCOPED__Icon-OutlineColor,
+		 1px  1px 0px $SCOPED__Icon-OutlineColor,
+		 0px  1px 0px $SCOPED__Icon-OutlineColor,
+		-1px  1px 0px $SCOPED__Icon-OutlineColor,
+		-1px  0px 0px $SCOPED__Icon-OutlineColor,
+		 0px  0px 1px $SCOPED__Icon-OutlineColor;
+}
+
+@mixin Icon-Colouring($SCOPED__Icon-Font-PaintColor, $SCOPED__Icon-Font-OutlineColor, $SCOPED__Icon-Shape-PaintColor, $SCOPED__Icon-Shape-OutlineColor, $SCOPED__Icon-BackgroundColor, $SCOPED__Icon-BorderColor) {
+	color: $SCOPED__Icon-BorderColor;
+	border-color: $SCOPED__Icon-BorderColor;
+	background-color: $SCOPED__Icon-BackgroundColor;
+	&:before, &:after {
+		color: $SCOPED__Icon-Font-PaintColor;
+		@include Icon-OutlineColor("text", $SCOPED__Icon-Font-OutlineColor);
+	}
+	span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: $SCOPED__Icon-Shape-OutlineColor;
+				background-color: $SCOPED__Icon-Shape-PaintColor;
+			}
+		}
+	}
+	&.bibi-icon-toggle-panel {
+		>span {
+			background-color: $SCOPED__Icon-Font-PaintColor;
+			@include Icon-OutlineColor("box", $SCOPED__Icon-Font-OutlineColor);
+		}
+	}
+}
+
+
+// - Colors & Interaction: Default
+// --------------------------------------------------------------------------------
+
+.bibi-icon {
+	@include Icon-Colouring(
+		$Icon-Font_PaintColor,
+		$Icon-Font_OutlineColor,
+		$Icon-Shape_PaintColor,
+		$Icon-Shape_OutlineColor,
+		$Icon_BackgroundColor,
+		$Icon_BorderColor
+	);
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor,
+			$Subpanel-Icon-Font_OutlineColor,
+			$Subpanel-Icon-Shape_PaintColor,
+			$Subpanel-Icon-Shape_OutlineColor,
+			$Subpanel-Icon_BackgroundColor,
+			$Subpanel-Icon_BorderColor
+		);
+	}
+	&, &:before, &:after, * { transition: $Icon_Transition; }
+	&:before, &:after { transform: $Icon_Transform; }
+	.bibi-button.disabled & {
+		&:before, &:after { opacity: 0.33; }
+	}
+}
+
+
+// - Colors & Interaction: Default + Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button.default.hover,
+.bibi-button.default:hover { .bibi-icon {
+	@include Icon-Colouring(
+		$Icon-Font_PaintColor__Hover,
+		$Icon-Font_OutlineColor__Hover,
+		$Icon-Shape_PaintColor__Hover,
+		$Icon-Shape_OutlineColor__Hover,
+		$Icon_BackgroundColor__Hover,
+		$Icon_BorderColor__Hover
+	);
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Hover,
+			$Subpanel-Icon-Font_OutlineColor__Hover,
+			$Subpanel-Icon-Shape_PaintColor__Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Hover,
+			$Subpanel-Icon_BackgroundColor__Hover,
+			$Subpanel-Icon_BorderColor__Hover
+		);
+	}
+	&:before, &:after { transform: $Icon_Transform__Hover; }
+}}
+
+
+// - Colors & Interaction: Active
+// --------------------------------------------------------------------------------
+
+.bibi-button.active { .bibi-icon {
+	@include Icon-Colouring(
+		$Icon-Font_PaintColor__Active,
+		$Icon-Font_OutlineColor__Active,
+		$Icon-Shape_PaintColor__Active,
+		$Icon-Shape_OutlineColor__Active,
+		$Icon_BackgroundColor__Active,
+		$Icon_BorderColor__Active
+	);
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Active,
+			$Subpanel-Icon-Font_OutlineColor__Active,
+			$Subpanel-Icon-Shape_PaintColor__Active,
+			$Subpanel-Icon-Shape_OutlineColor__Active,
+			$Subpanel-Icon_BackgroundColor__Active,
+			$Subpanel-Icon_BorderColor__Active
+		);
+	}
+	&:before, &:after { transform: $Icon_Transform__Active; }
+}}
+
+
+// - Colors & Interaction: Active + Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button-normal.active.hover,
+.bibi-button-normal.active:hover,
+.bibi-button-toggle.active.hover,
+.bibi-button-toggle.active:hover { .bibi-icon {
+	@include Icon-Colouring(
+		$Icon-Font_PaintColor__Active-Hover,
+		$Icon-Font_OutlineColor__Active-Hover,
+		$Icon-Shape_PaintColor__Active-Hover,
+		$Icon-Shape_OutlineColor__Active-Hover,
+		$Icon_BackgroundColor__Active-Hover,
+		$Icon_BorderColor__Active-Hover
+	);
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Active-Hover,
+			$Subpanel-Icon-Font_OutlineColor__Active-Hover,
+			$Subpanel-Icon-Shape_PaintColor__Active-Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Active-Hover,
+			$Subpanel-Icon_BackgroundColor__Active-Hover,
+			$Subpanel-Icon_BorderColor__Active-Hover
+		);
+	}
+	&:before, &:after { transform: $Icon_Transform__Active-Hover; }
+}}
+
+
+
+
+// ================================================================================
+// + Each
+// --------------------------------------------------------------------------------
+
+
+// - Shapes of Items and Spreads
+// --------------------------------------------------------------------------------
+
+
+// - PanelToggler (Bars)
+// --------------------------------------------------------------------------------
+
+.bibi-icon-toggle-panel {
+	@include PanelToggler();
+}
+
+
+// - Button-Icons
+// --------------------------------------------------------------------------------
+
+.bibi-icon-config,
+.bibi-icon-share,
+.bibi-icon-full-breadth-layout,
+.bibi-icon-toggle-fullscreen,
+.bibi-icon-open-newwindow,
+.bibi-icon-fontsize,
+.bibi-icon-loupe               { &:before { @include ButtonIcon(); } }
+
+.bibi-icon-config              { &:before { @include ButtonIcon_Config(); } }
+.bibi-icon-share               { &:before { @include ButtonIcon_Share(); } }
+.bibi-icon-full-breadth-layout { &:before { @include ButtonIcon_UseFullBreadth(); } }
+.bibi-icon-toggle-fullscreen   { &:before { @include ButtonIcon_ToggleFullscreen(); } }
+.bibi-icon-open-newwindow      { &:before { @include ButtonIcon_OpenNewWindow(); } }
+.bibi-icon-fontsize-change     { &:before { @include ButtonIcon_ChangeFontSize(); } }
+.bibi-icon-fontsize-exlarge,
+.bibi-icon-fontsize-large,
+.bibi-icon-fontsize-medium,
+.bibi-icon-fontsize-small,
+.bibi-icon-fontsize-exsmall    { &:before { @include ButtonIcon_FontSizeCommon(); } }
+.bibi-icon-fontsize-exlarge    { &:before { @include ButtonIcon_FontSizeXL(); } }
+.bibi-icon-fontsize-large      { &:before { @include ButtonIcon_FontSizeL(); } }
+.bibi-icon-fontsize-medium     { &:before { @include ButtonIcon_FontSizeM(); } }
+.bibi-icon-fontsize-small      { &:before { @include ButtonIcon_FontSizeS(); } }
+.bibi-icon-fontsize-exsmall    { &:before { @include ButtonIcon_FontSizeXS(); } }
+.bibi-icon-loupe-zoomin,
+.bibi-icon-loupe-zoomout,
+.bibi-icon-loupe-reset         { &:before { @include ButtonIcon_LoupeCommon(); } }
+.bibi-icon-loupe-zoomin        { &:before { @include ButtonIcon_LoupeZoomIn(); } }
+.bibi-icon-loupe-zoomout       { &:before { @include ButtonIcon_LoupeZoomOut(); } }
+.bibi-icon-loupe-reset         { &:before { @include ButtonIcon_LoupeReset(); } &:after { @include ButtonIcon_LoupeReset_Overlay(); } }

@@ -1,0 +1,41 @@
+// ================================================================================
+// + Notifier
+// --------------------------------------------------------------------------------
+
+
+div#bibi-notifier {
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $INVARIABLE__Notifier_ZIndex;
+	top: 0;
+	padding: 0 8px;
+	width: 100%;
+	// @____Bibi:Dress__('-') height: $GLOBAL__TopBar_Height;
+	// @____Bibi:Dress__('-') color: $Notifier_Color;
+	// @____Bibi:Dress__('-') background: $Notifier_Background;
+	// @____Bibi:Dress__('-') box-shadow: $Notifier_BoxShadow;
+	transition: .15s linear;
+	transform-origin: 50% 0;
+	p {
+		text-align: center;
+		font-size: 12px;
+		font-weight: bold;
+		// @____Bibi:Dress__('-') line-height: ($GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2) * 1.05;
+		&.error {
+			// @____Bibi:Dress__('-') color: $Notifier_Color_Error;
+		}
+		small {
+			font-size: 0.875em;
+		}
+	}
+	& {
+		opacity: 0;
+		transform: translateY(-100%);//scaleY(0);
+		transition: .2s linear;
+	}
+	html.notifier-shown & {
+		opacity: 1;
+		transform: none;
+		transition: .15s linear;
+	}
+}

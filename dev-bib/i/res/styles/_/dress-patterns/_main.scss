@@ -1,0 +1,35 @@
+// ================================================================================
+// + Main
+// --------------------------------------------------------------------------------
+
+
+main#bibi-main {
+	& {
+		background: $Main_Background;
+	}
+	html.appearance-horizontal:not(.book-full-height) & {
+		top: $GLOBAL__TopBar_Height;
+		height: calc(100% - #{$GLOBAL__TopBar_Height});
+	}
+	html.appearance-vertical:not(.book-full-height) & {
+		padding-top: $GLOBAL__TopBar_Height;
+		height: calc(100% - #{$GLOBAL__TopBar_Height});
+	}
+}
+	div#bibi-main-book {
+	}
+		div.spread-box {
+		}
+			div.spread {
+			}
+				div.item-box {
+					html.book-pre-paginated & {
+						&:not(.placeholder):not(.loaded):after {
+							@include ItemBox-Loading();
+						}
+					}
+				}
+					iframe.item {
+					}
+					span.page {
+					}

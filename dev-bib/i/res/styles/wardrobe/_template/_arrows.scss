@@ -1,0 +1,41 @@
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
+
+$Arrow-Bar_Length: $GLOBAL__TopBar_Height;
+$Arrow-Icon_Size: $Arrow-Bar_Length;
+
+@mixin Arrow-Icon() { // [NOTE] It is for `::before` pseudo element.
+	@include FontIcon_InlineBlock("Material Icons");
+	content: "";
+	margin: auto;
+	@include size($Arrow-Icon_Size);
+	border-radius: 50%;
+	text-indent: 0;
+	text-align: center;
+	vertical-align: middle;
+	font-size: $Arrow-Icon_Size;
+	line-height: $Arrow-Icon_Size;
+	color: white;//rgb(96,96,96);
+	background: black;
+}
+
+@mixin Arrow-Icon-L() { // [NOTE] It extends Arrow-Icon() for the left direction. You can use an image instead of a font using `content` or `background`.
+	content: "\e5cb"; // chevron_left
+	text-indent: -.03em;
+}
+
+@mixin Arrow-Icon-R() { // [NOTE] It extends Arrow-Icon() for the right direction. You can use an image instead of a font using `content` or `background`.
+	content: "\e5cc"; // chevron_right
+	text-indent:.03em;
+}
+
+@mixin Arrow-Icon-T() { // [NOTE] It extends Arrow-Icon() for the top direction. You can use an image instead of a font using `content` or `background`.
+	content: "\e5ce"; // expand_less
+	line-height: $Arrow-Icon_Size * .97;
+}
+
+@mixin Arrow-Icon-B() { // [NOTE] It extends Arrow-Icon() for the bottom direction. You can use an image instead of a font using `content` or `background`.
+	content: "\e5cf"; // expand_more
+	line-height: $Arrow-Icon_Size * 1.03;
+}
