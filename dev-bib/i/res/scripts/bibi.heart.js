@@ -936,7 +936,14 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
 L.preprocessResources = () => new Promise((resolve, reject) => {
     E.dispatch('bibi:is-going-to:preprocess-resources');
     const PpdReses = []; // PreprocessedResources
-    const Promises = [O.download({ Path: new URL('res/styles/bibi.book.css', O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true }).then(O.getBlobURL).then(Item => {
+    const Promises = [(new Promise(resolveItem => {
+        const Item = { Path: new URL('res/styles/bibi.book.css', O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true };
+        const tempLink = sML.create('link', { href: Item.Path, rel: 'stylesheet', onload: () => {
+            resolveItem(Item);
+            document.head.removeChild(tempLink);
+        }});
+        document.head.appendChild(tempLink);
+    })).then(Item => {
         Item.Content = '';
         B.DefaultStyle = Item;
         return PpdReses.push(B.DefaultStyle);
