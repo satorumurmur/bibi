@@ -63,11 +63,16 @@
 // - Shapes of Items and Spreads
 // --------------------------------------------------------------------------------
 
-$ItemShape_Width : 9px;   $SpreadShape_Width : $ItemShape_Width * 2 - 1px;
-$ItemShape_Height: 16px;  $SpreadShape_Height: $ItemShape_Height;
+$LOCAL_ItemShape_Width : 9px;
+$LOCAL_ItemShape_Height: 16px;
 
-$Subpanel-ItemShape_Width : 7px;   $Subpanel-SpreadShape_Width : $Subpanel-ItemShape_Width * 2 - 1px;
-$Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemShape_Height;
+$LOCAL_Subpanel-ItemShape_Width : 7px;
+$LOCAL_Subpanel-ItemShape_Height: 11px;
+
+$LOCAL_SpreadShape_Width : $LOCAL_ItemShape_Width * 2 - 1px;
+$LOCAL_SpreadShape_Height: $LOCAL_ItemShape_Height;
+$LOCAL_Subpanel-SpreadShape_Width : $LOCAL_Subpanel-ItemShape_Width * 2 - 1px;
+$LOCAL_Subpanel-SpreadShape_Height: $LOCAL_Subpanel-ItemShape_Height;
 
 .bibi-icon-view-paged,
 .bibi-icon-view-horizontal,
@@ -75,7 +80,7 @@ $Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemS
 	span.bibi-shape-spreads {
 		@include offset(0);
 		margin: auto;
-		@include size($SpreadShape_Width, $SpreadShape_Height);
+		@include size($LOCAL_SpreadShape_Width, $LOCAL_SpreadShape_Height);
 		span.bibi-shape-spread {
 			left: 0;
 			top: 0;
@@ -83,18 +88,18 @@ $Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemS
 			span.bibi-shape-item {
 				top: 0;
 				border: solid 1px;
-				@include size($ItemShape_Width, $ItemShape_Height);
+				@include size($LOCAL_ItemShape_Width, $LOCAL_ItemShape_Height);
 				&:first-child { left: 0; }
-				&:last-child  { left: ($ItemShape_Width - 1px); }
+				&:last-child  { left: ($LOCAL_ItemShape_Width - 1px); }
 			}
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
-		@include size($Subpanel-SpreadShape_Width, $Subpanel-SpreadShape_Height);
+		@include size($LOCAL_Subpanel-SpreadShape_Width, $LOCAL_Subpanel-SpreadShape_Height);
 		span.bibi-shape-spread {
 			span.bibi-shape-item {
-				@include size($Subpanel-ItemShape_Width, $Subpanel-ItemShape_Height);
-				&:last-child  { left: ($Subpanel-ItemShape_Width - 1px); }
+				@include size($LOCAL_Subpanel-ItemShape_Width, $LOCAL_Subpanel-ItemShape_Height);
+				&:last-child  { left: ($LOCAL_Subpanel-ItemShape_Width - 1px); }
 			}
 		}
 	}
@@ -112,14 +117,14 @@ $Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemS
 .bibi-icon-view-horizontal {
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
-			&:first-child { left: ($SpreadShape_Width + 1px) * -1; }
-			&:last-child  { left: ($SpreadShape_Width + 1px); }
+			&:first-child { left: ($LOCAL_SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($LOCAL_SpreadShape_Width + 1px); }
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
 		span.bibi-shape-spread {
-			&:first-child { left: ($Subpanel-SpreadShape_Width + 1px) * -1; }
-			&:last-child  { left: ($Subpanel-SpreadShape_Width + 1px); }
+			&:first-child { left: ($LOCAL_Subpanel-SpreadShape_Width + 1px) * -1; }
+			&:last-child  { left: ($LOCAL_Subpanel-SpreadShape_Width + 1px); }
 		}
 	}
 }
@@ -127,14 +132,14 @@ $Subpanel-ItemShape_Height: 11px;  $Subpanel-SpreadShape_Height: $Subpanel-ItemS
 .bibi-icon-view-vertical {
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
-			&:first-child { top: ($SpreadShape_Height + 1px) * -1; }
-			&:last-child  { top: ($SpreadShape_Height + 1px); }
+			&:first-child { top: ($LOCAL_SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($LOCAL_SpreadShape_Height + 1px); }
 		}
 	}
 	.bibi-subpanel & span.bibi-shape-spreads {
 		span.bibi-shape-spread {
-			&:first-child { top: ($Subpanel-SpreadShape_Height + 1px) * -1; }
-			&:last-child  { top: ($Subpanel-SpreadShape_Height + 1px); }
+			&:first-child { top: ($LOCAL_Subpanel-SpreadShape_Height + 1px) * -1; }
+			&:last-child  { top: ($LOCAL_Subpanel-SpreadShape_Height + 1px); }
 		}
 	}
 }

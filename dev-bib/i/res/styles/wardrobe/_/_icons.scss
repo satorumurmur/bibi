@@ -61,28 +61,28 @@ $Subpanel-Icon_BackgroundColor:    rgb(248,248,248);
 $Subpanel-Icon_BorderColor:        rgb(192,192,192);
 
 // [In Subpanel] Default:Hover
-$Subpanel-Icon-Font_PaintColor__Hover:    $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon-Font_PaintColor__Hover:    $Subpanel_KeyColor;
 $Subpanel-Icon-Font_OutlineColor__Hover:  transparent;
 $Subpanel-Icon-Shape_PaintColor__Hover:   white;
-$Subpanel-Icon-Shape_OutlineColor__Hover: $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Hover:    lighten($GLOBAL__Subpanel_KeyColor, 45%);
-$Subpanel-Icon_BorderColor__Hover:        $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon-Shape_OutlineColor__Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Hover:    lighten($Subpanel_KeyColor, 45%);
+$Subpanel-Icon_BorderColor__Hover:        $Subpanel_KeyColor;
 
 // [In Subpanel] Active
 $Subpanel-Icon-Font_PaintColor__Active:    white;
 $Subpanel-Icon-Font_OutlineColor__Active:  transparent;
 $Subpanel-Icon-Shape_PaintColor__Active:   white;
-$Subpanel-Icon-Shape_OutlineColor__Active: $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Active:    $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Icon_BorderColor__Active:        $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon-Shape_OutlineColor__Active: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active:    $Subpanel_KeyColor;
+$Subpanel-Icon_BorderColor__Active:        $Subpanel_KeyColor;
 
 // [In Subpanel] Active:Hover
 $Subpanel-Icon-Font_PaintColor__Active-Hover:    white;
 $Subpanel-Icon-Font_OutlineColor__Active-Hover:  transparent;
 $Subpanel-Icon-Shape_PaintColor__Active-Hover:   white;
-$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $GLOBAL__Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($GLOBAL__Subpanel_KeyColor, 20%);
-$Subpanel-Icon_BorderColor__Active-Hover:        $GLOBAL__Subpanel_KeyColor;
+$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($Subpanel_KeyColor, 20%);
+$Subpanel-Icon_BorderColor__Active-Hover:        $Subpanel_KeyColor;
 
 // [In Subpanel] Transition
 $Subpanel-Icon_Transition: $Icon_Transition;

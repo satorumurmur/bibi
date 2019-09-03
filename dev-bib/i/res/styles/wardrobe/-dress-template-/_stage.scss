@@ -1,12 +1,19 @@
 // ================================================================================
-// + Variables
+// + Stage
 // --------------------------------------------------------------------------------
+
+
+// - Fonts
+// --------------------------------------------------------------------------------
+
+$HTML_FontFamily_iOS:     "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif;
+$HTML_FontFamily_macOS:   $HTML_FontFamily_iOS;
+$HTML_FontFamily_Android:                                                                                                                sans-serif;
+$HTML_FontFamily_Windows: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu Gothic", "YuGothic", "メイリオ",             "Meiryo",          sans-serif;
 
 
 // - Colors
 // --------------------------------------------------------------------------------
-
-$GLOBAL__Subpanel_KeyColor: saturate(steelblue, 20%);
 
 $GLOBAL__Scrollbar-Track_BackgroundColor: rgb(255,255,255);
 $GLOBAL__Scrollbar-Track_BorderColor: rgb(232,232,232);
@@ -20,9 +27,6 @@ $GLOBAL__Scrollbar-Thumb_BorderColor: transparent;//rgb(32,32,32);
 // - Sizes
 // --------------------------------------------------------------------------------
 
-$GLOBAL__Scrollbar-Track_Size: 16px;
-$GLOBAL__Scrollbar-Thumb_Size: 8px;
-
 $GLOBAL__Icon_Size: 31px;
 $GLOBAL__Subpanel-Icon_Size: 21px;
 
@@ -32,13 +36,3 @@ $GLOBAL__TopBar_Height: $GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2;
 $GLOBAL__BottomBar_Height: $GLOBAL__TopBar_Height;
 
 $GLOBAL__Slider_Size: $GLOBAL__BottomBar_Height * 2;
-
-
-
-
-// ================================================================================
-// + Extras
-// --------------------------------------------------------------------------------
-
-
-// You can write here some variables or MixIns.

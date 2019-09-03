@@ -117,7 +117,7 @@ div#bibi-poweredby {
 	}
 	html.view-horizontal &,
     html.page-rtl.panel-opened & {
-		// @____Bibi:Dress__('-') bottom: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
+		bottom: $TEMPORARY__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,
@@ -141,10 +141,8 @@ div#bibi-poweredby {
 				top: 0;
 				right: auto;
 				bottom: 0;
-				left: $SCOPED__PowerdBy-Logo-Box_Height / 2;
-				@include margin-v(auto);
-				margin-right: 0;
-				// @____Bibi:Dress__('-') margin-left: $GLOBAL__BottomBar_Height / -2;
+				left: $SCOPED__PowerdBy-Logo-Box_PaddingVertical;//$SCOPED__PowerdBy-Logo-Box_Height / 2;
+				margin: auto 0;
 				border-radius: 2px;
 				@include size($SCOPED__PowerdBy-Logo-Box_Width, $SCOPED__PowerdBy-Logo-Box_Height);
 				font-size: $SCOPED__PowerdBy-Logo-Image_Height;

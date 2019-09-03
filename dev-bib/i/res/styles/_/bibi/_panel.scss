@@ -43,7 +43,7 @@ div#bibi-panel:after {
 	// @____Bibi:Dress__('-') background: $Panel-BottomBar_Background;
 	html.view-horizontal &,
 	html.page-rtl.panel-opened & {
-		// @____Bibi:Dress__('-') bottom: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
+		bottom: $TEMPORARY__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,

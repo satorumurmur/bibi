@@ -152,10 +152,7 @@ Bibi.initialize = () => {
     delete document.body.removeChild(StyleChecker);
     // Scrollbars
     O.Body.style.width = '101vw', O.Body.style.height = '101vh';
-    O.Scrollbars = {
-        Width: window.innerWidth - O.HTML.offsetWidth,
-        Height: window.innerHeight - O.HTML.offsetHeight
-    };
+    O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
     O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
     S.initialize();
     O.HTML.classList.remove('welcome');
@@ -3360,8 +3357,18 @@ I.Slider = { create: () => {
         Slider.progress();
     });
     Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
-    sML.appendCSSRule('html.appearance-horizontal div#bibi-slider', 'height: ' + (O.Scrollbars.Height) + 'px;'); // Optimize to Scrollbar Size
-    sML.appendCSSRule('html.appearance-vertical div#bibi-slider',    'width: ' + (O.Scrollbars.Width ) + 'px;'); // Optimize to Scrollbar Size
+    { // Optimize to Scrollbar Size
+        const _S = 'div#bibi-slider', _TB = '-thumb:before', _TA = '-thumb:after';
+        const _HS = 'html.appearance-horizontal ' + _S, _HSTB = _HS + _TB, _HSTA = _HS + _TA, _SH = O.Scrollbars.Height, _STH = Math.ceil(_SH / 2);
+        const _VS = 'html.appearance-vertical '   + _S, _VSTB = _VS + _TB, _VSTA = _VS + _TA, _SW = O.Scrollbars.Width,  _STW = Math.ceil(_SW / 2);
+        const _getSliderThumbOffsetStyle = (Offset) => ['top', 'right', 'bottom', 'left'].reduce((Style, Dir) => Style + Dir + ': ' + (Offset * -1) + 'px; ', '').trim();
+        sML.appendCSSRule(_HS, 'height: ' + _SH + 'px;');
+        sML.appendCSSRule(_VS, 'width: '  + _SW + 'px;');
+        sML.appendCSSRule(_HSTB + ', ' + _HSTA, _getSliderThumbOffsetStyle(_STH));
+        sML.appendCSSRule(_VSTB + ', ' + _VSTA, _getSliderThumbOffsetStyle(_STW));
+        sML.appendCSSRule(_HSTB, 'border-radius: ' + (_STH / 2) + 'px; min-width: '  + _STH + 'px;');
+        sML.appendCSSRule(_VSTB, 'border-radius: ' + (_STW / 2) + 'px; min-height: ' + _STW + 'px;');
+    }
     E.dispatch('bibi:created-slider');
 }};
 

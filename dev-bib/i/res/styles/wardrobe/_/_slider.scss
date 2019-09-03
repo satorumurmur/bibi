@@ -13,8 +13,8 @@ $Slider_BoxShadow__SliderOpened: 0 0 16px rgba(black, 0.125);
 // - UI Box (Edgebar Box, Bookmap Box)
 // --------------------------------------------------------------------------------
 
-$Slider_PaddingStartEnd__SliderOpened: $GLOBAL__Scrollbar-Thumb_Size;
-$Slider_PaddingBeforeAfter__SliderOpened: $GLOBAL__Scrollbar-Thumb_Size;//$GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2;
+$Slider_PaddingStartEnd__SliderOpened: 8px;
+$Slider_PaddingBeforeAfter__SliderOpened: 8px;//$GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2;
 
 
 // - Edgebar, Bookmap
@@ -76,7 +76,7 @@ $Slider-Rail-Progress_Color__Hover: rgba(steelblue, 1.000);//rgba($GLOBAL__Scrol
 // - . Thumb
 // --------------------------------------------------------------------------------
 
-$Slider-Thumb-Circle_Size: $GLOBAL__Scrollbar-Thumb_Size * 2;
+$Slider-Thumb-Circle_Size: 16px;
 $Slider-Thumb-Circle_BackgroundColor: steelblue;
 
 $Slider-Thumb-Circle_BorderColor: $Slider-Thumb-Circle_BackgroundColor;
