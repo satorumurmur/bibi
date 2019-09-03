@@ -1,15 +1,21 @@
 /*!
  *                                                                                                                          (℠)
- *  # Banners for BiB/i
+ *  # Additional Webpack Config for BiB/i
  *
  */
 
 'use strict';
 
 const Bibi = {
-    author: { name: 'Satoru MATSUSHIMA' },
-    homepage: 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
-}; // const Package = require('./package.json');
+    'version': '1.0.0-pr',
+    'author': {
+        'name': 'Satoru MATSUSHIMA'
+    },
+    'description': 'BiB/i | EPUB Reader on your website.',
+    'homepage': 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
+};
+
+// =============================================================================================================================
 
 const banner = (Name, Credit, Extra) => '/*!' + `
  *                                                                                                                          (℠)
@@ -20,9 +26,11 @@ const banner = (Name, Credit, Extra) => '/*!' + `
  *`) + (!Extra ? '' : '\n' + Extra.replace(/^\n|\n$/g, '') + `
  *`) + '\n */';
 
-module.exports = {
-
 // =============================================================================================================================
+
+Bibi.Banners = {
+
+// -----------------------------------------------------------------------------------------------------------------------------
 
 '/bibi.js': banner(`BiB/i | EPUB Reader on your website.`, 'default', `
  *  * Including:
@@ -63,7 +71,7 @@ module.exports = {
 
 'bib/i.js': banner(`Pipi | Putter of BiBi/i`, 'default'),
 
-// =============================================================================================================================
+// -----------------------------------------------------------------------------------------------------------------------------
 
 '/analytics/index.js': banner(`BiB/i Extension: Analytics`, 'default'),
 
@@ -93,6 +101,8 @@ module.exports = {
  *      - JS-YAML ... Copyright (c) Vitaly Puzrin - https://nodeca.github.io/js-yaml (Licensed under the MIT License.)
 `),
 
-// =============================================================================================================================
+// -----------------------------------------------------------------------------------------------------------------------------
 
 '':'' };
+
+module.exports = Bibi;

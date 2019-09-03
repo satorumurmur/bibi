@@ -1,12 +1,12 @@
 /*!
  *                                                                                                                         (℠)
- *  # webpack config for BiB/i
+ *  # Webpack Config for BiB/i
  *
  */
 
 'use strict';
 
-const Package = require('./package.json');
+const Package = require('./package.json'), Bibi = require('./webpack.config.bibi.js');
 const Dresses = require('./dev-bib/i/res/styles/wardrobe/_dresses.js');
 
 const Webpack = require('webpack');
@@ -74,7 +74,7 @@ module.exports = (env, argv) => {
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /____bibi-version____/ig,
-                replacement: () => Package.version
+                replacement: () => Bibi.version
             }]})
         ]
     });
@@ -153,8 +153,7 @@ module.exports = (env, argv) => {
                 }
             }
         }));
-        const Banners = require('./webpack.config.banners.js');
-        for(const N in Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Banners[N], raw: true }));
+        for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
         Config.plugins.push(new CopyPlugin([
             { from: 'LICENSE',   to: 'bib' }/*,
             { from: 'README.md', to: 'bib' }*/
