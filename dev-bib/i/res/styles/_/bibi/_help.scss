@@ -21,11 +21,11 @@ div#bibi-help {
 		bottom: 0 !important;
 	}
 	// @____Bibi:Dress__('-') border-top: $Help_BorderTop;
-	// @____Bibi:Dress__('-') height: $GLOBAL__BottomBar_Height;
+	// @____Bibi:Dress__('-') height: $Help_Height;
 	// @____Bibi:Dress__('-') background: $Help_Background;
 	// @____Bibi:Dress__('-') html.slider-opened.view-paged &,
 	// @____Bibi:Dress__('-') html.slider-opened.view-horizontal & {
-	// @____Bibi:Dress__('-') 	bottom: $GLOBAL__Slider_Size !important;
+	// @____Bibi:Dress__('-') 	bottom: $Slider_Size !important;
 	// @____Bibi:Dress__('-') }
 	// @____Bibi:Dress__('-') html.view-horizontal &,
 	// @____Bibi:Dress__('-') html.page-rtl.panel-opened & {
@@ -35,7 +35,7 @@ div#bibi-help {
 		text-align: center;
 		font-size: 12px;
 		font-weight: bold;
-		// @____Bibi:Dress__('-') line-height: $GLOBAL__BottomBar_Height * 1.1;
+		// @____Bibi:Dress__('-') line-height: $Help_Height * 1.1;
 		// @____Bibi:Dress__('-') color: $Help-P_Color;
 		small {
 			font-size: .875em;
@@ -50,5 +50,5 @@ div#bibi-help {
 }
 
 // @____Bibi:Dress__('-') html.slider-opened:not(.panel-opened).view-vertical div#bibi-help {
-// @____Bibi:Dress__('-') 	width: calc(100% - #{$GLOBAL__Slider_Size});
+// @____Bibi:Dress__('-') 	width: calc(100% - #{$Slider_Size});
 // @____Bibi:Dress__('-') }

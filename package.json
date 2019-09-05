@@ -25,6 +25,7 @@
     "develop": "webpack --config webpack.config.js --progress --colors --mode development",
     "develop+watch": "webpack --config webpack.config.js --progress --colors --mode development --watch",
     "make:distribution": "npm run build && gulp make:distribution",
+    "make:dress-template": "gulp make:dress-template",
     "serve": "browser-sync start --config bs-config.js",
     "start": "npm run develop+watch"
   },

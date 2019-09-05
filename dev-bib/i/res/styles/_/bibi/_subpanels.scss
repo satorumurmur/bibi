@@ -7,12 +7,12 @@ div.bibi-subpanel {
 	position: absolute;
 	z-index: $INVARIABLE__Subpanel_ZIndex;
 	// @____Bibi:Dress__('-') right: $Subpanel_Margin;
-	// @____Bibi:Dress__('-') top: $GLOBAL__TopBar_Height + $Subpanel_Margin;
+	// @____Bibi:Dress__('-') top: $Menu_Height + $Subpanel_Margin;
 	margin: auto;
 	// @____Bibi:Dress__('-') width: calc(100% - #{$Subpanel_Margin * 2});
 	// @____Bibi:Dress__('-') max-width: 320px - $Subpanel_Margin * 2;
-	// @____Bibi:Dress__('-') html.appearance-horizontal & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
-	// @____Bibi:Dress__('-') html.appearance-vertical   & { max-height: calc(100% - #{$GLOBAL__TopBar_Height + $Subpanel_Margin * 2}); }
+	// @____Bibi:Dress__('-') html.appearance-horizontal & { max-height: calc(100% - #{$Menu_Height + $Subpanel_Margin * 2}); }
+	// @____Bibi:Dress__('-') html.appearance-vertical   & { max-height: calc(100% - #{$Menu_Height + $Subpanel_Margin * 2}); }
 	// @____Bibi:Dress__('-') border-radius: $Subpanel_BorderRadius;
 	// @____Bibi:Dress__('-') background: $Subpanel_BackgroundColor;
 	// @____Bibi:Dress__('-') transform: translateY($Subpanel_Margin * -2) scale(0);
@@ -28,6 +28,7 @@ div.bibi-subpanel {
 		// @____Bibi:Dress__('-') transition-timing-function: $Subpanel_TransitionTimingFunction__Open;
 		// @____Bibi:Dress__('-') box-shadow: $Subpanel_BoxShadow;
 	}
+	// @____Bibi:Dress__('-') .bibi-icon { @include size($Subpanel-Icon_Size); }
 }
 
 
@@ -47,8 +48,8 @@ div.bibi-subpanel {
 		// @____Bibi:Dress__('-') border-color: $Subpanel-Scrollbar-Track_BackgroundColor;
 		// @____Bibi:Dress__('-') border-radius: $Subpanel-Scrollbar-Track_Size * 0.5;
 		// @____Bibi:Dress__('-') background: $Subpanel-Scrollbar-Thumb_BackgroundColor;
-		// @____Bibi:Dress__('-') &:hover  { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
-		// @____Bibi:Dress__('-') &:active { background: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
+		// @____Bibi:Dress__('-') &:hover  { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Hover; }
+		// @____Bibi:Dress__('-') &:active { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Active; }
 	}
 }
 
@@ -91,12 +92,12 @@ div.bibi-subpanel {
 					font-size: 10px;
 					// @____Bibi:Dress__('-') color: lighten($Subpanel-Heading_Color, 12%);
 					&:before {
-						@include FontIcon_InlineBlock("Material Icons");
+						display: block;
 						position: absolute;
 						left: -.1em;
 						top: .225em;
-						font-size: 1.1em;
-						content: "\e5cc"; // chevron_right
+						@include GLOBAL__FontIcon_BaseStyles("Material Icons", 1.1em, 1);
+						content: "chevron_right";
 						// @____Bibi:Dress__('-') color: lighten($Subpanel-Heading_Color, 24%);
 					}
 				}
@@ -129,7 +130,7 @@ div.bibi-subpanel {
 					vertical-align: top;
 				}
 				.bibi-button-iconbox {
-					// @____Bibi:Dress__('-') margin-top: ($Subpanel-Button_Height - $GLOBAL__Subpanel-Icon_Size) / 2;
+					// @____Bibi:Dress__('-') margin-top: ($Subpanel-Button_Height - $Subpanel-Icon_Size) / 2;
 					// @____Bibi:Dress__('-') margin-right: $Subpanel-Icon_MarginRight;
 				}
 				.bibi-button-label {
@@ -139,27 +140,25 @@ div.bibi-subpanel {
 					small { font-size: .875em; }
 					span.non-visual-in-label { @include NonVisual(); }
 				}
-				&:before, &:after {
-					display: block;
-					position: absolute;
-				}
 				&:before {
 					content: "";
+					display: block;
+					position: absolute;
 					z-index: 10;
 					@include offset(0);
 					@include size(100%);
 				}
 				&:after {
+					display: block;
+					position: absolute;
 					z-index: 1;
-					@include FontIcon_InlineBlock("Material Icons");
 					top: 0;
 					// @____Bibi:Dress__('-') right: $Subpanel-Button_HorizontalPadding;
 					bottom: 0;
 					left: auto;
 					margin: auto;
 					@include size(/*20px*/auto, .9em);
-					line-height: 1;
-					font-size: 16px;
+					@include GLOBAL__FontIcon_BaseStyles("Material Icons", 16px, 1);
 					text-align: right;
 					transition: .2s ease-in-out;
 				}
@@ -169,13 +168,15 @@ div.bibi-subpanel {
 					// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color; }
 				}
+				&.default:active,
 				&.active {
 					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Active;
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Active;
 					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Active;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Active; }
 				}
-				&.default, &.bibi-button-toggle.active { &.hover, &:hover {
+				&.default.hover,
+				&.bibi-button-toggle.active.hover {
 					cursor: pointer;
 					z-index: 2;
 					border-style: solid;  &.bibi-button-radio { border-style: solid; }
@@ -183,8 +184,8 @@ div.bibi-subpanel {
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Hover;
 					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Hover;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Hover; }
-				}}
-				&.disabled { &, &.hover, &:hover {
+				}
+				&.disabled { &, &.hover {
 					.bibi-button-iconbox,
 					.bibi-button-label { opacity: 0.5 !important; }
 				}}
@@ -196,15 +197,21 @@ div.bibi-subpanel {
 				}
 			}
 			.bibi-button-link {
-				       &:after { content: "\e5cc"; } // chevron_right
+				       &:after { content: "chevron_right"; }
 			}
 			.bibi-button-toggle {
-				       &:after { content: "\e835"; } // check_box_outline_blank
-				&.active:after { content: "\e834"; } // check_box
+				&:after { font-size: 30px; }
+				&.default:after, &.active:active:after {
+					content: "toggle_off"; // content: "check_box_outline_blank";
+				}
+				&.active:after, &.default:active:after {
+					content: "toggle_on"; // content: "check_box";
+				}
 			}
 			.bibi-button-radio {
-				       &:after { content: "\e836"; } // radio_button_unchecked
-				&.active:after { content: "\e86c"; } // check_circle // { content: "\e837"; } // radio_button_checked
+				&.default:after { content: "radio_button_unchecked"; }
+				&.default:active:after { content: "check_circle"; }
+				&.active:after, &.active:active:after { content: "radio_button_checked"; }
 			}
 	.bibi-buttongroup-tiled {
 		display: flex;

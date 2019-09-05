@@ -4,12 +4,11 @@
 
 $Veil_Color: white;
 $Veil_Background: linear-gradient(to top, rgb(192,192,192), rgb(96,96,96));//rgb(216,216,216);
+// [ja] └ Veil 内の各要素の基本文字色と全体の背景（背景は background プロパティに適用されるため、色以外に画像やグラデーション関数も使用できます）
 
-
-// - BottomBar
-// --------------------------------------------------------------------------------
-
+$Veil-BottomBar_Height: $Menu_Height;
 $Veil-BottomBar_Background: rgb(128,128,128);
+// [ja] └ Veil 下端の、ビビのロゴが置かれたバーの高さと背景（背景は background プロパティに適用されるため、色以外に画像やグラデーション関数も使用できます）
 
 
 // - ByeBye
@@ -17,6 +16,7 @@ $Veil-BottomBar_Background: rgb(128,128,128);
 
 $Veil-ByeBye_Color: white;
 $Veil-ByeBye_Background: rgba(black, .125);
+// [ja] └ 非対応環境でのアクセス時などに表示される緊急停止画面の文字色・背景色
 
 
 // - Play
@@ -25,25 +25,11 @@ $Veil-ByeBye_Background: rgba(black, .125);
 $Veil-Play_BackgroundColor:        rgba(black, 0  );
 $Veil-Play_BackgroundColor__Hover: rgba(black, 0.4);
 
-$Veil-Play-Icon_Size: 96px;
-$Veil-Play-Icon_Offset: 8px;
-
 @mixin Veil-Play-Icon() {
-	@include FontIcon_InlineBlock("Material Icons");
-	content: "\e038"; // play_circle_filled color: white;
-	@include size($Veil-Play-Icon_Size);
-	line-height: $Veil-Play-Icon_Size * 0.98;
-	text-align: center;
-	vertical-align: middle;
-	text-indent: -.05em;
-	font-size: $Veil-Play-Icon_Size;
+	font: 96px/96px "Material Icons";
+	-ms-font-feature-settings: 'liga' 1; font-feature-settings: 'liga'; text-transform: none;
+	-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizelegibility;
+	speak: none; direction: ltr; letter-spacing: 0; white-space: nowrap; word-wrap: normal; overflow-wrap: normal;
+	content: "\e038"; // play_circle_filled
 	color: rgba(236,236,236, 0.9);
 }
-
-
-// - Cover
-// --------------------------------------------------------------------------------
-
-
-// - Catcher
-// --------------------------------------------------------------------------------

@@ -5,16 +5,11 @@
 
 div#bibi-panel {
 	background: $Panel_Background;
-}
-
-
-// - BottomBar
-// --------------------------------------------------------------------------------
-
-div#bibi-panel:after {
-	height: $GLOBAL__BottomBar_Height;
-	border-color: $Panel-BottomBar_BorderTopColor;
-	background: $Panel-BottomBar_Background;
+	&:after { // BottomBar
+		height: $Panel-BottomBar_Height;
+		border-color: $Panel-BottomBar_BorderTopColor;
+		background: $Panel-BottomBar_Background;
+	}
 }
 
 
@@ -24,8 +19,8 @@ div#bibi-panel:after {
 div#bibi-panel-bookinfo {
 }
 	div#bibi-panel-bookinfo-box {
-		margin-top: $GLOBAL__TopBar_Height;
-		height: calc(100% - #{$GLOBAL__BottomBar_Height});
+		margin-top: $Menu_Height;
+		height: calc(100% - #{$Panel-BottomBar_Height});
 	}
 
 

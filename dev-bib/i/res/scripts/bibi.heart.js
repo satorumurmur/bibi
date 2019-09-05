@@ -1674,16 +1674,17 @@ R.layOutStage = () => {
 R.layOut = (Opt) => new Promise((resolve, reject) => {
     // Opt: {
     //     Destination: BibiDestination,
-    //     Reset: Boolean,
-    //     Setting: BibiSetting (Optional),
-    //     before: Function (Optional)
+    //     Reset: Boolean, (default: false)
+    //     DoNotCloseUtilities: Boolean, (default: false)
+    //     Setting: BibiSetting,
+    //     before: Function
     // }
     if(R.LayingOut) return reject();
     R.ScrollHistory = [];
     R.LayingOut = true;
     O.log(`Laying out...`, '<g:>');
     if(Opt) O.log(`Option: %O`, Opt); else Opt = {};
-    E.dispatch('bibi:closes-utilities');
+    if(!Opt.DoNotCloseUtilities) E.dispatch('bibi:closes-utilities');
     E.dispatch('bibi:is-going-to:lay-out', Opt);
     window.removeEventListener(O['resize'], R.onResize);
     R.Main.removeEventListener('scroll', R.onScroll);
@@ -2443,7 +2444,7 @@ I.Menu = { create: () => {
                 active:  { default: `Close Index`, ja: `目次を閉じる` }
             },
             Help: true,
-            Icon: `<span class="bibi-icon bibi-icon-toggle-panel"><span class="bar-1"></span><span class="bar-2"></span><span class="bar-3"></span></span>`,
+            Icon: `<span class="bibi-icon bibi-icon-toggle-panel">${ (Bars => { for(let i = 1; i <= 6; i++) Bars += '<span></span>'; return Bars; })('') }</span>`,
             action: () => Panel.toggle()
         });
         E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
@@ -2490,15 +2491,15 @@ I.Menu = { create: () => {
                     Buttons: [{
                         Mode: 'paged',
                         Labels: { default: { default: `Page Flipping <small>(with ${ O.Touch ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.Touch ? 'タップ／スワイプ' : 'クリック／ホイール' }）</small>` } },
-                        Icon: `<span class="bibi-icon bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">${ SSs }</span></span>`
+                        Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">${ SSs }</span></span>`
                     }, {
                         Mode: 'horizontal',
                         Labels: { default: { default: `Horizontal Scroll`, ja: `横スクロール` } },
-                        Icon: `<span class="bibi-icon bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">${ SSs }</span></span>`
+                        Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">${ SSs }</span></span>`
                     }, {
                         Mode: 'vertical',
                         Labels: { default: { default: `Vertical Scroll`, ja: `縦スクロール` } },
-                        Icon: `<span class="bibi-icon bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
+                        Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
                     }].map(Button => sML.edit(Button, {
                         Notes: true,
                         action: () => R.changeView(Button)
@@ -2712,6 +2713,7 @@ I.FontSizeChanger = { create: () => {
             R.layOut({
                 before: () => R.Items.forEach(Item => { if(Item.changeFontSizeStep) Item.changeFontSizeStep(Step); }),
                 Reset: true,
+                DoNotCloseUtilities: true,
                 NoNotification: true
             }).then(() => {
                 E.dispatch('bibi:changed-font-size', { Step: Step });
@@ -2719,7 +2721,7 @@ I.FontSizeChanger = { create: () => {
             });
         }, 88);
     };
-    E.add('bibi:changes-font-size', () => E.dispatch('bibi:closes-utilities'));
+    //E.add('bibi:changes-font-size', () => E.dispatch('bibi:closes-utilities'));
   //E.add('bibi:changes-view', () => FontSizeChanger.changeFontSizeStep(0)); // unnecessary
     if(S['use-font-size-changer']) {
         const changeFontSizeStep = function() {
@@ -2737,7 +2739,7 @@ I.FontSizeChanger = { create: () => {
                     active:  { default: `Close Font Size Menu`, ja: `文字サイズメニューを閉じる` }
                 },
                 //className: 'bibi-button-font-size bibi-button-font-size-change',
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-change"></span>`,
+                Icon: `<span class="bibi-icon bibi-icon-change-fontsize"></span>`,
                 Help: true
             }),
             id: 'bibi-subpanel_font-size',
@@ -3786,8 +3788,10 @@ I.createButtonGroup = (Par = {}) => {
         const Button = I.createButton(Par);
         if(!Button) return null;
         Button.ButtonGroup = this;
-        this.appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type })).appendChild(Button)
-        this.Buttons.push(Button);
+        Button.ButtonBox = Button.ButtonGroup.appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type }));
+        if(!O.Touch) I.setHoverActions(I.observeHover(Button.ButtonBox));
+        Button.ButtonBox.appendChild(Button)
+        Button.ButtonGroup.Buttons.push(Button);
         return Button;
     };
     ButtonsToAdd.forEach(ButtonToAdd => {
@@ -3832,7 +3836,7 @@ I.createButton = (Par = {}) => {
         if(Button.ButtonGroup && Button.ButtonGroup.Busy) return false;
         return (Button.UIState != 'disabled');
     };
-    if(typeof Button.action == 'function') Button.addTapEventListener('tapped', function() { return Button.isAvailable() ? Button.action.apply(Button, arguments) : false; });
+    if(typeof Button.action == 'function') Button.addTapEventListener('tapped', () => Button.isAvailable() ? Button.action.apply(Button, arguments) : null);
     Button.Busy = false;
     return Button;
 };
@@ -4039,8 +4043,8 @@ I.setTapAction = (Ele) => {
     })();
     Ele.addTapEventListener('tapped', Eve => {
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
-        if(Ele.Type == 'radio' && Ele.UIState == 'active') return Ele;
         if(Ele.UIState == 'disabled') return Ele;
+        if(Ele.UIState == 'active' && Ele.Type == 'radio') return Ele;
         onTapped(Eve);
         if(Ele.hideHelp) Ele.hideHelp();
         if(Ele.note) setTimeout(Ele.note, 0);

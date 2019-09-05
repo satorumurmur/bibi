@@ -1,18 +1,19 @@
 @import "stage";
-
 @import "main";
+
+@import "menu";
+
+@import "slider";
 
 @import "notifier";
 @import "veil";
 @import "help";
 
-@import "menu";
 @import "panel";
 @import "subpanels";
 
-@import "spinner";
-@import "nombre";
-@import "slider";
-@import "arrows";
-
 @import "icons";
+
+@import "nombre";
+@import "arrows";
+@import "spinner";

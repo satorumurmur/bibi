@@ -5,18 +5,18 @@
 
 div#bibi-help {
 	border-top: $Help_BorderTop;
-	height: $GLOBAL__BottomBar_Height;
+	height: $Help_Height;
 	background: $Help_Background;
 	html.slider-opened.view-paged &,
 	html.slider-opened.view-horizontal & {
-		bottom: $GLOBAL__Slider_Size !important;
+		bottom: $Slider_Size !important;
 	}
 	p {
-		line-height: $GLOBAL__BottomBar_Height * 1.1;
+		line-height: $Help_Height * 1.1;
 		color: $Help-P_Color;
 	}
 }
 
 html.slider-opened:not(.panel-opened).view-vertical div#bibi-help {
-	width: calc(100% - #{$GLOBAL__Slider_Size});
+	width: calc(100% - #{$Slider_Size});
 }

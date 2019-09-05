@@ -28,34 +28,16 @@
 
 @mixin prefix($P, $V) { -webkit-#{$P}: $V; -epub-#{$P}: $V; -moz-#{$P}: $V; -ms-#{$P}: $V; @content; #{$P}: $V; }
 
-@mixin writing-mode($V) {
+@mixin writing-mode($V, $D: ltr) {
 	@include prefix(writing-mode, $V) {
 		$V2: null;
-		     @if $V == horizontal-lr { $V2: lr-tb; }
-		@else if $V == horizontal-rl { $V2: rl-tb; }
-		@else if $V ==   vertical-rl { $V2: tb-rl; }
-		@else if $V ==   vertical-lr { $V2: tb-lr; }
-		-ms-writing-mode: $V2;
+		     @if $V == vertical-lr { $V2: tb-lr; }
+		@else if $V == vertical-rl { $V2: tb-rl; }
+		@else if $D == rtl         { $V2: rl-tb; }
+		@else                      { $V2: lr-tb; }
+		@if $V2 != null { -ms-writing-mode: $V2; }
 	}
-}
-
-@mixin FontIcon_InlineBlock($LOCAL__FamilyName) {
-	display: inline-block;
-	direction: ltr;
-	letter-spacing: normal;
-	text-transform: none;
-	text-rendering: optimizeLegibility;
-	white-space: nowrap;
-	word-wrap: normal;
-	font-family: $LOCAL__FamilyName;
-	font-style: normal;
-	font-weight: normal;
-	font-variant: normal;
-	-ms-font-feature-settings: 'liga' 1;
-	font-feature-settings: 'liga';
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	speak: none;
+	direction: $D;
 }
 
 @mixin NonVisual() {
@@ -132,6 +114,17 @@ $INVARIABLE__Arrow_ZIndex: $INVARIABLE__Menu_ZIndex + 1;
 
 $INVARIABLE__Notifier_ZIndex: 99999999999;
 $INVARIABLE__Spinner_ZIndex: $INVARIABLE__Notifier_ZIndex - 1;
+
+
+// - MixIns for Colors & Interaction
+// --------------------------------------------------------------------------------
+
+@mixin GLOBAL__FontIcon_BaseStyles($SCOPED__FamilyName, $SCOPED__FontSize: 100%, $SCOPED__LineHeight: 1) {
+	font: #{$SCOPED__FontSize} / #{$SCOPED__LineHeight} $SCOPED__FamilyName;
+	-ms-font-feature-settings: 'liga' 1;  font-feature-settings: 'liga';  text-transform: none;
+	-webkit-font-smoothing: antialiased;  -moz-osx-font-smoothing: grayscale;  text-rendering: optimizelegibility;
+	speak: none;  direction: ltr;  letter-spacing: 0;  white-space: nowrap;  word-wrap: normal;  overflow-wrap: normal;
+}
 
 
 

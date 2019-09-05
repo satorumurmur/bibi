@@ -24,27 +24,22 @@ div#bibi-veil {
 		html.appearance-rtl & { transform: translateX( 240%); }
 		html.appearance-ttb & { transform: translateY(-240%); }
 	}
-}
-
-
-// - BottomBar
-// --------------------------------------------------------------------------------
-
-div#bibi-veil:after {
-	content: "";
-	box-sizing: border-box;
-	display: block;
-	position: absolute;
-	z-index: $INVARIABLE__Veil-BottomBar_ZIndex;
-	left: 0; right: 0; bottom: 0;
-	margin: 0 auto;
-	padding: 4px;
-	border-style: solid;
-	border-width: 1px 0;
-	border-color: transparent;//rgb(104,104,104);
-	width: 100%;
-	// @____Bibi:Dress__('-') height: $GLOBAL__BottomBar_Height;
-	// @____Bibi:Dress__('-') background: $Veil-BottomBar_Background;
+	&:after { // BottomBar
+		content: "";
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+		z-index: $INVARIABLE__Veil-BottomBar_ZIndex;
+		left: 0; right: 0; bottom: 0;
+		margin: 0 auto;
+		padding: 4px;
+		border-style: solid;
+		border-width: 1px 0;
+		border-color: transparent;//rgb(104,104,104);
+		width: 100%;
+		// @____Bibi:Dress__('-') height: $Veil-BottomBar_Height;
+		// @____Bibi:Dress__('-') background: $Veil-BottomBar_Background;
+	}
 }
 
 
@@ -65,7 +60,7 @@ p#bibi-veil-byebye {
 	border-radius: 20px;
 	@include size(240px);
 	max-width: calc(100% - #{ 10px * 2 });
-	// @____Bibi:Dress__('-') max-height: calc(100% - #{ $GLOBAL__TopBar_Height + 10px * 2 + $GLOBAL__BottomBar_Height });
+	// @____Bibi:Dress__('-') max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $Veil-BottomBar_Height });
 	line-height: 1.75;
 	text-align: center;
 	font-size: 14px;
@@ -104,53 +99,44 @@ p#bibi-veil-byebye {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-play {
-	display: none; html.waiting & { display: block; }
+	display: none; html.waiting & { display: flex; }
+	justify-content: flex-end;
+	align-items: center;
 	box-sizing: border-box;
-	position: absolute; @include offset(0); margin: auto;
+	position: absolute;
 	z-index: $INVARIABLE__Veil-Play_ZIndex;
+	@include offset(0);
+	margin: 0;
+	padding: 8px;
 	@include size(100%);
+	// @____Bibi:Dress__('-') background: $Veil-Play_BackgroundColor;  &:hover { background-color: $Veil-Play_BackgroundColor__Hover; }
 	cursor: pointer;
-	&:before { // icon
-		box-sizing: border-box;
-		display: block;
+	transition: .2s ease-out;
+	&:before { // Icon
+		position: relative;
 		z-index: 10;
-		position: absolute;
-		margin: auto;
+		transition: .2s cubic-bezier(.2,.8,.8,1.6);
+		// @____Bibi:Dress__('-') @include Veil-Play-Icon();
 	}
 	&,
 	html.appearance-ttb & { // ↓
-		&:before        { transform: translateY(  0 ) scale(1.0) rotate( 90deg);  left: 0; right: 0; top: auto; }
+		flex-direction: column;
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate( 90deg); }
 		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate( 90deg); }
 		&:active:before { transform: translateY( 10%) scale(1.1) rotate( 90deg); }
 	}
 	html.appearance-rtl & { // ←
-		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg);  top: 0; bottom: 0; right: auto; }
+		flex-direction: row-reverse;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg); }
 		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
 		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
 	}
 	html.appearance-ltr & { // →
-		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   );  top: 0; bottom: 0; left: auto; }
+		flex-direction: row;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   ); }
 		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
 		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
 	}
-	// @____Bibi:Dress__('-') background: $Veil-Play_BackgroundColor;  &:hover { background-color: $Veil-Play_BackgroundColor__Hover; }
-	// @____Bibi:Dress__('-') &:before { @include Veil-Play-Icon(); } // icon
-	// @____Bibi:Dress__('-') &:before,
-	// @____Bibi:Dress__('-') html.appearance-ttb &:before { bottom: $Veil-Play-Icon_Offset; } // ↓
-	// @____Bibi:Dress__('-') html.appearance-rtl &:before { left:   $Veil-Play-Icon_Offset; } // ←
-	// @____Bibi:Dress__('-') html.appearance-ltr &:before { right:  $Veil-Play-Icon_Offset; } // →
-	// @____Bibi:Dress__('-') &, &:before {
-	// @____Bibi:Dress__('-') 	$SCOPED__Veil-Play_TransitionDuration: .2s;
-	// @____Bibi:Dress__('-') 	$SCOPED__Veil-Play_TransitionTimingFunction__ForColor: ease;
-	// @____Bibi:Dress__('-') 	$SCOPED__Veil-Play_TransitionTimingFunction__ForForm: cubic-bezier(.2,.8,.8,1.6);
-	// @____Bibi:Dress__('-') 	transition:
-	// @____Bibi:Dress__('-') 		color            $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForColor,
-	// @____Bibi:Dress__('-') 		background-color $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForColor,
-	// @____Bibi:Dress__('-') 		left             $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-	// @____Bibi:Dress__('-') 		right            $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-	// @____Bibi:Dress__('-') 		bottom           $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-	// @____Bibi:Dress__('-') 		transform        $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm;
-	// @____Bibi:Dress__('-') }
 }
 
 
@@ -418,13 +404,13 @@ div#bibi-catcher {
 		// @____Bibi:Dress__('-') border-radius: $SCOPED__Catcher-Area_Margin;
 		// @____Bibi:Dress__('-') @include size(
 		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $GLOBAL__BottomBar_Height})
+		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $Veil-BottomBar_Height})
 		// @____Bibi:Dress__('-') );
 		// @____Bibi:Dress__('-') @include max(768px) { @include size(
 		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $GLOBAL__BottomBar_Height})
+		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $Veil-BottomBar_Height})
 		// @____Bibi:Dress__('-') ); }
-		// @____Bibi:Dress__('-') transform: translateY(#{$GLOBAL__BottomBar_Height * -0.5});
+		// @____Bibi:Dress__('-') transform: translateY(#{$Veil-BottomBar_Height * -0.5});
 	}
 	html.dragenter &,
 	&:hover {

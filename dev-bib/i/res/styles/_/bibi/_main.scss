@@ -43,8 +43,8 @@ main#bibi-main {
 		margin: auto;
 	}
 	html.appearance-horizontal:not(.book-full-height) & {
-		// @____Bibi:Dress__('-') top: $GLOBAL__TopBar_Height;
-		// @____Bibi:Dress__('-') height: calc(100% - #{$GLOBAL__TopBar_Height});
+		// @____Bibi:Dress__('-') top: $Menu_Height;
+		// @____Bibi:Dress__('-') height: calc(100% - #{$Menu_Height});
 	}
 	html.appearance-vertical & {
 		@include offset(-100%, auto, -100%, 0);
@@ -53,8 +53,8 @@ main#bibi-main {
 		margin: auto;
 	}
 	html.appearance-vertical:not(.book-full-height) & {
-		// @____Bibi:Dress__('-') padding-top: $GLOBAL__TopBar_Height;
-		// @____Bibi:Dress__('-') height: calc(100% - #{$GLOBAL__TopBar_Height});
+		// @____Bibi:Dress__('-') padding-top: $Menu_Height;
+		// @____Bibi:Dress__('-') height: calc(100% - #{$Menu_Height});
 	}
 	html.laying-out & {
 		opacity: 0;

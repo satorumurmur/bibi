@@ -36,10 +36,10 @@ div#bibi-nombre {
 		// @____Bibi:Dress__('-') transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
 	}
 	html.slider-opened.appearance-horizontal & {
-		// @____Bibi:Dress__('-') bottom: $GLOBAL__Slider_Size + 2px !important;
+		// @____Bibi:Dress__('-') bottom: $Slider_Size + 2px !important;
 	}
 	html.slider-opened.appearance-vertical & {
-		// @____Bibi:Dress__('-') right: $GLOBAL__Slider_Size + 2px !important;
+		// @____Bibi:Dress__('-') right: $Slider_Size + 2px !important;
 	}
 	&        { display: none;  }
 	&.active { display: block; }

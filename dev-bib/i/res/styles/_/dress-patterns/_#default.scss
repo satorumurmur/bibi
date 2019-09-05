@@ -1,0 +1,86 @@
+// ================================================================================
+// + Special Icons
+// --------------------------------------------------------------------------------
+
+
+// - Panel Toggler (.bibi-icon-toggle-panel) in Menu
+// --------------------------------------------------------------------------------
+
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Width: 19px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Height: 2px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation: 4px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
+
+@mixin DEFAULT__SPECIALICON__TogglePanel() {
+	>span {
+		left: 0;
+		right: 0;
+		margin: auto;
+		@include size($DEFAULT__SPECIALICON__TogglePanel-Bar_Width, $DEFAULT__SPECIALICON__TogglePanel-Bar_Height);
+		border-radius: $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius;
+	}
+	$DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height * 3 + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation * 2)) / 2 - 1px;
+	>span:nth-child(1) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 0; }
+	>span:nth-child(2) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 1; }
+	>span:nth-child(3) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 2; }
+	>span:nth-child(4),
+	>span:nth-child(5),
+	>span:nth-child(6) { display: none !important; }
+}
+
+@mixin DEFAULT__SPECIALICON__TogglePanel__Active() {
+	>span:nth-child(1) { opacity: 1; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) *  1) rotate( 135deg); }
+	>span:nth-child(2) { opacity: 0; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) *  0) rotate(-360deg); }
+	>span:nth-child(3) { opacity: 1; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) * -1) rotate( 225deg); }
+}
+
+
+// - Shapes of Items and Spreads
+// --------------------------------------------------------------------------------
+
+@mixin DEFAULT__SPECIALICON__View_Common() {
+	$SCOPED__SpreadShape_Width : 13px;
+	$SCOPED__SpreadShape_Height: 11px;
+	$SCOPED__ItemShape_Width : ($SCOPED__SpreadShape_Width + 1px) / 2;
+	$SCOPED__ItemShape_Height: $SCOPED__SpreadShape_Height;
+	span.bibi-shape-spreads {
+		@include offset(0);
+		margin: auto;
+		@include size($SCOPED__SpreadShape_Width, $SCOPED__SpreadShape_Height);
+		span.bibi-shape-spread {
+			left: 0;  top: 0;
+			@include size(100%);
+			span.bibi-shape-item {
+				top: 0;
+				border: solid 1px;
+				@include size($SCOPED__ItemShape_Width, $SCOPED__ItemShape_Height);
+				&:first-child { left: 0; }
+				&:last-child  { right: 0; }
+			}
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewPaged() {
+	span.bibi-shape-spreads-paged {
+		span.bibi-shape-spread {
+			&:first-child { display: none; }
+			&:last-child  { display: none; }
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewHorizontal() {
+	span.bibi-shape-spreads-horizontal {
+		span.bibi-shape-spread {
+			&:first-child { transform: translateX(-100%); left: -1px; }
+			&:last-child  { transform: translateX( 100%); left:  1px; }
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewVertical() {
+	span.bibi-shape-spreads-vertical {
+		span.bibi-shape-spread {
+			&:first-child { transform: translateY(-100%); top: -1px; }
+			&:last-child  { transform: translateY( 100%); top:  1px; }
+		}
+	}
+}

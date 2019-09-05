@@ -1,259 +1,303 @@
 // ================================================================================
-// + Base
+// + General Icons
 // --------------------------------------------------------------------------------
 
 
-// - Colors & Interaction
+// - General Icons' Common Style
 // --------------------------------------------------------------------------------
 
-// Default
-$Icon-Font_PaintColor:    rgb(144,144,144);
-$Icon-Font_OutlineColor:  transparent;
-$Icon-Shape_PaintColor:   white;
-$Icon-Shape_OutlineColor: $Icon-Font_PaintColor;
-$Icon_BackgroundColor:    rgba(white, 0.9);
-$Icon_BorderColor:        rgb(236,236,236);
-$Icon_Transform:          none;
+// [ja] メニューバー内・Subpanel 内を問わず、一般アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__Common() {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	@include size(100%);
+	text-decoration: none;
+	&:before {
+		position: relative;
+		// ----
+		font: 1em / .98em "Material Icons";
+		-ms-font-feature-settings: 'liga' 1;  font-feature-settings: 'liga';  text-transform: none;
+		-webkit-font-smoothing: antialiased;  -moz-osx-font-smoothing: grayscale;  text-rendering: optimizelegibility;
+		speak: none;  direction: ltr;  letter-spacing: 0;  white-space: nowrap;  word-wrap: normal;  overflow-wrap: normal;
+	}
+}
 
-// Default:Hover
-$Icon-Font_PaintColor__Hover:    rgb(64,64,64);
-$Icon-Font_OutlineColor__Hover:  $Icon-Font_OutlineColor;
-$Icon-Shape_PaintColor__Hover:   $Icon-Shape_PaintColor;
-$Icon-Shape_OutlineColor__Hover: $Icon-Font_PaintColor__Hover;
-$Icon_BackgroundColor__Hover:    $Icon_BackgroundColor;
-$Icon_BorderColor__Hover:        rgb(192,192,192);
-$Icon_Transform__Hover:          $Icon_Transform;
 
-// Active
-$Icon-Font_PaintColor__Active:    $Icon_BackgroundColor;
-$Icon-Font_OutlineColor__Active:  transparent;
-$Icon-Shape_PaintColor__Active:   $Icon-Shape_PaintColor;
-$Icon-Shape_OutlineColor__Active: $Icon-Font_PaintColor;
-$Icon_BackgroundColor__Active:    $Icon-Font_PaintColor;
-$Icon_BorderColor__Active:        darken($Icon_BorderColor, 30%);
-$Icon_Transform__Active:          rotate(360deg);
+// - General Icons in Menu
+// --------------------------------------------------------------------------------
 
-// Active:Hover
-$Icon-Font_PaintColor__Active-Hover:    $Icon-Font_PaintColor__Active;
-$Icon-Font_OutlineColor__Active-Hover:  transparent;
-$Icon-Shape_PaintColor__Active-Hover:   $Icon-Shape_PaintColor__Active;
-$Icon-Shape_OutlineColor__Active-Hover: lighten($Icon-Shape_OutlineColor__Active, 10%);
-$Icon_BackgroundColor__Active-Hover:    rgb(96,96,96);
-$Icon_BorderColor__Active-Hover:        lighten($Icon_BorderColor__Active, 10%);
-$Icon_Transform__Active-Hover:          $Icon_Transform__Active;
+// [ja] メニューバー内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInMenu() {
+	&:before {
+		font-size: #{$Menu-Icon_Size};
+	}
+}
 
-// Transition
-$Icon_Transition: 
-	color 0.125s linear,
-	background-color 0.125s linear,
-	border-color 0.125s linear,
-	text-shadow 0.125s linear,
-	box-shadow 0.125s linear,
-	transform 0.25s ease
-;
+@mixin GENERALICON__Config() {
+	&:before {
+		content: "settings";
+		font-size: 25px;
+	}
+}
 
-// [In Subpanel] Default
-$Subpanel-Icon-Font_PaintColor:    rgb(128,128,128);
-$Subpanel-Icon-Font_OutlineColor:  transparent;
-$Subpanel-Icon-Shape_PaintColor:   white;
-$Subpanel-Icon-Shape_OutlineColor: rgb(144,144,144);
-$Subpanel-Icon_BackgroundColor:    rgb(248,248,248);
-$Subpanel-Icon_BorderColor:        rgb(192,192,192);
+@mixin GENERALICON__ChangeFontSize() {
+	&:before {
+		content: "format_size";
+		font-size: 25px;
+		top: 1px;
+		text-indent: -1px;
+	}
+}
 
-// [In Subpanel] Default:Hover
-$Subpanel-Icon-Font_PaintColor__Hover:    $Subpanel_KeyColor;
-$Subpanel-Icon-Font_OutlineColor__Hover:  transparent;
-$Subpanel-Icon-Shape_PaintColor__Hover:   white;
-$Subpanel-Icon-Shape_OutlineColor__Hover: $Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Hover:    lighten($Subpanel_KeyColor, 45%);
-$Subpanel-Icon_BorderColor__Hover:        $Subpanel_KeyColor;
+// [ja] ３種の拡大／縮小アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__LoupeCommon() {
+	&:before {
+		font-size: 25px;
+		text-indent: 1px;
+	}
+}
 
-// [In Subpanel] Active
-$Subpanel-Icon-Font_PaintColor__Active:    white;
-$Subpanel-Icon-Font_OutlineColor__Active:  transparent;
-$Subpanel-Icon-Shape_PaintColor__Active:   white;
-$Subpanel-Icon-Shape_OutlineColor__Active: $Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Active:    $Subpanel_KeyColor;
-$Subpanel-Icon_BorderColor__Active:        $Subpanel_KeyColor;
+@mixin GENERALICON__LoupeZoomIn() {
+	&:before {
+		content: "zoom_in";
+		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(1.25) !important; }
+	}
+}
 
-// [In Subpanel] Active:Hover
-$Subpanel-Icon-Font_PaintColor__Active-Hover:    white;
-$Subpanel-Icon-Font_OutlineColor__Active-Hover:  transparent;
-$Subpanel-Icon-Shape_PaintColor__Active-Hover:   white;
-$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $Subpanel_KeyColor;
-$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($Subpanel_KeyColor, 20%);
-$Subpanel-Icon_BorderColor__Active-Hover:        $Subpanel_KeyColor;
+@mixin GENERALICON__LoupeZoomOut() {
+	&:before {
+		content: "zoom_out";
+		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(0.80) !important; }
+	}
+}
 
-// [In Subpanel] Transition
-$Subpanel-Icon_Transition: $Icon_Transition;
+@mixin GENERALICON__LoupeReset() {
+	&:before {
+		content: "search";
+		.bibi-button.active &, .bibi-button.active.hover & { html.zoomed-in & { transform: scale(0.80) !important; } html.zoomed-out & { transform: scale(1.25) !important; } }
+	}
+	&:after {
+		content: "=";
+		display: block;
+		position: absolute;
+		@include offset(22%, auto, auto, 22%);
+		margin: auto;
+		@include size(1em);
+		font-size: 1em * (13px / 18px);
+		line-height: 1;
+		html.Windows & { @include offset(27%, auto, auto, 25%); }
+		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
+	}
+}
+
+
+// - General Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+// [ja] Subpanel 内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInSubpanels() {
+	&:before {
+		font-size: #{$Subpanel-Icon_Size};
+	}
+}
+
+@mixin GENERALICON__UseFullBreadth() {
+	&:before {
+		content: "settings_overscan";
+		font-size: $Subpanel-Icon_Size * .75;
+	}
+}
+
+@mixin GENERALICON__ToggleFullscreen() {
+	&:before {
+		content: "fullscreen";
+		font-size: $Subpanel-Icon_Size * 0.9;
+		top: 1px;
+		html.InternetExplorer & { top: -.05em; }
+		*:fullscreen & {
+			content: "fullscreen_exit";
+		}
+	}
+}
+
+@mixin GENERALICON__OpenNewWindow() {
+	&:before {
+		content: "open_in_new";
+		font-size: $Subpanel-Icon_Size * 16/21;
+	}
+}
+
+// [ja] ５種のフォントサイズ変更アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__FontSizeCommon() {
+	&:before {
+		content: "title";
+		top: 1px;
+	}
+}
+
+// [ja] ５種のフォントサイズ変更アイコンの font-size 値を同一比率で段階づけするためにここだけで使っている関数。使用しなくても構いません。
+@function LOCAL__GENERALICON__FontSize_FontSizePow($SCOPED__Size) {
+	$SCOPED__FontSize: 10px;  @if $SCOPED__Size > 1 { @for $i from 1 through ($SCOPED__Size - 1) { $SCOPED__FontSize: $SCOPED__FontSize * 1.28; } }
+	@return $SCOPED__FontSize;
+}
+
+@mixin GENERALICON__FontSizeXL() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(5);
+	}
+}
+
+@mixin GENERALICON__FontSizeL() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(4);
+	}
+}
+
+@mixin GENERALICON__FontSizeM() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(3);
+	}
+}
+
+@mixin GENERALICON__FontSizeS() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(2);
+	}
+}
+
+@mixin GENERALICON__FontSizeXS() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(1);
+	}
+}
 
 
 
 
 // ================================================================================
-// + Each
+// + Special Icons
 // --------------------------------------------------------------------------------
 
+/* [ja]
+ * これ以降にあるアイコンは、デフォルトではアイコンフォントや画像を使わず、専用に生成された HTML 要素をスタイリングすることで図形を描画しているものです。
+ * いずれも、１行の @include でデフォルトのデザインを呼び出してあります。
+ * その @include をコメントアウトして独自の CSS を記述することで、たとえば背景画像を利用するなど、独自のデザインに変更することができます（いくつかのプロパティはリセットした方がよいかもしれません）。
+ * 対象となる要素の HTML ソースを添えてありますので、独自デザインを行う際には参考にしてください（例示ソース内部の改行・インデントは、実際の DOM には存在しません）。
+ * いずれの @mixin の展開先セレクタも、添えられた HTML ソースの一番外側の要素です。子要素には入れ子書式でスタイルを適用することができます。
+ */
 
-// - Shapes of Items and Spreads
+
+// - "Toggle Panel" Icon in Menu
 // --------------------------------------------------------------------------------
 
+/* [ja]
+ * バーガーメニューアイコンのスタイルです。
+ * １つめの @mixin は通常時（開くためのボタン）のスタイルです。
+ * ２つめの @mixin はパネルが開いているとき（閉じるためのボタン）のスタイルとして、通常時のスタイルに追加・上書きで適用されるスタイルです。
+ */
 
-// - PanelToggler (.bibi-icon-toggle-panel)
+@mixin SPECIALICON__TogglePanel() {
+	@include DEFAULT__SPECIALICON__TogglePanel();
+}
+
+@mixin SPECIALICON__TogglePanel__Active() {
+	@include DEFAULT__SPECIALICON__TogglePanel__Active();
+}
+
+/*
+
+<span class="bibi-icon bibi-icon-toggle-panel">
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+</span>
+
+*/
+
+
+// - "View Xxxx" Icons in Subpanels
 // --------------------------------------------------------------------------------
 
-@mixin PanelToggler() {
-	$SCOPED__PanelToggler-Bar_Width: 19px;
-	$SCOPED__PanelToggler-Bar_Height: 2px;
-	$SCOPED__PanelToggler-Bar_Isolation: 4px;
-	$SCOPED__PanelToggler-Bar_BorderRadius: 1px;
-	>span {
-		left: 0;
-		right: 0;
-		margin: auto;
-		@include size($SCOPED__PanelToggler-Bar_Width, $SCOPED__PanelToggler-Bar_Height);
-		border-radius: $SCOPED__PanelToggler-Bar_BorderRadius;
-	}
-	& {
-		$SCOPED__Bars_Top: ($GLOBAL__Icon_Size - ($SCOPED__PanelToggler-Bar_Height * 3 + $SCOPED__PanelToggler-Bar_Isolation * 2)) / 2 - 1px;
-		>span.bar-1 { top: $SCOPED__Bars_Top; }
-		>span.bar-2 { top: $SCOPED__Bars_Top + $SCOPED__PanelToggler-Bar_Height + $SCOPED__PanelToggler-Bar_Isolation; }
-		>span.bar-3 { top: $SCOPED__Bars_Top + $SCOPED__PanelToggler-Bar_Height + $SCOPED__PanelToggler-Bar_Isolation + $SCOPED__PanelToggler-Bar_Height + $SCOPED__PanelToggler-Bar_Isolation; }
-	}
-	.bibi-button.active & {
-		>span.bar-1 { opacity: 1; transform: translateY(($SCOPED__PanelToggler-Bar_Isolation + $SCOPED__PanelToggler-Bar_Height) *  1) rotate( 135deg); }
-		>span.bar-2 { opacity: 0; transform: translateY(($SCOPED__PanelToggler-Bar_Isolation + $SCOPED__PanelToggler-Bar_Height) *  0) rotate(-360deg); }
-		>span.bar-3 { opacity: 1; transform: translateY(($SCOPED__PanelToggler-Bar_Isolation + $SCOPED__PanelToggler-Bar_Height) * -1) rotate( 225deg); }
-	}
+/* [ja]
+ * 右上のボタンから開く設定メニューの Subpanel 内にある、３つの表示モード（「ページ単位」「横スクロール」「縦スクロール」）を示すアイコンのスタイルです。
+ * １つめの @mixin は、３つに共通して適用されるスタイルです。
+ * 以降３つの @mixin は、順に「ページ単位」「横スクロール」「縦スクロール」アイコンのスタイルとして、共通スタイルに追加・上書きで適用されます。
+ */
+
+@mixin SPECIALICON__View_Common() {
+	@include DEFAULT__SPECIALICON__View_Common();
+}
+@mixin SPECIALICON__ViewPaged() {
+	@include DEFAULT__SPECIALICON__ViewPaged();
+}
+@mixin SPECIALICON__ViewHorizontal() {
+	@include DEFAULT__SPECIALICON__ViewHorizontal();
+}
+@mixin SPECIALICON__ViewVertical() {
+	@include DEFAULT__SPECIALICON__ViewVertical();
 }
 
+/*
 
-// - Button Icons
-// --------------------------------------------------------------------------------
+// SPECIALICON__ViewPaged
+<span class="bibi-icon bibi-icon-view bibi-icon-view-paged">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
 
-@mixin ButtonIcon() {
-	@include FontIcon_InlineBlock("Material Icons");
-	content: "";
-	@include offset(0);
-	margin: 0;
-	@include size(100%);
-	text-align: center;
-	vertical-align: middle;
-	line-height: $GLOBAL__Icon_Size * 0.98;
-	.bibi-subpanel & { line-height: $GLOBAL__Subpanel-Icon_Size * 0.98; }
-}
+// SPECIALICON__ViewHorizontal
+<span class="bibi-icon bibi-icon-view bibi-icon-view-horizontal">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
 
-@mixin ButtonIcon_Config() {
-	content: "\e8b8"; // touch_app
-	font-size: $GLOBAL__Icon_Size * 0.75;
-}
+// SPECIALICON__ViewVertical
+<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
 
-@mixin ButtonIcon_Share() {
-	content: "\e80d"; // share
-	font-size: $GLOBAL__Icon_Size * 20/31;
-	font-weight: bold;
-	html.InternetExplorer & { font-weight: normal; }
-}
-
-@mixin ButtonIcon_UseFullBreadth() {
-	content: "\e8c4"; // settings_overscan
-	font-size: $GLOBAL__Icon_Size * 0.5;
-	.bibi-subpanel & { line-height: $GLOBAL__Subpanel-Icon_Size * .95238; }
-}
-
-@mixin ButtonIcon_ToggleFullscreen() {
-	content: "\e5d0"; // fullscreen
-	.bibi-subpanel & {
-		font-size: $GLOBAL__Subpanel-Icon_Size * 0.9;
-		html.InternetExplorer & { top: -.05em; }
-	}
-	*:fullscreen & {
-		content: "\e5d1"; // fullscreen_exit
-	}
-}
-
-@mixin ButtonIcon_OpenNewWindow() {
-	content: "\e89e"; // open_in_new
-	font-size: $GLOBAL__Icon_Size * 21/31;
-	.bibi-subpanel & {
-		margin-top: -.025em;
-		font-size: $GLOBAL__Subpanel-Icon_Size * 16/21;
-	}
-}
-
-@mixin ButtonIcon_ChangeFontSize() {
-	content: "format_size";
-	font-size: 24px;
-	line-height: 1.4;
-}
-
-@mixin ButtonIcon_FontSizeCommon() {
-	content: "title";
-	font-size: 13px;
-	line-height: 1.4;
-}
-
-$FontSizeIcon_ScaleStep: 1.44;
-
-@mixin ButtonIcon_FontSizeXL() {
-	.bibi-button.default &, .bibi-button.default.hover & { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep * $FontSizeIcon_ScaleStep); }
-}
-
-@mixin ButtonIcon_FontSizeL() {
-	.bibi-button.default &, .bibi-button.default.hover & { transform: rotate(  0deg) scale(1 * $FontSizeIcon_ScaleStep); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: rotate(360deg) scale(1 * $FontSizeIcon_ScaleStep); }
-}
-
-@mixin ButtonIcon_FontSizeM() {
-	.bibi-button.default &, .bibi-button.default.hover & { transform: rotate(  0deg) scale(1); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: rotate(360deg) scale(1); }
-}
-
-@mixin ButtonIcon_FontSizeS() {
-	.bibi-button.default &, .bibi-button.default.hover & { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep); }
-}
-
-@mixin ButtonIcon_FontSizeXS() {
-	.bibi-button.default &, .bibi-button.default.hover & { transform: rotate(  0deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: rotate(360deg) scale(1 / $FontSizeIcon_ScaleStep / $FontSizeIcon_ScaleStep); }
-}
-
-@mixin ButtonIcon_LoupeCommon() {
-	font-size: 26px;
-	text-indent: 1px;
-	line-height: 1.2;
-}
-
-@mixin ButtonIcon_LoupeZoomIn() {
-	content: "\e8ff"; // zoom_in
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(1.25); }
-}
-
-@mixin ButtonIcon_LoupeZoomOut() {
-	content: "\e900"; // zoom_out
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(0.80); }
-}
-
-@mixin ButtonIcon_LoupeReset() {
-	content: "\e8b6"; // search
-	.bibi-button.active &,  .bibi-button.active.hover  & { html.zoomed-in & { transform: scale(0.80); } html.zoomed-out & { transform: scale(1.25); } }
-}
-
-@mixin ButtonIcon_LoupeReset_Overlay() {
-	content: "=";
-	display: block;
-	position: absolute;
-	@include offset(22%, auto, auto, 22%);
-	margin: auto;
-	@include size(1em);
-	font-size: 1em * (13px / 18px);
-	line-height: 1;
-	html.Windows & { @include offset(27%, auto, auto, 25%); }
-	.bibi-button.active &,  .bibi-button.active.hover  & { transform: scale(0.33); }
-}
-
+*/
 
 
 

@@ -12,12 +12,13 @@ div#bibi-menu {
 	right: 0;
 	margin: 0;
 	border-bottom: solid 1px transparent;
-	// @____Bibi:Dress__('-') height: $GLOBAL__TopBar_Height;
+	// @____Bibi:Dress__('-') height: $Menu_Height;
 	width: 100%;
 	background: transparent;
 	&, & ul {
 		transition: .125s linear;
 	}
+	// @____Bibi:Dress__('-') .bibi-icon { @include size($Menu-Icon_Size); }
 }
 html.appearance-vertical:not(.veil-opened) {
 	&:not(.slider-opened) {
@@ -30,14 +31,14 @@ html.appearance-vertical:not(.veil-opened) {
 	&.slider-opened {
 		& {
 			div#bibi-menu {
-				// @____Bibi:Dress__('-') width: calc(100% - #{$GLOBAL__Slider_Size});
+				// @____Bibi:Dress__('-') width: calc(100% - #{$Slider_Size});
 			}
 		}
 		&.panel-opened,
 		&.subpanel-opened {
 			div#bibi-menu {
 				width: 100%;
-				// @____Bibi:Dress__('-') padding-right: $GLOBAL__Slider_Size;
+				// @____Bibi:Dress__('-') padding-right: $Slider_Size;
 			}
 		}
 	}
@@ -54,10 +55,10 @@ html.book-full-height {
 	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; border-bottom-color: $Menu_BorderBottomColor__Active; box-shadow: $Menu_BoxShadow__Active; }
 }
 html:not(.book-full-height) {
-	&                 div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor;         border-bottom-color: $NotBFH-Menu_BorderBottomColor; }
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH;         border-bottom-color: $Menu_BorderBottomColor__NotBFH; }
 	&                 div#bibi-menu.hover,
-	&.subpanel-opened div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Hover;  border-bottom-color: $NotBFH-Menu_BorderBottomColor__Hover; }
-	&.menu-opened     div#bibi-menu { background-color: $NotBFH-Menu_BackgroundColor__Active; border-bottom-color: $NotBFH-Menu_BorderBottomColor__Active; box-shadow: $NotBFH-Menu_BoxShadow__Active; }
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Hover;  border-bottom-color: $Menu_BorderBottomColor__NotBFH__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Active; border-bottom-color: $Menu_BorderBottomColor__NotBFH__Active; box-shadow: $Menu_BoxShadow__NotBFH__Active; }
 }
 // } */
 
@@ -67,37 +68,37 @@ html:not(.book-full-height) {
 
 div#bibi-menu-l,
 div#bibi-menu-r {
+	box-sizing: border-box;
+	display: flex;
+	justify-content: flex-start;
+	align-items: start;
 	position: relative;
 	z-index: 1;
-	box-sizing: border-box;
 	height: 100%;
 	color: white;
 	transition: opacity 0.75s linear;
 	ul {
+		display: flex;
+		justify-content: flex-start;
+		align-items: start;
 		position: relative;
-		// @____Bibi:Dress__('-') padding: $GLOBAL__ButtonGroup_Margin;
-		// @____Bibi:Dress__('-') height: $GLOBAL__Icon_Size;
-		opacity: 0;
-		&.sticky {
-			opacity: 0;
-		}
+		// @____Bibi:Dress__('-') padding: $Menu-ButtonGroup_Margin;
+		// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
+		&, &.sticky { opacity: 0; }
 		&:before {
 			content: "";
 			display: block;
 			position: absolute;
 			// @____Bibi:Dress__('-') width: $Menu-ButtonGroup-Separator_Width;
 			// @____Bibi:Dress__('-') background: $Menu-ButtonGroup-Separator_Color;
-			// @____Bibi:Dress__('-') top: $GLOBAL__ButtonGroup_Margin;
-			// @____Bibi:Dress__('-') height: $GLOBAL__Icon_Size;
+			// @____Bibi:Dress__('-') top: $Menu-ButtonGroup_Margin;
+			// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
 		}
 		li {
-			// @____Bibi:Dress__('-') @include size($GLOBAL__Icon_Size);
+			// @____Bibi:Dress__('-') @include size($Menu-Icon_Size);
+			position: relative;
+			z-index: 1; &.hover, &:active { z-index: 10; }
 			.bibi-button {
-				position: relative;
-				z-index: 1;
-				&.hover, &.active {
-					z-index: 10;
-				}
 				span.bibi-button-label {
 					font-size: 0;
 					color: transparent;
@@ -105,10 +106,7 @@ div#bibi-menu-r {
 			}
 		}
 		html.waiting & {
-			opacity: 0.5;
-			&.sticky {
-				opacity: 0.5;
-			}
+			&, &.sticky { opacity: 0.5; }
 		}
 		div#bibi-menu.hover &,
 		//div#bibi-menu.hot &,
@@ -116,19 +114,14 @@ div#bibi-menu-r {
 		html.panel-opened &,
 		html.subpanel-opened &,
 		html:not(.book-full-height) & {
-			opacity: 1;
-			&.sticky {
-				opacity: 1;
-			}
+			&, &.sticky { opacity: 1; }
 		}
 	}
 	ul.bibi-buttongroup-tiled {
 		li:not(:first-child):not(:last-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
-					.bibi-icon {
-						border-radius: 0;
-					}
+					.bibi-icon { border-radius: 0; }
 				}
 			}
 		}
@@ -137,30 +130,24 @@ div#bibi-menu-r {
 
 div#bibi-menu-l {
 	float: left;
+	flex-direction: row;
 	ul {
-		float: left;
+		flex-direction: row;
 		&:first-child {
-			// @____Bibi:Dress__('-') padding-left: $GLOBAL__ButtonGroup_Margin;
-			&:before {
-				display: none;
-			}
+			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Margin;
+			&:before { display: none; }
 		}
 		&:not(:first-child) {
-			// @____Bibi:Dress__('-') padding-left: $GLOBAL__ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
-			&:before {
-				left: 0;
-			}
+			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
+			&:before { left: 0; }
 		}
 		li {
-			float: left;
 			&:first-child { margin-left: 0; }
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
 		}
 	}
 	ul.bibi-buttongroup-tiled {
-		li {
-			margin-left: -1px !important;
-		}
+		li { margin-left: -1px !important; }
 		li:first-child:not(:last-child) {
 			.bibi-button {
 				.bibi-button-iconbox {
@@ -186,30 +173,24 @@ div#bibi-menu-l {
 
 div#bibi-menu-r {
 	float: right;
+	flex-direction: row-reverse;
 	ul {
-		float: right;
+		flex-direction: row-reverse;
 		&:first-child {
-			// @____Bibi:Dress__('-') padding-right: $GLOBAL__ButtonGroup_Margin;
-			&:before {
-				display: none;
-			}
+			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Margin;
+			&:before { display: none; }
 		}
 		&:not(:first-child) {
-			// @____Bibi:Dress__('-') padding-right: $GLOBAL__ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
-			&:before {
-				right: 0;
-			}
+			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
+			&:before { right: 0; }
 		}
 		li {
-			float: right;
 			&:first-child { margin-right: 0; }
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
 		}
 	}
 	ul.bibi-buttongroup-tiled {
-		li {
-			margin-right: -1px !important;
-		}
+		li { margin-right: -1px !important; }
 		li:first-child:not(:last-child) {
 			.bibi-button {
 				.bibi-button-iconbox {

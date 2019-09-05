@@ -12,27 +12,27 @@ div.bibi-arrow {
 	}
 	html.appearance-horizontal.book-full-height.slider-opened &,
 	html.appearance-horizontal:not(.book-full-height) & {
-		top: $GLOBAL__TopBar_Height;
+		top: $Menu_Height;
 	}
 	html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
-		height: calc(100vh - #{$GLOBAL__TopBar_Height}); // TO BE OVERWRITTEN
+		height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
 	}
 	html.appearance-horizontal.book-full-height.slider-opened &,
 	html.appearance-horizontal:not(.book-full-height).slider-opened & {
-		height: calc(100vh - #{$GLOBAL__TopBar_Height + $GLOBAL__Slider_Size});
+		height: calc(100vh - #{$Menu_Height + $Slider_Size});
 	}
 	html.appearance-vertical & {
 		&:after { height: $Arrow-Bar_Length; } // ↑↓
 	}
 	html.appearance-vertical.slider-opened & {
-		width: calc(100vw - #{$GLOBAL__Slider_Size});
+		width: calc(100vw - #{$Slider_Size});
 	}
 }
 
 html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
 html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
 	& {
-		&:before { margin-top: $GLOBAL__TopBar_Height; }
+		&:before { margin-top: $Menu_Height; }
 	}
 }
 

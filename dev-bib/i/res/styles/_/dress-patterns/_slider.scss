@@ -4,25 +4,73 @@
 
 div#bibi-slider {
 	& {
-		transition: $Slider_Transition__Close;
+		box-shadow: $Slider_BoxShadow;
 		&:after {
-			border-color: $GLOBAL__Scrollbar-Track_BorderColor;
-			background: $GLOBAL__Scrollbar-Track_BackgroundColor;
+			border-color: $Slider_BorderColor;
+			background: $Slider_Background;
 		}
+		&, &:after { transition: $Slider_Transition__Close; }
 	}
 	html.slider-opened & {
 		box-shadow: $Slider_BoxShadow__SliderOpened;
-		transition: $Slider_Transition__Open;
 		&:after { background: $Slider_Background__SliderOpened; }
+		&, &:after { transition: $Slider_Transition__Open; }
 	}
 	html.slider-opened.appearance-horizontal & {
-		height: $GLOBAL__Slider_Size !important;
+		height: $Slider_Size !important;
 		&:after { border-top-color: $Slider_BorderColor__SliderOpened; }
 	}
 	html.slider-opened.appearance-vertical & {
-		width: $GLOBAL__Slider_Size !important;
+		width: $Slider_Size !important;
 		&:after { border-left-color: $Slider_BorderColor__SliderOpened; }
 	}
+}
+
+
+// - . Thumb
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-thumb {
+	&:before,
+	&:after {
+		html.slider-opened & { transition: $Slider_Transition__Open; }
+		html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
+	}
+	&:before { background: $Slider-Thumb_BackgroundColor; }
+	html:not(.slider-opened):not(.touch) &:hover:before { background-color: $Slider-Thumb_BackgroundColor__Hover; }
+	html:not(.slider-opened):not(.touch) &:active:before { background-color: $Slider-Thumb_BackgroundColor__Active; }
+	&:after {
+		@include offset($Slider-Thumb-Circle_Size * -1);
+		@include size($Slider-Thumb-Circle_Size);
+		border-width: $Slider-Thumb-Circle_BorderWidth;
+		border-color: $Slider-Thumb-Circle_BorderColor;
+		background: $Slider-Thumb-Circle_BackgroundColor;
+		box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
+	}
+}
+
+
+// - . Rail
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-rail {
+	& {
+		background: $Slider-Rail_Color;
+	}
+	html.slider-opened                       & { border-radius: $Slider-Rail_Width__SliderOpened / 2; }
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width: $Slider-Rail_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail_Color__Hover; }
+}
+
+div#bibi-slider-rail-progress {
+	& {
+		background: $Slider-Rail-Progress_Color;
+	}
+	html.slider-opened                       & {}
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__Hover; }
 }
 
 
@@ -122,56 +170,5 @@ span.bookmap-page {
 	html.slider-opened &.hover {
 		background-color: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
 		border: solid 1px $Slider-Bookmap-Page_BorderColor__SliderOpened__Hover;
-	}
-}
-
-
-// - . Rail
-// --------------------------------------------------------------------------------
-
-div#bibi-slider-rail {
-	& {
-		background: $Slider-Rail_Color;
-	}
-	html.slider-opened                       & { border-radius: $Slider-Rail_Width__SliderOpened / 2; }
-	html.slider-opened.appearance-horizontal & { height: $Slider-Rail_Width__SliderOpened; }
-	html.slider-opened.appearance-vertical   & { width: $Slider-Rail_Width__SliderOpened; }
-	div#bibi-slider:hover                    & { background: $Slider-Rail_Color__Hover; }
-}
-
-div#bibi-slider-rail-progress {
-	& {
-		background: $Slider-Rail-Progress_Color;
-	}
-	html.slider-opened                       & {}
-	html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width__SliderOpened; }
-	html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width__SliderOpened; }
-	div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__Hover; }
-}
-
-
-// - . Thumb
-// --------------------------------------------------------------------------------
-
-div#bibi-slider-thumb {
-	&:before,
-	&:after {
-		html.slider-opened & { transition: $Slider_Transition__Open; }
-		html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
-	}
-	&:before {
-		background: $GLOBAL__Scrollbar-Thumb_BackgroundColor;
-	}
-	&:after {
-		@include offset($Slider-Thumb-Circle_Size * -1);
-		@include size($Slider-Thumb-Circle_Size);
-		border-width: $Slider-Thumb-Circle_BorderWidth;
-		border-color: $Slider-Thumb-Circle_BorderColor;
-		background: $Slider-Thumb-Circle_BackgroundColor;
-		box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
-	}
-	html:not(.slider-opened):not(.touch) & {
-		&:hover:before  { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Hover; }
-		&:active:before { background-color: $GLOBAL__Scrollbar-Thumb_BackgroundColor__Active; }
 	}
 }

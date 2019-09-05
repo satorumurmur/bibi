@@ -13,10 +13,10 @@ div#bibi-nombre {
 		transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
 	}
 	html.slider-opened.appearance-horizontal & {
-		bottom: $GLOBAL__Slider_Size + 2px !important;
+		bottom: $Slider_Size + 2px !important;
 	}
 	html.slider-opened.appearance-vertical & {
-		right: $GLOBAL__Slider_Size + 2px !important;
+		right: $Slider_Size + 2px !important;
 	}
 }
 	span#bibi-nombre-current {

@@ -40,14 +40,14 @@ div.bibi-arrow {
 	}
 	// @____Bibi:Dress__('-') html.appearance-horizontal.book-full-height.slider-opened &,
 	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height) & {
-	// @____Bibi:Dress__('-') 	top: $GLOBAL__TopBar_Height;
+	// @____Bibi:Dress__('-') 	top: $Menu_Height;
 	// @____Bibi:Dress__('-') }
 	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
-	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$GLOBAL__TopBar_Height}); // TO BE OVERWRITTEN
+	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
 	// @____Bibi:Dress__('-') }
 	// @____Bibi:Dress__('-') html.appearance-horizontal.book-full-height.slider-opened &,
 	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height).slider-opened & {
-	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$GLOBAL__TopBar_Height + $GLOBAL__Slider_Size});
+	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$Menu_Height + $Slider_Size});
 	// @____Bibi:Dress__('-') }
 	html.appearance-vertical & {
 		// ↑↓
@@ -61,7 +61,7 @@ div.bibi-arrow {
 		width: 100vw; // TO BE OVERWRITTEN
 	}
 	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened & {
-	// @____Bibi:Dress__('-') 	width: calc(100vw - #{$GLOBAL__Slider_Size});
+	// @____Bibi:Dress__('-') 	width: calc(100vw - #{$Slider_Size});
 	// @____Bibi:Dress__('-') }
 	html.busy & {
 		&:before, &:after { opacity: 0 !important; transition: none !important; }
@@ -90,7 +90,7 @@ div.bibi-arrow {
 // @____Bibi:Dress__('-') html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
 // @____Bibi:Dress__('-') html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
 // @____Bibi:Dress__('-') 	& {
-// @____Bibi:Dress__('-') 		&:before { margin-top: $GLOBAL__TopBar_Height; }
+// @____Bibi:Dress__('-') 		&:before { margin-top: $Menu_Height; }
 // @____Bibi:Dress__('-') 	}
 // @____Bibi:Dress__('-') }
 

@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------------
 
 $Subpanel_KeyColor: saturate(steelblue, 20%); // Also used in _icons.scss
+// [ja] └ Subpanel 内のキーカラー（アイコンや文字色の一貫性を保つための共通／事前定義）
+
+$Subpanel-Icon_Size: 21px;
+// [ja] └ Subpanel 内アイコン寸法（正方形の１辺）
 
 $Subpanel_Margin: 4px;
 $Subpanel_BorderRadius: 4px;
@@ -16,9 +20,12 @@ $Subpanel_TransitionTimingFunction__Close: ease-out;
 // --------------------------------------------------------------------------------
 
 $Subpanel-Scrollbar-Track_Size: 6px;
-$Subpanel-Scrollbar-Thumb_Size: 2px;
-$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(128,128,128);
 $Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
+
+$Subpanel-Scrollbar-Thumb_Size: 2px;
+$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(195,195,195);
+$Subpanel-Scrollbar-Thumb_BackgroundColor__Hover: rgb(125,125,125);
+$Subpanel-Scrollbar-Thumb_BackgroundColor__Active: $Subpanel-Scrollbar-Thumb_BackgroundColor__Hover;
 
 
 // - Sub Panel > Section
@@ -47,11 +54,71 @@ $Subpanel-Button_BackgroundColor: white;
 $Subpanel-Button_BackgroundColor__Active: $Subpanel-Button_BackgroundColor;
 
           $Subpanel-Button_Color__Hover: $Subpanel_KeyColor;
-    $Subpanel-Button-Check_Color__Hover: $Subpanel_KeyColor;
+    $Subpanel-Button-Check_Color__Hover: rgba($Subpanel_KeyColor, 0.8);
     $Subpanel-Button_BorderColor__Hover: rgba($Subpanel_KeyColor, 0.1);
 $Subpanel-Button_BackgroundColor__Hover: rgba(244,248,252, 0.8);
 
 $Subpanel-Icon_MarginRight: 6px;
+
+
+
+
+// ================================================================================
+// + Icons in Subpanel
+// --------------------------------------------------------------------------------
+
+
+// - Colors & Interaction
+// --------------------------------------------------------------------------------
+
+// [In Subpanel] Default
+$Subpanel-Icon-Font_PaintColor:    rgb(128,128,128);
+$Subpanel-Icon-Font_OutlineColor:  transparent;
+$Subpanel-Icon-Shape_PaintColor:   white;
+$Subpanel-Icon-Shape_OutlineColor: rgb(144,144,144);
+$Subpanel-Icon_BackgroundColor:    rgb(248,248,248);
+$Subpanel-Icon_BorderColor:        rgb(192,192,192);
+$Subpanel-Icon_Transform:          none;
+
+// [In Subpanel] Default:Hover
+$Subpanel-Icon-Font_PaintColor__Hover:    $Subpanel_KeyColor;
+$Subpanel-Icon-Font_OutlineColor__Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Hover:    lighten($Subpanel_KeyColor, 45%);
+$Subpanel-Icon_BorderColor__Hover:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Hover:          $Subpanel-Icon_Transform;
+
+// [In Subpanel] Active
+$Subpanel-Icon-Font_PaintColor__Active:    white;
+$Subpanel-Icon-Font_OutlineColor__Active:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active:    $Subpanel_KeyColor;
+$Subpanel-Icon_BorderColor__Active:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Active:          rotate(360deg);
+
+// [In Subpanel] Active:Hover
+$Subpanel-Icon-Font_PaintColor__Active-Hover:    white;
+$Subpanel-Icon-Font_OutlineColor__Active-Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active-Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($Subpanel_KeyColor, 20%);
+$Subpanel-Icon_BorderColor__Active-Hover:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Active-Hover:          $Subpanel-Icon_Transform__Active;
+
+// [In Subpanel] Transition
+$Subpanel-Icon_Transition: 
+	color 0.125s linear,
+	background-color 0.125s linear,
+	border-color 0.125s linear,
+	text-shadow 0.125s linear,
+	box-shadow 0.125s linear,
+	transform 0.25s ease
+;
+
+// Disabled
+$Subpanel-Icon_Opacity__Disabled: 0.33;
 
 /*
 

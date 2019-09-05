@@ -4,10 +4,10 @@
 
 
 html {
-	&.iOS     { font-family: $HTML_FontFamily_iOS; }
-	&.macOS   { font-family: $HTML_FontFamily_macOS; }
-	&.Android { font-family: $HTML_FontFamily_Android; }
-	&.Windows { font-family: $HTML_FontFamily_Windows; }
+	&.iOS     { font-family: $HTML_FontFamily__iOS; }
+	&.macOS   { font-family: $HTML_FontFamily__macOS; }
+	&.Android { font-family: $HTML_FontFamily__Android; }
+	&.Windows { font-family: $HTML_FontFamily__Windows; }
 }
 
 
@@ -15,15 +15,15 @@ html {
 // --------------------------------------------------------------------------------
 
 div#bibi-style-checker {
-	left: $GLOBAL__Slider_Size * -1; top: $GLOBAL__TopBar_Height * -1; // left: 0; top: 0;
-	@include size($GLOBAL__Slider_Size, $GLOBAL__TopBar_Height);
+	left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
+	@include size($Slider_Size, $Menu_Height);
 }
 
 
 // - PoweredBy
 // --------------------------------------------------------------------------------
 
-
 div#bibi-poweredby {
-	height: $GLOBAL__BottomBar_Height;
+	html.veil-opened & { height: $Veil-BottomBar_Height; }
+	html.panel-opened & { height: $Panel-BottomBar_Height; }
 }
