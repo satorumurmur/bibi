@@ -1971,6 +1971,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         } else {
             Par.FocusPoint = O.getElementCoord(Par.Destination.Page)[C.L_AXIS_L];
             if(R.Stage[C.L_SIZE_L] > Par.Destination.Page['offset' + C.L_SIZE_L]) Par.FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - Par.Destination.Page['offset' + C.L_SIZE_L]) / 2);
+            else if(Par.Destination.Side == 'after') Par.FocusPoint += (Par.Destination.Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
         }
     }
     if(typeof Par.Destination.TextNodeIndex == 'number') R.selectTextLocation(Par.Destination); // Colorize Destination with Selection
@@ -2124,22 +2125,22 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
         const CurrentIntersectionStatus = Current.IntersectionStatus;
         if(CurrentIntersectionStatus.Oversize) {
             if(Par.Distance > 0) {
-                     if(CurrentIntersectionStatus.Entering) Par.Distance = 0;
+                     if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
                 else if(CurrentIntersectionStatus.Headed  ) Par.Distance = 0, Side = 'after';
             } else {
                      if(CurrentIntersectionStatus.Footed  ) Par.Distance = 0, Side = 'before';
-                else if(CurrentIntersectionStatus.Passing ) Par.Distance = 0;
+                else if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         } else {
             if(Par.Distance > 0) {
-                if(CurrentIntersectionStatus.Entering) Par.Distance = 0;
+                if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
             } else {
-                if(CurrentIntersectionStatus.Passing ) Par.Distance = 0;
+                if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         }
         let DestinationPageIndex = CurrentPage.Index + Par.Distance;
-             if(DestinationPageIndex <                  0) DestinationPageIndex = 0;
-        else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1;
+             if(DestinationPageIndex <                  0) DestinationPageIndex = 0,                  Side = 'before';
+        else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1, Side = 'after';
         let DestinationPage = R.Pages[DestinationPageIndex];
         if(S.BRL == 'pre-paginated' && DestinationPage.Item.SpreadPair) {
             if(S.SLA == 'horizontal' && R.Stage[C.L_SIZE_L] > DestinationPage.Spread['offset' + C.L_SIZE_L]) {
@@ -3393,12 +3394,15 @@ I.Turner = { create: () => {
             if(typeof Par.Distance == 'number') {
                 if(!R.Current.List.length) R.updateCurrent();
                 if(R.Current.List.length) {
-                    let CurrentEdge, BookEdgePage;
+                    let CurrentEdge, BookEdgePage, Edged;
                     switch(Par.Distance) {
-                        case -1: CurrentEdge = R.Current.List[          0], BookEdgePage = R.Pages[          0]; break;
-                        case  1: CurrentEdge = R.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0]; break;
+                        case -1: CurrentEdge = R.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed'; break;
+                        case  1: CurrentEdge = R.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed'; break;
                     }
-                    if(L.Opened && (CurrentEdge.Page != BookEdgePage || !CurrentEdge.IntersectionStatus.Contained)) {
+                    if(L.Opened && (
+                        CurrentEdge.Page != BookEdgePage
+                        || (!CurrentEdge.IntersectionStatus.Contained && !CurrentEdge.IntersectionStatus[Edged])
+                    )) {
                         switch(Par.Direction) {
                             case 'left': case  'right': return S.ARA == 'horizontal' ? 1 : -1;
                             case  'top': case 'bottom': return S.ARA ==   'vertical' ? 1 : -1;
