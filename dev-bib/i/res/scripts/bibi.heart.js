@@ -83,7 +83,7 @@ Bibi.initialize = () => {
     } else {
         O.Touch = false;
         O['resize'] = 'resize';
-        if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
+        if(sML.UA.Trident || sML.UA.EdgeHTML) {
             O['pointerdown'] = 'pointerdown';
             O['pointermove'] = 'pointermove';
             O['pointerup']   = 'pointerup';
@@ -136,9 +136,9 @@ Bibi.initialize = () => {
     // Writing Mode, Font Size, Slider Size, Menu Height
     O.WritingModeProperty = (() => {
         const HTMLComputedStyle = getComputedStyle(O.HTML);
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.InternetExplorer) return         'writing-mode';
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                           ) return '-webkit-writing-mode';
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                           ) return   '-epub-writing-mode';
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.Trident) return         'writing-mode';
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                  ) return '-webkit-writing-mode';
+        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                  ) return   '-epub-writing-mode';
         return undefined;
     })();
     const StyleChecker = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker', innerHTML: ' aAａＡあ亜　', style: { width: 'auto', height: 'auto', left: '-1em', top: '-1em' } }));
@@ -1021,7 +1021,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
             if(!Item.BlobURL) {
                 let HTML = Source.HTML || `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source.Head || '' }</head><body>${ Source.Body || '' }</body></html>`;
                 HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ DefaultStyleURI }" />`);
-                if(sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) {
+                if(sML.UA.Trident || sML.UA.EdgeHTML) {
                     // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
                     HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
                     Item.onLoaded = () => {
@@ -1068,7 +1068,7 @@ L.postprocessItem = (Item) => {
     else if(            !Lang)                                                 Item.HTML.setAttribute('lang', XMLLang);
     sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
     sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
-    if(sML.UA.InternetExplorer) sML.forEach(Item.Body.getElementsByTagName('svg'))(SVG => {
+    if(sML.UA.Trident) sML.forEach(Item.Body.getElementsByTagName('svg'))(SVG => {
         const ChildImages = SVG.getElementsByTagName('image');
         if(ChildImages.length == 1) {
             const ChildImage = ChildImages[0];
@@ -1127,7 +1127,7 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
             const Versions = B.Package.Metadata['ebpaj:guide-version'].split('.');
             if(Versions[0] * 1 == 1 && Versions[1] * 1 == 1 && Versions[2] * 1 <=3) Item.Body.style.textUnderlinePosition = 'under left';
         }
-        if(sML.UA.InternetExplorer) {
+        if(sML.UA.Trident) {
             //if(B.ExtractionPolicy == 'at-once') return false;
             const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
             O.editCSSRules(Item.contentDocument, CSSRule => {
@@ -1460,11 +1460,11 @@ R.renderReflowableItem = (Item) => {
     }
     //*/
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
-    let ItemL = sML.UA.InternetExplorer ? Item.Body['client' + C.L_SIZE_L] : Item.HTML['scroll' + C.L_SIZE_L];
+    let ItemL = sML.UA.Trident ? Item.Body['client' + C.L_SIZE_L] : Item.HTML['scroll' + C.L_SIZE_L];
     const HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
     Item.style[C.L_SIZE_l] = ItemL + 'px';
-    if(sML.UA.InternetExplorer) Item.HTML.style[C.L_SIZE_l] = '100%';
+    if(sML.UA.Trident) Item.HTML.style[C.L_SIZE_l] = '100%';
     let ItemBoxB = PageCB + ItemPaddingSE;
     let ItemBoxL = ItemL  + ItemPaddingBA;// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
     Item.Box.style[C.L_SIZE_b] = ItemBoxB + 'px';
@@ -2663,7 +2663,7 @@ I.FontSizeChanger = { create: () => {
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
-        if(Item.Preprocessed && (sML.UA.Chrome || sML.UA.InternetExplorer)) {
+        if(Item.Preprocessed && (sML.UA.Chrome || sML.UA.Trident)) {
             sML.forEach(Item.HTML.querySelectorAll('body, body *'))(Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + 'rem');
         } else {
             O.editCSSRules(Item.contentDocument, CSSRule => {
@@ -4514,7 +4514,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
             O.log.Depth = 1;
             O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
             O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
-            O.log.distill = (sML.UA.InternetExplorer || (sML.UA.Edge && !sML.UA.Chromium)) ?
+            O.log.distill = (sML.UA.Trident || sML.UA.EdgeHTML) ?
                 (Logs, Styles) => [Logs.join(' ').replace(/%c/g, '')]               : // Ignore Styles
                 (Logs, Styles) => [Logs.join(' ')                   ].concat(Styles);
             O.log.log = (Method, Logs, Styles, Obj) => {
@@ -4724,7 +4724,7 @@ O.preprocess = (Item) => {
             init: function() { const RRs = this.ReplaceRules;
                 RRs.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
                 RRs.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
-                if(sML.UA.Chromium || sML.UA.WebKit) { // Including Edge (Chromium)
+                if(sML.UA.Chromium || sML.UA.WebKit) {
                     return this;
                 }
                 RRs.push([/-(epub|webkit)-/gm, '']);
@@ -4733,11 +4733,11 @@ O.preprocess = (Item) => {
                     RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
                     return this;
                 }
-                if(sML.UA.Edge) { // (Not Chromium)
+                if(sML.UA.EdgeHTML) {
                     RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
                     RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-horizontal: all; text-combine-upright: all$1']);
                 }
-                if(sML.UA.InternetExplorer) {
+                if(sML.UA.Trident) {
                     RRs.push([/writing-mode\s*:\s*vertical-rl\s*([;\}])/gm,   'writing-mode: tb-rl$1']);
                     RRs.push([/writing-mode\s*:\s*vertical-lr\s*([;\}])/gm,   'writing-mode: tb-lr$1']);
                     RRs.push([/writing-mode\s*:\s*horizontal-tb\s*([;\}])/gm, 'writing-mode: lr-tb$1']);
