@@ -295,13 +295,11 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     };
     LayoutOption.addResetter();
     let LoadedItems = 0;
-    R.Spreads.forEach(Spread => Promises.push(
-        L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && !(Spread.Index == TargetSpreadIndex) }).then(() => {
-            LoadedItems += Spread.Items.length;
-            I.note(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
-            if(!LayoutOption.Reset) return R.layOutSpread(Spread);
-        })
-    ));
+    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != TargetSpreadIndex }).then(() => {
+        LoadedItems += Spread.Items.length;
+        I.note(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
+        !LayoutOption.Reset ? R.layOutSpread(Spread).then(resolve) : resolve();
+    }))));
     return Promise.all(Promises).then(() => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
         return LayoutOption;
@@ -313,9 +311,10 @@ Bibi.bindBook = (LayoutOption) => {
         R.organizePages();
         R.layOutStage();
     }
+    const TargetPage = R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0];
     return R.layOut(LayoutOption).then(() => {
         LayoutOption.removeResetter();
-        R.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]]
+        R.IntersectingPages = [TargetPage]
         Bibi.Eyes.wearGlasses();
     });
 };
