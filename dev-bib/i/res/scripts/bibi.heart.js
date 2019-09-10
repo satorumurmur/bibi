@@ -4617,15 +4617,19 @@ O.isBin = (Item) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|
 
 
 O.getBlobURL = (Item) => new Promise(resolve => {
-    Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    if(!Item.URI) Item.URI = URL.createObjectURL(Item.DataType == 'Blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
+    Item = O.item(Item);
+    if(!Item.URI) {
+        // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.getBlobURL)`;
+        Item.URI = URL.createObjectURL(Item.DataType == 'Blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
+    }
     resolve(Item);
 });
 
 
 O.getDataURI = (Item) => new Promise(resolve => {
-    Item = O.item(Item); if(!Item.Content) throw `No Content.`;
-    //if(Item.DataType != 'Text') throw `Item Content Is Not Text.`;
+    Item = O.item(Item);
+    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.getDataURI)`;
+    // if(Item.DataType != 'Text') throw `Item Content Is Not Text.`;
     if(Item.URI) resolve(Item);
     else if(Item.DataType == 'Text') {
         Item.URI = 'data:' + Item['media-type'] + ';base64,' + btoa(unescape(encodeURIComponent(Item.Content)));
@@ -4665,7 +4669,8 @@ O.ContentTypes = {
 
 
 O.preprocess = (Item) => {
-    Item = O.item(Item); if(!Item.Content) throw `No Content.`;
+    Item = O.item(Item);
+    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.preprocess)`;
     const ResItems = [];
     const Setting = O.preprocess.getSetting(Item.Path); if(!Setting) return Promise.resolve(Item.Content);
     const Promises = [];
