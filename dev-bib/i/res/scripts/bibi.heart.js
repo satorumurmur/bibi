@@ -894,7 +894,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                     ElementSelector: (HrefHash ? '#' + HrefHash : undefined)
                 };
                 L.coordinateLinkages.setJump(A);
-                return 'break';
+                return 'break'; //// break sML.forEach()
             }
         });
         if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
