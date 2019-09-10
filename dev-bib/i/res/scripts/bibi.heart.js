@@ -2361,8 +2361,8 @@ I.Menu = { create: () => {
     Menu.addEventListener('click', Eve => Eve.stopPropagation());
     I.setHoverActions(Menu);
     I.setToggleAction(Menu, {
-        onopened: () => O.HTML.classList.add(   'menu-opened') && E.dispatch('bibi:opened-menu'),
-        onclosed: () => O.HTML.classList.remove('menu-opened') && E.dispatch('bibi:closed-menu')
+        onopened: () => { O.HTML.classList.add(   'menu-opened'); E.dispatch('bibi:opened-menu'); },
+        onclosed: () => { O.HTML.classList.remove('menu-opened'); E.dispatch('bibi:closed-menu'); }
     });
     E.add('bibi:commands:open-menu',   Menu.open);
     E.add('bibi:commands:close-menu',  Menu.close);
@@ -2421,8 +2421,8 @@ I.Menu = { create: () => {
         const Menu = I.Menu;
         const Panel = Menu.Panel = O.Body.appendChild(sML.create('div', { id: 'bibi-panel' }));
         I.setToggleAction(Panel, {
-            onopened: () => O.HTML.classList.add(   'panel-opened') && E.dispatch('bibi:opened-panel'),
-            onclosed: () => O.HTML.classList.remove('panel-opened') && E.dispatch('bibi:closed-panel')
+            onopened: () => { O.HTML.classList.add(   'panel-opened'); E.dispatch('bibi:opened-panel'); },
+            onclosed: () => { O.HTML.classList.remove('panel-opened'); E.dispatch('bibi:closed-panel'); }
         });
         E.add('bibi:commands:open-panel',   Panel.open);
         E.add('bibi:commands:close-panel',  Panel.close);
@@ -3250,7 +3250,7 @@ I.Slider = { create: () => {
             if(Unlock) Slider.Bookmap.Locked = false;
             if(Slider.Bookmap.Locked) return false;
             return !Slider.Bookmap.parentElement
-                ? (Slider.Bookmap.Timer_putIn = setTimeout(() => Slider.Bookmap.Box.appendChild(Slider.Bookmap) && Slider.resetThumbAndRailSize(), Unlock ? 0 : 456))
+                ? (Slider.Bookmap.Timer_putIn = setTimeout(() => { Slider.Bookmap.Box.appendChild(Slider.Bookmap); Slider.resetThumbAndRailSize(); }, Unlock ? 0 : 456))
                 : false;
         },
         reset: () => setTimeout(() => {
@@ -3529,10 +3529,11 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
     E.add('bibi:scrolled',     () => Arrows.check());
     E.dispatch('bibi:created-arrows');
      // Optimize to Scrollbar Size
-    (_ => _('html.appearance-horizontal.book-full-height:not(.slider-opened)',       'height', O.Scrollbars.Width)
-       && _('html.appearance-horizontal:not(.book-full-height):not(.slider-opened)', 'height', O.Scrollbars.Width + I.Menu.Height)
-       && _('html.appearance-vertical:not(.slider-opened)',                          'width',  O.Scrollbars.Width)
-    )((Context, WidthOrHeight, Margin) => sML.appendCSSRule(
+    (_ => {
+        _('html.appearance-horizontal.book-full-height:not(.slider-opened)',       'height', O.Scrollbars.Width);
+        _('html.appearance-horizontal:not(.book-full-height):not(.slider-opened)', 'height', O.Scrollbars.Width + I.Menu.Height);
+        _('html.appearance-vertical:not(.slider-opened)',                          'width',  O.Scrollbars.Width);
+    })((Context, WidthOrHeight, Margin) => sML.appendCSSRule(
         `${ Context } div#bibi-arrow-back, ${ Context } div#bibi-arrow-forward`,
         `${ WidthOrHeight }: calc(100% - ${ Margin }px); ${ WidthOrHeight }: calc(100v${ WidthOrHeight.charAt(0) } - ${ Margin }px);`
     ));
@@ -3752,7 +3753,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
         35: 'End',         36: 'Home',
         37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
     });
-    E.add('bibi:opened',             (  ) => KeyListener.updateMovingParameters() && KeyListener.observe(document));
+    E.add('bibi:opened',             (  ) => { KeyListener.updateMovingParameters(); KeyListener.observe(document); });
     E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyListener.observe(Item.contentDocument));
     E.add('bibi:touched-key',        Eve  => KeyListener.tryMoving(Eve));
     E.dispatch('bibi:created-keylistener');
