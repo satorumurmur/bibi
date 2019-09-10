@@ -3097,16 +3097,6 @@ I.Slider = { create: () => {
             if(S.ARD == 'rtl') Progress = Slider.Rail['offset' + C.A_SIZE_L] - Progress;
             Slider.Rail.Progress.style[C.A_SIZE_l] = (Progress / Slider.Rail['offset' + C.A_SIZE_L] * 100) + '%';
         },
-        activate: () => {
-            Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
-            Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
-            O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
-            E.add('bibi:changing-intersection', () => Slider.progress());
-            Slider.progress();
-        },
-        activateItem: (Item) => {
-            Item.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
-        },
         onTouchStart: (Eve) => { // console.log(Eve);
             //if(!Eve.target || (!Slider.contains(Eve.target) && Eve.target != Slider)) return;
             Eve.preventDefault();
@@ -3349,8 +3339,14 @@ I.Slider = { create: () => {
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-slider',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-slider',  Opt));
     E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-slider', Opt));
-    E.add('bibi:opened',      Slider.activate);
-    E.add('bibi:loaded-item', Slider.activateItem);
+    E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd));
+    E.add('bibi:opened', () => {
+        Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
+        Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
+        O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
+        E.add('bibi:changing-intersection', () => Slider.progress());
+        Slider.progress();
+    });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
     E.add('bibi:laid-out', () => {
         //Slider.BookStretchingEach = 0;
