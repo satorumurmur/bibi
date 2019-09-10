@@ -3441,7 +3441,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             if(S.RVM == 'paged') {
                 if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
             } else {
-                if(S['full-breadth-layout-in-scroll']) return false;
+                //if(S['full-breadth-layout-in-scroll']) return false;
                      if(S.RVM == 'horizontal') { if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; }
                 else if(S.RVM == 'vertical'  ) { if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; }
             }
