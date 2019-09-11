@@ -39,12 +39,10 @@ html {
 	@include offset(0, 0, auto); // for InAppBrowsers
 	@include size(100%);
 	font-family: sans-serif;
-	/* @____Bibi:Dress__('-') {
-	&.iOS     { font-family: $HTML_FontFamily_iOS; }
-	&.macOS   { font-family: $HTML_FontFamily_macOS; }
-	&.Android { font-family: $HTML_FontFamily_Android; }
-	&.Windows { font-family: $HTML_FontFamily_Windows; }
-	// } */
+	// @____Bibi:Dress__('-') &.iOS     { font-family: $HTML_FontFamily__iOS; }
+	// @____Bibi:Dress__('-') &.macOS   { font-family: $HTML_FontFamily__macOS; }
+	// @____Bibi:Dress__('-') &.Android { font-family: $HTML_FontFamily__Android; }
+	// @____Bibi:Dress__('-') &.Windows { font-family: $HTML_FontFamily__Windows; }
 	-webkit-font-smoothing: subpixel-antialiased;
 	-webkit-text-size-adjust: 100%;
 	/*
@@ -82,10 +80,8 @@ div#bibi-style-checker {
 	@include writing-mode(vertical-rl);
 	position: absolute;
 	z-index: 0;
-	/* @____Bibi:Dress__('-') {
-	left: $GLOBAL__Slider_Size * -1; top: $GLOBAL__TopBar_Height * -1; // left: 0; top: 0;
-	@include size($GLOBAL__Slider_Size, $GLOBAL__TopBar_Height);
-	// } */
+	// @____Bibi:Dress__('-') left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
+	// @____Bibi:Dress__('-') @include size($Slider_Size, $Menu_Height);
 	font-size: 1rem;
 	line-height: 1em;
 	white-space: nowrap;
@@ -100,12 +96,15 @@ div#bibi-style-checker {
 div#bibi-poweredby {
 	box-sizing: border-box;
 	display: block;
+	overflow: hidden;
 	position: absolute;
 	z-index: $INVARIABLE__PoweredBy_ZIndex;
 	@include offset(auto, 0, 0);
 	margin: 0 auto;
 	//padding: 4px;
-	// @____Bibi:Dress__('-') height: $GLOBAL__BottomBar_Height;
+	height: 0;
+	// @____Bibi:Dress__('-') html.veil-opened & { height: $Veil-BottomBar_Height; }
+	// @____Bibi:Dress__('-') html.panel-opened & { height: $Panel-BottomBar_Height; }
 	text-align: right;
 	font-size: 14px;
 	transition: .1s linear;
@@ -117,7 +116,7 @@ div#bibi-poweredby {
 	}
 	html.view-horizontal &,
     html.page-rtl.panel-opened & {
-		// @____Bibi:Dress__('-') bottom: $GLOBAL__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
+		bottom: $TEMPORARY__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
 	}
 	html.veil-opened &,
 	html.panel-opened &,
@@ -141,10 +140,8 @@ div#bibi-poweredby {
 				top: 0;
 				right: auto;
 				bottom: 0;
-				left: $SCOPED__PowerdBy-Logo-Box_Height / 2;
-				@include margin-v(auto);
-				margin-right: 0;
-				// @____Bibi:Dress__('-') margin-left: $GLOBAL__BottomBar_Height / -2;
+				left: $SCOPED__PowerdBy-Logo-Box_PaddingVertical;//$SCOPED__PowerdBy-Logo-Box_Height / 2;
+				margin: auto 0;
 				border-radius: 2px;
 				@include size($SCOPED__PowerdBy-Logo-Box_Width, $SCOPED__PowerdBy-Logo-Box_Height);
 				font-size: $SCOPED__PowerdBy-Logo-Image_Height;

@@ -1,12 +1,12 @@
 /*!
  *                                                                                                                         (℠)
- *  # webpack config for BiB/i
+ *  # Webpack Config for BiB/i
  *
  */
 
 'use strict';
 
-const Package = require('./package.json');
+const Package = require('./package.json'), Bibi = require('./webpack.config.bibi.js');
 const Dresses = require('./dev-bib/i/res/styles/wardrobe/_dresses.js');
 
 const Webpack = require('webpack');
@@ -39,8 +39,7 @@ const Config = {
         'bib/i/extensions/unaccessibilizer/index': 'js',
         'bib/i/extensions/unzipper/index': 'js',
         'bib/i/extensions/zine/index': 'js',
-        'bib/i/res/styles/bibi': 'scss',
-        'bib/i/res/styles/bibi.book': 'scss'
+        'bib/i/res/styles/bibi': 'scss'
     }),
     plugins: [
         new StringReplacePlugin(),
@@ -74,7 +73,7 @@ module.exports = (env, argv) => {
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /____bibi-version____/ig,
-                replacement: () => Package.version
+                replacement: () => Bibi.version
             }]})
         ]
     });
@@ -99,7 +98,7 @@ module.exports = (env, argv) => {
     ];
     Config.module.rules.push({
         test: /\.scss$/,
-        exclude: /bib\/i\.scss$/,
+        exclude: /(bib\/i|bibi\.book)\.scss$/,
         use: [
             MiniCSSExtractPlugin.loader,
             StringReplacePlugin.replace({ replacements: [{
@@ -109,7 +108,7 @@ module.exports = (env, argv) => {
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /bib\/i\.scss$/,
+        test: /(bib\/i|bibi\.book)\.scss$/,
         use: [
             { loader: 'style-loader' }
         ].concat(CommonLoadersForCSS)
@@ -153,8 +152,7 @@ module.exports = (env, argv) => {
                 }
             }
         }));
-        const Banners = require('./webpack.config.banners.js');
-        for(const N in Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Banners[N], raw: true }));
+        for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
         Config.plugins.push(new CopyPlugin([
             { from: 'LICENSE',   to: 'bib' }/*,
             { from: 'README.md', to: 'bib' }*/

@@ -22,6 +22,10 @@ bib/i/res/fonts
 bib/i.css
 bib/i.js
 
+# BiB/i: Dress Templates
+# --------------------------------------------------------------------------------
+dev-bib/i/res/styles/wardrobe/--dress-template--**
+
 # BiB/i: Bookshelf
 # --------------------------------------------------------------------------------
 bib/bookshelf/*

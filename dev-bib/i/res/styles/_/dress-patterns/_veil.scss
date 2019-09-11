@@ -6,15 +6,10 @@
 div#bibi-veil {
 	color: $Veil_Color;
 	background: $Veil_Background;
-}
-
-
-// - BottomBar
-// --------------------------------------------------------------------------------
-
-div#bibi-veil:after {
-	height: $GLOBAL__BottomBar_Height;
-	background: $Veil-BottomBar_Background;
+	&:after { // BottomBar
+		height: $Veil-BottomBar_Height;
+		background: $Veil-BottomBar_Background;
+	}
 }
 
 
@@ -22,7 +17,7 @@ div#bibi-veil:after {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
-	max-height: calc(100% - #{ $GLOBAL__TopBar_Height + 10px * 2 + $GLOBAL__BottomBar_Height });
+	max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $Veil-BottomBar_Height });
 	color: $Veil-ByeBye_Color;
 	background: $Veil-ByeBye_Background;
 }
@@ -33,23 +28,7 @@ p#bibi-veil-byebye {
 
 p#bibi-veil-play {
 	background: $Veil-Play_BackgroundColor;  &:hover { background-color: $Veil-Play_BackgroundColor__Hover; }
-	&:before { @include Veil-Play-Icon(); } // icon
-	&:before,
-	html.appearance-ttb &:before { bottom: $Veil-Play-Icon_Offset; } // ↓
-	html.appearance-rtl &:before { left:   $Veil-Play-Icon_Offset; } // ←
-	html.appearance-ltr &:before { right:  $Veil-Play-Icon_Offset; } // →
-	&, &:before {
-		$SCOPED__Veil-Play_TransitionDuration: .2s;
-		$SCOPED__Veil-Play_TransitionTimingFunction__ForColor: ease;
-		$SCOPED__Veil-Play_TransitionTimingFunction__ForForm: cubic-bezier(.2,.8,.8,1.6);
-		transition:
-			color            $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForColor,
-			background-color $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForColor,
-			left             $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-			right            $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-			bottom           $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm,
-			transform        $SCOPED__Veil-Play_TransitionDuration $SCOPED__Veil-Play_TransitionTimingFunction__ForForm;
-	}
+	&:before { @include Veil-Play-Icon(); }
 }
 
 
@@ -66,12 +45,12 @@ div#bibi-catcher {
 		border-radius: $SCOPED__Catcher-Area_Margin;
 		@include size(
 			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
-			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $GLOBAL__BottomBar_Height})
+			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $Veil-BottomBar_Height})
 		);
 		@include max(768px) { @include size(
 			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
-			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $GLOBAL__BottomBar_Height})
+			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $Veil-BottomBar_Height})
 		); }
-		transform: translateY(#{$GLOBAL__BottomBar_Height * -0.5});
+		transform: translateY(#{$Veil-BottomBar_Height * -0.5});
 	}
 }

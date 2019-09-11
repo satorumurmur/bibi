@@ -4,14 +4,15 @@
 
 
 div#bibi-notifier {
-	height: $GLOBAL__TopBar_Height;
+	height: $Notifier_Height;
 	color: $Notifier_Color;
 	background: $Notifier_Background;
 	box-shadow: $Notifier_BoxShadow;
 	p {
-		line-height: ($GLOBAL__Icon_Size + $GLOBAL__ButtonGroup_Margin * 2) * 1.05;
+		font-family: $Notifier_FontFamily;
 		&.error {
-			color: $Notifier_Color_Error;
+			font-family: $Notifier_FontFamily__Error;
+			color: $Notifier_Color__Error;
 		}
 	}
 }

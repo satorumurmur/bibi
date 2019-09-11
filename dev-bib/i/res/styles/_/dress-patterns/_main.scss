@@ -8,12 +8,12 @@ main#bibi-main {
 		background: $Main_Background;
 	}
 	html.appearance-horizontal:not(.book-full-height) & {
-		top: $GLOBAL__TopBar_Height;
-		height: calc(100% - #{$GLOBAL__TopBar_Height});
+		top: $Menu_Height;
+		height: calc(100% - #{$Menu_Height});
 	}
 	html.appearance-vertical:not(.book-full-height) & {
-		padding-top: $GLOBAL__TopBar_Height;
-		height: calc(100% - #{$GLOBAL__TopBar_Height});
+		padding-top: $Menu_Height;
+		height: calc(100% - #{$Menu_Height});
 	}
 }
 	div#bibi-main-book {
