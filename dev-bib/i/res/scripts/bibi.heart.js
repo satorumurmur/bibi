@@ -376,20 +376,31 @@ Bibi.openBook = () => new Promise(resolve => {
 Bibi.Eyes = {
     watch: (Ent) => {
         const Page = Ent.target;
+        let IntersectionChanging = false;
         //const IntersectionRatio = Math.round(Ent.intersectionRatio * 10000) / 100;
         if(Ent.isIntersecting) {
-            if(!R.IntersectingPages.includes(Page)) R.IntersectingPages.push(Page);
+            if(!R.IntersectingPages.includes(Page)) {
+                IntersectionChanging = true;
+                R.IntersectingPages.push(Page);
+            }
         } else {
-            if( R.IntersectingPages.includes(Page)) R.IntersectingPages = R.IntersectingPages.filter(IntersectingPage => IntersectingPage != Page);
+            if( R.IntersectingPages.includes(Page)) {
+                IntersectionChanging = true;
+                R.IntersectingPages = R.IntersectingPages.filter(IntersectingPage => IntersectingPage != Page);
+            }
         }
-        R.IntersectingPages.sort((A, B) => A.Index - B.Index);
+        if(IntersectionChanging) {
+            R.IntersectingPages.sort((A, B) => A.Index - B.Index);
+            E.dispatch('bibi:changing-intersection', R.IntersectingPages);
+            clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
+            Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => {
+                E.dispatch('bibi:changed-intersection', R.IntersectingPages);
+            }, 333);
+        }
     },
     wearGlasses: () => {
         Bibi.Glasses = new IntersectionObserver((Ents, IsO) => {
             Ents.forEach(Bibi.Eyes.watch);
-            E.dispatch('bibi:changing-intersection', R.IntersectingPages);
-            clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
-            Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => E.dispatch('bibi:changed-intersection', R.IntersectingPages), 333);
         }, {
             root: R.Main,
             rootMargin: '0px',
@@ -398,6 +409,7 @@ Bibi.Eyes = {
         Bibi.Eyes.observe = (Page) => Bibi.Glasses.observe(Page);
         Bibi.Eyes.unobserve = (Page) => Bibi.Glasses.unobserve(Page);
         Bibi.Eyes.PagesToBeObserved.forEach(PageToBeObserved => Bibi.Glasses.observe(PageToBeObserved));
+        delete Bibi.Eyes.PagesToBeObserved;
     },
     PagesToBeObserved: [],
     observe: (Page) => !Bibi.Eyes.PagesToBeObserved.includes(Page) ? Bibi.Eyes.PagesToBeObserved.push(Page) : Bibi.Eyes.PagesToBeObserved.length,
@@ -1623,11 +1635,14 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
 
     R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
         const AllowPlaceholderItems = !(TF);
-        if(!S['allow-placeholders']/* || Spread.AllowPlaceholderItems == AllowPlaceholderItems*/) return resolve(Spread); // no need to turn
+        if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
         /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: '' }, { background: 'rgba(255,0,0,0.5)' });
         const PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
         const OldPages = Spread.Pages.reduce((OldPages, OldPage) => { OldPages.push(OldPage); return OldPages; }, []);
-        if(!TF) R.cancelSpreadRetlieving(Spread);
+        if(!TF) {
+            R.cancelSpreadRetlieving(Spread);
+            //Spread.Items.forEach(Item => console.log('Canceled Retlieving for: %O', Item));
+        }
         L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
             resolve(); // ←↙ do asynchronous
             R.layOutSpread(Spread).then(() => {
@@ -1645,7 +1660,7 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     R.cancelSpreadRetlieving = (Spread) => O.cancelRetlieving ? Spread.Items.forEach(Item => {
         if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
         O.cancelRetlieving(Item);
-    }) : false;//Spread.Items.forEach(Item => console.log('Canceled Retlieving for: %O', Item));
+    }) : false;
 
 
 R.organizePages = () => {
