@@ -306,6 +306,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     });
 });
 
+
 Bibi.bindBook = (LayoutOption) => {
     if(!LayoutOption.Reset) {
         R.organizePages();
@@ -318,6 +319,7 @@ Bibi.bindBook = (LayoutOption) => {
         Bibi.Eyes.wearGlasses();
     });
 };
+
 
 Bibi.openBook = () => new Promise(resolve => {
     // Open
@@ -907,7 +909,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 A.removeAttribute(HrefAttribute);
                 A.addEventListener('click', () => false);
                 if(!O.Touch) {
-                    A.addEventListener(O['pointerover'], () => { I.Help.show('(This link uses EPUBCFI. "EPUBCFI" extension is required.)'); return false; });
+                    A.addEventListener(O['pointerover'], () => { I.Help.show(`(This link uses EPUBCFI. "EPUBCFI" extension is required.)`); return false; });
                     A.addEventListener(O['pointerout'],  () => { I.Help.hide()                                                            ; return false; });
                 }
             }
