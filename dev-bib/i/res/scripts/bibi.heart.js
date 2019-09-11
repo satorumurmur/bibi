@@ -25,6 +25,7 @@ Bibi.hello = () => new Promise(resolve => {
     O.log(`Hello!`, '<b:>');
     O.log(`[ja] ${ Bibi['href'] }`);
     O.log(`[en] https://github.com/satorumurmur/bibi`);
+    Bibi.Script = document.getElementById('bibi-script');
     resolve();
 })
 .then(Bibi.loadPreset)
@@ -43,8 +44,7 @@ Bibi.hello = () => new Promise(resolve => {
 
 Bibi.loadPreset = () => new Promise(resolve => {
     O.log(`Loading Preset...`, '<g:>');
-    const PresetSource = document.getElementById('bibi-script').getAttribute('data-bibi-preset') || './presets/default.js';
-    document.head.appendChild(sML.create('script', { src: PresetSource, onload: resolve }));
+    Bibi.PresetScript = document.head.insertBefore(sML.create('script', { id: 'bibi-preset', src: Bibi.Script.getAttribute('data-bibi-preset') || './presets/default.js', onload: resolve }), Bibi.Script.nextSibling);
 }).then(() => {
     O.log(`Preset: %O`, P);
     O.log(`Loaded.`, '</g>');
@@ -110,6 +110,15 @@ Bibi.initialize = () => {
     }
     I.note(`<span class="non-visual">Welcome!</span>`);
     U.initialize();
+    // Book Style
+    { let Ele = Bibi.PresetScript.nextElementSibling;
+        while(Ele) if(/^style$/i.test(Ele.tagName) && /^\/\*! Bibi Book Style \*\//.test(Ele.textContent)) {
+            Bibi.BookStyleURL = URL.createObjectURL(new Blob([Ele.textContent.replace(/\/*.*?\*\//g, '').trim()], { type: 'text/css' }))
+            Ele.innerHTML = '';
+            O.Head.removeChild(Ele);
+            break;
+        } else Ele = Ele.nextElementSibling;
+    }
     // Window Embedding
     if(window.parent == window) {
         O.WindowEmbedded = 0; // false
@@ -270,12 +279,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     if(!S['autostart'] && !L.Played) return L.wait();
 }).then(() => {
     // Background Preparing
-    O.log(`Preprocessing Resources...`, '<g:>');
-    return L.preprocessResources().then(Resolved => {
-        O.log(`Preprocessed: %O`, Resolved);
-        O.log(`Preprocessed. (${ Resolved.length } Resource${ Resolved.length > 1 ? 's' : '' })`, '</g>');
-        E.dispatch('bibi:preprocessed-resources');
-    });
+    return L.preprocessResources();
 }).then(() => {
     // Load & Layout Items in Spreads and Pages
     O.log(`Loading Items in Spreads...`, '<g:>');
@@ -933,22 +937,24 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
 
 L.preprocessResources = () => new Promise((resolve, reject) => {
     E.dispatch('bibi:is-going-to:preprocess-resources');
-    const PpdReses = []; // PreprocessedResources
-    const Promises = [O.download({ Path: new URL('res/styles/bibi.book.css', O.RootPath + '/').pathname, 'media-type': 'text/css', Bibitem: true }).then(O.getBlobURL).then(Item => {
-        Item.Content = '';
-        B.DefaultStyle = Item;
-        return PpdReses.push(B.DefaultStyle);
-    })]; // Default StyleSheet
-    const pushItemPreprocessingPromise = (Item, URI) => Promises.push(O.file(Item, { Preprocess: true, URI: URI }).then(() => PpdReses.push(Item)));
+    const Promises = [], PreprocessedResources = [], pushItemPreprocessingPromise = (Item, URI) => Promises.push(O.file(Item, { Preprocess: true, URI: URI }).then(() => PreprocessedResources.push(Item)));
     if(B.ExtractionPolicy) for(const FilePath in B.Package.Manifest.Items) {
         const Item = B.Package.Manifest.Items[FilePath];
-        if(/\/(css|javascript)$/.test(Item['media-type']) && !Item.Bibitem) pushItemPreprocessingPromise(Item, true); // CSSs & JavaScripts in Manifest
+        if(/\/(css|javascript)$/.test(Item['media-type'])) { // CSSs & JavaScripts in Manifest
+            if(!Promises.length) O.log(`Preprocessing Resources...`, '<g:>');
+            pushItemPreprocessingPromise(Item, true);
+        }
     }
-    Promise.all(Promises).then(() => {
-        resolve(PpdReses);/*
-        if(B.ExtractionPolicy != 'at-once' && (S.BRL == 'pre-paginated' || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PpdReses);
+    Promise.all(Promises).then(() => {/*
+        if(B.ExtractionPolicy != 'at-once' && (S.BRL == 'pre-paginated' || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PreprocessedResources);
         R.Items.forEach(Item => pushItemPreprocessingPromise(Item, O.isBin(Item))); // Spine Items
-        return Promise.all(Promises).then(() => resolve(PpdReses));*/
+        return Promise.all(Promises).then(() => resolve(PreprocessedResources));*/
+        if(PreprocessedResources.length) {
+            O.log(`Preprocessed: %O`, PreprocessedResources);
+            O.log(`Preprocessed. (${ PreprocessedResources.length } Resource${ PreprocessedResources.length > 1 ? 's' : '' })`, '</g>');
+        }
+        E.dispatch('bibi:preprocessed-resources');
+        resolve();
     });
 });
 
@@ -1010,18 +1016,18 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         }
         resolve({});
     }).then(Source => new Promise(resolve => {
-        const DefaultStyleID = 'bibi-default-style', DefaultStyleURI = B.DefaultStyle.URI;
+        const DefaultStyleID = 'bibi-default-style';
         if(Source.URL) {
             Item.onload = () => {
                 const Head = Item.contentDocument.getElementsByTagName('head')[0];
-                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: DefaultStyleURI, onload: resolve });
+                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: Bibi.BookStyleURL, onload: resolve });
                 Head.insertBefore(Link, Head.firstChild);
             };
             Item.src = Source.URL;
         } else {
             if(!Item.BlobURL) {
                 let HTML = Source.HTML || `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source.Head || '' }</head><body>${ Source.Body || '' }</body></html>`;
-                HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ DefaultStyleURI }" />`);
+                HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />`);
                 if(sML.UA.Trident || sML.UA.EdgeHTML) {
                     // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
                     HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
