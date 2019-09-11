@@ -30,8 +30,8 @@
     "start": "npm run develop+watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
     "autoprefixer": "^9.6.1",
     "babel-loader": "^8.0.6",
     "browser-sync": "^2.26.7",
@@ -48,17 +48,17 @@
     "mini-css-extract-plugin": "^0.8.0",
     "node-sass": "^4.12.0",
     "npm-run-all": "^4.1.5",
-    "postcss": "^7.0.17",
+    "postcss": "^7.0.18",
     "postcss-cssnext": "^3.1.0",
     "postcss-loader": "^3.0.0",
     "sass-loader": "^8.0.0",
     "string-replace-webpack-plugin": "^0.1.3",
     "style-loader": "^1.0.0",
-    "terser-webpack-plugin": "^1.4.1",
+    "terser-webpack-plugin": "^2.0.1",
     "url-loader": "^2.1.0",
     "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.7",
-    "webpack-fix-style-only-entries": "^0.3.1"
+    "webpack-cli": "^3.3.8",
+    "webpack-fix-style-only-entries": "^0.4.0"
   },
   "dependencies": {
     "classlist-polyfill": "^1.2.0",
