@@ -4492,8 +4492,8 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
         const Time = (O.log.Depth <= 1) ? O.stamp(Log) : 0;
         let Ls = [], Ss = [];
         if(Log) switch(Tag) {
-            case '<b:>': Ls.unshift(`📕`); Ls.push(`%c`, Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })`),                                                     Ss.push(O.log.NStyle); break;
-            case '</b>': Ls.unshift(`📖`); Ls.push(`%c`, Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
+            case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })`),                                                     Ss.push(O.log.NStyle); break;
+            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
             case '<g:>': Ls.unshift(`┌`); Ls.push(Log); break;
             case '</g>': Ls.unshift(`└`); Ls.push(Log); break;
           //case '<o/>': Ls.unshift( `>`); Ls.push(Log); break;
