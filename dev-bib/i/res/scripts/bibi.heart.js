@@ -319,7 +319,7 @@ Bibi.bindBook = (LayoutOption) => {
     const TargetPage = R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0];
     return R.layOut(LayoutOption).then(() => {
         LayoutOption.removeResetter();
-        R.IntersectingPages = [TargetPage]
+        R.IntersectingPages = [TargetPage];
         Bibi.Eyes.wearGlasses();
     });
 };
@@ -336,7 +336,7 @@ Bibi.openBook = () => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
-    E.bind(['bibi:changing-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
+    E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
     if(S['allow-placeholders']) {
         E.add('bibi:scrolled', () => R.turnSpreads());
         E.add('bibi:changing-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
@@ -390,18 +390,16 @@ Bibi.Eyes = {
             }
         }
         if(IntersectionChanging) {
-            R.IntersectingPages.sort((A, B) => A.Index - B.Index);
+            if(R.IntersectingPages.length) R.IntersectingPages.sort((A, B) => A.Index - B.Index);
             E.dispatch('bibi:changing-intersection', R.IntersectingPages);
             clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
             Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => {
                 E.dispatch('bibi:changed-intersection', R.IntersectingPages);
-            }, 333);
+            }, 9);
         }
     },
     wearGlasses: () => {
-        Bibi.Glasses = new IntersectionObserver((Ents, IsO) => {
-            Ents.forEach(Bibi.Eyes.watch);
-        }, {
+        Bibi.Glasses = new IntersectionObserver(Ents => Ents.forEach(Bibi.Eyes.watch), {
             root: R.Main,
             rootMargin: '0px',
             threshold: [0, 0.5, 1]
@@ -1801,7 +1799,7 @@ R.onResize = (Eve) => {
     if(!L.Opened) return;
     if(!R.Resizing) {
         R.Resizing = true;
-        R.FirstIntersectingPageBeforResizing = R.IntersectingPages[0];
+        R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
         R.Main.style.visibility = 'hidden';
         ////////R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
@@ -1811,7 +1809,7 @@ R.onResize = (Eve) => {
     clearTimeout(R.Timer_onResizeEnd);
     R.Timer_onResizeEnd = setTimeout(() => {
         R.updateOrientation();
-        const CurrentPage = R.FirstIntersectingPageBeforResizing;
+        const CurrentPage = R.FirstIntersectingPageBeforeResizing;
         R.layOut({
             Reset: true,
             Destination: {
@@ -1917,10 +1915,11 @@ R.updateCurrent = () => {
 };
 
     R.updateCurrent.getList = () => {
-        let List = [], BiggestIntersectionRatio = 0;
+        if(!R.IntersectingPages.length) return null;
+        let List = [];
         const FirstIndex = sML.limitMin(R.IntersectingPages[                             0].Index - 2,                  0);
         const  LastIndex = sML.limitMax(R.IntersectingPages[R.IntersectingPages.length - 1].Index + 2, R.Pages.length - 1);
-        for(let i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
+        for(let BiggestIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
             const PageCoord = sML.getCoord(Page);
             const D = C.L_AXIS_D, L = C.L_SIZE_L;
             const LengthInside = Math.min(R.Current.Frame.After * D, PageCoord[C.L_BASE_A] * D) - Math.max(R.Current.Frame.Before * D, PageCoord[C.L_BASE_B] * D);
