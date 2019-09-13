@@ -1242,6 +1242,7 @@ R.initialize = () => {
                 if(I.Slider.UI && (I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
             }
+            if(I.OpenedSubpanel) return I.OpenedSubpanel.close();
             return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : false;/*
             switch(S.ARD) {
                 case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
@@ -3410,6 +3411,7 @@ I.Turner = { create: () => {
             }
         },
         isAbleToTurn: (Par) => {
+            if(I.OpenedSubpanel) return false;
             if(typeof Par.Distance != 'number' && typeof Par.Direction == 'string') {
                 if(Turner[Par.Direction]) Par.Distance = Turner[Par.Direction].Distance;
             }
@@ -3458,6 +3460,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         },
         areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
+            if(I.OpenedSubpanel) return false;
             if(I.Menu.Panel && I.Menu.Panel.UIState == 'active') return false;
             //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
             if(S.RVM == 'paged') {
@@ -3498,10 +3501,10 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
                 const Availability = I.Turner.isAbleToTurn({ Direction: Dir });
                 if(Availability) {
                     const Arrow = I.Turner[Dir].Arrow;
-                    if(Availability != -1) {
+                    //if(Availability != -1) {
                         E.dispatch(Arrow,      'bibi:hovers',   Eve);
                         E.dispatch(Arrow.Pair, 'bibi:unhovers', Eve);
-                    }
+                    //}
                     BibiEvent.Target.ownerDocument.documentElement.setAttribute('data-bibi-cursor', Dir);
                     return;
                 }
@@ -3867,7 +3870,7 @@ I.createButton = (Par = {}) => {
 I.createSubpanel = (Par = {}) => {
     if(typeof Par.className != 'string' || !Par.className) delete Par.className;
     if(typeof Par.id        != 'string' || !Par.id       ) delete Par.id;
-    const ClassNames = ['bibi-subpanel'];
+    const ClassNames = ['bibi-subpanel', 'bibi-subpanel-' + (Par.Position == 'left' ? 'left' : 'right')];
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
     const SectionsToAdd = Par.Sections instanceof Array ? Par.Sections : Par.Section ? [Par.Section] : [];
@@ -4059,7 +4062,7 @@ I.setTapAction = (Ele) => {
                 if(Ele.UIState == 'disabled') return false;
                 I.setUIState(Ele, 'active');
                 clearTimeout(Ele.Timer_deactivate);
-                Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, ''), 200);
+                Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, Ele.UIState == 'disabled' ? 'disabled' : ''), 200);
             };
         }
     })();
