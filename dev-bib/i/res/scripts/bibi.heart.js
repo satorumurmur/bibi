@@ -339,7 +339,7 @@ Bibi.openBook = () => new Promise(resolve => {
     E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
     if(S['allow-placeholders']) {
         E.add('bibi:scrolled', () => R.turnSpreads());
-        E.add('bibi:changing-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
+        E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
     }
     setTimeout(() => R.turnSpreads(), 123);
     if(S['use-cookie']) E.add('bibi:changed-intersection', () => { try {
@@ -391,7 +391,7 @@ Bibi.Eyes = {
         }
         if(IntersectionChanging) {
             if(R.IntersectingPages.length) R.IntersectingPages.sort((A, B) => A.Index - B.Index);
-            E.dispatch('bibi:changing-intersection', R.IntersectingPages);
+            E.dispatch('bibi:changes-intersection', R.IntersectingPages);
             clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
             Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => {
                 E.dispatch('bibi:changed-intersection', R.IntersectingPages);
@@ -2392,8 +2392,8 @@ I.Menu = { create: () => {
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-menu',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-menu',  Opt));
     E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-menu', Opt));
-    E.add('bibi:opened', Menu.close);
-    E.add('bibi:changing-intersection', () => {
+    E.add('bibi:opened', Menu.close);/*
+    E.add('bibi:changes-intersection', () => {
         clearTimeout(Menu.Timer_cool);
         if(!Menu.Hot) Menu.classList.add('hot');
         Menu.Hot = true;
@@ -2401,7 +2401,7 @@ I.Menu = { create: () => {
             Menu.Hot = false;
             Menu.classList.remove('hot');
         }, 1234);
-    });
+    });*/
     if(!O.Touch) {
         E.add('bibi:moved-pointer', Eve => {
             if(I.isPointerStealth()) return false;
@@ -3055,7 +3055,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
     E.add('bibi:opened' , () => {
         setTimeout(() => {
             Nombre.progress();
-            E.add('bibi:changing-intersection', () => Nombre.progress());
+            E.add('bibi:changed-intersection', () => Nombre.progress());
         }, 321);
     });
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
@@ -3366,7 +3366,7 @@ I.Slider = { create: () => {
         Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
         Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
         O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
-        E.add('bibi:changing-intersection', () => Slider.progress());
+        E.add('bibi:changed-intersection', () => Slider.progress());
         Slider.progress();
     });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
