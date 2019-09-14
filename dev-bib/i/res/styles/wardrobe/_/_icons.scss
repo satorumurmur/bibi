@@ -83,7 +83,7 @@
 		@include size(1em);
 		font-size: 1em * (13px / 18px);
 		line-height: 1;
-		html.Windows & { @include offset(27%, auto, auto, 25%); }
+		html.macOS.Safari & { top: 16%; }
 		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
 	}
 }
