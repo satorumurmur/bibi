@@ -3,7 +3,8 @@
 // --------------------------------------------------------------------------------
 
 div.bibi-subpanel {
-	right: $Subpanel_Margin;
+	&.bibi-subpanel-right, &:not(.bibi-subpanel-left) { right: $Subpanel_Margin; }
+	&.bibi-subpanel-left { left: $Subpanel_Margin; }
 	top: $Menu_Height + $Subpanel_Margin;
 	width: calc(100% - #{$Subpanel_Margin * 2});
 	max-width: 320px - $Subpanel_Margin * 2;
@@ -84,7 +85,9 @@ div.bibi-subpanel {
 				&:after {
 					right: $Subpanel-Button_HorizontalPadding;
 				}
-				&.default {
+				&.default,
+				&.disabled,
+				&.disabled.hover {
 					border-color: $Subpanel-Button_BorderColor;
 					color: $Subpanel-Button_Color;
 					background: $Subpanel-Button_BackgroundColor;

@@ -319,7 +319,7 @@ Bibi.bindBook = (LayoutOption) => {
     const TargetPage = R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0];
     return R.layOut(LayoutOption).then(() => {
         LayoutOption.removeResetter();
-        R.IntersectingPages = [TargetPage]
+        R.IntersectingPages = [TargetPage];
         Bibi.Eyes.wearGlasses();
     });
 };
@@ -336,10 +336,10 @@ Bibi.openBook = () => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
-    E.bind(['bibi:changing-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
+    E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
     if(S['allow-placeholders']) {
         E.add('bibi:scrolled', () => R.turnSpreads());
-        E.add('bibi:changing-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
+        E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
     }
     setTimeout(() => R.turnSpreads(), 123);
     if(S['use-cookie']) E.add('bibi:changed-intersection', () => { try {
@@ -390,18 +390,16 @@ Bibi.Eyes = {
             }
         }
         if(IntersectionChanging) {
-            R.IntersectingPages.sort((A, B) => A.Index - B.Index);
-            E.dispatch('bibi:changing-intersection', R.IntersectingPages);
+            if(R.IntersectingPages.length) R.IntersectingPages.sort((A, B) => A.Index - B.Index);
+            E.dispatch('bibi:changes-intersection', R.IntersectingPages);
             clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
             Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => {
                 E.dispatch('bibi:changed-intersection', R.IntersectingPages);
-            }, 333);
+            }, 9);
         }
     },
     wearGlasses: () => {
-        Bibi.Glasses = new IntersectionObserver((Ents, IsO) => {
-            Ents.forEach(Bibi.Eyes.watch);
-        }, {
+        Bibi.Glasses = new IntersectionObserver(Ents => Ents.forEach(Bibi.Eyes.watch), {
             root: R.Main,
             rootMargin: '0px',
             threshold: [0, 0.5, 1]
@@ -1244,6 +1242,7 @@ R.initialize = () => {
                 if(I.Slider.UI && (I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
             }
+            if(I.OpenedSubpanel) return I.OpenedSubpanel.close();
             return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : false;/*
             switch(S.ARD) {
                 case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
@@ -1801,7 +1800,7 @@ R.onResize = (Eve) => {
     if(!L.Opened) return;
     if(!R.Resizing) {
         R.Resizing = true;
-        R.FirstIntersectingPageBeforResizing = R.IntersectingPages[0];
+        R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
         R.Main.style.visibility = 'hidden';
         ////////R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
@@ -1811,7 +1810,7 @@ R.onResize = (Eve) => {
     clearTimeout(R.Timer_onResizeEnd);
     R.Timer_onResizeEnd = setTimeout(() => {
         R.updateOrientation();
-        const CurrentPage = R.FirstIntersectingPageBeforResizing;
+        const CurrentPage = R.FirstIntersectingPageBeforeResizing;
         R.layOut({
             Reset: true,
             Destination: {
@@ -1917,10 +1916,11 @@ R.updateCurrent = () => {
 };
 
     R.updateCurrent.getList = () => {
-        let List = [], BiggestIntersectionRatio = 0;
+        if(!R.IntersectingPages.length) return null;
+        let List = [];
         const FirstIndex = sML.limitMin(R.IntersectingPages[                             0].Index - 2,                  0);
         const  LastIndex = sML.limitMax(R.IntersectingPages[R.IntersectingPages.length - 1].Index + 2, R.Pages.length - 1);
-        for(let i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
+        for(let BiggestIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
             const PageCoord = sML.getCoord(Page);
             const D = C.L_AXIS_D, L = C.L_SIZE_L;
             const LengthInside = Math.min(R.Current.Frame.After * D, PageCoord[C.L_BASE_A] * D) - Math.max(R.Current.Frame.Before * D, PageCoord[C.L_BASE_B] * D);
@@ -2393,8 +2393,8 @@ I.Menu = { create: () => {
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-menu',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-menu',  Opt));
     E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-menu', Opt));
-    E.add('bibi:opened', Menu.close);
-    E.add('bibi:changing-intersection', () => {
+    E.add('bibi:opened', Menu.close);/*
+    E.add('bibi:changes-intersection', () => {
         clearTimeout(Menu.Timer_cool);
         if(!Menu.Hot) Menu.classList.add('hot');
         Menu.Hot = true;
@@ -2402,7 +2402,7 @@ I.Menu = { create: () => {
             Menu.Hot = false;
             Menu.classList.remove('hot');
         }, 1234);
-    });
+    });*/
     if(!O.Touch) {
         E.add('bibi:moved-pointer', Eve => {
             if(I.isPointerStealth()) return false;
@@ -3056,7 +3056,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
     E.add('bibi:opened' , () => {
         setTimeout(() => {
             Nombre.progress();
-            E.add('bibi:changing-intersection', () => Nombre.progress());
+            E.add('bibi:changed-intersection', () => Nombre.progress());
         }, 321);
     });
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
@@ -3367,7 +3367,7 @@ I.Slider = { create: () => {
         Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
         Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
         O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
-        E.add('bibi:changing-intersection', () => Slider.progress());
+        E.add('bibi:changed-intersection', () => Slider.progress());
         Slider.progress();
     });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
@@ -3411,6 +3411,7 @@ I.Turner = { create: () => {
             }
         },
         isAbleToTurn: (Par) => {
+            if(I.OpenedSubpanel) return false;
             if(typeof Par.Distance != 'number' && typeof Par.Direction == 'string') {
                 if(Turner[Par.Direction]) Par.Distance = Turner[Par.Direction].Distance;
             }
@@ -3459,6 +3460,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         },
         areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
+            if(I.OpenedSubpanel) return false;
             if(I.Menu.Panel && I.Menu.Panel.UIState == 'active') return false;
             //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
             if(S.RVM == 'paged') {
@@ -3499,10 +3501,10 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
                 const Availability = I.Turner.isAbleToTurn({ Direction: Dir });
                 if(Availability) {
                     const Arrow = I.Turner[Dir].Arrow;
-                    if(Availability != -1) {
+                    //if(Availability != -1) {
                         E.dispatch(Arrow,      'bibi:hovers',   Eve);
                         E.dispatch(Arrow.Pair, 'bibi:unhovers', Eve);
-                    }
+                    //}
                     BibiEvent.Target.ownerDocument.documentElement.setAttribute('data-bibi-cursor', Dir);
                     return;
                 }
@@ -3868,7 +3870,7 @@ I.createButton = (Par = {}) => {
 I.createSubpanel = (Par = {}) => {
     if(typeof Par.className != 'string' || !Par.className) delete Par.className;
     if(typeof Par.id        != 'string' || !Par.id       ) delete Par.id;
-    const ClassNames = ['bibi-subpanel'];
+    const ClassNames = ['bibi-subpanel', 'bibi-subpanel-' + (Par.Position == 'left' ? 'left' : 'right')];
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
     const SectionsToAdd = Par.Sections instanceof Array ? Par.Sections : Par.Section ? [Par.Section] : [];
@@ -4060,7 +4062,7 @@ I.setTapAction = (Ele) => {
                 if(Ele.UIState == 'disabled') return false;
                 I.setUIState(Ele, 'active');
                 clearTimeout(Ele.Timer_deactivate);
-                Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, ''), 200);
+                Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, Ele.UIState == 'disabled' ? 'disabled' : ''), 200);
             };
         }
     })();

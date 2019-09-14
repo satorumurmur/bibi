@@ -206,11 +206,12 @@ div#bibi-veil-cover {
 		position: absolute;
 		z-index: $INVARIABLE__Veil-Cover_ZIndex;
 		left: 0;
-		top: 0;
+		bottom: 0;
 		box-sizing: border-box;
 		border: solid transparent;
 		border-width: 4px;
 		@include size(100%);
+		// @____Bibi:Dress__('-') html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
 		opacity: 0;
 		transition: opacity 0.5s linear;
 		background: transparent no-repeat center center;

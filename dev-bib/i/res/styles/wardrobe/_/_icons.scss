@@ -30,21 +30,19 @@
 // [ja] メニューバー内のアイコンすべてに適用される共通スタイル
 @mixin GENERALICON__CommonInMenu() {
 	&:before {
-		font-size: #{$Menu-Icon_Size};
+		font-size: $Menu-Icon_Size * 25/31;
 	}
 }
 
 @mixin GENERALICON__Config() {
 	&:before {
 		content: "settings";
-		font-size: 25px;
 	}
 }
 
 @mixin GENERALICON__ChangeFontSize() {
 	&:before {
 		content: "format_size";
-		font-size: 25px;
 		top: 1px;
 		text-indent: -1px;
 	}
@@ -53,7 +51,6 @@
 // [ja] ３種の拡大／縮小アイコンすべてに適用される共通スタイル
 @mixin GENERALICON__LoupeCommon() {
 	&:before {
-		font-size: 25px;
 		text-indent: 1px;
 	}
 }
@@ -86,7 +83,7 @@
 		@include size(1em);
 		font-size: 1em * (13px / 18px);
 		line-height: 1;
-		html.Windows & { @include offset(27%, auto, auto, 25%); }
+		html.macOS.Safari & { top: 16%; }
 		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
 	}
 }
@@ -98,22 +95,19 @@
 // [ja] Subpanel 内のアイコンすべてに適用される共通スタイル
 @mixin GENERALICON__CommonInSubpanels() {
 	&:before {
-		font-size: #{$Subpanel-Icon_Size};
+		font-size: $Subpanel-Icon_Size * 3/4;
 	}
 }
 
 @mixin GENERALICON__UseFullBreadth() {
 	&:before {
 		content: "settings_overscan";
-		font-size: $Subpanel-Icon_Size * .75;
 	}
 }
 
 @mixin GENERALICON__ToggleFullscreen() {
 	&:before {
 		content: "fullscreen";
-		font-size: $Subpanel-Icon_Size * 0.9;
-		top: 1px;
 		html.InternetExplorer & { top: -.05em; }
 		*:fullscreen & {
 			content: "fullscreen_exit";
@@ -124,7 +118,6 @@
 @mixin GENERALICON__OpenNewWindow() {
 	&:before {
 		content: "open_in_new";
-		font-size: $Subpanel-Icon_Size * 16/21;
 	}
 }
 

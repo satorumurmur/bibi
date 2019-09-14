@@ -25,12 +25,14 @@ html.appearance-vertical:not(.veil-opened) {
 html.book-full-height {
 	&                 div#bibi-menu { background-color: $Menu_BackgroundColor;         border-bottom-color: $Menu_BorderBottomColor; }
 	&                 div#bibi-menu.hover,
+	&.panel-opened    div#bibi-menu,
 	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover;  border-bottom-color: $Menu_BorderBottomColor__Hover; }
 	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; border-bottom-color: $Menu_BorderBottomColor__Active; box-shadow: $Menu_BoxShadow__Active; }
 }
 html:not(.book-full-height) {
 	&                 div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH;         border-bottom-color: $Menu_BorderBottomColor__NotBFH; }
 	&                 div#bibi-menu.hover,
+	&.panel-opened    div#bibi-menu,
 	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Hover;  border-bottom-color: $Menu_BorderBottomColor__NotBFH__Hover; }
 	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Active; border-bottom-color: $Menu_BorderBottomColor__NotBFH__Active; box-shadow: $Menu_BoxShadow__NotBFH__Active; }
 }

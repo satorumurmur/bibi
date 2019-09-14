@@ -6,7 +6,8 @@ div.bibi-subpanel {
 	box-sizing: border-box;
 	position: absolute;
 	z-index: $INVARIABLE__Subpanel_ZIndex;
-	// @____Bibi:Dress__('-') right: $Subpanel_Margin;
+	// @____Bibi:Dress__('-') &.bibi-subpanel-right, &:not(.bibi-subpanel-left) { right: $Subpanel_Margin; }
+	// @____Bibi:Dress__('-') &.bibi-subpanel-left { left: $Subpanel_Margin; }
 	// @____Bibi:Dress__('-') top: $Menu_Height + $Subpanel_Margin;
 	margin: auto;
 	// @____Bibi:Dress__('-') width: calc(100% - #{$Subpanel_Margin * 2});
@@ -162,7 +163,9 @@ div.bibi-subpanel {
 					text-align: right;
 					transition: .2s ease-in-out;
 				}
-				&.default {
+				&.default,
+				&.disabled,
+				&.disabled.hover {
 					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor;
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color;
 					// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
