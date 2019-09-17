@@ -177,11 +177,14 @@ div.bibi-subpanel {
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Active;
 					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Active;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Active; }
+					z-index: 2;
+				}
+				&.hover {
+					z-index: 3;
 				}
 				&.default.hover,
 				&.bibi-button-toggle.active.hover {
 					cursor: pointer;
-					z-index: 2;
 					border-style: solid;  &.bibi-button-radio { border-style: solid; }
 					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Hover;
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Hover;

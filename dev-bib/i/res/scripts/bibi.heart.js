@@ -1243,7 +1243,7 @@ R.initialize = () => {
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
             }
             if(I.OpenedSubpanel) return I.OpenedSubpanel.close();
-            return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : false;/*
+            return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : E.dispatch('bibi:tapped-not-center', Eve);/*
             switch(S.ARD) {
                 case 'ttb': return (BibiEvent.Division.Y == 'middle') ? E.dispatch('bibi:tapped-center', Eve) : false;
                 default   : return (BibiEvent.Division.X == 'center') ? E.dispatch('bibi:tapped-center', Eve) : false;
@@ -2840,6 +2840,7 @@ I.Loupe = { create: () => {
             // Tfm: Transformation
             if(!Tfm) return reject();
             if(!Opt) Opt = {};
+            Loupe.Transforming = true;
             clearTimeout(Loupe.Timer_onTransformEnd);
             O.HTML.classList.add('transforming');
             const CurrentTfm = R.Main.Transformation;
@@ -2871,6 +2872,7 @@ I.Loupe = { create: () => {
                 else if(R.Main.Transformation.Scale <  1) O.HTML.classList.remove('zoomed-in'), O.HTML.classList.add(   'zoomed-out');
                 else                                      O.HTML.classList.add(   'zoomed-in'), O.HTML.classList.remove('zoomed-out');
                 O.HTML.classList.remove('transforming');
+                Loupe.Transforming = false;
                 resolve();
                 E.dispatch('bibi:transformed-book', Tfm);
                 if(!Opt.Temporary && S['use-loupe'] && S['use-cookie']) O.Cookie.eat(O.BookURL, { Loupe: { Transformation: R.Main.Transformation } });
@@ -3344,11 +3346,11 @@ I.Slider = { create: () => {
         onopened: () => {
             O.HTML.classList.add('slider-opened');
             setTimeout(Slider.resetRailCoords, 0);
-            Slider.zoomOutBook();
+            if(S['zoom-out-on-opening-slider']) Slider.zoomOutBook();
             E.dispatch('bibi:opened-slider');
         },
         onclosed: () => {
-            Slider.resetZoomingOutOfBook().then(() => {
+            (S['zoom-out-on-opening-slider'] ? Slider.resetZoomingOutOfBook() : Promise.resolve()).then(() => {
                 if(Slider.UI.reset) Slider.UI.reset();
             });
             O.HTML.classList.remove('slider-opened');
@@ -3515,7 +3517,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         });
         E.add('bibi:opened', () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(O['pointerdown'], O.preventDefault))));
     }
-    E.add('bibi:tapped', Eve => { // try moving
+    E.add('bibi:tapped-not-center', Eve => { // try moving
         if(!L.Opened) return false;
         if(I.isPointerStealth()) return false;
         const BibiEvent = O.getBibiEvent(Eve);
@@ -3624,6 +3626,7 @@ I.SwipeListener = { create: () => {
             SwipeListener.Timer_resetWheeling = setTimeout(() => SwipeListener.PreviousWheels = [], 192);
         },
         onTouchStart: (Eve) => {
+            if(I.Loupe && I.Loupe.Transforming) return;
             const EventCoord = O.getBibiEventCoord(Eve);
             SwipeListener.TouchStartedOn = { X: EventCoord.X, Y: EventCoord.Y, T: Eve.timeStamp, SL: R.Main.scrollLeft, ST: R.Main.scrollTop };
         },
@@ -3631,21 +3634,23 @@ I.SwipeListener = { create: () => {
             if(Eve.touches.length == 1 && document.body.clientWidth / window.innerWidth <= 1) Eve.preventDefault();
         },
         onTouchEnd: (Eve) => {
-            if(!SwipeListener.TouchStartedOn) return;
-            if(SwipeListener.TouchStartedOn.SL != R.Main.scrollLeft || SwipeListener.TouchStartedOn.ST != R.Main.scrollTop) return;
-            if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - SwipeListener.TouchStartedOn.T <= 300) {
-                const EventCoord = O.getBibiEventCoord(Eve);
-                const VarX = EventCoord.X - SwipeListener.TouchStartedOn.X;
-                const VarY = EventCoord.Y - SwipeListener.TouchStartedOn.Y;
-                if(Math.sqrt(Math.pow(VarX, 2) + Math.pow(VarY, 2)) >= 10) {
-                    const Deg = Math.atan2((VarY ? VarY * -1 : 0), VarX) * 180 / Math.PI;
-                    let From = '', To = '';
-                         if( 120 >= Deg && Deg >=   60) From = 'bottom', To = 'top';
-                    else if(  30 >= Deg && Deg >=  -30) From = 'left',   To = 'right';
-                    else if( -60 >= Deg && Deg >= -120) From = 'top',    To = 'bottom';
-                    else if(-150 >= Deg || Deg >=  150) From = 'right',  To = 'left';
-                    if(I.Turner.isAbleToTurn({ Direction: From })) {
-                        R.moveBy({ Distance: I.Turner[From].Distance });
+            if(I.Loupe && I.Loupe.Transforming) return;
+            if(SwipeListener.TouchStartedOn) {
+                if(SwipeListener.TouchStartedOn.SL != R.Main.scrollLeft || SwipeListener.TouchStartedOn.ST != R.Main.scrollTop) return;
+                if(document.body.clientWidth / window.innerWidth <= 1 && Eve.timeStamp - SwipeListener.TouchStartedOn.T <= 300) {
+                    const EventCoord = O.getBibiEventCoord(Eve);
+                    const VarX = EventCoord.X - SwipeListener.TouchStartedOn.X;
+                    const VarY = EventCoord.Y - SwipeListener.TouchStartedOn.Y;
+                    if(Math.sqrt(Math.pow(VarX, 2) + Math.pow(VarY, 2)) >= 10) {
+                        const Deg = Math.atan2((VarY ? VarY * -1 : 0), VarX) * 180 / Math.PI;
+                        let From = '', To = '';
+                             if( 120 >= Deg && Deg >=   60) From = 'bottom', To = 'top';
+                        else if(  30 >= Deg && Deg >=  -30) From = 'left',   To = 'right';
+                        else if( -60 >= Deg && Deg >= -120) From = 'top',    To = 'bottom';
+                        else if(-150 >= Deg || Deg >=  150) From = 'right',  To = 'left';
+                        if(I.Turner.isAbleToTurn({ Direction: From })) {
+                            R.moveBy({ Distance: I.Turner[From].Distance });
+                        }
                     }
                 }
             }
@@ -5078,7 +5083,8 @@ O.SettingTypes = {
         'use-keys',
         'use-loupe',
         'use-menubar',
-        'use-nombre'
+        'use-nombre',
+        'zoom-out-on-opening-slider'
     ],
     'string': [
         'slider-mode'

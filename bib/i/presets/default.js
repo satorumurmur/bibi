@@ -49,6 +49,8 @@ Bibi.preset({
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
 
+"zoom-out-on-opening-slider"   : "yes",
+
 "orientation-border-ratio"     : 1 * 2 / 1.5, // Number (Width per Height)
 
 "base-font-size"               : "auto", // Number of pixel or "auto"
