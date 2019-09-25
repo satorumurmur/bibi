@@ -33,7 +33,9 @@ const Config = {
     })({}, {
         'bib/i': 'js',
         'bib/i/res/scripts/bibi': 'js',
-        'bib/i/res/scripts/bibi.polyfills': 'js',
+        'bib/i/res/scripts/polyfills/bundle': 'js',
+        'bib/i/res/scripts/polyfills/encoding': 'js',
+        'bib/i/res/scripts/polyfills/intersection-observer': 'js',
         'bib/i/extensions/analytics/index': 'js',
         'bib/i/extensions/epubcfi/index': 'js',
         'bib/i/extensions/unaccessibilizer/index': 'js',
