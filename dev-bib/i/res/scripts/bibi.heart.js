@@ -1800,8 +1800,9 @@ R.onResize = (Eve) => {
     if(!L.Opened) return;
     if(!R.Resizing) {
         R.Resizing = true;
-        R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
-        R.Main.style.visibility = 'hidden';
+        //R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
+        //R.onResize.TargetPageAfterResizing = R.Current.List && R.Current.List[0] && R.Current.List[0].Page ? R.Current.List[0].Page : R.IntersectingPages[0];
+        R.onResize.TargetPageAfterResizing = R.Current.List[0].Page;
         ////////R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
         O.HTML.classList.add('busy');
@@ -1810,12 +1811,12 @@ R.onResize = (Eve) => {
     clearTimeout(R.Timer_onResizeEnd);
     R.Timer_onResizeEnd = setTimeout(() => {
         R.updateOrientation();
-        const CurrentPage = R.FirstIntersectingPageBeforeResizing;
+        const TargetPage = R.onResize.TargetPageAfterResizing, TargetSpread = TargetPage.Spread;
         R.layOut({
             Reset: true,
             Destination: {
-                SpreadIndex: CurrentPage.Spread.Index,
-                PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
+                SpreadIndex: TargetSpread.Index,
+                PageProgressInSpread: TargetPage.IndexInSpread / TargetSpread.Pages.length
             }
         }).then(() => {
             E.dispatch('bibi:resized', Eve);
@@ -1823,11 +1824,10 @@ R.onResize = (Eve) => {
             O.HTML.classList.remove('busy');
             O.Busy = false;
             ////////R.Main.addEventListener('scroll', R.onScroll);
-            R.Main.style.visibility = '';
             //R.onScroll();
             R.Resizing = false;
         });
-    }, O.Touch ? 444 : 222);
+    }, sML.UA.Trident ? 1200 : O.Touch ? 600 : 300);
 };
 
 
@@ -1872,6 +1872,7 @@ R.changeView = (Par) => {
         E.dispatch('bibi:changes-view');
         O.Busy = true;
         O.HTML.classList.add('busy');
+        O.HTML.classList.add('changing-view');
         setTimeout(() => {
             //if(Par.Mode != 'paged') R.Spreads.forEach(Spread => Spread.style.opacity = '');
             R.layOut({
@@ -1880,6 +1881,7 @@ R.changeView = (Par) => {
                     'reader-view-mode': Par.Mode
                 }
             }).then(() => {
+                O.HTML.classList.remove('changing-view');
                 O.HTML.classList.remove('busy');
                 O.Busy = false;
                 setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
@@ -1917,42 +1919,48 @@ R.updateCurrent = () => {
 
     R.updateCurrent.getList = () => {
         if(!R.IntersectingPages.length) return null;
-        let List = [];
+        let List = [], List_SpreadContained = [];
         const FirstIndex = sML.limitMin(R.IntersectingPages[                             0].Index - 2,                  0);
         const  LastIndex = sML.limitMax(R.IntersectingPages[R.IntersectingPages.length - 1].Index + 2, R.Pages.length - 1);
-        for(let BiggestIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
-            const PageCoord = sML.getCoord(Page);
-            const D = C.L_AXIS_D, L = C.L_SIZE_L;
-            const LengthInside = Math.min(R.Current.Frame.After * D, PageCoord[C.L_BASE_A] * D) - Math.max(R.Current.Frame.Before * D, PageCoord[C.L_BASE_B] * D);
-            const IntersectionRatio = (LengthInside <= 0 || !PageCoord[L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[L] * 100);
-            if(IntersectionRatio <= 0) {
+        for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
+            const PageIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page, 'WithDetail');
+            if(!PageIntersectionStatus || PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
                 if(List.length) break;
             } else {
-                const Current = {
-                    Page: Page,
-                    IntersectionRatio: IntersectionRatio,
-                    IntersectionStatus: R.updateCurrent.getIntersectionStatus(IntersectionRatio, PageCoord)
-                };
-                     if(IntersectionRatio >  BiggestIntersectionRatio) List  =  [Current], BiggestIntersectionRatio = IntersectionRatio;
-                else if(IntersectionRatio == BiggestIntersectionRatio) List.push(Current);
+                const Current = { Page: Page, PageIntersectionStatus: PageIntersectionStatus };
+                if(List.length) {
+                    const Prev = List[List.length - 1];
+                    if(Prev.Page.Item   == Page.Item  )   Current.ItemIntersectionStatus =   Prev.ItemIntersectionStatus;
+                    if(Prev.Page.Spread == Page.Spread) Current.SpreadIntersectionStatus = Prev.SpreadIntersectionStatus;
+                }
+                if(  !Current.ItemIntersectionStatus)   Current.ItemIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Item.Box); // Item is scaled.
+                if(!Current.SpreadIntersectionStatus) Current.SpreadIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Spread);   // SpreadBox has margin.
+                if(Current.SpreadIntersectionStatus.Ratio == 1) List_SpreadContained.push(Current);
+                if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [Current], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
+                else                                                            List.push(Current);
             }
         }
-        return List.length ? List : null;
+        return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
     };
 
-    R.updateCurrent.getIntersectionStatus = (PageRatio, PageCoord) => {
-        const IntersectionStatus = {};
-        if(PageRatio >= 100) {
-            IntersectionStatus.Contained = true;
-        } else {
-            const D = C.L_AXIS_D, L = C.L_SIZE_L;
-            const FC_B = R.Current.Frame.Before * D, FC_A = R.Current.Frame.After * D;
-            const PC_B = PageCoord[C.L_BASE_B]  * D, PC_A = PageCoord[C.L_BASE_A] * D;
-                 if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
-            else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
-            else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
-            else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
-            if(R.Main['offset' + L] < PageCoord[L]) IntersectionStatus.Oversize = true;
+    R.updateCurrent.getIntersectionStatus = (Ele, WithDetail) => {
+        const Coord = sML.getCoord(Ele), B = C.L_BASE_B, A = C.L_BASE_A, L = C.L_SIZE_L, D = C.L_AXIS_D;
+        const LengthInside = Math.min(R.Current.Frame.After * D, Coord[A] * D) - Math.max(R.Current.Frame.Before * D, Coord[B] * D);
+        const Ratio = (LengthInside <= 0 || !Coord[L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[L];
+        if(Ratio <= 0) return null;
+        const IntersectionStatus = { Ratio: Ratio };
+        if(WithDetail) {
+            if(Ratio >= 1) {
+                IntersectionStatus.Contained = true;
+            } else {
+                const FC_B = R.Current.Frame.Before * D, FC_A = R.Current.Frame.After * D;
+                const PC_B = Coord[C.L_BASE_B]      * D, PC_A = Coord[C.L_BASE_A]     * D;
+                     if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
+                else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
+                else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
+                else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
+                if(R.Main['offset' + L] < Coord[L]) IntersectionStatus.Oversize = true;
+            }
         }
         return IntersectionStatus;
     };
@@ -2132,33 +2140,31 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
     Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
-    const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0];
-    const CurrentPage = Current.Page;
+    const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
     let Promised = {};
     if(
         R.Columned ||
         S.BRL == 'pre-paginated' ||
-        CurrentPage.Item.Ref['rendition:layout'] == 'pre-paginated' ||
-        CurrentPage.Item.Outsourcing ||
-        CurrentPage.Item.Pages.length == 1 ||
+        CurrentItem.Ref['rendition:layout'] == 'pre-paginated' ||
+        CurrentItem.Outsourcing ||
+        CurrentItem.Pages.length == 1 ||
         (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
-        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
+        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentItem.Pages.length - 1)
     ) {
         let Side = Par.Distance > 0 ? 'before' : 'after';
-        const CurrentIntersectionStatus = Current.IntersectionStatus;
-        if(CurrentIntersectionStatus.Oversize) {
+        if(Current.PageIntersectionStatus.Oversize) {
             if(Par.Distance > 0) {
-                     if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
-                else if(CurrentIntersectionStatus.Headed  ) Par.Distance = 0, Side = 'after';
+                     if(Current.PageIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
+                else if(Current.PageIntersectionStatus.Headed  ) Par.Distance = 0, Side = 'after';
             } else {
-                     if(CurrentIntersectionStatus.Footed  ) Par.Distance = 0, Side = 'before';
-                else if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
+                     if(Current.PageIntersectionStatus.Footed  ) Par.Distance = 0, Side = 'before';
+                else if(Current.PageIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         } else {
             if(Par.Distance > 0) {
-                if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
+                if(Current.PageIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
             } else {
-                if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
+                if(Current.PageIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         }
         let DestinationPageIndex = CurrentPage.Index + Par.Distance;
@@ -3427,7 +3433,7 @@ I.Turner = { create: () => {
                     }
                     if(L.Opened && (
                         CurrentEdge.Page != BookEdgePage
-                        || (!CurrentEdge.IntersectionStatus.Contained && !CurrentEdge.IntersectionStatus[Edged])
+                        || (!CurrentEdge.PageIntersectionStatus.Contained && !CurrentEdge.PageIntersectionStatus[Edged])
                     )) {
                         switch(Par.Direction) {
                             case 'left': case  'right': return S.ARA == 'horizontal' ? 1 : -1;
