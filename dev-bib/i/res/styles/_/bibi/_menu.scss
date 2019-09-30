@@ -11,7 +11,7 @@ div#bibi-menu {
 	left: 0;
 	right: 0;
 	margin: 0;
-	border-bottom: solid 1px transparent;
+	html.appearance-vertical:not(.veil-opened):not(.slider-opened) & { padding-right: 0; } // TO BE OVERWRITTEN
 	// @____Bibi:Dress__('-') height: $Menu_Height;
 	width: 100%;
 	background: transparent;
@@ -20,45 +20,24 @@ div#bibi-menu {
 	}
 	// @____Bibi:Dress__('-') .bibi-icon { @include size($Menu-Icon_Size); }
 }
-html.appearance-vertical:not(.veil-opened) {
-	&:not(.slider-opened) {
-		&,
-		&.panel-opened,
-		&.subpanel-opened {
-			div#bibi-menu { width: 100%; } // TO BE OVERWRITTEN
-		}
-	}
-	&.slider-opened {
-		& {
-			div#bibi-menu {
-				// @____Bibi:Dress__('-') width: calc(100% - #{$Slider_Size});
-			}
-		}
-		&.panel-opened,
-		&.subpanel-opened {
-			div#bibi-menu {
-				width: 100%;
-				// @____Bibi:Dress__('-') padding-right: $Slider_Size;
-			}
-		}
-	}
-}
 html.without-menubar,
 html.waiting-file {
 	div#bibi-menu { display: none !important; }
 }
 /* @____Bibi:Dress__('-') {
 html.book-full-height {
-	&                 div#bibi-menu { background-color: $Menu_BackgroundColor;         border-bottom-color: $Menu_BorderBottomColor; }
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor; }
 	&                 div#bibi-menu.hover,
-	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover;  border-bottom-color: $Menu_BorderBottomColor__Hover; }
-	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; border-bottom-color: $Menu_BorderBottomColor__Active; box-shadow: $Menu_BoxShadow__Active; }
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; box-shadow: $Menu_BoxShadow__Active; }
 }
 html:not(.book-full-height) {
-	&                 div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH;         border-bottom-color: $Menu_BorderBottomColor__NotBFH; }
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH; }
 	&                 div#bibi-menu.hover,
-	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Hover;  border-bottom-color: $Menu_BorderBottomColor__NotBFH__Hover; }
-	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Active; border-bottom-color: $Menu_BorderBottomColor__NotBFH__Active; box-shadow: $Menu_BoxShadow__NotBFH__Active; }
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Active; box-shadow: $Menu_BoxShadow__NotBFH__Active; }
 }
 // } */
 
@@ -82,7 +61,7 @@ div#bibi-menu-r {
 		justify-content: flex-start;
 		align-items: start;
 		position: relative;
-		// @____Bibi:Dress__('-') padding: $Menu-ButtonGroup_Margin;
+		// @____Bibi:Dress__('-') padding: $Menu-ButtonGroup_Padding;
 		// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
 		&, &.sticky { opacity: 0; }
 		&:before {
@@ -91,7 +70,7 @@ div#bibi-menu-r {
 			position: absolute;
 			// @____Bibi:Dress__('-') width: $Menu-ButtonGroup-Separator_Width;
 			// @____Bibi:Dress__('-') background: $Menu-ButtonGroup-Separator_Color;
-			// @____Bibi:Dress__('-') top: $Menu-ButtonGroup_Margin;
+			// @____Bibi:Dress__('-') top: $Menu-ButtonGroup_Padding;
 			// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
 		}
 		li {
@@ -134,11 +113,11 @@ div#bibi-menu-l {
 	ul {
 		flex-direction: row;
 		&:first-child {
-			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Margin;
+			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Padding;
 			&:before { display: none; }
 		}
 		&:not(:first-child) {
-			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
+			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width;
 			&:before { left: 0; }
 		}
 		li {
@@ -177,11 +156,11 @@ div#bibi-menu-r {
 	ul {
 		flex-direction: row-reverse;
 		&:first-child {
-			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Margin;
+			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Padding;
 			&:before { display: none; }
 		}
 		&:not(:first-child) {
-			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Margin + $Menu-ButtonGroup-Separator_Width;
+			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width;
 			&:before { right: 0; }
 		}
 		li {

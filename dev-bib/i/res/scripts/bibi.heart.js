@@ -471,6 +471,7 @@ L.wait = () => {
 L.play = () => {
     if(S['start-in-new-window']) return window.open(location.href);
     L.Played = true;
+    R.resetStage();
     L.wait.resolve();
     E.dispatch('bibi:played');
 };
@@ -789,15 +790,15 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
 
 
 L.createCover = () => {
-    const VCover =                I.Veil.Cover =                    I.Veil.appendChild(sML.create('div', { id:           'bibi-veil-cover'      }));
-          VCover.Info =                                             VCover.appendChild(sML.create('p',   { id:           'bibi-veil-cover-info' }));
-    const PCover = I.Menu.Panel.BookInfo.Cover = I.Menu.Panel.BookInfo.Box.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
-          PCover.Info =                                             PCover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
+    const VCover =                I.Veil.Cover =                I.Veil.appendChild(sML.create('div', { id:           'bibi-veil-cover'      }));
+          VCover.Info =                                         VCover.appendChild(sML.create('p',   { id:           'bibi-veil-cover-info' }));
+    const PCover = I.Menu.Panel.BookInfo.Cover = I.Menu.Panel.BookInfo.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
+          PCover.Info =                                         PCover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
     VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
-        if(B.Title)     BookID.push(`<strong>${ B.Title     }</strong>`);
-        if(B.Creator)   BookID.push(    `<em>${ B.Creator   }</em>`    );
-        if(B.Publisher) BookID.push(  `<span>${ B.Publisher }</span>`  );
+        if(B.Title)     BookID.push(`<strong>${ L.createCover.optimizeString(B.Title)     }</strong>`);
+        if(B.Creator)   BookID.push(    `<em>${ L.createCover.optimizeString(B.Creator)   }</em>`    );
+        if(B.Publisher) BookID.push(  `<span>${ L.createCover.optimizeString(B.Publisher) }</span>`  );
         return BookID.join(' ');
     })();
     new Promise((resolve, reject) => {
@@ -818,10 +819,13 @@ L.createCover = () => {
         VCover.appendChild(I.getBookIcon());
     });
 };
+    L.createCover.optimizeString = (Str) => `<span>` + Str.replace(
+        /([　・／]+)/g, '</span><span>$1'
+    ) + `</span>`;
 
 
 L.loadNavigation = () => O.openDocument(B.NavItem).then(Doc => {
-    const PNav = I.Menu.Panel.BookInfo.Navigation = I.Menu.Panel.BookInfo.Box.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }));
+    const PNav = I.Menu.Panel.BookInfo.Navigation = I.Menu.Panel.BookInfo.insertBefore(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }), I.Menu.Panel.BookInfo.firstElementChild);
     PNav.innerHTML = '';
     const NavContent = document.createDocumentFragment();
     if(B.NavItem.NavType == 'Navigation Document') {
@@ -2434,11 +2438,7 @@ I.Menu = { create: () => {
     });
     sML.appendCSSRule([ // Optimize to Scrollbar Size
         'html.appearance-vertical:not(.veil-opened):not(.slider-opened) div#bibi-menu'
-    ].join(', '), 'width: calc(100% - ' + (O.Scrollbars.Width) + 'px);');
-    sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).panel-opened div#bibi-menu',
-        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).subpanel-opened div#bibi-menu'
-    ].join(', '), 'width: 100%; padding-right: ' + (O.Scrollbars.Width) + 'px;');
+    ].join(', '), 'padding-right: ' + O.Scrollbars.Width + 'px;');
     I.OpenedSubpanel = null;
     I.Subpanels = [];
     Menu.Panel.create();
@@ -2457,15 +2457,15 @@ I.Menu = { create: () => {
         E.add('bibi:commands:close-panel',  Panel.close);
         E.add('bibi:commands:toggle-panel', Panel.toggle);
         E.add('bibi:closes-utilities',      Panel.close);
+        /*
         Panel.Labels = {
             default: { default: `Opoen this Index`, ja: `この目次を開く`   },
             active:  { default: `Close this Index`, ja: `この目次を閉じる` }
         };
+        */
         I.setFeedback(Panel, { StopPropagation: true });
         Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
-        sML.appendCSSRule('html.page-rtl div#bibi-panel:after', 'bottom: ' + (O.Scrollbars.Height) + 'px;'); // Optimize to Scrollbar Size
-        Panel.BookInfo     = Panel.appendChild(         sML.create('div', { id: 'bibi-panel-bookinfo'     }));
-        Panel.BookInfo.Box = Panel.BookInfo.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-box' }));
+        Panel.BookInfo = Panel.appendChild(         sML.create('div', { id: 'bibi-panel-bookinfo'     }));
         const Opener = Panel.Opener = Menu.L.addButtonGroup({ Sticky: true }).addButton({
             Type: 'toggle',
             Labels: {
@@ -2479,6 +2479,7 @@ I.Menu = { create: () => {
         E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
         E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
         E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+        //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
         E.dispatch('bibi:created-panel');
     }};
 
@@ -2656,21 +2657,23 @@ I.Help = { create: () => {
             Help.Timer_deactivate2 = setTimeout(() => Help.classList.remove('active'), 200);
         }, 100);
     };
+    /*
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-paged div#bibi-help',
-        'html.view-horizontal div#bibi-help',
+        'html.appearance-horizontal div#bibi-help',
         'html.page-rtl.panel-opened div#bibi-help'
     ].join(', '), 'bottom: ' + (O.Scrollbars.Height) + 'px;');
+    */
 }};
 
 
 I.PoweredBy = { create: () => {
     const PoweredBy = I.PoweredBy = O.Body.appendChild(sML.create('div', { id: 'bibi-poweredby', innerHTML: `<p><a href="${ Bibi['href'] }" target="_blank" title="BiB/i | Official Website">BiB/i</a></p>` }));
+    /*
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-paged div#bibi-poweredby',
-        'html.view-horizontal div#bibi-poweredby',
+        'html.appearance-horizontal div#bibi-poweredby',
         'html.page-rtl.panel-opened div#bibi-poweredby'
     ].join(', '), 'bottom: ' + (O.Scrollbars.Height) + 'px;');
+    */
 }};
 
 
@@ -4029,13 +4032,13 @@ I.observeTap = (Ele, Opt) => {
             E.add(Ele, 'bibi:' + EN, Eve => Fun.call(Ele, Eve));
             return Ele;
         };
-        Ele.onBibiTap = (On, Eve) => {
-            if(On) {
+        Ele.onBibiTap = (Eve, State) => {
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
+            if(State == 'down') {
                 clearTimeout(Ele.Timer_tap);
                 Ele.TouchStart = { Time: Date.now(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
                 Ele.Timer_tap = setTimeout(() => delete Ele.TouchStart, 333);
-                if(Opt.PreventDefault)  Eve.preventDefault();
-                if(Opt.StopPropagation) Eve.stopPropagation();
             } else {
                 if(Ele.TouchStart) {
                     if((Date.now() - Ele.TouchStart.Time) < 300) {
@@ -4047,12 +4050,10 @@ I.observeTap = (Ele, Opt) => {
                     }
                     delete Ele.TouchStart;
                 }
-                if(Opt.PreventDefault)  Eve.preventDefault();
-                if(Opt.StopPropagation) Eve.stopPropagation();
             }
         };
-        Ele.addEventListener(O['pointerdown'], Eve => Ele.onBibiTap(true,  Eve));
-        Ele.addEventListener(O['pointerup'],   Eve => Ele.onBibiTap(false, Eve));
+        Ele.addEventListener(O['pointerdown'], Eve => Ele.onBibiTap(Eve, 'down'));
+        Ele.addEventListener(O['pointerup'],   Eve => Ele.onBibiTap(Eve, 'up'  ));
     }
     return Ele;
 };
@@ -4420,7 +4421,7 @@ S.initialize = () => {
 
 
 S.update = (Settings) => {
-    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA;
+    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA, PrevNLD = S.NLD;
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
     S.BRL = S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
     S.BWM = S['book-writing-mode'] = B.WritingMode;
@@ -4436,9 +4437,10 @@ S.update = (Settings) => {
         case 'rl-tb': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
         default     : S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
     }   else          S.PPD = S['page-progression-direction'] = B.PPD, S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM;
-    S.SLD = S['spread-layout-direction']    = (S.SLA == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARD = S['apparent-reading-direction'] = (S.RVM == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARA = S['apparent-reading-axis']      = (S.RVM == 'paged'   ) ? 'horizontal' : S.RVM;
+    S.SLD = S['spread-layout-direction']     = (S.SLA == 'vertical') ? 'ttb'        : S.PPD;
+    S.ARD = S['apparent-reading-direction']  = (S.RVM == 'vertical') ? 'ttb'        : S.PPD;
+    S.ARA = S['apparent-reading-axis']       = (S.RVM == 'paged'   ) ? 'horizontal' : S.RVM;
+    S.NLD = S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S.PPD != 'rtl') ? 'ttb' : 'rtl';
     if(PrevBRL != S.BRL) sML.replaceClass(O.HTML, 'book-'       + PrevBRL, 'book-'       + S.BRL);
     if(PrevRVM != S.RVM) sML.replaceClass(O.HTML, 'view-'       + PrevRVM, 'view-'       + S.RVM);
     if(PrevPPD != S.PPD) sML.replaceClass(O.HTML, 'page-'       + PrevPPD, 'page-'       + S.PPD);
@@ -4446,6 +4448,7 @@ S.update = (Settings) => {
     if(PrevSLD != S.SLD) sML.replaceClass(O.HTML, 'spread-'     + PrevSLD, 'spread-'     + S.SLD);
     if(PrevARD != S.ARD) sML.replaceClass(O.HTML, 'appearance-' + PrevARD, 'appearance-' + S.ARD);
     if(PrevARA != S.ARA) sML.replaceClass(O.HTML, 'appearance-' + PrevARA, 'appearance-' + S.ARA);
+    if(PrevNLD != S.NLD) sML.replaceClass(O.HTML, 'nav-'        + PrevNLD, 'nav-'        + S.NLD);
     C.update();
     E.dispatch('bibi:updated-settings', S);
 };
@@ -5032,8 +5035,7 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
 };
 
 
-O.getOrigin = (Win) => {
-    const Loc = (Win ? Win : window).location;
+O.getOrigin = (Win = window) => { const Loc = Win.location;
     return Loc.origin || Loc.protocol + '//' + (Loc.host || Loc.hostname + (Loc.port ? ':' + Loc.port : ''));
 };
 
@@ -5079,6 +5081,7 @@ O.SettingTypes = {
         'allow-placeholders',
         'autostart',
         'autostart-embedded',
+        'fix-nav-ttb',
         'fix-reader-view-mode',
         'place-menubar-at-top',
         'single-page-always',

@@ -8,7 +8,7 @@ div.bibi-arrow {
 		&:before { @include Arrow-Icon(); }
 	}
 	html.appearance-horizontal & {
-		&:after { width: $Arrow-Bar_Length; } // ←→
+		&:after { width: $Arrow-Bar_Width; } // ←→
 	}
 	html.appearance-horizontal.book-full-height.slider-opened &,
 	html.appearance-horizontal:not(.book-full-height) & {
@@ -22,7 +22,7 @@ div.bibi-arrow {
 		height: calc(100vh - #{$Menu_Height + $Slider_Size});
 	}
 	html.appearance-vertical & {
-		&:after { height: $Arrow-Bar_Length; } // ↑↓
+		&:after { height: $Arrow-Bar_Width; } // ↑↓
 	}
 	html.appearance-vertical.slider-opened & {
 		width: calc(100vw - #{$Slider_Size});

@@ -2,8 +2,8 @@
 // + Arrows
 // --------------------------------------------------------------------------------
 
-$Arrow-Bar_Length: $Menu_Height;
-$Arrow-Icon_Size: $Arrow-Bar_Length;
+$Arrow-Bar_Width: 40px;
+$Arrow-Icon_Size: $Arrow-Bar_Width;
 
 @mixin Arrow-Icon() { // [NOTE] It is for `::before` pseudo element.
 	display: block;
@@ -22,21 +22,21 @@ $Arrow-Icon_Size: $Arrow-Bar_Length;
 }
 
 @mixin Arrow-Icon-L() { // [NOTE] It extends Arrow-Icon() for the left direction. You can use an image instead of a font using `content` or `background`.
-	content: "\e5cb"; // chevron_left
+	content: "chevron_left";
 	text-indent: -.03em;
 }
 
 @mixin Arrow-Icon-R() { // [NOTE] It extends Arrow-Icon() for the right direction. You can use an image instead of a font using `content` or `background`.
-	content: "\e5cc"; // chevron_right
+	content: "chevron_right";
 	text-indent:.03em;
 }
 
 @mixin Arrow-Icon-T() { // [NOTE] It extends Arrow-Icon() for the top direction. You can use an image instead of a font using `content` or `background`.
-	content: "\e5ce"; // expand_less
+	content: "expand_less";
 	line-height: $Arrow-Icon_Size * .97;
 }
 
 @mixin Arrow-Icon-B() { // [NOTE] It extends Arrow-Icon() for the bottom direction. You can use an image instead of a font using `content` or `background`.
-	content: "\e5cf"; // expand_more
+	content: "expand_more";
 	line-height: $Arrow-Icon_Size * 1.03;
 }

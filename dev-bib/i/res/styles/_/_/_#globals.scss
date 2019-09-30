@@ -86,34 +86,31 @@ $INVARIABLE__Scrollbar_ZIndex: $INVARIABLE__Main_ZIndex + 1;
 
 $INVARIABLE__Sub_ZIndex: 10;
 
-//$INVARIABLE__Shade_ZIndex: $INVARIABLE__Sub_ZIndex + 1;
-
-$INVARIABLE__Slider_ZIndex: 100;
-$INVARIABLE__Nombre_ZIndex: $INVARIABLE__Slider_ZIndex + 1;
-
-$INVARIABLE__Veil_ZIndex: 1000;
-	$INVARIABLE__Veil-BottomBar_ZIndex: 1;
-	$INVARIABLE__Veil-Cover_ZIndex: 10;
-	$INVARIABLE__Veil-Play_ZIndex: 100;
-	$INVARIABLE__Veil-ByeBye_ZIndex: 1000;
+$INVARIABLE__Veil_ZIndex: 100;
+	$INVARIABLE__Veil-Cover_ZIndex: 1;
+	$INVARIABLE__Veil-Play_ZIndex: 10;
+	$INVARIABLE__Veil-ByeBye_ZIndex: 100;
 
 $INVARIABLE__Catcher_ZIndex: $INVARIABLE__Veil_ZIndex + 1;
 
-$INVARIABLE__Panel_ZIndex: 10000;
-	$INVARIABLE__Panel-BookInfo_ZIndex: 1;
-	$INVARIABLE__Panel-BottomBar_ZIndex: $INVARIABLE__Panel-BookInfo_ZIndex + 1;
-	$INVARIABLE__Panel-TopBar_ZIndex: 1000;
+$INVARIABLE__Panel_ZIndex: 1000;
 
-$INVARIABLE__Help_ZIndex: $INVARIABLE__Panel_ZIndex + 1;
-$INVARIABLE__PoweredBy_ZIndex: $INVARIABLE__Panel_ZIndex + 1;
+$INVARIABLE__Menu_ZIndex: 10000;
 
-$INVARIABLE__Menu_ZIndex: 100000;
-$INVARIABLE__Subpanel_ZIndex: $INVARIABLE__Menu_ZIndex + 1;
+$INVARIABLE__Slider_ZIndex: 100000;
+$INVARIABLE__Nombre_ZIndex: $INVARIABLE__Slider_ZIndex + 1;
+
+$INVARIABLE__Subpanel_ZIndex: $INVARIABLE__Slider_ZIndex + 1;
 
 $INVARIABLE__Arrow_ZIndex: $INVARIABLE__Menu_ZIndex + 1;
 
-$INVARIABLE__Notifier_ZIndex: 99999999999;
-$INVARIABLE__Spinner_ZIndex: $INVARIABLE__Notifier_ZIndex - 1;
+$INVARIABLE__PoweredBy_ZIndex: 1000000;
+
+$INVARIABLE__Help_ZIndex: 10000000;
+
+$INVARIABLE__Notifier_ZIndex: 100000000;
+
+$INVARIABLE__Spinner_ZIndex: 99999999999;
 
 
 // - MixIns for Colors & Interaction

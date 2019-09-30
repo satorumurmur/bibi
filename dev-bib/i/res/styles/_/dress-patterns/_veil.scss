@@ -6,10 +6,6 @@
 div#bibi-veil {
 	color: $Veil_Color;
 	background: $Veil_Background;
-	&:after { // BottomBar
-		height: $Veil-BottomBar_Height;
-		background: $Veil-BottomBar_Background;
-	}
 }
 
 
@@ -17,7 +13,7 @@ div#bibi-veil {
 // --------------------------------------------------------------------------------
 
 p#bibi-veil-byebye {
-	max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $Veil-BottomBar_Height });
+	max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $PoweredBy_Height });
 	color: $Veil-ByeBye_Color;
 	background: $Veil-ByeBye_Background;
 }
@@ -36,7 +32,13 @@ p#bibi-veil-play {
 // --------------------------------------------------------------------------------
 
 div#bibi-veil-cover {
-	html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
+	bottom: $PoweredBy_Height;
+	html.book-full-height & {
+		height: calc(100% - #{                $PoweredBy_Height });
+	}
+	html:not(.book-full-height) & {
+		height: calc(100% - #{ $Menu_Height + $PoweredBy_Height });
+	}
 }
 
 
@@ -49,12 +51,12 @@ div#bibi-catcher {
 		border-radius: $SCOPED__Catcher-Area_Margin;
 		@include size(
 			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
-			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $Veil-BottomBar_Height})
+			calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $PoweredBy_Height})
 		);
 		@include max(768px) { @include size(
 			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
-			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $Veil-BottomBar_Height})
+			calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $PoweredBy_Height})
 		); }
-		transform: translateY(#{$Veil-BottomBar_Height * -0.5});
+		transform: translateY(#{$PoweredBy_Height * -0.5});
 	}
 }

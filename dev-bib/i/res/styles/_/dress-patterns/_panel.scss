@@ -5,11 +5,6 @@
 
 div#bibi-panel {
 	background: $Panel_Background;
-	&:after { // BottomBar
-		height: $Panel-BottomBar_Height;
-		border-color: $Panel-BottomBar_BorderTopColor;
-		background: $Panel-BottomBar_Background;
-	}
 }
 
 
@@ -17,11 +12,12 @@ div#bibi-panel {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo {
+	margin-top: $Menu_Height;
+	margin-bottom: $PoweredBy_Height;
+	height: calc(100% - #{$Menu_Height + $PoweredBy_Height});
+	html.nav-ttb & { padding: $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter $Panel_PaddingStart; }
+	html.nav-rtl & { padding: $Panel_PaddingStart $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter; }
 }
-	div#bibi-panel-bookinfo-box {
-		margin-top: $Menu_Height;
-		height: calc(100% - #{$Panel-BottomBar_Height});
-	}
 
 
 // . Navigation
@@ -45,8 +41,23 @@ div#bibi-panel-bookinfo-navigation {
 // --------------------------------------------------------------------------------
 
 div#bibi-panel-bookinfo-cover {
-	border-color: $Panel-Cover_BorderColor;
-	p#bibi-panel-bookinfo-cover-info {
-		color: $Panel-Cover-Info_Color;
+	& {
+		border-color: $Panel-Cover_BorderColor;
+		img {
+			max-height: calc(#{ 100vh * 0.6 } - #{ ($Menu_Height + $Panel_PaddingBefore + $Panel_PaddingAfter + $PoweredBy_Height) * 0.6 });
+		}
+		p#bibi-panel-bookinfo-cover-info {
+			color: $Panel-Cover-Info_Color;
+		}
+	}
+	html.nav-ttb & {
+		margin-top: $Panel-Cover_MarginBefore;
+		padding-top: $Panel-Cover_PaddingBefore;
+		max-width: calc(100vw - #{$Panel_PaddingStart + $Panel_PaddingEnd});
+	}
+	html.nav-rtl & {
+		margin-right: $Panel-Cover_MarginBefore;
+		padding-right: $Panel-Cover_PaddingBefore;
+		max-width: calc(100vw - #{$Panel_PaddingAfter * 2});
 	}
 }

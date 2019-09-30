@@ -8,28 +8,19 @@ div#bibi-help {
 	display: none;
 	position: absolute;
 	z-index: $INVARIABLE__Help_ZIndex;
+	@include offset(auto, auto, 0, 0);
 	margin: 0;
 	padding: 0 8px 0 56px;
 	width: 100%;
-	left: 0;
-	bottom: 0;
 	opacity: 0;
 	transition: .2s linear;
-	html.veil-opened &,
-	html.panel-opened &,
-	html.subpanel-opened & {
-		bottom: 0 !important;
-	}
+	bottom: 0;
 	// @____Bibi:Dress__('-') border-top: $Help_BorderTop;
 	// @____Bibi:Dress__('-') height: $Help_Height;
 	// @____Bibi:Dress__('-') background: $Help_Background;
 	// @____Bibi:Dress__('-') html.slider-opened.view-paged &,
 	// @____Bibi:Dress__('-') html.slider-opened.view-horizontal & {
 	// @____Bibi:Dress__('-') 	bottom: $Slider_Size !important;
-	// @____Bibi:Dress__('-') }
-	// @____Bibi:Dress__('-') html.view-horizontal &,
-	// @____Bibi:Dress__('-') html.page-rtl.panel-opened & {
-	bottom: $TEMPORARY__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
 	// @____Bibi:Dress__('-') }
 	p {
 		text-align: center;

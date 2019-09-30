@@ -23,7 +23,7 @@ div#bibi-style-checker {
 // - PoweredBy
 // --------------------------------------------------------------------------------
 
+
 div#bibi-poweredby {
-	html.veil-opened & { height: $Veil-BottomBar_Height; }
-	html.panel-opened & { height: $Panel-BottomBar_Height; }
+	height: $PoweredBy_Height;
 }
