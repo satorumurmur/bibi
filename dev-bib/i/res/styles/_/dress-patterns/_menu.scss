@@ -6,6 +6,7 @@
 div#bibi-menu {
 	height: $Menu_Height;
 	.bibi-icon { @include size($Menu-Icon_Size); }
+	html.appearance-vertical.slider-opened & { padding-right: $Slider_Size; }
 }
 html.book-full-height {
 	&                 div#bibi-menu { background-color: $Menu_BackgroundColor; }

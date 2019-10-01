@@ -12,6 +12,7 @@ div#bibi-menu {
 	right: 0;
 	margin: 0;
 	html.appearance-vertical:not(.veil-opened):not(.slider-opened) & { padding-right: 0; } // TO BE OVERWRITTEN
+	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened & { padding-right: $Slider_Size; }
 	// @____Bibi:Dress__('-') height: $Menu_Height;
 	width: 100%;
 	background: transparent;
