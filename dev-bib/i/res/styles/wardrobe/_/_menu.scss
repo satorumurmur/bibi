@@ -8,9 +8,6 @@ $Menu-Icon_Size: 31px;
 $Menu_BackgroundColor:         rgba(white, 0  );
 $Menu_BackgroundColor__Hover:  rgba(white,  .9);
 $Menu_BackgroundColor__Active: rgba(white, 1  );
-$Menu_BorderBottomColor:         rgba(black, 0);
-$Menu_BorderBottomColor__Hover:  $Menu_BorderBottomColor;
-$Menu_BorderBottomColor__Active: $Menu_BorderBottomColor__Hover;
 $Menu_BoxShadow__Active: 0 0 16px rgba(black, 0.125);
 
 // Not-BookFullHeight (NotBFH) ... html:not(.book-full-height)
@@ -22,8 +19,8 @@ $Menu_BorderBottomColor__NotBFH__Hover:  $Menu_BorderBottomColor__NotBFH;
 $Menu_BorderBottomColor__NotBFH__Active: $Menu_BorderBottomColor__NotBFH__Hover;
 $Menu_BoxShadow__NotBFH__Active: $Menu_BoxShadow__Active;
 
-$Menu-ButtonGroup_Margin: ($Menu_Height - $Menu-Icon_Size) / 2;
-$Menu-ButtonGroup-Button_Margin: $Menu-ButtonGroup_Margin / 2;
+$Menu-ButtonGroup_Padding: ($Menu_Height - $Menu-Icon_Size) / 2;
+$Menu-ButtonGroup-Button_Margin: ($Menu_Height - $Menu-Icon_Size) / 4;
 $Menu-ButtonGroup-Separator_Width: 1px;
 $Menu-ButtonGroup-Separator_Color: rgba(216,216,216, 0.5);
 

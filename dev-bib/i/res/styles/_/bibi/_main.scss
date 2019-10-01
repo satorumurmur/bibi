@@ -57,11 +57,11 @@ main#bibi-main {
 		// @____Bibi:Dress__('-') height: calc(100% - #{$Menu_Height});
 	}
 	html.laying-out & {
-		opacity: 0;
+		//opacity: 0;
 	}
 	html.busy &/*,
 	html.shade-visible &*/ {
-		opacity: 0.25;
+		//opacity: 0.25;
 		//filter: blur(2px);
 	}/*
 	html.panel-opened & {
@@ -83,9 +83,6 @@ main#bibi-main {
 	div#bibi-main-book {
 		box-sizing: content-box;//box-sizing: border-box;
 		display: flex;
-		html.spread-ltr & { flex-direction: row; }
-		html.spread-rtl & { flex-direction: row-reverse; }
-		html.spread-ttb & { flex-direction: column; }
 		flex-wrap: nowrap;
 		justify-content: space-between;
 		//align-items: center;
@@ -96,11 +93,17 @@ main#bibi-main {
 		transition-property: transform;
 //		transform: translateY( 0  );
 //		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
-		transition:
-			opacity .15s ease;
+		transition: opacity .15s ease;
 		will-change: width, height, opacity;
+		html.spread-ltr & { flex-direction: row; }
+		html.spread-rtl & { flex-direction: row-reverse; }
+		html.spread-ttb & { flex-direction: column; }
 		html.subpanel-opened & {
-			opacity: 0.75;
+			opacity: 0.5;
+		}
+		html.resizing &,
+		html.changing-view & {
+			visibility: hidden;
 		}
 	}
 		div.spread-box {
@@ -108,30 +111,31 @@ main#bibi-main {
 			flex-shrink: 0;
 			position: relative;
 			html.spread-horizontal & { height: 100%; }
-			html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
-			html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
 			html.spread-vertical & { width: 100%; }
+			html.view-paged.spread-horizontal & { min-width: 100vw; } // TO BE OVERWRITTEN (if Scrollbars have height)
 			html.view-paged.spread-vertical & { min-height: 100vh; } // TO BE OVERWRITTEN (if Scrollbars have height)
+			//html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
+			//html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
 			//html.book-pre-paginated.view-paged &.spreaded:not(.current) { visibility: hidden; }
 			//html.book-pre-paginated.view-paged &:not(.spreaded):not(.current) { visibility: hidden; }
 		}
 			div.spread {
-				box-sizing: border-box;
-				overflow: hidden;
-				position: absolute;
-				z-index: 1;
-				@include offset(0);
-				margin: auto;
-				display: flex;
-				flex-wrap: nowrap;
-				justify-content: flex-start;
+				& {
+					box-sizing: border-box;
+					overflow: hidden;
+					position: absolute;
+					@include offset(0);
+					margin: auto;
+					display: flex;
+					flex-wrap: nowrap;
+					justify-content: flex-start;
+					align-items: center;
+				}
 				html.page-ltr &                                    { flex-direction: row; }
 				html.page-rtl &                                    { flex-direction: row-reverse; }
 				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
-				//div.spread-box.single-item-spread-before & { justify-content: flex-start; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				div.spread-box.single-item-spread-center & { justify-content: center; }
-				align-items: center;
 				div.spread-box.reflowable & { background: white; }
 			}
 				div.item-box {
@@ -139,7 +143,6 @@ main#bibi-main {
 						box-sizing: border-box;
 						flex-shrink: 0;
 						position: relative;
-						//z-index: 1;
 						overflow: hidden;
 						background: white;
 					}
@@ -157,7 +160,7 @@ main#bibi-main {
 							content: "";
 							display: block;
 							position: absolute;
-							z-index: 2;
+							z-index: 1;
 							@include offset(0);
 							margin: auto;
 							opacity: 0;
@@ -168,31 +171,36 @@ main#bibi-main {
 						}
 					}
 				}
-					iframe.item, span.page {
-						box-sizing: content-box;
-						display: block;
+					iframe.item,
+					span.page {
+						& {
+							box-sizing: content-box;
+							display: block;
+						}
 					}
 					iframe.item {
-						//overflow: hidden;
-						position: absolute;
-						z-index: 10;
-						@include offset(0);
-						margin: 0;
-						padding: 0;
-						border: none 0;
-						line-height: 1;
-						vertical-align: top;
-						background: transparent;
-						html.zoomed-in & { will-change: transform; }
-						html.transforming & { will-change: none !important; }
-						transform-origin: 0 0;
-						//html.page-ltr & { transform-origin: 0 0; }
-						//html.page-rtl & { transform-origin: 100% 0; }
-						//&.non-linear-item { display: none; }
-						opacity: 1;
-						div.item-box:not(.loaded) & { visibility: hidden; opacity: 0; }
-						//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
-						div.spread-box.current & { transition: opacity .1s linear; }
+						& {
+							//overflow: hidden;
+							position: absolute;
+							z-index: 10;
+							@include offset(0);
+							margin: 0;
+							padding: 0;
+							border: none 0;
+							line-height: 1;
+							vertical-align: top;
+							background: transparent;
+							html.zoomed-in & { will-change: transform; }
+							html.transforming & { will-change: none !important; }
+							transform-origin: 0 0;
+							//html.page-ltr & { transform-origin: 0 0; }
+							//html.page-rtl & { transform-origin: 100% 0; }
+							//&.non-linear-item { display: none; }
+							opacity: 1;
+							div.item-box:not(.loaded) & { visibility: hidden; opacity: 0; }
+							//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
+							div.spread-box.current & { transition: opacity .1s linear; }
+						}
 					}
 					span.page {
 						& {

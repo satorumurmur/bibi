@@ -471,6 +471,7 @@ L.wait = () => {
 L.play = () => {
     if(S['start-in-new-window']) return window.open(location.href);
     L.Played = true;
+    R.resetStage();
     L.wait.resolve();
     E.dispatch('bibi:played');
 };
@@ -789,15 +790,15 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
 
 
 L.createCover = () => {
-    const VCover =                I.Veil.Cover =                    I.Veil.appendChild(sML.create('div', { id:           'bibi-veil-cover'      }));
-          VCover.Info =                                             VCover.appendChild(sML.create('p',   { id:           'bibi-veil-cover-info' }));
-    const PCover = I.Menu.Panel.BookInfo.Cover = I.Menu.Panel.BookInfo.Box.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
-          PCover.Info =                                             PCover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
+    const VCover =                I.Veil.Cover =                I.Veil.appendChild(sML.create('div', { id:           'bibi-veil-cover'      }));
+          VCover.Info =                                         VCover.appendChild(sML.create('p',   { id:           'bibi-veil-cover-info' }));
+    const PCover = I.Menu.Panel.BookInfo.Cover = I.Menu.Panel.BookInfo.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
+          PCover.Info =                                         PCover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
     VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
-        if(B.Title)     BookID.push(`<strong>${ B.Title     }</strong>`);
-        if(B.Creator)   BookID.push(    `<em>${ B.Creator   }</em>`    );
-        if(B.Publisher) BookID.push(  `<span>${ B.Publisher }</span>`  );
+        if(B.Title)     BookID.push(`<strong>${ L.createCover.optimizeString(B.Title)     }</strong>`);
+        if(B.Creator)   BookID.push(    `<em>${ L.createCover.optimizeString(B.Creator)   }</em>`    );
+        if(B.Publisher) BookID.push(  `<span>${ L.createCover.optimizeString(B.Publisher) }</span>`  );
         return BookID.join(' ');
     })();
     new Promise((resolve, reject) => {
@@ -818,10 +819,13 @@ L.createCover = () => {
         VCover.appendChild(I.getBookIcon());
     });
 };
+    L.createCover.optimizeString = (Str) => `<span>` + Str.replace(
+        /([　・／]+)/g, '</span><span>$1'
+    ) + `</span>`;
 
 
 L.loadNavigation = () => O.openDocument(B.NavItem).then(Doc => {
-    const PNav = I.Menu.Panel.BookInfo.Navigation = I.Menu.Panel.BookInfo.Box.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }));
+    const PNav = I.Menu.Panel.BookInfo.Navigation = I.Menu.Panel.BookInfo.insertBefore(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }), I.Menu.Panel.BookInfo.firstElementChild);
     PNav.innerHTML = '';
     const NavContent = document.createDocumentFragment();
     if(B.NavItem.NavType == 'Navigation Document') {
@@ -1800,8 +1804,9 @@ R.onResize = (Eve) => {
     if(!L.Opened) return;
     if(!R.Resizing) {
         R.Resizing = true;
-        R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
-        R.Main.style.visibility = 'hidden';
+        //R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
+        //R.onResize.TargetPageAfterResizing = R.Current.List && R.Current.List[0] && R.Current.List[0].Page ? R.Current.List[0].Page : R.IntersectingPages[0];
+        R.onResize.TargetPageAfterResizing = R.Current.List[0].Page;
         ////////R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
         O.HTML.classList.add('busy');
@@ -1810,12 +1815,12 @@ R.onResize = (Eve) => {
     clearTimeout(R.Timer_onResizeEnd);
     R.Timer_onResizeEnd = setTimeout(() => {
         R.updateOrientation();
-        const CurrentPage = R.FirstIntersectingPageBeforeResizing;
+        const TargetPage = R.onResize.TargetPageAfterResizing, TargetSpread = TargetPage.Spread;
         R.layOut({
             Reset: true,
             Destination: {
-                SpreadIndex: CurrentPage.Spread.Index,
-                PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
+                SpreadIndex: TargetSpread.Index,
+                PageProgressInSpread: TargetPage.IndexInSpread / TargetSpread.Pages.length
             }
         }).then(() => {
             E.dispatch('bibi:resized', Eve);
@@ -1823,11 +1828,10 @@ R.onResize = (Eve) => {
             O.HTML.classList.remove('busy');
             O.Busy = false;
             ////////R.Main.addEventListener('scroll', R.onScroll);
-            R.Main.style.visibility = '';
             //R.onScroll();
             R.Resizing = false;
         });
-    }, O.Touch ? 444 : 222);
+    }, sML.UA.Trident ? 1200 : O.Touch ? 600 : 300);
 };
 
 
@@ -1872,6 +1876,7 @@ R.changeView = (Par) => {
         E.dispatch('bibi:changes-view');
         O.Busy = true;
         O.HTML.classList.add('busy');
+        O.HTML.classList.add('changing-view');
         setTimeout(() => {
             //if(Par.Mode != 'paged') R.Spreads.forEach(Spread => Spread.style.opacity = '');
             R.layOut({
@@ -1880,6 +1885,7 @@ R.changeView = (Par) => {
                     'reader-view-mode': Par.Mode
                 }
             }).then(() => {
+                O.HTML.classList.remove('changing-view');
                 O.HTML.classList.remove('busy');
                 O.Busy = false;
                 setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
@@ -1917,42 +1923,48 @@ R.updateCurrent = () => {
 
     R.updateCurrent.getList = () => {
         if(!R.IntersectingPages.length) return null;
-        let List = [];
+        let List = [], List_SpreadContained = [];
         const FirstIndex = sML.limitMin(R.IntersectingPages[                             0].Index - 2,                  0);
         const  LastIndex = sML.limitMax(R.IntersectingPages[R.IntersectingPages.length - 1].Index + 2, R.Pages.length - 1);
-        for(let BiggestIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
-            const PageCoord = sML.getCoord(Page);
-            const D = C.L_AXIS_D, L = C.L_SIZE_L;
-            const LengthInside = Math.min(R.Current.Frame.After * D, PageCoord[C.L_BASE_A] * D) - Math.max(R.Current.Frame.Before * D, PageCoord[C.L_BASE_B] * D);
-            const IntersectionRatio = (LengthInside <= 0 || !PageCoord[L] || isNaN(LengthInside)) ? 0 : Math.round(LengthInside / PageCoord[L] * 100);
-            if(IntersectionRatio <= 0) {
+        for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
+            const PageIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page, 'WithDetail');
+            if(!PageIntersectionStatus || PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
                 if(List.length) break;
             } else {
-                const Current = {
-                    Page: Page,
-                    IntersectionRatio: IntersectionRatio,
-                    IntersectionStatus: R.updateCurrent.getIntersectionStatus(IntersectionRatio, PageCoord)
-                };
-                     if(IntersectionRatio >  BiggestIntersectionRatio) List  =  [Current], BiggestIntersectionRatio = IntersectionRatio;
-                else if(IntersectionRatio == BiggestIntersectionRatio) List.push(Current);
+                const Current = { Page: Page, PageIntersectionStatus: PageIntersectionStatus };
+                if(List.length) {
+                    const Prev = List[List.length - 1];
+                    if(Prev.Page.Item   == Page.Item  )   Current.ItemIntersectionStatus =   Prev.ItemIntersectionStatus;
+                    if(Prev.Page.Spread == Page.Spread) Current.SpreadIntersectionStatus = Prev.SpreadIntersectionStatus;
+                }
+                if(  !Current.ItemIntersectionStatus)   Current.ItemIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Item.Box); // Item is scaled.
+                if(!Current.SpreadIntersectionStatus) Current.SpreadIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Spread);   // SpreadBox has margin.
+                if(Current.SpreadIntersectionStatus.Ratio == 1) List_SpreadContained.push(Current);
+                if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [Current], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
+                else                                                            List.push(Current);
             }
         }
-        return List.length ? List : null;
+        return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
     };
 
-    R.updateCurrent.getIntersectionStatus = (PageRatio, PageCoord) => {
-        const IntersectionStatus = {};
-        if(PageRatio >= 100) {
-            IntersectionStatus.Contained = true;
-        } else {
-            const D = C.L_AXIS_D, L = C.L_SIZE_L;
-            const FC_B = R.Current.Frame.Before * D, FC_A = R.Current.Frame.After * D;
-            const PC_B = PageCoord[C.L_BASE_B]  * D, PC_A = PageCoord[C.L_BASE_A] * D;
-                 if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
-            else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
-            else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
-            else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
-            if(R.Main['offset' + L] < PageCoord[L]) IntersectionStatus.Oversize = true;
+    R.updateCurrent.getIntersectionStatus = (Ele, WithDetail) => {
+        const Coord = sML.getCoord(Ele), B = C.L_BASE_B, A = C.L_BASE_A, L = C.L_SIZE_L, D = C.L_AXIS_D;
+        const LengthInside = Math.min(R.Current.Frame.After * D, Coord[A] * D) - Math.max(R.Current.Frame.Before * D, Coord[B] * D);
+        const Ratio = (LengthInside <= 0 || !Coord[L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[L];
+        if(Ratio <= 0) return null;
+        const IntersectionStatus = { Ratio: Ratio };
+        if(WithDetail) {
+            if(Ratio >= 1) {
+                IntersectionStatus.Contained = true;
+            } else {
+                const FC_B = R.Current.Frame.Before * D, FC_A = R.Current.Frame.After * D;
+                const PC_B = Coord[C.L_BASE_B]      * D, PC_A = Coord[C.L_BASE_A]     * D;
+                     if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
+                else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
+                else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
+                else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
+                if(R.Main['offset' + L] < Coord[L]) IntersectionStatus.Oversize = true;
+            }
         }
         return IntersectionStatus;
     };
@@ -2132,33 +2144,31 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
     Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
-    const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0];
-    const CurrentPage = Current.Page;
+    const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
     let Promised = {};
     if(
         R.Columned ||
         S.BRL == 'pre-paginated' ||
-        CurrentPage.Item.Ref['rendition:layout'] == 'pre-paginated' ||
-        CurrentPage.Item.Outsourcing ||
-        CurrentPage.Item.Pages.length == 1 ||
+        CurrentItem.Ref['rendition:layout'] == 'pre-paginated' ||
+        CurrentItem.Outsourcing ||
+        CurrentItem.Pages.length == 1 ||
         (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
-        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentPage.Item.Pages.length - 1)
+        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentItem.Pages.length - 1)
     ) {
         let Side = Par.Distance > 0 ? 'before' : 'after';
-        const CurrentIntersectionStatus = Current.IntersectionStatus;
-        if(CurrentIntersectionStatus.Oversize) {
+        if(Current.PageIntersectionStatus.Oversize) {
             if(Par.Distance > 0) {
-                     if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
-                else if(CurrentIntersectionStatus.Headed  ) Par.Distance = 0, Side = 'after';
+                     if(Current.PageIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
+                else if(Current.PageIntersectionStatus.Headed  ) Par.Distance = 0, Side = 'after';
             } else {
-                     if(CurrentIntersectionStatus.Footed  ) Par.Distance = 0, Side = 'before';
-                else if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
+                     if(Current.PageIntersectionStatus.Footed  ) Par.Distance = 0, Side = 'before';
+                else if(Current.PageIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         } else {
             if(Par.Distance > 0) {
-                if(CurrentIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
+                if(Current.PageIntersectionStatus.Entering) Par.Distance = 0, Side = 'before';
             } else {
-                if(CurrentIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
+                if(Current.PageIntersectionStatus.Passing ) Par.Distance = 0, Side = 'before';
             }
         }
         let DestinationPageIndex = CurrentPage.Index + Par.Distance;
@@ -2428,11 +2438,7 @@ I.Menu = { create: () => {
     });
     sML.appendCSSRule([ // Optimize to Scrollbar Size
         'html.appearance-vertical:not(.veil-opened):not(.slider-opened) div#bibi-menu'
-    ].join(', '), 'width: calc(100% - ' + (O.Scrollbars.Width) + 'px);');
-    sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).panel-opened div#bibi-menu',
-        'html.appearance-vertical:not(.veil-opened):not(.slider-opened).subpanel-opened div#bibi-menu'
-    ].join(', '), 'width: 100%; padding-right: ' + (O.Scrollbars.Width) + 'px;');
+    ].join(', '), 'padding-right: ' + O.Scrollbars.Width + 'px;');
     I.OpenedSubpanel = null;
     I.Subpanels = [];
     Menu.Panel.create();
@@ -2451,15 +2457,15 @@ I.Menu = { create: () => {
         E.add('bibi:commands:close-panel',  Panel.close);
         E.add('bibi:commands:toggle-panel', Panel.toggle);
         E.add('bibi:closes-utilities',      Panel.close);
+        /*
         Panel.Labels = {
             default: { default: `Opoen this Index`, ja: `この目次を開く`   },
             active:  { default: `Close this Index`, ja: `この目次を閉じる` }
         };
+        */
         I.setFeedback(Panel, { StopPropagation: true });
         Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
-        sML.appendCSSRule('html.page-rtl div#bibi-panel:after', 'bottom: ' + (O.Scrollbars.Height) + 'px;'); // Optimize to Scrollbar Size
-        Panel.BookInfo     = Panel.appendChild(         sML.create('div', { id: 'bibi-panel-bookinfo'     }));
-        Panel.BookInfo.Box = Panel.BookInfo.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-box' }));
+        Panel.BookInfo = Panel.appendChild(         sML.create('div', { id: 'bibi-panel-bookinfo'     }));
         const Opener = Panel.Opener = Menu.L.addButtonGroup({ Sticky: true }).addButton({
             Type: 'toggle',
             Labels: {
@@ -2473,6 +2479,7 @@ I.Menu = { create: () => {
         E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
         E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
         E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+        //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
         E.dispatch('bibi:created-panel');
     }};
 
@@ -2650,21 +2657,23 @@ I.Help = { create: () => {
             Help.Timer_deactivate2 = setTimeout(() => Help.classList.remove('active'), 200);
         }, 100);
     };
+    /*
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-paged div#bibi-help',
-        'html.view-horizontal div#bibi-help',
+        'html.appearance-horizontal div#bibi-help',
         'html.page-rtl.panel-opened div#bibi-help'
     ].join(', '), 'bottom: ' + (O.Scrollbars.Height) + 'px;');
+    */
 }};
 
 
 I.PoweredBy = { create: () => {
     const PoweredBy = I.PoweredBy = O.Body.appendChild(sML.create('div', { id: 'bibi-poweredby', innerHTML: `<p><a href="${ Bibi['href'] }" target="_blank" title="BiB/i | Official Website">BiB/i</a></p>` }));
+    /*
     sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.view-paged div#bibi-poweredby',
-        'html.view-horizontal div#bibi-poweredby',
+        'html.appearance-horizontal div#bibi-poweredby',
         'html.page-rtl.panel-opened div#bibi-poweredby'
     ].join(', '), 'bottom: ' + (O.Scrollbars.Height) + 'px;');
+    */
 }};
 
 
@@ -3427,7 +3436,7 @@ I.Turner = { create: () => {
                     }
                     if(L.Opened && (
                         CurrentEdge.Page != BookEdgePage
-                        || (!CurrentEdge.IntersectionStatus.Contained && !CurrentEdge.IntersectionStatus[Edged])
+                        || (!CurrentEdge.PageIntersectionStatus.Contained && !CurrentEdge.PageIntersectionStatus[Edged])
                     )) {
                         switch(Par.Direction) {
                             case 'left': case  'right': return S.ARA == 'horizontal' ? 1 : -1;
@@ -4023,13 +4032,13 @@ I.observeTap = (Ele, Opt) => {
             E.add(Ele, 'bibi:' + EN, Eve => Fun.call(Ele, Eve));
             return Ele;
         };
-        Ele.onBibiTap = (On, Eve) => {
-            if(On) {
+        Ele.onBibiTap = (Eve, State) => {
+            if(Opt.PreventDefault)  Eve.preventDefault();
+            if(Opt.StopPropagation) Eve.stopPropagation();
+            if(State == 'down') {
                 clearTimeout(Ele.Timer_tap);
                 Ele.TouchStart = { Time: Date.now(), Event: Eve, Coord: O.getBibiEventCoord(Eve) };
                 Ele.Timer_tap = setTimeout(() => delete Ele.TouchStart, 333);
-                if(Opt.PreventDefault)  Eve.preventDefault();
-                if(Opt.StopPropagation) Eve.stopPropagation();
             } else {
                 if(Ele.TouchStart) {
                     if((Date.now() - Ele.TouchStart.Time) < 300) {
@@ -4041,12 +4050,10 @@ I.observeTap = (Ele, Opt) => {
                     }
                     delete Ele.TouchStart;
                 }
-                if(Opt.PreventDefault)  Eve.preventDefault();
-                if(Opt.StopPropagation) Eve.stopPropagation();
             }
         };
-        Ele.addEventListener(O['pointerdown'], Eve => Ele.onBibiTap(true,  Eve));
-        Ele.addEventListener(O['pointerup'],   Eve => Ele.onBibiTap(false, Eve));
+        Ele.addEventListener(O['pointerdown'], Eve => Ele.onBibiTap(Eve, 'down'));
+        Ele.addEventListener(O['pointerup'],   Eve => Ele.onBibiTap(Eve, 'up'  ));
     }
     return Ele;
 };
@@ -4414,7 +4421,7 @@ S.initialize = () => {
 
 
 S.update = (Settings) => {
-    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA;
+    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA, PrevNLD = S.NLD;
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
     S.BRL = S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
     S.BWM = S['book-writing-mode'] = B.WritingMode;
@@ -4430,9 +4437,10 @@ S.update = (Settings) => {
         case 'rl-tb': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
         default     : S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
     }   else          S.PPD = S['page-progression-direction'] = B.PPD, S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM;
-    S.SLD = S['spread-layout-direction']    = (S.SLA == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARD = S['apparent-reading-direction'] = (S.RVM == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARA = S['apparent-reading-axis']      = (S.RVM == 'paged'   ) ? 'horizontal' : S.RVM;
+    S.SLD = S['spread-layout-direction']     = (S.SLA == 'vertical') ? 'ttb'        : S.PPD;
+    S.ARD = S['apparent-reading-direction']  = (S.RVM == 'vertical') ? 'ttb'        : S.PPD;
+    S.ARA = S['apparent-reading-axis']       = (S.RVM == 'paged'   ) ? 'horizontal' : S.RVM;
+    S.NLD = S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S.PPD != 'rtl') ? 'ttb' : 'rtl';
     if(PrevBRL != S.BRL) sML.replaceClass(O.HTML, 'book-'       + PrevBRL, 'book-'       + S.BRL);
     if(PrevRVM != S.RVM) sML.replaceClass(O.HTML, 'view-'       + PrevRVM, 'view-'       + S.RVM);
     if(PrevPPD != S.PPD) sML.replaceClass(O.HTML, 'page-'       + PrevPPD, 'page-'       + S.PPD);
@@ -4440,6 +4448,7 @@ S.update = (Settings) => {
     if(PrevSLD != S.SLD) sML.replaceClass(O.HTML, 'spread-'     + PrevSLD, 'spread-'     + S.SLD);
     if(PrevARD != S.ARD) sML.replaceClass(O.HTML, 'appearance-' + PrevARD, 'appearance-' + S.ARD);
     if(PrevARA != S.ARA) sML.replaceClass(O.HTML, 'appearance-' + PrevARA, 'appearance-' + S.ARA);
+    if(PrevNLD != S.NLD) sML.replaceClass(O.HTML, 'nav-'        + PrevNLD, 'nav-'        + S.NLD);
     C.update();
     E.dispatch('bibi:updated-settings', S);
 };
@@ -5026,8 +5035,7 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
 };
 
 
-O.getOrigin = (Win) => {
-    const Loc = (Win ? Win : window).location;
+O.getOrigin = (Win = window) => { const Loc = Win.location;
     return Loc.origin || Loc.protocol + '//' + (Loc.host || Loc.hostname + (Loc.port ? ':' + Loc.port : ''));
 };
 
@@ -5073,6 +5081,7 @@ O.SettingTypes = {
         'allow-placeholders',
         'autostart',
         'autostart-embedded',
+        'fix-nav-ttb',
         'fix-reader-view-mode',
         'place-menubar-at-top',
         'single-page-always',

@@ -24,22 +24,6 @@ div#bibi-veil {
 		html.appearance-rtl & { transform: translateX( 240%); }
 		html.appearance-ttb & { transform: translateY(-240%); }
 	}
-	&:after { // BottomBar
-		content: "";
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-		z-index: $INVARIABLE__Veil-BottomBar_ZIndex;
-		left: 0; right: 0; bottom: 0;
-		margin: 0 auto;
-		padding: 4px;
-		border-style: solid;
-		border-width: 1px 0;
-		border-color: transparent;//rgb(104,104,104);
-		width: 100%;
-		// @____Bibi:Dress__('-') height: $Veil-BottomBar_Height;
-		// @____Bibi:Dress__('-') background: $Veil-BottomBar_Background;
-	}
 }
 
 
@@ -60,7 +44,7 @@ p#bibi-veil-byebye {
 	border-radius: 20px;
 	@include size(240px);
 	max-width: calc(100% - #{ 10px * 2 });
-	// @____Bibi:Dress__('-') max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $Veil-BottomBar_Height });
+	// @____Bibi:Dress__('-') max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $PoweredBy_Height });
 	line-height: 1.75;
 	text-align: center;
 	font-size: 14px;
@@ -205,17 +189,23 @@ div#bibi-veil-cover {
 		overflow: hidden;
 		position: absolute;
 		z-index: $INVARIABLE__Veil-Cover_ZIndex;
+		top: auto;
 		left: 0;
-		bottom: 0;
+		right: 0;
 		box-sizing: border-box;
 		border: solid transparent;
-		border-width: 4px;
-		@include size(100%);
-		// @____Bibi:Dress__('-') html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
+		border-width: 8px;
+		width: 100%;
 		opacity: 0;
 		transition: opacity 0.5s linear;
 		background: transparent no-repeat center center;
 		background-size: contain;
+	}
+	html.book-full-height & {
+		// @____Bibi:Dress__('-') height: calc(100% - #{                $PoweredBy_Height });
+	}
+	html:not(.book-full-height) & {
+		// @____Bibi:Dress__('-') height: calc(100% - #{ $Menu_Height + $PoweredBy_Height });
 	}
 	&.with-cover-image,
 	&.without-cover-image {
@@ -405,13 +395,13 @@ div#bibi-catcher {
 		// @____Bibi:Dress__('-') border-radius: $SCOPED__Catcher-Area_Margin;
 		// @____Bibi:Dress__('-') @include size(
 		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $Veil-BottomBar_Height})
+		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $PoweredBy_Height})
 		// @____Bibi:Dress__('-') );
 		// @____Bibi:Dress__('-') @include max(768px) { @include size(
 		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $Veil-BottomBar_Height})
+		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $PoweredBy_Height})
 		// @____Bibi:Dress__('-') ); }
-		// @____Bibi:Dress__('-') transform: translateY(#{$Veil-BottomBar_Height * -0.5});
+		// @____Bibi:Dress__('-') transform: translateY(#{$PoweredBy_Height * -0.5});
 	}
 	html.dragenter &,
 	&:hover {

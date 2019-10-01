@@ -31,7 +31,7 @@ div.bibi-arrow {
 		bottom: auto; width: 0;
 		&:before { top: 0; bottom: 0; }
 		&:after  { top: 0; bottom: 0; height: 100%;
-			// @____Bibi:Dress__('-') width: $Arrow-Bar_Length;
+			// @____Bibi:Dress__('-') width: $Arrow-Bar_Width;
 		}
 	}
 	html.appearance-horizontal.book-full-height:not(.slider-opened) & {
@@ -54,7 +54,7 @@ div.bibi-arrow {
 		left: 0; right: auto; height: 0;
 		&:before { left: 0; right: 0; }
 		&:after  { left: 0; right: 0; width: 100%;
-			// @____Bibi:Dress__('-') height: $Arrow-Bar_Length;
+			// @____Bibi:Dress__('-') height: $Arrow-Bar_Width;
 		}
 	}
 	html.appearance-vertical:not(.slider-opened) & {

@@ -69,6 +69,8 @@ Bibi.preset({
 "spread-gap"                   : 8, // Number of pixel
 "spread-margin"                : 0, // Number of pixel
 
+"fix-nav-ttb"                  : "no", // "yes" or "no" or "desktop" or "mobile"
+
 "spread-border-radius"         : "", // CSS border-radius value or ""
 "spread-box-shadow"            : "", // CSS box-shadow value or ""
 

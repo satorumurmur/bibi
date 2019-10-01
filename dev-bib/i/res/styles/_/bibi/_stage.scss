@@ -35,8 +35,8 @@ figure, figcaption {
 
 html {
 	overflow: hidden;  &.welcome { overflow: scroll !important; }
-	position: absolute; // for InAppBrowsers
-	@include offset(0, 0, auto); // for InAppBrowsers
+	position: absolute; @include offset(0, 0, auto); // for InAppBrowsers
+	&.InternetExplorer { position: static; }
 	@include size(100%);
 	font-family: sans-serif;
 	// @____Bibi:Dress__('-') &.iOS     { font-family: $HTML_FontFamily__iOS; }
@@ -64,8 +64,8 @@ body {
 		-webkit-tap-highlight-color: rgba(255,255,255,0);
 		-webkit-tap-highlight-color: transparent;
 	}
-	position: absolute;
-	@include offset(0, 0, auto);
+	position: absolute; @include offset(0, 0, auto);
+	&.InternetExplorer { position: static; }
 	overflow: hidden;
 	@include size(100%);
 	//max-height: 150vw;
@@ -99,12 +99,10 @@ div#bibi-poweredby {
 	overflow: hidden;
 	position: absolute;
 	z-index: $INVARIABLE__PoweredBy_ZIndex;
-	@include offset(auto, 0, 0);
+	@include offset(auto, auto, 0, 0);
 	margin: 0 auto;
-	//padding: 4px;
-	height: 0;
-	// @____Bibi:Dress__('-') html.veil-opened & { height: $Veil-BottomBar_Height; }
-	// @____Bibi:Dress__('-') html.panel-opened & { height: $Panel-BottomBar_Height; }
+	width: 100%;
+	// @____Bibi:Dress__('-') height: $PoweredBy_Height;
 	text-align: right;
 	font-size: 14px;
 	transition: .1s linear;
@@ -113,15 +111,6 @@ div#bibi-poweredby {
 	html.waiting &,
 	html.panel-opened & {
 		transform: none;
-	}
-	html.view-horizontal &,
-    html.page-rtl.panel-opened & {
-		bottom: $TEMPORARY__Scrollbar-Track_Size; // TO BE OVERWRITTEN ... O.ScrollBars.Height + "px"
-	}
-	html.veil-opened &,
-	html.panel-opened &,
-	html.subpanel-opened & {
-		bottom: 0 !important;
 	}
 	p {
 		a {
@@ -153,16 +142,35 @@ div#bibi-poweredby {
 				background-size: $SCOPED__PowerdBy-Logo-Image_Width $SCOPED__PowerdBy-Logo-Image_Height;
 				transition: .2s linear;  &:hover { transition: .075s linear; }
 			}
-			html.waiting-file &,
-			html.waiting & {
-				background-color: rgba(128,128,128, 0.5);  &:hover { background-color: rgba(160,160,160, 0.9); }
-				background-image: url(../images/bibi-logo_white.png);
-			}
-			html.panel-opened & {
-				opacity: 0.5;  &:hover { opacity: 1; }
-				background-color: transparent;
-				background-image: url(../images/bibi-logo_black.png);
-			}
+		}
+	}
+}
+
+html.veil-opened div#bibi-poweredby {
+	background: rgb(128,128,128);
+	p {
+		a {
+			opacity: 0.75;
+			//background-color: rgba(128,128,128, 0.5);
+			background-image: url(../images/bibi-logo_white.png);
+		}
+		a:hover {
+			opacity: 1;
+			//background-color: rgba(160,160,160, 0.9);
+		}
+	}
+}
+
+html.panel-opened div#bibi-poweredby {
+	background: rgb(234,234,234);
+	p {
+		a {
+			opacity: 0.5;
+			background-color: transparent;
+			background-image: url(../images/bibi-logo_black.png);
+		}
+		a:hover {
+			opacity: 1;
 		}
 	}
 }
