@@ -13,7 +13,56 @@ $HTML_FontFamily__Windows: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu G
 // [ja] └ ビビ全体の、OS 別デフォルトフォント設定。html 要素に適用され、基本的にすべての UI に継承されます。
 
 
+// - Catcher
+// --------------------------------------------------------------------------------
+
+$Catcher_Background: linear-gradient(to bottom, rgb(200,200,200), rgb(240,240,240));
+
+$Catcher_Border:         dashed  4px white;
+$Catcher_Border__Hover:   solid  8px white;
+$Catcher_Border__Active:  solid 16px white;
+
+$Catcher_Border__TouchDevice:         solid 4px white;
+$Catcher_Border__TouchDevice__Active: solid 8px white;
+
+$Catcher-Icon_Size: 128px;
+$Catcher-Icon_OuterColor: white;
+$Catcher-Icon_InnerColor: rgb(216,216,216);
+
+$Catcher-Button_Color: rgb(128,128,128);
+$Catcher-Button_BackgroundColor: white;
+
+$Catcher-Text_Color: rgb(128,128,128);
+
+
 // - PoweredBy
 // --------------------------------------------------------------------------------
 
 $PoweredBy_Height: 39px;
+
+// with Veil
+$PoweredBy_BackgroundColor__VeilOpened: white;
+$PoweredBy-Logo-White_Opacity__VeilOpened: 0;
+$PoweredBy-Logo-Black_Opacity__VeilOpened: .69;
+$PoweredBy-A_BackgroundColor__VeilOpened: rgba(white, .69);
+$PoweredBy-Logo-White_Opacity__VeilOpened__Hover: 0;
+$PoweredBy-Logo-Black_Opacity__VeilOpened__Hover: .96;
+$PoweredBy-A_BackgroundColor__VeilOpened__Hover: rgba(white, .96);
+
+// with Catcher
+$PoweredBy_BackgroundColor__WaitingFile: white;
+$PoweredBy-Logo-White_Opacity__WaitingFile: 0;
+$PoweredBy-Logo-Black_Opacity__WaitingFile: .69;
+$PoweredBy-A_BackgroundColor__WaitingFile: transparent;
+$PoweredBy-Logo-White_Opacity__WaitingFile__Hover: .96;
+$PoweredBy-Logo-Black_Opacity__WaitingFile__Hover: 0;
+$PoweredBy-A_BackgroundColor__WaitingFile__Hover: rgba(black, .38);
+
+// with Panel
+$PoweredBy_BackgroundColor__PanelOpened: rgba(black, .1);
+$PoweredBy-Logo-White_Opacity__PanelOpened: 0;
+$PoweredBy-Logo-Black_Opacity__PanelOpened: .56;
+$PoweredBy-A_BackgroundColor__PanelOpened: transparent;
+$PoweredBy-Logo-White_Opacity__PanelOpened__Hover: .96;
+$PoweredBy-Logo-Black_Opacity__PanelOpened__Hover: 0;
+$PoweredBy-A_BackgroundColor__PanelOpened__Hover: rgba(black, .38);

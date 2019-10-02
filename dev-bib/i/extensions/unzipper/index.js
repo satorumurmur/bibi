@@ -21,6 +21,7 @@ Bibi.x({
             `<small>${ B.Path.replace(/.*?([^\/]+)$/, '$1') }</small>`
         ].join(' ');
         I.Veil.Cover.classList.add('without-cover-image', 'waiting-for-unzipping');
+        I.Veil.Cover.appendChild(I.getBookIcon());
         L.wait().then(() => resolve(BookData));
     })
     .then(makeArrayBuffer)

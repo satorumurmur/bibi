@@ -104,7 +104,7 @@ Bibi.initialize = () => {
         // Say Bye-bye
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
         return O.error(I.Veil.byebye({
-            'en': `<span>I\'m so Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
+            'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
             'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
         }));
     }
@@ -164,6 +164,7 @@ Bibi.initialize = () => {
     O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
     O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
     S.initialize();
+    O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
     E.dispatch('bibi:initialized');
 };
@@ -250,7 +251,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     S.update();
     R.updateOrientation();
     R.resetStage();
-}).then(() => new Promise(resolve => {
+}).then(() => {
     // Create Cover
     O.log(`Creating Cover...`, '<g:>');
     if(B.CoverImageItem) {
@@ -259,9 +260,8 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     } else {
         O.log(`Will Be Created. (w/o Image)`, '</g>');
     }
-    resolve(); // ←↙ do async
-    L.createCover();
-})).then(() => {
+    return L.createCover(); // ← loading is async
+}).then(() => {
     // Load Navigation
     if(!B.NavItem) {
         O.log(`No Navigation.`)
@@ -464,6 +464,7 @@ L.wait = () => {
         O.HTML.classList.add('busy');
         O.HTML.classList.remove('waiting');
         I.note(`Loading...`);
+        return new Promise(resolve => setTimeout(resolve, 99));
     });
 };
 
@@ -790,10 +791,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
 
 
 L.createCover = () => {
-    const VCover =                I.Veil.Cover =                I.Veil.appendChild(sML.create('div', { id:           'bibi-veil-cover'      }));
-          VCover.Info =                                         VCover.appendChild(sML.create('p',   { id:           'bibi-veil-cover-info' }));
-    const PCover = I.Menu.Panel.BookInfo.Cover = I.Menu.Panel.BookInfo.appendChild(sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
-          PCover.Info =                                         PCover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
+    const VCover = I.Veil.Cover, PCover = I.Menu.Panel.BookInfo.Cover;
     VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push(`<strong>${ L.createCover.optimizeString(B.Title)     }</strong>`);
@@ -801,7 +799,7 @@ L.createCover = () => {
         if(B.Publisher) BookID.push(  `<span>${ L.createCover.optimizeString(B.Publisher) }</span>`  );
         return BookID.join(' ');
     })();
-    new Promise((resolve, reject) => {
+    return Promise.resolve(new Promise((resolve, reject) => {
         if(!B.CoverImageItem || !B.CoverImageItem.Path) return reject();
         let TimedOut = false;
         const TimerID = setTimeout(() => { TimedOut = true; reject(); }, 5000);
@@ -817,10 +815,10 @@ L.createCover = () => {
     }).catch(() => {
         VCover.className = PCover.className = 'without-cover-image';
         VCover.appendChild(I.getBookIcon());
-    });
+    }));
 };
     L.createCover.optimizeString = (Str) => `<span>` + Str.replace(
-        /([　・／]+)/g, '</span><span>$1'
+        /([ 　・／]+)/g, '</span><span>$1'
     ) + `</span>`;
 
 
@@ -1283,12 +1281,7 @@ R.resetStage = () => {
     R.Stage.Height = WIH;
     R.Stage[C.A_SIZE_B] -= O.Scrollbars[C.A_SIZE_B] + S['spread-margin'] * 2;
     window.scrollTo(0, 0);
-    if(S['use-full-height']) {
-        O.HTML.classList.add('book-full-height');
-    } else {
-        O.HTML.classList.remove('book-full-height');
-        R.Stage.Height -= I.Menu.Height;
-    }
+    if(!S['use-full-height']) R.Stage.Height -= I.Menu.Height;
     if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
     R.Main.style['background'] = S['book-background'] ? S['book-background'] : '';
 };
@@ -2330,6 +2323,8 @@ I.Veil = { create: () => {
         Veil.open();
         return Msg['en'] ? Msg['en'].replace(/<[^>]*>/g, '') : '';
     };
+    Veil.Cover      = Veil.appendChild(      sML.create('div', { id: 'bibi-veil-cover'      }));
+    Veil.Cover.Info = Veil.Cover.appendChild(sML.create('p',   { id: 'bibi-veil-cover-info' }));
     E.dispatch('bibi:created-veil');
 }};
 
@@ -2341,7 +2336,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
             `<div class="pgroup" lang="en">`,
                 `<p><strong>Pass Me Your EPUB File!</strong></p>`,
                 `<p><em>You Can Open Your Own EPUB.</em></p>`,
-                `<p><span>Please ${ O.Touch ? 'Tap' : 'Drag & Drop It Here. <br />Or Click' } Here and Choose It.</span></p>`,
+                `<p><span>Please ${ O.Touch ? 'Tap Screen' : 'Drag & Drop It Here. <br />Or Click Screen' } and Choose It.</span></p>`,
                 `<p><small>(Open in Your Device without Uploading)</small></p>`,
             `</div>`
         ].join(''),
@@ -2349,7 +2344,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
             `<div class="pgroup" lang="ja">`,
                 `<p><strong>EPUBファイルをここにください！</strong></p>`,
                 `<p><em>お持ちの EPUB ファイルを<br />開くことができます。</em></p>`,
-                `<p><span>${ O.Touch ? 'ここをタップ' : 'ここにドラッグ＆ドロップするか、<br />ここをクリック' }して選択してください。</span></p>`,
+                `<p><span>${ O.Touch ? '画面をタップ' : 'ここにドラッグ＆ドロップするか、<br />画面をクリック' }して選択してください。</span></p>`,
                 `<p><small>（外部に送信されず、この端末の中で開きます）</small></p>`,
             `</div>`
         ].join('')
@@ -2436,9 +2431,11 @@ I.Menu = { create: () => {
             return this.appendChild(ButtonGroup);
         };
     });
-    sML.appendCSSRule([ // Optimize to Scrollbar Size
-        'html.appearance-vertical:not(.veil-opened):not(.slider-opened) div#bibi-menu'
-    ].join(', '), 'padding-right: ' + O.Scrollbars.Width + 'px;');
+    { // Optimize to Scrollbar Size
+        const _Common = 'html.appearance-vertical:not(.veil-opened):not(.slider-opened)', _M = ' div#bibi-menu';
+        sML.appendCSSRule(_Common + _M, 'width: calc(100% - ' + O.Scrollbars.Width + 'px);');
+        sML.appendCSSRule([_Common + '.panel-opened' + _M, _Common + '.subpanel-opened' + _M].join(', '), 'padding-right: ' + O.Scrollbars.Width + 'px;');
+    }
     I.OpenedSubpanel = null;
     I.Subpanels = [];
     Menu.Panel.create();
@@ -2465,7 +2462,9 @@ I.Menu = { create: () => {
         */
         I.setFeedback(Panel, { StopPropagation: true });
         Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
-        Panel.BookInfo = Panel.appendChild(         sML.create('div', { id: 'bibi-panel-bookinfo'     }));
+        Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
+        Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
+        Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
         const Opener = Panel.Opener = Menu.L.addButtonGroup({ Sticky: true }).addButton({
             Type: 'toggle',
             Labels: {
@@ -3390,16 +3389,12 @@ I.Slider = { create: () => {
     });
     Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
     { // Optimize to Scrollbar Size
-        const _S = 'div#bibi-slider', _TB = '-thumb:before', _TA = '-thumb:after';
-        const _HS = 'html.appearance-horizontal ' + _S, _HSTB = _HS + _TB, _HSTA = _HS + _TA, _SH = O.Scrollbars.Height, _STH = Math.ceil(_SH / 2);
-        const _VS = 'html.appearance-vertical '   + _S, _VSTB = _VS + _TB, _VSTA = _VS + _TA, _SW = O.Scrollbars.Width,  _STW = Math.ceil(_SW / 2);
+        const _S = 'div#bibi-slider', _TB = '-thumb:before';
+        const _HS = 'html.appearance-horizontal ' + _S, _HSTB = _HS + _TB, _SH = O.Scrollbars.Height, _STH = Math.ceil(_SH / 2);
+        const _VS = 'html.appearance-vertical '   + _S, _VSTB = _VS + _TB, _SW = O.Scrollbars.Width,  _STW = Math.ceil(_SW / 2);
         const _getSliderThumbOffsetStyle = (Offset) => ['top', 'right', 'bottom', 'left'].reduce((Style, Dir) => Style + Dir + ': ' + (Offset * -1) + 'px; ', '').trim();
-        sML.appendCSSRule(_HS, 'height: ' + _SH + 'px;');
-        sML.appendCSSRule(_VS, 'width: '  + _SW + 'px;');
-        sML.appendCSSRule(_HSTB + ', ' + _HSTA, _getSliderThumbOffsetStyle(_STH));
-        sML.appendCSSRule(_VSTB + ', ' + _VSTA, _getSliderThumbOffsetStyle(_STW));
-        sML.appendCSSRule(_HSTB, 'border-radius: ' + (_STH / 2) + 'px; min-width: '  + _STH + 'px;');
-        sML.appendCSSRule(_VSTB, 'border-radius: ' + (_STW / 2) + 'px; min-height: ' + _STW + 'px;');
+        sML.appendCSSRule(_HS, 'height: ' + _SH + 'px;');  sML.appendCSSRule(_HSTB, _getSliderThumbOffsetStyle(_STH) + ' border-radius: ' + (_STH / 2) + 'px; min-width: '  + _STH + 'px;');
+        sML.appendCSSRule(_VS, 'width: '  + _SW + 'px;');  sML.appendCSSRule(_VSTB, _getSliderThumbOffsetStyle(_STW) + ' border-radius: ' + (_STW / 2) + 'px; min-height: ' + _STW + 'px;');
     }
     E.dispatch('bibi:created-slider');
 }};
