@@ -11,19 +11,119 @@ html {
 }
 
 
-// - Checker
+// - Catcher
 // --------------------------------------------------------------------------------
 
-div#bibi-style-checker {
-	left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
-	@include size($Slider_Size, $Menu_Height);
+div#bibi-catcher {
+	& {
+		background: $Catcher_Background;
+		> .book-icon {
+			@include DEFAULT__SPECIALICON__Book($Catcher-Icon_Size, $Catcher-Icon_OuterColor, $Catcher-Icon_InnerColor, absolute);
+		}
+		> .pgroup {
+			p {
+				strong {
+					color: $Catcher-Button_Color;
+					background: $Catcher-Button_BackgroundColor;
+				}
+				em, span, small {
+					color: $Catcher-Text_Color;
+				}
+			}
+		}
+		&:before {
+			$SCOPED__Catcher-Area_Margin: 20px;
+			border-radius: $SCOPED__Catcher-Area_Margin;
+			@include size(
+				calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
+				calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $PoweredBy_Height})
+			);
+			@include max(768px) { @include size(
+				calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
+				calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $PoweredBy_Height})
+			); }
+			transform: translateY(#{$PoweredBy_Height * -0.5});
+		}
+		&:after {
+			height: $PoweredBy_Height;
+			background: $PoweredBy_BackgroundColor__WaitingFile;
+		}
+	}
+	html:not(.iOS):not(.Android) & {
+		&:before { border: $Catcher_Border; }
+	}
+	html.iOS &,
+	html.Android & {
+		&:before { border: $Catcher_Border__TouchDevice; }
+	}
+	html:not(.iOS):not(.Android).dragenter &,
+	html:not(.iOS):not(.Android) &:hover {
+		&:before { border: $Catcher_Border__Hover; }
+	}
+	html:not(.iOS):not(.Android) &:active {
+		&:before { border: $Catcher_Border__Active; }
+	}
+	html.iOS &:active,
+	html.Android &:active {
+		&:before { border: $Catcher_Border__TouchDevice__Active; }
+	}
 }
 
 
 // - PoweredBy
 // --------------------------------------------------------------------------------
 
-
 div#bibi-poweredby {
 	height: $PoweredBy_Height;
+	html.veil-opened & {
+		p {
+			a {
+				background-color: $PoweredBy-A_BackgroundColor__VeilOpened;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened; }
+			}
+			a:hover {
+				background-color: $PoweredBy-A_BackgroundColor__VeilOpened__Hover;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened__Hover; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened__Hover; }
+			}
+		}
+	}
+	html.waiting-file & {
+		p {
+			a {
+				background-color: $PoweredBy-A_BackgroundColor__WaitingFile;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile; }
+			}
+			a:hover {
+				background-color: $PoweredBy-A_BackgroundColor__WaitingFile__Hover;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile__Hover; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile__Hover; }
+			}
+		}
+	}
+	html.panel-opened & {
+		p {
+			a {
+				background-color: $PoweredBy-A_BackgroundColor__PanelOpened;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened; }
+			}
+			a:hover {
+				background-color: $PoweredBy-A_BackgroundColor__PanelOpened__Hover;
+				&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened__Hover; }
+				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened__Hover; }
+			}
+		}
+	}
+}
+
+
+// - Checker
+// --------------------------------------------------------------------------------
+
+div#bibi-style-checker {
+	left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
+	@include size($Slider_Size, $Menu_Height);
 }

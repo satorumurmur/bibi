@@ -13,7 +13,6 @@ div#bibi-veil {
 	top: 0;
 	@include size(100%);
 	font-size: 15px;
-	// @____Bibi:Dress__('-') color: $Veil_Color;
 	// @____Bibi:Dress__('-') background: $Veil_Background;
 	opacity: 1;
 	transition: ease-in .5s;
@@ -23,6 +22,26 @@ div#bibi-veil {
 		html.appearance-ltr & { transform: translateX(-240%); }
 		html.appearance-rtl & { transform: translateX( 240%); }
 		html.appearance-ttb & { transform: translateY(-240%); }
+	}
+	&:before,
+	&:after {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: 0;
+		left: 0; right: 0;
+		width: 100%;
+	}
+	&:before {
+		top: 0;
+		// @____Bibi:Dress__('-') height: $Menu_Height;
+		// @____Bibi:Dress__('-') background: $Menu_BackgroundColor__VeilOpened;
+		// @____Bibi:Dress__('-') html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__VeilOpened; }
+	}
+	&:after {
+		bottom: 0;
+		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
+		// @____Bibi:Dress__('-') background: $PoweredBy_BackgroundColor__VeilOpened;
 	}
 }
 
@@ -124,323 +143,65 @@ p#bibi-veil-play {
 }
 
 
-// - Book Icon
-// --------------------------------------------------------------------------------
-
-@mixin BookIcon($SCOPED__BookIcon_Size, $SCOPED__BookIcon_OuterColor, $SCOPED__BookIcon_InnerColor) {
-	$SCOPED__BookIcon-Line_Width: $SCOPED__BookIcon_Size * 8/128;
-	$SCOPED__BookIcon-Book_Width: $SCOPED__BookIcon_Size - $SCOPED__BookIcon-Line_Width * 2.5;
-	$SCOPED__BookIcon-Book_Height: $SCOPED__BookIcon_Size;
-	$SCOPED__BookIcon-Cover_Width: $SCOPED__BookIcon-Book_Width - $SCOPED__BookIcon-Line_Width * 2;
-	$SCOPED__BookIcon-Cover_Height: $SCOPED__BookIcon-Book_Height - $SCOPED__BookIcon-Line_Width * 4;
-	$SCOPED__BookIcon-Page_Breadth: $SCOPED__BookIcon-Book_Height - $SCOPED__BookIcon-Line_Width - $SCOPED__BookIcon-Cover_Height;
-	$SCOPED__BookIcon-Book_Breadth: $SCOPED__BookIcon-Page_Breadth + $SCOPED__BookIcon-Line_Width * 2;
-	$SCOPED__BookIcon_OffsetLeft: ($SCOPED__BookIcon_Size - $SCOPED__BookIcon-Book_Width) * 0.5 - $SCOPED__BookIcon-Line_Width * 0.5;
-	$SCOPED__BookIcon_OffsetTop: 0;
-	box-sizing: border-box;
-	display: block;
-	position: relative;
-	@include size($SCOPED__BookIcon_Size);
-	&:before, &:after,
-	span, span:before, span:after {
-		content: "";
-		box-sizing: border-box;
-		display: block;
-		position: absolute;
-	}
-	span { // Back Cover
-		z-index: 10;
-		left: $SCOPED__BookIcon_OffsetLeft;
-		top: $SCOPED__BookIcon_OffsetTop;
-		border-radius: ($SCOPED__BookIcon-Book_Breadth * 0.5) $SCOPED__BookIcon-Line_Width $SCOPED__BookIcon-Line_Width 0;
-		@include size($SCOPED__BookIcon-Cover_Width + $SCOPED__BookIcon-Line_Width * 2, $SCOPED__BookIcon_Size - $SCOPED__BookIcon-Line_Width * 3);
-		&:before { // Pages
-			z-index: 100;
-			left: ($SCOPED__BookIcon-Book_Breadth * 0.5);
-			top: $SCOPED__BookIcon-Line_Width;
-			border-radius: 0 2px $SCOPED__BookIcon-Line_Width * 3.5 0;
-			@include size($SCOPED__BookIcon-Cover_Width - ($SCOPED__BookIcon-Line_Width + $SCOPED__BookIcon-Page_Breadth * 0.5) + $SCOPED__BookIcon-Line_Width, $SCOPED__BookIcon_Size - $SCOPED__BookIcon-Line_Width);
-		}
-		&:after { // Top of Spine
-			z-index: 1000;
-			left: $SCOPED__BookIcon-Line_Width;
-			top: $SCOPED__BookIcon-Line_Width;
-			border-radius: ($SCOPED__BookIcon-Page_Breadth * 0.5) 0 0 ($SCOPED__BookIcon-Page_Breadth * 0.5);
-			@include size($SCOPED__BookIcon-Page_Breadth/* * 0.5*/, $SCOPED__BookIcon-Page_Breadth);
-		}
-	}
-	&:after { // Front Cover
-		z-index: 10000;
-		left: $SCOPED__BookIcon_OffsetLeft;
-		top: $SCOPED__BookIcon_OffsetTop + ($SCOPED__BookIcon_Size - $SCOPED__BookIcon-Cover_Height);
-		border-radius: 0 $SCOPED__BookIcon-Line_Width $SCOPED__BookIcon-Line_Width ($SCOPED__BookIcon-Book_Breadth * 0.5);
-		@include size($SCOPED__BookIcon-Cover_Width, $SCOPED__BookIcon-Cover_Height);
-	}
-	span, &:after { background: $SCOPED__BookIcon_OuterColor; }
-	span:before, span:after { background: $SCOPED__BookIcon_InnerColor; }
-}
-
-
 // - Cover
 // --------------------------------------------------------------------------------
 
 div#bibi-veil-cover {
+	$SCOPED__CenterLine: 59%;
 	& {
 		overflow: hidden;
 		position: absolute;
 		z-index: $INVARIABLE__Veil-Cover_ZIndex;
-		top: auto;
-		left: 0;
-		right: 0;
+		@include offset(auto, 0, 0);
 		box-sizing: border-box;
 		border: solid transparent;
-		border-width: 8px;
+		// @____Bibi:Dress__('-') border-width: $Veil-Cover-Image_Margin;
 		width: 100%;
 		opacity: 0;
 		transition: opacity 0.5s linear;
 		background: transparent no-repeat center center;
 		background-size: contain;
 	}
-	html.book-full-height & {
-		// @____Bibi:Dress__('-') height: calc(100% - #{                $PoweredBy_Height });
-	}
-	html:not(.book-full-height) & {
-		// @____Bibi:Dress__('-') height: calc(100% - #{ $Menu_Height + $PoweredBy_Height });
-	}
+	html.book-full-height & { height: 100%; }
+	// @____Bibi:Dress__('-') html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
 	&.with-cover-image,
 	&.without-cover-image {
 		opacity: 1;
 	}
 	&.with-cover-image {
-		p {
-			opacity: 0;
-		}/*
-		p {
-			overflow: hidden;
-			@include size(0);
-		}
-		figure {
-			@include size(100%);
-			img {
-				display: block;
-				margin: auto;
-				@include max-size(100%);
-			}
-		}*/
+		p { opacity: 0; }
 	}
 	&.without-cover-image {
-		$SCOPED__Veil-Cover-Icon_Size: 144px;
+		.book-icon,
 		p {
+			margin: 0 auto;
+		}
+		.book-icon {
+			// @____Bibi:Dress__('-') @include DEFAULT__SPECIALICON__Book($Veil-Cover-Icon_Size__WithoutCoverImage, $Veil-Cover-Icon_OuterColor__WithoutCoverImage, $Veil-Cover-Icon_InnerColor__WithoutCoverImage, absolute);
+			position: absolute;
+			left: 0; right: 0;
+			bottom: 100% - $SCOPED__CenterLine;
+			z-index: 1;
+		}
+		p {
+			position: absolute;
 			z-index: 2;
-			@include size(100%, 1.2em);
+			@include offset($SCOPED__CenterLine, 0, auto);
+			@include size(100%, 4em);
 			line-height: 1.2;
 			font-size: 14px;
-			font-weight: bold;
-			color: white;
+			// @____Bibi:Dress__('-') color: $Veil-Cover-P_Color__WithoutCoverImage;
 			text-align: center;
-			text-shadow: 0 0 4px rgb(128,128,128);
-			transform: translateY($SCOPED__Veil-Cover-Icon_Size * -0.1);
-			strong, em, small, span {
-				display: block;
-			}
-			strong {
-				margin-top: -1em;
-				font-size: 1em * 18/14;
-				font-weight: bold;
-			}
-			em {
-				margin-top: .75em;
-				font-size: 1em * 14/14;
-			}
-			small {
-				margin-top: .75em;
-				font-size: 1em * 12/14;
-			}
-			span {
-				margin-top: .75em;
-				font-size: 1em * 10/14;
-			}
+			> strong, > em, > small, > span { display: block; }
+			> strong {  margin-top: 1.00em;  font-size: 1em * 18/14;  font-weight: bold;  }
+			> em     {  margin-top: 0.75em;  font-size: 1em * 14/14;  }
+			> small  {  margin-top: 0.75em;  font-size: 1em * 12/14;  }
+			> span   {  margin-top: 0.75em;  font-size: 1em * 12/14;  }
 		}
-		.book-icon {
-			@include BookIcon($SCOPED__Veil-Cover-Icon_Size, white, rgb(136,136,136));
-			z-index: 1;
-			transform: translateY($SCOPED__Veil-Cover-Icon_Size * -0.125);
-			opacity: .25;
-		}
-		p,
-		.book-icon {
-			display: block;
-			position: absolute;
-			margin: auto;
-			@include offset(-100%);
-		}/*
-		figure {
-			display: none;
-		}*/
 	}
 	&.without-cover-image.waiting-for-unzipping {
+		.book-icon { opacity: .75; }
 		p {
-			strong {
-				font-size: 1em * 24/14;
-			}
-			small {
-				color: rgb(216,216,216);
-			}
-		}
-	}
-}
-
-
-// - Catcher
-// --------------------------------------------------------------------------------
-
-div#bibi-catcher {
-	$SCOPED__Catcher-CenterLine_Bottom: 56%;
-	$SCOPED__Catcher_Transition: .2s ease;
-	display: none; html.waiting-file & { display: block; }
-	position: absolute;
-	z-index: $INVARIABLE__Catcher_ZIndex;
-	@include offset(0);
-	margin: 0;
-	@include size(100%);
-	color: white;
-	cursor: pointer;
-	transition: $SCOPED__Catcher_Transition;
-	> .pgroup {
-		box-sizing: border-box;
-		position: absolute;
-		z-index: 100;
-		@include offset(100% - $SCOPED__Catcher-CenterLine_Bottom, 0, auto);
-		margin: 0 auto;
-		width: 100%;
-		vertical-align: middle;
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-start;
-		align-items: center;
-		p {
-			strong, em, span, small {
-				display: block;
-				font-weight: bold;
-				transition: $SCOPED__Catcher_Transition;
-			}
-			strong {
-				box-sizing: border-box;
-				margin-top: 18px;
-				padding: 0 1em;
-				border: solid 1px white;
-				height: 2.5em;
-				line-height: 2.5em;
-				border-radius: 1.25em;
-				font-size: 16px;
-				background: rgba(white, 0);
-			}
-			em, span, small {
-				text-shadow: rgb(64,64,64) 0 0 1px;
-			}
-			em {
-				margin-top: 14px;
-				font-size: 16px;
-				line-height: 1.5;
-			}
-			span {
-				margin-top: 10px;
-				font-size: 14px;
-				line-height: 1.5;
-			}
-			small {
-				margin-top: 6px;
-				font-size: 12px;
-			}
-		}
-		&[lang="en"] p {
-			strong { text-indent: .125em; }
-			em     { margin-right: -.125em; }
-			span   { margin-right: -.125em; }
-			small  {}
-		}
-		&[lang="ja"] p {
-			strong { text-indent: .5em; }
-			em     { margin-right: -.67em; text-indent: -.67em; }
-			span   { margin-right: -.67em; text-indent: 0; }
-			small  {}
-		}
-	}
-	> .book-icon {
-		@include BookIcon(128px, white, rgb(136,136,136));
-		position: absolute;
-		z-index: 10;
-		@include offset(auto, 0, $SCOPED__Catcher-CenterLine_Bottom);
-		margin: 0 auto;
-		opacity: .8;
-		//transform-origin: 50% 100%;
-		transition: .125s cubic-bezier(.2,.8,.8,1.6);
-	}
-	> input {
-		visibility: hidden;
-	}
-	&:after {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		z-index: 1;
-		@include offset(0);
-		margin: auto;
-		border: dashed 4px rgba(white, 0.5);
-		background: rgba(white, 0);
-		transition: $SCOPED__Catcher_Transition;
-		// @____Bibi:Dress__('-') $SCOPED__Catcher-Area_Margin: 24px;
-		// @____Bibi:Dress__('-') border-radius: $SCOPED__Catcher-Area_Margin;
-		// @____Bibi:Dress__('-') @include size(
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $PoweredBy_Height})
-		// @____Bibi:Dress__('-') );
-		// @____Bibi:Dress__('-') @include max(768px) { @include size(
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
-		// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $PoweredBy_Height})
-		// @____Bibi:Dress__('-') ); }
-		// @____Bibi:Dress__('-') transform: translateY(#{$PoweredBy_Height * -0.5});
-	}
-	html.dragenter &,
-	&:hover {
-		> .pgroup {
-			p {
-				strong {
-					color: rgb(128,128,128);
-					background-color: rgba(white, 1);
-				}
-			}
-		}
-		> .book-icon {
-			opacity: 1;
-			transform: rotate(4deg) scale(1.04);
-			//span, &:after { background-color: gold; }
-			//span:before, span:after { background-color: rgb(160,160,160); }
-		}
-		&:after {
-			border-style: solid;
-			border-width: 8px;
-			border-color: rgba(white, .88);
-			//background: rgb(160,160,160);
-		}
-	}
-	&:active {
-		> .pgroup {
-			p {
-				strong {
-					opacity: .8;
-				}
-			}
-		}
-		> .book-icon {
-			//opacity: .5;
-			transform: rotate(8deg) scale(1);
-		}
-		&:after {
-			border-width: 16px;
-			border-color: rgba(white, .44);
 		}
 	}
 }

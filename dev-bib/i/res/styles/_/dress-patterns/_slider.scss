@@ -33,11 +33,11 @@ div#bibi-slider {
 div#bibi-slider-thumb {
 	&:before,
 	&:after {
-		html.slider-opened & { transition: $Slider_Transition__Open; }
+		html.slider-opened       & { transition: $Slider_Transition__Open; }
 		html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
 	}
 	&:before { background: $Slider-Thumb_BackgroundColor; }
-	html:not(.slider-opened):not(.touch) &:hover:before { background-color: $Slider-Thumb_BackgroundColor__Hover; }
+	html:not(.slider-opened):not(.touch)  &:hover:before { background-color: $Slider-Thumb_BackgroundColor__Hover; }
 	html:not(.slider-opened):not(.touch) &:active:before { background-color: $Slider-Thumb_BackgroundColor__Active; }
 	&:after {
 		@include offset($Slider-Thumb-Circle_Size * -1);

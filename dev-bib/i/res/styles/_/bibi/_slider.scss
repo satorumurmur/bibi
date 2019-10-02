@@ -96,12 +96,12 @@ div#bibi-slider-thumb {
 		box-sizing: border-box;
 		position: absolute;
 		z-index: 10;
-		html.appearance-horizontal &, html.appearance-vertical & { @include offset($TEMPORARY__Scrollbar-Thumb_Size * -1); } // TO BE OVERWRITTEN
 		margin: auto;
 		// @____Bibi:Dress__('-') html.slider-opened       & { transition: $Slider_Transition__Open;  }
 		// @____Bibi:Dress__('-') html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
 	}
 	&:before {
+		@include offset($TEMPORARY__Scrollbar-Thumb_Size * -1); // TO BE OVERWRITTEN
 		@include size(100%);
 		border-radius: $TEMPORARY__Scrollbar-Thumb_Size * 0.5; // TO BE OVERWRITTEN
 		html.appearance-horizontal & { min-width:  $TEMPORARY__Scrollbar-Thumb_Size; } // TO BE OVERWRITTEN

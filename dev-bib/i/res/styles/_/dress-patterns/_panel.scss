@@ -5,6 +5,15 @@
 
 div#bibi-panel {
 	background: $Panel_Background;
+	&:before {
+		height: $Menu_Height;
+		background: $Menu_BackgroundColor__PanelOpened;
+		html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__PanelOpened; }
+	}
+	&:after {
+		height: $PoweredBy_Height;
+		background: $PoweredBy_BackgroundColor__PanelOpened;
+	}
 }
 
 

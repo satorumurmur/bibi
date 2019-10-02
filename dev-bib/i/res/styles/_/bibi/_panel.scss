@@ -21,6 +21,26 @@ div#bibi-panel {
 		transition: 0.15s ease-in;
 		user-select: text;
 	}
+	&:before,
+	&:after {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: 99999999999;
+		left: 0; right: 0;
+		width: 100%;
+	}
+	&:before {
+		top: 0;
+		// @____Bibi:Dress__('-') height: $Menu_Height;
+		// @____Bibi:Dress__('-') background: $Menu_BackgroundColor__PanelOpened;
+		// @____Bibi:Dress__('-') html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__PanelOpened; }
+	}
+	&:after {
+		bottom: 0;
+		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
+		// @____Bibi:Dress__('-') background: $PoweredBy_BackgroundColor__PanelOpened;
+	}
 }
 
 
@@ -234,6 +254,7 @@ div#bibi-panel-bookinfo-cover {
 		// @____Bibi:Dress__('-') padding-right: $Panel-Cover_PaddingBefore;
 		border-right-width: 1px;
 		// @____Bibi:Dress__('-') max-width: calc(100vw - #{$Panel_PaddingAfter * 2});
+		height: 100%;
 		img {
 			@include margin-h(auto);
 		}

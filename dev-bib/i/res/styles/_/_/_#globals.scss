@@ -95,14 +95,12 @@ $INVARIABLE__Catcher_ZIndex: $INVARIABLE__Veil_ZIndex + 1;
 
 $INVARIABLE__Panel_ZIndex: 1000;
 
-$INVARIABLE__Menu_ZIndex: 10000;
-
-$INVARIABLE__Slider_ZIndex: 100000;
+$INVARIABLE__Slider_ZIndex: 10000;
 $INVARIABLE__Nombre_ZIndex: $INVARIABLE__Slider_ZIndex + 1;
 
-$INVARIABLE__Subpanel_ZIndex: $INVARIABLE__Slider_ZIndex + 1;
-
+$INVARIABLE__Menu_ZIndex: 100000;
 $INVARIABLE__Arrow_ZIndex: $INVARIABLE__Menu_ZIndex + 1;
+$INVARIABLE__Subpanel_ZIndex: $INVARIABLE__Menu_ZIndex + 10;
 
 $INVARIABLE__PoweredBy_ZIndex: 1000000;
 

@@ -2,18 +2,22 @@
 // + Menu
 // --------------------------------------------------------------------------------
 
-$Menu_Height: 39px;
+$Menu_Height:    39px;
 $Menu-Icon_Size: 31px;
 
-$Menu_BackgroundColor:         rgba(white, 0  );
-$Menu_BackgroundColor__Hover:  rgba(white,  .9);
-$Menu_BackgroundColor__Active: rgba(white, 1  );
+$Menu_BackgroundColor:              rgba(white, 0  );
+$Menu_BackgroundColor__Hover:       rgba(white,  .9);
+$Menu_BackgroundColor__Active:      rgba(white, 1  );
+$Menu_BackgroundColor__VeilOpened:  rgba(white, 1  );
+$Menu_BackgroundColor__PanelOpened: rgba(white, 1  );
 $Menu_BoxShadow__Active: 0 0 16px rgba(black, 0.125);
 
 // Not-BookFullHeight (NotBFH) ... html:not(.book-full-height)
 $Menu_BackgroundColor__NotBFH:         $Menu_BackgroundColor__Active;
 $Menu_BackgroundColor__NotBFH__Hover:  $Menu_BackgroundColor__NotBFH;
-$Menu_BackgroundColor__NotBFH__Active: $Menu_BackgroundColor__NotBFH__Hover;
+$Menu_BackgroundColor__NotBFH__Active: $Menu_BackgroundColor__NotBFH;
+$Menu_BackgroundColor__NotBFH__VeilOpened: $Menu_BackgroundColor__NotBFH;
+$Menu_BackgroundColor__NotBFH__PanelOpened: $Menu_BackgroundColor__PanelOpened;
 $Menu_BorderBottomColor__NotBFH:         rgba(black, .05);
 $Menu_BorderBottomColor__NotBFH__Hover:  $Menu_BorderBottomColor__NotBFH;
 $Menu_BorderBottomColor__NotBFH__Active: $Menu_BorderBottomColor__NotBFH__Hover;
