@@ -262,4 +262,16 @@ div#bibi-panel-bookinfo-cover {
 			text-align: center;
 		}
 	}
+	&.without-cover-image {
+		.book-icon {
+			// @____Bibi:Dress__('-') @include DEFAULT__SPECIALICON__Book($Panel-Cover-Icon_Size__WithoutCoverImage, $Panel-Cover-Icon_OuterColor__WithoutCoverImage, $Panel-Cover-Icon_InnerColor__WithoutCoverImage, relative);
+			margin-bottom: .75em;
+		}
+	}
+	html.nav-rtl &.without-cover-image {
+		.book-icon {
+			margin-left: auto;
+			margin-right: auto;
+		}
+	}
 }

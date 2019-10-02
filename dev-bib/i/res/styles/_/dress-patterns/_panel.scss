@@ -59,6 +59,11 @@ div#bibi-panel-bookinfo-cover {
 			color: $Panel-Cover-Info_Color;
 		}
 	}
+	&.without-cover-image {
+		.book-icon {
+			@include DEFAULT__SPECIALICON__Book($Panel-Cover-Icon_Size__WithoutCoverImage, $Panel-Cover-Icon_OuterColor__WithoutCoverImage, $Panel-Cover-Icon_InnerColor__WithoutCoverImage, relative);
+		}
+	}
 	html.nav-ttb & {
 		margin-top: $Panel-Cover_MarginBefore;
 		padding-top: $Panel-Cover_PaddingBefore;

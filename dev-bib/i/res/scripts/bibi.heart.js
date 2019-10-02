@@ -791,7 +791,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
 
 
 L.createCover = () => {
-    const VCover = I.Veil.Cover, PCover = I.Menu.Panel.BookInfo.Cover;
+    const VCover = I.Veil.Cover, PCover = I.Panel.BookInfo.Cover;
     VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
         const BookID = [];
         if(B.Title)     BookID.push(`<strong>${ L.createCover.optimizeString(B.Title)     }</strong>`);
@@ -814,7 +814,8 @@ L.createCover = () => {
         PCover.insertBefore(sML.create('img', { src: ImageURI }), PCover.Info);
     }).catch(() => {
         VCover.className = PCover.className = 'without-cover-image';
-        VCover.appendChild(I.getBookIcon());
+        VCover.insertBefore(I.getBookIcon(), VCover.Info);
+        PCover.insertBefore(I.getBookIcon(), PCover.Info);
     }));
 };
     L.createCover.optimizeString = (Str) => `<span>` + Str.replace(
@@ -823,7 +824,7 @@ L.createCover = () => {
 
 
 L.loadNavigation = () => O.openDocument(B.NavItem).then(Doc => {
-    const PNav = I.Menu.Panel.BookInfo.Navigation = I.Menu.Panel.BookInfo.insertBefore(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }), I.Menu.Panel.BookInfo.firstElementChild);
+    const PNav = I.Panel.BookInfo.Navigation = I.Panel.BookInfo.insertBefore(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }), I.Panel.BookInfo.firstElementChild);
     PNav.innerHTML = '';
     const NavContent = document.createDocumentFragment();
     if(B.NavItem.NavType == 'Navigation Document') {
@@ -937,7 +938,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
     L.coordinateLinkages.setJump = (A) => A.addEventListener('click', Eve => {
         Eve.preventDefault(); 
         Eve.stopPropagation();
-        if(A.Destination) new Promise(resolve => A.InNav ? I.Menu.Panel.toggle().then(resolve) : resolve()).then(() => {
+        if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
             if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
             if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'pipi(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
@@ -1097,7 +1098,11 @@ L.postprocessItem = (Item) => {
             }
         }
     });
-    Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+    /*
+    if(!O.Touch) {
+        if(!sML.UA.Gecko) Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+    }
+    */
     I.observeTap(Item.HTML);
     Item.HTML.addTapEventListener('tap',         R.onTap);
     Item.HTML.addEventListener(O['pointermove'], R.onPointerMove);
@@ -1227,7 +1232,6 @@ R.initialize = () => {
             R.Main.scrollLeft = R.Main.scrollLeft + Eve.deltaX;
             R.Main.scrollTop  = R.Main.scrollTop  + Eve.deltaY;
         };
-        //R.Main.addEventListener('wheel', R.onWheel, { capture: true, passive: true });
         I.observeTap(O.HTML);
         O.HTML.addTapEventListener('tap',         R.onTap);
         O.HTML.addEventListener(O['pointermove'], R.onPointerMove);
@@ -1858,7 +1862,7 @@ R.onPointerUp = (Eve) => {
 };
 
 
-R.changeView = (Par) => {
+R.changeView = (Par, Opt = {}) => {
     if(
         S['fix-reader-view-mode'] ||
         !Par || typeof Par.Mode != 'string' || !/^(paged|horizontal|vertical)$/.test(Par.Mode) ||
@@ -1874,6 +1878,7 @@ R.changeView = (Par) => {
             //if(Par.Mode != 'paged') R.Spreads.forEach(Spread => Spread.style.opacity = '');
             R.layOut({
                 Reset: true,
+                NoNotification: Opt.NoNotification,
                 Setting: {
                     'reader-view-mode': Par.Mode
                 }
@@ -1883,7 +1888,7 @@ R.changeView = (Par) => {
                 O.Busy = false;
                 setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
             });
-        }, 0);
+        }, O.Touch ? 99 : 9);
     } else {
         S.update({
             'reader-view-mode': Par.Mode
@@ -2229,6 +2234,7 @@ I.initialize = () => {
     E.bind('bibi:readied', () => {
         I.Catcher.create();
         I.Menu.create();
+        I.Panel.create();
         I.Help.create();
         I.PoweredBy.create();
         I.FontSizeChanger.create();
@@ -2386,7 +2392,7 @@ I.Menu = { create: () => {
     //else if( S['place-menubar-at-top']) O.HTML.classList.add('menubar-top');
     //else                                O.HTML.classList.add('menubar-bottom');
     const Menu = I.Menu = O.Body.appendChild(sML.create('div', { id: 'bibi-menu' }, I.Menu)); delete Menu.create;
-    Menu.addEventListener('click', Eve => Eve.stopPropagation());
+    //Menu.addEventListener('click', Eve => Eve.stopPropagation());
     I.setHoverActions(Menu);
     I.setToggleAction(Menu, {
         onopened: () => { O.HTML.classList.add(   'menu-opened'); E.dispatch('bibi:opened-menu'); },
@@ -2408,7 +2414,7 @@ I.Menu = { create: () => {
             Menu.classList.remove('hot');
         }, 1234);
     });*/
-    if(!O.Touch) {
+    if(!O.Touch) E.add('bibi:opened', () => {
         E.add('bibi:moved-pointer', Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
@@ -2419,7 +2425,8 @@ I.Menu = { create: () => {
                 Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovers', Eve), 123);
             }
         });
-    }
+        if(!sML.UA.Gecko) Menu.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+    });
     Menu.L = Menu.appendChild(sML.create('div', { id: 'bibi-menu-l' }));
     Menu.R = Menu.appendChild(sML.create('div', { id: 'bibi-menu-r' }));
     [Menu.L, Menu.R].forEach(MenuSide => {
@@ -2438,49 +2445,9 @@ I.Menu = { create: () => {
     }
     I.OpenedSubpanel = null;
     I.Subpanels = [];
-    Menu.Panel.create();
     Menu.Config.create();
     E.dispatch('bibi:created-menu');
 }};
-
-    I.Menu.Panel = { create: () => {
-        const Menu = I.Menu;
-        const Panel = Menu.Panel = O.Body.appendChild(sML.create('div', { id: 'bibi-panel' }));
-        I.setToggleAction(Panel, {
-            onopened: () => { O.HTML.classList.add(   'panel-opened'); E.dispatch('bibi:opened-panel'); },
-            onclosed: () => { O.HTML.classList.remove('panel-opened'); E.dispatch('bibi:closed-panel'); }
-        });
-        E.add('bibi:commands:open-panel',   Panel.open);
-        E.add('bibi:commands:close-panel',  Panel.close);
-        E.add('bibi:commands:toggle-panel', Panel.toggle);
-        E.add('bibi:closes-utilities',      Panel.close);
-        /*
-        Panel.Labels = {
-            default: { default: `Opoen this Index`, ja: `この目次を開く`   },
-            active:  { default: `Close this Index`, ja: `この目次を閉じる` }
-        };
-        */
-        I.setFeedback(Panel, { StopPropagation: true });
-        Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
-        Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
-        Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
-        Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
-        const Opener = Panel.Opener = Menu.L.addButtonGroup({ Sticky: true }).addButton({
-            Type: 'toggle',
-            Labels: {
-                default: { default: `Open Index`,  ja: `目次を開く`   },
-                active:  { default: `Close Index`, ja: `目次を閉じる` }
-            },
-            Help: true,
-            Icon: `<span class="bibi-icon bibi-icon-toggle-panel">${ (Bars => { for(let i = 1; i <= 6; i++) Bars += '<span></span>'; return Bars; })('') }</span>`,
-            action: () => Panel.toggle()
-        });
-        E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
-        E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
-        E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
-        //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
-        E.dispatch('bibi:created-panel');
-    }};
 
     I.Menu.Config = { create: () => {
         const Menu = I.Menu;
@@ -2514,12 +2481,12 @@ I.Menu = { create: () => {
             const Config = I.Menu.Config;
             const /* SpreadShapes */ SSs = (/* SpreadShape */ SS => SS + SS + SS)((/* ItemShape */ IS => `<span class="bibi-shape bibi-shape-spread">${ IS + IS }</span>`)(`<span class="bibi-shape bibi-shape-item"></span>`));
             const Section = Config.ViewModeSection = Config.addSection({
-                Labels: { default: { default: `Layout Mode`, ja: `表示モード` } },
+                Labels: { default: { default: `View Mode`, ja: `表示モード` } },
                 ButtonGroups: [{
                     ButtonType: 'radio',
                     Buttons: [{
                         Mode: 'paged',
-                        Labels: { default: { default: `Page Flipping <small>(with ${ O.Touch ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.Touch ? 'タップ／スワイプ' : 'クリック／ホイール' }）</small>` } },
+                        Labels: { default: { default: `Paged <small>(Flip with ${ O.Touch ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.Touch ? 'タップ／スワイプ' : 'クリック／ホイール' }で移動）</small>` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">${ SSs }</span></span>`
                     }, {
                         Mode: 'horizontal',
@@ -2531,7 +2498,7 @@ I.Menu = { create: () => {
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
                     }].map(Button => sML.edit(Button, {
                         Notes: true,
-                        action: () => R.changeView(Button)
+                        action: () => R.changeView(Button, { NoNotification: true })
                     }))
                 }, /*{
                     Buttons: []
@@ -2638,6 +2605,45 @@ I.Menu = { create: () => {
                 Section.addButtonGroup({ Buttons: Buttons });
             }
         }};
+
+
+I.Panel = { create: () => {
+    const Panel = I.Panel = O.Body.appendChild(sML.create('div', { id: 'bibi-panel' }));
+    I.setToggleAction(Panel, {
+        onopened: () => { O.HTML.classList.add(   'panel-opened'); E.dispatch('bibi:opened-panel'); },
+        onclosed: () => { O.HTML.classList.remove('panel-opened'); E.dispatch('bibi:closed-panel'); }
+    });
+    E.add('bibi:commands:open-panel',   Panel.open);
+    E.add('bibi:commands:close-panel',  Panel.close);
+    E.add('bibi:commands:toggle-panel', Panel.toggle);
+    E.add('bibi:closes-utilities',      Panel.close);
+    /*
+    Panel.Labels = {
+        default: { default: `Opoen this Index`, ja: `この目次を開く`   },
+        active:  { default: `Close this Index`, ja: `この目次を閉じる` }
+    };
+    */
+    I.setFeedback(Panel, { StopPropagation: true });
+    Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
+    Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
+    Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
+    Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
+    const Opener = Panel.Opener = I.Menu.L.addButtonGroup({ Sticky: true }).addButton({
+        Type: 'toggle',
+        Labels: {
+            default: { default: `Open Index`,  ja: `目次を開く`   },
+            active:  { default: `Close Index`, ja: `目次を閉じる` }
+        },
+        Help: true,
+        Icon: `<span class="bibi-icon bibi-icon-toggle-panel">${ (Bars => { for(let i = 1; i <= 6; i++) Bars += '<span></span>'; return Bars; })('') }</span>`,
+        action: () => Panel.toggle()
+    });
+    E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
+    E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
+    E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+    //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
+    E.dispatch('bibi:created-panel');
+}};
 
 
 I.Help = { create: () => {
@@ -3387,7 +3393,9 @@ I.Slider = { create: () => {
         Slider.resetThumbAndRailSize();
         Slider.progress();
     });
-    Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+    if(!O.Touch) {
+        if(!sML.UA.Gecko) Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+    }
     { // Optimize to Scrollbar Size
         const _S = 'div#bibi-slider', _TB = '-thumb:before';
         const _HS = 'html.appearance-horizontal ' + _S, _HSTB = _HS + _TB, _SH = O.Scrollbars.Height, _STH = Math.ceil(_SH / 2);
@@ -3467,7 +3475,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
             if(I.OpenedSubpanel) return false;
-            if(I.Menu.Panel && I.Menu.Panel.UIState == 'active') return false;
+            if(I.Panel && I.Panel.UIState == 'active') return false;
             //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
             if(S.RVM == 'paged') {
                 if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
@@ -3477,7 +3485,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
                 else if(S.RVM == 'vertical'  ) { if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; }
             }
             if(BibiEvent.Target.ownerDocument.documentElement == O.HTML) {
-                if(BibiEvent.Target == O.HTML || BibiEvent.Target == O.Body) return true;
+                if(BibiEvent.Target == O.HTML || BibiEvent.Target == O.Body || BibiEvent.Target == I.Menu) return true;
                 if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.Target.id)) return true;
                 if(/^(spread|item|page)( |-|$)/.test(BibiEvent.Target.className)) return true;
             } else {
