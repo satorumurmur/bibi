@@ -79,13 +79,13 @@ div#bibi-poweredby {
 		p {
 			a {
 				background-color: $PoweredBy-A_BackgroundColor__VeilOpened;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened; }
 			}
 			a:hover {
 				background-color: $PoweredBy-A_BackgroundColor__VeilOpened__Hover;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened__Hover; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened__Hover; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened__Hover; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened__Hover; }
 			}
 		}
 	}
@@ -93,13 +93,13 @@ div#bibi-poweredby {
 		p {
 			a {
 				background-color: $PoweredBy-A_BackgroundColor__WaitingFile;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile; }
 			}
 			a:hover {
 				background-color: $PoweredBy-A_BackgroundColor__WaitingFile__Hover;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile__Hover; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile__Hover; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile__Hover; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile__Hover; }
 			}
 		}
 	}
@@ -107,13 +107,13 @@ div#bibi-poweredby {
 		p {
 			a {
 				background-color: $PoweredBy-A_BackgroundColor__PanelOpened;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened; }
 			}
 			a:hover {
 				background-color: $PoweredBy-A_BackgroundColor__PanelOpened__Hover;
-				&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened__Hover; }
-				&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened__Hover; }
+				&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened__Hover; }
+				&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened__Hover; }
 			}
 		}
 	}

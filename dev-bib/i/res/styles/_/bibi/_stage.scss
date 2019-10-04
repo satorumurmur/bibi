@@ -252,35 +252,42 @@ div#bibi-poweredby {
 		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
 		text-align: right;
 		font-size: 14px;
-		transform: scale(0);
-		&, & * { transition: .1s linear; }
+		transform-origin: 50% 100%;
+		transform: scale(1, 0);
+		opacity: 0;
+		transition: opacity .5s linear;
 		p {
 			a {
-				$SCOPED__PowerdBy-Logo-Image_OriginalWidth: 144px;
-				$SCOPED__PowerdBy-Logo-Image_OriginalHeight: 72px;
-				$SCOPED__PowerdBy-Logo-Image_Height: 16px;
-				$SCOPED__PowerdBy-Logo-Image_Width: $SCOPED__PowerdBy-Logo-Image_Height * ($SCOPED__PowerdBy-Logo-Image_OriginalWidth / $SCOPED__PowerdBy-Logo-Image_OriginalHeight);
-				$SCOPED__PowerdBy-Logo-Box_Left: 4px;
-				$SCOPED__PowerdBy-Logo-Box_PaddingVertical: 6px;
-				$SCOPED__PowerdBy-Logo-Box_PaddingHorizontal: 10px;
-				$SCOPED__PowerdBy-Logo-Box_Height: $SCOPED__PowerdBy-Logo-Image_Height + $SCOPED__PowerdBy-Logo-Box_PaddingVertical * 2;
-				$SCOPED__PowerdBy-Logo-Box_Width: $SCOPED__PowerdBy-Logo-Image_Width + $SCOPED__PowerdBy-Logo-Box_PaddingHorizontal * 2;
+				$SCOPED__PoweredBy-Logo-Image_OriginalWidth: 144px;
+				$SCOPED__PoweredBy-Logo-Image_OriginalHeight: 72px;
+				$SCOPED__PoweredBy-Logo-Image_Height: 16px;
+				$SCOPED__PoweredBy-Logo-Image_Width: $SCOPED__PoweredBy-Logo-Image_Height * ($SCOPED__PoweredBy-Logo-Image_OriginalWidth / $SCOPED__PoweredBy-Logo-Image_OriginalHeight);
+				$SCOPED__PoweredBy-Logo-Box_Left: 4px;
+				$SCOPED__PoweredBy-Logo-Box_PaddingVertical: 6px;
+				$SCOPED__PoweredBy-Logo-Box_PaddingHorizontal: 10px;
+				$SCOPED__PoweredBy-Logo-Box_Height: $SCOPED__PoweredBy-Logo-Image_Height + $SCOPED__PoweredBy-Logo-Box_PaddingVertical * 2;
+				$SCOPED__PoweredBy-Logo-Box_Width: $SCOPED__PoweredBy-Logo-Image_Width + $SCOPED__PoweredBy-Logo-Box_PaddingHorizontal * 2;
 				display: block;
 				box-sizing: border-box;
 				position: absolute;
 				top: 0;
 				right: auto;
 				bottom: 0;
-				left: $SCOPED__PowerdBy-Logo-Box_Left;
+				left: $SCOPED__PoweredBy-Logo-Box_Left;
 				margin: auto 0;
 				border-radius: 2px;
-				@include size($SCOPED__PowerdBy-Logo-Box_Width, $SCOPED__PowerdBy-Logo-Box_Height);
-				font-size: $SCOPED__PowerdBy-Logo-Image_Height;
-				line-height: $SCOPED__PowerdBy-Logo-Box_Height + 2px;
+				@include size($SCOPED__PoweredBy-Logo-Box_Width, $SCOPED__PoweredBy-Logo-Box_Height);
+				font-size: $SCOPED__PoweredBy-Logo-Image_Height;
+				line-height: $SCOPED__PoweredBy-Logo-Box_Height + 2px;
 				text-align: center;
 				text-decoration: none;
 				color: transparent;
 				background: transparent;
+				&,
+				&:before,
+				&:after {
+					transition: .1s linear;
+				}
 				&:before,
 				&:after {
 					content: "";
@@ -289,8 +296,8 @@ div#bibi-poweredby {
 					@include offset(0);
 					margin: 0;
 					@include size(100%);
-					background: transparent none no-repeat center (($SCOPED__PowerdBy-Logo-Box_Height - $SCOPED__PowerdBy-Logo-Image_Height) / 2 + 2px);
-					background-size: $SCOPED__PowerdBy-Logo-Image_Width $SCOPED__PowerdBy-Logo-Image_Height;
+					background: transparent none no-repeat center (($SCOPED__PoweredBy-Logo-Box_Height - $SCOPED__PoweredBy-Logo-Image_Height) / 2 + 2px);
+					background-size: $SCOPED__PoweredBy-Logo-Image_Width $SCOPED__PoweredBy-Logo-Image_Height;
 				}
 				&:before { background-image: url(../images/bibi-logo_white.png); }
 				&:after  { background-image: url(../images/bibi-logo_black.png); }
@@ -300,19 +307,20 @@ div#bibi-poweredby {
 	html.waiting-file &,
 	html.waiting &,
 	html.panel-opened & {
+		opacity: 1;
 		transform: none;
 	}
 	// @____Bibi:Dress__('-') html.veil-opened & {
 	// @____Bibi:Dress__('-') 	p {
 	// @____Bibi:Dress__('-') 		a {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__VeilOpened;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 		a:hover {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__VeilOpened__Hover;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__VeilOpened__Hover; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__VeilOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened__Hover; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 	}
 	// @____Bibi:Dress__('-') }
@@ -320,13 +328,13 @@ div#bibi-poweredby {
 	// @____Bibi:Dress__('-') 	p {
 	// @____Bibi:Dress__('-') 		a {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__WaitingFile;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 		a:hover {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__WaitingFile__Hover;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__WaitingFile__Hover; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__WaitingFile__Hover; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile__Hover; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 	}
 	// @____Bibi:Dress__('-') }
@@ -334,13 +342,13 @@ div#bibi-poweredby {
 	// @____Bibi:Dress__('-') 	p {
 	// @____Bibi:Dress__('-') 		a {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__PanelOpened;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 		a:hover {
 	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__PanelOpened__Hover;
-	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-Logo-White_Opacity__PanelOpened__Hover; }
-	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-Logo-Black_Opacity__PanelOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened__Hover; }
 	// @____Bibi:Dress__('-') 		}
 	// @____Bibi:Dress__('-') 	}
 	// @____Bibi:Dress__('-') }
