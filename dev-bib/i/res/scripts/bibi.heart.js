@@ -3794,9 +3794,12 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
         35: 'End',         36: 'Home',
         37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
     });
-    E.add('bibi:opened',             (  ) => { KeyListener.updateMovingParameters(); KeyListener.observe(document); });
     E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyListener.observe(Item.contentDocument));
-    E.add('bibi:touched-key',        Eve  => KeyListener.tryMoving(Eve));
+    E.add('bibi:opened', () => {
+        KeyListener.updateMovingParameters();
+        KeyListener.observe(document);
+        E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyListener.tryMoving(Eve));
+    });
     E.dispatch('bibi:created-keylistener');
 }};
 
