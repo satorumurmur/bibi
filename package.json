@@ -43,7 +43,7 @@
     "del": "^5.1.0",
     "file-loader": "^4.2.0",
     "gulp": "^4.0.2",
-    "gulp-zip": "^5.0.0",
+    "gulp-zip": "^5.0.1",
     "hard-source-webpack-plugin": "^0.13.1",
     "mini-css-extract-plugin": "^0.8.0",
     "node-sass": "^4.12.0",
