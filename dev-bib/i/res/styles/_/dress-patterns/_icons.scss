@@ -81,7 +81,7 @@
 // - Colors & Interaction: Default + Hover
 // --------------------------------------------------------------------------------
 
-.bibi-button.default { &.hover, &:hover { .bibi-icon {
+.bibi-button.default { &.hover/*, &:hover*/ { .bibi-icon {
 	#bibi-menu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor__Hover,
@@ -139,7 +139,7 @@
 // - Colors & Interaction: Active + Hover
 // --------------------------------------------------------------------------------
 
-.bibi-button-normal, .bibi-button-toggle { &.active { &.hover, &:hover { .bibi-icon {
+.bibi-button-normal, .bibi-button-toggle { &.active { &.hover/*, &:hover*/ { .bibi-icon {
 	#bibi-menu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor__Active-Hover,

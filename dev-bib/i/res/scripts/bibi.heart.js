@@ -21,7 +21,11 @@ export const Bibi = { 'version': '____bibi-version____', 'href': 'https://bibi.e
 
 
 Bibi.hello = () => new Promise(resolve => {
-    O.initialize();
+    O.HTML = document.documentElement;
+    O.HTML.classList.add(...sML.Environments.concat(['welcome']));
+    if(Bibi.Dev)  O.HTML.classList.add('bibi-dev');
+    if(Bibi.Debug) O.HTML.classList.add('bibi-debug');
+    O.log.initialize();
     O.log(`Hello!`, '<b:>');
     O.log(`[ja] ${ Bibi['href'] }`);
     O.log(`[en] https://github.com/satorumurmur/bibi`);
@@ -52,55 +56,34 @@ Bibi.loadPreset = () => new Promise(resolve => {
 
 
 Bibi.initialize = () => {
-    O.contentWindow = window;
-    O.contentDocument = document;
-    O.HTML  = document.documentElement; O.HTML.classList.add(...sML.Environments.concat(['bibi', 'welcome']));
     O.Head  = document.head;
     O.Body  = document.body;
     O.Info  = document.getElementById('bibi-info');
     O.Title = document.getElementsByTagName('title')[0];
-    O.RequestedURL = location.href;
-    O.BookURL = O.Origin + location.pathname + location.search;
-    O.Language = (Lans => {
-        for(let l = Lans.length, i = 0; i < l; i++) {
-            const Lan = Lans[i].split ? Lans[i].split('-')[0] : '';
+    O.RequestedURL = location.href, O.BookURL = O.Origin + location.pathname + location.search;
+    O.contentWindow = window, O.contentDocument = document;
+    O.HTML.classList.add('default-lang-' + (O.Language = (() => {
+        let NLs = [];
+        if(navigator.languages instanceof Array) NLs = NLs.concat(navigator.languages);
+        if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
+        for(let l = NLs.length, i = 0; i < l; i++) {
+            const Lan = NLs[i].split ? NLs[i].split('-')[0] : '';
             if(Lan == 'ja') return 'ja';
             if(Lan == 'en') break;
         }                   return 'en';
-    })(navigator.languages instanceof Array ? navigator.languages : navigator.language ? [navigator.language] : []);
-    // Device & Event
-    if(sML.OS.iOS || sML.OS.Android) {
-        O.Touch = true;
+    })()));
+    // Device & Event;
+    if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) {
         O.HTML.classList.add('touch');
         if(sML.OS.iOS) {
             O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-capable',          content: 'yes'   }));
             O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'white' }));
         }
-        O['resize'] = 'orientationchange';
-        O['pointerdown'] = 'touchstart';
-        O['pointermove'] = 'touchmove';
-        O['pointerup']   = 'touchend';
-    } else {
-        O.Touch = false;
-        O['resize'] = 'resize';
-        if(sML.UA.Trident || sML.UA.EdgeHTML) {
-            O['pointerdown'] = 'pointerdown';
-            O['pointermove'] = 'pointermove';
-            O['pointerup']   = 'pointerup';
-            O['pointerover'] = 'pointerover';
-            O['pointerout']  = 'pointerout';
-        } else {
-            O['pointerdown'] = 'mousedown';
-            O['pointermove'] = 'mousemove';
-            O['pointerup']   = 'mouseup';
-            O['pointerover'] = 'mouseover';
-            O['pointerout']  = 'mouseout';
-        }
     }
     E.initialize();
     R.initialize();
     I.initialize();
-    if(sML.UA.InternetExplorer < 11) {
+    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) {
         // Say Bye-bye
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
         return O.error(I.Veil.byebye({
@@ -201,7 +184,7 @@ Bibi.ready = () => new Promise(resolve => {
     O.HTML.classList.add('ready');
     O.ReadiedURL = location.href;
     E.add('bibi:readied', resolve);
-    E.dispatch('bibi:readied');//setTimeout(() => E.dispatch('bibi:readied'), (O.Touch ? 999 : 0));
+    E.dispatch('bibi:readied');
 }).then(() => {
     O.HTML.classList.remove('ready');
 });
@@ -218,10 +201,10 @@ Bibi.busyHerself = () => new Promise(resolve => {
     O.Busy = true;
     O.HTML.classList.add('busy');
     O.HTML.classList.add('loading');
-    window.addEventListener(O['resize'], R.resetBibiHeight);
+    window.addEventListener(E['resize'], R.resetBibiHeight);
     Bibi.busyHerself.resolve = () => { resolve(); delete Bibi.busyHerself; };
 }).then(() => {
-    window.removeEventListener(O['resize'], R.resetBibiHeight);
+    window.removeEventListener(E['resize'], R.resetBibiHeight);
     O.Busy = false;
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('loading');
@@ -871,8 +854,8 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
     for(let l = As.length, i = 0; i < l; i++) { const A = As[i];
         if(InNav) {
             A.NavANumber = i + 1;
-            A.addEventListener(O['pointerdown'], Eve => Eve.stopPropagation());
-            A.addEventListener(O['pointerup'],   Eve => Eve.stopPropagation());
+            A.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
+            A.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
         }
         let HrefPathInSource = A.getAttribute('href'), HrefAttribute = 'href';
         if(!HrefPathInSource) {
@@ -917,18 +900,18 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         });
         if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
             A.setAttribute('data-bibi-original-href', HrefPathInSource);
+            A.setAttribute(HrefAttribute, B.Path + '/#' + HrefHash);
             if(X['EPUBCFI']) {
-                A.setAttribute(HrefAttribute, B.Path + '/#' + HrefHash);
                 A.InNav = InNav;
                 A.Destination = X['EPUBCFI'].getDestination(HrefHash);
                 L.coordinateLinkages.setJump(A);
             } else {
-                A.removeAttribute(HrefAttribute);
-                A.addEventListener('click', () => false);
-                if(!O.Touch) {
-                    A.addEventListener(O['pointerover'], () => { I.Help.show(`(This link uses EPUBCFI. "EPUBCFI" extension is required.)`); return false; });
-                    A.addEventListener(O['pointerout'],  () => { I.Help.hide()                                                            ; return false; });
-                }
+                A.addEventListener('click', Eve => {
+                    Eve.preventDefault(); 
+                    Eve.stopPropagation();
+                    I.note(O.Language == 'ja' ? '<small>このリンクの利用には EPUBCFI エクステンションが必要です</small>' : '"EPUBCFI" extension is required to use this link.');
+                    return false;
+                });
             }
         }
         if(InNav && typeof S['nav'] == (i + 1) && A.Destination) S['to'] = A.Destination;
@@ -1099,15 +1082,15 @@ L.postprocessItem = (Item) => {
         }
     });
     /*
-    if(!O.Touch) {
+    if(!O.TouchOS) {
         if(!sML.UA.Gecko) Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
     }
     */
     I.observeTap(Item.HTML);
     Item.HTML.addTapEventListener('tap',         R.onTap);
-    Item.HTML.addEventListener(O['pointermove'], R.onPointerMove);
-    Item.HTML.addEventListener(O['pointerdown'], R.onPointerDown);
-    Item.HTML.addEventListener(O['pointerup'],   R.onPointerUp);
+    Item.HTML.addEventListener(E['pointermove'], R.onPointerMove);
+    Item.HTML.addEventListener(E['pointerdown'], R.onPointerDown);
+    Item.HTML.addEventListener(E['pointerup'],   R.onPointerUp);
     L.coordinateLinkages(Item.Path, Item.Body);
     const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
     if(Lv1Eles && Lv1Eles.length == 1) {
@@ -1234,9 +1217,9 @@ R.initialize = () => {
         };
         I.observeTap(O.HTML);
         O.HTML.addTapEventListener('tap',         R.onTap);
-        O.HTML.addEventListener(O['pointermove'], R.onPointerMove);
-        O.HTML.addEventListener(O['pointerdown'], R.onPointerDown);
-        O.HTML.addEventListener(O['pointerup'],   R.onPointerUp);
+        O.HTML.addEventListener(E['pointermove'], R.onPointerMove);
+        O.HTML.addEventListener(E['pointerdown'], R.onPointerDown);
+        O.HTML.addEventListener(E['pointerup'],   R.onPointerUp);
         E.add('bibi:tapped', Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
@@ -1708,7 +1691,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     if(Opt) O.log(`Option: %O`, Opt); else Opt = {};
     if(!Opt.DoNotCloseUtilities) E.dispatch('bibi:closes-utilities');
     E.dispatch('bibi:is-going-to:lay-out', Opt);
-    window.removeEventListener(O['resize'], R.onResize);
+    window.removeEventListener(E['resize'], R.onResize);
     R.Main.removeEventListener('scroll', R.onScroll);
     O.Busy = true;
     O.HTML.classList.add('busy');
@@ -1744,7 +1727,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('laying-out');
     if(!Opt.NoNotification) I.note('');
-    window.addEventListener(O['resize'], R.onResize);
+    window.addEventListener(E['resize'], R.onResize);
     R.Main.addEventListener('scroll', R.onScroll);
     R.LayingOut = false;
     E.dispatch('bibi:laid-out');
@@ -1828,7 +1811,7 @@ R.onResize = (Eve) => {
             //R.onScroll();
             R.Resizing = false;
         });
-    }, sML.UA.Trident ? 1200 : O.Touch ? 600 : 300);
+    }, sML.UA.Trident ? 1200 : O.TouchOS ? 600 : 300);
 };
 
 
@@ -1869,13 +1852,18 @@ R.changeView = (Par, Opt = {}) => {
         S.RVM == Par.Mode && !Par.Force
     ) return false;
     if(L.Opened) {
-        E.dispatch('bibi:closes-utilities');
         E.dispatch('bibi:changes-view');
         O.Busy = true;
         O.HTML.classList.add('busy');
         O.HTML.classList.add('changing-view');
+        const Delay = [
+            O.TouchOS ? 99 : 3,
+            O.TouchOS ? 99 : 33
+        ];
         setTimeout(() => {
-            //if(Par.Mode != 'paged') R.Spreads.forEach(Spread => Spread.style.opacity = '');
+            E.dispatch('bibi:closes-utilities');
+        }, Delay[0]);
+        setTimeout(() => {
             R.layOut({
                 Reset: true,
                 NoNotification: Opt.NoNotification,
@@ -1888,7 +1876,7 @@ R.changeView = (Par, Opt = {}) => {
                 O.Busy = false;
                 setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
             });
-        }, O.Touch ? 99 : 9);
+        }, Delay[0] + Delay[1]);
     } else {
         S.update({
             'reader-view-mode': Par.Mode
@@ -2262,12 +2250,12 @@ I.Notifier = { create: () => {
             Notifier.P.className = Err ? 'error' : '';
             Notifier.P.innerHTML = Msg;
             O.HTML.classList.add('notifier-shown');
-            if(L.Opened && !Err) Notifier.addEventListener(O[O.Touch ? 'pointerdown' : 'pointerover'], Notifier.hide);
+            if(L.Opened && !Err) Notifier.addEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
         },
         hide: (Time = 0) => {
             clearTimeout(Notifier.Timer_hide);
             Notifier.Timer_hide = setTimeout(() => {
-                if(L.Opened) Notifier.removeEventListener(O[O.Touch ? 'pointerdown' : 'pointerover'], Notifier.hide);
+                if(L.Opened) Notifier.removeEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
                 O.HTML.classList.remove('notifier-shown');
             }, Time);
         },
@@ -2299,7 +2287,7 @@ I.Veil = { create: () => {
         }
     });
     Veil.open();
-    const PlayButtonTitle = (O.Touch ? 'Tap' : 'Click') + ' to Open';
+    const PlayButtonTitle = (O.TouchOS ? 'Tap' : 'Click') + ' to Open';
     Veil.PlayButton = Veil.appendChild(
         sML.create('p', { id: 'bibi-veil-play', title: PlayButtonTitle,
             innerHTML: `<span class="non-visual">${ PlayButtonTitle }</span>`,
@@ -2342,7 +2330,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
             `<div class="pgroup" lang="en">`,
                 `<p><strong>Pass Me Your EPUB File!</strong></p>`,
                 `<p><em>You Can Open Your Own EPUB.</em></p>`,
-                `<p><span>Please ${ O.Touch ? 'Tap Screen' : 'Drag & Drop It Here. <br />Or Click Screen' } and Choose It.</span></p>`,
+                `<p><span>Please ${ O.TouchOS ? 'Tap Screen' : 'Drag & Drop It Here. <br />Or Click Screen' } and Choose It.</span></p>`,
                 `<p><small>(Open in Your Device without Uploading)</small></p>`,
             `</div>`
         ].join(''),
@@ -2350,7 +2338,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
             `<div class="pgroup" lang="ja">`,
                 `<p><strong>EPUBファイルをここにください！</strong></p>`,
                 `<p><em>お持ちの EPUB ファイルを<br />開くことができます。</em></p>`,
-                `<p><span>${ O.Touch ? '画面をタップ' : 'ここにドラッグ＆ドロップするか、<br />画面をクリック' }して選択してください。</span></p>`,
+                `<p><span>${ O.TouchOS ? '画面をタップ' : 'ここにドラッグ＆ドロップするか、<br />画面をクリック' }して選択してください。</span></p>`,
                 `<p><small>（外部に送信されず、この端末の中で開きます）</small></p>`,
             `</div>`
         ].join('')
@@ -2374,7 +2362,7 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
         Bibi.getBookData.resolve({ BookData: FileData });
     });
     Catcher.addEventListener('click', Eve => Catcher.Input.click(Eve));
-    if(!O.Touch) {
+    if(!O.TouchOS) {
         Catcher.addEventListener('dragenter', Eve => { Eve.preventDefault(); O.HTML.classList.add(   'dragenter'); }, 1);
         Catcher.addEventListener('dragover',  Eve => { Eve.preventDefault();                                       }, 1);
         Catcher.addEventListener('dragleave', Eve => { Eve.preventDefault(); O.HTML.classList.remove('dragenter'); }, 1);
@@ -2414,7 +2402,11 @@ I.Menu = { create: () => {
             Menu.classList.remove('hot');
         }, 1234);
     });*/
-    if(!O.Touch) E.add('bibi:opened', () => {
+    if(sML.OS.iOS) {
+        Menu.addEventListener('pointerdown', console.log);
+        Menu.addEventListener('pointerover', console.log);
+    }
+    if(!O.TouchOS) E.add('bibi:opened', () => {
         E.add('bibi:moved-pointer', Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
@@ -2454,7 +2446,7 @@ I.Menu = { create: () => {
         const Components = [];
         if(!S['fix-reader-view-mode'])                                                                     Components.push('ViewModeSection');
         if(O.WindowEmbedded)                                                                               Components.push('NewWindowButton');
-        if(O.FullscreenTarget && !O.Touch)                                                                 Components.push('FullscreenButton');
+        if(O.FullscreenTarget && !O.TouchOS)                                                               Components.push('FullscreenButton');
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
         if(!S['remove-bibi-website-link'])                                                                 Components.push('BibiWebsiteLink');
         if(!Components.length) {
@@ -2486,7 +2478,7 @@ I.Menu = { create: () => {
                     ButtonType: 'radio',
                     Buttons: [{
                         Mode: 'paged',
-                        Labels: { default: { default: `Paged <small>(Flip with ${ O.Touch ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.Touch ? 'タップ／スワイプ' : 'クリック／ホイール' }で移動）</small>` } },
+                        Labels: { default: { default: `Paged <small>(Flip with ${ O.TouchOS ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.TouchOS ? 'タップ／スワイプ' : 'クリック／ホイール' }で移動）</small>` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">${ SSs }</span></span>`
                     }, {
                         Mode: 'horizontal',
@@ -2560,8 +2552,8 @@ I.Menu = { create: () => {
                     Icon: `<span class="bibi-icon bibi-icon-toggle-fullscreen"></span>`,
                     id: 'bibi-button-toggle-fullscreen',
                     action: function() {
-                        Config.close();
                         !O.Fullscreen ? O.FullscreenTarget.requestFullscreen() : O.FullscreenTarget.ownerDocument.exitFullscreen();
+                        Config.close();
                     }
                 });
                 O.FullscreenTarget.ownerDocument.addEventListener('fullscreenchange', function() { // care multi-embeddeding
@@ -3087,7 +3079,7 @@ I.Slider = { create: () => {
         Size: I.Slider.Size,
         BookStretchingEach: 0,
         initialize: () => {
-            //if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (O.Touch || R.Stage.Width / R.Items.length < 20) ? 'edgebar' : 'bookmap';
+            //if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (O.TouchOS || R.Stage.Width / R.Items.length < 20) ? 'edgebar' : 'bookmap';
             if(S['slider-mode'] != 'bookmap') S['slider-mode'] = 'edgebar';
             Slider.UI = (S['slider-mode'] == 'edgebar' ? Slider.Edgebar : Slider.Bookmap).create().initialize();
             const UIBox = Slider.appendChild(Slider.UI.Box);
@@ -3228,8 +3220,8 @@ I.Slider = { create: () => {
     }));
     Slider.Edgebar = { create: () => sML.create('div', { id: 'bibi-slider-edgebar',
         initialize: function() {
-            (this.Box = sML.create('div', { id: 'bibi-slider-edgebar-box' })).appendChild(this);//.addEventListener(O['pointerover'], Eve => this.PointedPage = this.getPointedPage());
-            if(!O.Touch) this.addEventListener(O['pointermove'], Eve => I.Nombre.progress({ List: [{ Page: this.getPointedPage({ X: Eve.offsetX, Y: Eve.offsetY }) }] }));
+            (this.Box = sML.create('div', { id: 'bibi-slider-edgebar-box' })).appendChild(this);//.addEventListener(E['pointerover'], Eve => this.PointedPage = this.getPointedPage());
+            if(!O.TouchOS) this.addEventListener(E['pointermove'], Eve => I.Nombre.progress({ List: [{ Page: this.getPointedPage({ X: Eve.offsetX, Y: Eve.offsetY }) }] }));
             return Slider.Edgebar = this;
         },
         getPointedPage: (Coord) => {
@@ -3304,12 +3296,12 @@ I.Slider = { create: () => {
                     const BmPage = Page.BookmapPage = sML.create('span', { className: 'bookmap-page', Page: Page });
                     BmPage.style[C.A_SIZE_l] = (1 / Item.Pages.length * 100) + '%';
                     if(I.Nombre.progress) {
-                        BmPage.addEventListener(O['pointerover'], () => {
+                        BmPage.addEventListener(E['pointerover'], () => {
                             if(Slider.Touching) return;
                             clearTimeout(Slider.Timer_BookmapPagePointerOut);
                             I.Nombre.progress({ List: [{ Page: Page }] });
                         });
-                        BmPage.addEventListener(O['pointerout'], () => {
+                        BmPage.addEventListener(E['pointerout'], () => {
                             if(Slider.Touching) return;
                             Slider.Timer_BookmapPagePointerOut = setTimeout(() => {
                                 clearTimeout(I.Nombre.Timer_hide);
@@ -3330,7 +3322,7 @@ I.Slider = { create: () => {
         },
         identifyPage: (Eve) => {
             let TouchEndElement;
-            if(!O.Touch && (Eve.target == Slider.Bookmap || Slider.Bookmap.contains(Eve.target))) {
+            if(!O.TouchOS && (Eve.target == Slider.Bookmap || Slider.Bookmap.contains(Eve.target))) {
                 TouchEndElement = Eve.target;
             } else {
                 const TouchEndCoord = Slider.getTouchEndCoord();
@@ -3378,11 +3370,11 @@ I.Slider = { create: () => {
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-slider',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-slider',  Opt));
     E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-slider', Opt));
-    E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd));
+    E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd));
     E.add('bibi:opened', () => {
-        Slider.UI.addEventListener(O['pointerdown'], Slider.onTouchStart);
-        Slider.Thumb.addEventListener(O['pointerdown'], Slider.onTouchStart);
-        O.HTML.addEventListener(O['pointerup'], Slider.onTouchEnd);
+        Slider.UI.addEventListener(E['pointerdown'], Slider.onTouchStart);
+        Slider.Thumb.addEventListener(E['pointerdown'], Slider.onTouchStart);
+        O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
         E.add('bibi:changed-intersection', () => Slider.progress());
         Slider.progress();
     });
@@ -3393,7 +3385,7 @@ I.Slider = { create: () => {
         Slider.resetThumbAndRailSize();
         Slider.progress();
     });
-    if(!O.Touch) {
+    if(!O.TouchOS) {
         if(!sML.UA.Gecko) Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
     }
     { // Optimize to Scrollbar Size
@@ -3501,10 +3493,10 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
     [Arrows.Back, Arrows.Forward].forEach(Arrow => {
         //Arrow.isAvailable = () => I.Turner.isAbleToTurn(Arrow);
         I.setFeedback(Arrow);
-        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.onBibiTap]; if(!O.Touch) FunctionsToBeCanceled.push(Arrow.onBibiHover);
+        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.onBibiTap]; if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.onBibiHover);
         FunctionsToBeCanceled.forEach(FunctionToBeCanceled => FunctionToBeCanceled = undefined);
     });
-    if(!O.Touch) {
+    if(!O.TouchOS) {
         E.add('bibi:moved-pointer', Eve => { // try hovering
             if(!L.Opened) return false;
             if(I.isPointerStealth()) return false;
@@ -3527,7 +3519,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             E.dispatch(Arrows.Forward, 'bibi:unhovers', Eve);
             R.Items.concat(O).forEach(Item => Item.HTML.removeAttribute('data-bibi-cursor'));
         });
-        E.add('bibi:opened', () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(O['pointerdown'], O.preventDefault))));
+        E.add('bibi:opened', () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault))));
     }
     E.add('bibi:tapped-not-center', Eve => { // try moving
         if(!L.Opened) return false;
@@ -3588,18 +3580,18 @@ I.SwipeListener = { create: () => {
             Ele.addEventListener('touchstart', SwipeListener.onTouchStart);
             Ele.addEventListener('touchmove',  SwipeListener.onTouchMove);
             Ele.addEventListener('touchend',   SwipeListener.onTouchEnd);
-            if(!O.Touch) {
+            if(!O.TouchOS) {
                 Ele.addEventListener('wheel', SwipeListener.onWheel, { capture: true, passive: false });
-                sML.forEach(Ele.querySelectorAll('img'))(Img => Img.addEventListener(O['pointerdown'], O.preventDefault));
+                sML.forEach(Ele.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault));
             }
         },
         deactivateElement: (Ele) => {
             Ele.removeEventListener('touchstart', SwipeListener.onTouchStart);
             Ele.removeEventListener('touchmove',  SwipeListener.onTouchMove);
             Ele.removeEventListener('touchend',   SwipeListener.onTouchEnd);
-            if(!O.Touch) {
+            if(!O.TouchOS) {
                 Ele.removeEventListener('wheel', SwipeListener.onWheel, { capture: true, passive: false });
-                sML.forEach(Ele.querySelectorAll('img'))(Img => Img.removeEventListener(O['pointerdown'], O.preventDefault));
+                sML.forEach(Ele.querySelectorAll('img'))(Img => Img.removeEventListener(E['pointerdown'], O.preventDefault));
             }
         },
         PreviousWheels: [],
@@ -3834,7 +3826,7 @@ I.createButtonGroup = (Par = {}) => {
         if(!Button) return null;
         Button.ButtonGroup = this;
         Button.ButtonBox = Button.ButtonGroup.appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type }));
-        if(!O.Touch) I.setHoverActions(I.observeHover(Button.ButtonBox));
+        if(!O.TouchOS) I.setHoverActions(I.observeHover(Button.ButtonBox));
         Button.ButtonBox.appendChild(Button)
         Button.ButtonGroup.Buttons.push(Button);
         return Button;
@@ -3898,8 +3890,8 @@ I.createSubpanel = (Par = {}) => {
     delete Par.Section;
     const Subpanel = O.Body.appendChild(sML.create('div', Par));
     Subpanel.Sections = [];
-    Subpanel.addEventListener(O['pointerdown'], Eve => Eve.stopPropagation());
-    Subpanel.addEventListener(O['pointerup'],   Eve => Eve.stopPropagation());
+    Subpanel.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
+    Subpanel.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
     I.setToggleAction(Subpanel, {
         onopened: function(Opt) {
             I.Subpanels.forEach(Sp => Sp == Subpanel ? true : Sp.close({ ForAnotherSubpanel: true }));
@@ -4005,8 +3997,8 @@ I.setToggleAction = (Obj, Par = {}) => {
 
 I.observeHover = (Ele) => {
     Ele.onBibiHover = (On, Eve) => E.dispatch(Ele, On ? 'bibi:hovers' : 'bibi:unhovers', Eve);
-    Ele.addEventListener(O['pointerover'], Eve => Ele.onBibiHover(true,  Eve));
-    Ele.addEventListener(O['pointerout'],  Eve => Ele.onBibiHover(false, Eve));
+    Ele.addEventListener(E['pointerover'], Eve => Ele.onBibiHover(true,  Eve));
+    Ele.addEventListener(E['pointerout'],  Eve => Ele.onBibiHover(false, Eve));
     return Ele;
 };
 
@@ -4058,8 +4050,8 @@ I.observeTap = (Ele, Opt) => {
                 }
             }
         };
-        Ele.addEventListener(O['pointerdown'], Eve => Ele.onBibiTap(Eve, 'down'));
-        Ele.addEventListener(O['pointerup'],   Eve => Ele.onBibiTap(Eve, 'up'  ));
+        Ele.addEventListener(E['pointerdown'], Eve => Ele.onBibiTap(Eve, 'down'));
+        Ele.addEventListener(E['pointerup'],   Eve => Ele.onBibiTap(Eve, 'up'  ));
     }
     return Ele;
 };
@@ -4115,7 +4107,7 @@ I.setFeedback = (Ele, Opt = {}) => {
             return Ele;
         }
     }
-    if(!O.Touch) I.observeHover(Ele);
+    if(!O.TouchOS) I.observeHover(Ele);
     I.setHoverActions(Ele);
     I.observeTap(Ele, Opt);
     I.setTapAction(Ele);
@@ -4243,6 +4235,9 @@ export const U = (LS => {
         PnV = PnV.split('=');
         if(/^[a-zA-Z0-9_\-]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
     });
+    if((location.port && location.port == '61671') || Qs.hasOwnPorperty('dev')) {
+        Bibi.Dev = true;
+    }
     if(Qs.hasOwnProperty('debug')) {
         Bibi.Debug = true;
         Qs['log'] = 9;
@@ -4370,7 +4365,7 @@ S.initialize = () => {
     sML.applyRtL(S, P, 'ExceptFunctions');
     sML.applyRtL(S, U, 'ExceptFunctions');
     O.SettingTypes['yes-no'].concat(O.SettingTypes_PresetOnly['yes-no']).concat(O.SettingTypes_UserOnly['yes-no']).forEach(Property => {
-        S[Property] = (typeof S[Property] == 'string') ? (S[Property] == 'yes' || (S[Property] == 'mobile' && O.Touch) || (S[Property] == 'desktop' && !O.Touch)) : false;
+        S[Property] = (typeof S[Property] == 'string') ? (S[Property] == 'yes' || (S[Property] == 'mobile' && O.TouchOS) || (S[Property] == 'desktop' && !O.TouchOS)) : false;
     });
     S['bookshelf'] = (() => {
         if(!S['bookshelf']) return '';
@@ -4515,12 +4510,6 @@ C.update = () => {
 export const O = {}; // Bibi.Operator
 
 
-O.initialize = () => {
-    O.IsDev = U.hasOwnProperty('dev');
-    O.log.initialize();
-};
-
-
 O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
          if(A3)      Obj = A2, Tag = A3;
     else if(/^<..>$/.test(A2)) Tag = A2;
@@ -4557,20 +4546,19 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
 };
 
     O.log.initialize = () => {
-        if(parent && parent != window) O['log'] = () => true; else {
-            O.log.Limit = !U.hasOwnProperty('log') ? 0 : /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(U['log']) ? U['log'] : 1;
-            O.log.Depth = 1;
-            O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
-            O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
-            O.log.distill = (sML.UA.Trident || sML.UA.EdgeHTML) ?
-                (Logs, Styles) => [Logs.join(' ').replace(/%c/g, '')]               : // Ignore Styles
-                (Logs, Styles) => [Logs.join(' ')                   ].concat(Styles);
-            O.log.log = (Method, Logs, Styles, Obj) => {
-                const Args = O.log.distill(Logs, Styles);
-                if(Obj) Args.push(Obj);
-                console[Method].apply(console, Args);
-            };
-        }
+        if(parent && parent != window) return O.log = () => true;
+        O.log.Limit = !U.hasOwnProperty('log') ? 0 : /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(U['log']) ? U['log'] : 1;
+        O.log.Depth = 1;
+        O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
+        O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
+        O.log.distill = (sML.UA.Trident || sML.UA.EdgeHTML) ?
+            (Logs, Styles) => [Logs.join(' ').replace(/%c/g, '')]               : // Ignore Styles
+            (Logs, Styles) => [Logs.join(' ')                   ].concat(Styles);
+        O.log.log = (Method, Logs, Styles, Obj) => {
+            const Args = O.log.distill(Logs, Styles);
+            if(Obj) Args.push(Obj);
+            console[Method].apply(console, Args);
+        };
     };
 
 
@@ -5177,6 +5165,24 @@ export const E = {};
 
 E.initialize = () => {
     sML.applyRtL(E, new sML.CustomEvents('bibi'));
+    if(document.onpointerdown !== undefined) {
+        E['pointerdown'] = 'pointerdown';
+        E['pointermove'] = 'pointermove';
+        E['pointerup']   = 'pointerup';
+        E['pointerover'] = 'pointerover';
+        E['pointerout']  = 'pointerout';
+    } else if(O.TouchOS && document.ontouchstart !== undefined) {
+        E['pointerdown'] = 'touchstart';
+        E['pointermove'] = 'touchmove';
+        E['pointerup']   = 'touchend';
+    } else {
+        E['pointerdown'] = 'mousedown';
+        E['pointermove'] = 'mousemove';
+        E['pointerup']   = 'mouseup';
+        E['pointerover'] = 'mouseover';
+        E['pointerout']  = 'mouseout';
+    }
+    E['resize'] = O.TouchOS ? 'orientationchange' : 'resize';
 };
 
 

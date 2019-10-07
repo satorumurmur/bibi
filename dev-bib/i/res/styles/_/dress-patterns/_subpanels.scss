@@ -93,7 +93,7 @@ div.bibi-subpanel {
 					background: $Subpanel-Button_BackgroundColor;
 					&:after { color: $Subpanel-Button-Check_Color; }
 				}
-				&.default:active,
+				html:not(.touch) &.default:active,
 				&.active {
 					border-color: $Subpanel-Button_BorderColor__Active;
 					color: $Subpanel-Button_Color__Active;
