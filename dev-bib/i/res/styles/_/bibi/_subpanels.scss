@@ -171,7 +171,7 @@ div.bibi-subpanel {
 					// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
 					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color; }
 				}
-				&.default:active,
+				html:not(.touch) &.default:active,
 				&.active {
 					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Active;
 					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Active;
@@ -207,17 +207,26 @@ div.bibi-subpanel {
 			}
 			.bibi-button-toggle {
 				&:after { font-size: 30px; }
-				&.default:after, &.active:active:after {
+				&.default:after,
+				html:not(.touch) &.active:active:after {
 					content: "toggle_off"; // content: "check_box_outline_blank";
 				}
-				&.active:after, &.default:active:after {
+				&.active:after,
+				html:not(.touch) &.default:active:after {
 					content: "toggle_on"; // content: "check_box";
 				}
 			}
 			.bibi-button-radio {
-				&.default:after { content: "radio_button_unchecked"; }
-				&.default:active:after { content: "check_circle"; }
-				&.active:after, &.active:active:after { content: "radio_button_checked"; }
+				&.default:after {
+					content: "radio_button_unchecked";
+				}
+				html:not(.touch) &.default:active:after {
+					content: "check_circle";
+				}
+				&.active:after,
+				html:not(.touch) &.active:active:after {
+					content: "radio_button_checked";
+				}
 			}
 	.bibi-buttongroup-tiled {
 		display: flex;
