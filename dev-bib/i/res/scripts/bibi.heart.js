@@ -4235,7 +4235,7 @@ export const U = (LS => {
         PnV = PnV.split('=');
         if(/^[a-zA-Z0-9_\-]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
     });
-    if((location.port && location.port == '61671') || Qs.hasOwnPorperty('dev')) {
+    if((location.port && location.port == '61671') || Qs.hasOwnProperty('dev')) {
         Bibi.Dev = true;
     }
     if(Qs.hasOwnProperty('debug')) {
