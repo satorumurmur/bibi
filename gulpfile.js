@@ -6,8 +6,17 @@
 
 'use strict';
 
-const gulp = require('gulp'), del = require('del');
+const gulp = require('gulp'), del = require('del'), gulpZip = require('gulp-zip');
 const Package = JSON.parse(require('fs').readFileSync('package.json'));
+
+/* clean:production */ {
+    gulp.task('clean:production-resources',  done => { del.sync('bib/i/res'       ), done(); });
+    gulp.task('clean:production-extensions', done => { del.sync('bib/i/extensions'), done(); });
+    gulp.task('clean:production', gulp.parallel(
+        'clean:production-resources',
+        'clean:production-extensions'
+    ));
+}
 
 /* make:distribution */ {
     const Dest = 'archives', Dist = Package.name + '-v' + Package.version;
@@ -29,12 +38,14 @@ const Package = JSON.parse(require('fs').readFileSync('package.json'));
         ], {
             base: Dest
         })
-            .pipe(require('gulp-zip')(Dist + '.zip'))
+            .pipe(gulpZip(Dist + '.zip'))
             .pipe(gulp.dest(Dest));
     });
     gulp.task('make:distribution', gulp.series(
-        'clean:distribution-files',
-        'clean:distribution-archive',
+        gulp.parallel(
+            'clean:distribution-files',
+            'clean:distribution-archive'
+        ),
         'merge:distribution-files',
         'make:distribution-archive'/*,
         'clean:distribution-files'*/
@@ -44,7 +55,7 @@ const Package = JSON.parse(require('fs').readFileSync('package.json'));
 /* make:dress-template */ {
     const TimeStamp = new Date(Date.now() + 1000 * 60 * 60 * (new Date().getTimezoneOffset() / -60)).toISOString().split('.')[0].replace(/[-:]/g, '').replace('T', '-');
     const Dest = 'dev-bib/i/res/styles/wardrobe', Dist = '--dress-template--' + TimeStamp;
-    gulp.task('clean:dress-template-files',  done => { del.sync(Dest + '/' + Dist), done(); });
+    //gulp.task('clean:dress-template-files',  done => { del.sync(Dest + '/' + Dist), done(); });
     gulp.task('merge:dress-template-base-files', () => {
         const SrcDir = 'dev-bib/i/res/styles/_/dress-template';
         return gulp.src([
@@ -66,7 +77,7 @@ const Package = JSON.parse(require('fs').readFileSync('package.json'));
             .pipe(gulp.dest(Dest + '/' + Dist));
     });
     gulp.task('make:dress-template', gulp.series(
-        'clean:dress-template-files',
+        //'clean:dress-template-files',
         'merge:dress-template-base-files',
         'merge:dress-template-part-files'
     ));
