@@ -23,7 +23,7 @@ export const Bibi = { 'version': '____bibi-version____', 'href': 'https://bibi.e
 Bibi.hello = () => new Promise(resolve => {
     O.HTML = document.documentElement;
     O.HTML.classList.add(...sML.Environments.concat(['welcome']));
-    if(Bibi.Dev)  O.HTML.classList.add('bibi-dev');
+    if(Bibi.Dev)   O.HTML.classList.add('bibi-dev');
     if(Bibi.Debug) O.HTML.classList.add('bibi-debug');
     O.log.initialize();
     O.log(`Hello!`, '<b:>');
@@ -339,6 +339,7 @@ Bibi.openBook = () => new Promise(resolve => {
     E.add('bibi:commands:focus-on',    R.focusOn);
     E.add('bibi:commands:change-view', R.changeView);
     window.addEventListener('message', M.gate, false);
+    (Bibi.Dev && !/:61671/.test(location.href)) ? Bibi.createDevNote() : delete Bibi.createDevNote;
     /*
     alert((Alert => {
         [
@@ -354,6 +355,28 @@ Bibi.openBook = () => new Promise(resolve => {
     })([]));
     //*/
 });
+
+
+Bibi.createDevNote = () => {
+    const Dev = Bibi.IsDevMode = O.Body.appendChild(sML.create('div', { id: 'bibi-is-dev-mode' }));
+    Bibi.createDevNote.logBorderLine();
+    Bibi.createDevNote.appendParagraph(`<strong>This Bibi seems to be a</strong> <strong>Development Version</strong>`);
+    Bibi.createDevNote.appendParagraph(`<span>Please don't forget</span> <span>to create a production version</span> <span>before publishing on the Internet.</span>`);
+    Bibi.createDevNote.appendParagraph(`<span class="non-visual">(To create a production version, run it on terminal: \`</span><code>npm run build</code><span class="non-visual">\`)</span>`);
+    Bibi.createDevNote.appendParagraph(`<em>Close</em>`, 'NoLog').addEventListener('click', () => Dev.className = 'hide');
+    Bibi.createDevNote.logBorderLine();
+    [E['pointerdown'], E['pointerup'], E['pointermove'], E['pointerover'], E['pointerout'], 'click'].forEach(EN => Dev.addEventListener(EN, Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; }));
+    setTimeout(() => Dev.className = 'show', 0);
+    delete Bibi.createDevNote;
+};
+    Bibi.createDevNote.logBorderLine = (InnerHTML, NoLog) => {
+        O.log('========================', '<*/>');
+    };
+    Bibi.createDevNote.appendParagraph = (InnerHTML, NoLog) => {
+        const P = Bibi.IsDevMode.appendChild(sML.create('p', { innerHTML: InnerHTML }));
+        if(!NoLog) O.log(InnerHTML.replace(/<[^<>]*>/g, ''), '<*/>');
+        return P;
+    };
 
 
 Bibi.Eyes = {
@@ -1081,11 +1104,9 @@ L.postprocessItem = (Item) => {
             }
         }
     });
-    /*
     if(!O.TouchOS) {
         if(!sML.UA.Gecko) Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
     }
-    */
     I.observeTap(Item.HTML);
     Item.HTML.addTapEventListener('tap',         R.onTap);
     Item.HTML.addEventListener(E['pointermove'], R.onPointerMove);
@@ -2673,7 +2694,6 @@ I.PoweredBy = { create: () => {
     */
 }};
 
-
 I.FontSizeChanger = { create: () => {
     const FontSizeChanger = I.FontSizeChanger = {};
     if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
@@ -4235,9 +4255,6 @@ export const U = (LS => {
         PnV = PnV.split('=');
         if(/^[a-zA-Z0-9_\-]+$/.test(PnV[0])) Qs[PnV[0]] = PnV[1];
     });
-    if((location.port && location.port == '61671') || Qs.hasOwnProperty('dev')) {
-        Bibi.Dev = true;
-    }
     if(Qs.hasOwnProperty('debug')) {
         Bibi.Debug = true;
         Qs['log'] = 9;
@@ -4521,12 +4538,12 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
     if(
         (Log || Obj)
             &&
-        (O.log.Depth <= O.log.Limit || Tag == '<b:>' || Tag == '</b>')
+        (O.log.Depth <= O.log.Limit || Tag == '<b:>' || Tag == '</b>' || Tag == '<*/>')
     ) {
         const Time = (O.log.Depth <= 1) ? O.stamp(Log) : 0;
         let Ls = [], Ss = [];
         if(Log) switch(Tag) {
-            case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })`),                                                     Ss.push(O.log.NStyle); break;
+            case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] + (Bibi.Dev ? ' / Development Mode' : '') })`),           Ss.push(O.log.NStyle); break;
             case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
             case '<g:>': Ls.unshift(`┌`); Ls.push(Log); break;
             case '</g>': Ls.unshift(`└`); Ls.push(Log); break;

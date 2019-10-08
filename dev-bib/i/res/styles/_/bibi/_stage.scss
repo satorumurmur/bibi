@@ -250,7 +250,6 @@ div#bibi-poweredby {
 		margin: 0 auto;
 		width: 100%;
 		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
-		text-align: right;
 		font-size: 14px;
 		transform-origin: 50% 100%;
 		transform: scale(1, 0);
@@ -385,6 +384,113 @@ div#bibi-style-checker {
 // ================================================================================
 // + Factory / Dev.
 // --------------------------------------------------------------------------------
+
+
+div#bibi-is-dev-mode {
+	& {
+		overflow: hidden;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		z-index: 99999999999;
+		@include offset(0);
+		margin: auto;
+		padding: 2em;
+		@include size(300px);
+		border-radius: 150px;
+		font-weight: bold;
+		color: white;
+		background: rgba(255,64,0, .9);
+		pointer-events: text;
+		p {
+			text-align: center;
+			width: 100%;
+			line-height: 1.5;
+		}
+		p:nth-of-type(1) {
+			margin-top: -1em;
+			padding-bottom: .4em;
+			border-bottom: solid 1px white;
+			margin-bottom: .6em;
+			font-size: 18px;
+			strong {
+				display: block;
+				width: 100%;
+			}
+			strong:nth-of-type(1) {
+				font-size: .75em;
+			}
+			strong:nth-of-type(2) {
+				text-transform: uppercase;
+			}
+		}
+		p:nth-of-type(2),
+		p:nth-of-type(3) {
+			font-size: 14px;
+			span {
+				display: inline-block;
+			}
+		}
+		p:nth-of-type(3) {
+			code {
+				display: block;
+				margin: .5em auto 0;
+				@include size(12em, 2em);
+				border-radius: .25em;
+				font-size: 16px;
+				line-height: 2em;
+				background: rgba(black, .75);
+			}
+		}
+		p:nth-of-type(4) {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			position: absolute;
+			@include offset(auto, 0, 0, 0);
+			margin: 0 auto;
+			padding: .4em 0 .6em;
+			@include size(100%, auto);
+			font-weight: normal;
+			font-size: 20px;
+			cursor: pointer;
+			background: rgba(white, 0);
+			&:before {
+				font-family: 'Material Icons';
+				content: 'highlight_off';
+				line-height: 1;
+			}
+			em {
+				padding: 0 .5em 0 .25em;
+				font-size: .75em;
+				text-transform: uppercase;
+			}
+			transition: .2s linear;
+			&:hover {
+				color: black;
+				background: rgba(white, .9);
+			}
+		}
+	}
+	& {
+		transform: translateY(-200%) rotate(-360deg);// scale(0);
+		opacity: 0;
+	}
+	&.show {
+		transition: 1s cubic-bezier(.5,0,0,1.5);
+		transform: none;
+		opacity: 1;
+	}
+	&.hide {
+		transition: 1s cubic-bezier(1,0,0,1);
+		transform: translateY( 800%) rotate( 360deg);// scale(0);
+		opacity: 0;
+	}
+}
 
 
 div#__bs_notify__ {

@@ -161,6 +161,15 @@ module.exports = (env, argv) => {
             { from: 'README.md', to: 'bib' }*/
         ]));
     } else if(Config.mode === 'development') {
+        Config.module.rules.push({
+            test: /(\/bibi\.heart)\.js$/,
+            use: [
+                StringReplacePlugin.replace({ replacements: [{
+                    pattern: /$/,
+                    replacement: () => '\n' + `Bibi.Dev = true;`
+                }]})
+            ]
+        });
         //Config.plugins.push(new HardSourcePlugin());
     } else {
     }
