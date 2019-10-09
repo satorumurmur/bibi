@@ -1,46 +1,14 @@
-# OS Metafiles / Thumbnails
-# --------------------------------------------------------------------------------
-.DS_Store
-.AppleDouble
-.LSOverride
-.Spotlight-V100
-.Trashes
-._*
-Icon
+/__archives
+/__dist/**
+!/__dist/bibi-bookshelf
+/__dist/bibi-bookshelf/**
+!/__dist/bibi-bookshelf/.gitignore
+/__src/bibi/wardrobe/DRESS-TEMPLATE-*
 
-# Node
-# --------------------------------------------------------------------------------
 node_modules
 npm-debug.log
 
-# BiB/i: Compiled CSS/JavaScript files
-# --------------------------------------------------------------------------------
-bib/i/extensions
-bib/i/res/scripts
-bib/i/res/styles
-bib/i/res/fonts
-bib/i.css
-bib/i.js
-
-# BiB/i: Dress Templates
-# --------------------------------------------------------------------------------
-dev-bib/i/res/styles/wardrobe/--dress-template--**
-
-# BiB/i: Bookshelf
-# --------------------------------------------------------------------------------
-bib/bookshelf/*
-!bib/bookshelf/.gitkeep
-dev-bib/bookshelf/*
-!dev-bib/bookshelf/.gitkeep
-
-# BiB/i: Copies of LICENSE & README.md
-# --------------------------------------------------------------------------------
-bib/LICENSE
-bib/README.md
-
-# Others
-# --------------------------------------------------------------------------------
-archives/*
-*.zip
-**/*.demo.*
-____IGNORE____
+._*
+.DS_Store
+Icon
+Thumbs.db

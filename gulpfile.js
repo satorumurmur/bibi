@@ -1,84 +1,127 @@
 /*!
  *                                                                                                                                (℠)
- *  # gulpfile for BiB/i
+ *  # gulpfile for Bibi
  *
  */
 
 'use strict';
 
-const gulp = require('gulp'), del = require('del'), gulpZip = require('gulp-zip');
-const Package = JSON.parse(require('fs').readFileSync('package.json'));
+const gulp = require('gulp'), del = require('del'), fs = require('fs'), gulpZip = require('gulp-zip');
+const Package = JSON.parse(fs.readFileSync('package.json')), Bibi = require('./bibi.info.js');
 
-/* clean:production */ {
-    gulp.task('clean:production-resources',  done => { del.sync('bib/i/res'       ), done(); });
-    gulp.task('clean:production-extensions', done => { del.sync('bib/i/extensions'), done(); });
-    gulp.task('clean:production', gulp.parallel(
-        'clean:production-resources',
-        'clean:production-extensions'
-    ));
+/* initialize */ {
+    gulp.task('initialize', done => {
+        fs.mkdirSync(Bibi.DIST + '/bibi',           { recursive: true });
+        fs.mkdirSync(Bibi.DIST + '/bibi-bookshelf', { recursive: true }); if(!Bibi.KeepBackCompat) return done();
+        fs.mkdirSync(Bibi.DIST + '/bib/i',          { recursive: true });
+        fs.mkdirSync(Bibi.DIST + '/bib/bookshelf',  { recursive: true }); done();
+    });
 }
 
-/* make:distribution */ {
-    const Dest = 'archives', Dist = Package.name + '-v' + Package.version;
-    gulp.task('clean:distribution-files',   done => { del.sync(Dest + '/' + Dist         ), done(); });
-    gulp.task('clean:distribution-archive', done => { del.sync(Dest + '/' + Dist + '.zip'), done(); });
-    gulp.task('merge:distribution-files', () => {
-        return gulp.src([
-            'bib/*',
-            'bib/i/**/*.*'
-        ], {
-            base: '.'
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
+/* clean */ {
+    gulp.task('clean', done => {
+        del.sync([
+            'bibi/**/.DS_Store',
+            'bibi/**/Thumbs.db',
+            'bibi/LICENSE',
+            'bibi/README.md',
+            'bibi/*.html',
+            'bibi/and',
+            'bibi/extensions',
+            'bibi/presets',
+            'bibi/resources',
+            'bibi/wardrobe',
+            'bib/i/*.html',
+            'bib/i.js'
+        ].map(X => Bibi.DIST + '/' + X));
+        try { if(!fs.readdirSync(Bibi.DIST + '/bibi' ).length) del.sync(Bibi.DIST + '/bibi' ); } catch(E) {}
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib/i').length) del.sync(Bibi.DIST + '/bib/i'); } catch(E) {}
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib'  ).length) del.sync(Bibi.DIST + '/bib'  ); } catch(E) {}
+        done();
     });
-    gulp.task('make:distribution-archive', () => {
+}
+
+/* make:backward-compatibility-files */ {
+    gulp.task('make:backward-compatibility-files', () => {
         return gulp.src([
-            Dest + '/' + Dist + '/**/*',
-            Dest + '/' + Dist + '/**/*.*'
+            Bibi.SRCBC + '/bib/**'
         ], {
-            base: Dest
-        })
-            .pipe(gulpZip(Dist + '.zip'))
-            .pipe(gulp.dest(Dest));
+            base: Bibi.SRCBC
+        }).pipe(gulp.dest(
+            Bibi.DIST
+        ));
     });
-    gulp.task('make:distribution', gulp.series(
+}
+
+const setPackageBuilderTasks = (Opt) => {
+    gulp.task('clean:' + Opt.Name + '-archive', done => {
+        del.sync([
+            Bibi.ARCHIVE + '/' + Opt.Label + '.zip'
+        ]);
+        done();
+    });
+    gulp.task('clean:' + Opt.Name + '-directory', done => {
+        del.sync([
+            Bibi.ARCHIVE + '/' + Opt.Label
+        ]);
+        done();
+    });
+    gulp.task('merge:' + Opt.Name + '-files', () => {
+        fs.mkdirSync(Bibi.ARCHIVE + '/' + Opt.Label + '/' + Opt.Bookshelf, { recursive: true });
+        return gulp.src([
+            Bibi.DIST + '/' + Opt.Files
+        ], {
+            base: Bibi.DIST
+        }).pipe(gulp.dest(
+            Bibi.ARCHIVE + '/' + Opt.Label
+        ));
+    });
+    gulp.task('make:' + Opt.Name + '-archive', () => {
+        return gulp.src([
+            Bibi.ARCHIVE + '/' + Opt.Label + '/**'
+        ], {
+            base: Bibi.DIST
+        }).pipe(gulpZip(
+            Opt.Label + '.zip'
+        )).pipe(gulp.dest(
+            Bibi.ARCHIVE
+        ));
+    });
+    gulp.task('make:' + Opt.Name + '', gulp.series(
         gulp.parallel(
-            'clean:distribution-files',
-            'clean:distribution-archive'
+            'clean:' + Opt.Name + '-directory',
+            'clean:' + Opt.Name + '-archive'
         ),
-        'merge:distribution-files',
-        'make:distribution-archive'/*,
-        'clean:distribution-files'*/
+        'merge:' + Opt.Name + '-files',
+        'make:' + Opt.Name + '-archive',
+        'clean:' + Opt.Name + '-directory'
     ));
-}
+};
+
+/* make:distribution-package */
+setPackageBuilderTasks({
+    Name: 'distribution-package',
+    Label: Package.name + '-v' + Package.version,
+    Files: 'bibi/**',
+    Bookshelf: 'bibi-bookshelf'
+});
+
+/* make:backward-compatibility-package */
+setPackageBuilderTasks({
+    Name: 'backward-compatibility-package',
+    Label: Package.name + '-v' + Package.version + '_BackCompatPack',
+    Files: 'bib/**',
+    Bookshelf: 'bib/bookshelf'
+});
 
 /* make:dress-template */ {
-    const TimeStamp = new Date(Date.now() + 1000 * 60 * 60 * (new Date().getTimezoneOffset() / -60)).toISOString().split('.')[0].replace(/[-:]/g, '').replace('T', '-');
-    const Dest = 'dev-bib/i/res/styles/wardrobe', Dist = '--dress-template--' + TimeStamp;
-    //gulp.task('clean:dress-template-files',  done => { del.sync(Dest + '/' + Dist), done(); });
-    gulp.task('merge:dress-template-base-files', () => {
-        const SrcDir = 'dev-bib/i/res/styles/_/dress-template';
+    gulp.task('make:dress-template', () => {
         return gulp.src([
-            SrcDir + '/**/*.*'
+            Bibi.SRC + '/bibi/wardrobe/_dress-codes/**',
         ], {
-            base: SrcDir
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
+            base: Bibi.SRC + '/bibi/wardrobe/_dress-codes'
+        }).pipe(gulp.dest(
+            Bibi.SRC + '/bibi/wardrobe/DRESS-TEMPLATE-' + new Date(Date.now() + 1000 * 60 * 60 * (new Date().getTimezoneOffset() / -60)).toISOString().split('.')[0].replace(/[-:]/g, '').replace('T', '-')
+        ));
     });
-    gulp.task('merge:dress-template-part-files', () => {
-        const SrcDir = 'dev-bib/i/res/styles/wardrobe/_';
-        return gulp.src([
-            SrcDir + '/**.*',
-            '!' + SrcDir + '/_@a.scss',
-            '!' + SrcDir + '/_@z.scss'
-        ], {
-            base: SrcDir
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
-    });
-    gulp.task('make:dress-template', gulp.series(
-        //'clean:dress-template-files',
-        'merge:dress-template-base-files',
-        'merge:dress-template-part-files'
-    ));
 }

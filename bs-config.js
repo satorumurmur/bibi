@@ -1,22 +1,27 @@
+const Bibi = require('./bibi.info.js');
+
 module.exports = {
     port: 61671,
     ui: {
         port: 61672
     },
     server: {
-        baseDir: '.',
+        baseDir: Bibi.DIST,
         index: 'index.html'
     },
-    snippetOptions: {
-        ignorePaths: 'bib/bookshelf/**/*.*'
-    },
     files: [
-        'bib/i/**/*.*'
+        'bibi/**'
     ],
-    ghostMode: false/*{
-        clicks: true,
-        scroll: true,
-        location: true,
-        forms: true
-    }*/
+    startPath: 'bibi/?book=',
+    snippetOptions: {
+        whitelist: [
+            'bibi/*',
+            'bibi/**/',
+            'bibi/*[?]*/**'
+        ],
+        blacklist: [
+            '**'
+        ]
+    },
+    ghostMode: false
 };
