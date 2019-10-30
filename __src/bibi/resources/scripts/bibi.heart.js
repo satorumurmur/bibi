@@ -303,7 +303,8 @@ Bibi.openBook = () => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
-    E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent); R.updateCurrent();
+    E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent);
+    R.updateCurrent();
     if(S['allow-placeholders']) {
         E.add('bibi:scrolled', () => R.turnSpreads());
         E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
@@ -695,9 +696,9 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
                 TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
                 IndexInSpine: Spine.Items.length,
                 Ref: ItemRef,
-                Box: sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'] }),
                 Pages: []
             });
+            Item.Box = sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'], Content: Item, Item: Item });
             Item.RefChain.forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
             Spine.Items.push(Item);
             if(ItemRef['linear'] != 'yes') {
@@ -719,10 +720,10 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
                 }
                 if(!Spread) {
                     Spread = Item.Spread = sML.create('div', { className: 'spread',
-                        Box: sML.create('div', { className: 'spread-box ' + ItemRef['rendition:layout'] }),
                         Items: [], Pages: [],
                         Index: R.Spreads.length
                     });
+                    Spread.Box = sML.create('div', { className: 'spread-box ' + ItemRef['rendition:layout'], Content: Spread, Spread: Spread });
                     if(ItemRef['rendition:page-spread']) {
                         Spread.Box.classList.add('single-item-spread-' + ItemRef['rendition:page-spread']);
                         switch(ItemRef['rendition:page-spread']) {
@@ -1901,20 +1902,40 @@ R.updateCurrent = () => {
     Frame.Length = R.Main['offset' + C.L_SIZE_L];
     Frame[C.L_OOBL_L                              ] = R.Main['scroll' + C.L_OOBL_L];
     Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
-    if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return R.Current;
+    //if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return R.Current;
     R.Current.Frame = { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
     const CurrentList = R.updateCurrent.getList();
     if(CurrentList) {
         R.Current.List = CurrentList;
         R.updateCurrent.classify();
+        if(!I.History.List.length) {
+            const CurrentPage = R.Current.List[0].Page, Spread = CurrentPage.Spread;
+            I.History.List = [{ UI: Bibi, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length }];
+            I.History.update();
+        }
     }
 };
 
     R.updateCurrent.getList = () => {
-        if(!R.IntersectingPages.length) return null;
         let List = [], List_SpreadContained = [];
-        const FirstIndex = sML.limitMin(R.IntersectingPages[                             0].Index - 2,                  0);
-        const  LastIndex = sML.limitMax(R.IntersectingPages[R.IntersectingPages.length - 1].Index + 2, R.Pages.length - 1);
+        let PageList = undefined;
+        const QSW = Math.ceil(R.Stage.Width / 4), QSH = Math.ceil(R.Stage.Height / 4), CheckRoute = [5, 6, 4, 2, 8];
+        for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
+            const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
+            if(Ele) {
+                     if(Ele.IndexInItem) PageList = [Ele];
+                else if(Ele.Pages)       PageList = Ele.Pages;
+                else if(Ele.Content)     PageList = Ele.Content.Pages;
+            }
+            if(PageList) break;
+        }
+        if(!PageList) {
+            if(R.IntersectingPages.length) {
+                PageList = R.IntersectingPages;
+            } else return null;
+        }
+        const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
+        const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
         for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
             const PageIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page, 'WithDetail');
             if(!PageIntersectionStatus || PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
@@ -3076,6 +3097,29 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
 }};
 
 
+I.History = {
+    List: [], Updaters: [],
+    update: () => I.History.Updaters.forEach(fun => fun()),
+    add: (UI, ff) => {
+        R.updateCurrent();
+        const CurrentPage = R.Current.List[0].Page,
+                 LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
+        if(CurrentPage != LastPage && (!ff || ff())) {
+            const Spread = CurrentPage.Spread;
+            I.History.List.push({ UI: UI, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length });
+        }
+        I.History.update();
+    },
+    back: () => {
+        if(I.History.List.length <= 1) return Promise.reject();
+        const CurrentPage = R.hatchPage(I.History.List.pop()),
+                 LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
+        I.History.update();
+        return R.focusOn({ Destination: LastPage });
+    }
+};
+
+
 I.Slider = { create: () => {
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
         Size: I.Slider.Size,
@@ -3085,20 +3129,29 @@ I.Slider = { create: () => {
             if(S['slider-mode'] != 'bookmap') S['slider-mode'] = 'edgebar';
             Slider.UI = (S['slider-mode'] == 'edgebar' ? Slider.Edgebar : Slider.Bookmap).create().initialize();
             const UIBox = Slider.appendChild(Slider.UI.Box);
-            Slider.Thumb         = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } }));
-            Slider.Rail          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
-            Slider.Rail.Progress = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
-            I.setFeedback(Slider.Thumb);
+            Slider.Rail           = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
+            Slider.Rail.Progress  = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
+            Slider.Thumb          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
+            if(!S['use-history']) return;
+            Slider.classList.add('bibi-slider-with-history');
+            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }, { add: () => I.History.add(Slider) }));
+            Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
+                Type: 'normal',
+                Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
+                Help: false,
+                Icon: `<span class="bibi-icon bibi-icon-history"></span>`,
+                action: () => I.History.back(),
+                update: function() {
+                    this.Icon.style.transform = `rotate(${ 360 * (I.History.List.length - 1) }deg)`;
+                         if(I.History.List.length <= 1) I.setUIState(this, 'disabled');
+                    else if(this.UIState == 'disabled') I.setUIState(this, 'default');
+                }
+            });
+            I.History.Updaters.push(() => Slider.History.Button.update());
         },
         resetThumbAndRailSize: () => {
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-            if(S.ARA == S.SLA) {
-                if(S.SLA == 'horizontal') {
-                    ScrollLength -= Slider.BookStretchingEach * 2;
-                } else {
-                    ScrollLength -= Slider.BookStretchingEach * 3;
-                }
-            }
+            if(S.ARA == S.SLA) ScrollLength -= Slider.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
             const ThumbLengthPercent = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength * 100;
             Slider.Thumb.style[C.A_SIZE_l] = (      ThumbLengthPercent) + '%';
             Slider.Rail.style[ C.A_SIZE_l] = (100 - ThumbLengthPercent) + '%';
@@ -3115,15 +3168,8 @@ I.Slider = { create: () => {
             Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
             let Scrolled = R.Main['scroll' + C.L_OOBL_L];
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-            if(S.ARA == S.SLA) {
-                if(S.SLA == 'horizontal') {
-                    ScrollLength -= Slider.BookStretchingEach * 2;
-                } else {
-                    ScrollLength -= Slider.BookStretchingEach * 3;
-                }
-            } else { // Paged (HorizontalAppearance) && VerticalText
-                if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height;
-            }
+                 if(S.ARA == S.SLA) ScrollLength -= Slider.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
+            else if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height; // <- Paged (HorizontalAppearance) && VerticalText
             Slider.Thumb.style[C.A_OOBL_l] = (Scrolled / ScrollLength * 100) + '%';
             Slider.Rail.Progress.style.width = Slider.Rail.Progress.style.height = '';
             let Progress = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2 - O.getElementCoord(Slider.Rail)[C.A_AXIS_L];
@@ -3135,6 +3181,7 @@ I.Slider = { create: () => {
             Eve.preventDefault();
             //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
             //setTimeout(() => R.Main.style.overflow = '', 1);
+            if(Slider.History) Slider.History.add();
             Slider.Touching = true;
             Slider.TouchStartThumbCenterCoord = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2;
             Slider.TouchStartCoord = Slider.TouchingCoord = Slider.getTouchStartCoord(Eve);
@@ -3178,6 +3225,7 @@ I.Slider = { create: () => {
                 sML.style(Slider.Thumb,         { transform: '' });
                 sML.style(Slider.Rail.Progress, { transform: '' });
                 Slider.progress();
+                if(Slider.History) Slider.History.add();
             });
         },
         focus: (Eve, Par = {}) => new Promise(resolve => {
@@ -3536,7 +3584,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             const Arrow = Turner.Arrow;
             E.dispatch(Arrow, 'bibi:taps',   Eve);
             E.dispatch(Arrow, 'bibi:tapped', Eve);
-            R.moveBy({ Distance: Turner.Distance });
+            R.moveBy({ Distance: Turner.Distance }).then(() => I.History.add(Arrows, () => I.History.List[I.History.List.length - 1].UI == Arrows ? I.History.List.pop() : true));
         }
     });
     E.add('bibi:commands:move-by', Par => { // indicate direction
@@ -5095,6 +5143,7 @@ O.SettingTypes = {
         'use-arrows',
         'use-font-size-changer',
         'use-full-height',
+        'use-history',
         'use-keys',
         'use-loupe',
         'use-menubar',

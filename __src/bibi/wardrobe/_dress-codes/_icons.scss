@@ -6,7 +6,7 @@
 // - General Icons' Common Style
 // --------------------------------------------------------------------------------
 
-// [ja] メニューバー内・Subpanel 内を問わず、一般アイコンすべてに適用される共通スタイル
+// [ja] 場所を問わず、一般アイコンすべてに適用される共通スタイル
 @mixin GENERALICON__Common() {
 	display: flex;
 	justify-content: center;
@@ -85,6 +85,27 @@
 		line-height: 1;
 		html.macOS.Safari & { top: 16%; }
 		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
+	}
+}
+
+
+// - General Icons in Slider
+// --------------------------------------------------------------------------------
+
+// [ja] Slider 内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInSlider() {
+	border-radius: 50%;
+	&:before {
+		font-size: 24px;
+	}
+}
+
+@mixin GENERALICON__History() {
+	transition: none !important;  .bibi-button:hover & { transition: $Slider-Icon_Transition !important; }
+	&:before {
+		content: "history";
+		left: -.01em;
+		transform: none !important;
 	}
 }
 

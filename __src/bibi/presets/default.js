@@ -36,6 +36,7 @@ Bibi.preset({
 "use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
+"use-history"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "slider-mode"                  : "auto", // "edgebar" or "bookmap" or "auto"
 "zoom-out-on-opening-slider"   : "yes", // "yes" or "no" or "desktop" or "mobile"

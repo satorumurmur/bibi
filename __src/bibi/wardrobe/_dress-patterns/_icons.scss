@@ -63,6 +63,18 @@
 		&, &:before, &:after, * { transition: $Menu-Icon_Transition; }
 		&:before, &:after { transform: $Menu-Icon_Transform; }
 	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor,
+			$Slider-Icon-Font_OutlineColor,
+			$Slider-Icon-Shape_PaintColor,
+			$Slider-Icon-Shape_OutlineColor,
+			$Slider-Icon_BackgroundColor,
+			$Slider-Icon_BorderColor
+		);
+		&, &:before, &:after, * { transition: $Slider-Icon_Transition; }
+		&:before, &:after { transform: $Slider-Icon_Transform; }
+	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
 			$Subpanel-Icon-Font_PaintColor,
@@ -93,6 +105,17 @@
 		);
 		&:before, &:after { transform: $Menu-Icon_Transform__Hover; }
 	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Hover,
+			$Slider-Icon-Font_OutlineColor__Hover,
+			$Slider-Icon-Shape_PaintColor__Hover,
+			$Slider-Icon-Shape_OutlineColor__Hover,
+			$Slider-Icon_BackgroundColor__Hover,
+			$Slider-Icon_BorderColor__Hover
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Hover; }
+	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
 			$Subpanel-Icon-Font_PaintColor__Hover,
@@ -121,6 +144,17 @@
 			$Menu-Icon_BorderColor__Active
 		);
 		&:before, &:after { transform: $Menu-Icon_Transform__Active; }
+	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Active,
+			$Slider-Icon-Font_OutlineColor__Active,
+			$Slider-Icon-Shape_PaintColor__Active,
+			$Slider-Icon-Shape_OutlineColor__Active,
+			$Slider-Icon_BackgroundColor__Active,
+			$Slider-Icon_BorderColor__Active
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Active; }
 	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
@@ -151,6 +185,17 @@
 		);
 		&:before, &:after { transform: $Menu-Icon_Transform__Active-Hover; }
 	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Active-Hover,
+			$Slider-Icon-Font_OutlineColor__Active-Hover,
+			$Slider-Icon-Shape_PaintColor__Active-Hover,
+			$Slider-Icon-Shape_OutlineColor__Active-Hover,
+			$Slider-Icon_BackgroundColor__Active-Hover,
+			$Slider-Icon_BorderColor__Active-Hover
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Active-Hover; }
+	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
 			$Subpanel-Icon-Font_PaintColor__Active-Hover,
@@ -170,6 +215,7 @@
 
 .bibi-button.disabled .bibi-icon {
 	#bibi-menu     & { &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
+	#bibi-slider   & { &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
 	.bibi-subpanel & { &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
 }
 
@@ -188,6 +234,8 @@
 .bibi-icon-config,
 .bibi-icon-change-fontsize,
 .bibi-icon-loupe,
+// -- In Slider
+.bibi-icon-history,
 // -- In Subpanel
 .bibi-icon-full-breadth-layout,
 .bibi-icon-toggle-fullscreen,
@@ -211,6 +259,14 @@
 	&-zoomout { @include GENERALICON__LoupeZoomOut(); }
 	&-reset   { @include GENERALICON__LoupeReset(); }
 }
+
+
+// - General Icons in Slider
+// --------------------------------------------------------------------------------
+
+.bibi-icon-history { @include GENERALICON__CommonInSlider(); }
+
+.bibi-icon-history { @include GENERALICON__History(); }
 
 
 // - General Icons in Subpanels

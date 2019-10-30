@@ -18,7 +18,7 @@ div#bibi-slider {
 			display: block;
 			box-sizing: border-box;
 			position: absolute;
-			z-index: 1;
+			z-index: 0;
 			border-style: solid;
 			border-width: 0;
 			// @____Bibi:Dress__('-') border-color: $Slider_BorderColor;
@@ -64,6 +64,54 @@ div#bibi-slider {
 	html.waiting &,
 	html.busy &,
 	html.panel-opened & { display: none; }
+}
+
+
+// - . History
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-history {
+	div#bibi-slider:not(.bibi-slider-with-history) & { display: none; }
+	html:not(.slider-opened) & {
+		transform: scale(0);
+		// @____Bibi:Dress__('-') transition: $Slider_Transition__Close;
+	}
+	html.slider-opened & {
+		// @____Bibi:Dress__('-') transition: $Slider_Transition__Open;
+	}
+	.bibi-buttongroup { // ul
+		.bibi-buttonbox { // li
+			.bibi-button#bibi-slider-history-button {
+				position: absolute;
+				z-index: 1;
+				margin: auto;
+				// @____Bibi:Dress__('-') @include size($Slider-History-Button-Icon_Size);
+				html.appearance-vertical & {
+					left: 0; right: 0;
+					bottom: auto;
+					// @____Bibi:Dress__('-') top: $Slider-History-Button-Icon_Margin;
+				}
+				html.appearance-horizontal & {
+					top: 0; bottom: 0;
+				}
+				html.appearance-ltr & {
+					right: auto;
+					// @____Bibi:Dress__('-') left: $Slider-History-Button-Icon_Margin;
+				}
+				html.appearance-rtl & {
+					left: auto;
+					// @____Bibi:Dress__('-') right: $Slider-History-Button-Icon_Margin;
+				}
+				span.bibi-button-label {
+					position: absolute;
+					@include offset(0);
+					overflow: hidden;
+					@include size(0);
+					color: transparent;
+				}
+			}
+		}
+	}
 }
 
 
@@ -175,32 +223,71 @@ div#bibi-slider-rail-progress {
 
 div#bibi-slider-edgebar-box,
 div#bibi-slider-bookmap-box {
-	box-sizing: border-box;
-	position: absolute;
-	@include offset(0);
-	z-index: 10;
-	margin: auto;
-	background: transparent;
-	will-change: width, height;
-	html.appearance-horizontal & {
-		@include offset(1px, 0, auto, 0);
-		height: calc(100% -    1px                                                 );
-		width:  calc(100% - #{       $TEMPORARY__Scrollbar-Thumb_Size * 0.5      * 2 });
+	& {
+		box-sizing: border-box;
+		position: absolute;
+		@include offset(0);
+		z-index: 10;
+		margin: auto;
+		background: transparent;
+		will-change: width, height;
+		html.appearance-horizontal & {
+			@include offset(1px, 0, auto, 0);
+			height: calc(100% -    1px                                                 );
+			width:  calc(100% - #{       $TEMPORARY__Scrollbar-Thumb_Size * 0.5      * 2 });
+		}
+		html.appearance-vertical & {
+			@include offset(0, auto, 0, 1px);
+			width:  calc(100% -    1px                                                 );
+			height: calc(100% - #{       $TEMPORARY__Scrollbar-Thumb_Size * 0.5      * 2 });
+		}
+		html.slider-opened.appearance-horizontal & {
+			// @____Bibi:Dress__('-') top: 1px + $Slider_PaddingStart__SliderOpened;
+			bottom: auto;
+			// @____Bibi:Dress__('-') height: calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
+		html.slider-opened.appearance-ltr & {
+			right: auto;
+		}
+		html.slider-opened.appearance-rtl & {
+			left: auto;
+		}
+		html.slider-opened.appearance-vertical & {
+			// @____Bibi:Dress__('-') left: 1px + $Slider_PaddingStart__SliderOpened;
+			right: auto;
+			bottom: auto;
+			// @____Bibi:Dress__('-') width:  calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
 	}
-	html.appearance-vertical & {
-		@include offset(0, auto, 0, 1px);
-		width:  calc(100% -    1px                                                 );
-		height: calc(100% - #{       $TEMPORARY__Scrollbar-Thumb_Size * 0.5      * 2 });
+	div#bibi-slider:not(.bibi-slider-with-history) & {
+		html.slider-opened.appearance-horizontal & {
+			// @____Bibi:Dress__('-') width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			// @____Bibi:Dress__('-') left: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-rtl & {
+			// @____Bibi:Dress__('-') right: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-vertical & {
+			// @____Bibi:Dress__('-') top: $Slider_PaddingBefore__SliderOpened;
+			// @____Bibi:Dress__('-') height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
 	}
-	html.slider-opened.appearance-horizontal & {
-		// @____Bibi:Dress__('-') top: 1px + $Slider_PaddingStartEnd__SliderOpened;
-		// @____Bibi:Dress__('-') height: calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
-		// @____Bibi:Dress__('-') width:  calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
-	}
-	html.slider-opened.appearance-vertical & {
-		// @____Bibi:Dress__('-') left: 1px + $Slider_PaddingStartEnd__SliderOpened;
-		// @____Bibi:Dress__('-') width:  calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
-		// @____Bibi:Dress__('-') height: calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
+	div#bibi-slider.bibi-slider-with-history & {
+		html.slider-opened.appearance-horizontal & {
+			// @____Bibi:Dress__('-') width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			// @____Bibi:Dress__('-') left: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-rtl & {
+			// @____Bibi:Dress__('-') right: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-vertical & {
+			// @____Bibi:Dress__('-') top: $Slider_PaddingBefore__SliderOpened__WithHistory;
+			// @____Bibi:Dress__('-') height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
 	}
 }
 
@@ -368,5 +455,26 @@ span.bookmap-page {
 	html.slider-opened &.hover {
 		// @____Bibi:Dress__('-') background-color: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
 		// @____Bibi:Dress__('-') border: solid 1px $Slider-Bookmap-Page_BorderColor__SliderOpened__Hover;
+	}
+}
+
+
+// - . History
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-history {
+	ul {
+		li {
+			span.bibi-button {
+				span.bibi-button-iconbox {
+					span.bibi-icon {
+					}
+					span.bibi-icon-historyback {
+					}
+				}
+				span.bibi-button-label {
+				}
+			}
+		}
 	}
 }

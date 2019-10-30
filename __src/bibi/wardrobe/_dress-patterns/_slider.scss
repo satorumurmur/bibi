@@ -27,6 +27,25 @@ div#bibi-slider {
 }
 
 
+// - . History
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-history {
+	html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
+	html.slider-opened       & { transition: $Slider_Transition__Open;  }
+	.bibi-buttongroup { // ul
+		.bibi-buttonbox { // li
+			.bibi-button#bibi-slider-history-button {
+				@include size($Slider-History-Button-Icon_Size);
+				html.appearance-vertical & { top:   $Slider-History-Button-Icon_Margin; }
+				html.appearance-ltr      & { left:  $Slider-History-Button-Icon_Margin; }
+				html.appearance-rtl      & { right: $Slider-History-Button-Icon_Margin; }
+			}
+		}
+	}
+}
+
+
 // - . Thumb
 // --------------------------------------------------------------------------------
 
@@ -79,15 +98,45 @@ div#bibi-slider-rail-progress {
 
 div#bibi-slider-edgebar-box,
 div#bibi-slider-bookmap-box {
-	html.slider-opened.appearance-horizontal & {
-		top: 1px + $Slider_PaddingStartEnd__SliderOpened;
-		height: calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
-		width:  calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
+	& {
+		html.slider-opened.appearance-horizontal & {
+			top: 1px + $Slider_PaddingStart__SliderOpened;
+			height: calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
+		html.slider-opened.appearance-vertical & {
+			left: 1px + $Slider_PaddingStart__SliderOpened;
+			width:  calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
 	}
-	html.slider-opened.appearance-vertical & {
-		left: 1px + $Slider_PaddingStartEnd__SliderOpened;
-		width:  calc(100% - #{ 1px + $Slider_PaddingStartEnd__SliderOpened    * 2 });
-		height: calc(100% - #{       $Slider_PaddingBeforeAfter__SliderOpened * 2 });
+	div#bibi-slider:not(.bibi-slider-with-history) & {
+		html.slider-opened.appearance-horizontal & {
+			width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			left: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-rtl & {
+			right: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-vertical & {
+			top: $Slider_PaddingBefore__SliderOpened;
+			height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
+	}
+	div#bibi-slider.bibi-slider-with-history & {
+		html.slider-opened.appearance-horizontal & {
+			width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			left: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-rtl & {
+			right: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-vertical & {
+			top: $Slider_PaddingBefore__SliderOpened__WithHistory;
+			height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
 	}
 }
 
@@ -104,6 +153,7 @@ div#bibi-slider-bookmap {
 // --------------------------------------------------------------------------------
 
 div#bibi-slider-edgebar {
+	border-radius: $Slider-Edgebar_BorderRadius;
 	background: $Slider-Edgebar_Background;
 }
 
