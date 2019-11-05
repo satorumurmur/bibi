@@ -143,7 +143,17 @@ module.exports = (env, argv) => {
     if(Bibi.KeepBackCompat) Config.plugins.push(new CopyPlugin([
         'bib/**'
     ].map(N => ({ from: N, to: Bibi.DIST })), { context: './' + Bibi.SRCBC }));
-    if(Config.mode === 'production') {
+    if(IsDev) {
+        Config.module.rules.push({
+            test: /\/bibi\.heart\.js$/,
+            use: [
+                StringReplacePlugin.replace({ replacements: [{
+                    pattern: /$/,
+                    replacement: () => '\n' + `Bibi.Dev = true;`
+                }]})
+            ]
+        });
+    } else {
         Config.optimization.minimizer.push(new TerserPlugin({
             cache: true,
             parallel: true,
@@ -162,17 +172,6 @@ module.exports = (env, argv) => {
             { from: 'LICENSE',   to: './' + Bibi.DIST + '/bibi' },
             { from: 'README.md', to: './' + Bibi.DIST + '/bibi' }
         ]));
-    } else if(Config.mode === 'development') {
-        Config.module.rules.push({
-            test: /\/bibi\.heart\.js$/,
-            use: [
-                StringReplacePlugin.replace({ replacements: [{
-                    pattern: /$/,
-                    replacement: () => '\n' + `Bibi.Dev = true;`
-                }]})
-            ]
-        });
-    } else {
     }
     return Config;
 };
