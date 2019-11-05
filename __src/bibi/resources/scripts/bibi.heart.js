@@ -41,6 +41,7 @@ Bibi.hello = () => new Promise(resolve => {
 
 
 Bibi.initialize = () => {
+    //const PromiseTryingRangeRequest = O.tryRangeRequest().then(() => true).catch(() => false).then(TF => O.RangeRequest = TF);
     { // Path / URI
         O.Origin = location.origin || (location.protocol + '//' + (location.host || (location.hostname + (location.port ? ':' + location.port : ''))));
         O.RequestedURL = location.href;
@@ -131,34 +132,40 @@ Bibi.initialize = () => {
     O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
     E.dispatch('bibi:initialized');
+    //return PromiseTryingRangeRequest;
 };
 
 
 Bibi.loadExtensions = () => {
-    let ReadyForExtraction = false, ReadyForBibiZine = false;
-    if(S['book']) {
-        if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
-        if(B.Type == 'Zine')                        ReadyForBibiZine = true;
-    } else if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
-    if(ReadyForBibiZine)   S['extensions'].unshift({ 'src': new URL('../../extensions/zine.js',              Bibi.Script.src).href });
-    if(ReadyForExtraction) S['extensions'].unshift({ 'src': new URL('../../extensions/extractor/at-once.js', Bibi.Script.src).href });
-    if(S['extensions'].length == 0) return Promise.resolve();
-    return new Promise(resolve => {
-        O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
-        const loadExtensionInPreset = (i) => {
-            X.load(S['extensions'][i]).then(Msg => {
-                //O.log(Msg);
-            }).catch(Msg => {
-                O.log(Msg);
-            }).then(() => {
-                S['extensions'][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
-            });
-        };
-        loadExtensionInPreset(0);
+    return new Promise((resolve, reject) => {
+        const AdditionalExtensions = [];
+        let ReadyForExtraction = false, ReadyForBibiZine = false;
+        if(S['book']) {
+            if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
+            if(B.Type == 'Zine')                        ReadyForBibiZine = true;
+        } else {
+            if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
+        }
+        if(ReadyForBibiZine) AdditionalExtensions.unshift('zine.js');
+        (ReadyForExtraction ? (S['book'] ? O.tryRangeRequest().then(() => 'on-the-fly') : Promise.reject()).catch(() => 'at-once').then(_ => AdditionalExtensions.unshift('extractor/' + _ + '.js')) : Promise.resolve()).then(() => {
+            if(AdditionalExtensions.length) AdditionalExtensions.forEach(AX => S['extensions'].unshift({ 'src': new URL('../../extensions/' + AX, Bibi.Script.src).href }));
+            if(S['extensions'].length == 0) return reject();
+            O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
+            const loadExtensionInPreset = (i) => {
+                X.load(S['extensions'][i]).then(Msg => {
+                    //O.log(Msg);
+                }).catch(Msg => {
+                    O.log(Msg);
+                }).then(() => {
+                    S['extensions'][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
+                });
+            };
+            loadExtensionInPreset(0);
+        });
     }).then(() => {
         O.log(`Extensions: %O`, X.Extensions);
         O.log(X.Extensions.length ? `Loaded. (${ X.Extensions.length } Extension${ X.Extensions.length > 1 ? 's' : '' })` : `No Extension.`, '</g>')
-    });
+    }).catch(() => false);
 };
 
 
@@ -483,9 +490,9 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
         }
         const initialize_as = (FileOrFolder) => ({
             Promised: (
-                FileOrFolder == 'Folder'        ? O.download(RootFile).then(() => B.PathDelimiter = '/').then(() => '') :
-                typeof O.retlieve == 'function' ? O.retlieve(RootFile)                                  .then(() => 'on-the-fly') :
-                                                  O.loadZippedBookData(B.Path)                          .then(() => 'at-once')
+                FileOrFolder == 'Folder' ? O.download(RootFile).then(() => (B.PathDelimiter = '/') && '') :
+                O.RangeLoader            ?  O.extract(RootFile).then(() => 'on-the-fly') :
+                                           O.loadZippedBookData(B.Path)  .then(() => 'at-once')
             ).then(ExtractionPolicy => {
                 B.ExtractionPolicy = ExtractionPolicy;
                 //O.log(`Succeed to Open as ${ B.Type } ${ FileOrFolder }.`);
@@ -1666,9 +1673,9 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         return Spread;
     });
 
-    R.cancelSpreadRetlieving = (Spread) => O.cancelRetlieving ? Spread.Items.forEach(Item => {
-        if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelRetlieving(ResItem));
-        O.cancelRetlieving(Item);
+    R.cancelSpreadRetlieving = (Spread) => O.RangeLoader ? Spread.Items.forEach(Item => {
+        if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelExtraction(ResItem));
+        O.cancelExtraction(Item);
     }) : false;
 
 
@@ -4891,29 +4898,18 @@ O.item = (Item) => {
 };
 
 
-O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
-    Item = O.item(Item);
-    if(Opt.URI) {
-        //if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
-        if(Item.URI) return resolve(Item);
-    }
-    let _Promise = null;
-         if(Item.Content                       ) _Promise = Promise.resolve(Item);
-    else if(!B.ExtractionPolicy                ) _Promise =      O.download(Item);
-    else if( B.ExtractionPolicy == 'on-the-fly') _Promise =      O.retlieve(Item);
-    else                                         return reject(`File Not Included: "${ Item.Path }"`);
-    _Promise.then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
-        if(Opt.URI) {
-            O.getBlobURL(Item).then(Item => {
-                Item.Content = '';
-                resolve(Item);
-            });
-        } else {
-            resolve(Item);
-        }
-     }).catch(reject);
-});
+O.RangeLoader = null;
 
+O.cancelExtraction = (Item) => { try { return O.RangeLoader.abort(Item.Path); } catch(Err) {} return false; };
+
+O.extract = (Item) => {
+    Item = O.item(Item);
+    return O.RangeLoader.getBuffer(Item.Path).then(ABuf => {
+        if(O.isBin(Item)) Item.DataType = 'Blob', Item.Content = new Blob([ABuf], { type: Item['media-type'] });
+        else              Item.DataType = 'Text', Item.Content = new TextDecoder('utf-8').decode(new Uint8Array(ABuf));
+        return Item;
+    }).catch(() => Promise.reject());
+};
 
 O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
     Item = O.item(Item);
@@ -4931,6 +4927,35 @@ O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
         resolve(Item);
     };
     XHR.send(null);
+});
+
+O.tryRangeRequest = (Path = Bibi.Script.src, Bytes = '0-0') => new Promise((resolve, reject) => {
+    const XHR = new XMLHttpRequest;
+    XHR.onloadend = () => XHR.status != 206 ? reject() : resolve();
+    XHR.open('GET', Path, true);
+    XHR.setRequestHeader('Range', 'bytes=' + Bytes);
+    XHR.send(null);
+});
+
+
+O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
+    Item = O.item(Item);
+    if(Opt.URI) {
+        //if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
+        if(Item.URI) return resolve(Item);
+    }
+    let _Promise = null;
+    (() => {
+        if(Item.Content) return Promise.resolve(Item);
+        switch(B.ExtractionPolicy) {
+            case 'at-once':    return Promise.reject(`File Not Included: "${ Item.Path }"`);
+            case 'on-the-fly': return O.extract(Item);
+        }
+        return O.download(Item);
+    })().then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
+        if(Opt.URI) O.getBlobURL(Item).then(Item => { Item.Content = ''; resolve(Item); });
+        else resolve(Item);
+     }).catch(reject);
 });
 
 
