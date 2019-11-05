@@ -62,7 +62,7 @@ Bibi.initialize = () => {
             if(Lan == 'en') break;
         }                   return 'en';
     })()));
-    // Device & Event;
+    // Device & Event
     if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) {
         O.HTML.classList.add('touch');
         if(sML.OS.iOS) {
@@ -77,8 +77,8 @@ Bibi.initialize = () => {
     H.initialize();
     U.initialize();
     S.initialize();
+    // Say Bye-bye
     if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) {
-        // Say Bye-bye
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
         return O.error(I.Veil.byebye({
             'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
@@ -205,7 +205,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     });
 }).then(() => {
     if(S['use-cookie']) {
-        const BibiCookie = O.Cookie.remember(O.RootPath);
+        const BibiCookie = O.Cookie.remember(O.Path);
         const BookCookie = O.Cookie.remember(B.ID);
         if(BibiCookie) {
             if(!U['reader-view-mode']              && BibiCookie.RVM     ) S['reader-view-mode']              = BibiCookie.RVM;
@@ -1315,21 +1315,14 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
         // Paired Mixed Items
         if(R.Stage.Width > Spread.Items[0].Box.offsetWidth + Spread.Items[1].Box.offsetWidth) {
             // horizontal layout
-            console.log(`== R.layOutSpread ======================================= Mixed:A ==`);
             SpreadSize.Width  =          Spread.Items[0].Box.offsetWidth + Spread.Items[1].Box.offsetWidth;
             SpreadSize.Height = Math.max(Spread.Items[0].Box.offsetHeight, Spread.Items[1].Box.style.offsetHeight);
+            console.log(`» R.layOutSpread › Mixed:H › R.Spreads[${ Spread.Index }]`, Spread);
         } else {
             // vertical layout
-            console.log(`== R.layOutSpread ======================================= Mixed:B ==`);
             SpreadSize.Width  = Math.max(Spread.Items[0].Box.offsetWidth,   Spread.Items[1].Box.offsetWidth);
             SpreadSize.Height =          Spread.Items[0].Box.offsetHeight + Spread.Items[1].Box.offsetHeight;
-        } /**/ {
-            console.log(`--------------------------------------------------------------------`);
-            console.log(`The Structure of this EPUB File is Rare.`);
-            console.log(`If This File is Yours and You Can Send It,`);
-            console.log(`Please Send It as a Sample to the Author of Bibi.`);
-            console.log(`It will Help Improving Bibi So Much !`);
-            console.log(`====================================================================`);
+            console.log(`» R.layOutSpread › Mixed:V › R.Spreads[${ Spread.Index }]`, Spread);
         }
     }
     if(O.Scrollbars.Height && S.SLA == 'vertical' && S.ARA != 'vertical') {
@@ -1888,7 +1881,7 @@ R.changeView = (Par, Opt = {}) => {
         L.play();
     }
     if(S['use-cookie']) {
-        O.Cookie.eat(O.RootPath, {
+        O.Cookie.eat(O.Path, {
             'RVM': Par.Mode
         });
     }
@@ -2531,7 +2524,7 @@ I.Menu = { create: () => {
                             if(IsActive) O.HTML.classList.add(   'book-full-breadth');
                             else         O.HTML.classList.remove('book-full-breadth');
                             if(S.RVM == 'horizontal' || S.RVM == 'vertical') R.changeView({ Mode: S.RVM, Force: true });
-                            if(S['use-cookie']) O.Cookie.eat(O.RootPath, { 'FBL': S['full-breadth-layout-in-scroll'] });
+                            if(S['use-cookie']) O.Cookie.eat(O.Path, { 'FBL': S['full-breadth-layout-in-scroll'] });
                         }
                     }]
                 }]
@@ -2701,7 +2694,7 @@ I.FontSizeChanger = { create: () => {
     const FontSizeChanger = I.FontSizeChanger = {};
     if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
     if(S['use-font-size-changer'] && S['use-cookie']) {
-        const BibiCookie = O.Cookie.remember(O.RootPath);
+        const BibiCookie = O.Cookie.remember(O.Path);
         if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) FontSizeChanger.Step = BibiCookie.FontSize.Step * 1;
     }
     if(typeof FontSizeChanger.Step != 'number' || FontSizeChanger.Step < -2 || 2 < FontSizeChanger.Step) FontSizeChanger.Step = 0;
@@ -2759,7 +2752,7 @@ I.FontSizeChanger = { create: () => {
         if(typeof Actions.before == 'function') Actions.before();
         FontSizeChanger.Step = Step;
         if(S['use-font-size-changer'] && S['use-cookie']) {
-            O.Cookie.eat(O.RootPath, { FontSize: { Step: Step } });
+            O.Cookie.eat(O.Path, { FontSize: { Step: Step } });
         }
         setTimeout(() => {
             R.layOut({
@@ -5095,12 +5088,7 @@ O.getOrigin = (Win = window) => { const Loc = Win.location;
 
 O.Origin = O.getOrigin();
 
-O.Path = (DCS => {
-    if(DCS) return DCS.src;
-    return document.getElementById('bibi-script').src;
-})(document.currentScript);
-
-O.RootPath = O.Path.replace(/\/res\/scripts\/.+$/, '');
+O.Path = document.currentScript.src;
 
 
 O.Cookie = {
@@ -5304,11 +5292,7 @@ X.load = (Xtn) => new Promise((resolve, reject) => {
     const XO = new URL(Xtn['src']).origin;
     if(!S['trustworthy-origins'].includes(XO)) return reject(`The Origin Is Not Allowed. ("${ Xtn['src'] }")`);
     Xtn.Script = document.head.appendChild(sML.create('script', { className: 'bibi-extension-script', src: Xtn['src'], Extension: Xtn, resolve: resolve, reject: function() { reject(); document.head.removeChild(this); } }));
-})/*.then(DefinedExtension =>
-    DefinedExtension['id'] + ': ' + O.getPath(O.RootPath, DefinedExtension['src'])
-).catch(Msg =>
-    Msg
-)*/;
+});
 
 X.add = (XMeta) => {
     const XScript = document.currentScript;

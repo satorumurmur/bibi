@@ -131,20 +131,25 @@ How to Arrange Development Environment
 2. $ `cd <the local repository>`
 3. $ `npm install`
 
+And files and folders are generated in `__dist` folder.
+
 
 
 ### How to Develop
 
 1. $ `npm start`
-    1. webpack generates development version of Bibi, and start to watch changes of the files.
+    1. webpack generates development version of Bibi to `__dist` folder, and start to watch changes of the files in `__src` folder.
     2. BrowserSync webserver launches and navigate your browser to `http://localhost:61671/bibi/?book=`.
 2. Edit source files.
-    1. webpack watches your modification and updates development version of the file(s) with sourcemaps.
+    1. If you modify source files in `__src` folder, development version of the file(s) are updated in `__dist` folder automaticaly.
     2. BrowserSync reloads your browser(s) or inject changes of CSS.
+
+Files in `__dist` folder generated with `npm start` are development version.
+Please don't forget to run `npm run build` and build production version before you upload.
 
 | Distribution                            | Source                                                                                                |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `__dist/bibi/index.html`                | `__src/bibi/index.html`                                                                               |
+| `__dist/bibi/*.html`                    | `__src/bibi/*.html`                                                                                   |
 | `__dist/bibi/and/jo.js`                 | `__src/bibi/and/jo.js` + `__src/bibi/and/jo.scss`                                                     |
 | `__dist/bibi/extensions/**`             | `__src/bibi/extensions/**`                                                                            |
 | `__dist/bibi/presets/*.js`              | `__src/bibi/presets/*.js`                                                                             |
@@ -152,22 +157,22 @@ How to Arrange Development Environment
 | `__dist/bibi/resources/styles/bibi.css` | `__src/bibi/resources/styles/*.scss`                                                                  |
 | `__dist/bibi/wardrobe/**/*.css`         | Read documents in `__src/bibi/wardrobe/README-DRESS_ja` (Sorry..., currently README is Japanese only) |
 
-* Files in `__dist/bibi-bookshelf/` are not processed (this directory contains `.gitkeep`)
-
+Files in the `Distribution` column of the table are overwritten with the files updated by `npm start` or `npm run build`.
+If you want to modify them, please edit files in the `Source` column instead of editing these files in `__dist` directly.
 
 
 ### How to Build
 
 * $ `npm run build`
-    - webpack generates production version of Bibi.
+    - webpack generates production version of Bibi to `__dist` folder.
+    - You can upload them to your online webserver.
 
 
+### How to Make a Ditribution Package
 
-### How to Make a Ditribution
-
-* $ `npm run make:distribution`
-    1. webpack generates production version of Bibi.
-    2. gulp generates zipped archive.
+* $ `npm run make:distribution-package`
+    1. webpack generates production version of Bibi to `__dist` folder.
+    2. gulp generates zipped archive to `__archives` folder.
 
 
 

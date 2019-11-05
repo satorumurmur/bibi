@@ -83,7 +83,7 @@ Bibi.Banners = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'/jo.js': _banner(`Jo | Partner of Bibi who embeds Bibi frame in webpage.`, 'default', null, true),
+'/jo.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
 
 // -----------------------------------------------------------------------------------------------------------------------------
 

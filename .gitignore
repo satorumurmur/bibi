@@ -1,9 +1,10 @@
 /__archives
-/__dist/**
-!/__dist/bibi-bookshelf
-/__dist/bibi-bookshelf/**
-!/__dist/bibi-bookshelf/.gitignore
+/__dist
 /__src/bibi/wardrobe/DRESS-TEMPLATE-*
+
+/archives
+/bib
+/dev-bib
 
 node_modules
 npm-debug.log
