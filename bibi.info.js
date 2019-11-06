@@ -15,8 +15,6 @@ const Bibi = {
     'homepage': 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
 };
 
-Bibi.KeepBackCompat = false;
-
 // =============================================================================================================================
 
 const _banner = (Name, Credit, Extra, Mark) => '/*!' + `
@@ -121,7 +119,7 @@ Bibi.Banners = {
 
 // =============================================================================================================================
 
-Bibi.ARCHIVE = '__dist', Bibi.DIST = '__dist', Bibi.SRC = '__src', Bibi.SRCBC = '__src__back-compat';
+Bibi.ARCHIVES = '__archives', Bibi.DIST = '__dist', Bibi.SRC = '__src', Bibi.SRCBC = '__src__back-compat';
 
 // =============================================================================================================================
 

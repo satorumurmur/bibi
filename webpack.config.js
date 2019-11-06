@@ -38,10 +38,10 @@ const Config = {
         'bibi/extensions/extractor/at-once.js',
         'bibi/extensions/unaccessibilizer.js',
         'bibi/extensions/zine.js',
-        'bibi/resources/polyfills/bundle.js',
-        'bibi/resources/polyfills/encoding.js',
-        'bibi/resources/polyfills/intersection-observer.js',
         'bibi/resources/scripts/bibi.js',
+        'bibi/resources/scripts/polyfills/bundle.js',
+        'bibi/resources/scripts/polyfills/encoding.js',
+        'bibi/resources/scripts/polyfills/intersection-observer.js',
         'bibi/resources/styles/bibi.css'
     ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css'))),
     output: { path: __dirname, filename: '[name].js' },
@@ -121,11 +121,11 @@ module.exports = (env, argv) => {
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\.(eot|wof|woff|woff2|ttf|svg)$/,
+        test: /\/MaterialIcons-Regular\.(eot|svg|ttf|wof|woff|woff2)$/,
         use: [
             { loader: 'file-loader', options: {
-                outputPath: Bibi.DIST + '/bibi/resources/fonts',
-                publicPath:                          '../fonts',
+                outputPath: Bibi.DIST + '/bibi/resources/styles/fonts',
+                publicPath:                                  './fonts',
                 name: '[name].[ext]'
             }}
         ]
@@ -140,9 +140,6 @@ module.exports = (env, argv) => {
         'bibi/*.html',
         'bibi/presets/**'
     ].concat(Dresses['ready-made'].map(D => 'bibi/wardrobe/' + D + '/**')).map(N => ({ from: N, to: Bibi.DIST })), { context: './' + Bibi.SRC }));
-    if(Bibi.KeepBackCompat) Config.plugins.push(new CopyPlugin([
-        'bib/**'
-    ].map(N => ({ from: N, to: Bibi.DIST })), { context: './' + Bibi.SRCBC }));
     if(IsDev) {
         Config.module.rules.push({
             test: /\/bibi\.heart\.js$/,

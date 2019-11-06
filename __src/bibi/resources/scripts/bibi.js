@@ -6,8 +6,8 @@ require('./bibi.book.scss');
 document.addEventListener('DOMContentLoaded', () => {
     const BibiScript = document.getElementById('bibi-script');
     (_ => {
-        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: BibiScript.src.replace(/\/scripts\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), BibiScript);
-        const Polyfills = [], PolyfillsPath = new URL('../polyfills', BibiScript.src).href;
+        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: BibiScript.src.replace(/\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), BibiScript);
+        const Polyfills = [], PolyfillsPath = new URL('./polyfills', BibiScript.src).href;
         if(!window.TextDecoder)          Polyfills.push(PolyfillsPath + '/encoding.js');
         if(!window.IntersectionObserver) Polyfills.push(PolyfillsPath + '/intersection-observer.js');
         if(!Polyfills.length) return _();
