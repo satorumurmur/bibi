@@ -46,13 +46,15 @@ Bibi.hello = () => new Promise(resolve => {
 
 
 Bibi.initialize = () => {
+    O.contentWindow = window;
+    O.contentDocument = document;
     O.Head  = document.head;
     O.Body  = document.body;
     O.Info  = document.getElementById('bibi-info');
     O.Title = document.getElementsByTagName('title')[0];
-    O.RequestedURL = location.href, O.BookURL = O.Origin + location.pathname + location.search;
-    O.contentWindow = window, O.contentDocument = document;
-    O.HTML.classList.add('default-lang-' + (O.Language = (() => {
+    O.RequestedURL = location.href;
+    O.BookURL = O.Origin + location.pathname + location.search;
+    O.HTML.classList.add('default-lang-' + (O.Language = (() => { // Language
         let NLs = [];
         if(navigator.languages instanceof Array) NLs = NLs.concat(navigator.languages);
         if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
@@ -62,8 +64,7 @@ Bibi.initialize = () => {
             if(Lan == 'en') break;
         }                   return 'en';
     })()));
-    // Device & Event
-    if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) {
+    if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) { // Touch Device
         O.HTML.classList.add('touch');
         if(sML.OS.iOS) {
             O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-capable',          content: 'yes'   }));
@@ -76,60 +77,52 @@ Bibi.initialize = () => {
     P.initialize();
     H.initialize();
     U.initialize();
-    S.initialize();
-    // Say Bye-bye
-    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) {
+    S.initialize(
+        () => O.Embedded = (() => { // Window Embedded or Not
+            if(window.parent == window) { O.HTML.classList.add('window-direct'  );                                                                         return                            0; } // false
+            else                        { O.HTML.classList.add('window-embedded'); try { if(location.host == parent.location.host || parent.location.href) return 1; } catch(Err) {} return -1; } // true (1:Reachable or -1:Unreachable)
+        })(),
+        () => O.FullscreenTarget = (() => { // Fullscreen Target
+            const FsT = (() => {
+                     if(O.Embedded == 0) { sML.Fullscreen.polyfill(window       );       return                                                                  O.HTML;                 }
+                else if(O.Embedded == 1) { sML.Fullscreen.polyfill(window.parent); try { return window.parent.document.getElementById(S['parent-holder-id']).Bibi.Frame; } catch(Err) {} }
+            })() || null;
+            if(FsT && FsT.ownerDocument.fullscreenEnabled) { O.HTML.classList.add('fullscreen-enabled' ); return FsT;  }
+            else                                           { O.HTML.classList.add('fullscreen-disabled'); return null; }
+        })()
+    );
+    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) { // Say Bye-bye
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
         return O.error(I.Veil.byebye({
             'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
             'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
         }));
+    } else { // Say Welcome!
+        I.note(`<span class="non-visual">Welcome!</span>`);
     }
-    I.note(`<span class="non-visual">Welcome!</span>`);
-    // Window Embedding
-    if(window.parent == window) {
-        O.WindowEmbedded = 0; // false
-        O.WindowEmbeddedDetail = 'Direct Opened: ' + O.Origin + location.pathname + location.search;
-        O.HTML.classList.add('window-not-embedded');
-    } else {
-        O.WindowEmbedded = -1; // true
-        O.HTML.classList.add('window-embedded');
-        try {
-            if(location.host == parent.location.host || parent.location.href) {
-                O.WindowEmbedded = 1; // true
-                O.WindowEmbeddedDetail = 'Embedded in: ' + O.getOrigin(parent) + parent.location.pathname + parent.location.search;
-                O.ParentHolder = window.parent.document.getElementById(U['parent-holder-id']);
-            }
-        } catch(e) {}
-        if(O.WindowEmbedded == -1) O.WindowEmbeddedDetail = 'Embedded in: Unreachable Parent';
+    { // Writing Mode, Font Size, Slider Size, Menu Height
+        O.WritingModeProperty = (() => {
+            const HTMLComputedStyle = getComputedStyle(O.HTML);
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.Trident) return         'writing-mode';
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                  ) return '-webkit-writing-mode';
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                  ) return   '-epub-writing-mode';
+            return undefined;
+        })();
+        const StyleChecker = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker', innerHTML: ' aAａＡあ亜　', style: { width: 'auto', height: 'auto', left: '-1em', top: '-1em' } }));
+        O.VerticalTextEnabled = (StyleChecker.offsetWidth < StyleChecker.offsetHeight);
+        O.DefaultFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
+        StyleChecker.style.fontSize = '0.01px';
+        O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
+        StyleChecker.setAttribute('style', ''), StyleChecker.innerHTML = '';
+        I.Slider.Size = StyleChecker.offsetWidth;
+        I.Menu.Height = StyleChecker.offsetHeight;
+        delete document.body.removeChild(StyleChecker);
     }
-    // Fullscreen
-    { let FsT = null;
-             if(!O.WindowEmbedded) sML.Fullscreen.polyfill(window       ),  FsT = O.HTML                   ;
-        else if( O.ParentHolder  ) sML.Fullscreen.polyfill(window.parent),  FsT = O.ParentHolder.Bibi.Frame;
-        if(FsT && FsT.ownerDocument.fullscreenEnabled) O.FullscreenTarget = FsT,  O.HTML.classList.add('fullscreen-enabled');
+    { // Scrollbars
+        O.Body.style.width = '101vw', O.Body.style.height = '101vh';
+        O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
+        O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
     }
-    // Writing Mode, Font Size, Slider Size, Menu Height
-    O.WritingModeProperty = (() => {
-        const HTMLComputedStyle = getComputedStyle(O.HTML);
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.Trident) return         'writing-mode';
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                  ) return '-webkit-writing-mode';
-        if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                  ) return   '-epub-writing-mode';
-        return undefined;
-    })();
-    const StyleChecker = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker', innerHTML: ' aAａＡあ亜　', style: { width: 'auto', height: 'auto', left: '-1em', top: '-1em' } }));
-    O.VerticalTextEnabled = (StyleChecker.offsetWidth < StyleChecker.offsetHeight);
-    O.DefaultFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
-    StyleChecker.style.fontSize = '0.01px';
-    O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
-    StyleChecker.setAttribute('style', ''), StyleChecker.innerHTML = '';
-    I.Slider.Size = StyleChecker.offsetWidth;
-    I.Menu.Height = StyleChecker.offsetHeight;
-    delete document.body.removeChild(StyleChecker);
-    // Scrollbars
-    O.Body.style.width = '101vw', O.Body.style.height = '101vh';
-    O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
-    O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
     O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
     E.dispatch('bibi:initialized');
@@ -178,7 +171,7 @@ Bibi.getBookData = () =>
     S['book']              ?     Promise.resolve({ BookData: S['book'] }) :
     S.BookDataElement      ?     Promise.resolve({ BookData: S.BookDataElement.innerText.trim(), BookDataType: S.BookDataElement.getAttribute('data-bibi-book-mimetype') }) :
     S['accept-local-file'] ? new Promise(resolve => { Bibi.getBookData.resolve = (Par) => { resolve(Par), O.HTML.classList.remove('waiting-file'); }; O.HTML.classList.add('waiting-file'); }) :
-                                 Promise.reject (`Tell me EPUB name via ${ O.WindowEmbedded ? 'embedding tag' : 'URI' }.`);
+                                 Promise.reject (`Tell me EPUB name via ${ O.Embedded ? 'embedding tag' : 'URI' }.`);
 
 
 Bibi.busyHerself = () => new Promise(resolve => {
@@ -931,7 +924,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         Eve.stopPropagation();
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
             if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
-            if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'pipi(nav:' + A.NavANumber + ')');
+            if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
             L.play();
         });
@@ -2462,7 +2455,7 @@ I.Menu = { create: () => {
         const Menu = I.Menu;
         const Components = [];
         if(!S['fix-reader-view-mode'])                                                                     Components.push('ViewModeSection');
-        if(O.WindowEmbedded)                                                                               Components.push('NewWindowButton');
+        if(O.Embedded)                                                                                     Components.push('NewWindowButton');
         if(O.FullscreenTarget && !O.TouchOS)                                                               Components.push('FullscreenButton');
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
         if(!S['remove-bibi-website-link'])                                                                 Components.push('BibiWebsiteLink');
@@ -4331,10 +4324,10 @@ U.initialize = () => { // formerly O.readExtras
     if(HashData['bibi']) {
         U.importFromDataString(HashData['bibi']);
     }
-    if(HashData['pipi']) {
-        U.importFromDataString(HashData['pipi']);
+    if(HashData['jo']) {
+        U.importFromDataString(HashData['jo']);
         if(U['parent-origin'] && U['parent-origin'] != O.Origin) P['trustworthy-origins'].push(U['parent-origin']);
-        if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]pipi\([^\)]*\)$/g, ''));
+        if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]jo\([^\)]*\)$/g, ''));
     }
     if(HashData['epubcfi']) {
         U['epubcfi'] = HashData['epubcfi'];
@@ -4371,7 +4364,7 @@ U.initialize = () => { // formerly O.readExtras
                 case 'parent-title':
                 case 'parent-uri':
                 case 'parent-origin':
-                case 'parent-pipi-path':
+                case 'parent-jo-path':
                 case 'parent-bibi-label':
                 case 'parent-holder-id':
                     PnV[1] = decodeURIComponent(PnV[1].replace('_BibiKakkoClose_', ')').replace('_BibiKakkoOpen_', '(')); if(!PnV[1]) PnV[1] = ''; 
@@ -4425,7 +4418,8 @@ U.initialize = () => { // formerly O.readExtras
 export const S = {}; // Bibi.Settings
 
 
-S.initialize = () => {
+S.initialize = (before, after) => {
+    if(before) before();
     for(const Property in S) if(typeof S[Property] != 'function') delete S[Property];
     sML.applyRtL(S, P, 'ExceptFunctions');
     sML.applyRtL(S, H, 'ExceptFunctions');
@@ -4463,13 +4457,14 @@ S.initialize = () => {
     S['autostart'] = (() => {
         if(S['wait']) return !S['wait'];
         if(!S['book']) return true;
-        return O.WindowEmbedded ? S['autostart-embedded'] : S['autostart'];
+        return O.Embedded ? S['autostart-embedded'] : S['autostart'];
     })();
     S['start-in-new-window'] = (() => {
         if(S['autostart']) return false;
-        return O.WindowEmbedded ? S['start-embedded-in-new-window'] : false;
+        return O.Embedded ? S['start-embedded-in-new-window'] : false;
     })();
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
+    if(after) after();
     E.dispatch('bibi:initialized-settings');
 };
 
@@ -5249,7 +5244,7 @@ export const M = {}; // Bibi.Messages
 
 
 M.post = (Msg, TargetOrigin) => {
-    if(!O.WindowEmbedded) return false;
+    if(!O.Embedded) return false;
     if(typeof Msg != 'string' || !Msg) return false;
     if(typeof TargetOrigin != 'string' || !TargetOrigin) TargetOrigin = '*';
     return window.parent.postMessage(Msg, TargetOrigin);

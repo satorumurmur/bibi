@@ -199,6 +199,7 @@ div#bibi-menu-r {
 // --------------------------------------------------------------------------------
 
 ul#bibi-buttongroup_font-size {
+	html.waiting &,
 	html.book-pre-paginated & {
 		display: none;
 	}

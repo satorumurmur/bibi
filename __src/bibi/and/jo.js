@@ -1,7 +1,7 @@
 (() => {
     'use strict';
-    if(window['bibi:pipi']) return;
-    const Pipi = window['bibi:pipi'] = { 'version': '____Bibi-Version____',
+    if(window['bibi:jo']) return;
+    const Jo = window['bibi:jo'] = { 'version': '____Bibi-Version____',
         CSS: require('./jo.scss'),
         Status: '',
         Bibis: [],
@@ -11,13 +11,13 @@
         TrustworthyOrigins: [location.origin],
         Loaded: 0
     };
-    Pipi.Path = (() => {
+    Jo.Path = (() => {
         if(document.currentScript) return document.currentScript.src;
         const Scripts = document.getElementsByTagName('script');
         return Scripts[Scripts.length - 1].src;
     })();
-    Pipi.embed = () => {
-        Pipi.Status = 'Started';
+    Jo.embed = () => {
+        Jo.Status = 'Started';
         const As = document.body.querySelectorAll('a[data-bibi]');
         for(let l = As.length, i = 0; i < l; i++) {
             if(!As[i].getAttribute('href') || As[i].Bibi) continue;
@@ -26,26 +26,26 @@
             // Anchor
             const Anchor = Bibi.Anchor = As[i];
             if(!/ bibi-anchor /.test(' ' + Anchor.className + ' ')) Anchor.className = 'bibi-anchor' + (Anchor.className ? ' ' + Anchor.className : '');
-            if(Anchor.origin != location.origin) Pipi.TrustworthyOrigins.push(Anchor.origin);
+            if(Anchor.origin != location.origin) Jo.TrustworthyOrigins.push(Anchor.origin);
             Anchor.addEventListener('bibi:loaded', function(Eve) { console.log('Bibi: Loaded. - #' + Eve.detail.Number + ': ' + Eve.detail.Anchor.href); }, false);
-            Pipi.Anchors.push(Anchor);
+            Jo.Anchors.push(Anchor);
             // Holder
             const BibiClass  = Anchor.getAttribute('data-bibi-class');
             const BibiID     = Anchor.getAttribute('data-bibi-id');
             const BibiStyle  = Anchor.getAttribute('data-bibi-style');
-            const Holder = Bibi.Holder = Pipi.create('span', {
+            const Holder = Bibi.Holder = Jo.create('span', {
                 className: 'bibi-holder' + (BibiClass ? ' ' + BibiClass : ''),
                 id: (BibiID ? BibiID : 'bibi-holder-' + (i + 1)),
                 title: (Anchor.innerText ? Anchor.innerText + ' ' : '') + '(powered by Bibi)'
             });
             if(BibiStyle) Holder.setAttribute('style', BibiStyle);
-            Pipi.Holders.push(Holder);
+            Jo.Holders.push(Holder);
             // Fragments
-            const Fragments = new Pipi.Fragments();
+            const Fragments = new Jo.Fragments();
             Fragments.add('parent-title',      document.title);
             Fragments.add('parent-uri',        location.href);
             Fragments.add('parent-origin',     location.origin);
-            Fragments.add('parent-pipi-path',  Pipi.Path);
+            Fragments.add('parent-jo-path',    Jo.Path);
             Fragments.add('parent-bibi-label', Anchor.innerHTML);
             Fragments.add('parent-holder-id',  Holder.id);
             [
@@ -80,7 +80,7 @@
             // Frame
             const BibiSrc = Anchor.getAttribute('href');
             const Frame = Bibi.Frame = Holder.appendChild(
-                Pipi.create('iframe', {
+                Jo.create('iframe', {
                     className: 'bibi-frame',
                     frameborder: '0',
                     scrolling: 'auto',
@@ -89,22 +89,22 @@
                 })
             );
             Frame.addEventListener('load', () => {
-                Pipi.Loaded++;
+                Jo.Loaded++;
                 Frame.Bibi.Anchor.dispatchEvent(new CustomEvent('bibi:loaded', { detail: Frame.Bibi }));
-                if(Pipi.Status != 'TimedOut' && Pipi.Loaded == Pipi.Bibis.length) {
-                    Pipi.Status = 'Loaded';
-                    document.dispatchEvent(new CustomEvent('bibi:loaded', { detail: Pipi }));
+                if(Jo.Status != 'TimedOut' && Jo.Loaded == Jo.Bibis.length) {
+                    Jo.Status = 'Loaded';
+                    document.dispatchEvent(new CustomEvent('bibi:loaded', { detail: Jo }));
                 }
             }, false);
-            Pipi.Frames.push(Frame);
+            Jo.Frames.push(Frame);
             // Add
-            Pipi.Bibis.push(Bibi);
+            Jo.Bibis.push(Bibi);
             Frame.Bibi = Holder.Bibi = Anchor.Bibi = Bibi;
         }
         // Put
-        for(let l = Pipi.Bibis.length, i = 0; i < l; i++) {
-            if(Pipi.Bibis[i].Embedded) continue;
-            const Bibi = Pipi.Bibis[i];
+        for(let l = Jo.Bibis.length, i = 0; i < l; i++) {
+            if(Jo.Bibis[i].Embedded) continue;
+            const Bibi = Jo.Bibis[i];
             Bibi.move = (Distance) => {
                 if(typeof Target != 'number') return;
                 Bibi.Frame.contentWindow.postMessage(`{"bibi:commands:move":"${ Distance }"}`, Bibi.Anchor.origin);
@@ -125,21 +125,21 @@
             Bibi.Anchor.dispatchEvent(new CustomEvent('bibi:readied', { detail: Bibi }));
         }
         setTimeout(() => {
-            if(Pipi.Status == 'Loaded') return;
-            Pipi.Status = 'TimedOut';
-            document.dispatchEvent(new CustomEvent('bibi:timed-out', { detail: Pipi }));
+            if(Jo.Status == 'Loaded') return;
+            Jo.Status = 'TimedOut';
+            document.dispatchEvent(new CustomEvent('bibi:timed-out', { detail: Jo }));
         }, 12000);
-        Pipi.Status = 'Readied';
-        document.dispatchEvent(new CustomEvent('bibi:readied', { detail: Pipi }));
-        return Pipi.Bibis;
+        Jo.Status = 'Readied';
+        document.dispatchEvent(new CustomEvent('bibi:readied', { detail: Jo }));
+        return Jo.Bibis;
     };
-    Pipi.encode = (Str) => encodeURIComponent(Str).replace('(', '_BibiKakkoOpen_').replace(')', '_BibiKakkoClose_');
-    Pipi.create = (TagName, Properties) => {
+    Jo.encode = (Str) => encodeURIComponent(Str).replace('(', '_BibiKakkoOpen_').replace(')', '_BibiKakkoClose_');
+    Jo.create = (TagName, Properties) => {
         const Ele = document.createElement(TagName);
         for(let Attribute in Properties) Ele[Attribute] = Properties[Attribute];
         return Ele;
     };
-    Pipi.Fragments = function() { // constructor
+    Jo.Fragments = function() { // constructor
         this.FragmentKeys = [];
         this.FragmentKeysAndValues = {};
         this.add = function(Key, Value) {
@@ -149,8 +149,8 @@
         this.make = function() {
             if(!this.FragmentKeys.length) return '';
             const Fragments = [];
-            for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }:${ Pipi.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
-            return `pipi(${ Fragments.join(',') })`;
+            for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }:${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
+            return `jo(${ Fragments.join(',') })`;
         };
         return this;
     };
@@ -165,8 +165,8 @@
     }
     window.addEventListener('message', Eve => {
         if(!Eve || !Eve.data) return;
-        for(let l = Pipi.TrustworthyOrigins.length, i = 0; i < l; i++) {
-            if(Eve.origin != Pipi.TrustworthyOrigins[i]) continue;
+        for(let l = Jo.TrustworthyOrigins.length, i = 0; i < l; i++) {
+            if(Eve.origin != Jo.TrustworthyOrigins[i]) continue;
             let Data = Eve.data;
             try {
                 Data = JSON.parse(Data);
@@ -180,5 +180,5 @@
     document.addEventListener('bibi:readied',     Eve => console.log(`Bibi: Readied. - ${ Eve.detail.Bibis.length } Bibi${ Eve.detail.Bibis.length > 1 ? 's' : '' }.`));
     document.addEventListener('bibi:loaded',      Eve => console.log(`Bibi: Loaded. - ${  Eve.detail.Bibis.length } Bibi${ Eve.detail.Bibis.length > 1 ? 's' : '' }.`));
     document.addEventListener('bibi:timed-out',   Eve => console.log(`Bibi: Timed Out.`                                                                              ));
-    document.addEventListener('DOMContentLoaded', Pipi.embed, false);
+    document.addEventListener('DOMContentLoaded', Jo.embed, false);
 })();

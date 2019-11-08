@@ -86,7 +86,7 @@ You can use different directory for the bookshelf instead of 'bibi-bookshelf' by
 5. Or embed code below into your blog entry or other webpages, and visit the entry.
 
 ````
-<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">My Great Book Title</a><script src="https://your.web.site/bibi/jo.js"></script>
+<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">[[ Title of the Book ]]</a><script src="https://your.web.site/somewhere/bibi/and/jo.js"></script>
 ````
 
 
@@ -98,7 +98,7 @@ You can use different directory for the bookshelf instead of 'bibi-bookshelf' by
 4. Or embed code below into your blog entry or other webpages, and visit the entry.
 
 ````
-<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">My Great Book Title</a><script src="https://your.web.site/bibi/jo.js"></script>
+<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">[[ Title of the Book ]]</a><script src="https://your.web.site/somewhere/bibi/and/jo.js"></script>
 ````
 
 

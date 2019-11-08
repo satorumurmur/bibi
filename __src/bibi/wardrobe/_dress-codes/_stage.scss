@@ -41,13 +41,13 @@ $Catcher-Text_Color: rgb(128,128,128);
 $PoweredBy_Height: 39px;
 
 // with Veil
-$PoweredBy_BackgroundColor__VeilOpened: white;
+$PoweredBy_BackgroundColor__VeilOpened: rgba(white, .6);
 $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened: 0;
 $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened: .69;
-$PoweredBy-A_BackgroundColor__VeilOpened: rgba(white, .69);
+$PoweredBy-A_BackgroundColor__VeilOpened: rgba(white, 0);
 $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened__Hover: 0;
 $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened__Hover: .96;
-$PoweredBy-A_BackgroundColor__VeilOpened__Hover: rgba(white, .96);
+$PoweredBy-A_BackgroundColor__VeilOpened__Hover: rgba(white, 1);
 
 // with Catcher
 $PoweredBy_BackgroundColor__WaitingFile: white;
