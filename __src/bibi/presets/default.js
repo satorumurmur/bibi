@@ -5,7 +5,7 @@ Bibi.preset({
 //-- Bookshelf
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"bookshelf"                    : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. (To use a path begins with "http(s)://", read <01> at the bottom of this preset file.)
+"bookshelf" : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. "/" at the end is ignored. (To use a path begins with "http(s)://", read <01> at the bottom of this preset file.)
 
 
 //==============================================================================================================================================
@@ -27,44 +27,44 @@ Bibi.preset({
 //-- UI / Design
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"use-menubar"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
-//"place-menubar-at-top"         : "no", // "yes" or "no" or "desktop" or "mobile"
-"use-full-height"              : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
+//"place-menubar-at-top"       : "no", // "yes" or "no" or "desktop" or "mobile"
+"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"use-font-size-changer"        : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-loupe"                    : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
-"use-nombre"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-arrows"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-keys"                     : "desktop", // "yes" or "no" or "desktop" or "mobile"
-"use-history"                  : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-keys"                   : "desktop", // "yes" or "no" or "desktop" or "mobile"
+"use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"slider-mode"                  : "auto", // "edgebar" or "bookmap" or "auto"
-"zoom-out-on-opening-slider"   : "yes", // "yes" or "no" or "desktop" or "mobile"
+"slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
+"zoom-out-on-opening-slider" : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"orientation-border-ratio"     : 1 * 2 / 1.5, // Number (Width per Height)
+"orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
-"base-font-size"               : "auto", // Number of pixel or "auto"
-"font-size-scale-per-step"     : 1.25, // Number of scale
-"loupe-max-scale"              : 4, // Number of scale (minimum: 2)
+"base-font-size"             : "auto", // Number of pixel or "auto"
+"font-size-scale-per-step"   : 1.25, // Number of scale
+"loupe-max-scale"            : 4, // Number of scale (minimum: 2)
 
-"ui-font-family"               : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
+"ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
-"flipper-width"                : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
+"flipper-width"              : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
 
-"item-padding-left"            : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-right"           : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-top"             : 40, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-bottom"          : 20, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-left"          : 28, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-right"         : 28, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-top"           : 40, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-bottom"        : 20, // Number of pixel (It is used only if the book is reflowable.)
 
-"spread-gap"                   : 8, // Number of pixel
-"spread-margin"                : 0, // Number of pixel
+"spread-gap"                 : 8, // Number of pixel
+"spread-margin"              : 0, // Number of pixel
 
-"fix-nav-ttb"                  : "no", // "yes" or "no" or "desktop" or "mobile"
+"fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"spread-border-radius"         : "", // CSS border-radius value or ""
-"spread-box-shadow"            : "", // CSS box-shadow value or ""
+"spread-border-radius"       : "", // CSS border-radius value or ""
+"spread-box-shadow"          : "", // CSS box-shadow value or ""
 
-"book-background"              : "", // CSS background value or ""
+"book-background"            : "", // CSS background value or ""
 
 
 //==============================================================================================================================================
@@ -72,7 +72,7 @@ Bibi.preset({
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 // "src" is relative path from this preset file to the JavaScript file of the extension.
-// "id" must be defined in each extension file. ("Extensions", "Unzipper", "Zine", and "Bibi" are reserved for "id")
+// "id" must be defined in each extension file.
 "extensions": [
     // { "src": "../extensions/FOLDER-NAME-IF-EXISTS/FILE-NAME.js" }, // <THIS LINE IS AN EXAMPLE>
 ""],
@@ -82,30 +82,30 @@ Bibi.preset({
 //-- Extra
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"website-name-in-title"        : "", // "" or name of your website replaces string "Bibi" in <title>.
-"website-name-in-menu"         : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
-"website-href"                 : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
-"remove-bibi-website-link"     : false, // true or false (if true, the link to Bibi Website is not to be added in setting-menu)
+"website-name-in-title"    : "", // "" or name of your website replaces string "Bibi" in <title>.
+"website-name-in-menu"     : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
+"website-href"             : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
+"remove-bibi-website-link" : false, // true or false (if true, the link to Bibi Website is not to be added in setting-menu)
 
 
 //==============================================================================================================================================
 //-- System
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"extract-if-necessary"         : [".epub", ".zip"], // File extensions of the book specified in URL, which you want Bibi to try to extract first. (More info is <02> at the bottom of this preset file.)
+"extract-if-necessary"               : [".epub", ".zip"], // File extensions of the book specified in URL, which you want Bibi to try to extract first. (More info is <02> at the bottom of this preset file.)
 
-"accept-local-file"            : "yes", // "yes" or "no" or "desktop" or "mobile". (If it is enabled, Bibi prepares UI for loading files. Conditions for acceptance are <03> at the bottom of this preset file.)
-"accept-bibizine"              : true, // true or false (If true, Bibi accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
-"accept-blob-converted-data"   : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
-"accept-base64-encoded-data"   : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 "default-page-progression-direction" : "ltr", // "ltr" or "rtl". Most of EPUBs have right property in itself, but....
 
-"prioritise-fallbacks"         : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
+"accept-local-file"                  : "yes", // "yes" or "no" or "desktop" or "mobile". (If it is enabled, Bibi prepares UI for loading files. Conditions for acceptance are <03> at the bottom of this preset file.)
+"accept-bibizine"                    : true, // true or false (If true, Bibi accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
+"accept-blob-converted-data"         : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
+"accept-base64-encoded-data"         : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 
 "use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
+"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
 
-"trustworthy-origins"          : [],
+"trustworthy-origins"                : [],
 
 
 /*
