@@ -88,6 +88,13 @@
 	}
 }
 
+@mixin GENERALICON__ManageBookmarks() {
+	&:before {
+		content: "bookmarks";
+		font-size: $Menu-Icon_Size * 21/31;
+	}
+}
+
 
 // - General Icons in Slider
 // --------------------------------------------------------------------------------
@@ -183,6 +190,25 @@
 @mixin GENERALICON__FontSizeXS() {
 	&:before {
 		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(1);
+	}
+}
+
+@mixin GENERALICON__BookmarkCommon() {
+	&:before {
+		font-size: $Subpanel-Icon_Size * .9;
+		top: .05em;
+	}
+}
+
+@mixin GENERALICON__AddABookmark() {
+	&:before {
+		content: "book";
+	}
+}
+
+@mixin GENERALICON__ABookmark() {
+	&:before {
+		content: "bookmark_border";
 	}
 }
 

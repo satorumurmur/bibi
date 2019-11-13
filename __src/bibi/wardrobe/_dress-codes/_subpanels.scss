@@ -61,6 +61,71 @@ $Subpanel-Button_BackgroundColor__Hover: rgba(244,248,252, 0.8);
 $Subpanel-Icon_MarginRight: 6px;
 
 
+// - Sub Panel: Bookmarks
+// --------------------------------------------------------------------------------
+
+@mixin BookmarkSubpanel-Button-Label() {
+	.bibi-bookmark-page {
+		.bibi-bookmark-unit {
+			font-size: .9em;
+		}
+		.bibi-bookmark-number {
+			font-size: 1.1em;
+			margin-left: .125em;
+		}
+	}
+	.bibi-bookmark-total-pages {
+		font-size: .8em;
+		margin-left: .25em;
+		opacity: .75;
+		.bibi-bookmark-number {
+			margin-left: .125em;
+		}
+	}
+	.bibi-bookmark-percent {
+		.bibi-bookmark-parenthesis {
+		}
+		.bibi-bookmark-number {
+		}
+		.bibi-bookmark-unit {
+			font-size: .8em;
+		}
+	}
+	.bibi-bookmark-total-pages + .bibi-bookmark-percent {
+		font-size: .9em;
+		margin-left: .125em;
+		opacity: .75;
+		.bibi-bookmark-parenthesis {
+		}
+		.bibi-bookmark-number {
+		}
+		.bibi-bookmark-unit {
+		}
+	}
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon() {
+	@include GLOBAL__FontIcon_BaseStyles("Material Icons", $Subpanel-Icon_Size);
+	content: "cancel";
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	margin: auto;
+	width: $Subpanel-Icon-Size;
+	height: $Subpanel-Icon-Size;
+	color: rgba($Subpanel-Button_Color, .75);
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover() {
+	color: rgba(255,64,0, .875);
+	opacity: 1;
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark() {
+	opacity: .125;
+}
+
+
+
 
 
 // ================================================================================

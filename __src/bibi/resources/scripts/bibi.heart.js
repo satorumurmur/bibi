@@ -21,11 +21,6 @@ export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.e
 
 
 Bibi.hello = () => new Promise(resolve => {
-    const HTMLClassList = sML.Environments.concat(['Bibi']);
-    if(Bibi.Dev)   HTMLClassList.push('dev');
-    if(Bibi.Debug) HTMLClassList.push('debug');
-    O.HTML = document.documentElement;
-    O.HTML.classList.add(...HTMLClassList.concat(['welcome']));
     O.log.initialize();
     O.log(`Hello!`, '<b:>');
     O.log(`[ja] ${ Bibi['href'] }`);
@@ -46,32 +41,42 @@ Bibi.hello = () => new Promise(resolve => {
 
 
 Bibi.initialize = () => {
-    O.contentWindow = window;
-    O.contentDocument = document;
-    O.Head  = document.head;
-    O.Body  = document.body;
-    O.Info  = document.getElementById('bibi-info');
-    O.Title = document.getElementsByTagName('title')[0];
-    O.RequestedURL = location.href;
-    O.BookURL = O.Origin + location.pathname + location.search;
-    O.HTML.classList.add('default-lang-' + (O.Language = (() => { // Language
-        let NLs = [];
-        if(navigator.languages instanceof Array) NLs = NLs.concat(navigator.languages);
-        if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
-        for(let l = NLs.length, i = 0; i < l; i++) {
-            const Lan = NLs[i].split ? NLs[i].split('-')[0] : '';
-            if(Lan == 'ja') return 'ja';
-            if(Lan == 'en') break;
-        }                   return 'en';
-    })()));
-    if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) { // Touch Device
-        O.HTML.classList.add('touch');
-        if(sML.OS.iOS) {
-            O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-capable',          content: 'yes'   }));
-            O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'white' }));
-        }
+    { // Path / URI
+        O.Origin = location.origin || (location.protocol + '//' + (location.host || (location.hostname + (location.port ? ':' + location.port : ''))));
+        O.RequestedURL = location.href;
+        O.BookURL = O.Origin + location.pathname + location.search;
     }
-    E.initialize();
+    { // DOM
+        O.contentWindow = window;
+        O.contentDocument = document;
+        O.HTML  = document.documentElement;
+        O.Head  = document.head;
+        O.Body  = document.body;
+        O.Info  = document.getElementById('bibi-info');
+        O.Title = document.getElementsByTagName('title')[0];
+    }
+    { // Environments
+        O.HTML.classList.add(...sML.Environments, 'Bibi', 'welcome');
+        if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) { // Touch Device
+            O.HTML.classList.add('touch');
+            if(sML.OS.iOS) {
+                O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-capable',          content: 'yes'   }));
+                O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'white' }));
+            }
+        }
+        if(Bibi.Dev)   O.HTML.classList.add('dev');
+        if(Bibi.Debug) O.HTML.classList.add('debug');
+        O.HTML.classList.add('default-lang-' + (O.Language = (NLs => { // Language
+            if(navigator.languages instanceof Array) NLs = NLs.concat(navigator.languages);
+            if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
+            for(let l = NLs.length, i = 0; i < l; i++) {
+                const Lan = NLs[i].split ? NLs[i].split('-')[0] : '';
+                if(Lan == 'ja') return 'ja';
+                if(Lan == 'en') break;
+            }                   return 'en';
+        })([])));
+    }
+    E.initialize(); O.Biscuits.initialize();
     R.initialize();
     I.initialize();
     P.initialize();
@@ -135,8 +140,8 @@ Bibi.loadExtensions = () => {
         if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
         if(B.Type == 'Zine')                        ReadyForBibiZine = true;
     } else if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
-    if(ReadyForBibiZine)   S['extensions'].unshift({ 'src': new URL('../../extensions/zine.js',              O.Path).href });
-    if(ReadyForExtraction) S['extensions'].unshift({ 'src': new URL('../../extensions/extractor/at-once.js', O.Path).href });
+    if(ReadyForBibiZine)   S['extensions'].unshift({ 'src': new URL('../../extensions/zine.js',              Bibi.Script.src).href });
+    if(ReadyForExtraction) S['extensions'].unshift({ 'src': new URL('../../extensions/extractor/at-once.js', Bibi.Script.src).href });
     if(S['extensions'].length == 0) return Promise.resolve();
     return new Promise(resolve => {
         O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
@@ -197,17 +202,6 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
         O.log(`Initialized.`, '</g>');
     });
 }).then(() => {
-    if(S['use-cookie']) {
-        const BibiCookie = O.Cookie.remember(O.Path);
-        const BookCookie = O.Cookie.remember(B.ID);
-        if(BibiCookie) {
-            if(!U['reader-view-mode']              && BibiCookie.RVM     ) S['reader-view-mode']              = BibiCookie.RVM;
-            if(!U['full-breadth-layout-in-scroll'] && BibiCookie.FBL     ) S['full-breadth-layout-in-scroll'] = BibiCookie.FBL;
-        }
-        if(BookCookie) {
-            if(!U['to']                            && BookCookie.Position) S['to']                            = BookCookie.Position;
-        }
-    }
     S.update();
     R.updateOrientation();
     R.resetStage();
@@ -245,8 +239,8 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     O.log(`Loading Items in Spreads...`, '<g:>');
     const Promises = [], TargetSpreadIndex = (() => {
         if(typeof S['to'] == 'object') {
-            if(S['to'].SpreadIndex)      return S['to'].SpreadIndex;
-            if(S['to'].ItemIndexInSpine) return B.Package.Spine.Items[S['to'].ItemIndexInSpine].Spread.Index;
+            if(typeof S['to'].SpreadIndex      == 'number') return S['to'].SpreadIndex;
+            if(typeof S['to'].ItemIndexInSpine == 'number') return B.Package.Spine.Items[S['to'].ItemIndexInSpine].Spread.Index;
         }
         return 0;
     })();
@@ -276,10 +270,9 @@ Bibi.bindBook = (LayoutOption) => {
         R.organizePages();
         R.layOutStage();
     }
-    const TargetPage = R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0];
     return R.layOut(LayoutOption).then(() => {
         LayoutOption.removeResetter();
-        R.IntersectingPages = [TargetPage];
+        R.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
         Bibi.Eyes.wearGlasses();
     });
 };
@@ -303,14 +296,9 @@ Bibi.openBook = () => new Promise(resolve => {
         E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
     }
     setTimeout(() => R.turnSpreads(), 123);
-    if(S['use-cookie']) E.add('bibi:changed-intersection', () => { try {
+    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
         const CurrentPage = R.Current.List[0].Page;
-        O.Cookie.eat(B.ID, {
-            'Position': {
-                SpreadIndex: CurrentPage.Spread.Index,
-                PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
-            }
-        });
+        O.Biscuits.memorize('Book', { 'Position': { 'SI-PPiS': CurrentPage.Spread.Index + '-' + (CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length) } });
     } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
@@ -437,6 +425,7 @@ export const L = { // Bibi.Loader
 
 
 L.wait = () => {
+    L.Waiting = true;
     O.Busy = false;
     O.HTML.classList.remove('busy');
     O.HTML.classList.add('waiting');
@@ -444,6 +433,7 @@ L.wait = () => {
     O.log(`(Waiting...)`, '<i/>');
     I.note('');
     return new Promise(resolve => L.wait.resolve = resolve).then(() => {
+        L.Waiting = false;
         O.Busy = true;
         O.HTML.classList.add('busy');
         O.HTML.classList.remove('waiting');
@@ -553,7 +543,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
         case 'Zine': return X.Zine.loadZineData().then(resolve);
     }
 }).then(() => {
-    E.dispatch('bibi:loaded-package-document');
+    E.dispatch('bibi:initialized-book');
     return InitializedAs;
 })).catch(Log => {
     //if(S['accept-local-file']) O.HTML.classList.add('waiting-file');
@@ -563,7 +553,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
 });
 
 
-L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process);
+L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process).then(() => E.dispatch('bibi:loaded-container'));
 
     L.loadContainer.process = (Doc) => {
         B.Package.Path = Doc.getElementsByTagName('rootfile')[0].getAttribute('full-path');
@@ -571,7 +561,7 @@ L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process
     };
 
 
-L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
+L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then(() => E.dispatch('bibi:loaded-package-document'));
 
     L.loadPackage.process = (Doc) => { // This is Used also from the Zine Extention.
         const _Metadata = Doc.getElementsByTagName('metadata')[0], Metadata = B.Package.Metadata = {};// = { 'identifier': [], 'title': [], 'creator': [], 'publisher': [], 'language': [] };
@@ -924,6 +914,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         Eve.stopPropagation();
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
             if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
+            if(!L.Waiting) return false;
             if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
             L.play();
@@ -1201,7 +1192,7 @@ export const R = { // Bibi.Reader
 
 
 R.initialize = () => {
-    R.Main      = O.Body.insertBefore(sML.create('main', { id: 'bibi-main', Transformation: { Scale: 1, Translation: { X: 0, Y: 0 } } }), O.Body.firstElementChild);
+    R.Main      = O.Body.insertBefore(sML.create('main', { id: 'bibi-main', Transformation: { Scale: 1, TranslateX: 0, TranslateY: 0 } }), O.Body.firstElementChild);
     R.Main.Book =  R.Main.appendChild(sML.create('div',  { id: 'bibi-main-book' }));
   //R.Sub       = O.Body.insertBefore(sML.create('div',  { id: 'bibi-sub' }),  R.Main.nextSibling);
     E.bind('bibi:readied', () => {
@@ -1689,10 +1680,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     if(!Opt.NoNotification) I.note(`Laying out...`);
     if(!Opt.Destination) {
         const CurrentPage = R.Current.List.length ? R.Current.List[0].Page : R.Pages[0];
-        Opt.Destination = {
-            SpreadIndex: CurrentPage.Spread.Index,
-            PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length
-        }
+        Opt.Destination = { SpreadIndex: CurrentPage.Spread.Index, PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length }
     }
     if(Opt.Setting) S.update(Opt.Setting);
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
@@ -1776,7 +1764,7 @@ R.onResize = (Eve) => {
         R.Resizing = true;
         //R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
         //R.onResize.TargetPageAfterResizing = R.Current.List && R.Current.List[0] && R.Current.List[0].Page ? R.Current.List[0].Page : R.IntersectingPages[0];
-        R.onResize.TargetPageAfterResizing = R.Current.List[0].Page;
+        R.onResize.TargetPageAfterResizing = R.Current.List[0] ? R.Current.List[0].Page : null;
         ////////R.Main.removeEventListener('scroll', R.onScroll);
         O.Busy = true;
         O.HTML.classList.add('busy');
@@ -1785,13 +1773,10 @@ R.onResize = (Eve) => {
     clearTimeout(R.Timer_onResizeEnd);
     R.Timer_onResizeEnd = setTimeout(() => {
         R.updateOrientation();
-        const TargetPage = R.onResize.TargetPageAfterResizing, TargetSpread = TargetPage.Spread;
+        const Page = R.onResize.PageAfterResizing;
         R.layOut({
             Reset: true,
-            Destination: {
-                SpreadIndex: TargetSpread.Index,
-                PageProgressInSpread: TargetPage.IndexInSpread / TargetSpread.Pages.length
-            }
+            Destination: Page ? { SpreadIndex: Page.Spread.Index, PageProgressInSpread: Page.IndexInSpread / Page.Spread.Pages.length } : null
         }).then(() => {
             E.dispatch('bibi:resized', Eve);
             O.HTML.classList.remove('resizing');
@@ -1873,11 +1858,7 @@ R.changeView = (Par, Opt = {}) => {
         });
         L.play();
     }
-    if(S['use-cookie']) {
-        O.Cookie.eat(O.Path, {
-            'RVM': Par.Mode
-        });
-    }
+    if(S['keep-settings']) O.Biscuits.memorize('Book', { 'RVM': Par.Mode });
 };
 
 
@@ -1900,6 +1881,7 @@ R.updateCurrent = () => {
             I.History.update();
         }
     }
+    return R.Current;
 };
 
     R.updateCurrent.getList = () => {
@@ -1915,11 +1897,8 @@ R.updateCurrent = () => {
             }
             if(PageList) break;
         }
-        if(!PageList) {
-            if(R.IntersectingPages.length) {
-                PageList = R.IntersectingPages;
-            } else return null;
-        }
+        if(!PageList && R.IntersectingPages.length) PageList = R.IntersectingPages;
+        if(!PageList || !PageList[0] || typeof PageList[0].Index != 'number') return null;
         const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
         const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
         for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
@@ -2040,7 +2019,8 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         if(Dest.Page) return Dest.Page;
         if(Dest.Edge == 'head') return R.Pages[0];
         if(Dest.Edge == 'foot') return R.Pages[R.Pages.length - 1];
-        if(typeof Dest.PageIndex == 'number') return R.Pages[Dest.PageIndex];
+        if(typeof Dest.PageIndex    == 'number') return R.Pages[Dest.PageIndex];
+        if(typeof Dest.PageProgressInSpread != 'number' && typeof Dest.SpreadIndex != 'number' && !Dest.Spread && typeof Dest['SI-PPiS'] == 'string') [Dest.SpreadIndex, Dest.PageProgressInSpread] = Dest['SI-PPiS'].split('-').map(Num => Num * 1);
         try {
             if(typeof    Dest.PageIndexInItem   == 'number') return R.hatchItem(Dest).Pages[Dest.PageIndexInItem];
             if(typeof    Dest.PageIndexInSpread == 'number') return R.hatchSpread(Dest).Pages[Dest.PageIndexInSpread];
@@ -2247,6 +2227,9 @@ I.initialize = () => {
         I.KeyListener.create();
         I.Spinner.create();
     });
+    E.bind('bibi:initialized-book', () => {
+        I.BookmarkManager.create();
+    });
     E.add('bibi:commands:open-utilities',   () => E.dispatch('bibi:opens-utilities'));
     E.add('bibi:commands:close-utilities',  () => E.dispatch('bibi:closes-utilities'));
     E.add('bibi:commands:toggle-utilities', () => E.dispatch('bibi:toggles-utilities'));
@@ -2411,11 +2394,11 @@ I.Menu = { create: () => {
             Menu.Hot = false;
             Menu.classList.remove('hot');
         }, 1234);
-    });*/
+    });*//*
     if(sML.OS.iOS) {
         Menu.addEventListener('pointerdown', console.log);
         Menu.addEventListener('pointerover', console.log);
-    }
+    }*/
     if(!O.TouchOS) E.add('bibi:opened', () => {
         E.add('bibi:moved-pointer', Eve => {
             if(I.isPointerStealth()) return false;
@@ -2517,7 +2500,7 @@ I.Menu = { create: () => {
                             if(IsActive) O.HTML.classList.add(   'book-full-breadth');
                             else         O.HTML.classList.remove('book-full-breadth');
                             if(S.RVM == 'horizontal' || S.RVM == 'vertical') R.changeView({ Mode: S.RVM, Force: true });
-                            if(S['use-cookie']) O.Cookie.eat(O.Path, { 'FBL': S['full-breadth-layout-in-scroll'] });
+                            if(S['keep-settings']) O.Biscuits.memorize('Book', { 'FBL': S['full-breadth-layout-in-scroll'] });
                         }
                     }]
                 }]
@@ -2686,9 +2669,9 @@ I.PoweredBy = { create: () => {
 I.FontSizeChanger = { create: () => {
     const FontSizeChanger = I.FontSizeChanger = {};
     if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
-    if(S['use-font-size-changer'] && S['use-cookie']) {
-        const BibiCookie = O.Cookie.remember(O.Path);
-        if(BibiCookie && BibiCookie.FontSize && BibiCookie.FontSize.Step != undefined) FontSizeChanger.Step = BibiCookie.FontSize.Step * 1;
+    if(S['use-font-size-changer'] && S['keep-settings']) {
+        const BibiBiscuits = O.Biscuits.remember('Bibi');
+        if(BibiBiscuits && BibiBiscuits.FontSize && BibiBiscuits.FontSize.Step != undefined) FontSizeChanger.Step = BibiBiscuits.FontSize.Step * 1;
     }
     if(typeof FontSizeChanger.Step != 'number' || FontSizeChanger.Step < -2 || 2 < FontSizeChanger.Step) FontSizeChanger.Step = 0;
     E.bind('bibi:postprocessed-item', Item => { if(Item.Ref['rendition:layout'] == 'pre-paginated') return false;
@@ -2744,8 +2727,8 @@ I.FontSizeChanger = { create: () => {
         E.dispatch('bibi:changes-font-size');
         if(typeof Actions.before == 'function') Actions.before();
         FontSizeChanger.Step = Step;
-        if(S['use-font-size-changer'] && S['use-cookie']) {
-            O.Cookie.eat(O.Path, { FontSize: { Step: Step } });
+        if(S['use-font-size-changer'] && S['keep-settings']) {
+            O.Biscuits.memorize('Book', { 'FontSize': { 'Step': Step } });
         }
         setTimeout(() => {
             R.layOut({
@@ -2823,30 +2806,26 @@ I.Loupe = { create: () => {
             Scl = Math.round(Scl * 100) / 100;
             if(Scl == CurrentTfm.Scale) return;
             E.dispatch('bibi:changes-scale', Scl);
-                 if(Scl <  1) Loupe.transform({ Scale: Scl, Translation: { X: R.Main.offsetWidth * (1 - Scl) / 2, Y: R.Main.offsetHeight * (1 - Scl) / 2 } });
-            else if(Scl == 1) Loupe.transform({ Scale:   1, Translation: { X: 0,                                  Y: 0                                   } });
+                 if(Scl <  1) Loupe.transform({ Scale: Scl, TranslateX: R.Main.offsetWidth * (1 - Scl) / 2, TranslateY: R.Main.offsetHeight * (1 - Scl) / 2 });
+            else if(Scl == 1) Loupe.transform({ Scale:   1, TranslateX: 0,                                  TranslateY: 0                                   });
             else {
                 if(Loupe.UIState != 'active') return false;
                 if(!BibiEvent) BibiEvent = { Coord: { X: window.innerWidth / 2, Y: window.innerHeight / 2 } };
                 /*
                 const CurrentTransformOrigin = {
-                    X: window.innerWidth  / 2 + CurrentTfm.Translation.X,
-                    Y: window.innerHeight / 2 + CurrentTfm.Translation.Y
+                    X: window.innerWidth  / 2 + CurrentTfm.TranslateX,
+                    Y: window.innerHeight / 2 + CurrentTfm.TranslateY
                 };
                 Loupe.transform({
                     Scale: Scl,
-                    Translation: {
-                        X: CurrentTfm.Translation.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X)) * (Scl / CurrentTfm.Scale))),
-                        Y: CurrentTfm.Translation.Y + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y)) * (Scl / CurrentTfm.Scale)))
-                    }
+                    TranslateX: CurrentTfm.TranslateX + (BibiEvent.Coord.X - (CurrentTransformOrigin.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X)) * (Scl / CurrentTfm.Scale))),
+                    TranslateY: CurrentTfm.TranslateY + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y)) * (Scl / CurrentTfm.Scale)))
                 });
                 // ↓ simplified on culculation */
                 Loupe.transform({
                     Scale: Scl,
-                    Translation: {
-                        X: CurrentTfm.Translation.X + (BibiEvent.Coord.X - window.innerWidth  / 2 - CurrentTfm.Translation.X) * (1 - Scl / CurrentTfm.Scale),
-                        Y: CurrentTfm.Translation.Y + (BibiEvent.Coord.Y - window.innerHeight / 2 - CurrentTfm.Translation.Y) * (1 - Scl / CurrentTfm.Scale)
-                    }
+                    TranslateX: CurrentTfm.TranslateX + (BibiEvent.Coord.X - window.innerWidth  / 2 - CurrentTfm.TranslateX) * (1 - Scl / CurrentTfm.Scale),
+                    TranslateY: CurrentTfm.TranslateY + (BibiEvent.Coord.Y - window.innerHeight / 2 - CurrentTfm.TranslateY) * (1 - Scl / CurrentTfm.Scale)
                 });
             }
             E.dispatch('bibi:changed-scale', R.Main.Transformation.Scale);
@@ -2859,24 +2838,21 @@ I.Loupe = { create: () => {
             clearTimeout(Loupe.Timer_onTransformEnd);
             O.HTML.classList.add('transforming');
             const CurrentTfm = R.Main.Transformation;
-            if(typeof Tfm.Scale != 'number') Tfm.Scale = CurrentTfm.Scale;
-            if(!Tfm.Translation) Tfm.Translation = CurrentTfm.Translation;
-            else {
-                if(typeof Tfm.Translation.X != 'number') Tfm.Translation.X = CurrentTfm.Translation.X;
-                if(typeof Tfm.Translation.Y != 'number') Tfm.Translation.Y = CurrentTfm.Translation.Y;
-            }
+            if(typeof Tfm.Scale      != 'number') Tfm.Scale      = CurrentTfm.Scale;
+            if(typeof Tfm.TranslateX != 'number') Tfm.TranslateX = CurrentTfm.TranslateX;
+            if(typeof Tfm.TranslateY != 'number') Tfm.TranslateY = CurrentTfm.TranslateY;
             if(Tfm.Scale > 1) {
                 const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
                 const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
-                Tfm.Translation.X = sML.limitMinMax(Tfm.Translation.X, OverflowX * -1, OverflowX);
-                Tfm.Translation.Y = sML.limitMinMax(Tfm.Translation.Y, OverflowY * -1, OverflowY);
+                Tfm.TranslateX = sML.limitMinMax(Tfm.TranslateX, OverflowX * -1, OverflowX);
+                Tfm.TranslateY = sML.limitMinMax(Tfm.TranslateY, OverflowY * -1, OverflowY);
             }
             sML.style(R.Main, {
                 transform: (Ps => {
-                         if(Tfm.Translation.X && Tfm.Translation.Y) Ps.push( 'translate(' + Tfm.Translation.X + 'px' + ', ' + Tfm.Translation.Y + 'px' + ')');
-                    else if(Tfm.Translation.X                     ) Ps.push('translateX(' + Tfm.Translation.X + 'px'                                   + ')');
-                    else if(                     Tfm.Translation.Y) Ps.push('translateY('                                   + Tfm.Translation.Y + 'px' + ')');
-                         if(Tfm.Scale != 1                        ) Ps.push(     'scale(' + Tfm.Scale                                                  + ')');
+                         if(Tfm.TranslateX && Tfm.TranslateY) Ps.push( 'translate(' + Tfm.TranslateX + 'px' + ', ' + Tfm.TranslateY + 'px' + ')');
+                    else if(Tfm.TranslateX                  ) Ps.push('translateX(' + Tfm.TranslateX + 'px'                                + ')');
+                    else if(                  Tfm.TranslateY) Ps.push('translateY('                                + Tfm.TranslateY + 'px' + ')');
+                         if(Tfm.Scale != 1                  ) Ps.push(     'scale(' + Tfm.Scale                                            + ')');
                     return Ps.length ? Ps.join(' ') : '';
                 })([])
             });
@@ -2889,12 +2865,11 @@ I.Loupe = { create: () => {
                 O.HTML.classList.remove('transforming');
                 Loupe.Transforming = false;
                 resolve();
-                E.dispatch('bibi:transformed-book', Tfm);
-                if(!Opt.Temporary && S['use-loupe'] && S['use-cookie']) O.Cookie.eat(O.BookURL, { Loupe: { Transformation: R.Main.Transformation } });
+                E.dispatch('bibi:transformed-book', { Transformation: Tfm, Temporary: Opt.Temporary });
             }, 345);
         }),
-        transformBack:  (Opt) => Loupe.transform(R.Main.PreviousTransformation,             Opt) || Loupe.transformReset(Opt),
-        transformReset: (Opt) => Loupe.transform({ Scale: 1, Translation: { X: 0, Y: 0 } }, Opt),
+        transformBack:  (Opt) => Loupe.transform(R.Main.PreviousTransformation,              Opt) || Loupe.transformReset(Opt),
+        transformReset: (Opt) => Loupe.transform({ Scale: 1, TranslateX: 0, TranslateY: 0 }, Opt),
         isAvailable: (Mode) => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
@@ -2925,10 +2900,8 @@ I.Loupe = { create: () => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
             Loupe.PointerDownTransformation = {
                 Scale: R.Main.Transformation.Scale,
-                Translation: {
-                    X: R.Main.Transformation.Translation.X,
-                    Y: R.Main.Transformation.Translation.Y
-                }
+                TranslateX: R.Main.Transformation.TranslateX,
+                TranslateY: R.Main.Transformation.TranslateY
             };
         },
         onPointerUp: (Eve) => {
@@ -2947,10 +2920,8 @@ I.Loupe = { create: () => {
             sML.style(R.Main, { transition: 'none' }, { cursor: 'move' });
             Loupe.transform({
                 Scale: R.Main.Transformation.Scale,
-                Translation: {
-                    X: Loupe.PointerDownTransformation.Translation.X + (BibiEvent.Coord.X - Loupe.PointerDownCoord.X),
-                    Y: Loupe.PointerDownTransformation.Translation.Y + (BibiEvent.Coord.Y - Loupe.PointerDownCoord.Y)
-                }
+                TranslateX: Loupe.PointerDownTransformation.TranslateX + (BibiEvent.Coord.X - Loupe.PointerDownCoord.X),
+                TranslateY: Loupe.PointerDownTransformation.TranslateY + (BibiEvent.Coord.Y - Loupe.PointerDownCoord.Y)
             });
             Loupe.Timer_TransitionRestore = setTimeout(() => sML.style(R.Main, { transition: '' }, { cursor: '' }), 234);
         },
@@ -2988,7 +2959,14 @@ I.Loupe = { create: () => {
     E.add('bibi:changed-scale', Scale => O.log(`Changed Scale: ${ Scale }`));
     E.add('bibi:opened', () => {
         Loupe.open();
-        if(S['use-loupe'] && S['use-cookie']) try { Loupe.transform(O.Cookie.remember(O.BookURL).Loupe.Transformation); } catch(_) {}
+        if(S['use-loupe'] && S['keep-settings']) {
+            const Transformation = O.Biscuits.remember('Book')['Transformation'];
+            if(Transformation) Loupe.transform(Transformation);
+        }
+    });
+    E.add('bibi:transformed-book', Par => {
+        if(Par.Temporary) return false;
+        if(S['use-loupe'] && S['keep-settings']) O.Biscuits.memorize('Book', { 'Transformation': Par.Transformation });
     });
     E.add('bibi:changes-view',  () => Loupe.scale(1));
     E.add('bibi:opened-slider', () => Loupe.lock());
@@ -3086,11 +3064,12 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
 I.History = {
     List: [], Updaters: [],
     update: () => I.History.Updaters.forEach(fun => fun()),
-    add: (UI, ff) => {
+    add: (UI, LastOfSerialOnly) => {
         R.updateCurrent();
         const CurrentPage = R.Current.List[0].Page,
                  LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
-        if(CurrentPage != LastPage && (!ff || ff())) {
+        if(CurrentPage != LastPage) {
+            if(LastOfSerialOnly && I.History.List[I.History.List.length - 1].UI == UI) I.History.List.pop();
             const Spread = CurrentPage.Spread;
             I.History.List.push({ UI: UI, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length });
         }
@@ -3230,12 +3209,11 @@ I.Slider = { create: () => {
             const BookMarginStart = (S['use-full-height'] && S.ARA == 'horizontal' ? I.Menu.Height : 0);
             const BookMarginEnd   = Slider.Size;
             const Transformation = {
-                Scale: (R.Main['offset' + C.A_SIZE_B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + C.A_SIZE_B] - O.Scrollbars[C.A_SIZE_B]),
-                Translation: {}
+                Scale: (R.Main['offset' + C.A_SIZE_B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + C.A_SIZE_B] - O.Scrollbars[C.A_SIZE_B])
             };
-            //Transformation.Translation[C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
-            Transformation.Translation[C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Transformation.Scale) - I.Menu.Height) / 2 : 0;
-            Transformation.Translation[C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Transformation.Scale) / 2;
+            //Transformation['Translate' + C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
+            Transformation['Translate' + C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Transformation.Scale) - I.Menu.Height) / 2 : 0;
+            Transformation['Translate' + C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Transformation.Scale) / 2;
             Slider.BookStretchingEach = (O.Body['offset' + C.A_SIZE_L] / Transformation.Scale - R.Main['offset' + C.A_SIZE_L]) / 2;
             R.Main.style['padding' + C.A_BASE_B] = Slider.BookStretchingEach + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0) + 'px';
             R.Main.style['padding' + C.A_BASE_A] = Slider.BookStretchingEach + 'px';
@@ -3436,6 +3414,118 @@ I.Slider = { create: () => {
 }};
 
 
+I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
+    const BookmarkManager = I.BookmarkManager = {
+        Bookmarks: [],
+        initialize: () => {
+            BookmarkManager.Subpanel = I.createSubpanel({
+                Opener: I.Menu.L.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_bookmarks' }).addButton({
+                    Type: 'toggle',
+                    Labels: {
+                        default: { default: `Manage Bookmarks`,     ja: `しおりメニューを開く` },
+                        active:  { default: `Close Bookmarks Menu`, ja: `しおりメニューを閉じる` }
+                    },
+                    Icon: `<span class="bibi-icon bibi-icon-manage-bookmarks"></span>`,
+                    Help: true
+                }),
+                Position: 'left',
+                id: 'bibi-subpanel_bookmarks',
+                open: () => {}
+            });
+            BookmarkManager.Subpanel.addSection({
+                id: 'bibi-subpanel-section_add-a-bookmark'
+            }).addButtonGroup({
+                ButtonType: 'normal',
+                Buttons: [{
+                    Labels: { default: { default: `Add a Bookmark`, ja: `しおりを挟む` } },
+                    Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
+                    action: () => {
+                        R.updateCurrent();
+                        const Page = R.Current.List[0].Page;
+                        const Bookmark = {
+                            'SI-PPiS': Page.Spread.Index + '-' + (Page.IndexInSpread / Page.Spread.Pages.length),
+                            '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
+                        };
+                        BookmarkManager.add(Bookmark);
+                    }
+                }]
+            });
+            const BookmarkBiscuits = O.Biscuits.remember('Book', 'Bookmarks');
+            if(BookmarkBiscuits instanceof Array && BookmarkBiscuits.length) {
+                BookmarkManager.Bookmarks = BookmarkBiscuits;
+                BookmarkManager.update();
+            }
+            E.add('bibi:opened', BookmarkManager.update);
+            delete BookmarkManager.initialize;
+        },
+        distill: (Bookmark) => BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] != Bookmark['SI-PPiS']),
+        add: (Bookmark) => {
+            BookmarkManager.distill(Bookmark).push(Bookmark);
+            BookmarkManager.update();
+        },
+        remove: (Bookmark) => {
+            BookmarkManager.distill(Bookmark);
+            BookmarkManager.update();
+        },
+        update: () => {
+            if(BookmarkManager.ListSection) {
+                BookmarkManager.Subpanel.removeChild(BookmarkManager.ListSection);
+                delete BookmarkManager.ListSection;
+            }
+            BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] && Bmk['%']);
+            if(BookmarkManager.Bookmarks.length) {
+                BookmarkManager.ListSection = BookmarkManager.Subpanel.addSection({
+                    id: 'bibi-subpanel-section_bookmarks'/*,
+                    Labels: { default: { default: `Bookmarks`, ja: `しおり` } }*/
+                });
+                BookmarkManager.ListSection.addButtonGroup({
+                    Buttons: BookmarkManager.Bookmarks.map(Bmk => {
+                        let Label = '';
+                        const Page = R.hatchPage({ 'SI-PPiS': Bmk['SI-PPiS'] });
+                        if(Page) {
+                            const PageNumber = Page.Index + 1;
+                            Bmk['%'] = Math.floor(PageNumber / R.Pages.length * 100);
+                            Label += `<span class="bibi-bookmark-page"><span class="bibi-bookmark-unit">P.</span><span class="bibi-bookmark-number">${ PageNumber }</span></span>`;
+                            Label += `<span class="bibi-bookmark-total-pages">/<span class="bibi-bookmark-number">${ R.Pages.length }</span></span>`;
+                            Label += ` `;
+                            Label += `<span class="bibi-bookmark-percent"><span class="bibi-bookmark-parenthesis">(</span><span class="bibi-bookmark-number">${ Bmk['%'] }</span><span class="bibi-bookmark-unit">%</span><span class="bibi-bookmark-parenthesis">)</span></span>`;
+                        } else {
+                            Label += `<span class="bibi-bookmark-percent">` +                                            `<span class="bibi-bookmark-number">${ Bmk['%'] }</span><span class="bibi-bookmark-unit">%</span>`                                            + `</span>`;
+                        }
+                        return {
+                            Type: 'normal',
+                            Labels: { default: { default: Label } },
+                            Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
+                            action: () => {
+                                if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add(BookmarkManager, true));
+                                if(!L.Waiting) return false;
+                                if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
+                                S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
+                                L.play();
+                            }
+                        }
+                    })
+                }).Buttons.forEach(Button => {
+                    const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
+                    I.setFeedback(Remover).addTapEventListener('tapped', Eve => {
+                        Eve.stopPropagation();
+                        Eve.preventDefault();
+                        BookmarkManager.remove(Button.Bookmark);
+                    });
+                    [E['pointerover'], E['pointerout'], E['pointerdown'], E['pointerup'], 'click'].forEach(EN => Remover.addEventListener(EN, Eve => {
+                        Eve.stopPropagation();
+                        Eve.preventDefault();
+                    }));
+                });
+            }
+            O.Biscuits.memorize('Book', { 'Bookmarks': BookmarkManager.Bookmarks.map(Bmk => ({ 'SI-PPiS': Bmk['SI-PPiS'], '%': Bmk['%'] })) });
+        },
+    };
+    BookmarkManager.initialize();
+    E.dispatch('bibi:created-bookmark-manager');
+}};
+
+
 I.Turner = { create: () => {
     const Turner = I.Turner = {
         Back: { Distance: -1 }, Forward: { Distance: 1 },
@@ -3570,7 +3660,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             const Arrow = Turner.Arrow;
             E.dispatch(Arrow, 'bibi:taps',   Eve);
             E.dispatch(Arrow, 'bibi:tapped', Eve);
-            R.moveBy({ Distance: Turner.Distance }).then(() => I.History.add(Arrows, () => I.History.List[I.History.List.length - 1].UI == Arrows ? I.History.List.pop() : true));
+            R.moveBy({ Distance: Turner.Distance }).then(() => I.History.add(Arrows, true));
         }
     });
     E.add('bibi:commands:move-by', Par => { // indicate direction
@@ -4224,11 +4314,11 @@ export const P = {}; // Bibi.Preset
 
 Bibi.preset = (Preset) => {
     sML.applyRtL(P, Preset, 'ExceptFunctions');
+    P.Script = document.getElementById('bibi-preset');
 };
 
 
 P.initialize = (Preset) => {
-    P.Path = document.getElementById('bibi-preset').src;
     O.SettingTypes['boolean'].concat(O.SettingTypes_PresetOnly['boolean']).forEach(PropertyName => {
         if(P[PropertyName] !== true) P[PropertyName] = false;
     });
@@ -4249,11 +4339,11 @@ P.initialize = (Preset) => {
         if(!(P[PropertyName] instanceof Array)) P[PropertyName] = [];
     });
     if(!/^(horizontal|vertical|paged)$/.test(P['reader-view-mode'])) P['reader-view-mode'] = 'paged';
-    P['bookshelf'] = (!P['bookshelf'] || typeof P['bookshelf'] != 'string') ? '' : new URL(P['bookshelf'], P.Path).href;
+    P['bookshelf'] = (!P['bookshelf'] || typeof P['bookshelf'] != 'string') ? '' : new URL(P['bookshelf'], P.Script.src).href;
     P['extensions'] = !(P['extensions'] instanceof Array) ? [] : P['extensions'].filter(Xtn => {
         if(Xtn.hasOwnProperty('-spell-of-activation-') && (!Xtn['-spell-of-activation-'] || typeof Xtn['-spell-of-activation-'] != 'string' || !U.hasOwnProperty(Xtn['-spell-of-activation-']))) return false;
         if(!Xtn || !Xtn['src'] || typeof Xtn['src'] != 'string') return false;
-        return (Xtn['src'] = new URL(Xtn['src'], P.Path).href);
+        return (Xtn['src'] = new URL(Xtn['src'], P.Script.src).href);
     });
 };
 
@@ -4367,6 +4457,9 @@ U.initialize = () => { // formerly O.readExtras
                 case 'nav':
                     if(/^[1-9][0-9]*$/.test(PnV[1])) PnV[1] *= 1; else return;
                     break;
+                case 'si-ppis':
+                    if(/^\d+\-(0(\.\d+)*|1)$/.test(PnV[1])) PnV[1] = { 'SI-PPiS': Pnv[1] }; else return;
+                    break;
                 case 'horizontal':
                 case 'vertical':
                 case 'paged':
@@ -4374,6 +4467,9 @@ U.initialize = () => { // formerly O.readExtras
                     break;
                 case 'reader-view-mode':
                     if(!/^(horizontal|vertical|paged)$/.test(PnV[1])) return;
+                    break;
+                case 'default-page-progression-direction':
+                    if(!/^(ltr|rtl)$/.test(PnV[1])) return;
                     break;
                 default:
                     if(O.SettingTypes['boolean'].concat(O.SettingTypes_UserOnly['boolean']).includes(PnV[0])) {
@@ -4393,6 +4489,12 @@ U.initialize = () => { // formerly O.readExtras
             if(!PnV[0] || typeof PnV[1] == 'undefined') return;
             U[PnV[0]] = PnV[1];
         });
+        if(U['si-ppis']) {
+            delete U['nav'];
+            U['to'] = U['si-ppis'];
+        } else if(U['nav']) {
+            delete U['to'];
+        } // Priority: si-ppis > nav > to
         return U;
     };
 
@@ -4458,6 +4560,16 @@ S.initialize = (before, after) => {
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     if(after) after();
+    E.bind('bibi:initialized-book', () => {
+        const BookBiscuits = O.Biscuits.remember('Book');
+        if(S['keep-settings']) {
+            if(!U['reader-view-mode']              && BookBiscuits['RVM']) S['reader-view-mode']              = BookBiscuits['RVM'];
+            if(!U['full-breadth-layout-in-scroll'] && BookBiscuits['FBL']) S['full-breadth-layout-in-scroll'] = BookBiscuits['FBL'];
+        }
+        if(S['resume-from-last-position']) {
+            if(!U['to'] && BookBiscuits['Position']) S['to'] = sML.clone(BookBiscuits['Position']);
+        }
+    });
     E.dispatch('bibi:initialized-settings');
 };
 
@@ -5041,8 +5153,8 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
         const MainScale = Main.Transformation.Scale;
         const MainTransformOriginInMain_X = Main.offsetWidth  / 2;
         const MainTransformOriginInMain_Y = Main.offsetHeight / 2;
-        const MainTranslation_X = Main.Transformation.Translation.X;
-        const MainTranslation_Y = Main.Transformation.Translation.Y;
+        const MainTranslation_X = Main.Transformation.TranslateX;
+        const MainTranslation_Y = Main.Transformation.TranslateY;
         const Item = Eve.target.ownerDocument.documentElement.Item;
         const ItemScale = Item.Scale;
         const ItemCoordInMain = O.getElementCoord(Item, Main);
@@ -5070,36 +5182,87 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
 };
 
 
-O.getOrigin = (Win = window) => { const Loc = Win.location;
-    return Loc.origin || Loc.protocol + '//' + (Loc.host || Loc.hostname + (Loc.port ? ':' + Loc.port : ''));
-};
-
-O.Origin = O.getOrigin();
-
-O.Path = document.currentScript.src;
-
-
-O.Cookie = {
+O.Cookies = {
+    Label: 'bibi',
     remember: (Group) => {
-        const Cookie = JSON.parse(sML.Cookies.read('bibi') || '{}');
-        if(typeof Group != 'string' || !Group) return Cookie;
-        return Cookie[Group];
+        const BCs = JSON.parse(sML.Cookies.read(O.Cookies.Label) || '{}');
+        console.log('Cookies:', BCs);
+        if(typeof Group != 'string' || !Group) return BCs;
+        return BCs[Group];
     },
     eat: (Group, KeyVal, Opt) => {
         if(typeof Group != 'string' || !Group) return false;
         if(typeof KeyVal != 'object') return false;
-        const Cookie = O.Cookie.remember();
-        if(typeof Cookie[Group] != 'object') Cookie[Group] = {};
+        const BCs = O.Cookies.remember();
+        if(typeof BCs[Group] != 'object') BCs[Group] = {};
         for(const Key in KeyVal) {
             const Val = KeyVal[Key];
             if(typeof Val == 'function') continue;
-            Cookie[Group][Key] = Val;
+            BCs[Group][Key] = Val;
         }
         if(!Opt) Opt = {};
         Opt.Path = location.pathname.replace(/[^\/]+$/, '');
         if(!Opt.Expires) Opt.Expires = S['cookie-expires'];
-        sML.Cookies.write('bibi', JSON.stringify(Cookie), Opt);
+        sML.Cookies.write(O.Cookies.Label, JSON.stringify(BCs), Opt);
     }
+};
+
+
+O.Biscuits = {
+    Memories: {}, Labels: {},
+    initialize: (Tag) => {
+        if(typeof Tag != 'string') {
+            O.Biscuits.__forget_about_cookies();
+            O.Biscuits.LabelBase = 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), '');
+            E.bind('bibi:initialized',      () => O.Biscuits.initialize('Bibi'));
+            E.bind('bibi:initialized-book', () => O.Biscuits.initialize('Book'));
+            return null;
+        }
+        if(Tag != 'Bibi' && Tag != 'Book') return null;
+        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID.replace(/^urn:uuid:/, '') : '');
+        const BiscuitsOfTheLabel = localStorage.getItem(Label);
+        O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
+        return O.Biscuits.Memories[Label];
+    },
+    remember: (Tag, Key) => {
+        if(!Tag || typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) return O.Biscuits.Memories;
+        const Label = O.Biscuits.Labels[Tag];
+        return (!Key || typeof Key != 'string') ? O.Biscuits.Memories[Label] : O.Biscuits.Memories[Label][Key];
+    },
+    memorize: (Tag, KnV) => {
+        if(!Tag || typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) return false;
+        const Label = O.Biscuits.Labels[Tag];
+        if(KnV && typeof KnV == 'object') for(const Key in KnV) { const Val = KnV[Key];
+            try {
+                if(Val && typeof Val != 'function' && typeof JSON.parse(JSON.stringify({ [Key]: Val }))[Key] != 'undefined') O.Biscuits.Memories[Label][Key] = Val;
+                //if(Val) O.Biscuits.Memories[Label][Key] = Val;
+                else throw '';
+            } catch(Err) {
+                delete O.Biscuits.Memories[Label][Key];
+            }
+        }
+        return localStorage.setItem(Label, JSON.stringify(O.Biscuits.Memories[Label]));
+    },
+    forget: (Tag, Keys) => {
+        if(!Tag) {
+            localStorage.removeItem(O.Biscuits.Labels.Bibi);
+            localStorage.removeItem(O.Biscuits.Labels.Book);
+            O.Biscuits.Memories = {};
+        } else if(typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) {
+        } else {
+            const Label = O.Biscuits.Labels[Tag];
+            if(!Keys) {
+                localStorage.removeItem(Label);
+                delete O.Biscuits.Memories[Label];
+            } else {
+                if(typeof Keys == 'string') Keys = [Keys];
+                if(Keys instanceof Array) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete O.Biscuits.Memories[Label][Key]);
+                localStorage.setItem(Label, JSON.stringify(O.Biscuits.Memories[Label]));
+            }
+        }
+        return O.Biscuits.Memories;
+    },
+    __forget_about_cookies: () => setTimeout(() => { try { sML.Cookies.write(O.Cookies.Label, '', { Expires: 0 }); } catch(Err) {} }, 999)
 };
 
 
@@ -5117,6 +5280,7 @@ O.SettingTypes = {
         'single-page-always',
         'start-embedded-in-new-window',
         'use-arrows',
+        'use-bookmarks',
         'use-font-size-changer',
         'use-full-height',
         'use-history',
@@ -5157,14 +5321,14 @@ O.SettingTypes_PresetOnly = {
     ],
     'yes-no': [
         'accept-local-file',
-        'use-cookie'
+        'keep-settings',
+        'resume-from-last-position'
     ],
     'string': [
     ],
     'integer': [
     ],
     'number': [
-        'cookie-expires'
     ],
     'array': [
         'trustworthy-origins',

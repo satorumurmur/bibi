@@ -16,6 +16,9 @@ Bibi.preset({
 "fix-reader-view-mode"         : "no", // "yes" or "no" or "desktop" or "mobile"
 "single-page-always"           : "no", // "yes" or "no" or "desktop" or "mobile"
 
+"keep-settings"                : "yes", // "yes" or "no" or "desktop" or "mobile"
+"resume-from-last-position"    : "yes", // "yes" or "no" or "desktop" or "mobile"
+
 "autostart"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
@@ -37,6 +40,7 @@ Bibi.preset({
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                   : "desktop", // "yes" or "no" or "desktop" or "mobile"
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
 "zoom-out-on-opening-slider" : "yes", // "yes" or "no" or "desktop" or "mobile"
@@ -101,8 +105,6 @@ Bibi.preset({
 "accept-blob-converted-data"         : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
 "accept-base64-encoded-data"         : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 
-"use-cookie"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"cookie-expires"               : 1000 * 60 * 60 * 24 * 31, // milli-seconds (ex. 31days = 1000(milli-seconds) * 60(seconds) * 60(minutes) * 24(hours) * 31(days))
 "prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
 
 "trustworthy-origins"                : [],

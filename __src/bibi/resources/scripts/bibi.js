@@ -4,18 +4,18 @@ import * as _ from './bibi.heart.js'; for(const m in _) self[m] = _[m];
 require('./bibi.book.scss');
 
 document.addEventListener('DOMContentLoaded', () => {
-    const BibiScript = document.getElementById('bibi-script');
+    Bibi.Script = document.getElementById('bibi-script');
     (_ => {
-        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: BibiScript.src.replace(/\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), BibiScript);
-        const Polyfills = [], PolyfillsPath = new URL('./polyfills', BibiScript.src).href;
+        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: Bibi.Script.src.replace(/\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), Bibi.Script);
+        const Polyfills = [], PolyfillsPath = new URL('./polyfills', Bibi.Script.src).href;
         if(!window.TextDecoder)          Polyfills.push(PolyfillsPath + '/encoding.js');
         if(!window.IntersectionObserver) Polyfills.push(PolyfillsPath + '/intersection-observer.js');
         if(!Polyfills.length) return _();
         const Promises = [];
-        Polyfills.forEach(Polyfill => Promises.push(new Promise(resolve => document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: Polyfill, onload: resolve }), BibiScript))));
+        Polyfills.forEach(Polyfill => Promises.push(new Promise(resolve => document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: Polyfill, onload: resolve }), Bibi.Script))));
         Promise.all(Promises).then(_);
     })(() => {
-        let BookStyleCSS = '', BookStyleElement = BibiScript.nextElementSibling;
+        let BookStyleCSS = '', BookStyleElement = Bibi.Script.nextElementSibling;
         while(BookStyleElement) {
             if(/^style$/i.test(BookStyleElement.tagName) && /^\/\*! Bibi Book Style \*\//.test(BookStyleElement.textContent)) {
                 BookStyleCSS = BookStyleElement.textContent.replace(/\/*.*?\*\//g, '').trim();

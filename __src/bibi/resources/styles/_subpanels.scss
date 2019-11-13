@@ -304,3 +304,39 @@ div.bibi-subpanel {
 //			}
 //		}
 }
+
+
+// - Sub Panel: Bookmarks
+// --------------------------------------------------------------------------------
+
+#bibi-subpanel_bookmarks {
+	#bibi-subpanel-section_put-a-bookmark {
+	}
+	#bibi-subpanel-section_bookmarks {
+		.bibi-buttongroup {
+			.bibi-buttonbox {
+				.bibi-button {
+					.bibi-button-label {
+						// @____Bibi:Dress__('-') @include BookmarkSubpanel-ButtonLabel();
+					}
+					.bibi-remove-bookmark {
+						position: absolute;
+						z-index: 999;
+						top: 0;
+						right: 0;
+						cursor: pointer;
+						// @____Bibi:Dress__('-') @include size($Subpanel-Button_Height);
+						// @____Bibi:Dress__('-') color: $BookmarkSubpanel-Button-RemoveBookmark_Color;
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon(); }
+					}
+					&.hover .bibi-remove-bookmark {
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark(); }
+					}
+					.bibi-remove-bookmark:hover {
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover(); }
+					}
+				}
+			}
+		}
+	}
+}

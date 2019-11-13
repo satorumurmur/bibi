@@ -234,13 +234,15 @@
 .bibi-icon-config,
 .bibi-icon-change-fontsize,
 .bibi-icon-loupe,
+.bibi-icon-manage-bookmarks,
 // -- In Slider
 .bibi-icon-history,
 // -- In Subpanel
 .bibi-icon-full-breadth-layout,
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
-.bibi-icon-fontsize { @include GENERALICON__Common(); }
+.bibi-icon-fontsize,
+.bibi-icon-bookmark { @include GENERALICON__Common(); }
 
 
 // - General Icons in Menu
@@ -248,7 +250,8 @@
 
 .bibi-icon-config,
 .bibi-icon-change-fontsize,
-.bibi-icon-loupe { @include GENERALICON__CommonInMenu(); }
+.bibi-icon-loupe,
+.bibi-icon-manage-bookmarks { @include GENERALICON__CommonInMenu(); }
 
 .bibi-icon-config { @include GENERALICON__Config(); }
 
@@ -259,6 +262,8 @@
 	&-zoomout { @include GENERALICON__LoupeZoomOut(); }
 	&-reset   { @include GENERALICON__LoupeReset(); }
 }
+
+.bibi-icon-manage-bookmarks { @include GENERALICON__ManageBookmarks(); }
 
 
 // - General Icons in Slider
@@ -275,7 +280,8 @@
 .bibi-icon-full-breadth-layout,
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
-.bibi-icon-fontsize { @include GENERALICON__CommonInSubpanels(); }
+.bibi-icon-fontsize,
+.bibi-icon-bookmark { @include GENERALICON__CommonInSubpanels(); }
 
 .bibi-icon-full-breadth-layout { @include GENERALICON__UseFullBreadth(); }
 
@@ -290,6 +296,10 @@
 	&-small   { @include GENERALICON__FontSizeS(); }
 	&-exsmall { @include GENERALICON__FontSizeXS(); }
 }
+
+.bibi-icon-bookmark { @include GENERALICON__BookmarkCommon(); }
+	.bibi-icon-add-a-bookmark { @include GENERALICON__AddABookmark(); }
+	.bibi-icon-a-bookmark { @include GENERALICON__ABookmark(); }
 
 
 
