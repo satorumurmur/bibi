@@ -646,7 +646,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process);
         }
         // --------------------------------------------------------------------------------
         Spine['page-progression-direction'] = _Spine.getAttribute('page-progression-direction');
-        if(!Spine['page-progression-direction'] || !/^(ltr|rtl)$/.test(Spine['page-progression-direction'])) Spine['page-progression-direction'] = 'ltr'; // default;
+        if(!Spine['page-progression-direction'] || !/^(ltr|rtl)$/.test(Spine['page-progression-direction'])) Spine['page-progression-direction'] = S['default-page-progression-direction']; // default;
         B.PPD = Spine['page-progression-direction'];
         // --------------------------------------------------------------------------------
         const PropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-(.+)$/;
@@ -4463,6 +4463,7 @@ S.initialize = (before, after) => {
         if(S['autostart']) return false;
         return O.Embedded ? S['start-embedded-in-new-window'] : false;
     })();
+    S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     if(after) after();
     E.dispatch('bibi:initialized-settings');
@@ -5134,7 +5135,8 @@ O.SettingTypes = {
         'zoom-out-on-opening-slider'
     ],
     'string': [
-        'slider-mode'
+        'slider-mode',
+        'default-page-progression-direction'
     ],
     'integer': [
         'item-padding-bottom',

@@ -98,6 +98,7 @@ Bibi.preset({
 "accept-bibizine"              : true, // true or false (If true, Bibi accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
 "accept-blob-converted-data"   : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
 "accept-base64-encoded-data"   : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
+"default-page-progression-direction" : "ltr", // "ltr" or "rtl". Most of EPUBs have right property in itself, but....
 
 "prioritise-fallbacks"         : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
 
