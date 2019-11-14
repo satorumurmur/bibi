@@ -4336,30 +4336,22 @@ U.initialize = () => { // formerly O.readExtras
 };
 
     U.parseHash = (Hash) => {
-        if(typeof Hash != 'string') return {};
-        Hash = Hash.replace(/^#/, '');
-        const Par = {}; let CurrentPosition = 0;
-        const parseFragment = () => {
-            const Foothold = CurrentPosition;
-            let Label = '';
-            while(/[a-z_]/.test(Hash.charAt(CurrentPosition))) CurrentPosition++;
-            if(Hash.charAt(CurrentPosition) == '(') Label = Hash.substr(Foothold, CurrentPosition - 1 - Foothold + 1), CurrentPosition++; else return {};
-            while(Hash.charAt(CurrentPosition) != ')') CurrentPosition++;
-            if(Label) Par[Label] = Hash.substr(Foothold, CurrentPosition - Foothold + 1).replace(/^[a-z_]+\(/, '').replace(/\)$/, '');
-            CurrentPosition++;
-        };
-        parseFragment();
-        while(Hash.charAt(CurrentPosition) == ',') {
-            CurrentPosition++;
-            parseFragment();
-        }
-        return Par;
+        const Data = {}, ParREStr = '([a-z_]+)\\(([^\\(\\)]+)\\)';
+        if(typeof Hash != 'string') return Data;
+        //if(!new RegExp('^#?' + ParREStr + '(,' + ParREStr + ')*$').test(Hash)) return Data;
+        const Pars = Hash.match(new RegExp(ParREStr, 'g'));
+        if(!Pars || !Pars.length) return Data;
+        Pars.forEach(Par => {
+            const Label_KnV = Par.match(new RegExp(ParREStr));
+            Data[Label_KnV[1]] = Label_KnV[2];
+        });
+        return Data;
     };
 
     U.importFromDataString = (DataString) => {
         if(typeof DataString != 'string') return false;
         DataString.replace(' ', '').split(',').forEach(PnV => {
-            PnV = PnV.split(':'); if(!PnV[0]) return;
+            PnV = PnV.split(':'); if(PnV.length != 2) return;
             switch(PnV[0]) {
                 case 'parent-title':
                 case 'parent-uri':
