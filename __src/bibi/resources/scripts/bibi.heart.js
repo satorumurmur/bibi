@@ -4535,18 +4535,8 @@ S.initialize = (before, after) => {
         }
         return UnzipIfNecessary;
     })();
-    S['accept-local-file'] = (() => {
-        if(S['book'] || !window.File || !S['accept-local-file']) return false;
-        return (S['extract-if-necessary'].includes('*') || S['extract-if-necessary'].includes('.epub') || S['extract-if-necessary'].includes('.zip'));
-    })();
-    S['accept-blob-converted-data'] = (() => {
-        if(S['book'] || !window.File || !S['accept-blob-converted-data']) return false;
-        return true;
-    })();
-    S['accept-base64-encoded-data'] = (() => {
-        if(S['book'] || !window.File || !S['accept-base64-encoded-data']) return false;
-        return true;
-    })();
+    if(S['book'] || !window.File) S['accept-local-file'] = false, S['accept-blob-converted-data'] = false, S['accept-base64-encoded-data'] = false;
+    else                          S['accept-local-file'] = S['accept-local-file'] && (S['extract-if-necessary'].includes('*') || S['extract-if-necessary'].includes('.epub') || S['extract-if-necessary'].includes('.zip')) ? true : false;
     S['autostart'] = (() => {
         if(S['wait']) return !S['wait'];
         if(!S['book']) return true;
@@ -4569,39 +4559,51 @@ S.initialize = (before, after) => {
             if(!U['to'] && BookBiscuits['Position']) S['to'] = sML.clone(BookBiscuits['Position']);
         }
     });
+    S.Modes = { // SH: 'ShortHand', CNP: 'ClassNamePrefix'
+          'book-rendition-layout'    : { SH: 'BRL', CNP: 'book' },
+            'book-writing-mode'      : { SH: 'BWM', CNP: 'book' },
+             'reader-view-mode'      : { SH: 'RVM', CNP: 'view' },
+        'page-progression-direction' : { SH: 'PPD', CNP: 'page' },
+           'spread-layout-axis'      : { SH: 'SLA', CNP: 'spread' },
+           'spread-layout-direction' : { SH: 'SLD', CNP: 'spread' },
+        'apparent-reading-axis'      : { SH: 'ARA', CNP: 'appearance' },
+        'apparent-reading-direction' : { SH: 'ARD', CNP: 'appearance' },
+        'navigation-layout-direction': { SH: 'NLD', CNP: 'nav' }
+    };
+    for(const Mode in S.Modes) {
+        const _ = S.Modes[Mode];
+        Object.defineProperty(S, _.SH, { get: () => S[Mode], set: (Val) => S[Mode] = Val });
+        delete _.SH;
+    }
     E.dispatch('bibi:initialized-settings');
 };
 
 
 S.update = (Settings) => {
-    const PrevBRL = S.BRL, PrevRVM = S.RVM, PrevPPD = S.PPD, PrevSLA = S.SLA, PrevSLD = S.SLD, PrevARD = S.ARD, PrevARA = S.ARA, PrevNLD = S.NLD;
+    const Prev = {}; for(const Mode in S.Modes) Prev[Mode] = S[Mode];
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
-    S.BRL = S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
-    S.BWM = S['book-writing-mode'] = B.WritingMode;
+    S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
+    S['book-writing-mode'] = B.WritingMode;
     S['allow-placeholders'] = (S['allow-placeholders'] && B.AllowPlaceholderItems);
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
-    S.RVM = S['reader-view-mode'];
-    if(S.BRL == 'reflowable') switch(S.BWM) {
-        case 'tb-rl': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break; //:TestingCSSShapes:Current
-        case 'tb-lr': S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'vertical'   : S.RVM; break; //:TestingCSSShapes:Current
-      //case 'tb-rl': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break; //:TestingCSSShapes
-      //case 'tb-lr': S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break; //:TestingCSSShapes
-        case 'rl-tb': S.PPD = S['page-progression-direction'] = 'rtl', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
-        default     : S.PPD = S['page-progression-direction'] = 'ltr', S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM; break;
-    }   else          S.PPD = S['page-progression-direction'] = B.PPD, S.SLA = S['spread-layout-axis'] = (S.RVM == 'paged') ? 'horizontal' : S.RVM;
-    S.SLD = S['spread-layout-direction']     = (S.SLA == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARD = S['apparent-reading-direction']  = (S.RVM == 'vertical') ? 'ttb'        : S.PPD;
-    S.ARA = S['apparent-reading-axis']       = (S.RVM == 'paged'   ) ? 'horizontal' : S.RVM;
-    S.NLD = S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S.PPD != 'rtl') ? 'ttb' : 'rtl';
-    if(PrevBRL != S.BRL) sML.replaceClass(O.HTML, 'book-'       + PrevBRL, 'book-'       + S.BRL);
-    if(PrevRVM != S.RVM) sML.replaceClass(O.HTML, 'view-'       + PrevRVM, 'view-'       + S.RVM);
-    if(PrevPPD != S.PPD) sML.replaceClass(O.HTML, 'page-'       + PrevPPD, 'page-'       + S.PPD);
-    if(PrevSLA != S.SLA) sML.replaceClass(O.HTML, 'spread-'     + PrevSLA, 'spread-'     + S.SLA);
-    if(PrevSLD != S.SLD) sML.replaceClass(O.HTML, 'spread-'     + PrevSLD, 'spread-'     + S.SLD);
-    if(PrevARD != S.ARD) sML.replaceClass(O.HTML, 'appearance-' + PrevARD, 'appearance-' + S.ARD);
-    if(PrevARA != S.ARA) sML.replaceClass(O.HTML, 'appearance-' + PrevARA, 'appearance-' + S.ARA);
-    if(PrevNLD != S.NLD) sML.replaceClass(O.HTML, 'nav-'        + PrevNLD, 'nav-'        + S.NLD);
+    if(S['book-rendition-layout'] == 'reflowable') switch(S['book-writing-mode']) {
+        case 'tb-rl': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'vertical'   : S['reader-view-mode']; break; //:TestingCSSShapes:Current
+        case 'tb-lr': S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'vertical'   : S['reader-view-mode']; break; //:TestingCSSShapes:Current
+      //case 'tb-rl': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break; //:TestingCSSShapes
+      //case 'tb-lr': S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break; //:TestingCSSShapes
+        case 'rl-tb': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break;
+        default     : S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break;
+    }   else          S['page-progression-direction'] = B.PPD, S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode'];
+        S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
+     S['apparent-reading-axis']      = (S['reader-view-mode']   == 'paged'   ) ? 'horizontal' : S['reader-view-mode'];
+     S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
+    S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S['page-progression-direction'] != 'rtl') ? 'ttb' : 'rtl';
+    for(const Mode in S.Modes) {
+        const Pfx = S.Modes[Mode].CNP + '-', PC = Pfx + Prev[Mode], CC = Pfx + S[Mode];
+        if(PC != CC) O.HTML.classList.remove(PC);
+        O.HTML.classList.add(CC);
+    }
     C.update();
     E.dispatch('bibi:updated-settings', S);
 };
@@ -4620,8 +4622,8 @@ export const C = {};
 
 
 C.update = () => {
-    C.probe('L', S.SLA); // Rules in "L"ayout
-    C.probe('A', S.ARA); // Rules in "A"ppearance
+    C.probe('L', S['spread-layout-axis']   ); // Rules in "L"ayout
+    C.probe('A', S['apparent-reading-axis']); // Rules in "A"ppearance
 };
 
     C.probe = (L_A, AXIS) => {
