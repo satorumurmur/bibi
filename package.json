@@ -34,14 +34,14 @@
     "start": "npm run develop+watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.0",
+    "@babel/core": "^7.7.2",
     "@babel/preset-env": "^7.7.1",
     "autoprefixer": "^9.7.1",
     "babel-loader": "^8.0.6",
     "browser-sync": "^2.26.7",
     "browser-sync-webpack-plugin": "^2.2.2",
-    "copy-webpack-plugin": "^5.0.4",
-    "core-js": "^3.3.6",
+    "copy-webpack-plugin": "^5.0.5",
+    "core-js": "^3.4.1",
     "css-loader": "^3.2.0",
     "cssnano": "^4.1.10",
     "del": "^5.1.0",
