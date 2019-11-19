@@ -3480,17 +3480,16 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 });
                 BookmarkManager.ListSection.addButtonGroup({
                     Buttons: BookmarkManager.Bookmarks.map(Bmk => {
-                        let Label = '';
-                        const Page = R.hatchPage({ 'SI-PPiS': Bmk['SI-PPiS'] });
-                        if(Page) {
+                        let Label = ''; const BB = 'bibi-bookmark', Page = R.hatchPage({ 'SI-PPiS': Bmk['SI-PPiS'] });
+                        if(Page && typeof Page.Index == 'number') {
                             const PageNumber = Page.Index + 1;
                             Bmk['%'] = Math.floor(PageNumber / R.Pages.length * 100);
-                            Label += `<span class="bibi-bookmark-page"><span class="bibi-bookmark-unit">P.</span><span class="bibi-bookmark-number">${ PageNumber }</span></span>`;
-                            Label += `<span class="bibi-bookmark-total-pages">/<span class="bibi-bookmark-number">${ R.Pages.length }</span></span>`;
+                            Label += `<span class="${BB}-page"><span class="${BB}-unit">P.</span><span class="${BB}-number">${ PageNumber }</span></span>`;
+                            Label += `<span class="${BB}-total-pages">/<span class="${BB}-number">${ R.Pages.length }</span></span>`;
                             Label += ` `;
-                            Label += `<span class="bibi-bookmark-percent"><span class="bibi-bookmark-parenthesis">(</span><span class="bibi-bookmark-number">${ Bmk['%'] }</span><span class="bibi-bookmark-unit">%</span><span class="bibi-bookmark-parenthesis">)</span></span>`;
+                            Label += `<span class="${BB}-percent"><span class="${BB}-parenthesis">(</span><span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span><span class="${BB}-parenthesis">)</span></span>`;
                         } else {
-                            Label += `<span class="bibi-bookmark-percent">` +                                            `<span class="bibi-bookmark-number">${ Bmk['%'] }</span><span class="bibi-bookmark-unit">%</span>`                                            + `</span>`;
+                            Label += `<span class="${BB}-percent">` +                                    `<span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span>`                                    + `</span>`;
                         }
                         return {
                             Type: 'normal',
