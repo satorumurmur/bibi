@@ -39,8 +39,12 @@ Bibi.preset({
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                   : "desktop", // "yes" or "no" or "desktop" or "mobile"
+
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
+"max-history"                : 9, // Number (0-9). If larger than 9, treated as 9. If 0, "use-history" is treated as "no". 
+
 "use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
+"max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 
 
 "slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
 "zoom-out-on-opening-slider" : "yes", // "yes" or "no" or "desktop" or "mobile"

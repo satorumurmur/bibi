@@ -97,7 +97,7 @@ const setPackageBuilderTasks = (Opt) => {
         done();
     });
     gulp.task('merge:' + Opt.Name + '-content', () => {
-        fs.mkdirSync(Bibi.ARCHIVES + '/' + Opt.Label + '/' + Opt.Bookshelf, { recursive: true });
+        if(Opt.Bookshelf) fs.mkdirSync(Bibi.ARCHIVES + '/' + Opt.Label + '/' + Opt.Bookshelf, { recursive: true });
         return gulp.src(Opt.Files.map(
             X => Bibi.DIST + '/' + X
         ), {
@@ -149,7 +149,7 @@ setPackageBuilderTasks({
 setPackageBuilderTasks({
     Name: 'backward-compatibility-kit',
     Label: PackageName + '-v' + Package.version + '_BackCompatKit',
-    Bookshelf: 'bib/bookshelf',
+    //Bookshelf: 'bib/bookshelf',
     Files: [
         'bib/i/*.html',
         'bib/i.js'

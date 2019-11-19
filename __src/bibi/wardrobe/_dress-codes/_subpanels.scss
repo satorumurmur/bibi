@@ -64,6 +64,8 @@ $Subpanel-Icon_MarginRight: 6px;
 // - Sub Panel: Bookmarks
 // --------------------------------------------------------------------------------
 
+$BookmarkSubpanel-Button_BackgroundColor__Hot: rgba(gold, .125);
+
 @mixin BookmarkSubpanel-Button-Label() {
 	.bibi-bookmark-page {
 		.bibi-bookmark-unit {
@@ -102,6 +104,34 @@ $Subpanel-Icon_MarginRight: 6px;
 		.bibi-bookmark-unit {
 		}
 	}
+	.bibi-bookmark-is-current {
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+		top: 0; right: $Subpanel-Button_Height; bottom: 0; left: 0;
+		width: auto;
+		height: $Subpanel-Button_Height;
+		&:before {
+			$LOCAL__Height: $Subpanel-Icon_Size * .9;
+			content: " Current Page";
+			display: block;
+			position: absolute;
+			top: 0; right: 0; bottom: 0; left: auto;
+			margin: auto;
+			border-radius: $LOCAL__Height * 0.5;
+			padding: 0 .75em;
+			width: auto;
+			height: $LOCAL__Height;
+			line-height: $LOCAL__Height;
+			font-size: .8em;
+			font-weight: bold;
+			color: $Subpanel_KeyColor;
+			background: rgba($Subpanel_KeyColor, .125);
+		}
+		&.bibi-bookmark-is-current-ja:before {
+			content: " 現在のページ";
+		}
+	}
 }
 
 @mixin BookmarkSubpanel-Button-RemoveBookmark-Icon() {
@@ -110,8 +140,8 @@ $Subpanel-Icon_MarginRight: 6px;
 	position: absolute;
 	top: 0; right: 0; bottom: 0; left: 0;
 	margin: auto;
-	width: $Subpanel-Icon-Size;
-	height: $Subpanel-Icon-Size;
+	width: $Subpanel-Icon_Size;
+	height: $Subpanel-Icon_Size;
 	color: rgba($Subpanel-Button_Color, .75);
 }
 
@@ -121,7 +151,7 @@ $Subpanel-Icon_MarginRight: 6px;
 }
 
 @mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark() {
-	opacity: .125;
+	opacity: .25;
 }
 
 

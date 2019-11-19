@@ -3072,6 +3072,11 @@ I.History = {
             if(LastOfSerialOnly && I.History.List[I.History.List.length - 1].UI == UI) I.History.List.pop();
             const Spread = CurrentPage.Spread;
             I.History.List.push({ UI: UI, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length });
+            if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
+                const First = I.History.List.shift(); // The first (oldest) is the landing point.
+                I.History.List.shift(); // Remove the second
+                I.History.List.unshift(First); // Restore the first (oldest).
+            }
         }
         I.History.update();
     },
@@ -3430,92 +3435,115 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 }),
                 Position: 'left',
                 id: 'bibi-subpanel_bookmarks',
-                open: () => {}
+                onopened: () => { E.add(   'bibi:scrolled', () => BookmarkManager.update()); BookmarkManager.update(); },
+                onclosed: () => { E.remove('bibi:scrolled', () => BookmarkManager.update()); }
             });
-            BookmarkManager.Subpanel.addSection({
-                id: 'bibi-subpanel-section_add-a-bookmark'
-            }).addButtonGroup({
-                ButtonType: 'normal',
-                Buttons: [{
-                    Labels: { default: { default: `Add a Bookmark`, ja: `しおりを挟む` } },
-                    Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
-                    action: () => {
-                        R.updateCurrent();
-                        const Page = R.Current.List[0].Page;
-                        const Bookmark = {
-                            'SI-PPiS': Page.Spread.Index + '-' + (Page.IndexInSpread / Page.Spread.Pages.length),
-                            '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
-                        };
-                        BookmarkManager.add(Bookmark);
-                    }
-                }]
-            });
+            BookmarkManager.ButtonGroup = BookmarkManager.Subpanel.addSection({
+                id: 'bibi-subpanel-section_bookmarks',
+                Labels: { default: { default: `Bookmarks`, ja: `しおり` } }
+            }).addButtonGroup();
             const BookmarkBiscuits = O.Biscuits.remember('Book', 'Bookmarks');
-            if(BookmarkBiscuits instanceof Array && BookmarkBiscuits.length) {
-                BookmarkManager.Bookmarks = BookmarkBiscuits;
-                BookmarkManager.update();
-            }
-            E.add('bibi:opened', BookmarkManager.update);
+            if(BookmarkBiscuits instanceof Array && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
+            //E.add(['bibi:opened', 'bibi:resized'], () => BookmarkManager.update());
             delete BookmarkManager.initialize;
         },
-        distill: (Bookmark) => BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] != Bookmark['SI-PPiS']),
+        exists: (Bookmark) => {
+            for(let l = BookmarkManager.Bookmarks.length, i = 0; i < l; i++) if(BookmarkManager.Bookmarks[i]['SI-PPiS'] == Bookmark['SI-PPiS']) return BookmarkManager.Bookmarks[i];
+            return null;
+        },
         add: (Bookmark) => {
-            BookmarkManager.distill(Bookmark).push(Bookmark);
-            BookmarkManager.update();
+            const ExistingBookmark = BookmarkManager.exists(Bookmark);
+            if(!ExistingBookmark) {
+                Bookmark.IsHot = true;
+                BookmarkManager.Bookmarks.push(Bookmark);
+                BookmarkManager.update({ Added: Bookmark });
+            } else BookmarkManager.update();
         },
         remove: (Bookmark) => {
-            BookmarkManager.distill(Bookmark);
-            BookmarkManager.update();
+            BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] != Bookmark['SI-PPiS']);
+            BookmarkManager.update({ Removed: Bookmark });
         },
-        update: () => {
-            if(BookmarkManager.ListSection) {
-                BookmarkManager.Subpanel.removeChild(BookmarkManager.ListSection);
-                delete BookmarkManager.ListSection;
+        update: (Opt = {}) => {
+            BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
+            if(BookmarkManager.ButtonGroup.Buttons) {
+                BookmarkManager.ButtonGroup.Buttons = [];
+                BookmarkManager.ButtonGroup.innerHTML = '';
             }
-            BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] && Bmk['%']);
+            //BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk['SI-PPiS'] && Bmk['%']);
+            let Bookmark = null, ExistingBookmark = null;
+            if(Opt.Added) Bookmark = Opt.Added;
+            else if(L.Opened) {
+                R.updateCurrent();
+                const Page = R.Current.List[0].Page;
+                Bookmark = {
+                    'SI-PPiS': Page.Spread.Index + '-' + (Page.IndexInSpread / Page.Spread.Pages.length),
+                    '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
+                };
+            }
             if(BookmarkManager.Bookmarks.length) {
-                BookmarkManager.ListSection = BookmarkManager.Subpanel.addSection({
-                    id: 'bibi-subpanel-section_bookmarks'/*,
-                    Labels: { default: { default: `Bookmarks`, ja: `しおり` } }*/
-                });
-                BookmarkManager.ListSection.addButtonGroup({
-                    Buttons: BookmarkManager.Bookmarks.map(Bmk => {
-                        let Label = ''; const BB = 'bibi-bookmark', Page = R.hatchPage({ 'SI-PPiS': Bmk['SI-PPiS'] });
-                        if(Page && typeof Page.Index == 'number') {
-                            const PageNumber = Page.Index + 1;
-                            Bmk['%'] = Math.floor(PageNumber / R.Pages.length * 100);
-                            Label += `<span class="${BB}-page"><span class="${BB}-unit">P.</span><span class="${BB}-number">${ PageNumber }</span></span>`;
-                            Label += `<span class="${BB}-total-pages">/<span class="${BB}-number">${ R.Pages.length }</span></span>`;
-                            Label += ` `;
-                            Label += `<span class="${BB}-percent"><span class="${BB}-parenthesis">(</span><span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span><span class="${BB}-parenthesis">)</span></span>`;
-                        } else {
-                            Label += `<span class="${BB}-percent">` +                                    `<span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span>`                                    + `</span>`;
-                        }
-                        return {
-                            Type: 'normal',
-                            Labels: { default: { default: Label } },
-                            Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
-                            action: () => {
-                                if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add(BookmarkManager, true));
-                                if(!L.Waiting) return false;
-                                if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
-                                S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
-                                L.play();
-                            }
-                        }
-                    })
-                }).Buttons.forEach(Button => {
-                    const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
-                    I.setFeedback(Remover).addTapEventListener('tapped', Eve => {
-                        Eve.stopPropagation();
-                        Eve.preventDefault();
-                        BookmarkManager.remove(Button.Bookmark);
+                BookmarkManager.Bookmarks.forEach(Bmk => {
+                    let Label = '', ClassName = ''; const BB = 'bibi-bookmark', Page = R.hatchPage({ 'SI-PPiS': Bmk['SI-PPiS'] });
+                    if(Page && typeof Page.Index == 'number') {
+                        const PageNumber = Page.Index + 1;
+                        Bmk['%'] = Math.floor(PageNumber / R.Pages.length * 100);
+                        Label += `<span class="${BB}-page"><span class="${BB}-unit">P.</span><span class="${BB}-number">${ PageNumber }</span></span>`;
+                        Label += `<span class="${BB}-total-pages">/<span class="${BB}-number">${ R.Pages.length }</span></span>`;
+                        Label += ` <span class="${BB}-percent"><span class="${BB}-parenthesis">(</span><span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span><span class="${BB}-parenthesis">)</span></span>`;
+                    } else {
+                        Label +=  `<span class="${BB}-percent">` +                                    `<span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span>`                                    + `</span>`;
+                    }
+                    const Labels = { default: { default: Label, ja: Label } };
+                    if(Bookmark && Bmk['SI-PPiS'] == Bookmark['SI-PPiS']) {
+                        ExistingBookmark = Bmk;
+                        ClassName = `bibi-button-bookmark-is-current`;
+                        Labels.default.default += ` <span class="${BB}-is-current"></span>`;
+                        Labels.default.ja      += ` <span class="${BB}-is-current ${BB}-is-current-ja"></span>`;
+                    }
+                    const Button = BookmarkManager.ButtonGroup.addButton({
+                        className: ClassName,
+                        Type: 'normal',
+                        Labels: Labels,
+                        Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
+                        Bookmark: Bmk,
+                        action: () => {
+                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add(BookmarkManager, true));
+                            if(!L.Waiting) return false;
+                            if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
+                            S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
+                            L.play();
+                        },
+                        remove: () => BookmarkManager.remove(Bmk)
                     });
-                    [E['pointerover'], E['pointerout'], E['pointerdown'], E['pointerup'], 'click'].forEach(EN => Remover.addEventListener(EN, Eve => {
-                        Eve.stopPropagation();
-                        Eve.preventDefault();
-                    }));
+                    const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
+                    I.setFeedback(Remover, { StopPropagation: true }).addTapEventListener('tapped', () => Button.remove());
+                    Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
+                    if(Bmk.IsHot) {
+                        delete Bmk.IsHot;
+                        I.setUIState(Button, 'active'); setTimeout(() => { I.setUIState(Button, 'default'); }, 234);/*
+                        Button.classList.add('hot');
+                        setTimeout(() => {
+                            Button.classList.remove('hot');
+                            Button.classList.add('cold');
+                            setTimeout(() => {
+                                Button.classList.remove('cold');
+                            }, 234);
+                        }, 234);*/
+                    }
                 });
+            } else {
+                if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+            }
+            if(BookmarkManager.Bookmarks.length < S['max-bookmarks']) {
+                BookmarkManager.AddButton = BookmarkManager.ButtonGroup.addButton({
+                    id: 'bibi-button-add-a-bookmark',
+                    Type: 'normal',
+                    Labels: { default: { default: `Add a Bookmark to Current Page`, ja: `現在のページにしおりを挟む` } },
+                    Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
+                    action: () => Bookmark ? BookmarkManager.add(Bookmark) : false
+                });
+                if(!Bookmark || ExistingBookmark) {
+                    I.setUIState(BookmarkManager.AddButton, 'disabled');
+                }
             }
             O.Biscuits.memorize('Book', { 'Bookmarks': BookmarkManager.Bookmarks.map(Bmk => ({ 'SI-PPiS': Bmk['SI-PPiS'], '%': Bmk['%'] })) });
         },
@@ -4513,6 +4541,7 @@ export const S = {}; // Bibi.Settings
 
 S.initialize = (before, after) => {
     if(before) before();
+    // --------
     for(const Property in S) if(typeof S[Property] != 'function') delete S[Property];
     sML.applyRtL(S, P, 'ExceptFunctions');
     sML.applyRtL(S, H, 'ExceptFunctions');
@@ -4520,6 +4549,7 @@ S.initialize = (before, after) => {
     O.SettingTypes['yes-no'].concat(O.SettingTypes_PresetOnly['yes-no']).concat(O.SettingTypes_UserOnly['yes-no']).forEach(Property => {
         S[Property] = (typeof S[Property] == 'string') ? (S[Property] == 'yes' || (S[Property] == 'mobile' && O.TouchOS) || (S[Property] == 'desktop' && !O.TouchOS)) : false;
     });
+    // --------
     S['bookshelf'] = (typeof S['bookshelf'] == 'string' && S['bookshelf']) ? S['bookshelf'].replace(/\/$/, '') : '';
     S['book']      = (typeof S['book']      == 'string' && S['book']     ) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
     B.Type = !S['book'] ? '' : U.hasOwnProperty('zine') ? 'Zine' : 'EPUB';
@@ -4537,18 +4567,21 @@ S.initialize = (before, after) => {
     })();
     if(S['book'] || !window.File) S['accept-local-file'] = false, S['accept-blob-converted-data'] = false, S['accept-base64-encoded-data'] = false;
     else                          S['accept-local-file'] = S['accept-local-file'] && (S['extract-if-necessary'].includes('*') || S['extract-if-necessary'].includes('.epub') || S['extract-if-necessary'].includes('.zip')) ? true : false;
+    if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
+    // --------
     S['autostart'] = (() => {
-        if(S['wait']) return !S['wait'];
+        if( S['wait']) return false;
         if(!S['book']) return true;
         return O.Embedded ? S['autostart-embedded'] : S['autostart'];
     })();
-    S['start-in-new-window'] = (() => {
-        if(S['autostart']) return false;
-        return O.Embedded ? S['start-embedded-in-new-window'] : false;
-    })();
+    S['start-in-new-window'] = (O.Embedded && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
+    // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
-    if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
-    if(after) after();
+    ['history', 'bookmarks'].forEach(_ => {
+        S['max-' + _] = !S['use-' + _] ? 0 : S['max-' + _] > 9 ? 9 : S['max-' + _];
+        if(S['max-' + _] == 0) S['use-' + _] = false;
+    });
+    // --------
     E.bind('bibi:initialized-book', () => {
         const BookBiscuits = O.Biscuits.remember('Book');
         if(S['keep-settings']) {
@@ -4559,7 +4592,10 @@ S.initialize = (before, after) => {
             if(!U['to'] && BookBiscuits['Position']) S['to'] = sML.clone(BookBiscuits['Position']);
         }
     });
-    S.Modes = { // SH: 'ShortHand', CNP: 'ClassNamePrefix'
+    // --------
+    if(after) after();
+    // --------
+    S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
           'book-rendition-layout'    : { SH: 'BRL', CNP: 'book' },
             'book-writing-mode'      : { SH: 'BWM', CNP: 'book' },
              'reader-view-mode'      : { SH: 'RVM', CNP: 'view' },
@@ -4575,6 +4611,7 @@ S.initialize = (before, after) => {
         Object.defineProperty(S, _.SH, { get: () => S[Mode], set: (Val) => S[Mode] = Val });
         delete _.SH;
     }
+    // --------
     E.dispatch('bibi:initialized-settings');
 };
 
@@ -5328,6 +5365,8 @@ O.SettingTypes_PresetOnly = {
     'string': [
     ],
     'integer': [
+        'max-history',
+        'max-bookmarks',
     ],
     'number': [
     ],

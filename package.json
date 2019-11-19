@@ -25,6 +25,7 @@
     "develop": "gulp clean && webpack --config webpack.config.js --progress --colors --mode development",
     "develop+watch": "gulp clean && webpack --config webpack.config.js --progress --colors --mode development --watch",
     "make:backward-compatibility-kit": "gulp make:backward-compatibility-kit-files && gulp make:backward-compatibility-kit-archive && gulp clean:backward-compatibility-kit-files",
+    "make:backward-compatibility-kit-files": "gulp make:backward-compatibility-kit-files",
     "make:distribution-package": "npm run build && gulp make:distribution-package-archive",
     "make:dress-template": "gulp make:dress-template",
     "postinstall": "npm run build && gulp initialize",

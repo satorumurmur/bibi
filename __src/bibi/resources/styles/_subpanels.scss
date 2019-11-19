@@ -316,6 +316,8 @@ div.bibi-subpanel {
 		.bibi-buttongroup {
 			.bibi-buttonbox {
 				.bibi-button {
+					&.hot, &.cold { transition: background-color linear .234s; }
+					// @____Bibi:Dress__('-') &.hot { background: $BookmarkSubpanel-Button_BackgroundColor__Hot; }
 					.bibi-button-label {
 						// @____Bibi:Dress__('-') @include BookmarkSubpanel-ButtonLabel();
 					}
