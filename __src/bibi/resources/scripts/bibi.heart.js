@@ -1903,7 +1903,7 @@ R.updateCurrent = () => {
         const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
         for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
             const PageIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page, 'WithDetail');
-            if(!PageIntersectionStatus || PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
+            if(PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
                 if(List.length) break;
             } else {
                 const Current = { Page: Page, PageIntersectionStatus: PageIntersectionStatus };
@@ -1923,22 +1923,21 @@ R.updateCurrent = () => {
     };
 
     R.updateCurrent.getIntersectionStatus = (Ele, WithDetail) => {
-        const Coord = sML.getCoord(Ele), B = C.L_BASE_B, A = C.L_BASE_A, L = C.L_SIZE_L, D = C.L_AXIS_D;
-        const LengthInside = Math.min(R.Current.Frame.After * D, Coord[A] * D) - Math.max(R.Current.Frame.Before * D, Coord[B] * D);
-        const Ratio = (LengthInside <= 0 || !Coord[L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[L];
-        if(Ratio <= 0) return null;
+        const Coord = sML.getCoord(Ele), _D = C.L_AXIS_D;
+        const LengthInside = Math.min(R.Current.Frame.After * _D, Coord[C.L_BASE_A] * _D) - Math.max(R.Current.Frame.Before * _D, Coord[C.L_BASE_B] * _D);
+        const Ratio = (LengthInside <= 0 || !Coord[C.L_SIZE_L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[C.L_SIZE_L];
         const IntersectionStatus = { Ratio: Ratio };
-        if(WithDetail) {
+        if(Ratio <= 0) {} else if(WithDetail) {
             if(Ratio >= 1) {
                 IntersectionStatus.Contained = true;
             } else {
-                const FC_B = R.Current.Frame.Before * D, FC_A = R.Current.Frame.After * D;
-                const PC_B = Coord[C.L_BASE_B]      * D, PC_A = Coord[C.L_BASE_A]     * D;
+                const FC_B = R.Current.Frame.Before * _D, FC_A = R.Current.Frame.After * _D;
+                const PC_B = Coord[C.L_BASE_B]      * _D, PC_A = Coord[C.L_BASE_A]     * _D;
                      if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
                 else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
                 else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
                 else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
-                if(R.Main['offset' + L] < Coord[L]) IntersectionStatus.Oversize = true;
+                if(R.Main['offset' + L] < Coord[C.L_SIZE_L]) IntersectionStatus.Oversize = true;
             }
         }
         return IntersectionStatus;
@@ -3093,7 +3092,6 @@ I.History = {
 I.Slider = { create: () => {
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
         Size: I.Slider.Size,
-        BookStretchingEach: 0,
         initialize: () => {
             //if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (O.TouchOS || R.Stage.Width / R.Items.length < 20) ? 'edgebar' : 'bookmap';
             if(S['slider-mode'] != 'bookmap') S['slider-mode'] = 'edgebar';
@@ -3210,20 +3208,33 @@ I.Slider = { create: () => {
             TouchEndCoord[C.A_AXIS_B] = O.getElementCoord(Slider)[C.A_AXIS_B] + Slider['offset' + C.A_SIZE_B] / 2;
             return TouchEndCoord;
         },
-        zoomOutBook: () => {
+        BookStretchingEach: 0,
+        BookZoomOut: {
+            Transformation: {},
+            Stretch: 0,
+            Padding: {}
+        },
+        defineBookZoomOut: () => {
             const BookMarginStart = (S['use-full-height'] && S.ARA == 'horizontal' ? I.Menu.Height : 0);
             const BookMarginEnd   = Slider.Size;
-            const Transformation = {
+            Slider.BookZoomOut.Transformation = {
                 Scale: (R.Main['offset' + C.A_SIZE_B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + C.A_SIZE_B] - O.Scrollbars[C.A_SIZE_B])
             };
-            //Transformation['Translate' + C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
-            Transformation['Translate' + C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Transformation.Scale) - I.Menu.Height) / 2 : 0;
-            Transformation['Translate' + C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Transformation.Scale) / 2;
-            Slider.BookStretchingEach = (O.Body['offset' + C.A_SIZE_L] / Transformation.Scale - R.Main['offset' + C.A_SIZE_L]) / 2;
-            R.Main.style['padding' + C.A_BASE_B] = Slider.BookStretchingEach + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0) + 'px';
-            R.Main.style['padding' + C.A_BASE_A] = Slider.BookStretchingEach + 'px';
-            if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = Slider.BookStretchingEach + 'px';
-            return I.Loupe.transform(Transformation, { Temporary: true }).then(() => {
+            //Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
+            Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Slider.BookZoomOut.Transformation.Scale) - I.Menu.Height) / 2 : 0;
+            Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Slider.BookZoomOut.Transformation.Scale) / 2;
+            Slider.BookZoomOut.Stretch = (O.Body['offset' + C.A_SIZE_L] / Slider.BookZoomOut.Transformation.Scale - R.Main['offset' + C.A_SIZE_L]);
+            Slider.BookZoomOut.Padding = {
+                [C.A_BASE_B]: Slider.BookZoomOut.Stretch / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0),
+                [C.A_BASE_A]: Slider.BookZoomOut.Stretch / 2
+            };
+            if(S.ARA == S.SLA) Slider.BookZoomOut.Padding[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = Slider.BookZoomOut.Stretch / 2;
+        },
+        zoomOutBook: () => {
+            Slider.defineBookZoomOut();
+            Slider.BookStretchingEach = Slider.BookZoomOut.Stretch / 2;
+            for(const Dir in Slider.BookZoomOut.Padding) R.Main.style['padding' + Dir] = Slider.BookZoomOut.Padding[Dir] + 'px';
+            return I.Loupe.transform(Slider.BookZoomOut.Transformation, { Temporary: true }).then(() => {
                 Slider.progress();
             });
         },
@@ -3399,7 +3410,6 @@ I.Slider = { create: () => {
     });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
     E.add('bibi:laid-out', () => {
-        //Slider.BookStretchingEach = 0;
         Slider.resetZoomingOutOfBook();
         Slider.resetThumbAndRailSize();
         Slider.progress();
@@ -4597,7 +4607,6 @@ S.initialize = (before, after) => {
     // --------
     S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
           'book-rendition-layout'    : { SH: 'BRL', CNP: 'book' },
-            'book-writing-mode'      : { SH: 'BWM', CNP: 'book' },
              'reader-view-mode'      : { SH: 'RVM', CNP: 'view' },
         'page-progression-direction' : { SH: 'PPD', CNP: 'page' },
            'spread-layout-axis'      : { SH: 'SLA', CNP: 'spread' },
@@ -4620,18 +4629,17 @@ S.update = (Settings) => {
     const Prev = {}; for(const Mode in S.Modes) Prev[Mode] = S[Mode];
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
     S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
-    S['book-writing-mode'] = B.WritingMode;
     S['allow-placeholders'] = (S['allow-placeholders'] && B.AllowPlaceholderItems);
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
-    if(S['book-rendition-layout'] == 'reflowable') switch(S['book-writing-mode']) {
-        case 'tb-rl': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'vertical'   : S['reader-view-mode']; break; //:TestingCSSShapes:Current
-        case 'tb-lr': S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'vertical'   : S['reader-view-mode']; break; //:TestingCSSShapes:Current
-      //case 'tb-rl': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break; //:TestingCSSShapes
-      //case 'tb-lr': S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break; //:TestingCSSShapes
-        case 'rl-tb': S['page-progression-direction'] = 'rtl', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break;
-        default     : S['page-progression-direction'] = 'ltr', S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode']; break;
-    }   else          S['page-progression-direction'] = B.PPD, S['spread-layout-axis'] = (S['reader-view-mode'] == 'paged') ? 'horizontal' : S['reader-view-mode'];
+    S['page-progression-direction'] = B.PPD;
+    S['spread-layout-axis'] = (() => {
+        if(S['reader-view-mode'] != 'paged') return S['reader-view-mode'];
+        if(S['book-rendition-layout'] == 'reflowable') switch(B.WritingMode) {
+          //case 'tb-rl': case 'tb-lr': return 'horizontal'; //:TestingCSSShapes
+            case 'tb-rl': case 'tb-lr': return   'vertical'; //:TestingCSSShapes:Current
+        }                               return 'horizontal';
+    })();
         S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
      S['apparent-reading-axis']      = (S['reader-view-mode']   == 'paged'   ) ? 'horizontal' : S['reader-view-mode'];
      S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
@@ -4676,7 +4684,7 @@ C.update = () => {
             C._app(L_A, 'OOBL', { b: 'left',   l: 'top'                           });
             C._app(L_A, 'AXIS', { b: 'x',      l: 'y'                             }); C[L_A + '_AXIS_D'] = 1;
         }
-        // BASE: Directions  ("B"efore-"A"fter-"S"tart-"E"nd. Top-Bottom-Left-Right on TtB, Left-Right-Top-Bottom on LtR, and Right-Left-Top-Bottom on RtL.)
+        // BASE: Directions ("B"efore-"A"fter-"S"tart-"E"nd. Top-Bottom-Left-Right on TtB, Left-Right-Top-Bottom on LtR, and Right-Left-Top-Bottom on RtL.)
         // SIZE: Breadth, Length (Width-Height on TtB, Height-Width on LtR and RtL.)
         // OOBL: "O"ffset "O"rigin of "B"readth and "L"ength
         // AXIS: X or Y for Breadth and Length (X-Y on TtB, Y-X on LtR and RtL), and ±1 for Culcuration of Length (1 on TtB and LtR, -1 on RtL.)
