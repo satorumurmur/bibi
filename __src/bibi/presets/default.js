@@ -38,7 +38,7 @@ Bibi.preset({
 "use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-keys"                   : "desktop", // "yes" or "no" or "desktop" or "mobile"
+"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 9, // Number (0-9). If larger than 9, treated as 9. If 0, "use-history" is treated as "no". 
