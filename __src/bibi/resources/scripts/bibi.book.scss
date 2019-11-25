@@ -18,12 +18,6 @@ html {
 	overflow: hidden;
 }*/
 
-html.bibi-columned {
-	img, svg, video, picture, image, iframe {
-		break-inside: avoid;
-	}
-}
-
 img.bibi-spine-item-image {
 	display: block;
 	margin: 0;
@@ -31,4 +25,32 @@ img.bibi-spine-item-image {
 	padding: 0;
 	width: auto;
 	height: auto;
+}
+
+html.bibi-columned {
+	img, svg, video, picture, image, iframe {
+		break-inside: avoid;
+	}
+}
+
+html.bibi-with-gutters {
+	> head {
+		display: block;
+		> *:not(bibi-neck) { display: none; }
+		> bibi-neck {
+			display: block;
+			position: relative;
+			z-index: -99999999999;
+			margin: 0;
+			border: none 0;
+			padding: 0;
+			> bibi-throat {
+				display: block;
+				float: left;
+				margin: 0;
+				border: none 0;
+				padding: 0;
+			}
+		}
+	}
 }
