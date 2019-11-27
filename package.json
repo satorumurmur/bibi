@@ -66,6 +66,7 @@
     "webpack-fix-style-only-entries": "^0.4.0"
   },
   "dependencies": {
+    "bibi-zip-loader": "^0.9.0",
     "classlist-polyfill": "^1.2.0",
     "current-script-polyfill": "^1.0.0",
     "custom-event-polyfill": "^1.0.7",

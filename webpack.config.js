@@ -36,6 +36,7 @@ const Config = {
         'bibi/extensions/analytics.js',
         'bibi/extensions/epubcfi.js',
         'bibi/extensions/extractor/at-once.js',
+        'bibi/extensions/extractor/on-the-fly.js',
         'bibi/extensions/unaccessibilizer.js',
         'bibi/extensions/zine.js',
         'bibi/resources/scripts/bibi.js',
@@ -49,7 +50,10 @@ const Config = {
         new StringReplacePlugin(),
         new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
         new MiniCSSExtractPlugin({ filename: '[name]' }),
-        new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true })
+        new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true }),
+        new CopyPlugin([
+            { from: './node_modules/bibi-zip-loader/dist/lszlw.js', to: Bibi.DIST + '/bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js' }
+        ])
     ],
     module: { rules: [] }
 };
