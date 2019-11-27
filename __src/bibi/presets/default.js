@@ -14,7 +14,6 @@ Bibi.preset({
 
 "reader-view-mode"             : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
 "fix-reader-view-mode"         : "no", // "yes" or "no" or "desktop" or "mobile"
-"single-page-always"           : "no", // "yes" or "no" or "desktop" or "mobile"
 
 "keep-settings"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "resume-from-last-position"    : "yes", // "yes" or "no" or "desktop" or "mobile"
@@ -23,6 +22,7 @@ Bibi.preset({
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
+"double-spread-for-reflowable" : "yes", // "yes" or "no" or "desktop" or "mobile"
 "allow-placeholders"           : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 
@@ -64,7 +64,7 @@ Bibi.preset({
 "item-padding-top"           : 40, // Number of pixel (It is used only if the book is reflowable.)
 "item-padding-bottom"        : 20, // Number of pixel (It is used only if the book is reflowable.)
 
-"spread-gap"                 : 8, // Number of pixel
+"spread-gap"                 : 2, // Number of pixel
 "spread-margin"              : 0, // Number of pixel
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"

@@ -387,6 +387,19 @@ Bibi.Eyes = {
 };
 
 
+Bibi.createElement = (...Args) => {
+    const TagName = Args[0];
+    if(!Bibi.Elements) Bibi.Elements = {};
+    if(window.customElements) {
+        if(!Bibi.Elements[TagName]) Bibi.Elements[TagName] = class extends HTMLElement { constructor() { super(); } }, window.customElements.define(TagName, Bibi.Elements[TagName]);
+    } else if(document.registerElement) {
+        if(!Bibi.Elements[TagName]) Bibi.Elements[TagName] = document.registerElement(TagName);
+        return sML.edit(new Bibi.Elements[Args.shift()](), Args);
+    }
+    return sML.create(...Args);
+};
+
+
 
 
 //==============================================================================================================================================
@@ -753,7 +766,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
             :                                                                                                                                                                       'lr-tb';
-        B.AllowPlaceholderItems = (B.ExtractionPolicy != 'at-once'/* && Metadata['rendition:layout'] == 'pre-paginated'*/);
+        B.AllowPlaceholderItems = (B.ExtractionPolicy != 'at-once' && Metadata['rendition:layout'] == 'pre-paginated');
         [B.Container.Path, B.Package.Path].forEach(Path => {
             const Item = B.Package.Manifest.Items[Path];
             delete Item.Path, delete Item.Content, delete Item.DataType;
@@ -1039,7 +1052,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         }
         ItemBox.insertBefore(Item, ItemBox.firstChild);
     })).then(() => {
-        L.postprocessItem(Item);
+        return L.postprocessItem(Item);
     }).then(() => {
         //console.log(Item.src);
         Item.Loaded = true;
@@ -1165,8 +1178,8 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     });
     sML.forEach(Item.Body.querySelectorAll('svg, img'))(Img => {
         Img.BibiDefaultStyle = {
-               width:  (Img.style.   width  ? Img.style.   width  : ''),
-               height: (Img.style.   height ? Img.style.   height : ''),
+               width:  (Img.style.width     ? Img.style.width     : ''),
+               height: (Img.style.height    ? Img.style.height    : ''),
             maxWidth:  (Img.style.maxWidth  ? Img.style.maxWidth  : ''),
             maxHeight: (Img.style.maxHeight ? Img.style.maxHeight : '')
         };
@@ -1275,48 +1288,58 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
         });
     });
 }).then(() => {
-    Spread.Spreaded = (Spread.Items[0].Spreaded || (Spread.Items[1] && Spread.Items[1].Spreaded)) ? true : false;
-    Spread.Box.classList.toggle('spreaded', Spread.Spreaded);
-    const SpreadSize = { Width: 0, Height: 0 };
-    if(Spread.Items.length == 1) {
+    const SpreadSize = { Width: 0, Height: 0 }, SpreadItems = Spread.Items, SpreadBox = Spread.Box;
+    Spread.Spreaded = (SpreadItems[0].Spreaded || (SpreadItems[1] && SpreadItems[1].Spreaded)) ? true : false;
+    SpreadBox.classList.toggle('spreaded', Spread.Spreaded);
+    if(SpreadItems.length == 1) {
         // Single Reflowable/Pre-Paginated Item
-        SpreadSize.Width  = Spread.Items[0].Box.offsetWidth;
-        SpreadSize.Height = Spread.Items[0].Box.offsetHeight;
-        if(Spread.Spreaded && Spread.Items[0].Ref['rendition:layout'] == 'pre-paginated' && /^(left|right)$/.test(Spread.Items[0].Ref['rendition:page-spread'])) {
+        SpreadSize.Width  = SpreadItems[0].Box.offsetWidth;
+        SpreadSize.Height = SpreadItems[0].Box.offsetHeight;
+        if(Spread.Spreaded && SpreadItems[0].Ref['rendition:layout'] == 'pre-paginated' && /^(left|right)$/.test(SpreadItems[0].Ref['rendition:page-spread'])) {
             // Single Pre-Paginated Spreaded Left/Right Item
             SpreadSize.Width *= 2;
         }
-    } else if(Spread.Items[0].Ref['rendition:layout'] == 'pre-paginated' && Spread.Items[1].Ref['rendition:layout'] == 'pre-paginated') {
+    } else if(SpreadItems[0].Ref['rendition:layout'] == 'pre-paginated' && SpreadItems[1].Ref['rendition:layout'] == 'pre-paginated') {
         // Paired Pre-Paginated Items
         if(Spread.Spreaded || S.RVM != 'vertical') {
-            SpreadSize.Width  =          Spread.Items[0].Box.offsetWidth + Spread.Items[1].Box.offsetWidth;
-            SpreadSize.Height = Math.max(Spread.Items[0].Box.offsetHeight, Spread.Items[1].Box.offsetHeight);
+            SpreadSize.Width  =          SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth;
+            SpreadSize.Height = Math.max(SpreadItems[0].Box.offsetHeight, SpreadItems[1].Box.offsetHeight);
         } else {
-            SpreadSize.Width  = Math.max(Spread.Items[0].Box.offsetWidth,   Spread.Items[1].Box.offsetWidth);
-            SpreadSize.Height =          Spread.Items[0].Box.offsetHeight + Spread.Items[1].Box.offsetHeight;
+            SpreadSize.Width  = Math.max(SpreadItems[0].Box.offsetWidth,   SpreadItems[1].Box.offsetWidth);
+            SpreadSize.Height =          SpreadItems[0].Box.offsetHeight + SpreadItems[1].Box.offsetHeight;
         }
     } else {
-        // Paired Mixed Items
-        if(R.Stage.Width > Spread.Items[0].Box.offsetWidth + Spread.Items[1].Box.offsetWidth) {
+        // Paired Items Including Reflowable
+        if(S.SLA == 'horizontal') { // if(R.Stage.Width > SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth) {
             // horizontal layout
-            SpreadSize.Width  =          Spread.Items[0].Box.offsetWidth + Spread.Items[1].Box.offsetWidth;
-            SpreadSize.Height = Math.max(Spread.Items[0].Box.offsetHeight, Spread.Items[1].Box.style.offsetHeight);
-            console.log(`» R.layOutSpread › Mixed:H › R.Spreads[${ Spread.Index }]`, Spread);
+            SpreadSize.Width  =          SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth;
+            SpreadSize.Height = Math.max(SpreadItems[0].Box.offsetHeight, SpreadItems[1].Box.offsetHeight);
+            if(Bibi.Dev) {
+                O.log(`Paired Items incl/Reflowable (Horizontal)`, '<g:>');
+                O.log(`[0] w${ SpreadItems[0].Box.offsetWidth }/h${ SpreadItems[0].Box.offsetHeight } %O`, SpreadItems[0]);
+                O.log(`[1] w${ SpreadItems[1].Box.offsetWidth }/h${ SpreadItems[1].Box.offsetHeight } %O`, SpreadItems[1]);
+                O.log(`-=> w${               SpreadSize.Width }/h${               SpreadSize.Height } %O`, Spread, '</g>');
+            }
         } else {
             // vertical layout
-            SpreadSize.Width  = Math.max(Spread.Items[0].Box.offsetWidth,   Spread.Items[1].Box.offsetWidth);
-            SpreadSize.Height =          Spread.Items[0].Box.offsetHeight + Spread.Items[1].Box.offsetHeight;
-            console.log(`» R.layOutSpread › Mixed:V › R.Spreads[${ Spread.Index }]`, Spread);
+            SpreadSize.Width  = Math.max(SpreadItems[0].Box.offsetWidth,   SpreadItems[1].Box.offsetWidth);
+            SpreadSize.Height =          SpreadItems[0].Box.offsetHeight + SpreadItems[1].Box.offsetHeight;
+            if(Bibi.Dev) {
+                O.log(`Paired Items incl/Reflowable (Vertical)`, '<g:>');
+                O.log(`[0] w${ SpreadItems[0].Box.offsetWidth }/h${ SpreadItems[0].Box.offsetHeight } %O`, SpreadItems[0]);
+                O.log(`[1] w${ SpreadItems[1].Box.offsetWidth }/h${ SpreadItems[1].Box.offsetHeight } %O`, SpreadItems[1]);
+                O.log(`-=> w${               SpreadSize.Width }/h${               SpreadSize.Height } %O`, Spread, '</g>');
+            }
         }
     }
     if(O.Scrollbars.Height && S.SLA == 'vertical' && S.ARA != 'vertical') {
-        Spread.Box.style.minHeight    = S.RVM == 'paged' ?   'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
-        Spread.Box.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + 'px'  : '';
+        SpreadBox.style.minHeight    = S.RVM == 'paged' ?   'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
+        SpreadBox.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + 'px'  : '';
     } else {
-        Spread.Box.style.minHeight = Spread.Box.style.marginBottom = ''
+        SpreadBox.style.minHeight = SpreadBox.style.marginBottom = ''
     }
-    Spread.Box.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
-    Spread.Box.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
+    SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
+    SpreadBox.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
     sML.style(Spread, {
         'border-radius': S['spread-border-radius'],
         'box-shadow':    S['spread-box-shadow']
@@ -1345,11 +1368,26 @@ R.renderReflowableItem = (Item) => {
     let   PageCL = R.Stage[C.L_SIZE_L] - ItemPaddingBA; // Page "C"ontent "L"ength
     const PageGap = ItemPaddingBA;
     ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
-    Item.HTML.classList.remove('bibi-columned');
-    Item.HTML.style.width = Item.HTML.style.height = '';
-    sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+    sML.style(Item.HTML, { 'width': '', 'height': '' });
+    if(Item.WithGutters) {
+        Item.HTML.classList.remove('bibi-with-gutters');
+        if(Item.Neck.parentNode) Item.Neck.parentNode.removeChild(Item.Neck);
+        Item.Neck.innerHTML = '';
+        delete Item.Neck;
+    }
+    if(Item.Columned) {
+        sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+        Item.HTML.classList.remove('bibi-columned');
+        if(O.ReverseItemPaginationDirectionIfNecessary && Item.ReversedColumned) {
+            Item.HTML.style.direction = '';
+            sML.forEach(Item.contentDocument.querySelectorAll('body > *'))(Ele => Ele.style.direction = '');
+        }
+    }
+    Item.WithGutters = false;
+    Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
+    Item.ReversedColumned = false;
     Item.Half = false;
-    if(!S['single-page-always'] && /-tb$/.test(Item.WritingMode) && S.SLA == 'horizontal') {
+    if(S['double-spread-for-reflowable'] && S.SLA == 'horizontal' && (O.PaginateWithCSSShapes || /-tb$/.test(Item.WritingMode))) {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
         if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) {
             PageCL = HalfL;
@@ -1375,45 +1413,29 @@ R.renderReflowableItem = (Item) => {
             maxHeight: '100vh'
         });
     });
-    Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
-    //* //:TestingCSSShapes:Current
-    if(!Item.Outsourcing && (S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB)) {
-        // Columify
-        Item.HTML.classList.add('bibi-columned');
-        sML.style(Item.HTML, {
-            [C.L_SIZE_b]: PageCB + 'px',
-            [C.L_SIZE_l]: PageCL + 'px',
-            'column-fill': 'auto',
-            'column-width': PageCL + 'px',
-            'column-gap': PageGap + 'px',
-            'column-rule': ''
-        });
-        R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
-    }
-    //*/
-    /* //:TestingCSSShapes
+    let PaginateWith = '';
     if(!Item.Outsourcing) {
-        if(Item.Spacer) {
-            Item.Body.removeChild(Item.Spacer);
-            delete Item.Spacer;
-        }
-        if(Item.HTML['offset'+ C.L_SIZE_B] > PageCB) {
-            // Columify
-            console.log('R.Items[' + Item.Index + ']: ' + Item.HTML['offset'+ C.L_SIZE_B] + ' > ' + PageCB);
+        if(O.PaginateWithCSSShapes) {
+                 if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL) PaginateWith = 'S'; // VM:Paged WM:Vertical LA:Horizontal
+            else if(                    Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal / VM:Vertical WM:Vertical LA:Vertical
+        } else   if(S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal / VM:Paged/Vertical WM:Vertical LA:Vertical
+    }
+    switch(PaginateWith) {
+        case 'S':
             Item.HTML.classList.add('bibi-columned');
             sML.style(Item.HTML, {
-                [C.L_SIZE_b]: PageCB + 'px',
+                [C.L_SIZE_b]: 'auto',
                 [C.L_SIZE_l]: PageCL + 'px',
                 'column-fill': 'auto',
-                'column-width': PageCL + 'px',
-                'column-gap': PageGap + 'px',
+                'column-width': PageCB + 'px',
+                'column-gap': 0,
                 'column-rule': ''
             });
-            R.Columned = Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
-        } else if(Item.HTML['offset'+ C.L_SIZE_L] > PageCL && S.RVM == 'paged') {
-            const HowManyPages = Math.ceil(Item.HTML['offset'+ C.L_SIZE_L] / PageCL);
-            console.log('R.Items[' + Item.Index + ']: ' + Item.HTML['offset'+ C.L_SIZE_L] + ' > ' + PageCL + ' / ' + HowManyPages + ' pages');
-            const ItemLength = (PageCL + PageGap) * HowManyPages - PageGap
+            const HowManyPages = Math.ceil((sML.UA.Trident ? Item.Body.clientHeight : Item.HTML.scrollHeight) / PageCB);
+            sML.style(Item.HTML, { 'width': '', 'height': '', 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+            Item.HTML.classList.remove('bibi-columned');
+            Item.HTML.classList.add('bibi-with-gutters');
+            const ItemLength = (PageCL + PageGap) * HowManyPages - PageGap;
             Item.HTML.style[C.L_SIZE_L] = ItemLength + 'px';
             const Points = [0, 0];
             for(let i = 1; i < HowManyPages; i++) {
@@ -1424,29 +1446,46 @@ R.renderReflowableItem = (Item) => {
                 Points.push(PageCB), Points.push(  End);
                 Points.push(     0), Points.push(  End);
             }
-            if(/^tb-/.test(B.WritingMode)) Points.reverse();
+            if(/^tb-/.test(Item.WritingMode)) Points.reverse();
             const Polygon = [];
-            Points.forEach((Point, i) => {
-                if(i % 2 == 0) Polygon.push(Point + 'px'); else Polygon[(i - 1) / 2] += ' ' + Point + 'px';
+            for(let Pt = '', l = Points.length, i = 0; i < l; i++) if(i % 2 == 0) Pt = Points[i] + 'px'; else Polygon.push(Pt + ' ' + Points[i] + 'px');
+            const Neck = Bibi.createElement('bibi-neck'), Throat = Neck.appendChild(Bibi.createElement('bibi-throat')), ShadowOrThroat = Throat.attachShadow ? Throat.attachShadow({ mode: 'open' }) : Throat.createShadowRoot ? Throat.createShadowRoot() : Throat;
+            ShadowOrThroat.appendChild(document.createElement('style')).textContent = (ShadowOrThroat != Throat ? ':host' : 'bibi-throat') + ` { ${C.L_SIZE_b}: ${PageCB}px; ${C.L_SIZE_l}: ${ItemLength}px; shape-outside: polygon(${ Polygon.join(', ') }); }`;
+            Item.Neck = Item.Head.appendChild(Neck);
+            Item.WithGutters = true;
+            break;
+        case 'C':
+            Item.HTML.classList.add('bibi-columned');
+            sML.style(Item.HTML, {
+                [C.L_SIZE_b]: PageCB + 'px',
+                //[C.L_SIZE_l]: PageCL + 'px',
+                'column-fill': 'auto',
+                'column-width': PageCL + 'px',
+                'column-gap': PageGap + 'px',
+                'column-rule': ''
             });
-            Item.Spacer = Item.Body.insertBefore(sML.create('span', {
-                style: {
-                    'display': 'block',
-                    'float': 'left',
-                    [C.L_SIZE_b]: PageCB + 'px',
-                    [C.L_SIZE_l]: ItemLength + 'px',
-                    'background': 'red',
-                    'shape-outside': 'polygon(' + Polygon.join(', ') + ')'
+            R.Columned = true;
+            Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
+            if(O.ReverseItemPaginationDirectionIfNecessary) {
+                let ToBeReversedColumnAxis = false;
+                switch(Item.WritingMode) {
+                    case 'lr-tb': case 'tb-lr': if(S['page-progression-direction'] != 'ltr') ToBeReversedColumnAxis = true; break;
+                    case 'rl-tb': case 'tb-rl': if(S['page-progression-direction'] != 'rtl') ToBeReversedColumnAxis = true; break;
                 }
-            }), Item.Body.firstChild);
-        }
+                if(ToBeReversedColumnAxis) {
+                    Item.ReversedColumned = true;
+                    sML.forEach(Item.contentDocument.querySelectorAll('body > *'))(Ele => Ele.style.direction = getComputedStyle(Ele).direction);
+                    Item.HTML.style.direction = S['page-progression-direction'];
+                    //if(sML.UA.Chromium) Item.HTML.style.transform = 'translateX(' + (Item.HTML['scroll'+ C.L_SIZE_L] - Item.HTML['offset'+ C.L_SIZE_L]) * (S['page-progression-direction'] == 'rtl' ? 1 : -1) + 'px)';
+                }
+            }
+            break;
     }
-    //*/
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
     let ItemL = sML.UA.Trident ? Item.Body['client' + C.L_SIZE_L] : Item.HTML['scroll' + C.L_SIZE_L];
     const HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
-    Item.style[C.L_SIZE_l] = ItemL + 'px';
+    Item.style[C.L_SIZE_l] = Item.HTML.style[C.L_SIZE_l] = ItemL + 'px';
     if(sML.UA.Trident) Item.HTML.style[C.L_SIZE_l] = '100%';
     let ItemBoxB = PageCB + ItemPaddingSE;
     let ItemBoxL = ItemL  + ItemPaddingBA;// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
@@ -1459,12 +1498,18 @@ R.renderReflowableItem = (Item) => {
     Item.Pages = [];
     for(let i = 0; i < HowManyPages; i++) {
         const Page = Item.Box.appendChild(sML.create('span', { className: 'page' }));
-        Page.style[C.L_SIZE_l] = R.Stage[C.L_SIZE_L] + 'px';
+        //Page.style[C.L_SIZE_l] = (PageCL + ItemPaddingBA) + 'px';//R.Stage[C.L_SIZE_L] + 'px';
         Page.Item = Item, Page.Spread = Item.Spread;
         Page.IndexInItem = Item.Pages.length;
         Item.Pages.push(Page);
         Bibi.Eyes.observe(Page);
     }
+    /*
+    if(Item.Index == 2) { //setTimeout(() => {
+        console.log(`R.Items[${ Item.Index }]:`, Item);
+        O.logSets(`R.Items[${ Item.Index }]`, '.', ['HTML', 'Body'], '.', ['offset', 'client', 'scroll'], ['Width', 'Height', 'Left', 'Top']); //}, 100);
+    }
+    //*/
     return Item;
 };
 
@@ -1651,7 +1696,7 @@ R.layOutStage = () => {
     //E.dispatch('bibi:is-going-to:lay-out-stage');
     let MainContentLayoutLength = 0;
     R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box['offset' + C.L_SIZE_L]);
-    MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
+    if(S['book-rendition-layout'] == 'pre-paginated' || S['reader-view-mode'] != 'paged') MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
     R.Main.Book.style[C.L_SIZE_l] = MainContentLayoutLength + 'px';
     //E.dispatch('bibi:laid-out-stage');
 };
@@ -2122,13 +2167,15 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
     let Promised = {};
     if(
+        true ||
         R.Columned ||
         S.BRL == 'pre-paginated' ||
+        S.BRL == 'reflowable' && S.RVM == 'paged' ||
         CurrentItem.Ref['rendition:layout'] == 'pre-paginated' ||
         CurrentItem.Outsourcing ||
         CurrentItem.Pages.length == 1 ||
-        (Par.Distance < 0 && CurrentPage.IndexInItem == 0) ||
-        (Par.Distance > 0 && CurrentPage.IndexInItem == CurrentItem.Pages.length - 1)
+        Par.Distance < 0 && CurrentPage.IndexInItem == 0 ||
+        Par.Distance > 0 && CurrentPage.IndexInItem == CurrentItem.Pages.length - 1
     ) {
         let Side = Par.Distance > 0 ? 'before' : 'after';
         if(Current.PageIntersectionStatus.Oversize) {
@@ -3212,7 +3259,8 @@ I.Slider = { create: () => {
         BookZoomOut: {
             Transformation: {},
             Stretch: 0,
-            Padding: {}
+            OuterPadding: {},
+            InnerPadding: {}
         },
         defineBookZoomOut: () => {
             const BookMarginStart = (S['use-full-height'] && S.ARA == 'horizontal' ? I.Menu.Height : 0);
@@ -3224,25 +3272,27 @@ I.Slider = { create: () => {
             Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Slider.BookZoomOut.Transformation.Scale) - I.Menu.Height) / 2 : 0;
             Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Slider.BookZoomOut.Transformation.Scale) / 2;
             Slider.BookZoomOut.Stretch = (O.Body['offset' + C.A_SIZE_L] / Slider.BookZoomOut.Transformation.Scale - R.Main['offset' + C.A_SIZE_L]);
-            Slider.BookZoomOut.Padding = {
+            Slider.BookZoomOut.OuterPadding = {
                 [C.A_BASE_B]: Slider.BookZoomOut.Stretch / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0),
                 [C.A_BASE_A]: Slider.BookZoomOut.Stretch / 2
             };
-            if(S.ARA == S.SLA) Slider.BookZoomOut.Padding[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = Slider.BookZoomOut.Stretch / 2;
+            Slider.BookZoomOut.InnerPadding = S.ARA == S.SLA ? {
+                [S.ARA == 'horizontal' ? 'Right' : 'Bottom']: Slider.BookZoomOut.Stretch / 2
+            } : {};
         },
         zoomOutBook: () => {
             Slider.defineBookZoomOut();
             Slider.BookStretchingEach = Slider.BookZoomOut.Stretch / 2;
-            for(const Dir in Slider.BookZoomOut.Padding) R.Main.style['padding' + Dir] = Slider.BookZoomOut.Padding[Dir] + 'px';
+            for(const Dir in Slider.BookZoomOut.OuterPadding)      R.Main.style['padding' + Dir] = Slider.BookZoomOut.OuterPadding[Dir] + 'px';
+            for(const Dir in Slider.BookZoomOut.InnerPadding) R.Main.Book.style['padding' + Dir] = Slider.BookZoomOut.InnerPadding[Dir] + 'px';
             return I.Loupe.transform(Slider.BookZoomOut.Transformation, { Temporary: true }).then(() => {
                 Slider.progress();
             });
         },
         resetZoomingOutOfBook: () => {
-            R.Main.style['padding' + C.A_BASE_B] = R.Main.style['padding' + C.A_BASE_A] = '';
+            R.Main.style.padding = R.Main.Book.style.padding = '';
             return I.Loupe.transformReset().then(() => {
                 //R.Main.style[C.A_SIZE_l] = '';
-                if(S.ARA == S.SLA) R.Main.Book.style['padding' + (S.ARA == 'horizontal' ? 'Right' : 'Bottom')] = '';
                 Slider.BookStretchingEach = 0;
                 Slider.progress();
             });
@@ -3937,6 +3987,16 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
                     E.dispatch(Arrow, 'bibi:taps',   Eve);
                     E.dispatch(Arrow, 'bibi:tapped', Eve);
                     R.moveBy({ Distance: Turner.Distance });
+                    if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
+                        try {
+                            R.Pages[R.Current.List[          0].Page.Index].Spread.Box.classList.remove('current');
+                            R.Pages[R.Current.List.slice(-1)[0].Page.Index].Spread.Box.classList.remove('current');
+                        } catch(Err) {}
+                        try {
+                            if(Turner.Distance < 0) R.Pages[R.Current.List[          0].Page.Index + Turner.Distance].Spread.Box.classList.add('current');
+                            else                    R.Pages[R.Current.List.slice(-1)[0].Page.Index + Turner.Distance].Spread.Box.classList.add('current');
+                        } catch(Err) {}
+                    }
                 }
             }
         }
@@ -4622,6 +4682,8 @@ S.initialize = (before, after) => {
     }
     // --------
     E.dispatch('bibi:initialized-settings');
+    O.PaginateWithCSSShapes = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
+    O.ReverseItemPaginationDirectionIfNecessary = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
 };
 
 
@@ -4633,17 +4695,21 @@ S.update = (Settings) => {
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
     S['page-progression-direction'] = B.PPD;
-    S['spread-layout-axis'] = (() => {
-        if(S['reader-view-mode'] != 'paged') return S['reader-view-mode'];
-        if(S['book-rendition-layout'] == 'reflowable') switch(B.WritingMode) {
-          //case 'tb-rl': case 'tb-lr': return 'horizontal'; //:TestingCSSShapes
-            case 'tb-rl': case 'tb-lr': return   'vertical'; //:TestingCSSShapes:Current
-        }                               return 'horizontal';
-    })();
+    if(O.PaginateWithCSSShapes) {
+        S['spread-layout-axis'] = S['reader-view-mode'] == 'vertical' ? 'vertical' : 'horizontal';
+    } else {
+        S['spread-layout-axis'] = (() => {
+            if(S['reader-view-mode'] != 'paged') return S['reader-view-mode'];
+            if(S['book-rendition-layout'] == 'reflowable') switch(B.WritingMode) {
+                case 'tb-rl': case 'tb-lr': return   'vertical'; ////
+            }                               return 'horizontal';
+        })();
+    }
         S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
      S['apparent-reading-axis']      = (S['reader-view-mode']   == 'paged'   ) ? 'horizontal' : S['reader-view-mode'];
      S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
     S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S['page-progression-direction'] != 'rtl') ? 'ttb' : 'rtl';
+    //S['spread-gap'] = S['book-rendition-layout'] == 'reflowable' ? S['spread-gap_reflowable'] : S['spread-gap_pre-paginated'];
     for(const Mode in S.Modes) {
         const Pfx = S.Modes[Mode].CNP + '-', PC = Pfx + Prev[Mode], CC = Pfx + S[Mode];
         if(PC != CC) O.HTML.classList.remove(PC);
@@ -4759,6 +4825,26 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
             console[Method].apply(console, Args);
         };
     };
+
+O.logSets = (...Args) => {
+    let Repeats = [], Sets = []; Sets.length = 1;
+    Args.reverse();
+    for(let i = 0; i < Args.length; i++) {
+        if(!Args[i].map) Args[i] = [Args[i]];
+        Repeats[i] = Sets.length;
+        Sets.length = Sets.length * Args[i].length;
+    }
+    Args.reverse(), Repeats.reverse();
+    for(let i = 0; i < Sets.length; i++) Sets[i] = '';
+    Args.forEach((_AA, i) => {
+        let s = 0;
+        while(s < Sets.length) _AA.forEach(_A => {
+            let r = Repeats[i];
+            while(r--) Sets[s++] += _A;
+        });
+    });
+    Sets.forEach(Set => console.log('- ' + Set + ': ' + eval(Set)));
+};
 
 
 O.error = (Msg) => {
@@ -5320,10 +5406,10 @@ O.SettingTypes = {
         'allow-placeholders',
         'autostart',
         'autostart-embedded',
+        'double-spread-for-reflowable',
         'fix-nav-ttb',
         'fix-reader-view-mode',
         'place-menubar-at-top',
-        'single-page-always',
         'start-embedded-in-new-window',
         'use-arrows',
         'use-bookmarks',
