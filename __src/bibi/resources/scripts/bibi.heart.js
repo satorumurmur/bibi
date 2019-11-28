@@ -3623,11 +3623,22 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
 I.Turner = { create: () => {
     const Turner = I.Turner = {
         Back: { Distance: -1 }, Forward: { Distance: 1 },
+        initialize: () => {
+            Turner[-1] = Turner.Back, Turner[1] = Turner.Forward;
+            if(S['accept-orthogonal-input']) {
+                Turner['top'] = Turner.Back, Turner['bottom'] = Turner.Forward;
+                switch(B.PPD) {
+                    case 'ltr': Turner['left']  = Turner.Back, Turner['right'] = Turner.Forward; break;
+                    case 'rtl': Turner['right'] = Turner.Back, Turner['left']  = Turner.Forward; break;
+                }
+            }
+        },
         update: () => {
-            switch(B.PPD) {
-                case 'ltr': Turner['left']  = Turner.Back, Turner['right'] = Turner.Forward; break;
-                case 'rtl': Turner['right'] = Turner.Back, Turner['left']  = Turner.Forward; break;
-                default   : Turner['left'] = Turner['right'] = undefined;
+            if(S['accept-orthogonal-input']) return;
+            switch(S.ARD) {
+                case 'ltr': Turner['left']  = Turner.Back, Turner['right']  = Turner.Forward, Turner['top']  = Turner['bottom'] = undefined; break;
+                case 'rtl': Turner['right'] = Turner.Back, Turner['left']   = Turner.Forward, Turner['top']  = Turner['bottom'] = undefined; break;
+                case 'ttb': Turner['top']   = Turner.Back, Turner['bottom'] = Turner.Forward, Turner['left'] = Turner['right']  = undefined; break;
             }
         },
         getDirection: (Division) => {
@@ -3664,8 +3675,10 @@ I.Turner = { create: () => {
             return false;
         }
     };
-    Turner['top'] = Turner[-1] = Turner.Back, Turner['bottom'] = Turner[1] = Turner.Forward;
-    E.add('bibi:opened', () => Turner.update());
+    E.add('bibi:opened', () => {
+        Turner.initialize();
+        Turner.update(), E.add('bibi:changed-view', () => Turner.update());
+    });
 }};
 
 
@@ -3914,25 +3927,28 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             if(typeof KeyCodesToUpdate == 'function') KeyCodesToUpdate = KeyCodesToUpdate();
             EventTypes.forEach(EventType => KeyListener.KeyCodes[EventType] = sML.edit(KeyListener.KeyCodes[EventType], KeyCodesToUpdate));
         },
-        MovingParameters: {
-            'Up Arrow':     -1,  'Down Arrow':      1,  'Page Up':     -1,  'Page Down':      1,  'End': 'foot',  'Home': 'head',//  'Space':  1,
-            'UP ARROW': 'head',  'DOWN ARROW': 'foot',  'PAGE UP': 'head',  'PAGE DOWN': 'foot',  'END': 'foot',  'HOME': 'head'//,  'SPACE': -1
+        MovingParameters: {},
+        initializeMovingParameters: () => {
+            let _ = {};
+            if(S['accept-orthogonal-input']) switch(B.PPD) {
+                case 'ltr': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
+                case 'rtl': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
+            }
+            sML.applyRtL(_, { 'End': 'foot',  'Home': 'head' });
+            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : _[p] == 'head' ? 'foot' : _[p] == 'foot' ? 'head' : 0;
+            //sML.applyRtL(_, { 'Space': 1, 'SPACE': -1 }); // Space key is reserved for Loupe.
+            return KeyListener.MovingParameters = _;
         },
         updateMovingParameters: () => {
-            switch(B.PPD) {
-                case 'ltr': return sML.edit(KeyListener.MovingParameters, {
-                    'Right Arrow':      1,  'Left Arrow':     -1,
-                    'RIGHT ARROW': 'foot',  'LEFT ARROW': 'head'
-                });
-                case 'rtl': return sML.edit(KeyListener.MovingParameters, {
-                    'Right Arrow':     -1,  'Left Arrow':      1,
-                    'RIGHT ARROW': 'head',  'LEFT ARROW': 'foot'
-                });
-                default: return sML.edit(KeyListener.MovingParameters, {
-                    'Right Arrow':      0,  'Left Arrow':      0,
-                    'RIGHT ARROW':     '',  'LEFT ARROW':     ''
-                });
+            if(S['accept-orthogonal-input']) return;
+            let _ = {};
+            switch(S.ARD) {
+                case 'ltr': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
+                case 'rtl': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
+                case 'ttb': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  0, 'Right Arrow':  0 }; break;
             }
+            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : 0;
+            sML.applyRtL(KeyListener.MovingParameters, _);
         },
         getBibiKeyName: (Eve) => {
             const KeyName = KeyListener.KeyCodes[Eve.type][Eve.keyCode];
@@ -4018,7 +4034,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
     });
     E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyListener.observe(Item.contentDocument));
     E.add('bibi:opened', () => {
-        KeyListener.updateMovingParameters();
+        KeyListener.initializeMovingParameters(), KeyListener.updateMovingParameters(), E.add('bibi:changed-view', () => KeyListener.updateMovingParameters());
         KeyListener.observe(document);
         E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyListener.tryMoving(Eve));
     });
@@ -5428,6 +5444,7 @@ O.SettingTypes = {
         'prioritise-fallbacks'
     ],
     'yes-no': [
+        'accept-orthogonal-input',
         'allow-placeholders',
         'autostart',
         'autostart-embedded',
