@@ -3117,14 +3117,15 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
 I.History = {
     List: [], Updaters: [],
     update: () => I.History.Updaters.forEach(fun => fun()),
-    add: (UI, LastOfSerialOnly) => {
+    add: (Opt = {}) => {
+        if(!Opt.UI) Opt.UI = Bibi;
         R.updateCurrent();
         const CurrentPage = R.Current.List[0].Page,
                  LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
         if(CurrentPage != LastPage) {
-            if(LastOfSerialOnly && I.History.List[I.History.List.length - 1].UI == UI) I.History.List.pop();
+            if(Opt.SumUp && I.History.List[I.History.List.length - 1].UI == Opt.UI) I.History.List.pop();
             const Spread = CurrentPage.Spread;
-            I.History.List.push({ UI: UI, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length });
+            I.History.List.push({ UI: Opt.UI, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length });
             if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
                 I.History.List.shift(); // Remove the second
@@ -3156,7 +3157,7 @@ I.Slider = { create: () => {
             Slider.Thumb          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
             if(!S['use-history']) return;
             Slider.classList.add('bibi-slider-with-history');
-            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }, { add: () => I.History.add(Slider) }));
+            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }, { add: () => I.History.add({ UI: Slider }) }));
             Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
                 Type: 'normal',
                 Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
@@ -3573,7 +3574,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
                         Bookmark: Bmk,
                         action: () => {
-                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add(BookmarkManager, true));
+                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add({ UI: BookmarkManager/*, SumUp: true*/ }));
                             if(!L.Waiting) return false;
                             if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
                             S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
@@ -3673,6 +3674,11 @@ I.Turner = { create: () => {
                 }
             }
             return false;
+        },
+        turn: (Distance) => {
+            const IsSameDirection = (Distance == Turner.PreviousDistance);
+            Turner.PreviousDistance = Distance;
+            return R.moveBy({ Distance: Distance }).then(() => I.History.add({ UI: Turner, SumUp: IsSameDirection }));
         }
     };
     E.add('bibi:opened', () => {
@@ -3767,7 +3773,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             const Arrow = Turner.Arrow;
             E.dispatch(Arrow, 'bibi:taps',   Eve);
             E.dispatch(Arrow, 'bibi:tapped', Eve);
-            R.moveBy({ Distance: Turner.Distance }).then(() => I.History.add(Arrows, true));
+            I.Turner.turn(Turner.Distance);
         }
     });
     E.add('bibi:commands:move-by', Par => { // indicate direction
@@ -3885,9 +3891,7 @@ I.SwipeListener = { create: () => {
                         else if(  30 >= Deg && Deg >=  -30) From = 'left',   To = 'right';
                         else if( -60 >= Deg && Deg >= -120) From = 'top',    To = 'bottom';
                         else if(-150 >= Deg || Deg >=  150) From = 'right',  To = 'left';
-                        if(I.Turner.isAbleToTurn({ Direction: From })) {
-                            R.moveBy({ Distance: I.Turner[From].Distance });
-                        }
+                        if(I.Turner.isAbleToTurn({ Direction: From })) I.Turner.turn(I.Turner[From].Distance);
                     }
                 }
             }
@@ -4009,7 +4013,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
                     const Arrow = Turner.Arrow;
                     E.dispatch(Arrow, 'bibi:taps',   Eve);
                     E.dispatch(Arrow, 'bibi:tapped', Eve);
-                    R.moveBy({ Distance: Turner.Distance });
+                    I.Turner.turn(Turner.Distance);
                     if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
                         try {
                             R.Pages[R.Current.List[          0].Page.Index].Spread.Box.classList.remove('current');
