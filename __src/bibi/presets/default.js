@@ -43,7 +43,7 @@ Bibi.preset({
 "accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
 
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-"max-history"                : 9, // Number (0-9). If larger than 9, treated as 9. If 0, "use-history" is treated as "no". 
+"max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
 
 "use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 

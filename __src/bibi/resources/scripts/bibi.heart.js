@@ -244,23 +244,25 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
 }).then(() => {
     // Load & Layout Items in Spreads and Pages
     O.log(`Loading Items in Spreads...`, '<g:>');
-    const Promises = [], TargetSpreadIndex = (() => {
-        if(typeof S['to'] == 'object') {
-            if(typeof S['to'].SpreadIndex      == 'number') return S['to'].SpreadIndex;
-            if(typeof S['to'].ItemIndexInSpine == 'number') return B.Package.Spine.Items[S['to'].ItemIndexInSpine].Spread.Index;
-        }
-        return 0;
-    })();
+    const Promises = [];
     const LayoutOption = {
-        TargetSpreadIndex: TargetSpreadIndex,
-        Destination: S['to'] || { Edge: 'head' },
+        TargetSpreadIndex: 0,
+        Destination: { Edge: 'head' },
         resetter:       () => { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
         addResetter:    () => { window   .addEventListener('resize', LayoutOption.resetter); },
         removeResetter: () => { window.removeEventListener('resize', LayoutOption.resetter); }
     };
+    if(typeof S['to'] == 'object') {
+        LayoutOption.TargetSpreadIndex =
+            (typeof S['to'].SpreadIndex       == 'number') ? S['to'].SpreadIndex :
+            (typeof S['to'].ItemIndexInSpine  == 'number') ? B.Package.Spine.Items[S['to'].ItemIndexInSpine].Spread.Index :
+            (       S['to']['SI-PPiS']                   ) ? S['to']['SI-PPiS'].split('-')[0] :
+            0;
+        LayoutOption.Destination = S['to'];
+    }
     LayoutOption.addResetter();
     let LoadedItems = 0;
-    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != TargetSpreadIndex }).then(() => {
+    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != LayoutOption.TargetSpreadIndex }).then(() => {
         LoadedItems += Spread.Items.length;
         I.note(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
         !LayoutOption.Reset ? R.layOutSpread(Spread).then(resolve) : resolve();
@@ -281,11 +283,12 @@ Bibi.bindBook = (LayoutOption) => {
         LayoutOption.removeResetter();
         R.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
         Bibi.Eyes.wearGlasses();
+        return LayoutOption
     });
 };
 
 
-Bibi.openBook = () => new Promise(resolve => {
+Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     // Open
     Bibi.busyHerself.resolve();
     I.Veil.close();
@@ -298,11 +301,17 @@ Bibi.openBook = () => new Promise(resolve => {
 }).then(() => {
     E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent);
     R.updateCurrent();
+    const LandingPage = R.hatchPage(LayoutOption.Destination);
+    if(!I.History.List.length) {
+        I.History.List = [{ UI: Bibi, Spread: LandingPage.Spread, PageProgressInSpread: LandingPage.IndexInSpread / LandingPage.Spread.Pages.length }];
+        I.History.update();
+    }
     if(S['allow-placeholders']) {
+        R.turnSpreads({ Origin: LandingPage.Spread });
+        setTimeout(() => { R.turnSpreads(); }, 123);
         E.add('bibi:scrolled', () => R.turnSpreads());
         E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
     }
-    setTimeout(() => R.turnSpreads(), 123);
     if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
         const CurrentPage = R.Current.List[0].Page;
         O.Biscuits.memorize('Book', { 'Position': { 'SI-PPiS': CurrentPage.Spread.Index + '-' + (CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length) } });
@@ -933,7 +942,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         Eve.preventDefault(); 
         Eve.stopPropagation();
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
-            if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 });
+            if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
             if(!L.Waiting) return false;
             if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
@@ -1927,11 +1936,6 @@ R.updateCurrent = () => {
     if(CurrentList) {
         R.Current.List = CurrentList;
         R.updateCurrent.classify();
-        if(!I.History.List.length) {
-            const CurrentPage = R.Current.List[0].Page, Spread = CurrentPage.Spread;
-            I.History.List = [{ UI: Bibi, Spread: Spread, PageProgressInSpread: CurrentPage.IndexInSpread / Spread.Pages.length }];
-            I.History.update();
-        }
     }
     return R.Current;
 };
@@ -2043,7 +2047,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
     }).then(() => {
         R.Moving = false;
-        resolve();
+        resolve(Par.Destination);
         E.dispatch('bibi:focused-on', Par);
         //console.log(`FOCUSED`);
     });
@@ -2211,12 +2215,12 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
             }
         }
         Par.Destination = { Page: DestinationPage, Side: Side };
-        Promised = R.focusOn(Par);
+        Promised = R.focusOn(Par).then(() => Par.Destination);
     } else {
         Promised = R.scrollBy(Par);
     }
-    Promised.then(() => {
-        resolve();
+    Promised.then(Returned => {
+        resolve(Returned);
         E.dispatch('bibi:moved-by', Par);
     });
 }).catch(() => Promise.resolve());
@@ -3119,8 +3123,7 @@ I.History = {
     update: () => I.History.Updaters.forEach(fun => fun()),
     add: (Opt = {}) => {
         if(!Opt.UI) Opt.UI = Bibi;
-        R.updateCurrent();
-        const CurrentPage = R.Current.List[0].Page,
+        const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { R.updateCurrent(); return R.Current.List[0].Page; })(),
                  LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List[I.History.List.length - 1].UI == Opt.UI) I.History.List.pop();
@@ -3139,7 +3142,7 @@ I.History = {
         const CurrentPage = R.hatchPage(I.History.List.pop()),
                  LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
         I.History.update();
-        return R.focusOn({ Destination: LastPage });
+        return R.focusOn({ Destination: LastPage, Duration: 0 });
     }
 };
 
@@ -3157,7 +3160,8 @@ I.Slider = { create: () => {
             Slider.Thumb          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
             if(!S['use-history']) return;
             Slider.classList.add('bibi-slider-with-history');
-            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }, { add: () => I.History.add({ UI: Slider }) }));
+            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }));
+            Slider.History.add    = (Destination) => I.History.add({ UI: Slider, SumUp: false, Destination: Destination })
             Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
                 Type: 'normal',
                 Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
@@ -3204,7 +3208,7 @@ I.Slider = { create: () => {
             Eve.preventDefault();
             //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
             //setTimeout(() => R.Main.style.overflow = '', 1);
-            if(Slider.History) Slider.History.add();
+            if(Slider.History) Slider.History.add({ Page: R.Current.List[0].Page });
             Slider.Touching = true;
             Slider.TouchStartThumbCenterCoord = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2;
             Slider.TouchStartCoord = Slider.TouchingCoord = Slider.getTouchStartCoord(Eve);
@@ -3244,19 +3248,20 @@ I.Slider = { create: () => {
                 }).then(() => {
                     Slider.focus(Eve, { Turn: false, History: false });
                 });*/
-            } else Slider.focus(Eve).then(() => {
+            } else Slider.focus(Eve).then(Destination => {
                 sML.style(Slider.Thumb,         { transform: '' });
                 sML.style(Slider.Rail.Progress, { transform: '' });
                 Slider.progress();
-                if(Slider.History) Slider.History.add();
+                if(Slider.History) Slider.History.add(Desination);
             });
         },
-        focus: (Eve, Par = {}) => new Promise(resolve => {
-            Par.Destination = Slider.UI.identifyPage(Eve);
-            for(let l = R.Current.List.length, i = 0; i < l; i++) if(R.Current.List[i].Page == Par.Destination) return resolve();
+        focus: (Eve, Par = {}) => {
+            const TargetPage = Slider.UI.identifyPage(Eve)
+            Par.Destination = TargetPage;
+            for(let l = R.Current.List.length, i = 0; i < l; i++) if(R.Current.List[i].Page == TargetPage) return Promise.resolve();
             Par.Duration = 0;
-            R.focusOn(Par).then(resolve);
-        }),
+            return R.focusOn(Par);
+        },
         getTouchEndCoord: () => {
             const TouchEndCoord = {};
             TouchEndCoord[C.A_AXIS_L] = sML.limitMinMax(Slider.TouchingCoord, Slider.Rail.Coords[0], Slider.Rail.Coords[1]);
@@ -3574,7 +3579,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
                         Bookmark: Bmk,
                         action: () => {
-                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(() => I.History.add({ UI: BookmarkManager/*, SumUp: true*/ }));
+                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }));
                             if(!L.Waiting) return false;
                             if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
                             S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
@@ -3678,7 +3683,7 @@ I.Turner = { create: () => {
         turn: (Distance) => {
             const IsSameDirection = (Distance == Turner.PreviousDistance);
             Turner.PreviousDistance = Distance;
-            return R.moveBy({ Distance: Distance }).then(() => I.History.add({ UI: Turner, SumUp: IsSameDirection }));
+            return R.moveBy({ Distance: Distance }).then(Destination => I.History.add({ UI: Turner, SumUp: IsSameDirection, Destination: Destination }));
         }
     };
     E.add('bibi:opened', () => {
@@ -4618,7 +4623,7 @@ U.initialize = () => { // formerly O.readExtras
             U['to'] = U['si-ppis'];
         } else if(U['nav']) {
             delete U['to'];
-        } // Priority: si-ppis > nav > to
+        } // Priority: to < nav < si-ppis
         return U;
     };
 
@@ -4674,8 +4679,9 @@ S.initialize = (before, after) => {
     S['start-in-new-window'] = (O.Embedded && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
+    const MaxOfHistoryAndBookmarks = { 'history': 19, 'bookmarks': 9 };
     ['history', 'bookmarks'].forEach(_ => {
-        S['max-' + _] = !S['use-' + _] ? 0 : S['max-' + _] > 9 ? 9 : S['max-' + _];
+        S['max-' + _] = !S['use-' + _] ? 0 : S['max-' + _] > MaxOfHistoryAndBookmarks[_] ? MaxOfHistoryAndBookmarks[_] : S['max-' + _];
         if(S['max-' + _] == 0) S['use-' + _] = false;
     });
     // --------
