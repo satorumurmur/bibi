@@ -3685,6 +3685,14 @@ I.Turner = { create: () => {
         turn: (Distance) => {
             const IsSameDirection = (Distance == Turner.PreviousDistance);
             Turner.PreviousDistance = Distance;
+            if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
+                const CIs = [
+                    R.Current.List[          0].Page.Index,
+                    R.Current.List.slice(-1)[0].Page.Index
+                ], TI = CIs[Distance < 0 ? 0 : 1] + Distance;
+                CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
+                                    try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
+            }
             return R.moveBy({ Distance: Distance }).then(Destination => I.History.add({ UI: Turner, SumUp: IsSameDirection, Destination: Destination }));
         }
     };
@@ -4021,16 +4029,6 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
                     E.dispatch(Arrow, 'bibi:taps',   Eve);
                     E.dispatch(Arrow, 'bibi:tapped', Eve);
                     I.Turner.turn(Turner.Distance);
-                    if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
-                        try {
-                            R.Pages[R.Current.List[          0].Page.Index].Spread.Box.classList.remove('current');
-                            R.Pages[R.Current.List.slice(-1)[0].Page.Index].Spread.Box.classList.remove('current');
-                        } catch(Err) {}
-                        try {
-                            if(Turner.Distance < 0) R.Pages[R.Current.List[          0].Page.Index + Turner.Distance].Spread.Box.classList.add('current');
-                            else                    R.Pages[R.Current.List.slice(-1)[0].Page.Index + Turner.Distance].Spread.Box.classList.add('current');
-                        } catch(Err) {}
-                    }
                 }
             }
         }
