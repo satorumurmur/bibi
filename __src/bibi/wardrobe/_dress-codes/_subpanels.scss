@@ -143,6 +143,7 @@ $BookmarkSubpanel-Button_BackgroundColor__Hot: rgba(gold, .125);
 	width: $Subpanel-Icon_Size;
 	height: $Subpanel-Icon_Size;
 	color: rgba($Subpanel-Button_Color, .75);
+	opacity: 1;
 }
 
 @mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover() {

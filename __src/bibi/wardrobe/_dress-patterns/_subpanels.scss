@@ -129,7 +129,7 @@ div.bibi-subpanel {
 		.bibi-buttongroup {
 			.bibi-buttonbox {
 				.bibi-button {
-					&.hot { background: $BookmarkSubpanel-Button_BackgroundColor__Hot; }
+					// &.bibi-button-bookmark-is-hot { background: $BookmarkSubpanel-Button_BackgroundColor__Hot; }
 					.bibi-button-label {
 						@include BookmarkSubpanel-Button-Label();
 					}
@@ -137,7 +137,7 @@ div.bibi-subpanel {
 						@include size($Subpanel-Button_Height);
 						&:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon(); }
 					}
-					&.new   .bibi-remove-bookmark,
+					// &.bibi-button-bookmark-is-hot .bibi-remove-bookmark,
 					&.hover .bibi-remove-bookmark {
 						&:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark(); }
 					}

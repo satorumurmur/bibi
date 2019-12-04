@@ -316,7 +316,7 @@ div.bibi-subpanel {
 		.bibi-buttongroup {
 			.bibi-buttonbox {
 				.bibi-button {
-					&.hot, &.cold { transition: background-color linear .234s; }
+					// &.bibi-button-bookmark-is-hot, &.bibi-button-bookmark-is-cold { transition: background-color linear .234s; }
 					// @____Bibi:Dress__('-') &.hot { background: $BookmarkSubpanel-Button_BackgroundColor__Hot; }
 					.bibi-button-label {
 						// @____Bibi:Dress__('-') @include BookmarkSubpanel-ButtonLabel();
@@ -336,6 +336,9 @@ div.bibi-subpanel {
 					}
 					.bibi-remove-bookmark:hover {
 						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover(); }
+					}
+					&.bibi-button-bookmark-is-current.disabled {
+						.bibi-button-iconbox, .bibi-icon:before, .bibi-button-label, .bibi-remove-bookmark { opacity: 1 !important; }
 					}
 				}
 			}

@@ -3592,16 +3592,18 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
                     if(Bmk.IsHot) {
                         delete Bmk.IsHot;
-                        I.setUIState(Button, 'active'); setTimeout(() => { I.setUIState(Button, 'default'); }, 234);/*
-                        Button.classList.add('hot');
+                        I.setUIState(Button, 'active'); setTimeout(() => { I.setUIState(Button, ExistingBookmark == Bmk ? 'disabled' : 'default'); }, 234);/*
+                        Button.classList.add('bibi-button-bookmark-is-hot');
                         setTimeout(() => {
-                            Button.classList.remove('hot');
-                            Button.classList.add('cold');
+                            Button.classList.remove('bibi-button-bookmark-is-hot');
+                            Button.classList.add('bibi-button-bookmark-is-cold');
                             setTimeout(() => {
-                                Button.classList.remove('cold');
+                                Button.classList.remove('bibi-button-bookmark-is-cold');
                             }, 234);
                         }, 234);*/
                     }
+                    else if(ExistingBookmark == Bmk) I.setUIState(Button, 'disabled');
+                    else                             I.setUIState(Button,  'default');
                 });
             } else {
                 if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
