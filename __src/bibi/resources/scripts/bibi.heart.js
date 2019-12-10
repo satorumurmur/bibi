@@ -3252,7 +3252,7 @@ I.Slider = { create: () => {
                 sML.style(Slider.Thumb,         { transform: '' });
                 sML.style(Slider.Rail.Progress, { transform: '' });
                 Slider.progress();
-                if(Slider.History) Slider.History.add(Desination);
+                if(Slider.History) Slider.History.add(Destination);
             });
         },
         focus: (Eve, Par = {}) => {
