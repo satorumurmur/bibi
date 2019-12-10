@@ -309,8 +309,8 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     if(S['allow-placeholders']) {
         R.turnSpreads({ Origin: LandingPage.Spread });
         setTimeout(() => { R.turnSpreads(); }, 123);
-        E.add('bibi:scrolled', () => R.turnSpreads());
-        E.add('bibi:changed-intersection', () => setTimeout(() => !I.Slider.Touching ? R.turnSpreads() : false, 1));
+        E.add('bibi:scrolled', () => setTimeout(() => R.turnSpreads(), 123));
+        E.add('bibi:changed-intersection', () => !I.Slider.Touching ? R.turnSpreads() : false);
     }
     if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
         const CurrentPage = R.Current.List[0].Page;
@@ -1612,55 +1612,58 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 };
 
 
-R.SpreadsTurnedFaceUp = [];
-
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!S['allow-placeholders']) return resolve();
-    if(!Opt.Range    ) Opt.Range     = [-1, 0, 1, 2, 3];//[0, 1, -1, 2, 3, 4, -2];
-    if(!Opt.Direction) Opt.Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
-    if(!Opt.Origin) {
-             if(     R.Current.List.length) Opt.Origin = (Opt.Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread;
-        else if(R.IntersectingPages.length) Opt.Origin = (Opt.Direction > 0 ? R.IntersectingPages.slice(-1) : R.IntersectingPages)[0     ].Spread;
-        else                                return resolve(R.SpreadsTurnedFaceUp);
-    }
-    let Promised = null;
-    const SpreadsToBeTurnedFaceUp = []; /* <== */ Opt.Range.forEach(Distance => {
-        const Spread = R.Spreads[Opt.Origin.Index + Distance * Opt.Direction];
-        if(!Spread) return;
-        clearTimeout(Spread.Timer_TurningFaceUp);
-        clearTimeout(Spread.Timer_TurningFaceDown);
-        SpreadsToBeTurnedFaceUp.push(Spread);
+    const Range     = [-1, 2];
+    const Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
+    const Origin = Opt.Origin || (
+        R.Current.List.length      ? (Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread :
+        R.IntersectingPages.length ? (Direction > 0 ? R.IntersectingPages.slice(-1) : R.IntersectingPages)[0     ].Spread :
+        null
+    );
+    if(!Origin) return resolve();
+    const Promises = [];
+    const SpreadsToBeTurnedFaceUp = []; /* <== */ for(let i = Range[0]; i <= Range[1]; i++) {
+        const Spread = R.Spreads[Origin.Index + i * Direction]; if(!Spread) continue;
+        if(Spread.Turned != 'Up' && Spread.Turning != 'Up') {
+            clearTimeout(Spread.Timer_TurningFaceUp);
+            SpreadsToBeTurnedFaceUp.push(Spread);
+        }
+    }//*
+    const MinimumTurning = 2;//Math.random() < 0.25 ? 2 : 1;
+    while(SpreadsToBeTurnedFaceUp.length < MinimumTurning) {
+        const i = ++Range[1]; if(i > 9) break;
+        const Spread = R.Spreads[Origin.Index + i * Direction]; if(!Spread) break;
+        if(Spread.Turned != 'Up' && Spread.Turning != 'Up') {
+            clearTimeout(Spread.Timer_TurningFaceUp);
+            SpreadsToBeTurnedFaceUp.push(Spread);
+        }
+    }//*/
+    const SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet = []; /* <== */ if(R.turnSpreads.SpreadsTurnedFaceUp) R.turnSpreads.SpreadsTurnedFaceUp.forEach(Spread => {
+        if(Spread.Turned != 'Up' && Spread.Turning != 'Up' && !SpreadsToBeTurnedFaceUp.includes(Spread)) {
+            clearTimeout(Spread.Timer_TurningFaceUp);
+            setTimeout(() => R.turnSpread(Spread, false), 0);
+            SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet.push(Spread);
+        }
     });
-    const SpreadsAlreadyTurnedFaceUp = []; /* <== */ R.SpreadsTurnedFaceUp.forEach(Spread => {
-        if(SpreadsToBeTurnedFaceUp.includes(Spread)) return;
-        clearTimeout(Spread.Timer_TurningFaceUp);
-        clearTimeout(Spread.Timer_TurningFaceDown);
-        SpreadsAlreadyTurnedFaceUp.push(Spread);
-        if(!Spread.CompletedToBeTurnedFaceUp) setTimeout(() => R.turnSpread(Spread, false), 0);
-    });
-    const SpreadsTurnedFaceUp = [], SpreadsToBeTurnedFaceDown = []; let ItemAmountTurnedFaceUp = 0; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsAlreadyTurnedFaceUp].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
+    R.turnSpreads.SpreadsTurnedFaceUp = []; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
         const ItemLength = Spread.Items.length;
-        if(ItemAmountTurnedFaceUp + ItemLength > 30) return SpreadsToBeTurnedFaceDown.push(Spread);
-        if(i == 0 && j == 0) Promised = new Promise(resolveTargetSpread => R.turnSpread(Spread, true).then(resolveTargetSpread));
-        else Spread.Timer_TurningFaceUp = setTimeout(                () => R.turnSpread(Spread, true),           99 * i + 9 * j);
-        SpreadsTurnedFaceUp.push(Spread);
-        ItemAmountTurnedFaceUp += ItemLength;
-    }));
-    R.SpreadsTurnedFaceUp = SpreadsTurnedFaceUp;
-    (Promised || Promise.resolve()).then(resolve);
-    SpreadsToBeTurnedFaceDown.reverse().forEach((Spread, i) => Spread.Timer_TurningFaceDown = setTimeout(() => R.turnSpread(Spread, false), 999 + 99 * i));
-    /*
-    console.log([
-        'ItemAmountTurnedFaceUp: ' + ItemAmountTurnedFaceUp,//R.SpreadsTurnedFaceUp.reduce((Amount, Spread) => Amount + Spread.Items.length, 0),
-        'R.SpreadsTurnedFaceUp: ' + R.SpreadsTurnedFaceUp.length,
-        'SpreadsToBeTurnedFaceDown: ' + SpreadsToBeTurnedFaceDown.length
-    ].join('\n'));
-    //*/
+        if(Spread == Origin || i + j == 0)   Promises.push(R.turnSpread(Spread, true));
+        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 88 * (i + j * 0.1));
+        R.turnSpreads.SpreadsTurnedFaceUp.push(Spread);
+    }));/*
+    console.log(
+        R.turnSpreads.SpreadsTurnedFaceUp.length + '(' + SpreadsToBeTurnedFaceUp.length + '+' + SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet.length + ')',
+        R.turnSpreads.SpreadsTurnedFaceUp.map(Sd => 'Sp:' + Sd.Index + '/pp' + Sd.Pages.map(Pg => Pg.Index + 1).join('-'))
+    );*/
+    (Promises.length ? Promise.all(Promises) : Promise.resolve()).then(resolve);
 });
 
     R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
+        Spread.Turning = TF ? 'Up' : 'Down';
+        Spread.Turned  = false;
         const AllowPlaceholderItems = !(TF);
-        if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(Spread); // no need to turn
+        if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(); // no need to turn
         /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: '' }, { background: 'rgba(255,0,0,0.5)' });
         const PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
         const OldPages = Spread.Pages.reduce((OldPages, OldPage) => { OldPages.push(OldPage); return OldPages; }, []);
@@ -1678,8 +1681,8 @@ R.turnSpreads = (Opt = {}) => new Promise(resolve => {
         }).catch(Spread => resolve());
     }).then(() => {
         /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: 'background linear .5s' }, { background: '' });
-        Spread.CompletedToBeTurnedFaceUp = TF;
-        return Spread;
+        Spread.Turning = false;
+        Spread.Turned  = TF ? 'Up' : 'Down';
     });
 
     R.cancelSpreadRetlieving = (Spread) => O.RangeLoader ? Spread.Items.forEach(Item => {
@@ -3233,7 +3236,6 @@ I.Slider = { create: () => {
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 125);
         },
         flip: (Eve) => {
-            //clearTimeout(Slider.Timer_flipFocus);
             if(Slider.Touching) {
                 let Translation = Slider.TouchingCoord - Slider.TouchStartCoord;
                 const TranslatedThumbCenterCoord = Slider.TouchStartThumbCenterCoord + Translation;
@@ -3241,13 +3243,7 @@ I.Slider = { create: () => {
                 else if(TranslatedThumbCenterCoord > Slider.Rail.Coords[1]) Translation = Slider.Rail.Coords[1] - Slider.TouchStartThumbCenterCoord;
                 sML.style(Slider.Thumb,         { transform: 'translate' + C.A_AXIS_L + '(' +      Translation                                                             + 'px)' });
                 sML.style(Slider.Rail.Progress, { transform:     'scale' + C.A_AXIS_L + '(' + (1 + Translation / Slider.Rail.Progress['offset' + C.A_SIZE_L] * C.A_AXIS_D) +   ')' });
-                Slider.focus(Eve, { Turn: false, History: false });/*
-                new Promise((resolve) > {
-                    if(!S['allow-placeholders']) return resolve();
-                    Slider.Timer_flipFocus = setTimeout(() => resolve(), 0);
-                }).then(() => {
-                    Slider.focus(Eve, { Turn: false, History: false });
-                });*/
+                setTimeout(() => Slider.focus(Eve, { Turn: false, History: false }), 9);
             } else Slider.focus(Eve).then(Destination => {
                 sML.style(Slider.Thumb,         { transform: '' });
                 sML.style(Slider.Rail.Progress, { transform: '' });
@@ -3318,23 +3314,22 @@ I.Slider = { create: () => {
             return Slider.Edgebar = this;
         },
         getPointedPage: (Coord) => {
+            //const START = Date.now();
+            //const log = (OPI, FPI, SUPER) => console.log(Date.now() - START, '[Method02' + (SUPER ? '★' : '') + '] - O:' + OPI + ' F:' + FPI + ' G:' + (FPI - OPI));
             let Ratio = Coord[C.A_AXIS_L] / Slider.Edgebar['offset' + C.A_SIZE_L];
-            if(S.ARA != S.SLA) Ratio = 1 - Ratio;
-            const CoordInBook = R.Main.Book['offset' + C.L_SIZE_L] * Ratio;
-            const AD = (S.SLA == 'horizontal' && B.PPD == 'rtl') ? -1 : 1;
-            const Reversed = 0.5 * AD < Ratio * AD;
-            const PD = !Reversed ? 1 : -1;
-            const DD = AD * PD;
-            for(let si = !Reversed ? 0 : R.Spreads.length - 1; R.Spreads[si]; si += PD) { const Spread = R.Spreads[si];
-                const SpreadCoord = O.getElementCoord(Spread, R.Main.Book)[C.L_AXIS_L];
-                if((SpreadCoord + (DD == 1 ? Spread['offset' + C.L_SIZE_L] : 0)) * DD < CoordInBook * DD) continue;
-                for(let pi = !Reversed ? 0 : Spread.Pages.length - 1; Spread.Pages[pi]; pi += PD) { const Page = Spread.Pages[pi];
-                    const PageCoord = SpreadCoord + O.getElementCoord(Page, Spread)[C.L_AXIS_L];
-                    if((PageCoord + (DD == 1 ? Page['offset' + C.L_SIZE_L] : 0)) * DD < CoordInBook * DD) continue;
-                    return Page;
-                }
+            const CoordInBook = R.Main.Book['offset' + C.L_SIZE_L] * (S.ARD != 'rtl' || S.SLD != 'ttb' ? Ratio : 1 - Ratio);
+            const OriginPageIndex = Math.max(Math.round(R.Pages.length * (S.ARD != 'rtl' ? Ratio : 1 - Ratio)) - 1, 0);
+            let ThePage = R.Pages[OriginPageIndex];
+            let MinimumDistance = CoordInBook - O.getElementCoord(ThePage, R.Main.Book)[C.L_AXIS_L] + ThePage['offset' + C.L_SIZE_L] * 0.5;
+            if(Math.abs(MinimumDistance) < window['inner' + C.L_SIZE_L] / 4) return ThePage;
+            const Dir = (S.SLD == 'rtl' ? -1 : 1) * MinimumDistance < 0 ? -1 : 1;
+            MinimumDistance = Math.abs(MinimumDistance);
+            for(let i = OriginPageIndex + Dir; R.Pages[i]; i += Dir) {
+                const Page = R.Pages[i];
+                const PageDistance = Math.abs(CoordInBook - O.getElementCoord(Page, R.Main.Book)[C.L_AXIS_L] + Page['offset' + C.L_SIZE_L] * 0.5);
+                if(PageDistance < MinimumDistance) MinimumDistance = PageDistance, ThePage = Page; else break;
             }
-            return null;
+            return ThePage;
         },
         identifyPage: () => {
             const Coord = Slider.getTouchEndCoord();
