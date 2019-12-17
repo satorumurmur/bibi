@@ -214,5 +214,4 @@ License
 Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-* [KITAITI Makoto](https://github.com/KitaitiMakoto)
-* [Shunsuke ITO](https://github.com/shunito)
+Thanks to the contributors and the users around the world.
