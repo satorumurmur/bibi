@@ -42,6 +42,8 @@ Bibi.preset({
 "use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
 
+"animate-page-flipping"      : "no", // "yes" or "no" or "desktop" or "mobile". Animate page flipping on paged view mode, or not.
+
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
 

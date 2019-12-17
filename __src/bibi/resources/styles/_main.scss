@@ -112,13 +112,13 @@ main#bibi-main {
 			position: relative;
 			html.spread-horizontal & { height: 100%; }
 			html.spread-vertical & { width: 100%; }
-			//html.book-pre-paginated.view-paged.spread-horizontal & { min-width: 100vw; }
+			html.book-pre-paginated.view-paged.spread-horizontal & { min-width: 100vw; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // TO BE OVERWRITTEN (if Scrollbars have height)
 			//html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
 			//html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
 			html.view-paged.book-pre-paginated:not(.slider-sliding):not(.slider-opened) &:not(.current) {
 				//opacity: 0; transition: opacity .1s linear; will-change: opacity; // <- too heavy
-				visibility: hidden;
+				//visibility: hidden;
 			}
 			html.view-paged.book-pre-paginated:not(.slider-sliding).slider-opened &:not(.current) {
 				//opacity: .33;

@@ -2047,7 +2047,8 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     ScrollTarget[C.L_AXIS_L] = Par.FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     return sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
+        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && (S.RVM != 'paged' || S['animate-page-flipping'])) ? 222 : 0,
+        Easing: (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
         R.Moving = false;
         resolve(Par.Destination);
@@ -5456,6 +5457,7 @@ O.SettingTypes = {
     'yes-no': [
         'accept-orthogonal-input',
         'allow-placeholders',
+        'animate-page-flipping',
         'autostart',
         'autostart-embedded',
         'double-spread-for-reflowable',
