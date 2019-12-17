@@ -257,9 +257,9 @@ div#bibi-poweredby {
 		transition: opacity .5s linear;
 		p {
 			a {
-				$SCOPED__PoweredBy-Logo-Image_OriginalWidth: 144px;
-				$SCOPED__PoweredBy-Logo-Image_OriginalHeight: 72px;
-				$SCOPED__PoweredBy-Logo-Image_Height: 16px;
+				$SCOPED__PoweredBy-Logo-Image_OriginalWidth: 14400px;
+				$SCOPED__PoweredBy-Logo-Image_OriginalHeight: 6504px;
+				$SCOPED__PoweredBy-Logo-Image_Height: 14px;
 				$SCOPED__PoweredBy-Logo-Image_Width: $SCOPED__PoweredBy-Logo-Image_Height * ($SCOPED__PoweredBy-Logo-Image_OriginalWidth / $SCOPED__PoweredBy-Logo-Image_OriginalHeight);
 				$SCOPED__PoweredBy-Logo-Box_Left: 4px;
 				$SCOPED__PoweredBy-Logo-Box_PaddingVertical: 6px;
@@ -277,7 +277,7 @@ div#bibi-poweredby {
 				border-radius: 2px;
 				@include size($SCOPED__PoweredBy-Logo-Box_Width, $SCOPED__PoweredBy-Logo-Box_Height);
 				font-size: $SCOPED__PoweredBy-Logo-Image_Height;
-				line-height: $SCOPED__PoweredBy-Logo-Box_Height + 2px;
+				line-height: $SCOPED__PoweredBy-Logo-Box_Height/* + 2px*/;
 				text-align: center;
 				text-decoration: none;
 				color: transparent;
@@ -295,11 +295,12 @@ div#bibi-poweredby {
 					@include offset(0);
 					margin: 0;
 					@include size(100%);
-					background: transparent none no-repeat center (($SCOPED__PoweredBy-Logo-Box_Height - $SCOPED__PoweredBy-Logo-Image_Height) / 2 + 2px);
+					//background: transparent none no-repeat center (($SCOPED__PoweredBy-Logo-Box_Height - $SCOPED__PoweredBy-Logo-Image_Height) / 2 + 2px );
+					background: transparent none no-repeat center center;
 					background-size: $SCOPED__PoweredBy-Logo-Image_Width $SCOPED__PoweredBy-Logo-Image_Height;
 				}
-				&:before { background-image: url(#{$images-path}/bibi-logo_white.png); }
-				&:after  { background-image: url(#{$images-path}/bibi-logo_black.png); }
+				&:before { background-image: url(#{$images-path}/Bibi.svg); filter: invert(100%); } // White
+				&:after  { background-image: url(#{$images-path}/Bibi.svg); } // Black
 			}
 		}
 	}
