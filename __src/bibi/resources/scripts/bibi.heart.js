@@ -5044,13 +5044,13 @@ O.preprocess = (Item) => {
     if(Setting.ReplaceRules) Item.Content = Setting.ReplaceRules.reduce((ItemContent, Rule) => ItemContent.replace(Rule[0], Rule[1]), Item.Content);
     if(Setting.ResolveRules) { // RRR
         const FileDir = Item.Path.replace(/\/?[^\/]+$/, '');
-        Setting.ResolveRules.Patterns.forEach(Pattern => {
-            const ResRE = Setting.ResolveRules.getRE(Pattern.Attribute);
+        Setting.ResolveRules.forEach(ResolveRule => ResolveRule.Patterns.forEach(Pattern => {
+            const ResRE = ResolveRule.getRE(Pattern.Attribute);
             const Reses = Item.Content.match(ResRE);
             if(!Reses) return;
             const ExtRE = new RegExp('\\.(' + Pattern.Extensions + ')$', 'i');
             Reses.forEach(Res => {
-                const ResPathInSource = Res.replace(ResRE, Setting.ResolveRules.PathRef);
+                const ResPathInSource = Res.replace(ResRE, ResolveRule.PathRef);
                 const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? './' : '') + ResPathInSource).split('#');
                 if(!ExtRE.test(ResPaths[0])) return;
                 ResItems.push(O.item({ Path: ResPaths[0] }));
@@ -5061,7 +5061,7 @@ O.preprocess = (Item) => {
                     Item.Content = Item.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join('#')));
                 }));
             });
-        });
+        }));
     }
     return Promise.all(Promises).then(() => {
         Item.Preprocessed = true;
@@ -5080,14 +5080,19 @@ O.preprocess = (Item) => {
             ReplaceRules: [
                 [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, '']
             ],
-            ResolveRules: {
+            ResolveRules: [{
+                getRE: () => /@import\s+["'](?!(?:https?|data):)(.+?)['"]/g,
+                PathRef: '$1',
+                Patterns: [
+                    { Extensions: 'css', ForceURI: true }
+                ]
+            }, {
                 getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
                 PathRef: '$1',
                 Patterns: [
-                    { Extensions: 'css', ForceURI: true },
                     { Extensions: 'gif|png|jpe?g|svg|ttf|otf|woff' }
                 ]
-            },
+            }],
             init: function() { const RRs = this.ReplaceRules;
                 RRs.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
                 RRs.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
@@ -5122,7 +5127,7 @@ O.preprocess = (Item) => {
             ReplaceRules: [
                 [/<!--\s+[.\s\S]*?\s+-->/gm, '']
             ],
-            ResolveRules: {
+            ResolveRules: [{
                 getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
                 PathRef: '$2',
                 Patterns: [
@@ -5130,13 +5135,13 @@ O.preprocess = (Item) => {
                     { Attribute: 'src',            Extensions: 'svg', ForceURI: true },
                     { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g' }
                 ]
-            }
+            }]
         },
         'html?|xht(ml)?|xml': {
             ReplaceRules: [
                 [/<!--\s+[.\s\S]*?\s+-->/gm, '']
             ],
-            ResolveRules: {
+            ResolveRules: [{
                 getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
                 PathRef: '$2',
                 Patterns: [
@@ -5144,7 +5149,7 @@ O.preprocess = (Item) => {
                     { Attribute: 'src',            Extensions: 'js|svg', ForceURI: true },//{ Attribute: 'src',        Extensions: 'js|svg|xml|xht(ml?)?|html?', ForceURI: true },
                     { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g' }
                 ]
-            }
+            }]
         }
     };
 
