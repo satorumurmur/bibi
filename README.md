@@ -225,4 +225,3 @@ Supported and Sponsored by
 
 * Bibi v1.0.0 was developed with greateful support and sponsoring from [Lunascape](https://lunascape.org) (and their parent company [MEDIA DO Co.,Ltd.](https://mediado.jp/mediado) who absorbed and merged them).
 * Lunascape also developed [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) especially for Bibi, which realized fast progressive loading of zipped EPUBs.
-* Lunascape also developed [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) especially for Bibi, which realized fast progressive loading of zipped EPUBs.
