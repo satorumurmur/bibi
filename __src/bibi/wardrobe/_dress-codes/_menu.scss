@@ -1,0 +1,89 @@
+// ================================================================================
+// + Menu
+// --------------------------------------------------------------------------------
+
+$Menu_Height:    39px;
+$Menu-Icon_Size: 31px;
+
+$Menu_BackgroundColor:              rgba(white, 0  );
+$Menu_BackgroundColor__Hover:       rgba(white,  .9);
+$Menu_BackgroundColor__Active:      rgba(white, 1  );
+$Menu_BackgroundColor__VeilOpened:  rgba(white,  .8);
+$Menu_BackgroundColor__PanelOpened: rgba(white, 1  );
+$Menu_BoxShadow__Active: 0 0 16px rgba(black, 0.125);
+
+// Not-BookFullHeight (NotBFH) ... html:not(.book-full-height)
+$Menu_BackgroundColor__NotBFH:         $Menu_BackgroundColor__Active;
+$Menu_BackgroundColor__NotBFH__Hover:  $Menu_BackgroundColor__NotBFH;
+$Menu_BackgroundColor__NotBFH__Active: $Menu_BackgroundColor__NotBFH;
+$Menu_BackgroundColor__NotBFH__VeilOpened: $Menu_BackgroundColor__NotBFH;
+$Menu_BackgroundColor__NotBFH__PanelOpened: $Menu_BackgroundColor__PanelOpened;
+$Menu_BorderBottomColor__NotBFH:         rgba(black, .05);
+$Menu_BorderBottomColor__NotBFH__Hover:  $Menu_BorderBottomColor__NotBFH;
+$Menu_BorderBottomColor__NotBFH__Active: $Menu_BorderBottomColor__NotBFH__Hover;
+$Menu_BoxShadow__NotBFH__Active: $Menu_BoxShadow__Active;
+
+$Menu-ButtonGroup_Padding: ($Menu_Height - $Menu-Icon_Size) / 2;
+$Menu-ButtonGroup-Button_Margin: ($Menu_Height - $Menu-Icon_Size) / 4;
+$Menu-ButtonGroup-Separator_Width: 1px;
+$Menu-ButtonGroup-Separator_Color: rgba(216,216,216, 0.5);
+
+
+
+
+// ================================================================================
+// + Icons in Menu
+// --------------------------------------------------------------------------------
+
+
+// - Colors & Interaction
+// --------------------------------------------------------------------------------
+
+// Default
+$Menu-Icon-Font_PaintColor:    rgb(144,144,144);
+$Menu-Icon-Font_OutlineColor:  transparent;
+$Menu-Icon-Shape_PaintColor:   white;
+$Menu-Icon-Shape_OutlineColor: $Menu-Icon-Font_PaintColor;
+$Menu-Icon_BackgroundColor:    rgba(white, 0.9);
+$Menu-Icon_BorderColor:        rgb(236,236,236);
+$Menu-Icon_Transform:          none;
+
+// Default:Hover
+$Menu-Icon-Font_PaintColor__Hover:    rgb(64,64,64);
+$Menu-Icon-Font_OutlineColor__Hover:  $Menu-Icon-Font_OutlineColor;
+$Menu-Icon-Shape_PaintColor__Hover:   $Menu-Icon-Shape_PaintColor;
+$Menu-Icon-Shape_OutlineColor__Hover: $Menu-Icon-Font_PaintColor__Hover;
+$Menu-Icon_BackgroundColor__Hover:    rgba(248,248,248,0.9);//$Menu-Icon_BackgroundColor;
+$Menu-Icon_BorderColor__Hover:        rgb(192,192,192);
+$Menu-Icon_Transform__Hover:          $Menu-Icon_Transform;
+
+// Active
+$Menu-Icon-Font_PaintColor__Active:    $Menu-Icon_BackgroundColor;
+$Menu-Icon-Font_OutlineColor__Active:  transparent;
+$Menu-Icon-Shape_PaintColor__Active:   $Menu-Icon-Shape_PaintColor;
+$Menu-Icon-Shape_OutlineColor__Active: $Menu-Icon-Font_PaintColor;
+$Menu-Icon_BackgroundColor__Active:    $Menu-Icon-Font_PaintColor;
+$Menu-Icon_BorderColor__Active:        darken($Menu-Icon_BorderColor, 30%);
+$Menu-Icon_Transform__Active:          rotate(360deg);
+
+// Active:Hover
+$Menu-Icon-Font_PaintColor__Active-Hover:    $Menu-Icon-Font_PaintColor__Active;
+$Menu-Icon-Font_OutlineColor__Active-Hover:  transparent;
+$Menu-Icon-Shape_PaintColor__Active-Hover:   $Menu-Icon-Shape_PaintColor__Active;
+$Menu-Icon-Shape_OutlineColor__Active-Hover: lighten($Menu-Icon-Shape_OutlineColor__Active, 10%);
+$Menu-Icon_BackgroundColor__Active-Hover:    rgb(96,96,96);
+$Menu-Icon_BorderColor__Active-Hover:        lighten($Menu-Icon_BorderColor__Active, 10%);
+$Menu-Icon_Transform__Active-Hover:          $Menu-Icon_Transform__Active;
+
+// Transition
+$Menu-Icon_Transition: 
+	color 0.125s linear,
+	background-color 0.125s linear,
+	border-color 0.125s linear,
+	text-shadow 0.125s linear,
+	box-shadow 0.125s linear,
+	transform 0.25s ease
+;
+
+// Disabled
+$Menu-Icon_Opacity__Disabled: 0.33;

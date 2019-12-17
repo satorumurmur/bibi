@@ -1,0 +1,37 @@
+// ================================================================================
+// + Base
+// --------------------------------------------------------------------------------
+
+.bibi-icon {
+	&,
+	& *,
+	&:before {
+		box-sizing: border-box;
+		display: inline-block;
+		padding: 0;
+		border: none 0;
+		text-align: center;
+		vertical-align: middle;
+		text-decoration: none;
+	}
+	& {
+		overflow: hidden;
+		position: relative;
+		border: solid 1px;
+		border-radius: 3px;
+	}
+	& *,
+	&:before {
+		position: absolute;
+		margin: 0;
+	}
+}
+
+.bibi-button, .bibi-button-normal, .bibi-button-toggle { &.default, &.active { &.hover, &:hover { .bibi-icon {
+	cursor: pointer;
+}}}}
+
+.bibi-button-radio.active .bibi-icon {
+	cursor: default;
+}
+

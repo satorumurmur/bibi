@@ -1,0 +1,143 @@
+// ================================================================================
+// + Special Icons
+// --------------------------------------------------------------------------------
+
+
+// - Panel Toggler (.bibi-icon-toggle-panel) in Menu
+// --------------------------------------------------------------------------------
+
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Width: 19px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Height: 2px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation: 4px;
+$DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
+
+@mixin DEFAULT__SPECIALICON__TogglePanel() {
+	>span {
+		left: 0;
+		right: 0;
+		margin: auto;
+		@include size($DEFAULT__SPECIALICON__TogglePanel-Bar_Width, $DEFAULT__SPECIALICON__TogglePanel-Bar_Height);
+		border-radius: $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius;
+	}
+	$DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height * 3 + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation * 2)) / 2 - 1px;
+	>span:nth-child(1) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 0; }
+	>span:nth-child(2) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 1; }
+	>span:nth-child(3) { top: $DEFAULT__SPECIALICON__TogglePanel-Bars_Top + ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation) * 2; }
+	>span:nth-child(4),
+	>span:nth-child(5),
+	>span:nth-child(6) { display: none !important; }
+}
+
+@mixin DEFAULT__SPECIALICON__TogglePanel__Active() {
+	>span:nth-child(1) { opacity: 1; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) *  1) rotate( 135deg); }
+	>span:nth-child(2) { opacity: 0; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) *  0) rotate(-360deg); }
+	>span:nth-child(3) { opacity: 1; transform: translateY(($DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation + $DEFAULT__SPECIALICON__TogglePanel-Bar_Height) * -1) rotate( 225deg); }
+}
+
+
+// - Shapes of Items and Spreads
+// --------------------------------------------------------------------------------
+
+@mixin DEFAULT__SPECIALICON__View_Common() {
+	$SCOPED__SpreadShape_Width : 13px;
+	$SCOPED__SpreadShape_Height: 11px;
+	$SCOPED__ItemShape_Width : ($SCOPED__SpreadShape_Width + 1px) / 2;
+	$SCOPED__ItemShape_Height: $SCOPED__SpreadShape_Height;
+	span.bibi-shape-spreads {
+		@include offset(0);
+		margin: auto;
+		@include size($SCOPED__SpreadShape_Width, $SCOPED__SpreadShape_Height);
+		span.bibi-shape-spread {
+			left: 0;  top: 0;
+			@include size(100%);
+			span.bibi-shape-item {
+				top: 0;
+				border: solid 1px;
+				@include size($SCOPED__ItemShape_Width, $SCOPED__ItemShape_Height);
+				&:first-child { left: 0; }
+				&:last-child  { right: 0; }
+			}
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewPaged() {
+	span.bibi-shape-spreads-paged {
+		span.bibi-shape-spread {
+			&:first-child { display: none; }
+			&:last-child  { display: none; }
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewHorizontal() {
+	span.bibi-shape-spreads-horizontal {
+		span.bibi-shape-spread {
+			&:first-child { transform: translateX(-100%); left: -1px; }
+			&:last-child  { transform: translateX( 100%); left:  1px; }
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__ViewVertical() {
+	span.bibi-shape-spreads-vertical {
+		span.bibi-shape-spread {
+			&:first-child { transform: translateY(-100%); top: -1px; }
+			&:last-child  { transform: translateY( 100%); top:  1px; }
+		}
+	}
+}
+
+
+// - Book Icon
+// --------------------------------------------------------------------------------
+
+@mixin DEFAULT__SPECIALICON__Book($SCOPED__Size, $SCOPED__OuterColor, $SCOPED__InnerColor, $SCOPED__Position: relative) {
+	$SCOPED__Line_Width: $SCOPED__Size * 8/128;
+	$SCOPED__Book_Width: $SCOPED__Size - $SCOPED__Line_Width * 2.5;
+	$SCOPED__Book_Height: $SCOPED__Size;
+	$SCOPED__Cover_Width: $SCOPED__Book_Width - $SCOPED__Line_Width * 2;
+	$SCOPED__Cover_Height: $SCOPED__Book_Height - $SCOPED__Line_Width * 4;
+	$SCOPED__Page_Breadth: $SCOPED__Book_Height - $SCOPED__Line_Width - $SCOPED__Cover_Height;
+	$SCOPED__Book_Breadth: $SCOPED__Page_Breadth + $SCOPED__Line_Width * 2;
+	$SCOPED__OffsetLeft: ($SCOPED__Size - $SCOPED__Book_Width) * 0.5;
+	$SCOPED__OffsetTop: 0;
+	box-sizing: border-box;
+	display: block;
+	position: $SCOPED__Position;
+	@include size($SCOPED__Size);
+	&:before, &:after,
+	span, span:before, span:after {
+		content: "";
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+	}
+	span { // Back Cover
+		z-index: 10;
+		left: $SCOPED__OffsetLeft;
+		top: $SCOPED__OffsetTop;
+		border-radius: ($SCOPED__Book_Breadth * 0.5) $SCOPED__Line_Width $SCOPED__Line_Width 0;
+		@include size($SCOPED__Cover_Width + $SCOPED__Line_Width * 2, $SCOPED__Size - $SCOPED__Line_Width * 3);
+		&:before { // Pages
+			z-index: 100;
+			left: ($SCOPED__Book_Breadth * 0.5);
+			top: $SCOPED__Line_Width;
+			border-radius: 0 2px $SCOPED__Line_Width * 3.5 0;
+			@include size($SCOPED__Cover_Width - ($SCOPED__Line_Width + $SCOPED__Page_Breadth * 0.5) + $SCOPED__Line_Width, $SCOPED__Size - $SCOPED__Line_Width);
+		}
+		&:after { // Top of Spine
+			z-index: 1000;
+			left: $SCOPED__Line_Width;
+			top: $SCOPED__Line_Width;
+			border-radius: ($SCOPED__Page_Breadth * 0.5) 0 0 ($SCOPED__Page_Breadth * 0.5);
+			@include size($SCOPED__Page_Breadth/* * 0.5*/, $SCOPED__Page_Breadth);
+		}
+	}
+	&:after { // Front Cover
+		z-index: 10000;
+		left: $SCOPED__OffsetLeft;
+		top: $SCOPED__OffsetTop + ($SCOPED__Size - $SCOPED__Cover_Height);
+		border-radius: 0 $SCOPED__Line_Width $SCOPED__Line_Width ($SCOPED__Book_Breadth * 0.5);
+		@include size($SCOPED__Cover_Width, $SCOPED__Cover_Height);
+	}
+	span, &:after { background: $SCOPED__OuterColor; }
+	span:before, span:after { background: $SCOPED__InnerColor; }
+}

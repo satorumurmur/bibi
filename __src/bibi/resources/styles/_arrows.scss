@@ -1,0 +1,120 @@
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
+
+div.bibi-arrow {
+	//// Layout
+	& {
+		pointer-events: none;
+		display: none; html.arrows-active & { display: block; }
+		position: absolute;
+		z-index: $INVARIABLE__Arrow_ZIndex;
+		margin: auto;
+		line-height: 1;
+		&:before, &:after {
+			box-sizing: border-box;
+			display: block;
+			position: absolute;
+		}
+		&:before { // icon
+			z-index: 2;
+			// @____Bibi:Dress__('-') @include Arrow-Icon();
+		}
+		&:after { // edge shadow
+			//display: none !important;
+			content: "";
+			z-index: 1;
+		}
+	}
+	html.appearance-horizontal & {
+		// ←→
+		bottom: auto; width: 0;
+		&:before { top: 0; bottom: 0; }
+		&:after  { top: 0; bottom: 0; height: 100%;
+			// @____Bibi:Dress__('-') width: $Arrow-Bar_Width;
+		}
+	}
+	html.appearance-horizontal.book-full-height:not(.slider-opened) & {
+		top: 0;
+		height: 100vh; // TO BE OVERWRITTEN
+	}
+	// @____Bibi:Dress__('-') html.appearance-horizontal.book-full-height.slider-opened &,
+	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height) & {
+	// @____Bibi:Dress__('-') 	top: $Menu_Height;
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
+	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.appearance-horizontal.book-full-height.slider-opened &,
+	// @____Bibi:Dress__('-') html.appearance-horizontal:not(.book-full-height).slider-opened & {
+	// @____Bibi:Dress__('-') 	height: calc(100vh - #{$Menu_Height + $Slider_Size});
+	// @____Bibi:Dress__('-') }
+	html.appearance-vertical & {
+		// ↑↓
+		left: 0; right: auto; height: 0;
+		&:before { left: 0; right: 0; }
+		&:after  { left: 0; right: 0; width: 100%;
+			// @____Bibi:Dress__('-') height: $Arrow-Bar_Width;
+		}
+	}
+	html.appearance-vertical:not(.slider-opened) & {
+		width: 100vw; // TO BE OVERWRITTEN
+	}
+	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened & {
+	// @____Bibi:Dress__('-') 	width: calc(100vw - #{$Slider_Size});
+	// @____Bibi:Dress__('-') }
+	html.busy & {
+		&:before, &:after { opacity: 0 !important; transition: none !important; }
+	}
+	//// Interaction
+	& {
+		&:before, &:after { transition-duration: .4s; }
+		&:before { opacity: 0.00; transform: scale(1.10); transition-timing-function: cubic-bezier(.2, .8, .8, 1.6); }
+		&:after  { opacity: 1.00;                         transition-timing-function: ease-out; }
+	}
+	&.available.hover {
+		cursor: pointer;
+		&:before, &:after { transition-duration: .2s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
+	}
+	&.available.active {
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 0.75; transform: scale(1.00); }
+	}
+	&.available.glowing {
+		&:before, &:after { transition-duration: .1s; }
+		&:before { opacity: 1.00; transform: scale(1.10); }
+	}
+}
+
+// @____Bibi:Dress__('-') html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
+// @____Bibi:Dress__('-') html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
+// @____Bibi:Dress__('-') 	& {
+// @____Bibi:Dress__('-') 		&:before { margin-top: $Menu_Height; }
+// @____Bibi:Dress__('-') 	}
+// @____Bibi:Dress__('-') }
+
+@mixin Arrow-Base($SCOPED__Arrow_Dir, $SCOPED__Arrow_TransformOrigin) {
+	& {
+		#{$SCOPED__Arrow_Dir}: 0;
+		&:before, &:after {  transform-origin: $SCOPED__Arrow_TransformOrigin;  }
+		&:before {  #{$SCOPED__Arrow_Dir}: 8px;  }
+		&:after  {  background: linear-gradient(to $SCOPED__Arrow_Dir, transparent, rgba(black, 0) 25%, rgba(black, 0.1));  opacity: 0;  }
+	}
+	&.available.hover, &.available.glowing {
+		&:after  {  opacity: 1;  }
+	}
+	&.available.glowing {
+		&:before { #{$SCOPED__Arrow_Dir}: 8px; }
+	}
+}
+
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward { /* ← */ @include Arrow-Base(left,  0%  50%); }
+
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back    { /* → */ @include Arrow-Base(right,  100%  50%); }
+
+html.appearance-ttb div#bibi-arrow-back    { /* ↑ */ @include Arrow-Base(top,  50%   0%); }
+
+html.appearance-ttb div#bibi-arrow-forward { /* ↓ */ @include Arrow-Base(bottom,  50% 100%); }

@@ -1,0 +1,45 @@
+// ================================================================================
+// + Help
+// --------------------------------------------------------------------------------
+
+
+div#bibi-help {
+	box-sizing: border-box;
+	display: none;
+	position: absolute;
+	z-index: $INVARIABLE__Help_ZIndex;
+	@include offset(auto, auto, 0, 0);
+	margin: 0;
+	padding: 0 8px 0 56px;
+	width: 100%;
+	opacity: 0;
+	transition: .2s linear;
+	bottom: 0;
+	// @____Bibi:Dress__('-') border-top: $Help_BorderTop;
+	// @____Bibi:Dress__('-') height: $Help_Height;
+	// @____Bibi:Dress__('-') background: $Help_Background;
+	// @____Bibi:Dress__('-') html.slider-opened.view-paged &,
+	// @____Bibi:Dress__('-') html.slider-opened.view-horizontal & {
+	// @____Bibi:Dress__('-') 	bottom: $Slider_Size !important;
+	// @____Bibi:Dress__('-') }
+	p {
+		text-align: center;
+		font-size: 12px;
+		font-weight: bold;
+		// @____Bibi:Dress__('-') line-height: $Help_Height * 1.1;
+		// @____Bibi:Dress__('-') color: $Help-P_Color;
+		small {
+			font-size: .875em;
+		}
+	}
+	&.active {
+		display: block;
+		&.shown {
+			opacity: 1;
+		}
+	}
+}
+
+// @____Bibi:Dress__('-') html.slider-opened:not(.panel-opened).view-vertical div#bibi-help {
+// @____Bibi:Dress__('-') 	width: calc(100% - #{$Slider_Size});
+// @____Bibi:Dress__('-') }

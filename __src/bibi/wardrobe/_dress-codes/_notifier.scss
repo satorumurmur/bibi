@@ -1,0 +1,14 @@
+// ================================================================================
+// + Notifier
+// --------------------------------------------------------------------------------
+
+$Notifier_Height: $Menu_Height;
+
+$Notifier_FontFamily: inherit;
+$Notifier_FontFamily__Error: $Notifier_FontFamily;
+
+$Notifier_Color: rgb(69,69,69);
+$Notifier_Color__Error: rgb(192,64,0);
+
+$Notifier_Background: rgba(252,252,252,0.96);
+$Notifier_BoxShadow: 0 2px 4px rgba(0,0,0,0.125);

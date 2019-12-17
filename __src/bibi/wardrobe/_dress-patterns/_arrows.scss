@@ -1,0 +1,55 @@
+// ================================================================================
+// + Arrows
+// --------------------------------------------------------------------------------
+
+div.bibi-arrow {
+	//// Layout
+	& {
+		&:before { @include Arrow-Icon(); }
+	}
+	html.appearance-horizontal & {
+		&:after { width: $Arrow-Bar_Width; } // ←→
+	}
+	html.appearance-horizontal.book-full-height.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height) & {
+		top: $Menu_Height;
+	}
+	html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
+		height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
+	}
+	html.appearance-horizontal.book-full-height.slider-opened &,
+	html.appearance-horizontal:not(.book-full-height).slider-opened & {
+		height: calc(100vh - #{$Menu_Height + $Slider_Size});
+	}
+	html.appearance-vertical & {
+		&:after { height: $Arrow-Bar_Width; } // ↑↓
+	}
+	html.appearance-vertical.slider-opened & {
+		width: calc(100vw - #{$Slider_Size});
+	}
+}
+
+html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
+html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
+	& {
+		&:before { margin-top: $Menu_Height; }
+	}
+}
+
+html.appearance-ltr div#bibi-arrow-back,
+html.appearance-rtl div#bibi-arrow-forward {
+	&:before { @include Arrow-Icon-L(); }; // ←
+}
+
+html.appearance-ltr div#bibi-arrow-forward,
+html.appearance-rtl div#bibi-arrow-back    {
+	&:before { @include Arrow-Icon-R(); }; // → 
+}
+
+html.appearance-ttb div#bibi-arrow-back    {
+	&:before { @include Arrow-Icon-T(); }; // ↑
+}
+
+html.appearance-ttb div#bibi-arrow-forward {
+	&:before { @include Arrow-Icon-B(); }; // ↓
+}

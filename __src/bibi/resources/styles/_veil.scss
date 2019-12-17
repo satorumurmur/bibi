@@ -1,0 +1,207 @@
+// ================================================================================
+// + Veil
+// --------------------------------------------------------------------------------
+
+
+div#bibi-veil {
+	box-sizing: border-box;
+	overflow: hidden;
+	display: block;
+	position: absolute;
+	z-index: $INVARIABLE__Veil_ZIndex;
+	left: 0;
+	top: 0;
+	@include size(100%);
+	font-size: 15px;
+	// @____Bibi:Dress__('-') background: $Veil_Background;
+	opacity: 1;
+	transition: ease-in .5s;
+	&.closed {
+		opacity: 0;
+		transition: ease-out .5s;
+		html.appearance-ltr & { transform: translateX(-240%); }
+		html.appearance-rtl & { transform: translateX( 240%); }
+		html.appearance-ttb & { transform: translateY(-240%); }
+	}
+	&:before,
+	&:after {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: 0;
+		left: 0; right: 0;
+		width: 100%;
+	}
+	&:before {
+		top: 0;
+		// @____Bibi:Dress__('-') height: $Menu_Height;
+		// @____Bibi:Dress__('-') background: $Menu_BackgroundColor__VeilOpened;
+		// @____Bibi:Dress__('-') html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__VeilOpened; }
+	}
+	&:after {
+		bottom: 0;
+		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
+		// @____Bibi:Dress__('-') background: $PoweredBy_BackgroundColor__VeilOpened;
+	}
+}
+
+
+// - ByeBye
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-byebye {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $INVARIABLE__Veil-ByeBye_ZIndex;
+	@include offset(0);
+	margin: auto;
+	padding: 10px;
+	border-radius: 20px;
+	@include size(240px);
+	max-width: calc(100% - #{ 10px * 2 });
+	// @____Bibi:Dress__('-') max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $PoweredBy_Height });
+	line-height: 1.75;
+	text-align: center;
+	font-size: 14px;
+	font-weight: bold;
+	// @____Bibi:Dress__('-') color: $Veil-ByeBye_Color;
+	// @____Bibi:Dress__('-') background: $Veil-ByeBye_Background;
+	a {
+		color: inherit;
+		transition: .2s linear;
+		&:hover {
+			color: rgb(216,216,216);
+			transition: .1s linear;
+		}
+	}
+	span {
+		display: block;
+		position: relative;
+	}
+	> span + span {
+		margin-top: 1.5em;
+		padding-top: 1.5em;
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			@include offset(0, 0, auto);
+			margin: auto;
+			@include size(2em, 1px);
+			background: rgba(white, .5);
+		}
+	}
+}
+
+
+// - Play
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-play {
+	display: none; html.waiting & { display: flex; }
+	justify-content: flex-end;
+	align-items: center;
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $INVARIABLE__Veil-Play_ZIndex;
+	@include offset(0);
+	margin: 0;
+	padding: 8px;
+	@include size(100%);
+	// @____Bibi:Dress__('-') background: $Veil-Play_BackgroundColor;  &:hover { background-color: $Veil-Play_BackgroundColor__Hover; }
+	cursor: pointer;
+	transition: .2s ease-out;
+	&:before { // Icon
+		position: relative;
+		z-index: 10;
+		transition: .2s cubic-bezier(.2,.8,.8,1.6);
+		// @____Bibi:Dress__('-') @include Veil-Play-Icon();
+	}
+	&,
+	html.appearance-ttb & { // ↓
+		flex-direction: column;
+		&:before        { transform: translateY(  0 ) scale(1.0) rotate( 90deg); }
+		&:hover:before  { transform: translateY( -5%) scale(1.1) rotate( 90deg); }
+		&:active:before { transform: translateY( 10%) scale(1.1) rotate( 90deg); }
+	}
+	html.appearance-rtl & { // ←
+		flex-direction: row-reverse;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(180deg); }
+		&:hover:before  { transform: translateX(  5%) scale(1.1) rotate(180deg); }
+		&:active:before { transform: translateX(-10%) scale(1.1) rotate(180deg); }
+	}
+	html.appearance-ltr & { // →
+		flex-direction: row;
+		&:before        { transform: translateX(  0 ) scale(1.0) rotate(  0   ); }
+		&:hover:before  { transform: translateX( -5%) scale(1.1) rotate(  0   ); }
+		&:active:before { transform: translateX( 10%) scale(1.1) rotate(  0   ); }
+	}
+}
+
+
+// - Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-veil-cover {
+	$SCOPED__CenterLine: 59%;
+	& {
+		overflow: hidden;
+		position: absolute;
+		z-index: $INVARIABLE__Veil-Cover_ZIndex;
+		@include offset(auto, 0, 0);
+		box-sizing: border-box;
+		border: solid transparent;
+		// @____Bibi:Dress__('-') border-width: $Veil-Cover-Image_Margin;
+		width: 100%;
+		opacity: 0;
+		transition: opacity 0.5s linear;
+		background: transparent no-repeat center center;
+		background-size: contain;
+	}
+	html.book-full-height & { height: 100%; }
+	// @____Bibi:Dress__('-') html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
+	&.with-cover-image,
+	&.without-cover-image {
+		opacity: 1;
+	}
+	&.with-cover-image {
+		p { opacity: 0; }
+	}
+	&.without-cover-image {
+		.book-icon,
+		p {
+			margin: 0 auto;
+		}
+		.book-icon {
+			// @____Bibi:Dress__('-') @include DEFAULT__SPECIALICON__Book($Veil-Cover-Icon_Size__WithoutCoverImage, $Veil-Cover-Icon_OuterColor__WithoutCoverImage, $Veil-Cover-Icon_InnerColor__WithoutCoverImage, absolute);
+			position: absolute;
+			left: 0; right: 0;
+			bottom: 100% - $SCOPED__CenterLine;
+			z-index: 1;
+		}
+		p {
+			position: absolute;
+			z-index: 2;
+			@include offset($SCOPED__CenterLine, 0, auto);
+			@include size(100%, 4em);
+			line-height: 1.2;
+			font-size: 14px;
+			// @____Bibi:Dress__('-') color: $Veil-Cover-P_Color__WithoutCoverImage;
+			text-align: center;
+			> strong, > em, > small, > span { display: block; }
+			> strong {  margin-top: 1.00em;  font-size: 1em * 18/14;  font-weight: bold;  }
+			> em     {  margin-top: 0.75em;  font-size: 1em * 14/14;  }
+			> small  {  margin-top: 0.75em;  font-size: 1em * 12/14;  }
+			> span   {  margin-top: 0.75em;  font-size: 1em * 12/14;  }
+		}
+	}
+	&.without-cover-image.waiting-for-unzipping {
+		.book-icon { opacity: .75; }
+		p {
+		}
+	}
+}

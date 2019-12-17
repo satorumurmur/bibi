@@ -1,0 +1,57 @@
+// ================================================================================
+// + Veil
+// --------------------------------------------------------------------------------
+
+
+div#bibi-veil {
+	background: $Veil_Background;
+	&:before {
+		height: $Menu_Height;
+		background: $Menu_BackgroundColor__VeilOpened;
+		html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__VeilOpened; }
+	}
+	&:after {
+		height: $PoweredBy_Height;
+		background: $PoweredBy_BackgroundColor__VeilOpened;
+	}
+}
+
+
+// - ByeBye
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-byebye {
+	max-height: calc(100% - #{ $Menu_Height + 10px * 2 + $PoweredBy_Height });
+	color: $Veil-ByeBye_Color;
+	background: $Veil-ByeBye_Background;
+}
+
+
+// - Play
+// --------------------------------------------------------------------------------
+
+p#bibi-veil-play {
+	background: $Veil-Play_BackgroundColor;  &:hover { background-color: $Veil-Play_BackgroundColor__Hover; }
+	&:before {
+		@include Veil-Play-Icon();
+	}
+}
+
+
+// - Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-veil-cover {
+	& {
+		border-width: $Veil-Cover-Image_Margin;
+	}
+	html:not(.book-full-height) & { height: calc(100% - #{ $Menu_Height }); }
+	&.without-cover-image {
+		.book-icon {
+			@include DEFAULT__SPECIALICON__Book($Veil-Cover-Icon_Size__WithoutCoverImage, $Veil-Cover-Icon_OuterColor__WithoutCoverImage, $Veil-Cover-Icon_InnerColor__WithoutCoverImage, absolute);
+		}
+		p {
+			color: $Veil-Cover-P_Color__WithoutCoverImage;
+		}
+	}
+}

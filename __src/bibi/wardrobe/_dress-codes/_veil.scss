@@ -1,0 +1,44 @@
+// ================================================================================
+// + Veil
+// --------------------------------------------------------------------------------
+
+$Veil_Background: linear-gradient(to bottom, rgb(216,216,216), rgb(232,232,232));//linear-gradient(to bottom, rgb(234,234,234), rgb(248,248,248));//rgb(216,216,216);
+// [ja] └ Veil 内の各要素の基本文字色と全体の背景（背景は background プロパティに適用されるため、色以外に画像やグラデーション関数も使用できます）
+
+
+// - ByeBye
+// --------------------------------------------------------------------------------
+
+$Veil-ByeBye_Color: white;
+$Veil-ByeBye_Background: rgba(black, .125);
+// [ja] └ 非対応環境でのアクセス時などに表示される緊急停止画面の文字色・背景色
+
+
+// - Play
+// --------------------------------------------------------------------------------
+
+$Veil-Play_BackgroundColor:        rgba(black, 0  );
+$Veil-Play_BackgroundColor__Hover: rgba(black, 0.4);
+
+$Veil-Play-Icon_Size: 84px;
+@mixin Veil-Play-Icon() {
+	font: #{$Veil-Play-Icon_Size}/#{$Veil-Play-Icon_Size} "Material Icons";
+	-ms-font-feature-settings: 'liga' 1; font-feature-settings: 'liga'; text-transform: none;
+	-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizelegibility;
+	speak: none; direction: ltr; letter-spacing: 0; white-space: nowrap; word-wrap: normal; overflow-wrap: normal;
+	content: "play_circle_filled";
+	color: rgba(white, 0.9);
+	text-shadow: 0 0 12px rgba(128,128,128,.125);
+}
+
+
+// - Cover
+// --------------------------------------------------------------------------------
+
+$Veil-Cover-Image_Margin: 8px;
+
+$Veil-Cover-Icon_Size__WithoutCoverImage: 144px;
+$Veil-Cover-Icon_OuterColor__WithoutCoverImage: white;
+$Veil-Cover-Icon_InnerColor__WithoutCoverImage: rgb(222,222,222);
+
+$Veil-Cover-P_Color__WithoutCoverImage: rgb(128,128,128);

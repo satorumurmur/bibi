@@ -1,0 +1,77 @@
+// ================================================================================
+// + Panel
+// --------------------------------------------------------------------------------
+
+
+div#bibi-panel {
+	background: $Panel_Background;
+	&:before {
+		height: $Menu_Height;
+		background: $Menu_BackgroundColor__PanelOpened;
+		html:not(.book-full-height) & { background: $Menu_BackgroundColor__NotBFH__PanelOpened; }
+	}
+	&:after {
+		height: $PoweredBy_Height;
+		background: $PoweredBy_BackgroundColor__PanelOpened;
+	}
+}
+
+
+// - BookInfo
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo {
+	margin-top: $Menu_Height;
+	margin-bottom: $PoweredBy_Height;
+	height: calc(100% - #{$Menu_Height + $PoweredBy_Height});
+	html.nav-ttb & { padding: $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter $Panel_PaddingStart; }
+	html.nav-rtl & { padding: $Panel_PaddingStart $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter; }
+}
+
+
+// . Navigation
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-navigation {
+	nav {
+		a {
+			border-color: $Panel-Nav-A_TextDecorationColor;
+			color: $Panel-Nav-A_Color;
+			&:hover {
+				border-color: $Panel-Nav-A_TextDecorationColor__Hover;
+				color: $Panel-Nav-A_Color__Hover;
+			}
+		}
+	}
+}
+
+
+// . Cover
+// --------------------------------------------------------------------------------
+
+div#bibi-panel-bookinfo-cover {
+	& {
+		border-color: $Panel-Cover_BorderColor;
+		img {
+			max-height: calc(#{ 100vh * 0.6 } - #{ ($Menu_Height + $Panel_PaddingBefore + $Panel_PaddingAfter + $PoweredBy_Height) * 0.6 });
+		}
+		p#bibi-panel-bookinfo-cover-info {
+			color: $Panel-Cover-Info_Color;
+		}
+	}
+	&.without-cover-image {
+		.book-icon {
+			@include DEFAULT__SPECIALICON__Book($Panel-Cover-Icon_Size__WithoutCoverImage, $Panel-Cover-Icon_OuterColor__WithoutCoverImage, $Panel-Cover-Icon_InnerColor__WithoutCoverImage, relative);
+		}
+	}
+	html.nav-ttb & {
+		margin-top: $Panel-Cover_MarginBefore;
+		padding-top: $Panel-Cover_PaddingBefore;
+		max-width: calc(100vw - #{$Panel_PaddingStart + $Panel_PaddingEnd});
+	}
+	html.nav-rtl & {
+		margin-right: $Panel-Cover_MarginBefore;
+		padding-right: $Panel-Cover_PaddingBefore;
+		max-width: calc(100vw - #{$Panel_PaddingAfter * 2});
+	}
+}

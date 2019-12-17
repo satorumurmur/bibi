@@ -1,0 +1,27 @@
+// ================================================================================
+// + Nombre
+// --------------------------------------------------------------------------------
+
+
+div#bibi-nombre {
+	border-radius: $Nombre_Height * 0.5;
+	@include size($Nombre_Width, $Nombre_Height);
+	line-height: $Nombre_Height;
+	color: $Nombre_Color;
+	background: $Nombre_BackgroundColor;
+	html.view-vertical & {
+		transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
+	}
+	html.slider-opened.appearance-horizontal & {
+		bottom: $Slider_Size + 2px !important;
+	}
+	html.slider-opened.appearance-vertical & {
+		right: $Slider_Size + 2px !important;
+	}
+}
+	span#bibi-nombre-current {
+		color: $Nombre-Current_Color;
+	}
+	span#bibi-nombre-percent {
+		color: $Nombre-Percent_Color;
+	}

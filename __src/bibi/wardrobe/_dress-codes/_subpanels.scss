@@ -1,0 +1,267 @@
+// ================================================================================
+// + Subpanel
+// --------------------------------------------------------------------------------
+
+$Subpanel_KeyColor: saturate(steelblue, 20%);
+// [ja] └ Subpanel 内のキーカラー（アイコンや文字色の一貫性を保つための共通／事前定義）
+
+$Subpanel-Icon_Size: 21px;
+// [ja] └ Subpanel 内アイコン寸法（正方形の１辺）
+
+$Subpanel_Margin: 4px;
+$Subpanel_BorderRadius: 4px;
+$Subpanel_BackgroundColor: rgba(252,252,252, 0.96);
+$Subpanel_BoxShadow: rgba(black, 0.1) 0 2px 2px;
+$Subpanel_TransitionTimingFunction__Open: cubic-bezier(.2,.8,.8,1.1);
+$Subpanel_TransitionTimingFunction__Close: ease-out;
+
+
+// - Sub Panel :: Scrollbar
+// --------------------------------------------------------------------------------
+
+$Subpanel-Scrollbar-Track_Size: 6px;
+$Subpanel-Scrollbar-Track_BackgroundColor: rgb(248,248,248);
+
+$Subpanel-Scrollbar-Thumb_Size: 2px;
+$Subpanel-Scrollbar-Thumb_BackgroundColor: rgb(195,195,195);
+$Subpanel-Scrollbar-Thumb_BackgroundColor__Hover: rgb(125,125,125);
+$Subpanel-Scrollbar-Thumb_BackgroundColor__Active: $Subpanel-Scrollbar-Thumb_BackgroundColor__Hover;
+
+
+// - Sub Panel > Section
+// --------------------------------------------------------------------------------
+
+$Subpanel-Section_VerticalMargin: 16px;
+
+$Subpanel-Heading_HorizontalPadding: 8px;
+$Subpanel-Heading_Color: rgb(64,64,64);
+
+$Subpanel-ButtonGroup_VerticalMargin: 6px;
+$Subpanel-ButtonGroup_BorderColor: rgba(black, 0.1);
+
+$Subpanel-Button_HorizontalPadding: 8px;
+$Subpanel-Button_Height: 38px;
+$Subpanel-Button-FontSize: 13px;
+
+          $Subpanel-Button_Color: rgb(64,64,64);
+    $Subpanel-Button-Check_Color: rgb(160,160,160);
+    $Subpanel-Button_BorderColor: rgba(black, 0.1);
+$Subpanel-Button_BackgroundColor: white;
+
+          $Subpanel-Button_Color__Active: $Subpanel-Button_Color;
+    $Subpanel-Button-Check_Color__Active: $Subpanel_KeyColor;
+    $Subpanel-Button_BorderColor__Active: $Subpanel-Button_BorderColor;
+$Subpanel-Button_BackgroundColor__Active: $Subpanel-Button_BackgroundColor;
+
+          $Subpanel-Button_Color__Hover: $Subpanel_KeyColor;
+    $Subpanel-Button-Check_Color__Hover: rgba($Subpanel_KeyColor, 0.8);
+    $Subpanel-Button_BorderColor__Hover: rgba($Subpanel_KeyColor, 0.1);
+$Subpanel-Button_BackgroundColor__Hover: rgba(244,248,252, 0.8);
+
+$Subpanel-Icon_MarginRight: 6px;
+
+
+// - Sub Panel: Bookmarks
+// --------------------------------------------------------------------------------
+
+$BookmarkSubpanel-Button_BackgroundColor__Hot: rgba(gold, .125);
+
+@mixin BookmarkSubpanel-Button-Label() {
+	.bibi-bookmark-page {
+		.bibi-bookmark-unit {
+			font-size: .9em;
+		}
+		.bibi-bookmark-number {
+			font-size: 1.1em;
+			margin-left: .125em;
+		}
+	}
+	.bibi-bookmark-total-pages {
+		font-size: .8em;
+		margin-left: .25em;
+		opacity: .75;
+		.bibi-bookmark-number {
+			margin-left: .125em;
+		}
+	}
+	.bibi-bookmark-percent {
+		.bibi-bookmark-parenthesis {
+		}
+		.bibi-bookmark-number {
+		}
+		.bibi-bookmark-unit {
+			font-size: .8em;
+		}
+	}
+	.bibi-bookmark-total-pages + .bibi-bookmark-percent {
+		font-size: .9em;
+		margin-left: .125em;
+		opacity: .75;
+		.bibi-bookmark-parenthesis {
+		}
+		.bibi-bookmark-number {
+		}
+		.bibi-bookmark-unit {
+		}
+	}
+	.bibi-bookmark-is-current {
+		box-sizing: border-box;
+		display: block;
+		position: absolute;
+		top: 0; right: $Subpanel-Button_Height; bottom: 0; left: 0;
+		width: auto;
+		height: $Subpanel-Button_Height;
+		&:before {
+			$LOCAL__Height: $Subpanel-Icon_Size * .9;
+			content: " Current Page";
+			display: block;
+			position: absolute;
+			top: 0; right: 0; bottom: 0; left: auto;
+			margin: auto;
+			border-radius: $LOCAL__Height * 0.5;
+			padding: 0 .75em;
+			width: auto;
+			height: $LOCAL__Height;
+			line-height: $LOCAL__Height;
+			font-size: .8em;
+			font-weight: bold;
+			color: $Subpanel_KeyColor;
+			background: rgba($Subpanel_KeyColor, .125);
+		}
+		&.bibi-bookmark-is-current-ja:before {
+			content: " 現在のページ";
+		}
+	}
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon() {
+	@include GLOBAL__FontIcon_BaseStyles("Material Icons", $Subpanel-Icon_Size);
+	content: "cancel";
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	margin: auto;
+	width: $Subpanel-Icon_Size;
+	height: $Subpanel-Icon_Size;
+	color: rgba($Subpanel-Button_Color, .75);
+	opacity: 1;
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover() {
+	color: rgba(255,64,0, .875);
+	opacity: 1;
+}
+
+@mixin BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark() {
+	opacity: .25;
+}
+
+
+
+
+
+// ================================================================================
+// + Icons in Subpanel
+// --------------------------------------------------------------------------------
+
+
+// - Colors & Interaction
+// --------------------------------------------------------------------------------
+
+// [In Subpanel] Default
+$Subpanel-Icon-Font_PaintColor:    rgb(128,128,128);
+$Subpanel-Icon-Font_OutlineColor:  transparent;
+$Subpanel-Icon-Shape_PaintColor:   white;
+$Subpanel-Icon-Shape_OutlineColor: rgb(144,144,144);
+$Subpanel-Icon_BackgroundColor:    rgb(248,248,248);
+$Subpanel-Icon_BorderColor:        rgb(192,192,192);
+$Subpanel-Icon_Transform:          none;
+
+// [In Subpanel] Default:Hover
+$Subpanel-Icon-Font_PaintColor__Hover:    $Subpanel_KeyColor;
+$Subpanel-Icon-Font_OutlineColor__Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Hover:    lighten($Subpanel_KeyColor, 45%);
+$Subpanel-Icon_BorderColor__Hover:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Hover:          $Subpanel-Icon_Transform;
+
+// [In Subpanel] Active
+$Subpanel-Icon-Font_PaintColor__Active:    white;
+$Subpanel-Icon-Font_OutlineColor__Active:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active:    $Subpanel_KeyColor;
+$Subpanel-Icon_BorderColor__Active:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Active:          rotate(360deg);
+
+// [In Subpanel] Active:Hover
+$Subpanel-Icon-Font_PaintColor__Active-Hover:    white;
+$Subpanel-Icon-Font_OutlineColor__Active-Hover:  transparent;
+$Subpanel-Icon-Shape_PaintColor__Active-Hover:   white;
+$Subpanel-Icon-Shape_OutlineColor__Active-Hover: $Subpanel_KeyColor;
+$Subpanel-Icon_BackgroundColor__Active-Hover:    lighten($Subpanel_KeyColor, 20%);
+$Subpanel-Icon_BorderColor__Active-Hover:        $Subpanel_KeyColor;
+$Subpanel-Icon_Transform__Active-Hover:          $Subpanel-Icon_Transform__Active;
+
+// [In Subpanel] Transition
+$Subpanel-Icon_Transition: 
+	color 0.125s linear,
+	background-color 0.125s linear,
+	border-color 0.125s linear,
+	text-shadow 0.125s linear,
+	box-shadow 0.125s linear,
+	transform 0.25s ease
+;
+
+// Disabled
+$Subpanel-Icon_Opacity__Disabled: 0.33;
+
+/*
+
+<div class="bibi-subpanel opened">
+	<div class="bibi-subpanel-section">
+		<div class="bibi-hgroup">
+			<p class="bibi-h"><span class="bibi-h-label">{ Heading Text }</span></p>
+		</div>
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-toggle">
+				<span class="bibi-button bibi-button-toggle default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+	<div class="bibi-subpanel-section">
+		<ul class="bibi-buttongroup">
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio active" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+			<li class="bibi-buttonbox bibi-buttonbox-radio">
+				<span class="bibi-button bibi-button-radio default" title="{ Button Text }">
+					<span class="bibi-button-iconbox">
+						<span class="bibi-icon"></span>
+					</span>
+					<span class="bibi-button-label">{ Button Text }</span>
+				</span>
+			</li>
+		</ul>
+	</div>
+</div>
+
+*/

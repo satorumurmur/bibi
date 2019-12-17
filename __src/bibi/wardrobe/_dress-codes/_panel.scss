@@ -1,0 +1,33 @@
+// ================================================================================
+// + Panel
+// --------------------------------------------------------------------------------
+
+
+$Panel_PaddingBefore: 20px;
+$Panel_PaddingAfter: $Panel_PaddingBefore;
+$Panel_PaddingStart: 20px;
+$Panel_PaddingEnd: $Panel_PaddingStart;
+$Panel_Background: rgb(246,246,246);
+
+
+// . Navigation
+// --------------------------------------------------------------------------------
+
+$Panel-Nav-A_Color: rgb(64,64,64);
+$Panel-Nav-A_TextDecorationColor: rgb(216,216,216);
+$Panel-Nav-A_Color__Hover: steelblue;
+$Panel-Nav-A_TextDecorationColor__Hover: steelblue;
+
+
+// . Cover
+// --------------------------------------------------------------------------------
+
+$Panel-Cover_MarginBefore: 20px;
+$Panel-Cover_PaddingBefore: $Panel-Cover_MarginBefore;
+$Panel-Cover_BorderColor: rgb(232,232,232);
+
+$Panel-Cover-Icon_Size__WithoutCoverImage: 144px;
+$Panel-Cover-Icon_OuterColor__WithoutCoverImage: white;
+$Panel-Cover-Icon_InnerColor__WithoutCoverImage: rgb(246,246,246);
+
+$Panel-Cover-Info_Color: rgb(160,160,160);

@@ -1,0 +1,68 @@
+// ================================================================================
+// + Nombre
+// --------------------------------------------------------------------------------
+
+
+div#bibi-nombre {
+	box-sizing: border-box;
+	overflow: hidden;
+	position: absolute;
+	z-index: $INVARIABLE__Nombre_ZIndex;
+	margin: auto;
+	// @____Bibi:Dress__('-') border-radius: $Nombre_Height * 0.5;
+	// @____Bibi:Dress__('-') @include size($Nombre_Width, $Nombre_Height);
+	// @____Bibi:Dress__('-') line-height: $Nombre_Height;
+	font-size: 12px;
+	text-align: center;
+	// @____Bibi:Dress__('-') color: $Nombre_Color;
+	// @____Bibi:Dress__('-') background: $Nombre_BackgroundColor;
+	opacity: 0;
+	transition: 0.125s ease-out;
+	html.view-paged &,
+	html.view-horizontal & {
+		@include offset(auto, -100%);
+	}
+	html.view-paged & {
+		bottom: 2px;
+	}
+	html.view-horizontal & {
+		bottom: $TEMPORARY__Scrollbar-Track_Size + 2px; // TO BE OVERWRITTEN ... (O.ScrollBars.Height + 2) + "px"
+	}
+	html.view-vertical & {
+		top: -100%;
+		right: $TEMPORARY__Scrollbar-Track_Size + 2px; // TO BE OVERWRITTEN ... (O.ScrollBars.Width  + 2) + "px"
+		bottom: -100%;
+		left: auto;
+		// @____Bibi:Dress__('-') transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
+	}
+	html.slider-opened.appearance-horizontal & {
+		// @____Bibi:Dress__('-') bottom: $Slider_Size + 2px !important;
+	}
+	html.slider-opened.appearance-vertical & {
+		// @____Bibi:Dress__('-') right: $Slider_Size + 2px !important;
+	}
+	&        { display: none;  }
+	&.active { display: block; }
+	&.hot    { opacity: 1; transition: 0.125s ease-out; }
+	span {
+		display: inline-block;
+	}
+}
+	span#bibi-nombre-current {
+		font-size: 1.2em;
+		font-weight: bold;
+		// @____Bibi:Dress__('-') color: $Nombre-Current_Color;
+	}
+	span#bibi-nombre-delimiter {
+		margin: 0 0.1em 0 0.2em;
+	}
+	span#bibi-nombre-total {
+	}
+	span#bibi-nombre-percent {
+		margin-left: .25em;
+		// @____Bibi:Dress__('-') color: $Nombre-Percent_Color;
+		span.unit {
+			margin-left: .125em;
+			font-size: .75em;
+		}
+	}

@@ -1,45 +1,15 @@
-# OS Metafiles / Thumbnails
-# --------------------------------------------------------------------------------
-.DS_Store
-.AppleDouble
-.LSOverride
-.Spotlight-V100
-.Trashes
-._*
-Icon
+/__archives
+/__dist
+/__src/bibi/wardrobe/DRESS-TEMPLATE-*
 
-# Node
-# --------------------------------------------------------------------------------
+/archives
+/bib
+/dev-bib
+
 node_modules
 npm-debug.log
 
-# Bower
-# --------------------------------------------------------------------------------
-bower_components
-
-# SourceMaps
-# --------------------------------------------------------------------------------
-*.map
-
-# BiB/i: Compiled CSS/JavaScript files
-# --------------------------------------------------------------------------------
-bib/i/extensions
-bib/i/res/styles
-bib/i/res/scripts
-bib/i.css
-bib/i.js
-bower_components.js
-
-# BiB/i: Bookshelf
-# --------------------------------------------------------------------------------
-bib/bookshelf/*
-!bib/bookshelf/.gitkeep
-dev-bib/bookshelf/*
-!dev-bib/bookshelf/.gitkeep
-
-# Others
-# --------------------------------------------------------------------------------
-archives/*
-*.zip
-**/*.demo.*
-____IGNORE____
+._*
+.DS_Store
+Icon
+Thumbs.db

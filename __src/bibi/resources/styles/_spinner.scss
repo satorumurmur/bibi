@@ -1,0 +1,14 @@
+// ================================================================================
+// + Spinner
+// --------------------------------------------------------------------------------
+
+div#bibi-spinner {
+	display: none;  html.busy & { display: block; }
+	position: fixed;
+	z-index: $INVARIABLE__Spinner_ZIndex;
+	box-sizing: border-box;
+	@include offset(48%, -100%, auto);
+	margin: auto;
+	// @____Bibi:Dress__('-') @include size($Spinner_Size);
+	// @____Bibi:Dress__('-') @include Spiner-Content();
+}

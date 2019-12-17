@@ -1,0 +1,67 @@
+// ================================================================================
+// + Menu
+// --------------------------------------------------------------------------------
+
+
+div#bibi-menu {
+	height: $Menu_Height;
+	.bibi-icon { @include size($Menu-Icon_Size); }
+	html.appearance-vertical.slider-opened & { width: calc(100% - #{$Slider_Size}); }
+	html.appearance-vertical.slider-opened.panel-opened &,
+	html.appearance-vertical.slider-opened.subpanel-opened & { padding-right: $Slider_Size; }
+}
+html.book-full-height {
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor; }
+	&                 div#bibi-menu.hover,
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__Active; box-shadow: $Menu_BoxShadow__Active; }
+}
+html:not(.book-full-height) {
+	&                 div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH; }
+	&                 div#bibi-menu.hover,
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Hover; }
+	&.menu-opened     div#bibi-menu { background-color: $Menu_BackgroundColor__NotBFH__Active; box-shadow: $Menu_BoxShadow__NotBFH__Active; }
+}
+
+
+// - Menu-L & Menu-R
+// --------------------------------------------------------------------------------
+
+div#bibi-menu-l,
+div#bibi-menu-r {
+	ul {
+		padding: $Menu-ButtonGroup_Padding;
+		height: $Menu-Icon_Size;
+		&:before {
+			width: $Menu-ButtonGroup-Separator_Width;
+			background: $Menu-ButtonGroup-Separator_Color;
+			top: $Menu-ButtonGroup_Padding;
+			height: $Menu-Icon_Size;
+		}
+		li {
+			@include size($Menu-Icon_Size);
+		}
+	}
+}
+
+div#bibi-menu-l {
+	ul {
+		&:first-child       { padding-left: $Menu-ButtonGroup_Padding; }
+		&:not(:first-child) { padding-left: $Menu-ButtonGroup_Padding$Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }
+		li {
+			&:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
+		}
+	}
+}
+
+div#bibi-menu-r {
+	ul {
+		&:first-child       { padding-right: $Menu-ButtonGroup_Padding; }
+		&:not(:first-child) { padding-right: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }
+		li {
+			&:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
+		}
+	}
+}

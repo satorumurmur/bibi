@@ -1,4 +1,4 @@
-BiB/i
+Bibi
 ================================================================================================================================
 
 EPUB Reader on your website.
@@ -9,15 +9,16 @@ EPUB Reader on your website.
 Summary
 --------------------------------------------------------------------------------------------------------------------------------
 
-You can publish EPUB books on the web with a permalink for each book, and you can embed it in other webpages (just like a YouTube video).
+You can publish EPUB books on the web, with full-featured viewer running on web browser.
+And you can embed it in other webpages (like YouTube videos).
 
 
 
 ### Spec.
 
-* EPUB 3 and 2 compliant.
-* Open source. (MIT license)
-* Made with JavaScript. Works compatibly with all major web browsers on Mac/PC/smartphones.
+* EPUB 3+ and 2 compliant. Supports both fixed-layout and reflowable books of various language.
+* Made with JavaScript. Works compatibly with all major web browsers on various OS/devices.
+* Open source software released under the MIT License.
 
 
 
@@ -27,6 +28,7 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
 2. [How to Arrange Development Environment](#how-to-arrange-development-environment) (for Developers)
 3. [License](#license)
 4. [Special Thanks](#special-thanks)
+5. [Supported and Sponsored by](#supported-and-sponsored-by)
 
 
 
@@ -39,22 +41,22 @@ You can publish EPUB books on the web with a permalink for each book, and you ca
 How to Setup & Read/Publish EPUB Books
 --------------------------------------------------------------------------------------------------------------------------------
 
-BiB/i supports 3 ways to read/publish EPUB books:
+Bibi supports 3 ways to read/publish EPUB books:
 
-* Read in browsers on your local machine.
+* Read in browsers on your offline machine.
 * Publish on the web to have your books read by someone.
-* Open to the public as an online EPUB viewer for visitors' local EPUBs.
+* Use as an online EPUB viewer for your or visitors' local EPUBs.
 
 In all cases,
 
-1. Download BiB/i from [GitHub release page](https://github.com/satorumurmur/bibi/releases) or [BiB/i website](https://bibi.epub.link/#download).
+1. Download Bibi from [GitHub release page](https://github.com/satorumurmur/bibi/releases) or [Bibi website](https://bibi.epub.link/#download).
 2. And unzip it at first.
 
 
 
 ### Read in browsers on your local machine 
 
-1. Open `bib/i/index.html` in your browser, and
+1. Open `bibi/index.html` in your browser, and
 2. Drag an EPUB book and drop it into the window.
 3. That's all!
 
@@ -67,44 +69,47 @@ In all cases,
 You can publish both unzipped folder and zipped EPUB archive.
 
 Using unzipped folder is recommended for the book which is heavy or contains many files.
-Using zipped EPUB file is recommended for the book which is light or contains less files.
+Using zipped EPUB file is recommended for the book which is light and contains less files.
 
+In both ways, at first, upload `bibi` and 'bibi-bookshelf' folders to the same directory on your web server.
+`bibi` contains all programs of Bibi, and 'bibi-bookshelf' is for the storage of the books you upload.
+You can use different directory for the bookshelf instead of 'bibi-bookshelf' by editing "bookshelf" option in 'bibi/presets/default.js'.
 
 
 #### Publish unzipped folders
 
-1. Upload `bib` folder on your web server.
+1. Upload `bibi` and 'bibi-bookshelf' folders to the same directory on your web server.
 2. Unzip an EPUB book,
     1. Change the file extension from `.epub` to `.zip` (`BOOKNAME.epub` -> `BOOKNAME.zip`), and
     2. Unzip the file with some tool.
-3. Upload the unzipped folder `BOOKNAME` into `bib/bookshelf` directory, and
-4. Access to `https://your.web.site/somewhere/bib/i/?book=BOOKNAME` by your browser. (note that it has no extension)
+3. Upload the unzipped folder `BOOKNAME` into `bibi-bookshelf` directory, and
+4. Access to `https://your.web.site/somewhere/bibi/?book=BOOKNAME` by your browser. (note that it has no extension)
 5. Or embed code below into your blog entry or other webpages, and visit the entry.
 
 ````
-<a href="https://your.web.site/somewhere/bib/i/?book=BOOKNAME" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i frame, as you like ]]">My Great Book Title</a><script src="https://your.web.site/bib/i.js"></script>
+<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">[[ Title of the Book ]]</a><script src="https://your.web.site/somewhere/bibi/and/jo.js"></script>
 ````
 
 
 #### Publish zipped EPUB files
 
-1. Upload `bib` folder on your web server.
-2. Upload your EPUB book (ex. `BOOKNAME.epub`) to `bib/bookshelf` directory, and
-3. Access to `https://your.web.site/somewhere/bib/i/?book=BOOKNAME.epub` by your browser.
-4. Or embed code for it.
+1. Upload `bibi` and 'bibi-bookshelf' folders to the same directory on your web server.
+2. Upload your EPUB book (ex. `BOOKNAME.epub`) to `bibi-bookshelf` directory, and
+3. Access to `https://your.web.site/somewhere/bibi/?book=BOOKNAME.epub` by your browser.
+4. Or embed code below into your blog entry or other webpages, and visit the entry.
 
 ````
-<a href="https://your.web.site/somewhere/bib/i/?book=BOOKNAME.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded BiB/i frame, as you like ]]">My Great Book Title</a><script src="https://your.web.site/bib/i.js"></script>
+<a href="https://your.web.site/somewhere/bibi/?book=BOOKNAME.epub" data-bibi="embed" data-bibi-style="[[ CSS for embeded Bibi frame, as you like ]]">[[ Title of the Book ]]</a><script src="https://your.web.site/somewhere/bibi/and/jo.js"></script>
 ````
 
 
-#### Open to the public as an online EPUB viewer for visitors' local EPUBs
+### Use as an online EPUB viewer
 
-1. Upload `bib` folder on your web server.
-2. Navigate visitors to `https://your.web.site/somewhere/bib/i`.
+1. Upload `bibi` folder on your web server.
+2. Navigate visitors to `https://your.web.site/somewhere/bibi/`.
 3. Visitors can read one's local EPUBs by draging and dropping EPUBs into the window.
 
-If you want to terminate this feature, set "no" to "accept-files" in `bib/i/presets/default.js`.
+If you want to terminate this feature, set "no" to "accept-files" in `bibi/presets/default.js`.
 
 
 
@@ -116,40 +121,59 @@ How to Arrange Development Environment
 ### Requirements
 
 * [Node.js + npm](https://nodejs.org/en/)
-    - [Downloads](https://nodejs.org/en/download/)
     - [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/).
+    - Or [Downloads](https://nodejs.org/en/download/)
 
 
 
 ### Arrangements
 
 1. Clone [this repository](https://github.com/satorumurmur/bibi/). 
-2. `$ cd <the local repository>`
-3. `$ npm install`
+2. $ `cd <the local repository>`
+3. $ `npm install`
+
+And files and folders are generated in `__dist` folder.
 
 
 
-### Development
+### How to Develop
 
-1. `$ npm start`
-    - Distribution files are generated/updated.
-    - Local webserver is launched and your browser opens `http://localhost:3000/bib/i/?book=`.
+1. $ `npm start`
+    1. webpack generates development version of Bibi to `__dist` folder, and start to watch changes of the files in `__src` folder.
+    2. BrowserSync webserver launches and navigate your browser to `http://localhost:61671/bibi/?book=`.
 2. Edit source files.
-    - Distribution files are updated.
-    - Your browser is reloaded.
+    1. If you modify source files in `__src` folder, development version of the file(s) are updated in `__dist` folder automaticaly.
+    2. BrowserSync reloads your browser(s) or inject changes of CSS.
 
-* SCSS source file(s) of...
-    - `bib/i/res/styles/bibi.css` are in `dev-bib/i/res/styles/`,
-    - `bib/i.css` is `dev-bib/i.scss`.
-* JavaScript source file(s) of...
-    - `bib/i/res/scripts/bibi.js` are in `dev-bib/i/res/scripts/` (and `bower_components/`),
-    - `bib/i.js` is `dev-bib/i.js`,
-    - the extensions in `bib/i/extensions/` are in `dev-bib/i/extensions/`.
+Files in `__dist` folder generated with `npm start` are development version.
+Please don't forget to run `npm run build` and build production version before you upload.
 
-* These files are not processed by gulp tasks:
-    - `bib/i/index.html`
-    - Files in `bib/i/presets/`
-    - Files in `bib/bookshelf/`
+| Distribution                            | Source                                                                                                |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `__dist/bibi/*.html`                    | `__src/bibi/*.html`                                                                                   |
+| `__dist/bibi/and/jo.js`                 | `__src/bibi/and/jo.js` + `__src/bibi/and/jo.scss`                                                     |
+| `__dist/bibi/extensions/**`             | `__src/bibi/extensions/**`                                                                            |
+| `__dist/bibi/presets/*.js`              | `__src/bibi/presets/*.js`                                                                             |
+| `__dist/bibi/resources/scripts/bibi.js` | `__src/bibi/resources/scripts/*.js` + `__src/bibi/resources/scripts/bibi.book.scss`                   |
+| `__dist/bibi/resources/styles/bibi.css` | `__src/bibi/resources/styles/*.scss`                                                                  |
+| `__dist/bibi/wardrobe/**/*.css`         | Read documents in `__src/bibi/wardrobe/README-DRESS_ja` (Sorry..., currently README is Japanese only) |
+
+Files in the `Distribution` column of the table are overwritten with the files updated by `npm start` or `npm run build`.
+If you want to modify them, please edit files in the `Source` column instead of editing these files in `__dist` directly.
+
+
+### How to Build
+
+* $ `npm run build`
+    - webpack generates production version of Bibi to `__dist` folder.
+    - You can upload them to your online webserver.
+
+
+### How to Make a Ditribution Package
+
+* $ `npm run make:distribution-package`
+    1. webpack generates production version of Bibi to `__dist` folder.
+    2. gulp generates zipped archive to `__archives` folder.
 
 
 
@@ -158,28 +182,46 @@ License
 --------------------------------------------------------------------------------------------------------------------------------
 
 
-### BiB/i
 
-* Copyright &copy; Satoru MATSUSHIMA - https://bibi.epub.link/ or https://github.com/satorumurmur/bibi
-* Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php). - https://opensource.org/licenses/mit-license.php
+### Bibi ([ja](https://bibi.epub.link) / [en](https://github.com/satorumurmur/bibi))
 
-
-### BiB/i is including and powered by these open source softwares:
-
-* [Native Promise Only](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [easing.js](https://github.com/danro/easing-js) ... Copyright &copy; Dan Rogers (Licensed under the [MIT license](https://danro.mit-license.org).)
-* [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under the [MIT license](https://opensource.org/licenses/mit-license.php) or GPLv3.)
-* [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under the the [MIT license](https://opensource.org/licenses/mit-license.php) or GPLv3.)
-* [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [sML](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under the [MIT license](https://opensource.org/licenses/mit-license.php).)
-* [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under the [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).)
-* [Font Awesome Free](https://fontawesome.com) ... Copyright &copy; Dave Gandy (Licensed under the [SIL Open Font License (OFL) 1.1](https://scripts.sil.org/OFL))
+* Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
+* Licensed under [the MIT License](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
 
 
+
+### Bibi is including and powered by these open source softwares:
+
+* Core:
+    - [sML.js](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
+    - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache License version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
+* Extensions:
+    - [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) ... Copyright &copy; Lunascape (Licensed under [the MIT License](https://github.com/lunascape/bibi-zip-loader/blob/master/LICENSE).)
+    - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
+    - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
+    - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
+* Polyfills:
+    - [classlist-polyfill](https://github.com/yola/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
+    - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)
+    - [IntersectionObserver polyfill](https://github.com/w3c/IntersectionObserver) ... Copyright (c) W3C (Licensed under [the W3C Software and Document License](https://github.com/w3c/IntersectionObserver/blob/master/LICENSE.md).)
+    - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) ... Copyright &copy; Adam Miller (Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE).)
+    - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) ... Copyright &copy; Evan Krambuhl (Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE).)
+    - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) ... Copyright &copy; Kyle Simpson (Licensed under [the MIT License](http://getify.mit-license.org/).)
+    - [Polyfill Array.prototype.includes](https://github.com/latusinski/polyfill-array-includes) ... Copyright &copy; Kevin Latusinski (Licensed under [the MIT License](https://www.npmjs.com/package/polyfill-array-includes).)
+    - [String.prototype.padStart](https://github.com/KhaledElAnsari/String.prototype.padStart) ... Copyright &copy; Khaled Al-Ansari (Licensed under [the MIT License](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE).)
+    - [url-polyfill](https://github.com/lifaon74/url-polyfill) ... Copyright &copy; Valentin Richard (Licensed under [the MIT License](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE).)
 
 
 Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-* KITAITI Makoto ... [@KitaitiMakoto](https://github.com/KitaitiMakoto)
-* Shunsuke ITO ... [@shunito](https://github.com/shunito)
+Thanks to the contributors and the users around the world.
+
+
+Supported and Sponsored by
+--------------------------------------------------------------------------------------------------------------------------------
+
+### [Lunascape](https://lunascape.org)
+
+* Bibi v1.0.0 was developed with greateful support and sponsoring from [Lunascape](https://lunascape.org) (and their parent company [MEDIA DO Co.,Ltd.](https://mediado.jp/mediado) who absorbed and merged them).
+* Lunascape also developed [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) especially for Bibi, which realized fast progressive loading of zipped EPUBs.
