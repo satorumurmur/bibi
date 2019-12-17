@@ -1,0 +1,345 @@
+// ================================================================================
+// + General Icons
+// --------------------------------------------------------------------------------
+
+
+// - General Icons' Common Style
+// --------------------------------------------------------------------------------
+
+// [ja] 場所を問わず、一般アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__Common() {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	@include size(100%);
+	text-decoration: none;
+	&:before {
+		position: relative;
+		// ----
+		font: 1em / .98em "Material Icons";
+		-ms-font-feature-settings: 'liga' 1;  font-feature-settings: 'liga';  text-transform: none;
+		-webkit-font-smoothing: antialiased;  -moz-osx-font-smoothing: grayscale;  text-rendering: optimizelegibility;
+		speak: none;  direction: ltr;  letter-spacing: 0;  white-space: nowrap;  word-wrap: normal;  overflow-wrap: normal;
+	}
+}
+
+
+// - General Icons in Menu
+// --------------------------------------------------------------------------------
+
+// [ja] メニューバー内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInMenu() {
+	&:before {
+		font-size: $Menu-Icon_Size * 25/31;
+	}
+}
+
+@mixin GENERALICON__Config() {
+	&:before {
+		content: "settings";
+	}
+}
+
+@mixin GENERALICON__ChangeFontSize() {
+	&:before {
+		content: "format_size";
+		top: 1px;
+		text-indent: -1px;
+	}
+}
+
+// [ja] ３種の拡大／縮小アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__LoupeCommon() {
+	&:before {
+		text-indent: 1px;
+	}
+}
+
+@mixin GENERALICON__LoupeZoomIn() {
+	&:before {
+		content: "zoom_in";
+		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(1.25) !important; }
+	}
+}
+
+@mixin GENERALICON__LoupeZoomOut() {
+	&:before {
+		content: "zoom_out";
+		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(0.80) !important; }
+	}
+}
+
+@mixin GENERALICON__LoupeReset() {
+	&:before {
+		content: "search";
+		.bibi-button.active &, .bibi-button.active.hover & { html.zoomed-in & { transform: scale(0.80) !important; } html.zoomed-out & { transform: scale(1.25) !important; } }
+	}
+	&:after {
+		content: "=";
+		display: block;
+		position: absolute;
+		@include offset(22%, auto, auto, 22%);
+		margin: auto;
+		@include size(1em);
+		font-size: 1em * (13px / 18px);
+		line-height: 1;
+		html.macOS.Safari & { top: 16%; }
+		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
+	}
+}
+
+@mixin GENERALICON__ManageBookmarks() {
+	&:before {
+		content: "bookmarks";
+		font-size: $Menu-Icon_Size * 21/31;
+	}
+}
+
+
+// - General Icons in Slider
+// --------------------------------------------------------------------------------
+
+// [ja] Slider 内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInSlider() {
+	border-radius: 50%;
+	&:before {
+		font-size: 24px;
+	}
+}
+
+@mixin GENERALICON__History() {
+	transition: none !important;  .bibi-button:hover & { transition: $Slider-Icon_Transition !important; }
+	&:before {
+		content: "history";
+		left: -.01em;
+		transform: none !important;
+	}
+}
+
+
+// - General Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+// [ja] Subpanel 内のアイコンすべてに適用される共通スタイル
+@mixin GENERALICON__CommonInSubpanels() {
+	&:before {
+		font-size: $Subpanel-Icon_Size * 3/4;
+	}
+}
+
+@mixin GENERALICON__UseFullBreadth() {
+	&:before {
+		content: "settings_overscan";
+	}
+}
+
+@mixin GENERALICON__ToggleFullscreen() {
+	&:before {
+		content: "fullscreen";
+		html.InternetExplorer & { top: -.05em; }
+		*:fullscreen & {
+			content: "fullscreen_exit";
+		}
+	}
+}
+
+@mixin GENERALICON__OpenNewWindow() {
+	&:before {
+		content: "open_in_new";
+	}
+}
+
+// [ja] ５種のフォントサイズ変更アイコンすべてに適用される共通スタイル
+@mixin GENERALICON__FontSizeCommon() {
+	&:before {
+		content: "title";
+		top: 1px;
+	}
+}
+
+// [ja] ５種のフォントサイズ変更アイコンの font-size 値を同一比率で段階づけするためにここだけで使っている関数。使用しなくても構いません。
+@function LOCAL__GENERALICON__FontSize_FontSizePow($SCOPED__Size) {
+	$SCOPED__FontSize: 10px;  @if $SCOPED__Size > 1 { @for $i from 1 through ($SCOPED__Size - 1) { $SCOPED__FontSize: $SCOPED__FontSize * 1.28; } }
+	@return $SCOPED__FontSize;
+}
+
+@mixin GENERALICON__FontSizeXL() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(5);
+	}
+}
+
+@mixin GENERALICON__FontSizeL() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(4);
+	}
+}
+
+@mixin GENERALICON__FontSizeM() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(3);
+	}
+}
+
+@mixin GENERALICON__FontSizeS() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(2);
+	}
+}
+
+@mixin GENERALICON__FontSizeXS() {
+	&:before {
+		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(1);
+	}
+}
+
+@mixin GENERALICON__BookmarkCommon() {
+	&:before {
+		font-size: $Subpanel-Icon_Size * .9;
+		top: .05em;
+	}
+}
+
+@mixin GENERALICON__AddABookmark() {
+	&:before {
+		content: "book";
+	}
+}
+
+@mixin GENERALICON__ABookmark() {
+	&:before {
+		content: "bookmark_border";
+	}
+}
+
+
+
+
+// ================================================================================
+// + Special Icons
+// --------------------------------------------------------------------------------
+
+/* [ja]
+ * これ以降にあるアイコンは、デフォルトではアイコンフォントや画像を使わず、専用に生成された HTML 要素をスタイリングすることで図形を描画しているものです。
+ * いずれも、１行の @include でデフォルトのデザインを呼び出してあります。
+ * その @include をコメントアウトして独自の CSS を記述することで、たとえば背景画像を利用するなど、独自のデザインに変更することができます（いくつかのプロパティはリセットした方がよいかもしれません）。
+ * 対象となる要素の HTML ソースを添えてありますので、独自デザインを行う際には参考にしてください（例示ソース内部の改行・インデントは、実際の DOM には存在しません）。
+ * いずれの @mixin の展開先セレクタも、添えられた HTML ソースの一番外側の要素です。子要素には入れ子書式でスタイルを適用することができます。
+ */
+
+
+// - "Toggle Panel" Icon in Menu
+// --------------------------------------------------------------------------------
+
+/* [ja]
+ * バーガーメニューアイコンのスタイルです。
+ * １つめの @mixin は通常時（開くためのボタン）のスタイルです。
+ * ２つめの @mixin はパネルが開いているとき（閉じるためのボタン）のスタイルとして、通常時のスタイルに追加・上書きで適用されるスタイルです。
+ */
+
+@mixin SPECIALICON__TogglePanel() {
+	@include DEFAULT__SPECIALICON__TogglePanel();
+}
+
+@mixin SPECIALICON__TogglePanel__Active() {
+	@include DEFAULT__SPECIALICON__TogglePanel__Active();
+}
+
+/*
+
+<span class="bibi-icon bibi-icon-toggle-panel">
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+	<span></span>
+</span>
+
+*/
+
+
+// - "View Xxxx" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+/* [ja]
+ * 右上のボタンから開く設定メニューの Subpanel 内にある、３つの表示モード（「ページ単位」「横スクロール」「縦スクロール」）を示すアイコンのスタイルです。
+ * １つめの @mixin は、３つに共通して適用されるスタイルです。
+ * 以降３つの @mixin は、順に「ページ単位」「横スクロール」「縦スクロール」アイコンのスタイルとして、共通スタイルに追加・上書きで適用されます。
+ */
+
+@mixin SPECIALICON__View_Common() {
+	@include DEFAULT__SPECIALICON__View_Common();
+}
+@mixin SPECIALICON__ViewPaged() {
+	@include DEFAULT__SPECIALICON__ViewPaged();
+}
+@mixin SPECIALICON__ViewHorizontal() {
+	@include DEFAULT__SPECIALICON__ViewHorizontal();
+}
+@mixin SPECIALICON__ViewVertical() {
+	@include DEFAULT__SPECIALICON__ViewVertical();
+}
+
+/*
+
+// SPECIALICON__ViewPaged
+<span class="bibi-icon bibi-icon-view bibi-icon-view-paged">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
+
+// SPECIALICON__ViewHorizontal
+<span class="bibi-icon bibi-icon-view bibi-icon-view-horizontal">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
+
+// SPECIALICON__ViewVertical
+<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical">
+	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+		<span class="bibi-shape bibi-shape-spread">
+			<span class="bibi-shape bibi-shape-item"></span>
+			<span class="bibi-shape bibi-shape-item"></span>
+		</span>
+	</span>
+</span>
+
+*/
+
+
+
+
+

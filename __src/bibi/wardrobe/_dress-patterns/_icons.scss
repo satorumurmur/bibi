@@ -1,0 +1,329 @@
+// ================================================================================
+// + Base
+// --------------------------------------------------------------------------------
+
+
+// - Colors & Interaction: Mix-Ins
+// --------------------------------------------------------------------------------
+
+@mixin Icon-OutlineColor($SCOPED__TextOrBox, $SCOPED__Icon-OutlineColor) {
+	#{$SCOPED__TextOrBox}-shadow:
+		-1px -1px 0px $SCOPED__Icon-OutlineColor,
+		 0px -1px 0px $SCOPED__Icon-OutlineColor,
+		 1px -1px 0px $SCOPED__Icon-OutlineColor,
+		 1px  0px 0px $SCOPED__Icon-OutlineColor,
+		 1px  1px 0px $SCOPED__Icon-OutlineColor,
+		 0px  1px 0px $SCOPED__Icon-OutlineColor,
+		-1px  1px 0px $SCOPED__Icon-OutlineColor,
+		-1px  0px 0px $SCOPED__Icon-OutlineColor,
+		 0px  0px 1px $SCOPED__Icon-OutlineColor;
+}
+
+@mixin Icon-Colouring($SCOPED__Icon-Font_PaintColor, $SCOPED__Icon-Font_OutlineColor, $SCOPED__Icon-Shape_PaintColor, $SCOPED__Icon-Shape_OutlineColor, $SCOPED__Icon-BackgroundColor, $SCOPED__Icon-BorderColor) {
+	color: $SCOPED__Icon-BorderColor;
+	border-color: $SCOPED__Icon-BorderColor;
+	background-color: $SCOPED__Icon-BackgroundColor;
+	&:before, &:after {
+		color: $SCOPED__Icon-Font_PaintColor;
+		@if $SCOPED__Icon-Font_OutlineColor != transparent { @include Icon-OutlineColor("text", $SCOPED__Icon-Font_OutlineColor); }
+	}
+	span.bibi-shape-spreads {
+		span.bibi-shape-spread {
+			span.bibi-shape-item {
+				border-color: $SCOPED__Icon-Shape_OutlineColor;
+				background-color: $SCOPED__Icon-Shape_PaintColor;
+			}
+		}
+	}
+	&.bibi-icon-toggle-panel {
+		>span {
+			background-color: $SCOPED__Icon-Font_PaintColor;
+			@if $SCOPED__Icon-Font_OutlineColor != transparent { @include Icon-OutlineColor("box", $SCOPED__Icon-Font_OutlineColor); }
+		}
+	}
+}
+
+
+// - Colors & Interaction: Default
+// --------------------------------------------------------------------------------
+
+.bibi-icon {
+	.bibi-button.disabled & {
+		&:before, &:after { opacity: 0.33 !important; }
+	}
+	#bibi-menu & {
+		@include Icon-Colouring(
+			$Menu-Icon-Font_PaintColor,
+			$Menu-Icon-Font_OutlineColor,
+			$Menu-Icon-Shape_PaintColor,
+			$Menu-Icon-Shape_OutlineColor,
+			$Menu-Icon_BackgroundColor,
+			$Menu-Icon_BorderColor
+		);
+		&, &:before, &:after, * { transition: $Menu-Icon_Transition; }
+		&:before, &:after { transform: $Menu-Icon_Transform; }
+	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor,
+			$Slider-Icon-Font_OutlineColor,
+			$Slider-Icon-Shape_PaintColor,
+			$Slider-Icon-Shape_OutlineColor,
+			$Slider-Icon_BackgroundColor,
+			$Slider-Icon_BorderColor
+		);
+		&, &:before, &:after, * { transition: $Slider-Icon_Transition; }
+		&:before, &:after { transform: $Slider-Icon_Transform; }
+	}
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor,
+			$Subpanel-Icon-Font_OutlineColor,
+			$Subpanel-Icon-Shape_PaintColor,
+			$Subpanel-Icon-Shape_OutlineColor,
+			$Subpanel-Icon_BackgroundColor,
+			$Subpanel-Icon_BorderColor
+		);
+		&, &:before, &:after, * { transition: $Subpanel-Icon_Transition; }
+		&:before, &:after { transform: $Subpanel-Icon_Transform; }
+	}
+}
+
+
+// - Colors & Interaction: Default + Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button.default { &.hover/*, &:hover*/ { .bibi-icon {
+	#bibi-menu & {
+		@include Icon-Colouring(
+			$Menu-Icon-Font_PaintColor__Hover,
+			$Menu-Icon-Font_OutlineColor__Hover,
+			$Menu-Icon-Shape_PaintColor__Hover,
+			$Menu-Icon-Shape_OutlineColor__Hover,
+			$Menu-Icon_BackgroundColor__Hover,
+			$Menu-Icon_BorderColor__Hover
+		);
+		&:before, &:after { transform: $Menu-Icon_Transform__Hover; }
+	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Hover,
+			$Slider-Icon-Font_OutlineColor__Hover,
+			$Slider-Icon-Shape_PaintColor__Hover,
+			$Slider-Icon-Shape_OutlineColor__Hover,
+			$Slider-Icon_BackgroundColor__Hover,
+			$Slider-Icon_BorderColor__Hover
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Hover; }
+	}
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Hover,
+			$Subpanel-Icon-Font_OutlineColor__Hover,
+			$Subpanel-Icon-Shape_PaintColor__Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Hover,
+			$Subpanel-Icon_BackgroundColor__Hover,
+			$Subpanel-Icon_BorderColor__Hover
+		);
+		&:before, &:after { transform: $Subpanel-Icon_Transform__Hover; }
+	}
+}}}
+
+
+// - Colors & Interaction: Active
+// --------------------------------------------------------------------------------
+
+.bibi-button.active { .bibi-icon {
+	#bibi-menu & {
+		@include Icon-Colouring(
+			$Menu-Icon-Font_PaintColor__Active,
+			$Menu-Icon-Font_OutlineColor__Active,
+			$Menu-Icon-Shape_PaintColor__Active,
+			$Menu-Icon-Shape_OutlineColor__Active,
+			$Menu-Icon_BackgroundColor__Active,
+			$Menu-Icon_BorderColor__Active
+		);
+		&:before, &:after { transform: $Menu-Icon_Transform__Active; }
+	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Active,
+			$Slider-Icon-Font_OutlineColor__Active,
+			$Slider-Icon-Shape_PaintColor__Active,
+			$Slider-Icon-Shape_OutlineColor__Active,
+			$Slider-Icon_BackgroundColor__Active,
+			$Slider-Icon_BorderColor__Active
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Active; }
+	}
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Active,
+			$Subpanel-Icon-Font_OutlineColor__Active,
+			$Subpanel-Icon-Shape_PaintColor__Active,
+			$Subpanel-Icon-Shape_OutlineColor__Active,
+			$Subpanel-Icon_BackgroundColor__Active,
+			$Subpanel-Icon_BorderColor__Active
+		);
+		&:before, &:after { transform: $Subpanel-Icon_Transform__Active; }
+	}
+}}
+
+
+// - Colors & Interaction: Active + Hover
+// --------------------------------------------------------------------------------
+
+.bibi-button-normal, .bibi-button-toggle { &.active { &.hover/*, &:hover*/ { .bibi-icon {
+	#bibi-menu & {
+		@include Icon-Colouring(
+			$Menu-Icon-Font_PaintColor__Active-Hover,
+			$Menu-Icon-Font_OutlineColor__Active-Hover,
+			$Menu-Icon-Shape_PaintColor__Active-Hover,
+			$Menu-Icon-Shape_OutlineColor__Active-Hover,
+			$Menu-Icon_BackgroundColor__Active-Hover,
+			$Menu-Icon_BorderColor__Active-Hover
+		);
+		&:before, &:after { transform: $Menu-Icon_Transform__Active-Hover; }
+	}
+	#bibi-slider & {
+		@include Icon-Colouring(
+			$Slider-Icon-Font_PaintColor__Active-Hover,
+			$Slider-Icon-Font_OutlineColor__Active-Hover,
+			$Slider-Icon-Shape_PaintColor__Active-Hover,
+			$Slider-Icon-Shape_OutlineColor__Active-Hover,
+			$Slider-Icon_BackgroundColor__Active-Hover,
+			$Slider-Icon_BorderColor__Active-Hover
+		);
+		&:before, &:after { transform: $Slider-Icon_Transform__Active-Hover; }
+	}
+	.bibi-subpanel & {
+		@include Icon-Colouring(
+			$Subpanel-Icon-Font_PaintColor__Active-Hover,
+			$Subpanel-Icon-Font_OutlineColor__Active-Hover,
+			$Subpanel-Icon-Shape_PaintColor__Active-Hover,
+			$Subpanel-Icon-Shape_OutlineColor__Active-Hover,
+			$Subpanel-Icon_BackgroundColor__Active-Hover,
+			$Subpanel-Icon_BorderColor__Active-Hover
+		);
+		&:before, &:after { transform: $Subpanel-Icon_Transform__Active-Hover; }
+	}
+}}}}
+
+
+// - Colors & Interaction: Disabled
+// --------------------------------------------------------------------------------
+
+.bibi-button.disabled .bibi-icon {
+	#bibi-menu     & { &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
+	#bibi-slider   & { &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
+	.bibi-subpanel & { &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
+}
+
+
+
+
+// ================================================================================
+// + General Icons
+// --------------------------------------------------------------------------------
+
+
+// - General Icons' Common Style
+// --------------------------------------------------------------------------------
+
+// -- In Menu
+.bibi-icon-config,
+.bibi-icon-change-fontsize,
+.bibi-icon-loupe,
+.bibi-icon-manage-bookmarks,
+// -- In Slider
+.bibi-icon-history,
+// -- In Subpanel
+.bibi-icon-full-breadth-layout,
+.bibi-icon-toggle-fullscreen,
+.bibi-icon-open-newwindow,
+.bibi-icon-fontsize,
+.bibi-icon-bookmark { @include GENERALICON__Common(); }
+
+
+// - General Icons in Menu
+// --------------------------------------------------------------------------------
+
+.bibi-icon-config,
+.bibi-icon-change-fontsize,
+.bibi-icon-loupe,
+.bibi-icon-manage-bookmarks { @include GENERALICON__CommonInMenu(); }
+
+.bibi-icon-config { @include GENERALICON__Config(); }
+
+.bibi-icon-change-fontsize { @include GENERALICON__ChangeFontSize(); }
+
+.bibi-icon-loupe { @include GENERALICON__LoupeCommon();
+	&-zoomin  { @include GENERALICON__LoupeZoomIn(); }
+	&-zoomout { @include GENERALICON__LoupeZoomOut(); }
+	&-reset   { @include GENERALICON__LoupeReset(); }
+}
+
+.bibi-icon-manage-bookmarks { @include GENERALICON__ManageBookmarks(); }
+
+
+// - General Icons in Slider
+// --------------------------------------------------------------------------------
+
+.bibi-icon-history { @include GENERALICON__CommonInSlider(); }
+
+.bibi-icon-history { @include GENERALICON__History(); }
+
+
+// - General Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+.bibi-icon-full-breadth-layout,
+.bibi-icon-toggle-fullscreen,
+.bibi-icon-open-newwindow,
+.bibi-icon-fontsize,
+.bibi-icon-bookmark { @include GENERALICON__CommonInSubpanels(); }
+
+.bibi-icon-full-breadth-layout { @include GENERALICON__UseFullBreadth(); }
+
+.bibi-icon-toggle-fullscreen { @include GENERALICON__ToggleFullscreen(); }
+
+.bibi-icon-open-newwindow { @include GENERALICON__OpenNewWindow(); }
+
+.bibi-icon-fontsize { @include GENERALICON__FontSizeCommon();
+	&-exlarge { @include GENERALICON__FontSizeXL(); }
+	&-large   { @include GENERALICON__FontSizeL(); }
+	&-medium  { @include GENERALICON__FontSizeM(); }
+	&-small   { @include GENERALICON__FontSizeS(); }
+	&-exsmall { @include GENERALICON__FontSizeXS(); }
+}
+
+.bibi-icon-bookmark { @include GENERALICON__BookmarkCommon(); }
+	.bibi-icon-add-a-bookmark { @include GENERALICON__AddABookmark(); }
+	.bibi-icon-a-bookmark { @include GENERALICON__ABookmark(); }
+
+
+
+
+// ================================================================================
+// + Special Icons
+// --------------------------------------------------------------------------------
+
+
+// - "Toggle Panel" Icon in Menu
+// --------------------------------------------------------------------------------
+
+.bibi-icon-toggle-panel {
+	@include SPECIALICON__TogglePanel();
+	.bibi-button.active & { @include SPECIALICON__TogglePanel__Active(); }
+}
+
+
+// - "View Xxxx" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+.bibi-icon-view { @include SPECIALICON__View_Common();
+	&-paged      { @include SPECIALICON__ViewPaged(); }
+	&-horizontal { @include SPECIALICON__ViewHorizontal(); }
+	&-vertical   { @include SPECIALICON__ViewVertical(); }
+}
+

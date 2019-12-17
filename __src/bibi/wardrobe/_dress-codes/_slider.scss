@@ -1,0 +1,172 @@
+// ================================================================================
+// + Slider
+// --------------------------------------------------------------------------------
+
+$Slider_Size: 64px;
+
+$Slider_PaddingStart__SliderOpened: 8px;
+$Slider_PaddingEnd__SliderOpened:   8px;
+$Slider_PaddingBefore__SliderOpened: 8px;  $Slider_PaddingBefore__SliderOpened__WithHistory: 48px;
+$Slider_PaddingAfter__SliderOpened:   8px;
+
+$Slider_Transition__Open: .01s ease;
+$Slider_Transition__Close: .1s ease;
+
+$Slider_KeyColor: steelblue;
+// [ja] └ Slider 内のキーカラー（アイコンや文字色の一貫性を保つための共通／事前定義）※以降の項目で利用できますが、してもしなくても構いません
+
+$Slider_BorderColor: rgb(232,232,232);
+$Slider_Background: white;
+$Slider_BoxShadow: none;
+
+$Slider_BorderColor__SliderOpened: darken($Slider_Background, 20%);
+$Slider_Background__SliderOpened: rgb(236,236,236);//rgb(222,222,222);
+$Slider_BoxShadow__SliderOpened: 0 0 16px rgba(black, 0.125);
+
+
+// - . History
+// --------------------------------------------------------------------------------
+
+$Slider-History-Button-Icon_Size: 32px;
+$Slider-History-Button-Icon_Margin: 8px;
+$Slider-History-Button-Icon_Margin: 8px;
+
+
+// - . Thumb
+// --------------------------------------------------------------------------------
+
+$Slider-Thumb_BackgroundColor: rgb(160,160,160);//rgb(192,192,192);
+$Slider-Thumb_BackgroundColor__Hover: rgb(128,128,128);
+$Slider-Thumb_BackgroundColor__Active: rgb(160,160,160);
+$Slider-Thumb_BorderColor: transparent;//rgb(32,32,32);
+// [ja] └ 画面中央タップ以前の細い状態（スクロールバーを模した状態）の Slider の、現在位置表示となるサムの色（Slider 以外のスクロールバーは WebKit/Blink 系のみに適用されます）
+
+$Slider-Thumb-Circle_Size: 16px;
+$Slider-Thumb-Circle_BackgroundColor: $Slider_KeyColor;
+
+$Slider-Thumb-Circle_BorderColor: $Slider-Thumb-Circle_BackgroundColor;
+$Slider-Thumb-Circle_BorderWidth: 0;
+
+$Slider-Thumb-Circle-Halo_Width: 1px;
+$Slider-Thumb-Circle-Halo_Color: rgba(white, .5);
+
+
+// - . Rail
+// --------------------------------------------------------------------------------
+
+$Slider-Rail_Width__SliderOpened: 1px;
+$Slider-Rail-Progress_Width__SliderOpened: 2px;
+$Slider-Rail_Color:                 rgb(192,192,192);//rgba(gray, 0.250);
+$Slider-Rail_Color__Hover:          $Slider-Rail_Color;
+$Slider-Rail-Progress_Color:        $Slider_KeyColor;
+$Slider-Rail-Progress_Color__Hover: $Slider_KeyColor;
+
+
+// - UI Box (Edgebar Box, Bookmap Box)
+// --------------------------------------------------------------------------------
+
+
+// - Edgebar, Bookmap
+// --------------------------------------------------------------------------------
+
+
+// - Edgebar
+// --------------------------------------------------------------------------------
+
+$Slider-Edgebar_BorderRadius: 2px;//($Slider_Size - $Slider_PaddingStart__SliderOpened - $Slider_PaddingEnd__SliderOpened) * 0.5;
+$Slider-Edgebar_Background: white;
+
+
+// - Bookmap
+// --------------------------------------------------------------------------------
+
+
+// - . Bookmap > Spread Box
+// --------------------------------------------------------------------------------
+
+$Slider-Bookmap-SpreadBox_Color: transparent;
+$Slider-Bookmap-SpreadBox_Color__Hover: rgba($Slider_KeyColor, .33);
+
+
+// - . Bookmap > Spread Box > Spread
+// --------------------------------------------------------------------------------
+
+$Slider-Bookmap-Spread_Background: rgba(white, .5);
+
+
+// - . Bookmap > Spread Box > Spread > Item Box
+// --------------------------------------------------------------------------------
+
+$Slider-Bookmap-ItemBox_BorderColor__ForReflowable: rgb(216,216,216);
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Item
+// --------------------------------------------------------------------------------
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Page
+// --------------------------------------------------------------------------------
+
+$Slider-Bookmap-Page_Color__SliderOpened: white;
+$Slider-Bookmap-Page_Color__SliderOpened__Hover: lighten($Slider_KeyColor, 33%);
+$Slider-Bookmap-Page_BorderColor__SliderOpened__Hover: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
+
+
+
+
+// ================================================================================
+// + Icons in Slider
+// --------------------------------------------------------------------------------
+
+
+// - Colors & Interaction
+// --------------------------------------------------------------------------------
+
+// [In Slider] Default
+$Slider-Icon-Font_PaintColor:    rgb(128,128,128);
+$Slider-Icon-Font_OutlineColor:  transparent;
+$Slider-Icon-Shape_PaintColor:   white;
+$Slider-Icon-Shape_OutlineColor: rgb(128,128,128);
+$Slider-Icon_BackgroundColor:    white;
+$Slider-Icon_BorderColor:        rgb(234,234,234);
+$Slider-Icon_Transform:          none;
+
+// [In Slider] Default:Hover
+$Slider-Icon-Font_PaintColor__Hover:    white;
+$Slider-Icon-Font_OutlineColor__Hover:  $Slider-Icon-Font_OutlineColor;
+$Slider-Icon-Shape_PaintColor__Hover:   $Slider_KeyColor;
+$Slider-Icon-Shape_OutlineColor__Hover: white;
+$Slider-Icon_BackgroundColor__Hover:    $Slider_KeyColor;
+$Slider-Icon_BorderColor__Hover:        $Slider_KeyColor;
+$Slider-Icon_Transform__Hover:          $Slider-Icon_Transform;
+
+// [In Slider] Active
+$Slider-Icon-Font_PaintColor__Active:    $Slider-Icon-Font_PaintColor__Hover;
+$Slider-Icon-Font_OutlineColor__Active:  $Slider-Icon-Font_OutlineColor__Hover;
+$Slider-Icon-Shape_PaintColor__Active:   $Slider-Icon-Shape_PaintColor__Hover;
+$Slider-Icon-Shape_OutlineColor__Active: $Slider-Icon-Shape_OutlineColor__Hover;
+$Slider-Icon_BackgroundColor__Active:    $Slider-Icon_BackgroundColor__Hover;
+$Slider-Icon_BorderColor__Active:        $Slider-Icon_BorderColor__Hover;
+$Slider-Icon_Transform__Active:          rotate(360deg);
+
+// [In Slider] Active:Hover
+$Slider-Icon-Font_PaintColor__Active-Hover:    $Slider-Icon-Font_PaintColor__Active;
+$Slider-Icon-Font_OutlineColor__Active-Hover:  $Slider-Icon-Font_OutlineColor__Active;
+$Slider-Icon-Shape_PaintColor__Active-Hover:   $Slider-Icon-Shape_PaintColor__Active;
+$Slider-Icon-Shape_OutlineColor__Active-Hover: $Slider-Icon-Shape_OutlineColor__Active;
+$Slider-Icon_BackgroundColor__Active-Hover:    $Slider-Icon_BackgroundColor__Active;
+$Slider-Icon_BorderColor__Active-Hover:        $Slider-Icon_BorderColor__Active;
+$Slider-Icon_Transform__Active-Hover:          $Slider-Icon_Transform__Active;
+
+// [In Slider] Transition
+$Slider-Icon_Transition: 
+	color 0.125s linear,
+	background-color 0.125s linear,
+	border-color 0.125s linear,
+	text-shadow 0.125s linear,
+	box-shadow 0.125s linear,
+	transform 0.25s ease
+;
+
+// Disabled
+$Slider-Icon_Opacity__Disabled: 0.33;

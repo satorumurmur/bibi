@@ -1,0 +1,518 @@
+// ================================================================================
+// + Stage
+// --------------------------------------------------------------------------------
+
+
+// - Foundation
+// --------------------------------------------------------------------------------
+
+* {
+	margin: 0;
+	padding: 0;
+	border: none 0;
+	font-size: 100%;
+	font-weight: inherit;
+	font-style: inherit;
+}
+
+li {
+	list-style: none outside;
+}
+
+section, article, nav, aside,
+header, footer,
+figure, figcaption { 
+	display: block;
+}
+
+.non-visual { @include NonVisual(); }
+
+.uppercase { text-transform: uppercase !important; }
+
+
+// - HTML / Body
+// --------------------------------------------------------------------------------
+
+html {
+	overflow: hidden;  &.welcome { overflow: scroll !important; }
+	position: absolute; @include offset(0, 0, auto); // for InAppBrowsers
+	&.InternetExplorer { position: static; }
+	@include size(100%);
+	font-family: sans-serif;
+	// @____Bibi:Dress__('-') &.iOS     { font-family: $HTML_FontFamily__iOS; }
+	// @____Bibi:Dress__('-') &.macOS   { font-family: $HTML_FontFamily__macOS; }
+	// @____Bibi:Dress__('-') &.Android { font-family: $HTML_FontFamily__Android; }
+	// @____Bibi:Dress__('-') &.Windows { font-family: $HTML_FontFamily__Windows; }
+	-webkit-font-smoothing: subpixel-antialiased;
+	-webkit-text-size-adjust: 100%;
+	/*
+	&[data-bibi-cursor="left"]   { cursor: w-resize; }
+	&[data-bibi-cursor="right"]  { cursor: e-resize; }
+	&[data-bibi-cursor="top"]    { cursor: n-resize; }
+	&[data-bibi-cursor="bottom"] { cursor: s-resize; }
+	*/
+	&[data-bibi-cursor="left"],
+	&[data-bibi-cursor="right"],
+	&[data-bibi-cursor="top"],
+	&[data-bibi-cursor="bottom"] { cursor: pointer; }
+	user-select: none;
+	&.Blink { touch-action: none; }
+}
+
+body {
+	* {
+		-webkit-tap-highlight-color: rgba(255,255,255,0);
+		-webkit-tap-highlight-color: transparent;
+	}
+	position: absolute; @include offset(0, 0, auto);
+	&.InternetExplorer { position: static; }
+	overflow: hidden;
+	@include size(100%);
+	//max-height: 150vw;
+	transition: opacity .25s ease;
+}
+
+
+// - Catcher
+// --------------------------------------------------------------------------------
+
+div#bibi-catcher {
+	$SCOPED__CenterLine: 56%;
+	$SCOPED__Transition: .125s cubic-bezier(.2,.8,.8,1.6);
+	& {
+		display: none; html.waiting-file & { display: block; }
+		position: absolute;
+		z-index: $INVARIABLE__Catcher_ZIndex;
+		@include offset(0);
+		margin: 0;
+		@include size(100%);
+		// @____Bibi:Dress__('-') background: $Catcher_Background;
+		cursor: pointer;
+		transition: $SCOPED__Transition;
+		> .book-icon {
+			// @____Bibi:Dress__('-') @include DEFAULT__SPECIALICON__Book($Catcher-Icon_Size, $Catcher-Icon_OuterColor, $Catcher-Icon_InnerColor, absolute);
+			z-index: 10;
+			@include offset(auto, 0, $SCOPED__CenterLine);
+			margin: 0 auto;
+			transform: translateX(-4%);
+			&, & * {
+				transition: $SCOPED__Transition;
+			}
+		}
+		> .pgroup {
+			box-sizing: border-box;
+			position: absolute;
+			z-index: 100;
+			@include offset(100% - $SCOPED__CenterLine, 0, auto);
+			margin: 0 auto;
+			width: 100%;
+			vertical-align: middle;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: center;
+			p {
+				strong, em, span, small {
+					display: block;
+					font-weight: bold;
+					transition: $SCOPED__Transition;
+				}
+				strong {
+					box-sizing: border-box;
+					margin-top: 18px;
+					padding: 0 .5em;
+					height: 2.5em;
+					line-height: 2.5em;
+					border-radius: 1.25em;
+					font-size: 16px;
+					// @____Bibi:Dress__('-') color: $Catcher-Button_Color;
+					// @____Bibi:Dress__('-') background: $Catcher-Button_BackgroundColor;
+				}
+				em, span, small {
+					// @____Bibi:Dress__('-') color: $Catcher-Text_Color;
+				}
+				em {
+					margin-top: 14px;
+					font-size: 16px;
+					line-height: 1.5;
+				}
+				span {
+					margin-top: 10px;
+					font-size: 14px;
+					line-height: 1.5;
+				}
+				small {
+					margin-top: 6px;
+					font-size: 12px;
+				}
+			}
+			&[lang="en"] p {
+				strong { text-indent: .125em; }
+				em     { margin-right: -.125em; }
+				span   { margin-right: -.125em; }
+				small  {}
+			}
+			&[lang="ja"] p {
+				strong { text-indent: .5em; }
+				em     { margin-right: -.67em; text-indent: -.67em; }
+				span   { margin-right: -.67em; text-indent: 0; }
+				small  {}
+			}
+		}
+		> input {
+			visibility: hidden;
+		}
+		&:before {
+			content: "";
+			display: block;
+			box-sizing: border-box;
+			position: absolute;
+			z-index: 1;
+			@include offset(0);
+			margin: auto;
+			transition: $SCOPED__Transition;
+			// @____Bibi:Dress__('-') $SCOPED__Catcher-Area_Margin: 24px;
+			// @____Bibi:Dress__('-') border-radius: $SCOPED__Catcher-Area_Margin;
+			// @____Bibi:Dress__('-') @include size(
+			// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 }),
+			// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 2 + $PoweredBy_Height})
+			// @____Bibi:Dress__('-') );
+			// @____Bibi:Dress__('-') @include max(768px) { @include size(
+			// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 }),
+			// @____Bibi:Dress__('-') 	calc(100% - #{$SCOPED__Catcher-Area_Margin * 0.5 * 2 + $PoweredBy_Height})
+			// @____Bibi:Dress__('-') ); }
+			// @____Bibi:Dress__('-') transform: translateY(#{$PoweredBy_Height * -0.5});
+		}
+		&:after {
+			content: "";
+			display: block;
+			position: absolute;
+			z-index: 0;
+			left: 0; right: 0; bottom: 0;
+			width: 100%;
+			// @____Bibi:Dress__('-') height: $PoweredBy_Height;
+			// @____Bibi:Dress__('-') background: $PoweredBy_BackgroundColor__WaitingFile;
+		}
+	}
+	html:not(.iOS):not(.Android) & {
+		// @____Bibi:Dress__('-') &:before { border: $Catcher_Border; }
+	}
+	html.iOS &,
+	html.Android & {
+		// @____Bibi:Dress__('-') &:before { border: $Catcher_Border__TouchDevice; }
+	}
+	html:not(.iOS):not(.Android).dragenter &,
+	html:not(.iOS):not(.Android) &:hover {
+		> .book-icon { transform: translateX(-4%) rotate(-4deg); }
+		> .pgroup {
+			p {
+				strong {
+					transform: scale(1.05);
+				}
+			}
+		}
+		// @____Bibi:Dress__('-') &:before { border: $Catcher_Border__Hover; }
+	}
+	html:not(.iOS):not(.Android) &:active,
+	html.iOS &:active,
+	html.Android &:active {
+		> .book-icon { transform: translateX(-4%) rotate( 4deg); }
+		> .pgroup {
+			p {
+				strong {
+					transform: scale(.95);
+				}
+			}
+		}
+	}
+	html:not(.iOS):not(.Android) &:active {
+		// @____Bibi:Dress__('-') &:before { border: $Catcher_Border__Active; }
+	}
+	html.iOS &:active,
+	html.Android &:active {
+		// @____Bibi:Dress__('-') &:before { border: $Catcher_Border__TouchDevice__Active; }
+	}
+}
+
+
+// - PoweredBy
+// --------------------------------------------------------------------------------
+
+div#bibi-poweredby {
+	& {
+		box-sizing: border-box;
+		display: block;
+		overflow: hidden;
+		position: absolute;
+		z-index: $INVARIABLE__PoweredBy_ZIndex;
+		@include offset(auto, auto, 0, 0);
+		margin: 0 auto;
+		width: 100%;
+		// @____Bibi:Dress__('-') height: $PoweredBy_Height;
+		font-size: 14px;
+		transform-origin: 50% 100%;
+		transform: scale(1, 0);
+		opacity: 0;
+		transition: opacity .5s linear;
+		p {
+			a {
+				$SCOPED__PoweredBy-Logo-Image_OriginalWidth: 14400px;
+				$SCOPED__PoweredBy-Logo-Image_OriginalHeight: 6504px;
+				$SCOPED__PoweredBy-Logo-Image_Height: 14px;
+				$SCOPED__PoweredBy-Logo-Image_Width: $SCOPED__PoweredBy-Logo-Image_Height * ($SCOPED__PoweredBy-Logo-Image_OriginalWidth / $SCOPED__PoweredBy-Logo-Image_OriginalHeight);
+				$SCOPED__PoweredBy-Logo-Box_Left: 4px;
+				$SCOPED__PoweredBy-Logo-Box_PaddingVertical: 6px;
+				$SCOPED__PoweredBy-Logo-Box_PaddingHorizontal: 10px;
+				$SCOPED__PoweredBy-Logo-Box_Height: $SCOPED__PoweredBy-Logo-Image_Height + $SCOPED__PoweredBy-Logo-Box_PaddingVertical * 2;
+				$SCOPED__PoweredBy-Logo-Box_Width: $SCOPED__PoweredBy-Logo-Image_Width + $SCOPED__PoweredBy-Logo-Box_PaddingHorizontal * 2;
+				display: block;
+				box-sizing: border-box;
+				position: absolute;
+				top: 0;
+				right: auto;
+				bottom: 0;
+				left: $SCOPED__PoweredBy-Logo-Box_Left;
+				margin: auto 0;
+				border-radius: 2px;
+				@include size($SCOPED__PoweredBy-Logo-Box_Width, $SCOPED__PoweredBy-Logo-Box_Height);
+				font-size: $SCOPED__PoweredBy-Logo-Image_Height;
+				line-height: $SCOPED__PoweredBy-Logo-Box_Height/* + 2px*/;
+				text-align: center;
+				text-decoration: none;
+				color: transparent;
+				background: transparent;
+				&,
+				&:before,
+				&:after {
+					transition: .1s linear;
+				}
+				&:before,
+				&:after {
+					content: "";
+					display: block;
+					position: absolute;
+					@include offset(0);
+					margin: 0;
+					@include size(100%);
+					//background: transparent none no-repeat center (($SCOPED__PoweredBy-Logo-Box_Height - $SCOPED__PoweredBy-Logo-Image_Height) / 2 + 2px );
+					background: transparent none no-repeat center center;
+					background-size: $SCOPED__PoweredBy-Logo-Image_Width $SCOPED__PoweredBy-Logo-Image_Height;
+				}
+				&:before { background-image: url(#{$images-path}/Bibi.svg); filter: invert(100%); } // White
+				&:after  { background-image: url(#{$images-path}/Bibi.svg); } // Black
+			}
+		}
+	}
+	html.waiting-file &,
+	html.waiting &,
+	html.panel-opened & {
+		opacity: 1;
+		transform: none;
+	}
+	// @____Bibi:Dress__('-') html.veil-opened & {
+	// @____Bibi:Dress__('-') 	p {
+	// @____Bibi:Dress__('-') 		a {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__VeilOpened;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 		a:hover {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__VeilOpened__Hover;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__VeilOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__VeilOpened__Hover; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 	}
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.waiting-file & {
+	// @____Bibi:Dress__('-') 	p {
+	// @____Bibi:Dress__('-') 		a {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__WaitingFile;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 		a:hover {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__WaitingFile__Hover;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__WaitingFile__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__WaitingFile__Hover; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 	}
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.panel-opened & {
+	// @____Bibi:Dress__('-') 	p {
+	// @____Bibi:Dress__('-') 		a {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__PanelOpened;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 		a:hover {
+	// @____Bibi:Dress__('-') 			background-color: $PoweredBy-A_BackgroundColor__PanelOpened__Hover;
+	// @____Bibi:Dress__('-') 			&:before { opacity: $PoweredBy-A-Logo_OpacityOfWhite__PanelOpened__Hover; }
+	// @____Bibi:Dress__('-') 			&:after  { opacity: $PoweredBy-A-Logo_OpacityOfBlack__PanelOpened__Hover; }
+	// @____Bibi:Dress__('-') 		}
+	// @____Bibi:Dress__('-') 	}
+	// @____Bibi:Dress__('-') }
+}
+
+
+// - BiB/i Info
+// --------------------------------------------------------------------------------
+
+div#bibi-info {
+	overflow: hidden;
+	@include size(0);
+}
+
+
+// - Checker
+// --------------------------------------------------------------------------------
+
+div#bibi-style-checker {
+	@include writing-mode(vertical-rl);
+	position: absolute;
+	z-index: 0;
+	// @____Bibi:Dress__('-') left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
+	// @____Bibi:Dress__('-') @include size($Slider_Size, $Menu_Height);
+	font-size: 1rem;
+	line-height: 1em;
+	white-space: nowrap;
+	opacity: 0;
+}
+
+
+
+
+// ================================================================================
+// + Factory / Dev.
+// --------------------------------------------------------------------------------
+
+
+div#bibi-is-dev-mode {
+	& {
+		overflow: hidden;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		z-index: 99999999999;
+		@include offset(0);
+		margin: auto;
+		padding: 2em;
+		@include size(300px);
+		border-radius: 150px;
+		font-weight: bold;
+		color: white;
+		background: rgba(255,64,0, .9);
+		pointer-events: text;
+		p {
+			text-align: center;
+			width: 100%;
+			line-height: 1.5;
+		}
+		p:nth-of-type(1) {
+			margin-top: -1em;
+			padding-bottom: .4em;
+			border-bottom: solid 1px white;
+			margin-bottom: .6em;
+			font-size: 18px;
+			strong {
+				display: block;
+				width: 100%;
+			}
+			strong:nth-of-type(1) {
+				font-size: .75em;
+			}
+			strong:nth-of-type(2) {
+				text-transform: uppercase;
+			}
+		}
+		p:nth-of-type(2),
+		p:nth-of-type(3) {
+			font-size: 14px;
+			span {
+				display: inline-block;
+			}
+		}
+		p:nth-of-type(3) {
+			code {
+				display: block;
+				margin: .5em auto 0;
+				@include size(12em, 2em);
+				border-radius: .25em;
+				font-size: 16px;
+				line-height: 2em;
+				background: rgba(black, .75);
+			}
+		}
+		p:nth-of-type(4) {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			position: absolute;
+			@include offset(auto, 0, 0, 0);
+			margin: 0 auto;
+			padding: .4em 0 .6em;
+			@include size(100%, auto);
+			font-weight: normal;
+			font-size: 20px;
+			cursor: pointer;
+			background: rgba(white, 0);
+			&:before {
+				font-family: 'Material Icons';
+				content: 'highlight_off';
+				line-height: 1;
+			}
+			em {
+				padding: 0 .5em 0 .25em;
+				font-size: .75em;
+				text-transform: uppercase;
+			}
+			transition: .2s linear;
+			&:hover {
+				color: black;
+				background: rgba(white, .9);
+			}
+		}
+	}
+	& {
+		transform: translateY(-200%) rotate(-360deg);// scale(0);
+		opacity: 0;
+	}
+	&.show {
+		transition: 1s cubic-bezier(.5,0,0,1.5);
+		transform: none;
+		opacity: 1;
+	}
+	&.hide {
+		transition: 1s cubic-bezier(1,0,0,1);
+		transform: translateY( 800%) rotate( 360deg);// scale(0);
+		opacity: 0;
+	}
+}
+
+
+div#__bs_notify__ {
+	box-sizing: border-box !important;
+	display: table-cell !important;
+	position: fixed !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	margin: auto !important;
+	border-radius: 1.5em !important;
+	padding: 0 !important;
+	width: 16em !important;
+	height: 3em !important;
+	line-height: 3em !important;
+	font-size: 14px !important;
+	font-weight: bold !important;
+	text-indent: -.25em !important;
+	text-shadow: 0 0 2px black !important;
+	background: rgba(black, 0.5) !important;
+	//transform-origin: 0 100% !important;
+	//transform: translateY(-2em) rotate(90deg) !important;
+}

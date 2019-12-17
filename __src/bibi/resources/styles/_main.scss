@@ -1,0 +1,223 @@
+// ================================================================================
+// + Main
+// --------------------------------------------------------------------------------
+
+
+main#bibi-main {
+	& {
+		overflow: hidden;
+		-webkit-overflow-scrolling: touch;
+		//box-sizing: border-box;
+		//padding: 35px 0;
+		//transition: .2s ease-out;
+		position: absolute;
+		z-index: $INVARIABLE__Main_ZIndex;
+		//@include offset(-100vh, -100vw);
+		//margin: auto;
+		width: 100%;
+		transition:
+			//padding .1s ease,
+			transform .1s ease,
+			opacity .15s ease;
+		transform-origin: 50% 50%;
+		will-change: scroll-position, padding, transform, opacity;
+	}
+	html.book-full-height & {
+		height: 100%;
+	}
+    html.view-paged & {
+    	overflow: hidden;
+    }
+    html.view-horizontal & {
+    	overflow-x: scroll;
+    	overflow-y: hidden;
+ 	}
+    html.view-vertical & {
+    	overflow-x: hidden;
+    	overflow-y: scroll;
+ 	}
+	html.appearance-horizontal & {
+		@include offset(0, -100%, auto, -100%);
+		//margin: 0 auto;
+		//@include offset(-100%);
+		margin: auto;
+	}
+	html.appearance-horizontal:not(.book-full-height) & {
+		// @____Bibi:Dress__('-') top: $Menu_Height;
+		// @____Bibi:Dress__('-') height: calc(100% - #{$Menu_Height});
+	}
+	html.appearance-vertical & {
+		@include offset(-100%, auto, -100%, 0);
+		//margin: auto 0;
+		//@include offset(-100%);
+		margin: auto;
+	}
+	html.appearance-vertical:not(.book-full-height) & {
+		// @____Bibi:Dress__('-') padding-top: $Menu_Height;
+		// @____Bibi:Dress__('-') height: calc(100% - #{$Menu_Height});
+	}
+	html.laying-out & {
+		//opacity: 0;
+	}
+	html.busy &/*,
+	html.shade-visible &*/ {
+		//opacity: 0.25;
+		//filter: blur(2px);
+	}/*
+	html.panel-opened & {
+		opacity: 0.75;
+	}*/
+	html.slider-opened & {
+	}/*
+	html.page-ltr.flipping-ahead &,
+	html.page-rtl.flipping-astern & {
+		transform: translateX(-100px);
+		opacity: 0;
+	}
+	html.page-ltr.flipping-astern &,
+	html.page-rtl.flipping-ahead & {
+		transform: translateX(100px);
+		opacity: 0;
+	}*/
+}
+	div#bibi-main-book {
+		box-sizing: content-box;//box-sizing: border-box;
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		//align-items: center;
+		position: relative;
+		z-index: $INVARIABLE__Main-Book_ZIndex;
+		@include size(100%);
+		transition: 0.5s ease-in-out;
+		transition-property: transform;
+//		transform: translateY( 0  );
+//		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
+		transition: opacity .15s ease;
+		will-change: width, height, opacity;
+		html.spread-ltr & { flex-direction: row; }
+		html.spread-rtl & { flex-direction: row-reverse; }
+		html.spread-ttb & { flex-direction: column; }
+		html.subpanel-opened & {
+			opacity: 0.5;
+		}
+		html.resizing &,
+		html.changing-view & {
+			visibility: hidden;
+		}
+	}
+		div.spread-box {
+			box-sizing: border-box;
+			flex-shrink: 0;
+			position: relative;
+			html.spread-horizontal & { height: 100%; }
+			html.spread-vertical & { width: 100%; }
+			html.book-pre-paginated.view-paged.spread-horizontal & { min-width: 100vw; }
+			html.view-paged.spread-vertical & { min-height: 100vh; } // TO BE OVERWRITTEN (if Scrollbars have height)
+			//html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
+			//html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
+			html.view-paged.book-pre-paginated:not(.slider-sliding):not(.slider-opened) &:not(.current) {
+				//opacity: 0; transition: opacity .1s linear; will-change: opacity; // <- too heavy
+				//visibility: hidden;
+			}
+			html.view-paged.book-pre-paginated:not(.slider-sliding).slider-opened &:not(.current) {
+				//opacity: .33;
+			}
+		}
+			div.spread {
+				& {
+					box-sizing: border-box;
+					overflow: hidden;
+					position: absolute;
+					@include offset(0);
+					margin: auto;
+					display: flex;
+					flex-wrap: nowrap;
+					justify-content: flex-start;
+					align-items: center;
+				}
+				html.page-ltr &                                    { flex-direction: row; }
+				html.page-rtl &                                    { flex-direction: row-reverse; }
+				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
+				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
+				div.spread-box.single-item-spread-center & { justify-content: center; }
+				div.spread-box.reflowable & { background: white; }
+			}
+				div.item-box {
+					& {
+						box-sizing: border-box;
+						flex-shrink: 0;
+						position: relative;
+						overflow: hidden;
+						background: white;
+					}
+					&.reflowable {
+						display: flex;
+						html.spread-ltr & { flex-direction: row; }
+						html.spread-rtl & { flex-direction: row-reverse; }
+						html.spread-ttb & { flex-direction: column; }
+						flex-wrap: nowrap;
+						justify-content: space-between;
+						align-items: center;
+					}
+					html.book-pre-paginated & {
+						&:after {
+							content: "";
+							display: block;
+							position: absolute;
+							z-index: 1;
+							@include offset(0);
+							margin: auto;
+							opacity: 0;
+							transition: opacity 1s ease-in;
+						}
+						&:not(.placeholder):not(.loaded):after {
+							opacity: 1;
+						}
+					}
+				}
+					iframe.item,
+					span.page {
+						& {
+							box-sizing: content-box;
+							display: block;
+						}
+					}
+					iframe.item {
+						& {
+							//overflow: hidden;
+							position: absolute;
+							z-index: 10;
+							@include offset(0);
+							margin: 0;
+							padding: 0;
+							border: none 0;
+							line-height: 1;
+							vertical-align: top;
+							background: transparent;
+							html.zoomed-in & { will-change: transform; }
+							html.transforming & { will-change: none !important; }
+							transform-origin: 0 0;
+							//html.page-ltr & { transform-origin: 0 0; }
+							//html.page-rtl & { transform-origin: 100% 0; }
+							//&.non-linear-item { display: none; }
+							opacity: 1;
+							div.item-box:not(.loaded) & { visibility: hidden; opacity: 0; }
+							//html.book-pre-paginated.view-paged div.item-box.loaded:not(.current) & { opacity: .125; }
+							div.spread-box.current & { transition: opacity .1s linear; }
+						}
+					}
+					span.page {
+						& {
+							z-index: 1;
+							@include size(100%);
+						}
+						div.item-box.reflowable & {
+							position: relative;
+							//flex-shrink: 0;
+						}
+						div.item-box.pre-paginated & {
+							position: absolute;
+							@include offset(0);
+						}
+					}

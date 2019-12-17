@@ -1,73 +1,169 @@
 /*!
  *                                                                                                                                (℠)
- *  # gulpfile for BiB/i
+ *  # gulpfile for Bibi
  *
  */
 
 'use strict';
 
-const gulp = require('gulp'), del = require('del');
-const Package = JSON.parse(require('fs').readFileSync('package.json'));
+const gulp = require('gulp'), del = require('del'), fs = require('fs'), rename = require('gulp-rename'), zip = require('gulp-zip');
+const Package = JSON.parse(fs.readFileSync('package.json')), Bibi = require('./bibi.info.js');
 
-/* make:distribution */ {
-    const Dest = 'archives', Dist = Package.name + '-v' + Package.version;
-    gulp.task('clean:distribution-files',   done => { del.sync(Dest + '/' + Dist         ), done(); });
-    gulp.task('clean:distribution-archive', done => { del.sync(Dest + '/' + Dist + '.zip'), done(); });
-    gulp.task('merge:distribution-files', () => {
-        return gulp.src([
-            'bib/*',
-            'bib/i/**/*.*'
-        ], {
-            base: '.'
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
+const PackageName = Package.name == 'bibi' ? 'Bibi' : Package.name;
+
+/* initialize */ {
+    gulp.task('initialize', done => {
+        fs.mkdirSync(Bibi.DIST + '/bibi',           { recursive: true });
+        fs.mkdirSync(Bibi.DIST + '/bibi-bookshelf', { recursive: true }); done();
     });
-    gulp.task('make:distribution-archive', () => {
-        return gulp.src([
-            Dest + '/' + Dist + '/**/*',
-            Dest + '/' + Dist + '/**/*.*'
-        ], {
-            base: Dest
-        })
-            .pipe(require('gulp-zip')(Dist + '.zip'))
-            .pipe(gulp.dest(Dest));
-    });
-    gulp.task('make:distribution', gulp.series(
-        'clean:distribution-files',
-        'clean:distribution-archive',
-        'merge:distribution-files',
-        'make:distribution-archive'/*,
-        'clean:distribution-files'*/
-    ));
 }
 
-/* make:dress-template */ {
-    const TimeStamp = new Date(Date.now() + 1000 * 60 * 60 * (new Date().getTimezoneOffset() / -60)).toISOString().split('.')[0].replace(/[-:]/g, '').replace('T', '-');
-    const Dest = 'dev-bib/i/res/styles/wardrobe', Dist = '--dress-template--' + TimeStamp;
-    gulp.task('clean:dress-template-files',  done => { del.sync(Dest + '/' + Dist), done(); });
-    gulp.task('merge:dress-template-base-files', () => {
-        const SrcDir = 'dev-bib/i/res/styles/_/dress-template';
-        return gulp.src([
-            SrcDir + '/**/*.*'
-        ], {
-            base: SrcDir
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
+/* clean */ {
+    gulp.task('clean', done => {
+        del.sync([
+            '**/.DS_Store',
+            '**/Thumbs.db',
+            'bibi/LICENSE',
+            'bibi/README.md',
+            'bibi/*.html',
+            'bibi/and',
+            'bibi/extensions',
+            'bibi/presets',
+            'bibi/resources',
+            'bibi/wardrobe',
+            'bib/i/*.html',
+            'bib/i.js'
+        ].map(
+            X => Bibi.DIST + '/' + X
+        ));
+        try { if(!fs.readdirSync(Bibi.DIST + '/bibi' ).length) del.sync(Bibi.DIST + '/bibi' ); } catch(E) {}
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib/i').length) del.sync(Bibi.DIST + '/bib/i'); } catch(E) {}
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib'  ).length) del.sync(Bibi.DIST + '/bib'  ); } catch(E) {}
+        done();
     });
-    gulp.task('merge:dress-template-part-files', () => {
-        const SrcDir = 'dev-bib/i/res/styles/wardrobe/_';
+}
+
+/* make:backward-compatibility-kit-files, clean:backward-compatibility-kit-files */ {
+    gulp.task('make:backward-compatibility-kit:bib/i/*.html', () => {
         return gulp.src([
-            SrcDir + '/**.*',
-            '!' + SrcDir + '/_@a.scss',
-            '!' + SrcDir + '/_@z.scss'
+            Bibi.SRCBC + '/bib/i/*.html'
         ], {
-            base: SrcDir
-        })
-            .pipe(gulp.dest(Dest + '/' + Dist));
+            base: Bibi.SRCBC
+        }).pipe(gulp.dest(
+            Bibi.DIST
+        ));
     });
-    gulp.task('make:dress-template', gulp.series(
-        'clean:dress-template-files',
-        'merge:dress-template-base-files',
-        'merge:dress-template-part-files'
+    gulp.task('make:backward-compatibility-kit:bib/i.js', () => {
+        return gulp.src([
+            Bibi.DIST + '/bibi/and/jo.js'
+        ], {
+            base: Bibi.DIST
+        }).pipe(rename(
+            'bib/i.js'
+        )).pipe(gulp.dest(
+            Bibi.DIST
+        ));
+    });
+    gulp.task('make:backward-compatibility-kit-files', gulp.parallel(
+        'make:backward-compatibility-kit:bib/i/*.html',
+        'make:backward-compatibility-kit:bib/i.js'
     ));
+    gulp.task('clean:backward-compatibility-kit-files', done => {
+        del.sync([
+            'bib/**/.DS_Store',
+            'bib/**/Thumbs.db',
+            'bib/i/*.html',
+            'bib/i.js'
+        ].map(
+            X => Bibi.DIST + '/' + X
+        ));
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib/i').length) del.sync(Bibi.DIST + '/bib/i'); } catch(E) {}
+        try { if(!fs.readdirSync(Bibi.DIST + '/bib'  ).length) del.sync(Bibi.DIST + '/bib'  ); } catch(E) {}
+        done();
+    });
+}
+
+const setPackageBuilderTasks = (Opt) => {
+    gulp.task('clean:' + Opt.Name + '-archive', done => {
+        del.sync([
+            Bibi.ARCHIVES + '/' + Opt.Label + '.zip'
+        ]);
+        done();
+    });
+    gulp.task('clean:' + Opt.Name + '-directory', done => {
+        del.sync([
+            Bibi.ARCHIVES + '/' + Opt.Label
+        ]);
+        done();
+    });
+    gulp.task('merge:' + Opt.Name + '-content', () => {
+        if(Opt.Bookshelf) fs.mkdirSync(Bibi.ARCHIVES + '/' + Opt.Label + '/' + Opt.Bookshelf, { recursive: true });
+        return gulp.src(Opt.Files.map(
+            X => Bibi.DIST + '/' + X
+        ), {
+            base: Bibi.DIST
+        }).pipe(gulp.dest(
+            Bibi.ARCHIVES + '/' + Opt.Label
+        ));
+    });
+    gulp.task('zip:' + Opt.Name, () => {
+        return gulp.src([
+            Bibi.ARCHIVES + '/' + Opt.Label + '/**'
+        ], {
+            base: Bibi.ARCHIVES
+        }).pipe(zip(
+            Opt.Label + '.zip'
+        )).pipe(gulp.dest(
+            Bibi.ARCHIVES
+        ));
+    });
+    gulp.task('make:' + Opt.Name + '-archive', gulp.series(
+        gulp.parallel(
+            'clean:' + Opt.Name + '-directory',
+            'clean:' + Opt.Name + '-archive'
+        ),
+        'merge:' + Opt.Name + '-content',
+        'zip:' + Opt.Name,
+        'clean:' + Opt.Name + '-directory'
+    ));
+};
+
+/* make:distribution-package-archive */
+setPackageBuilderTasks({
+    Name: 'distribution-package',
+    Label: PackageName + '-v' + Package.version,
+    Bookshelf: 'bibi-bookshelf',
+    Files: [
+        'bibi/LICENSE',
+        'bibi/README.md',
+        'bibi/*.html',
+        'bibi/and/**',
+        'bibi/extensions/**',
+        'bibi/presets/**',
+        'bibi/resources/**',
+        'bibi/wardrobe/**',
+    ]
+});
+
+/* make:backward-compatibility-kit-archive */
+setPackageBuilderTasks({
+    Name: 'backward-compatibility-kit',
+    Label: PackageName + '-v' + Package.version + '_BackCompatKit',
+    //Bookshelf: 'bib/bookshelf',
+    Files: [
+        'bib/i/*.html',
+        'bib/i.js'
+    ]
+});
+
+/* make:dress-template */ {
+    gulp.task('make:dress-template', () => {
+        return gulp.src([
+            Bibi.SRC + '/bibi/wardrobe/_dress-codes/**',
+        ], {
+            base: Bibi.SRC + '/bibi/wardrobe/_dress-codes'
+        }).pipe(gulp.dest(
+            Bibi.SRC + '/bibi/wardrobe/DRESS-TEMPLATE-' + new Date(Date.now() + 1000 * 60 * 60 * (new Date().getTimezoneOffset() / -60)).toISOString().split('.')[0].replace(/[-:]/g, '').replace('T', '-')
+        ));
+    });
 }

@@ -1,13 +1,19 @@
 /*!
  *                                                                                                                         (℠)
- *  # Webpack Config for BiB/i
+ *  # Webpack Config for Bibi
  *
  */
 
 'use strict';
 
-const Package = require('./package.json'), Bibi = require('./webpack.config.bibi.js');
-const Dresses = require('./dev-bib/i/res/styles/wardrobe/_dresses.js');
+const Package = require('./package.json'), Bibi = require('./bibi.info.js');
+
+const Dresses = (_ => {
+    const Dresses = require('./' + Bibi.SRC + '/bibi/wardrobe/_dresses.js') || {};
+    Dresses['custom-made'] = _(Dresses['custom-made']).filter(D => !Dresses['ready-made'].includes(D));
+    Dresses[ 'ready-made'] = _(Dresses[ 'ready-made']);
+    return Dresses;
+})(Ds => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : []);
 
 const Webpack = require('webpack');
 
@@ -25,39 +31,42 @@ const Config = {
     stats: 'errors-warnings',
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
+    entry: ((Es, Ns) => { Ns.forEach(N => Es[Bibi.DIST + '/' + N.replace(/\.js$/, '')] = __dirname + '/' + Bibi.SRC + '/' + N.replace(/\.css$/, '.scss')); return Es; })({}, [
+        'bibi/and/jo.js',
+        'bibi/extensions/analytics.js',
+        'bibi/extensions/epubcfi.js',
+        'bibi/extensions/extractor/at-once.js',
+        'bibi/extensions/extractor/on-the-fly.js',
+        'bibi/extensions/unaccessibilizer.js',
+        'bibi/extensions/zine.js',
+        'bibi/resources/scripts/bibi.js',
+        'bibi/resources/scripts/polyfills/bundle.js',
+        'bibi/resources/scripts/polyfills/encoding.js',
+        'bibi/resources/scripts/polyfills/intersection-observer.js',
+        'bibi/resources/styles/bibi.css'
+    ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css'))),
     output: { path: __dirname, filename: '[name].js' },
-    entry: ((Es, Ns) => {
-        if(Dresses instanceof Array && Dresses.length) Dresses.forEach(D => { const N = 'bib/i/res/styles/wardrobe/' + D + '/bibi.dress'; if(!Ns[N]) Ns[N] = 'scss'; });
-        for(const N in Ns) Es[N] = __dirname + '/dev-' + N + '.' + Ns[N];
-        return Es;
-    })({}, {
-        'bib/i': 'js',
-        'bib/i/res/scripts/bibi': 'js',
-        'bib/i/res/scripts/polyfills/bundle': 'js',
-        'bib/i/res/scripts/polyfills/encoding': 'js',
-        'bib/i/res/scripts/polyfills/intersection-observer': 'js',
-        'bib/i/extensions/analytics/index': 'js',
-        'bib/i/extensions/epubcfi/index': 'js',
-        'bib/i/extensions/unaccessibilizer/index': 'js',
-        'bib/i/extensions/unzipper/index': 'js',
-        'bib/i/extensions/zine/index': 'js',
-        'bib/i/res/styles/bibi': 'scss'
-    }),
     plugins: [
         new StringReplacePlugin(),
         new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
-        new MiniCSSExtractPlugin({ filename: '[name].css' }),
-        new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true })
-    ],//devServer: { compress: true, port: 61673 },
+        new MiniCSSExtractPlugin({ filename: '[name]' }),
+        new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true }),
+        new CopyPlugin([
+            { from: './node_modules/bibi-zip-loader/dist/lszlw.js', to: Bibi.DIST + '/bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js' }
+        ])
+    ],
     module: { rules: [] }
 };
 
 module.exports = (env, argv) => {
     Config.mode = argv.mode;
     const IsDev = (Config.mode !== 'production');
-    if(IsDev) Config.devtool = 'inline-source-map';
+    if(IsDev) {
+        Config.devtool = 'inline-source-map';
+    } else {
+    }
     Config.module.rules.push({
-        test: /\.m?js$/,//exclude: /node_modules/,
+        test: /\.m?js$/,
         use: [{
             loader: 'babel-loader', options: {
                 babelrc: false,
@@ -71,10 +80,10 @@ module.exports = (env, argv) => {
         }]
     });
     Config.module.rules.push({
-        test: /(\/bibi\.heart|bib\/i)\.js$/,
+        test: /\/(bibi\.heart|jo)\.js$/,
         use: [
             StringReplacePlugin.replace({ replacements: [{
-                pattern: /____bibi-version____/ig,
+                pattern: /____Bibi-Version____/ig,
                 replacement: () => Bibi.version
             }]})
         ]
@@ -100,7 +109,7 @@ module.exports = (env, argv) => {
     ];
     Config.module.rules.push({
         test: /\.scss$/,
-        exclude: /(bib\/i|bibi\.book)\.scss$/,
+        exclude: /\/(bibi\.book|jo)\.scss$/,
         use: [
             MiniCSSExtractPlugin.loader,
             StringReplacePlugin.replace({ replacements: [{
@@ -110,38 +119,42 @@ module.exports = (env, argv) => {
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /(bib\/i|bibi\.book)\.scss$/,
+        test: /\/(bibi\.book|jo)\.scss$/,
         use: [
             { loader: 'style-loader' }
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\.(eot|wof|woff|woff2|ttf|svg)$/,
+        test: /\/MaterialIcons-Regular\.(eot|svg|ttf|wof|woff|woff2)$/,
         use: [
             { loader: 'file-loader', options: {
-                outputPath: 'bib/i/res/fonts',//(url, resourcePath, context) => { return 'bib/i/res/fonts/' + resourcePath.replace(context + '/node_modules/', '').replace(/^@[^\/]+\//, ''); },
-                publicPath:        '../fonts',//(url, resourcePath, context) => { return        '../fonts/' + resourcePath.replace(context + '/node_modules/', '').replace(/^@[^\/]+\//, ''); },
+                outputPath: Bibi.DIST + '/bibi/resources/styles/fonts',
+                publicPath:                                  './fonts',
                 name: '[name].[ext]'
             }}
         ]
-    });/*
+    });
     Config.module.rules.push({
-        test: /\.(eot|wof|woff|woff2|ttf|svg)$/,
-        use: [
-            { loader: 'file-loader', options: {
-                outputPath: 'bib/i/res/fonts',
-                publicPath: '../fonts',
-                name: '[name].[ext]'
-            }}
-        ]
-    });*/
-    Config.module.rules.push({
-        test: /\.(gif|png|jpg|svg)$/,///\.(gif|png|jpg|eot|wof|woff|woff2|ttf|svg)$/,
+        test: /\.(gif|png|jpg|svg)$/,
         use: [
             { loader: 'url-loader' }
         ]
     });
-    if(Config.mode === 'production') {
+    Config.plugins.push(new CopyPlugin([
+        'bibi/*.html',
+        'bibi/presets/**'
+    ].concat(Dresses['ready-made'].map(D => 'bibi/wardrobe/' + D + '/**')).map(N => ({ from: N, to: Bibi.DIST })), { context: './' + Bibi.SRC }));
+    if(IsDev) {
+        Config.module.rules.push({
+            test: /\/bibi\.heart\.js$/,
+            use: [
+                StringReplacePlugin.replace({ replacements: [{
+                    pattern: /$/,
+                    replacement: () => '\n' + `Bibi.Dev = true;`
+                }]})
+            ]
+        });
+    } else {
         Config.optimization.minimizer.push(new TerserPlugin({
             cache: true,
             parallel: true,
@@ -157,12 +170,9 @@ module.exports = (env, argv) => {
         }));
         for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
         Config.plugins.push(new CopyPlugin([
-            { from: 'LICENSE',   to: 'bib' }/*,
-            { from: 'README.md', to: 'bib' }*/
+            { from: 'LICENSE',   to: './' + Bibi.DIST + '/bibi' },
+            { from: 'README.md', to: './' + Bibi.DIST + '/bibi' }
         ]));
-    } else if(Config.mode === 'development') {
-        //Config.plugins.push(new HardSourcePlugin());
-    } else {
     }
     return Config;
 };

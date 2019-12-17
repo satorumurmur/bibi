@@ -1,0 +1,224 @@
+// ================================================================================
+// + Slider
+// --------------------------------------------------------------------------------
+
+div#bibi-slider {
+	& {
+		box-shadow: $Slider_BoxShadow;
+		&:after {
+			border-color: $Slider_BorderColor;
+			background: $Slider_Background;
+		}
+		&, &:after { transition: $Slider_Transition__Close; }
+	}
+	html.slider-opened & {
+		box-shadow: $Slider_BoxShadow__SliderOpened;
+		&:after { background: $Slider_Background__SliderOpened; }
+		&, &:after { transition: $Slider_Transition__Open; }
+	}
+	html.slider-opened.appearance-horizontal & {
+		height: $Slider_Size !important;
+		&:after { border-top-color: $Slider_BorderColor__SliderOpened; }
+	}
+	html.slider-opened.appearance-vertical & {
+		width: $Slider_Size !important;
+		&:after { border-left-color: $Slider_BorderColor__SliderOpened; }
+	}
+}
+
+
+// - . History
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-history {
+	html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
+	html.slider-opened       & { transition: $Slider_Transition__Open;  }
+	.bibi-buttongroup { // ul
+		.bibi-buttonbox { // li
+			.bibi-button#bibi-slider-history-button {
+				@include size($Slider-History-Button-Icon_Size);
+				html.appearance-vertical & { top:   $Slider-History-Button-Icon_Margin; }
+				html.appearance-ltr      & { left:  $Slider-History-Button-Icon_Margin; }
+				html.appearance-rtl      & { right: $Slider-History-Button-Icon_Margin; }
+			}
+		}
+	}
+}
+
+
+// - . Thumb
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-thumb {
+	&:before,
+	&:after {
+		html.slider-opened       & { transition: $Slider_Transition__Open; }
+		html:not(.slider-opened) & { transition: $Slider_Transition__Close; }
+	}
+	&:before { background: $Slider-Thumb_BackgroundColor; }
+	html:not(.slider-opened):not(.touch)  &:hover:before { background-color: $Slider-Thumb_BackgroundColor__Hover; }
+	html:not(.slider-opened):not(.touch) &:active:before { background-color: $Slider-Thumb_BackgroundColor__Active; }
+	&:after {
+		@include offset($Slider-Thumb-Circle_Size * -1);
+		@include size($Slider-Thumb-Circle_Size);
+		border-width: $Slider-Thumb-Circle_BorderWidth;
+		border-color: $Slider-Thumb-Circle_BorderColor;
+		background: $Slider-Thumb-Circle_BackgroundColor;
+		box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
+	}
+}
+
+
+// - . Rail
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-rail {
+	& {
+		background: $Slider-Rail_Color;
+	}
+	html.slider-opened                       & { border-radius: $Slider-Rail_Width__SliderOpened / 2; }
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width: $Slider-Rail_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail_Color__Hover; }
+}
+
+div#bibi-slider-rail-progress {
+	& {
+		background: $Slider-Rail-Progress_Color;
+	}
+	html.slider-opened                       & {}
+	html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width__SliderOpened; }
+	html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width__SliderOpened; }
+	div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__Hover; }
+}
+
+
+// - UI Box (Edgebar Box, Bookmap Box)
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar-box,
+div#bibi-slider-bookmap-box {
+	& {
+		html.slider-opened.appearance-horizontal & {
+			top: 1px + $Slider_PaddingStart__SliderOpened;
+			height: calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
+		html.slider-opened.appearance-vertical & {
+			left: 1px + $Slider_PaddingStart__SliderOpened;
+			width:  calc(100% - #{ 1px + $Slider_PaddingStart__SliderOpened  + $Slider_PaddingEnd__SliderOpened   });
+		}
+	}
+	div#bibi-slider:not(.bibi-slider-with-history) & {
+		html.slider-opened.appearance-horizontal & {
+			width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			left: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-rtl & {
+			right: $Slider_PaddingBefore__SliderOpened;
+		}
+		html.slider-opened.appearance-vertical & {
+			top: $Slider_PaddingBefore__SliderOpened;
+			height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened + $Slider_PaddingAfter__SliderOpened });
+		}
+	}
+	div#bibi-slider.bibi-slider-with-history & {
+		html.slider-opened.appearance-horizontal & {
+			width:  calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
+		html.slider-opened.appearance-ltr & {
+			left: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-rtl & {
+			right: $Slider_PaddingBefore__SliderOpened__WithHistory;
+		}
+		html.slider-opened.appearance-vertical & {
+			top: $Slider_PaddingBefore__SliderOpened__WithHistory;
+			height: calc(100% - #{       $Slider_PaddingBefore__SliderOpened__WithHistory + $Slider_PaddingAfter__SliderOpened });
+		}
+	}
+}
+
+
+// - Edgebar, Bookmap
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar,
+div#bibi-slider-bookmap {
+}
+
+
+// - Edgebar
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-edgebar {
+	border-radius: $Slider-Edgebar_BorderRadius;
+	background: $Slider-Edgebar_Background;
+}
+
+
+// - Bookmap
+// --------------------------------------------------------------------------------
+
+div#bibi-slider-bookmap {
+}
+
+	div.bookmap-spread-box,
+	div.bookmap-spread,
+	div.bookmap-item-box,
+	span.bookmap-item,
+	span.bookmap-page {
+	}
+
+
+// - . Bookmap > Spread Box
+// --------------------------------------------------------------------------------
+
+div.bookmap-spread-box {
+	background: $Slider-Bookmap-SpreadBox_Color;
+	&.hover {
+		//background: $Slider-Bookmap-SpreadBox_Color__Hover;
+	}
+}
+
+
+// - . Bookmap > Spread Box > Spread
+// --------------------------------------------------------------------------------
+
+div.bookmap-spread {
+	background: $Slider-Bookmap-Spread_Background;
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box
+// --------------------------------------------------------------------------------
+
+div.bookmap-item-box {
+	&.reflowable {
+		&:before {
+			background: $Slider-Bookmap-ItemBox_BorderColor__ForReflowable;
+		}
+	}
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Item
+// --------------------------------------------------------------------------------
+
+span.bookmap-item {
+}
+
+
+// - . Bookmap > Spread Box > Spread > Item Box > Page
+// --------------------------------------------------------------------------------
+
+span.bookmap-page {
+	html.slider-opened & {
+		background-color: $Slider-Bookmap-Page_Color__SliderOpened;
+	}
+	html.slider-opened &.hover {
+		background-color: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
+		border: solid 1px $Slider-Bookmap-Page_BorderColor__SliderOpened__Hover;
+	}
+}

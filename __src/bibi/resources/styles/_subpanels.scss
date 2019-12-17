@@ -1,0 +1,347 @@
+// ================================================================================
+// + Subpanel
+// --------------------------------------------------------------------------------
+
+div.bibi-subpanel {
+	box-sizing: border-box;
+	position: absolute;
+	z-index: $INVARIABLE__Subpanel_ZIndex;
+	// @____Bibi:Dress__('-') &.bibi-subpanel-right, &:not(.bibi-subpanel-left) { right: $Subpanel_Margin; }
+	// @____Bibi:Dress__('-') &.bibi-subpanel-left { left: $Subpanel_Margin; }
+	// @____Bibi:Dress__('-') top: $Menu_Height + $Subpanel_Margin;
+	margin: auto;
+	// @____Bibi:Dress__('-') width: calc(100% - #{$Subpanel_Margin * 2});
+	// @____Bibi:Dress__('-') max-width: 320px - $Subpanel_Margin * 2;
+	// @____Bibi:Dress__('-') html.appearance-horizontal & { max-height: calc(100% - #{$Menu_Height + $Subpanel_Margin * 2}); }
+	// @____Bibi:Dress__('-') html.appearance-vertical   & { max-height: calc(100% - #{$Menu_Height + $Subpanel_Margin * 2}); }
+	// @____Bibi:Dress__('-') border-radius: $Subpanel_BorderRadius;
+	// @____Bibi:Dress__('-') background: $Subpanel_BackgroundColor;
+	// @____Bibi:Dress__('-') transform: translateY($Subpanel_Margin * -2) scale(0);
+	opacity: 0.25;
+	transition-property: transform;
+	transition-duration: 0.15s;
+	// @____Bibi:Dress__('-') transition-timing-function: $Subpanel_TransitionTimingFunction__Close;
+	overflow: auto; -webkit-overflow-scrolling: touch;
+	&.opened {
+		opacity: 1;
+		transform: none;
+		//transition: transform 0.2s;
+		// @____Bibi:Dress__('-') transition-timing-function: $Subpanel_TransitionTimingFunction__Open;
+		// @____Bibi:Dress__('-') box-shadow: $Subpanel_BoxShadow;
+	}
+	// @____Bibi:Dress__('-') .bibi-icon { @include size($Subpanel-Icon_Size); }
+}
+
+
+// - Sub Panel :: Scrollbar
+// --------------------------------------------------------------------------------
+
+div.bibi-subpanel {
+	&::-webkit-scrollbar {
+		// @____Bibi:Dress__('-') @include size($Subpanel-Scrollbar-Track_Size);
+	}
+	&::-webkit-scrollbar-track {
+		// @____Bibi:Dress__('-') background: $Subpanel-Scrollbar-Track_BackgroundColor;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-style: solid;
+		// @____Bibi:Dress__('-') border-width: ($Subpanel-Scrollbar-Track_Size - $Subpanel-Scrollbar-Thumb_Size) * 0.5;
+		// @____Bibi:Dress__('-') border-color: $Subpanel-Scrollbar-Track_BackgroundColor;
+		// @____Bibi:Dress__('-') border-radius: $Subpanel-Scrollbar-Track_Size * 0.5;
+		// @____Bibi:Dress__('-') background: $Subpanel-Scrollbar-Thumb_BackgroundColor;
+		// @____Bibi:Dress__('-') &:hover  { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Hover; }
+		// @____Bibi:Dress__('-') &:active { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Active; }
+	}
+}
+
+
+// - Sub Panel > Section
+// --------------------------------------------------------------------------------
+
+.bibi-subpanel-section {
+	@include margin-h(0);
+	// @____Bibi:Dress__('-') @include margin-v($Subpanel-Section_VerticalMargin);
+	strong {
+		font-weight: bold;
+	}
+	.bibi-hgroup, .bibi-buttongroup/*, .bibi-pgroup*/ {
+	}
+		.bibi-h, .bibi-buttonbox, //.bibi-p,
+		.bibi-h-label, .bibi-button {
+			display: block;
+			box-sizing: border-box;
+		}
+			a.bibi-button { text-decoration: none; }
+	.bibi-hgroup {
+	}
+		.bibi-h {
+		}
+			.bibi-h-label {
+				// @____Bibi:Dress__('-') @include padding-h($Subpanel-Heading_HorizontalPadding);
+				line-height: 1.2;
+				font-size: 12px;
+				font-weight: bold;
+				// @____Bibi:Dress__('-') color: $Subpanel-Heading_Color;
+				>small {
+					display: block;
+					position: relative;
+					overflow: hidden;
+					padding: .2em 0 0 .9em;
+					text-overflow: ellipsis;
+					word-break: keep-all;
+					white-space: nowrap;
+					font-size: 10px;
+					// @____Bibi:Dress__('-') color: lighten($Subpanel-Heading_Color, 12%);
+					&:before {
+						display: block;
+						position: absolute;
+						left: -.1em;
+						top: .225em;
+						@include GLOBAL__FontIcon_BaseStyles("Material Icons", 1.1em, 1);
+						content: "chevron_right";
+						// @____Bibi:Dress__('-') color: lighten($Subpanel-Heading_Color, 24%);
+					}
+				}
+			}
+	.bibi-buttongroup { // ul
+		overflow: hidden;
+		border-style: solid;
+		border-width: 1px 0;
+		// @____Bibi:Dress__('-') border-color: $Subpanel-ButtonGroup_BorderColor;
+	}
+	.bibi-hgroup + .bibi-buttongroup,
+	.bibi-buttongroup + .bibi-buttongroup { // ul
+		// @____Bibi:Dress__('-') margin-top: $Subpanel-ButtonGroup_VerticalMargin;
+	}
+		.bibi-buttonbox { // li
+			//line-height: 1.2;
+			//font-size: 14px;
+		}
+			.bibi-button { // a, span
+				position: relative;
+				z-index: 1;
+				margin: -1px 0;
+				// @____Bibi:Dress__('-') @include padding-h($Subpanel-Button_HorizontalPadding);
+				border-style: solid;  &.bibi-button-radio { border-style: dashed; }
+				border-width: 1px 0;
+				// @____Bibi:Dress__('-') min-height: $Subpanel-Button_Height;
+				.bibi-button-iconbox,
+				.bibi-button-label {
+					display: inline-block;
+					vertical-align: top;
+				}
+				.bibi-button-iconbox {
+					// @____Bibi:Dress__('-') margin-top: ($Subpanel-Button_Height - $Subpanel-Icon_Size) / 2;
+					// @____Bibi:Dress__('-') margin-right: $Subpanel-Icon_MarginRight;
+				}
+				.bibi-button-label {
+					// @____Bibi:Dress__('-') margin-top: ($Subpanel-Button_Height - $Subpanel-Button-FontSize) / 2 - 0.5px;
+					// @____Bibi:Dress__('-') font-size: $Subpanel-Button-FontSize;
+					line-height: 1.2;
+					small { font-size: .875em; }
+					span.non-visual-in-label { @include NonVisual(); }
+				}
+				&:before {
+					content: "";
+					display: block;
+					position: absolute;
+					z-index: 10;
+					@include offset(0);
+					@include size(100%);
+				}
+				&:after {
+					display: block;
+					position: absolute;
+					z-index: 1;
+					top: 0;
+					// @____Bibi:Dress__('-') right: $Subpanel-Button_HorizontalPadding;
+					bottom: 0;
+					left: auto;
+					margin: auto;
+					@include size(/*20px*/auto, .9em);
+					@include GLOBAL__FontIcon_BaseStyles("Material Icons", 16px, 1);
+					text-align: right;
+					transition: .2s ease-in-out;
+				}
+				&.default,
+				&.disabled,
+				&.disabled.hover {
+					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor;
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color;
+					// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
+					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color; }
+				}
+				html:not(.touch) &.default:active,
+				&.active {
+					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Active;
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Active;
+					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Active;
+					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Active; }
+					z-index: 2;
+				}
+				&.hover {
+					z-index: 3;
+				}
+				&.default.hover,
+				&.bibi-button-toggle.active.hover {
+					cursor: pointer;
+					border-style: solid;  &.bibi-button-radio { border-style: solid; }
+					// @____Bibi:Dress__('-') border-color: $Subpanel-Button_BorderColor__Hover;
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_Color__Hover;
+					// @____Bibi:Dress__('-') background-color: $Subpanel-Button_BackgroundColor__Hover;
+					// @____Bibi:Dress__('-') &:after { color: $Subpanel-Button-Check_Color__Hover; }
+				}
+				&.disabled { &, &.hover {
+					.bibi-button-iconbox,
+					.bibi-button-label { opacity: 0.5 !important; }
+				}}
+			}
+			.bibi-button-toggle,
+			.bibi-button-radio {
+				&.active {
+					.bibi-button-label { font-weight: bold; }
+				}
+			}
+			.bibi-button-link {
+				       &:after { content: "chevron_right"; }
+			}
+			.bibi-button-toggle {
+				&:after { font-size: 30px; }
+				&.default:after,
+				html:not(.touch) &.active:active:after {
+					content: "toggle_off"; // content: "check_box_outline_blank";
+				}
+				&.active:after,
+				html:not(.touch) &.default:active:after {
+					content: "toggle_on"; // content: "check_box";
+				}
+			}
+			.bibi-button-radio {
+				&.default:after {
+					content: "radio_button_unchecked";
+				}
+				html:not(.touch) &.default:active:after {
+					content: "check_circle";
+				}
+				&.active:after,
+				html:not(.touch) &.active:active:after {
+					content: "radio_button_checked";
+				}
+			}
+	.bibi-buttongroup-tiled {
+		display: flex;
+		align-items: stretch;
+		align-content: center;
+		flex: auto;
+		width: 100%;
+		.bibi-buttonbox {
+			width: 100%;
+			margin: 0;
+			.bibi-button {
+				margin: 0 -1px;
+				border-width: 0 1px;
+				// @____Bibi:Dress__('-') padding-right: $Subpanel-Button_HorizontalPadding / 2;
+				.bibi-button-iconbox {
+				}
+				.bibi-button-label {
+					// @____Bibi:Dress__('-') margin-top: ($Subpanel-Button_Height - 12px) / 2 - 0.5px;
+					font-size: 12px;
+				}
+			}
+			.bibi-button-link {
+				&:after {
+					margin-right: -5px;
+				}
+			}
+		}
+	}
+//	.bibi-pgroup {
+//		border: solid 0 rgba(black, 0.1);
+//		overflow: hidden;
+//		color: rgb(64,64,64);
+//		background: white;//rgba(white, 0.9);
+//	}
+//	.bibi-hgroup + .bibi-pgroup,
+//	.bibi-pgroup + .bibi-pgroup,
+//	.bibi-pgroup:first-child {
+//		border-top-width:    1px;
+//	}
+//	.bibi-pgroup:last-child  {
+//		border-bottom-width: 1px;
+//	}
+//		.bibi-p {
+//			margin: 4px 0 0;
+//			&:first-child { margin-top: 8px; }
+//			&:last-child  { margin-bottom: 6px; }
+//			padding-left: calc(#{$Subpanel-Section-Something_HorizontalPadding} + 2px);
+//			padding-right: $Subpanel-Section-Something_HorizontalPadding;
+//			line-height: 1.4;
+//			font-size: 12px;
+//			text-align: justify;
+//			small {
+//				font-size: 10px;
+//			}
+//			.code {
+//				font-size: 12px;
+//				font-family: monospace;
+//				word-break: break-all;
+//				color: rgb(96,96,96);
+//			}
+//			.block {
+//				box-sizing: border-box;
+//				display: block;
+//				width: 100%;
+//			}
+//			input.block {
+//				border: solid 1px rgb(234,234,234);
+//				padding: .5em;
+//			}
+//			strong {
+//				font-weight: bold;
+//			}
+//			em {
+//				background: rgba(black, 0.075);
+//			}
+//		}
+}
+
+
+// - Sub Panel: Bookmarks
+// --------------------------------------------------------------------------------
+
+#bibi-subpanel_bookmarks {
+	#bibi-subpanel-section_put-a-bookmark {
+	}
+	#bibi-subpanel-section_bookmarks {
+		.bibi-buttongroup {
+			.bibi-buttonbox {
+				.bibi-button {
+					// &.bibi-button-bookmark-is-hot, &.bibi-button-bookmark-is-cold { transition: background-color linear .234s; }
+					// @____Bibi:Dress__('-') &.hot { background: $BookmarkSubpanel-Button_BackgroundColor__Hot; }
+					.bibi-button-label {
+						// @____Bibi:Dress__('-') @include BookmarkSubpanel-ButtonLabel();
+					}
+					.bibi-remove-bookmark {
+						position: absolute;
+						z-index: 999;
+						top: 0;
+						right: 0;
+						cursor: pointer;
+						// @____Bibi:Dress__('-') @include size($Subpanel-Button_Height);
+						// @____Bibi:Dress__('-') color: $BookmarkSubpanel-Button-RemoveBookmark_Color;
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon(); }
+					}
+					&.hover .bibi-remove-bookmark {
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__HoverOnBookmark(); }
+					}
+					.bibi-remove-bookmark:hover {
+						// @____Bibi:Dress__('-') &:before { @include BookmarkSubpanel-Button-RemoveBookmark-Icon__Hover(); }
+					}
+					&.bibi-button-bookmark-is-current.disabled {
+						.bibi-button-iconbox, .bibi-icon:before, .bibi-button-label, .bibi-remove-bookmark { opacity: 1 !important; }
+					}
+				}
+			}
+		}
+	}
+}
