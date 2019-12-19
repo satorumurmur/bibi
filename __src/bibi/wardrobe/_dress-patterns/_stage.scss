@@ -8,6 +8,7 @@ html {
 	&.macOS   { font-family: $HTML_FontFamily__macOS; }
 	&.Android { font-family: $HTML_FontFamily__Android; }
 	&.Windows { font-family: $HTML_FontFamily__Windows; }
+	background: $HTML_Background;
 }
 
 
