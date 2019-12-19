@@ -120,8 +120,8 @@ Bibi.initialize = () => {
         StyleChecker.style.fontSize = '0.01px';
         O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
         StyleChecker.setAttribute('style', ''), StyleChecker.innerHTML = '';
-        I.Slider.Size = StyleChecker.offsetWidth;
-        I.Menu.Height = StyleChecker.offsetHeight;
+        I.Slider.Size = S['use-slider' ] ? StyleChecker.offsetWidth  : 0;
+        I.Menu.Height = S['use-menubar'] ? StyleChecker.offsetHeight : 0;
         delete document.body.removeChild(StyleChecker);
     }
     { // Scrollbars
@@ -1256,8 +1256,8 @@ R.initialize = () => {
             }*/
         });
         E.add('bibi:tapped-center', Eve => {
-            if(I.OpenedSubpanel) E.dispatch('bibi:closes-utilities',  Eve);
-            else                 E.dispatch('bibi:toggles-utilities', Eve);
+            if(I.OpenedSubpanel) E.dispatch('bibi:commands:close-utilities',  Eve);
+            else                 E.dispatch('bibi:commands:toggle-utilities', Eve);
         });
     });
 };
@@ -1276,14 +1276,14 @@ R.resetStage = () => {
     R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = '';
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = '';
-    const BookBreadthIsolationStartEnd = (S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
+    const BookBreadthIsolationStartEnd = (S['use-slider'] && S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
     sML.style(R.Main.Book, {
         [C.A_SIZE_b]: (BookBreadthIsolationStartEnd > 0 ? 'calc(100% - ' + BookBreadthIsolationStartEnd + 'px)' : ''),
         [C.A_SIZE_l]: ''
     });
     R.Stage.Width  = O.Body.clientWidth;
     R.Stage.Height = WIH;
-    R.Stage[C.A_SIZE_B] -= O.Scrollbars[C.A_SIZE_B] + S['spread-margin'] * 2;
+    R.Stage[C.A_SIZE_B] -= (S['use-slider'] || S.RVM != 'paged' ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
     window.scrollTo(0, 0);
     if(!S['use-full-height']) R.Stage.Height -= I.Menu.Height;
     if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
@@ -2291,9 +2291,13 @@ I.initialize = () => {
     E.bind('bibi:initialized-book', () => {
         I.BookmarkManager.create();
     });
-    E.add('bibi:commands:open-utilities',   () => E.dispatch('bibi:opens-utilities'));
-    E.add('bibi:commands:close-utilities',  () => E.dispatch('bibi:closes-utilities'));
-    E.add('bibi:commands:toggle-utilities', () => E.dispatch('bibi:toggles-utilities'));
+    I.Utilities = I.setToggleAction({}, {
+        onopened: () => E.dispatch('bibi:opens-utilities'),
+        onclosed: () => E.dispatch('bibi:closes-utilities')
+    });
+    E.add('bibi:commands:open-utilities',   () => I.Utilities.open());
+    E.add('bibi:commands:close-utilities',  () => I.Utilities.close());
+    E.add('bibi:commands:toggle-utilities', () => I.Utilities.toggle());
 };
 
 
@@ -2431,8 +2435,6 @@ I.Catcher = { create: () => { if(S['book'] || S.BookDataElement || !S['accept-lo
 
 I.Menu = { create: () => {
     if(!S['use-menubar']) O.HTML.classList.add('without-menubar');
-    //else if( S['place-menubar-at-top']) O.HTML.classList.add('menubar-top');
-    //else                                O.HTML.classList.add('menubar-bottom');
     const Menu = I.Menu = O.Body.appendChild(sML.create('div', { id: 'bibi-menu' }, I.Menu)); delete Menu.create;
     //Menu.addEventListener('click', Eve => Eve.stopPropagation());
     I.setHoverActions(Menu);
@@ -2445,7 +2447,6 @@ I.Menu = { create: () => {
     E.add('bibi:commands:toggle-menu', Menu.toggle);
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-menu',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-menu',  Opt));
-    E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-menu', Opt));
     E.add('bibi:opened', Menu.close);/*
     E.add('bibi:changes-intersection', () => {
         clearTimeout(Menu.Timer_cool);
@@ -2931,6 +2932,58 @@ I.Loupe = { create: () => {
         }),
         transformBack:  (Opt) => Loupe.transform(R.Main.PreviousTransformation,              Opt) || Loupe.transformReset(Opt),
         transformReset: (Opt) => Loupe.transform({ Scale: 1, TranslateX: 0, TranslateY: 0 }, Opt),
+        BookStretchingEach: 0,
+        defineZoomOutPropertiesForUtilities: () => {
+            const BookMargin = {
+                   Top: S['use-menubar'] && S['use-full-height'] ? I.Menu.Height : 0,
+                 Right: S.ARA == 'vertical'   ? I.Slider.Size : 0,
+                Bottom: S.ARA == 'horizontal' ? I.Slider.Size : 0,
+                  Left: 0
+            };
+            const Tf = {};
+            if(S.ARA == 'horizontal') {
+                Tf.Scale = (R.Main.offsetHeight - (BookMargin.Top + BookMargin.Bottom)) / (R.Main.offsetHeight - (S.ARA == S.SLA && (S.RVM != 'paged' || I.Slider.UI) ? O.Scrollbars.Height : 0));
+                Tf.TranslateX = 0;
+            } else {
+                Tf.Scale = Math.min(
+                    (R.Main.offsetWidth  - BookMargin.Right) / (R.Main.offsetWidth - O.Scrollbars.Width),
+                    (R.Main.offsetHeight - BookMargin.Top  ) /  R.Main.offsetHeight
+                );
+                Tf.TranslateX = 0;//R.Main.offsetWidth * (1 - Tf.Scale) / -2;
+                //OP.Left = Tf.TranslateX * -1;
+            }
+            Tf.TranslateY = BookMargin.Top - (R.Main.offsetHeight) * (1 - Tf.Scale) / 2;
+            const St = (O.Body['offset' + C.A_SIZE_L] / Tf.Scale - R.Main['offset' + C.A_SIZE_L]);
+            const OP = {};
+            OP[C.A_BASE_B] = St / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0);
+            OP[C.A_BASE_A] = St / 2;
+            const IP = {};
+            if(S.ARA == S.SLA) IP[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = St / 2;
+            Loupe.ZoomOutPropertiesForUtilities = {
+                Transformation: Tf,
+                Stretch: St,
+                OuterPadding: OP,
+                InnerPadding: IP
+            };
+        },
+        zoomOutForUtilities: () => {
+            Loupe.defineZoomOutPropertiesForUtilities();
+            const ZOP = Loupe.ZoomOutPropertiesForUtilities, OP = ZOP.OuterPadding, IP = ZOP.InnerPadding;
+            for(const Dir in OP) R.Main.style[     'padding' + Dir] = OP[Dir] + 'px';
+            for(const Dir in IP) R.Main.Book.style['padding' + Dir] = IP[Dir] + 'px';
+            Loupe.BookStretchingEach = ZOP.Stretch / 2;
+            return Loupe.transform(ZOP.Transformation, { Temporary: true }).then(() => {
+                if(I.Slider.UI) I.Slider.progress();
+            });
+        },
+        resetZoomingOutForUtilities: () => {
+            return Loupe.transformReset().then(() => {
+                //R.Main.style[C.A_SIZE_l] = '';
+                R.Main.style.padding = R.Main.Book.style.padding = '';
+                Loupe.BookStretchingEach = 0;
+                if(I.Slider.UI) I.Slider.progress();
+            });
+        },
         isAvailable: (Mode) => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
@@ -3018,6 +3071,10 @@ I.Loupe = { create: () => {
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(  Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
     E.add('bibi:changed-scale', Scale => O.log(`Changed Scale: ${ Scale }`));
+    if(S['zoom-out-for-utilities']) {
+        E.add('bibi:opens-utilities',  () => Loupe.zoomOutForUtilities());
+        E.add('bibi:closes-utilities', () => Loupe.resetZoomingOutForUtilities());
+    }
     E.add('bibi:opened', () => {
         Loupe.open();
         if(S['use-loupe'] && S['keep-settings']) {
@@ -3152,6 +3209,7 @@ I.History = {
 
 
 I.Slider = { create: () => {
+    if(!S['use-slider']) return false;
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
         Size: I.Slider.Size,
         initialize: () => {
@@ -3182,7 +3240,7 @@ I.Slider = { create: () => {
         },
         resetThumbAndRailSize: () => {
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-            if(S.ARA == S.SLA) ScrollLength -= Slider.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
+            if(S.ARA == S.SLA) ScrollLength -= I.Loupe.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
             const ThumbLengthPercent = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength * 100;
             Slider.Thumb.style[C.A_SIZE_l] = (      ThumbLengthPercent) + '%';
             Slider.Rail.style[ C.A_SIZE_l] = (100 - ThumbLengthPercent) + '%';
@@ -3199,7 +3257,7 @@ I.Slider = { create: () => {
             Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
             let Scrolled = R.Main['scroll' + C.L_OOBL_L];
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-                 if(S.ARA == S.SLA) ScrollLength -= Slider.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
+                 if(S.ARA == S.SLA) ScrollLength -= I.Loupe.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
             else if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height; // <- Paged (HorizontalAppearance) && VerticalText
             Slider.Thumb.style[C.A_OOBL_l] = (Scrolled / ScrollLength * 100) + '%';
             Slider.Rail.Progress.style.width = Slider.Rail.Progress.style.height = '';
@@ -3242,12 +3300,14 @@ I.Slider = { create: () => {
                 const TranslatedThumbCenterCoord = Slider.TouchStartThumbCenterCoord + Translation;
                      if(TranslatedThumbCenterCoord < Slider.Rail.Coords[0]) Translation = Slider.Rail.Coords[0] - Slider.TouchStartThumbCenterCoord;
                 else if(TranslatedThumbCenterCoord > Slider.Rail.Coords[1]) Translation = Slider.Rail.Coords[1] - Slider.TouchStartThumbCenterCoord;
-                sML.style(Slider.Thumb,         { transform: 'translate' + C.A_AXIS_L + '(' +      Translation                                                             + 'px)' });
-                sML.style(Slider.Rail.Progress, { transform:     'scale' + C.A_AXIS_L + '(' + (1 + Translation / Slider.Rail.Progress['offset' + C.A_SIZE_L] * C.A_AXIS_D) +   ')' });
+                let ProgressLength = Slider.Thumb['offset' + C.A_OOBL_L] + Translation;
+                if(S.ARD == 'rtl') ProgressLength = Slider.Rail['offset' + C.A_SIZE_L] - ProgressLength;
+                sML.style(Slider.Thumb,         { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
+                sML.style(Slider.Rail.Progress, { [C.A_SIZE_l]: ProgressLength + 'px' });
                 setTimeout(() => Slider.focus(Eve, { Turn: false, History: false }), 9);
             } else Slider.focus(Eve).then(Destination => {
                 sML.style(Slider.Thumb,         { transform: '' });
-                sML.style(Slider.Rail.Progress, { transform: '' });
+                sML.style(Slider.Rail.Progress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
                 if(Slider.History) Slider.History.add(Destination);
             });
@@ -3264,48 +3324,6 @@ I.Slider = { create: () => {
             TouchEndCoord[C.A_AXIS_L] = sML.limitMinMax(Slider.TouchingCoord, Slider.Rail.Coords[0], Slider.Rail.Coords[1]);
             TouchEndCoord[C.A_AXIS_B] = O.getElementCoord(Slider)[C.A_AXIS_B] + Slider['offset' + C.A_SIZE_B] / 2;
             return TouchEndCoord;
-        },
-        BookStretchingEach: 0,
-        BookZoomOut: {
-            Transformation: {},
-            Stretch: 0,
-            OuterPadding: {},
-            InnerPadding: {}
-        },
-        defineBookZoomOut: () => {
-            const BookMarginStart = (S['use-full-height'] && S.ARA == 'horizontal' ? I.Menu.Height : 0);
-            const BookMarginEnd   = Slider.Size;
-            Slider.BookZoomOut.Transformation = {
-                Scale: (R.Main['offset' + C.A_SIZE_B] - (BookMarginStart + BookMarginEnd)) / (R.Main['offset' + C.A_SIZE_B] - O.Scrollbars[C.A_SIZE_B])
-            };
-            //Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_L] = /*(S.ARA == 'vertical' && S['use-full-height']) ? I.Menu.Height / 2 :*/ 0;
-            Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_L] = (S.ARA == 'vertical' && S['use-full-height']) ? (R.Main['offset' + C.A_SIZE_B] * (1 - Slider.BookZoomOut.Transformation.Scale) - I.Menu.Height) / 2 : 0;
-            Slider.BookZoomOut.Transformation['Translate' + C.A_AXIS_B] = BookMarginStart - (R.Main['offset' + C.A_SIZE_B]) * (1 - Slider.BookZoomOut.Transformation.Scale) / 2;
-            Slider.BookZoomOut.Stretch = (O.Body['offset' + C.A_SIZE_L] / Slider.BookZoomOut.Transformation.Scale - R.Main['offset' + C.A_SIZE_L]);
-            Slider.BookZoomOut.OuterPadding = {
-                [C.A_BASE_B]: Slider.BookZoomOut.Stretch / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0),
-                [C.A_BASE_A]: Slider.BookZoomOut.Stretch / 2
-            };
-            Slider.BookZoomOut.InnerPadding = S.ARA == S.SLA ? {
-                [S.ARA == 'horizontal' ? 'Right' : 'Bottom']: Slider.BookZoomOut.Stretch / 2
-            } : {};
-        },
-        zoomOutBook: () => {
-            Slider.defineBookZoomOut();
-            Slider.BookStretchingEach = Slider.BookZoomOut.Stretch / 2;
-            for(const Dir in Slider.BookZoomOut.OuterPadding)      R.Main.style['padding' + Dir] = Slider.BookZoomOut.OuterPadding[Dir] + 'px';
-            for(const Dir in Slider.BookZoomOut.InnerPadding) R.Main.Book.style['padding' + Dir] = Slider.BookZoomOut.InnerPadding[Dir] + 'px';
-            return I.Loupe.transform(Slider.BookZoomOut.Transformation, { Temporary: true }).then(() => {
-                Slider.progress();
-            });
-        },
-        resetZoomingOutOfBook: () => {
-            R.Main.style.padding = R.Main.Book.style.padding = '';
-            return I.Loupe.transformReset().then(() => {
-                //R.Main.style[C.A_SIZE_l] = '';
-                Slider.BookStretchingEach = 0;
-                Slider.progress();
-            });
         }
     }));
     Slider.Edgebar = { create: () => sML.create('div', { id: 'bibi-slider-edgebar',
@@ -3441,11 +3459,10 @@ I.Slider = { create: () => {
         onopened: () => {
             O.HTML.classList.add('slider-opened');
             setTimeout(Slider.resetRailCoords, 0);
-            if(S['zoom-out-on-opening-slider']) Slider.zoomOutBook();
             E.dispatch('bibi:opened-slider');
         },
         onclosed: () => {
-            (S['zoom-out-on-opening-slider'] ? Slider.resetZoomingOutOfBook() : Promise.resolve()).then(() => {
+            new Promise(resolve => setTimeout(resolve, S['zoom-out-for-utilities'] ? 111 : 0)).then(() => {
                 if(Slider.UI.reset) Slider.UI.reset();
             });
             O.HTML.classList.remove('slider-opened');
@@ -3458,7 +3475,6 @@ I.Slider = { create: () => {
     E.add('bibi:commands:toggle-slider', Slider.toggle);
     E.add('bibi:opens-utilities',   Opt => E.dispatch('bibi:commands:open-slider',   Opt));
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-slider',  Opt));
-    E.add('bibi:toggles-utilities', Opt => E.dispatch('bibi:commands:toggle-slider', Opt));
     E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd));
     E.add('bibi:opened', () => {
         Slider.UI.addEventListener(E['pointerdown'], Slider.onTouchStart);
@@ -3469,7 +3485,7 @@ I.Slider = { create: () => {
     });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
     E.add('bibi:laid-out', () => {
-        Slider.resetZoomingOutOfBook();
+        if(S['zoom-out-for-utilities']) I.Loupe.resetZoomingOutForUtilities();
         Slider.resetThumbAndRailSize();
         Slider.progress();
     });
@@ -3720,7 +3736,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
             if(I.Panel && I.Panel.UIState == 'active') return false;
             //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
             if(S.RVM == 'paged') {
-                if(BibiEvent.Coord.Y > window.innerHeight - I.Slider.offsetHeight) return false;
+                if(BibiEvent.Coord.Y > window.innerHeight - (I.Slider.UI ? I.Slider.offsetHeight : 0)) return false;
             } else {
                 //if(S['full-breadth-layout-in-scroll']) return false;
                      if(S.RVM == 'horizontal') { if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; }
@@ -4680,6 +4696,7 @@ S.initialize = (before, after) => {
         S['max-' + _] = !S['use-' + _] ? 0 : S['max-' + _] > MaxOfHistoryAndBookmarks[_] ? MaxOfHistoryAndBookmarks[_] : S['max-' + _];
         if(S['max-' + _] == 0) S['use-' + _] = false;
     });
+    if(!S['use-menubar']) S['use-full-height'] = true;
     // --------
     E.bind('bibi:initialized-book', () => {
         const BookBiscuits = O.Biscuits.remember('Book');
@@ -5463,7 +5480,6 @@ O.SettingTypes = {
         'double-spread-for-reflowable',
         'fix-nav-ttb',
         'fix-reader-view-mode',
-        'place-menubar-at-top',
         'start-embedded-in-new-window',
         'use-arrows',
         'use-bookmarks',
@@ -5474,7 +5490,8 @@ O.SettingTypes = {
         'use-loupe',
         'use-menubar',
         'use-nombre',
-        'zoom-out-on-opening-slider'
+        'use-slider',
+        'zoom-out-for-utilities'
     ],
     'string': [
         'slider-mode',

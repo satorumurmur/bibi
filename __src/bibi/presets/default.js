@@ -31,8 +31,7 @@ Bibi.preset({
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 "use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-//"place-menubar-at-top"       : "no", // "yes" or "no" or "desktop" or "mobile"
-"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile". If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
 "use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
@@ -50,8 +49,9 @@ Bibi.preset({
 "use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 
 
+"use-slider"                 : "yes",
 "slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
-"zoom-out-on-opening-slider" : "yes", // "yes" or "no" or "desktop" or "mobile"
+"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
