@@ -107,18 +107,18 @@
             const Bibi = Jo.Bibis[i];
             Bibi.move = (Distance) => {
                 if(typeof Target != 'number') return;
-                Bibi.Frame.contentWindow.postMessage(`{"bibi:commands:move":"${ Distance }"}`, Bibi.Anchor.origin);
+                Bibi.Frame.contentWindow.postMessage(`{'bibi:commands:move':'${ Distance }'}`, Bibi.Anchor.origin);
             };
             Bibi.focus = (Target) => {
                 if(typeof Target != 'string' && typeof Target != 'number') return;
-                Bibi.Frame.contentWindow.postMessage(`{"bibi:commands:focus":"${ Target }"}`, Bibi.Anchor.origin);
+                Bibi.Frame.contentWindow.postMessage(`{'bibi:commands:focus':'${ Target }'}`, Bibi.Anchor.origin);
             };
             Bibi.changeView = (BDM) => {
-                if(typeof Target != "string") return;
-                Bibi.Frame.contentWindow.postMessage(`{"bibi:commands:change-view":"${ BDM }"}`, Bibi.Anchor.origin);
+                if(typeof Target != 'string') return;
+                Bibi.Frame.contentWindow.postMessage(`{'bibi:commands:change-view':'${ BDM }'}`, Bibi.Anchor.origin);
             };
             Bibi.togglePanel = () => {
-                Bibi.Frame.contentWindow.postMessage(`{"bibi:command:toggle-panel":""}`, Bibi.Anchor.origin);
+                Bibi.Frame.contentWindow.postMessage(`{'bibi:command:toggle-panel':''}`, Bibi.Anchor.origin);
             };
             Bibi.Anchor.style.display = 'none';
             Bibi.Anchor.parentNode.insertBefore(Bibi.Holder, Bibi.Anchor);

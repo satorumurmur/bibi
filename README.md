@@ -54,6 +54,17 @@ In all cases,
 
 
 
+### Are you an user of BiB/i older than v1.0.0? 
+
+The folder structure and default public URL has changed in Bibi v1.0.0.
+But don't worry. You still can use not only the new style URL but also the same old style URL as before.
+
+If you already published books on the web with BiB/i which version is older than v1.0.0, and want to update Bibi to v1.0.0 or newer, but do not want to change the public URLs of the books,
+
+* Please download `Bibi-vX.Y.Z_with_BackCompatKit.zip`, and follow the document in it.
+
+
+
 ### Read in browsers on your local machine 
 
 1. Open `bibi/index.html` in your browser, and

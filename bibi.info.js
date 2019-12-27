@@ -15,6 +15,19 @@ const Bibi = {
     'homepage': 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
 };
 
+Bibi.Arguments = (() => {
+    const KRE = /^\-+([\w\d_\-]+)$/;
+    let CurrentKey = null;
+    return process.argv.reduce((As, KoV) => {
+             if(KRE.test(KoV)) CurrentKey = KoV.replace(KRE, '$1'), As[CurrentKey] = true;
+        else if(CurrentKey) As[CurrentKey] = KoV, CurrentKey = null;
+        return As;
+    }, {});
+})();
+
+Bibi.ForPack = (Bibi.Arguments['pack']);
+Bibi.WithBCK = (Bibi.Arguments['bc'] || Bibi.ForPack);
+
 // =============================================================================================================================
 
 const _banner = (Name, Credit, Extra, Mark) => '/*!' + `
@@ -81,7 +94,8 @@ Bibi.Banners = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-'/jo.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
+'/and/jo.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
+ '^bib/i.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
@@ -124,7 +138,7 @@ Bibi.Banners = {
 
 // =============================================================================================================================
 
-Bibi.ARCHIVES = '__archives', Bibi.DIST = '__dist', Bibi.SRC = '__src', Bibi.SRCBC = '__src__back-compat';
+Bibi.ARCHIVES = '__archives', Bibi.ARCHIVETMP = Bibi.ARCHIVES + '/.tmp', Bibi.DIST = '__dist', Bibi.SRC = '__src', Bibi.SRCBC = '__src__back-compat';
 
 // =============================================================================================================================
 
