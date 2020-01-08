@@ -116,7 +116,7 @@ $INVARIABLE__Spinner_ZIndex: 99999999999;
 
 @mixin GLOBAL__FontIcon_BaseStyles($SCOPED__FamilyName, $SCOPED__FontSize: 100%, $SCOPED__LineHeight: 1) {
 	font: #{$SCOPED__FontSize} / #{$SCOPED__LineHeight} $SCOPED__FamilyName;
-	-ms-font-feature-settings: 'liga' 1;  font-feature-settings: 'liga';  text-transform: none;
+	font-feature-settings: "kern", "liga", "clig", "calt";  -ms-font-feature-settings: "kern", "liga", "clig", "calt";  text-transform: none;
 	-webkit-font-smoothing: antialiased;  -moz-osx-font-smoothing: grayscale;  text-rendering: optimizelegibility;
 	speak: none;  direction: ltr;  letter-spacing: 0;  white-space: nowrap;  word-wrap: normal;  overflow-wrap: normal;
 }

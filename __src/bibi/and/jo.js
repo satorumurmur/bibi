@@ -1,6 +1,7 @@
 (() => {
     'use strict';
     if(window['bibi:jo']) return;
+    if(!Array.prototype.includes) Array.prototype.includes = function(I) { for(let l = this.length, i = 0; i < l; i++) if(this[i] == I) return true; return false; };
     const Jo = window['bibi:jo'] = { 'version': '____Bibi-Version____',
         CSS: require('./jo.scss'),
         Status: '',

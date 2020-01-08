@@ -472,8 +472,14 @@ L.wait = () => {
 };
 
 
+L.openNewWindow = (Href) => {
+    const WO = window.open(Href);
+    return WO ? WO : location.href = Href;
+};
+
+
 L.play = () => {
-    if(S['start-in-new-window']) return window.open(location.href);
+    if(S['start-in-new-window']) return L.openNewWindow(location.href);
     L.Played = true;
     R.resetStage();
     L.wait.resolve();
@@ -944,7 +950,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
             if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
             if(!L.Waiting) return false;
-            if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
+            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
             L.play();
         });
@@ -1005,23 +1011,29 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     }
     ItemBox.classList.remove('loaded');
     return new Promise((resolve, reject) => {
-        if(Item.BlobURL) return resolve({});
+        if(Item.BlobURL) { resolve({}); return; }
         if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            if(!B.ExtractionPolicy) return resolve({ // Extracted
-                URL: O.fullPath(Item.Path)
-            });
-            return O.file(Item, { Preprocess: true }).then(Item => resolve({ // Archived
-                HTML: Item.Content.replace(/^<\?.+?\?>/, '')
-            })).catch(reject);
+            if(!B.ExtractionPolicy /*!!!!!!!!*/ && !sML.UA.Gecko /*!!!!!!!!*/ ) { // Extracted (exclude Gecko from here, because of such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault.)
+                resolve({
+                    URL: O.fullPath(Item.Path)
+                }); return;
+            }
+            O.file(Item, { Preprocess: true }).then(Item => { // Archived (or Gecko. It's NOT Gecko's fault...)
+                resolve({
+                    HTML: Item.Content.replace(/^<\?.+?\?>/, '')
+                })
+            }).catch(reject); return;
         }
         if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
-            return O.file(Item, { URI: true }).then(Item => resolve({
-                Head: (Item.Ref['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
-                Body: `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
-            })).catch(reject)
+            O.file(Item, { URI: true }).then(Item => {
+                resolve({
+                    Head: (Item.Ref['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
+                    Body: `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
+                })
+            }).catch(reject); return;
         }
         if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
-            return O.file(Item, { Preprocess: true }).then(Item => {
+            O.file(Item, { Preprocess: true }).then(Item => {
                 const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Content.match(StyleSheetRE);
                 let StyleSheets = '', Content = Item.Content;
                 if(MatchedStyleSheets) StyleSheets = MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join(''), Content = Content.replace(StyleSheetRE, '');
@@ -1029,7 +1041,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                     Head: (!B.ExtractionPolicy ? `<base href="${ O.fullPath(Item.Path) }" />` : '') + StyleSheets,
                     Body: Content
                 });
-            }).catch(reject)
+            }).catch(reject); return;
         }
         resolve({});
     }).then(Source => new Promise(resolve => {
@@ -1432,9 +1444,9 @@ R.renderReflowableItem = (Item) => {
     let PaginateWith = '';
     if(!Item.Outsourcing) {
         if(O.PaginateWithCSSShapes) {
-                 if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL) PaginateWith = 'S'; // VM:Paged WM:Vertical LA:Horizontal
-            else if(                    Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal / VM:Vertical WM:Vertical LA:Vertical
-        } else   if(S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal / VM:Paged/Vertical WM:Vertical LA:Vertical
+                 if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL) PaginateWith = 'S'; // VM:Paged            WM:Vertical   LA:Horizontal
+            else if(                    Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:      Vertical WM:Vertical LA:Vertical
+        } else   if(S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:Paged/Vertical WM:Vertical LA:Vertical
     }
     switch(PaginateWith) {
         case 'S':
@@ -3593,7 +3605,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         action: () => {
                             if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }));
                             if(!L.Waiting) return false;
-                            if(S['start-in-new-window']) return window.open(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
+                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(si-ppis:' + Bmk['SI-PPiS'] + ')');
                             S['to'] = { 'SI-PPiS': Bmk['SI-PPiS'] };
                             L.play();
                         },
