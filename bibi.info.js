@@ -1,5 +1,5 @@
 /*!
- *                                                                                                                          (℠)
+ *                                                                                                                          (邃 )
  *  # Additional Webpack Config for Bibi
  *
  */
@@ -7,7 +7,7 @@
 'use strict';
 
 const Bibi = {
-    'version': '1.0.0',
+    'version': '1.0.1',
     'author': {
         'name': 'Satoru MATSUSHIMA'
     },
@@ -31,7 +31,7 @@ Bibi.WithBCK = (Bibi.Arguments['bc'] || Bibi.ForPack);
 // =============================================================================================================================
 
 const _banner = (Name, Credit, Extra, Mark) => '/*!' + `
- *` + (!Mark ? '' : `                                                                                                                          (℠)`) + `
+ *` + (!Mark ? '' : `                                                                                                                          (邃 )`) + `
  *  # ${ Name }
  *` + (!Credit ? '' : (Credit == 'default' ? `
  *  * Copyright (c) ${ Bibi.author.name } - ${ Bibi.homepage }
@@ -95,7 +95,11 @@ Bibi.Banners = {
 // -----------------------------------------------------------------------------------------------------------------------------
 
 '/and/jo.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
- '^bib/i.js': _banner(`Jo | Helper for Embedding Bibi-Frames in Webpage.`, 'default', null, true),
+
+ '^bib/i.js': _banner(`bib/i.js (BCK)`, `
+ *  * Calling:
+ *      - Jo | Helper for Embedding Bibi-Frames in Webpage. - bibi/and/jo.js
+`, null, true),
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
