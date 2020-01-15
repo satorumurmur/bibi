@@ -116,6 +116,11 @@ Bibi.Banners = {
  *      - Bibi Zip Loader ... Copyright (c) Lunascape - https://github.com/lunascape/bibi-zip-loader (Licensed under the MIT License.)
 `, true),
 
+'/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': _banner('Bibi-Zip-Loader (Worker)', `
+ *  * Copyright (c) Lunascape - https://github.com/lunascape/bibi-zip-loader
+ *  * Licensed under the MIT License.
+`, null, null),
+
 '/extensions/extractor/at-once.js': _banner('Bibi Extension: Extractor (at once)', 'default', `
  *  * Including:
  *      - JSZip      ... Copyright (c) Stuart Knightley - https://stuk.github.io/jszip       (Dual licensed under the MIT License or the GPLv3.)

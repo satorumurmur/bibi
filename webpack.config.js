@@ -36,8 +36,9 @@ const Config = {
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: __dirname + '/' + (Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
-    entry: ((Entries, PathLists) => {
-        for(const SrcDir in PathLists) PathLists[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = __dirname + '/' + SrcDir + '/' + P.replace(/\.css$/, '.scss'));
+    entry: ((Entries, PathListsA, PathListsB) => {
+        for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = __dirname + '/' + SrcDir + '/' +                     P.replace(/\.css$/, '.scss'));
+        for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = __dirname + '/' + SrcDir + '/' + PathListsB[SrcDir][P].replace(/\.css$/, '.scss') ;
         return Entries;
     })({}, {
         [Bibi.SRC]: [
@@ -59,6 +60,10 @@ const Config = {
         [Bibi.SRCBC]: Bibi.WithBCK ? [
             'bib/i.js'
         ] : []
+    }, {
+        'node_modules': {
+            'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': 'bibi-zip-loader/dist/lszlw.js'
+        }
     }),
     plugins: ((RelativeCopySettings, PathLists) => {
         for(const SrcDir in PathLists) {
@@ -82,9 +87,6 @@ const Config = {
             'README.md'
         ]
     }).concat([
-        new CopyPlugin([
-            { from: 'node_modules/bibi-zip-loader/dist/lszlw.js', to: 'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js' }
-        ]),
         new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
         new MiniCSSExtractPlugin({ filename: '[name]' }),
         new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true }),
@@ -92,6 +94,7 @@ const Config = {
     ]),
     module: { rules: [{
         test: /\.m?js$/,
+        exclude: /\/on-the-fly\.bibi-zip-loader\.worker\.js$/,
         use: [{
             loader: 'babel-loader', options: {
                 babelrc: false,
@@ -182,6 +185,25 @@ if(IsDev) {
         ]
     });
 } else {
+    Config.module.rules.push({
+        test: /bibi-zip-loader/,
+        use: [
+            StringReplacePlugin.replace({ replacements: [{
+                pattern: /# sourceURL=webpack:\/+/g,
+                replacement: () => ''
+            }, {
+                pattern: /(\\n)(\\t|\s)+/g,
+                replacement: () => '\\n '
+            }, {
+                pattern: /(\\n ){2,}/g,
+                replacement: () => '\\n '
+            }, {
+                pattern: /(\\n){2,}/g,
+                replacement: () => '\\n'
+            }]})
+        ]
+    });
+    for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
     Config.optimization.minimizer.push(new TerserPlugin({
         cache: true,
         parallel: true,
@@ -190,12 +212,11 @@ if(IsDev) {
             ecma: 5,
             compress: true,
             output: {
-                comments: /^\!/,
+                comments: /^\!\n \*( +\(.+\))?\n \* +# +(?!sML)/,
                 beautify: false
             }
         }
     }));
-    for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
 }
 
 module.exports = Config;
