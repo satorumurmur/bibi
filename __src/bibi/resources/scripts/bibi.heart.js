@@ -2875,38 +2875,40 @@ I.Loupe = { create: () => {
     if(S['loupe-max-scale'] <= 2) S['loupe-max-scale'] = 4;
     const Loupe = I.Loupe = {
         scale: (Scl, BibiEvent) => { // Scl: Scale
-            if(typeof Scl != 'number') return false;
+            Scl = typeof Scl == 'number' ? sML.limitMinMax(Scl, 1, S['loupe-max-scale']) : 1;
             const CurrentTfm = R.Main.Transformation;
             Scl = Math.round(Scl * 100) / 100;
-            if(Scl == CurrentTfm.Scale) return;
+            if(Scl == CurrentTfm.Scale) return Promise.resolve();
             E.dispatch('bibi:changes-scale', Scl);
-                 if(Scl <  1) Loupe.transform({ Scale: Scl, TranslateX: R.Main.offsetWidth * (1 - Scl) / 2, TranslateY: R.Main.offsetHeight * (1 - Scl) / 2 });
-            else if(Scl == 1) Loupe.transform({ Scale:   1, TranslateX: 0,                                  TranslateY: 0                                   });
+            let Tfm = {};
+                 if(Scl <  1) Tfm = { Scale: Scl, TranslateX: R.Main.offsetWidth * (1 - Scl) / 2, TranslateY: R.Main.offsetHeight * (1 - Scl) / 2 };
+            else if(Scl == 1) Tfm = { Scale:   1, TranslateX: 0,                                  TranslateY: 0                                   };
             else {
-                if(Loupe.UIState != 'active') return false;
+                if(Loupe.UIState != 'active') return Promise.resolve();
                 if(!BibiEvent) BibiEvent = { Coord: { X: window.innerWidth / 2, Y: window.innerHeight / 2 } };
                 /*
                 const CurrentTransformOrigin = {
                     X: window.innerWidth  / 2 + CurrentTfm.TranslateX,
                     Y: window.innerHeight / 2 + CurrentTfm.TranslateY
                 };
-                Loupe.transform({
+                Tfm = {
                     Scale: Scl,
                     TranslateX: CurrentTfm.TranslateX + (BibiEvent.Coord.X - (CurrentTransformOrigin.X + (BibiEvent.Coord.X - (CurrentTransformOrigin.X)) * (Scl / CurrentTfm.Scale))),
                     TranslateY: CurrentTfm.TranslateY + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y + (BibiEvent.Coord.Y - (CurrentTransformOrigin.Y)) * (Scl / CurrentTfm.Scale)))
-                });
-                // ↓ simplified on culculation */
-                Loupe.transform({
+                };
+                // ↓↓↓↓ SIMPLIFIED
+                */
+                Tfm = {
                     Scale: Scl,
                     TranslateX: CurrentTfm.TranslateX + (BibiEvent.Coord.X - window.innerWidth  / 2 - CurrentTfm.TranslateX) * (1 - Scl / CurrentTfm.Scale),
                     TranslateY: CurrentTfm.TranslateY + (BibiEvent.Coord.Y - window.innerHeight / 2 - CurrentTfm.TranslateY) * (1 - Scl / CurrentTfm.Scale)
-                });
+                };
             }
-            E.dispatch('bibi:changed-scale', R.Main.Transformation.Scale);
+            return Loupe.transform(Tfm);
         },
         transform: (Tfm, Opt) => new Promise((resolve, reject) => {
             // Tfm: Transformation
-            if(!Tfm) return reject();
+            if(!Tfm) Tfm = { Scale: 1, TranslateX: 0, TranslateY: 0 };
             if(!Opt) Opt = {};
             Loupe.Transforming = true;
             clearTimeout(Loupe.Timer_onTransformEnd);
@@ -2915,6 +2917,7 @@ I.Loupe = { create: () => {
             if(typeof Tfm.Scale      != 'number') Tfm.Scale      = CurrentTfm.Scale;
             if(typeof Tfm.TranslateX != 'number') Tfm.TranslateX = CurrentTfm.TranslateX;
             if(typeof Tfm.TranslateY != 'number') Tfm.TranslateY = CurrentTfm.TranslateY;
+            if(Tfm.Scale == CurrentTfm.Scale && Tfm.TranslateX == CurrentTfm.TranslateX && Tfm.TranslateY == CurrentTfm.TranslateY) return resolve();
             if(Tfm.Scale > 1) {
                 const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
                 const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
@@ -2942,8 +2945,8 @@ I.Loupe = { create: () => {
                 E.dispatch('bibi:transformed-book', { Transformation: Tfm, Temporary: Opt.Temporary });
             }, 345);
         }),
-        transformBack:  (Opt) => Loupe.transform(R.Main.PreviousTransformation,              Opt) || Loupe.transformReset(Opt),
-        transformReset: (Opt) => Loupe.transform({ Scale: 1, TranslateX: 0, TranslateY: 0 }, Opt),
+        //transformBack:  (Opt) => Loupe.transform(R.Main.PreviousTransformation,              Opt) || Loupe.transformReset(Opt),
+        //transformReset: (Opt) => Loupe.transform({ Scale: 1, TranslateX: 0, TranslateY: 0 }, Opt),
         BookStretchingEach: 0,
         defineZoomOutPropertiesForUtilities: () => {
             const BookMargin = {
@@ -2952,75 +2955,79 @@ I.Loupe = { create: () => {
                 Bottom: S.ARA == 'horizontal' ? I.Slider.Size : 0,
                   Left: 0
             };
-            const Tf = {};
+            const Tfm = {};
             if(S.ARA == 'horizontal') {
-                Tf.Scale = (R.Main.offsetHeight - (BookMargin.Top + BookMargin.Bottom)) / (R.Main.offsetHeight - (S.ARA == S.SLA && (S.RVM != 'paged' || I.Slider.UI) ? O.Scrollbars.Height : 0));
-                Tf.TranslateX = 0;
+                Tfm.Scale = (R.Main.offsetHeight - (BookMargin.Top + BookMargin.Bottom)) / (R.Main.offsetHeight - (S.ARA == S.SLA && (S.RVM != 'paged' || I.Slider.UI) ? O.Scrollbars.Height : 0));
+                Tfm.TranslateX = 0;
             } else {
-                Tf.Scale = Math.min(
+                Tfm.Scale = Math.min(
                     (R.Main.offsetWidth  - BookMargin.Right) / (R.Main.offsetWidth - O.Scrollbars.Width),
                     (R.Main.offsetHeight - BookMargin.Top  ) /  R.Main.offsetHeight
                 );
-                Tf.TranslateX = 0;//R.Main.offsetWidth * (1 - Tf.Scale) / -2;
-                //OP.Left = Tf.TranslateX * -1;
+                Tfm.TranslateX = 0;//R.Main.offsetWidth * (1 - Tfm.Scale) / -2;
+                //OP.Left = Tfm.TranslateX * -1;
             }
-            Tf.TranslateY = BookMargin.Top - (R.Main.offsetHeight) * (1 - Tf.Scale) / 2;
-            const St = (O.Body['offset' + C.A_SIZE_L] / Tf.Scale - R.Main['offset' + C.A_SIZE_L]);
+            Tfm.TranslateY = BookMargin.Top - (R.Main.offsetHeight) * (1 - Tfm.Scale) / 2;
+            const St = (O.Body['offset' + C.A_SIZE_L] / Tfm.Scale - R.Main['offset' + C.A_SIZE_L]);
             const OP = {};
             OP[C.A_BASE_B] = St / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0);
             OP[C.A_BASE_A] = St / 2;
             const IP = {};
             if(S.ARA == S.SLA) IP[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = St / 2;
             Loupe.ZoomOutPropertiesForUtilities = {
-                Transformation: Tf,
+                Transformation: Tfm,
                 Stretch: St,
                 OuterPadding: OP,
                 InnerPadding: IP
             };
         },
-        zoomOutForUtilities: () => {
+        getDefaultTransformation: () => I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation : { Scale: 1, TranslateX: 0, TranslateY: 0 },
+        transformToDefault: () => Loupe.transform(Loupe.getDefaultTransformation()),
+        transformForUtilities: (IO) => {
             Loupe.defineZoomOutPropertiesForUtilities();
-            const ZOP = Loupe.ZoomOutPropertiesForUtilities, OP = ZOP.OuterPadding, IP = ZOP.InnerPadding;
-            for(const Dir in OP) R.Main.style[     'padding' + Dir] = OP[Dir] + 'px';
-            for(const Dir in IP) R.Main.Book.style['padding' + Dir] = IP[Dir] + 'px';
-            Loupe.BookStretchingEach = ZOP.Stretch / 2;
-            return Loupe.transform(ZOP.Transformation, { Temporary: true }).then(() => {
-                if(I.Slider.UI) I.Slider.progress();
-            });
+            const Tfm = Object.assign({}, R.Main.Transformation), Tfm4U = Loupe.ZoomOutPropertiesForUtilities.Transformation;
+            let cb = () => {};
+            if(IO) {
+                if(Loupe.ZoomedOutForUtilities) return Promise.resolve();
+                Loupe.ZoomedOutForUtilities = true;
+                Tfm.Scale      *= Tfm4U.Scale;
+                Tfm.TranslateX += Tfm4U.TranslateX;
+                Tfm.TranslateY += Tfm4U.TranslateY;
+                const OP4U = Loupe.ZoomOutPropertiesForUtilities.OuterPadding, IP4U = Loupe.ZoomOutPropertiesForUtilities.InnerPadding;
+                for(const Dir in OP4U) R.Main.style[     'padding' + Dir] = OP4U[Dir] + 'px';
+                for(const Dir in IP4U) R.Main.Book.style['padding' + Dir] = IP4U[Dir] + 'px';
+                Loupe.BookStretchingEach = Loupe.ZoomOutPropertiesForUtilities.Stretch / 2;
+            } else {
+                if(!Loupe.ZoomedOutForUtilities) return Promise.resolve();
+                Loupe.ZoomedOutForUtilities = false;
+                Tfm.Scale      /= Tfm4U.Scale;
+                Tfm.TranslateX -= Tfm4U.TranslateX;
+                Tfm.TranslateY -= Tfm4U.TranslateY;
+                cb = () => {
+                    R.Main.style.padding = R.Main.Book.style.padding = '';
+                    Loupe.BookStretchingEach = 0;
+                };
+            }
+            return Loupe.transform(Tfm, { Temporary: true }).then(cb).then(() => I.Slider.UI ? I.Slider.progress() : undefined);
         },
-        resetZoomingOutForUtilities: () => {
-            return Loupe.transformReset().then(() => {
-                //R.Main.style[C.A_SIZE_l] = '';
-                R.Main.style.padding = R.Main.Book.style.padding = '';
-                Loupe.BookStretchingEach = 0;
-                if(I.Slider.UI) I.Slider.progress();
-            });
-        },
-        isAvailable: (Mode) => {
+        isAvailable: (Mode, Eve) => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
-            if(S.BRL == 'reflowable') return false;
-            if(Mode == 'TAP') {
-                if(!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space']) return false;
-                if(I.Slider.UIState == 'active') return false;
-            } else if(Mode == 'MOVE') {
-                if(R.Main.Transformation.Scale == 1) return false;
-                if(I.Slider.UIState == 'active') return false;
-            } else {
-                if(!R.PointerIsDowned) return false;
-            }
+            //if(I.Slider.UIState == 'active') return false;
+            //if(S.BRL == 'reflowable') return false;
             return true;
         },
-        adjustScale: (Scl) => sML.limitMinMax(Scl, 1, S['loupe-max-scale']),
-        onTapped: (Eve) => {
-            if(!Loupe.isAvailable('TAP')) return false;
+        onTapped: (Eve, Double) => {
+            if(!Loupe.isAvailable()) return false;
+            if(!Double && (!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space'])) return false;
             const BibiEvent = O.getBibiEvent(Eve);
             if(BibiEvent.Target.tagName) {
                 if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return false;
                 if(O.isAnchorContent(BibiEvent.Target)) return false;
                 if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
             }
-            Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2), BibiEvent);
+            if(!Double) Loupe.scale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2, BibiEvent);
+            else R.Main.Transformation.Scale <= (I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation.Scale : 1) ? Loupe.scale(R.Main.Transformation.Scale * 2, BibiEvent) : Loupe.transformToDefault();
         },
         onPointerDown: (Eve) => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
@@ -3037,8 +3044,8 @@ I.Loupe = { create: () => {
             delete Loupe.PointerDownTransformation;
         },
         onPointerMove: (Eve) => {
-            if(!Loupe.isAvailable('MOVE', Eve)) return false;
-            if(R.Main.Transformation.Scale == 1 || !Loupe.PointerDownCoord) return;
+            if(!Loupe.isAvailable()) return false;
+            if(R.Main.Transformation.Scale == Loupe.getDefaultTransformation().Scale || !Loupe.PointerDownCoord) return false;
             Loupe.Dragging = true;
             O.HTML.classList.add('dragging');
             const BibiEvent = O.getBibiEvent(Eve);
@@ -3050,15 +3057,9 @@ I.Loupe = { create: () => {
                 TranslateY: Loupe.PointerDownTransformation.TranslateY + (BibiEvent.Coord.Y - Loupe.PointerDownCoord.Y)
             });
             Loupe.Timer_TransitionRestore = setTimeout(() => sML.style(R.Main, { transition: '' }, { cursor: '' }), 234);
-        },
-        lock: () => {
-            E.dispatch('bibi:locked-loupe');
-            Loupe.Locked = true;
-        },
-        unlock: () => {
-            Loupe.Locked = false;
-            E.dispatch('bibi:unlocked-loupe');
-        }
+        }/*,
+        lock:   () => { Loupe.Locked = true;  E.dispatch('bibi:locked-loupe');   },
+        unlock: () => { Loupe.Locked = false; E.dispatch('bibi:unlocked-loupe'); }*/
     };
     I.isPointerStealth.addChecker(() => {
         if(Loupe.Dragging) return true;
@@ -3070,7 +3071,7 @@ I.Loupe = { create: () => {
             O.HTML.classList.add('loupe-active');
         },
         onclosed: () => {
-            Loupe.scale(1);
+            Loupe.transformToDefault();
             O.HTML.classList.remove('loupe-active');
         }
     });
@@ -3079,28 +3080,29 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
     E.add('bibi:tapped',         Eve => Loupe.onTapped(     Eve));
+    E.add('bibi:doubletapped',   Eve => Loupe.onTapped(     Eve, 'Double'));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(  Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
-    E.add('bibi:changed-scale', Scale => O.log(`Changed Scale: ${ Scale }`));
     if(S['zoom-out-for-utilities']) {
-        E.add('bibi:opens-utilities',  () => Loupe.zoomOutForUtilities());
-        E.add('bibi:closes-utilities', () => Loupe.resetZoomingOutForUtilities());
+        E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true));
+        E.add('bibi:closes-utilities', () => Loupe.transformForUtilities(false));
     }
     E.add('bibi:opened', () => {
-        Loupe.open();
+        Loupe.open();/*
         if(S['use-loupe'] && S['keep-settings']) {
             const Transformation = O.Biscuits.remember('Book')['Transformation'];
             if(Transformation) Loupe.transform(Transformation);
-        }
+        }*/
     });
     E.add('bibi:transformed-book', Par => {
+        if(Bibi.Debug) console.log(`Transformed Book:`, Par.Transformation);
         if(Par.Temporary) return false;
-        if(S['use-loupe'] && S['keep-settings']) O.Biscuits.memorize('Book', { 'Transformation': Par.Transformation });
+        //if(S['use-loupe'] && S['keep-settings']) O.Biscuits.memorize('Book', { 'Transformation': Par.Transformation });
     });
-    E.add('bibi:changes-view',  () => Loupe.scale(1));
-    E.add('bibi:opened-slider', () => Loupe.lock());
-    E.add('bibi:closed-slider', () => Loupe.unlock());
+    E.add('bibi:changes-view',  () => Loupe.transformToDefault());
+    //E.add('bibi:opened-slider', () => Loupe.lock());
+    //E.add('bibi:closed-slider', () => Loupe.unlock());
     if(S['use-loupe']) {
         const ButtonGroup = I.Menu.R.addButtonGroup({
             Sticky: true,
@@ -3110,7 +3112,7 @@ I.Loupe = { create: () => {
                 Labels: { default: { default: `Zoom-in`, ja: `拡大する` } },
                 Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomin"></span>`,
                 Help: true,
-                action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale + 0.5)),
+                action: () => Loupe.scale(R.Main.Transformation.Scale + 0.5),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale >= S['loupe-max-scale']) ? 'disabled' : 'default');
                 }
@@ -3118,15 +3120,15 @@ I.Loupe = { create: () => {
                 Labels: { default: { default: `Reset Zoom-in/out`, ja: `元のサイズに戻す` } },
                 Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-reset"></span>`,
                 Help: true,
-                action: () => Loupe.scale(1),
+                action: () => Loupe.transformToDefault(),
                 updateState: function(State) {
-                    I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale == 1) ? 'disabled' : 'default');
+                    I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale == (I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation.Scale : 1)) ? 'disabled' : 'default');
                 }
             }, {
                 Labels: { default: { default: `Zoom-out`, ja: `縮小する` } },
                 Icon: `<span class="bibi-icon bibi-icon-loupe bibi-icon-loupe-zoomout"></span>`,
                 Help: true,
-                action: () => Loupe.scale(Loupe.adjustScale(R.Main.Transformation.Scale - 0.5)),
+                action: () => Loupe.scale(R.Main.Transformation.Scale - 0.5),
                 updateState: function(State) {
                     I.setUIState(this, typeof State == 'string' ? State : (R.Main.Transformation.Scale <= 1) ? 'disabled' : 'default');
                 }
@@ -3134,9 +3136,9 @@ I.Loupe = { create: () => {
         });
         Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
         E.add('bibi:opened',           () => Loupe.updateButtonState());
-        E.add('bibi:transformed-book', () => Loupe.updateButtonState(Loupe.Locked ? 'disabled' : null));
-        E.add('bibi:locked-loupe',     () => Loupe.updateButtonState('disabled'));
-        E.add('bibi:unlocked-loupe',   () => Loupe.updateButtonState());
+        E.add('bibi:transformed-book', () => Loupe.updateButtonState(/*Loupe.Locked ? 'disabled' : null*/));
+        //E.add('bibi:locked-loupe',     () => Loupe.updateButtonState('disabled'));
+        //E.add('bibi:unlocked-loupe',   () => Loupe.updateButtonState());
     }
     E.dispatch('bibi:created-loupe');
 }};
@@ -3497,7 +3499,7 @@ I.Slider = { create: () => {
     });
     if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
     E.add('bibi:laid-out', () => {
-        if(S['zoom-out-for-utilities']) I.Loupe.resetZoomingOutForUtilities();
+        if(S['zoom-out-for-utilities']) I.Loupe.transformForUtilities(false);
         Slider.resetThumbAndRailSize();
         Slider.progress();
     });
