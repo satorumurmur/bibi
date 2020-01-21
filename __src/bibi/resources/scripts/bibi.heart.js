@@ -58,7 +58,7 @@ Bibi.initialize = () => {
     }
     { // Environments
         O.HTML.classList.add(...sML.Environments, 'Bibi', 'welcome');
-        if(O.TouchOS = (sML.OS.iOS || sML.OS.Android)) { // Touch Device
+        if(O.TouchOS = (sML.OS.iOS || sML.OS.Android) ? true : false) { // Touch Device
             O.HTML.classList.add('touch');
             if(sML.OS.iOS) {
                 O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-capable',          content: 'yes'   }));
@@ -1105,7 +1105,7 @@ L.postprocessItem = (Item) => {
         }
     });
     if(!O.TouchOS) {
-        if(!sML.UA.Gecko) Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+        if(!sML.UA.Gecko) Item.contentDocument.addEventListener('wheel', R.Main.listenWheel, E.Cpt1Psv0);
     }
     R.setUpObserver(Item.HTML);
     L.coordinateLinkages(Item.Path, Item.Body);
@@ -1941,19 +1941,26 @@ R.changeView = (Par, Opt = {}) => {
 R.Current = { List: [], Frame: {} };
 
 R.updateCurrent = () => {
-    const Frame = {};
-    Frame.Length = R.Main['offset' + C.L_SIZE_L];
-    Frame[C.L_OOBL_L                              ] = R.Main['scroll' + C.L_OOBL_L];
-    Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
-    //if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return R.Current;
-    R.Current.Frame = { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
-    const CurrentList = R.updateCurrent.getList();
-    if(CurrentList) {
-        R.Current.List = CurrentList;
-        R.updateCurrent.classify();
+    const CurrentFrame = R.updateCurrent.getFrame();
+    if(CurrentFrame) {
+        R.Current.Frame = CurrentFrame;
+        const CurrentList = R.updateCurrent.getList();
+        if(CurrentList) {
+            R.Current.List = CurrentList;
+            R.updateCurrent.classify();
+        }
     }
     return R.Current;
 };
+
+    R.updateCurrent.getFrame = () => {
+        const Frame = {};
+        Frame.Length = R.Main['offset' + C.L_SIZE_L];
+        Frame[C.L_OOBL_L                              ] = R.Main['scroll' + C.L_OOBL_L];
+        Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
+        //if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return false;
+        return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
+    };
 
     R.updateCurrent.getList = () => {
         let List = [], List_SpreadContained = [];
@@ -2189,7 +2196,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     if(!Par.Distance || typeof Par.Distance != 'number') return reject();
     Par.Distance *= 1;
     if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
-    Par.Distance = Par.Distance < 0 ? -1 : 1;
+    //Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
     const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
     let Promised = {};
@@ -2256,7 +2263,7 @@ R.scrollBy = (Par) => new Promise((resolve, reject) => {
     }
     sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
+        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.RVM != 'paged' && S.SLA == S.ARA) ? 100 : 0
     }).then(() => {
         R.Moving = false;
         resolve();
@@ -2484,7 +2491,7 @@ I.Menu = { create: () => {
                 Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovers', Eve), 123);
             }
         });
-        if(!sML.UA.Gecko) Menu.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+        if(!sML.UA.Gecko) Menu.addEventListener('wheel', R.Main.listenWheel, E.Cpt1Psv0);
     });
     Menu.L = Menu.appendChild(sML.create('div', { id: 'bibi-menu-l' }));
     Menu.R = Menu.appendChild(sML.create('div', { id: 'bibi-menu-r' }));
@@ -2917,7 +2924,10 @@ I.Loupe = { create: () => {
             if(typeof Tfm.Scale      != 'number') Tfm.Scale      = CurrentTfm.Scale;
             if(typeof Tfm.TranslateX != 'number') Tfm.TranslateX = CurrentTfm.TranslateX;
             if(typeof Tfm.TranslateY != 'number') Tfm.TranslateY = CurrentTfm.TranslateY;
-            if(Tfm.Scale == CurrentTfm.Scale && Tfm.TranslateX == CurrentTfm.TranslateX && Tfm.TranslateY == CurrentTfm.TranslateY) return resolve();
+            if(Tfm.Scale == CurrentTfm.Scale && Tfm.TranslateX == CurrentTfm.TranslateX && Tfm.TranslateY == CurrentTfm.TranslateY) {
+                Loupe.Transforming = false;
+                return resolve();
+            }
             if(Tfm.Scale > 1) {
                 const OverflowX = window.innerWidth  * (0.5 * (Tfm.Scale - 1));
                 const OverflowY = window.innerHeight * (0.5 * (Tfm.Scale - 1));
@@ -3010,24 +3020,33 @@ I.Loupe = { create: () => {
             }
             return Loupe.transform(Tfm, { Temporary: true }).then(cb).then(() => I.Slider.UI ? I.Slider.progress() : undefined);
         },
-        isAvailable: (Mode, Eve) => {
+        isAvailable: () => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
             //if(I.Slider.UIState == 'active') return false;
             //if(S.BRL == 'reflowable') return false;
             return true;
         },
-        onTapped: (Eve, Double) => {
-            if(!Loupe.isAvailable()) return false;
-            if(!Double && (!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space'])) return false;
+        checkAndGetBibiEventForTaps: (Eve) => {
+            if(!Eve || !Loupe.isAvailable()) return null;
             const BibiEvent = O.getBibiEvent(Eve);
             if(BibiEvent.Target.tagName) {
-                if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return false;
-                if(O.isAnchorContent(BibiEvent.Target)) return false;
-                if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
+                if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return null;
+                if(O.isAnchorContent(BibiEvent.Target)) return null;
+                if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return null;
             }
-            if(!Double) Loupe.scale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2, BibiEvent);
-            else R.Main.Transformation.Scale <= (I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation.Scale : 1) ? Loupe.scale(R.Main.Transformation.Scale * 2, BibiEvent) : Loupe.transformToDefault();
+            return BibiEvent;
+        },
+        onTapped: (Eve) => {
+            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(I.KeyListener.ActiveKeys && I.KeyListener.ActiveKeys['Space'] && Eve);
+            if(!BibiEvent) return Promise.resolve();
+            return Loupe.scale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2, BibiEvent);
+        },
+        onDoubleTapped: (Eve) => {
+            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
+            if(!BibiEvent) return Promise.resolve();
+            if(R.Main.Transformation.Scale > (I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation.Scale : 1)) return Loupe.transformToDefault(); // Zoom-out-back, if zoomed-in.
+            return Loupe.scale(R.Main.Transformation.Scale * 2, BibiEvent); // Zoom-in.
         },
         onPointerDown: (Eve) => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
@@ -3079,10 +3098,10 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTapped(     Eve));
-    E.add('bibi:doubletapped',   Eve => Loupe.onTapped(     Eve, 'Double'));
+    E.add('bibi:tapped',         Eve => Loupe.onTapped(Eve));
+    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTapped(Eve));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
-    E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(  Eve));
+    E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
     if(S['zoom-out-for-utilities']) {
         E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true));
@@ -3504,7 +3523,7 @@ I.Slider = { create: () => {
         Slider.progress();
     });
     if(!O.TouchOS) {
-        if(!sML.UA.Gecko) Slider.addEventListener('wheel', R.Main.listenWheel, { capture: true, passive: false });
+        if(!sML.UA.Gecko) Slider.addEventListener('wheel', R.Main.listenWheel, E.Cpt1Psv0);
     }
     { // Optimize to Scrollbar Size
         const _S = 'div#bibi-slider', _TB = '-thumb:before';
@@ -3708,7 +3727,7 @@ I.Turner = { create: () => {
             }
             return false;
         },
-        turn: (Distance) => {
+        turn: (Distance, Opt = {}) => {
             const IsSameDirection = (Distance == Turner.PreviousDistance);
             Turner.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
@@ -3719,7 +3738,7 @@ I.Turner = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy({ Distance: Distance }).then(Destination => I.History.add({ UI: Turner, SumUp: IsSameDirection, Destination: Destination }));
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Turner, SumUp: IsSameDirection, Destination: Destination }));
         }
     };
     E.add('bibi:opened', () => {
@@ -4345,12 +4364,12 @@ I.observeTap = (Ele, Opt) => {
         Ele.onBibiTap = (Eve) => {
             E.dispatch(Ele, 'bibi:taps',   Eve);
             E.dispatch(Ele, 'bibi:tapped', Eve);
-            if(Bibi.Debug) console.log('bibi:taps', Ele);
+            //if(Bibi.Debug) console.log('bibi:taps', Ele);
         };
         Ele.onBibiDoubleTap = (Eve) => {
             E.dispatch(Ele, 'bibi:doubletaps',   Eve);
             E.dispatch(Ele, 'bibi:doubletapped', Eve);
-            if(Bibi.Debug) console.log('bibi:doubletaps', Ele);
+            //if(Bibi.Debug) console.log('bibi:doubletaps', Ele);
         };
         Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(Eve));
         Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(Eve));
@@ -5629,6 +5648,7 @@ E.initialize = () => {
         E['pointerout']  = 'mouseout';
     }
     E['resize'] = O.TouchOS ? 'orientationchange' : 'resize';
+    E.Cpt1Psv0 = { capture: true, passive: false };
 };
 
 
