@@ -2304,7 +2304,7 @@ I.initialize = () => {
         I.Turner.create();
         I.Arrows.create();
         I.SwipeListener.create();
-        I.KeyListener.create();
+        I.KeyObserver.create();
         I.Spinner.create();
     });
     E.bind('bibi:initialized-book', () => {
@@ -3038,7 +3038,7 @@ I.Loupe = { create: () => {
             return BibiEvent;
         },
         onTapped: (Eve) => {
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(I.KeyListener.ActiveKeys && I.KeyListener.ActiveKeys['Space'] && Eve);
+            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(I.KeyObserver.ActiveKeys && I.KeyObserver.ActiveKeys['Space'] && Eve);
             if(!BibiEvent) return Promise.resolve();
             return Loupe.scale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2, BibiEvent);
         },
@@ -3082,7 +3082,7 @@ I.Loupe = { create: () => {
     };
     I.isPointerStealth.addChecker(() => {
         if(Loupe.Dragging) return true;
-        if(!I.KeyListener.ActiveKeys || !I.KeyListener.ActiveKeys['Space']) return false;
+        if(!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space']) return false;
         return true;
     });
     I.setToggleAction(Loupe, {
@@ -3982,14 +3982,14 @@ I.SwipeListener = { create: () => {
 }};
 
 
-I.KeyListener = { create: () => { if(!S['use-keys']) return;
-    const KeyListener = I.KeyListener = {
+I.KeyObserver = { create: () => { if(!S['use-keys']) return;
+    const KeyObserver = I.KeyObserver = {
         ActiveKeys: {},
         KeyCodes: { 'keydown': {}, 'keyup': {}, 'keypress': {} },
         updateKeyCodes: (EventTypes, KeyCodesToUpdate) => {
             if(typeof EventTypes.join != 'function')  EventTypes = [EventTypes];
             if(typeof KeyCodesToUpdate == 'function') KeyCodesToUpdate = KeyCodesToUpdate();
-            EventTypes.forEach(EventType => KeyListener.KeyCodes[EventType] = sML.edit(KeyListener.KeyCodes[EventType], KeyCodesToUpdate));
+            EventTypes.forEach(EventType => KeyObserver.KeyCodes[EventType] = sML.edit(KeyObserver.KeyCodes[EventType], KeyCodesToUpdate));
         },
         MovingParameters: {},
         initializeMovingParameters: () => {
@@ -4001,7 +4001,7 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             sML.applyRtL(_, { 'End': 'foot',  'Home': 'head' });
             for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : _[p] == 'head' ? 'foot' : _[p] == 'foot' ? 'head' : 0;
             //sML.applyRtL(_, { 'Space': 1, 'SPACE': -1 }); // Space key is reserved for Loupe.
-            return KeyListener.MovingParameters = _;
+            return KeyObserver.MovingParameters = _;
         },
         updateMovingParameters: () => {
             if(S['accept-orthogonal-input']) return;
@@ -4012,15 +4012,15 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
                 case 'ttb': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  0, 'Right Arrow':  0 }; break;
             }
             for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : 0;
-            sML.applyRtL(KeyListener.MovingParameters, _);
+            sML.applyRtL(KeyObserver.MovingParameters, _);
         },
         getBibiKeyName: (Eve) => {
-            const KeyName = KeyListener.KeyCodes[Eve.type][Eve.keyCode];
+            const KeyName = KeyObserver.KeyCodes[Eve.type][Eve.keyCode];
             return KeyName ? KeyName : '';
         },
         onEvent: (Eve) => {
             if(!L.Opened) return false;
-            Eve.BibiKeyName = KeyListener.getBibiKeyName(Eve);
+            Eve.BibiKeyName = KeyObserver.getBibiKeyName(Eve);
             Eve.BibiModifierKeys = [];
             if(Eve.shiftKey) Eve.BibiModifierKeys.push('Shift');
             if(Eve.ctrlKey)  Eve.BibiModifierKeys.push('Control');
@@ -4031,10 +4031,10 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             return true;
         },
         onKeyDown: (Eve) => {
-            if(!KeyListener.onEvent(Eve)) return false;
+            if(!KeyObserver.onEvent(Eve)) return false;
             if(Eve.BibiKeyName) {
-                if(!KeyListener.ActiveKeys[Eve.BibiKeyName]) {
-                    KeyListener.ActiveKeys[Eve.BibiKeyName] = Date.now();
+                if(!KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
+                    KeyObserver.ActiveKeys[Eve.BibiKeyName] = Date.now();
                 } else {
                     E.dispatch('bibi:is-holding-key', Eve);
                 }
@@ -4042,28 +4042,28 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             E.dispatch('bibi:downs-key', Eve);
         },
         onKeyUp: (Eve) => {
-            if(!KeyListener.onEvent(Eve)) return false;
-            if(KeyListener.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyListener.ActiveKeys[Eve.BibiKeyName] < 300) {
+            if(!KeyObserver.onEvent(Eve)) return false;
+            if(KeyObserver.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyObserver.ActiveKeys[Eve.BibiKeyName] < 300) {
                 E.dispatch('bibi:touches-key', Eve);
                 E.dispatch('bibi:touched-key', Eve);
             }
             if(Eve.BibiKeyName) {
-                if(KeyListener.ActiveKeys[Eve.BibiKeyName]) {
-                    delete KeyListener.ActiveKeys[Eve.BibiKeyName];
+                if(KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
+                    delete KeyObserver.ActiveKeys[Eve.BibiKeyName];
                 }
             }
             E.dispatch('bibi:ups-key', Eve);
         },
         onKeyPress: (Eve) => {
-            if(!KeyListener.onEvent(Eve)) return false;
+            if(!KeyObserver.onEvent(Eve)) return false;
             E.dispatch('bibi:presses-key', Eve);
         },
         observe: (Doc) => {
-            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyListener['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
+            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyObserver['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
         },
         tryMoving: (Eve) => {
             if(!Eve.BibiKeyName) return false;
-            const MovingParameter = KeyListener.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
+            const MovingParameter = KeyObserver.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!MovingParameter) return false;
             Eve.preventDefault();
             if(typeof MovingParameter == 'string') return R.focusOn({ Destination: MovingParameter, Duration: 0 });
@@ -4078,19 +4078,19 @@ I.KeyListener = { create: () => { if(!S['use-keys']) return;
             }
         }
     };
-    KeyListener.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
+    KeyObserver.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
         32: 'Space'
     });
-    KeyListener.updateKeyCodes(['keydown', 'keyup'], {
+    KeyObserver.updateKeyCodes(['keydown', 'keyup'], {
         33: 'Page Up',     34: 'Page Down',
         35: 'End',         36: 'Home',
         37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
     });
-    E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyListener.observe(Item.contentDocument));
+    E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyObserver.observe(Item.contentDocument));
     E.add('bibi:opened', () => {
-        KeyListener.initializeMovingParameters(), KeyListener.updateMovingParameters(), E.add('bibi:changed-view', () => KeyListener.updateMovingParameters());
-        KeyListener.observe(document);
-        E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyListener.tryMoving(Eve));
+        KeyObserver.initializeMovingParameters(), KeyObserver.updateMovingParameters(), E.add('bibi:changed-view', () => KeyObserver.updateMovingParameters());
+        KeyObserver.observe(document);
+        E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyObserver.tryMoving(Eve));
     });
     E.dispatch('bibi:created-keylistener');
 }};
