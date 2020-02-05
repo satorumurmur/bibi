@@ -2388,7 +2388,7 @@ I.Notifier = { create: () => {
         note: (Msg, Time, Err) => {
             if(!Msg) return Notifier.hide();
             Notifier.show(Msg, Err);
-            if(typeof Time == 'undefined') Time = O.Busy ? 9999 : 2222;
+            if(typeof Time == 'undefined') Time = O.Busy && !L.Opened ? 8888 : 2222;
             if(typeof Time == 'number') Notifier.hide(Time);
         }
     }));
