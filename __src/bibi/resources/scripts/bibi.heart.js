@@ -174,7 +174,7 @@ Bibi.ready = () => new Promise(resolve => {
     O.HTML.classList.add('ready');
     O.ReadiedURL = location.href;
     E.add('bibi:readied', resolve);
-    E.dispatch('bibi:readied');
+    setTimeout(() => E.dispatch('bibi:readied'), (O.TouchOS && !O.Embedded) ? 1234 : 0);
 }).then(() => {
     O.HTML.classList.remove('ready');
 });
@@ -1280,7 +1280,7 @@ R.initialize = () => {
 
 R.resetBibiHeight = () => {
     const WIH = window.innerHeight;
-    O.HTML.style.height = O.Body.style.height = WIH + 'px'; // for In-App Browsers
+    if(O.TouchOS) O.HTML.style.height = O.Body.style.height = WIH + 'px'; // for In-App Browsers
     return WIH;
 };
 
