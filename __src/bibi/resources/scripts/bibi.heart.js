@@ -300,6 +300,8 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
+    window.addEventListener(E['resize'], R.onResize);
+    R.Main.addEventListener('scroll', R.onScroll);
     E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent);
     R.updateCurrent();
     const LandingPage = R.hatchPage(LayoutOption.Destination);
@@ -1758,8 +1760,6 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     if(Opt) O.log(`Option: %O`, Opt); else Opt = {};
     if(!Opt.DoNotCloseUtilities) E.dispatch('bibi:closes-utilities');
     E.dispatch('bibi:is-going-to:lay-out', Opt);
-    window.removeEventListener(E['resize'], R.onResize);
-    R.Main.removeEventListener('scroll', R.onScroll);
     O.Busy = true;
     O.HTML.classList.add('busy');
     O.HTML.classList.add('laying-out');
@@ -1791,8 +1791,6 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('laying-out');
     if(!Opt.NoNotification) I.note('');
-    window.addEventListener(E['resize'], R.onResize);
-    R.Main.addEventListener('scroll', R.onScroll);
     R.LayingOut = false;
     E.dispatch('bibi:laid-out');
     O.log(`Laid out.`, '</g>');
@@ -1819,8 +1817,7 @@ R.updateOrientation = () => {
 
 R.ScrollHistory = [];
 
-R.onScroll = (Eve) => {
-    if(!L.Opened) return;
+R.onScroll = (Eve) => { if(R.LayingOut || !L.Opened) return;
     if(!R.Scrolling) {
         R.Scrolling = true;
         O.HTML.classList.add('scrolling');
@@ -1844,8 +1841,7 @@ R.onScroll = (Eve) => {
     R.onScroll.Count = 0;
 
 
-R.onResize = (Eve) => {
-    if(!L.Opened) return;
+R.onResize = (Eve) => { if(R.LayingOut || !L.Opened) return;
     if(!R.Resizing) {
         R.Resizing = true;
         //R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
@@ -2535,9 +2531,9 @@ I.Menu = { create: () => {
             const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(Menu.Timer_close);
             if(BibiEvent.Division.Y == 'top') { //if(BibiEvent.Coord.Y < Menu.Height * 1.5) {
-                E.dispatch(Menu, 'bibi:hovers', Eve);
+                E.dispatch(Menu, 'bibi:hovered', Eve);
             } else if(Menu.Hover) {
-                Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovers', Eve), 123);
+                Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovered', Eve), 123);
             }
         });
         if(!sML.UA.Gecko) Menu.addEventListener('wheel', R.Main.listenWheel, E.Cpt1Psv0);
@@ -2739,7 +2735,7 @@ I.Panel = { create: () => {
     };
     */
     I.setFeedback(Panel, { StopPropagation: true });
-    Panel.addTapEventListener('tapped', () => E.dispatch('bibi:commands:toggle-panel'));
+    E.add(Panel, 'bibi:tapped', () => E.dispatch('bibi:commands:toggle-panel'));
     Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
     Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
     Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
@@ -3072,7 +3068,6 @@ I.Loupe = { create: () => {
         isAvailable: () => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
-            //if(I.Slider.UIState == 'active') return false;
             //if(S.BRL == 'reflowable') return false;
             return true;
         },
@@ -3086,12 +3081,13 @@ I.Loupe = { create: () => {
             }
             return BibiEvent;
         },
-        onTapped: (Eve) => {
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(I.KeyObserver.ActiveKeys && I.KeyObserver.ActiveKeys['Space'] && Eve);
+        onTap: (Eve) => {
+            if(!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space']) return Promise.resolve(); // Requires pressing space-key.
+            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
             if(!BibiEvent) return Promise.resolve();
             return Loupe.scale(R.Main.Transformation.Scale + 0.5 * (Eve.shiftKey ? -1 : 1) * 2, BibiEvent);
         },
-        onDoubleTapped: (Eve) => {
+        onDoubleTap: (Eve) => {
             const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
             if(!BibiEvent) return Promise.resolve();
             if(R.Main.Transformation.Scale > (I.Slider.UIState == 'active' ? Loupe.ZoomOutPropertiesForUtilities.Transformation.Scale : 1)) return Loupe.transformToDefault(); // Zoom-out-back, if zoomed-in.
@@ -3125,9 +3121,7 @@ I.Loupe = { create: () => {
                 TranslateY: Loupe.PointerDownTransformation.TranslateY + (BibiEvent.Coord.Y - Loupe.PointerDownCoord.Y)
             });
             Loupe.Timer_TransitionRestore = setTimeout(() => sML.style(R.Main, { transition: '' }, { cursor: '' }), 234);
-        }/*,
-        lock:   () => { Loupe.Locked = true;  E.dispatch('bibi:locked-loupe');   },
-        unlock: () => { Loupe.Locked = false; E.dispatch('bibi:unlocked-loupe'); }*/
+        }
     };
     I.isPointerStealth.addChecker(() => {
         if(Loupe.Dragging) return true;
@@ -3147,30 +3141,18 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTapped(Eve));
-    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTapped(Eve));
+    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve));
+    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTap(Eve));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
     if(S['zoom-out-for-utilities']) {
-        E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true));
+        E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true ));
         E.add('bibi:closes-utilities', () => Loupe.transformForUtilities(false));
     }
-    E.add('bibi:opened', () => {
-        Loupe.open();/*
-        if(S['use-loupe'] && S['keep-settings']) {
-            const Transformation = O.Biscuits.remember('Book')['Transformation'];
-            if(Transformation) Loupe.transform(Transformation);
-        }*/
-    });
-    E.add('bibi:transformed-book', Par => {
-        if(Bibi.Debug) console.log(`Transformed Book:`, Par.Transformation);
-        if(Par.Temporary) return false;
-        //if(S['use-loupe'] && S['keep-settings']) O.Biscuits.memorize('Book', { 'Transformation': Par.Transformation });
-    });
-    E.add('bibi:changes-view',  () => Loupe.transformToDefault());
-    //E.add('bibi:opened-slider', () => Loupe.lock());
-    //E.add('bibi:closed-slider', () => Loupe.unlock());
+    E.add('bibi:opened', () => Loupe.open());
+    E.add('bibi:laid-out', () => Loupe.defineZoomOutPropertiesForUtilities());
+    E.add('bibi:changed-view',  () => Loupe.transformToDefault());
     if(S['use-loupe']) {
         const ButtonGroup = I.Menu.R.addButtonGroup({
             Sticky: true,
@@ -3204,9 +3186,7 @@ I.Loupe = { create: () => {
         });
         Loupe.updateButtonState = (State) => ButtonGroup.Buttons.forEach(Button => Button.updateState(State));
         E.add('bibi:opened',           () => Loupe.updateButtonState());
-        E.add('bibi:transformed-book', () => Loupe.updateButtonState(/*Loupe.Locked ? 'disabled' : null*/));
-        //E.add('bibi:locked-loupe',     () => Loupe.updateButtonState('disabled'));
-        //E.add('bibi:unlocked-loupe',   () => Loupe.updateButtonState());
+        E.add('bibi:transformed-book', () => Loupe.updateButtonState());
     }
     E.dispatch('bibi:created-loupe');
 }};
@@ -3501,8 +3481,8 @@ I.Slider = { create: () => {
                     //BmPage.Labels = { default: { default: `P.${ Page.Index + 1 }` } };
                     I.setFeedback(BmPage);
                     if(Item.SpreadPair && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.SpreadPair.Ref['rendition:layout'] == 'pre-paginated') {
-                        E.add(BmPage, 'bibi:hovers',   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.add(   'hover'); });
-                        E.add(BmPage, 'bibi:unhovers', function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.remove('hover'); });
+                        E.add(BmPage, 'bibi:hovered',   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.add(   'hover'); });
+                        E.add(BmPage, 'bibi:unhovered', function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.remove('hover'); });
                     }
                     BmItemBox.appendChild(BmPage);
                 });
@@ -3682,7 +3662,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         remove: () => BookmarkManager.remove(Bmk)
                     });
                     const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
-                    I.setFeedback(Remover, { StopPropagation: true }).addTapEventListener('tapped', () => Button.remove());
+                    I.setFeedback(Remover, { StopPropagation: true });
+                    E.add(Remover, 'bibi:tapped', () => Button.remove());
                     Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
                     if(Bmk.IsHot) {
                         delete Bmk.IsHot;
@@ -3856,15 +3837,14 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
                 if(Availability) {
                     const Arrow = I.Turner[Dir].Arrow;
                     //if(Availability != -1) {
-                        E.dispatch(Arrow,      'bibi:hovers',   Eve);
-                        E.dispatch(Arrow.Pair, 'bibi:unhovers', Eve);
+                        E.dispatch(Arrow,      'bibi:hovered',   Eve);
+                        E.dispatch(Arrow.Pair, 'bibi:unhovered', Eve);
                     //}
                     BibiEvent.Target.ownerDocument.documentElement.setAttribute('data-bibi-cursor', Dir);
                     return;
                 }
             }
-            E.dispatch(Arrows.Back,    'bibi:unhovers', Eve);
-            E.dispatch(Arrows.Forward, 'bibi:unhovers', Eve);
+            E.dispatch([Arrows.Back, Arrows.Forward], 'bibi:unhovered', Eve);
             R.Items.concat(O).forEach(Item => Item.HTML.removeAttribute('data-bibi-cursor'));
         });
         E.add('bibi:opened', () => R.Items.concat(O).forEach(Item => sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault))));
@@ -3880,18 +3860,14 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         if(I.Turner.isAbleToTurn({ Direction: Dir })) {
             const Turner = I.Turner[Dir];
             const Arrow = Turner.Arrow;
-            E.dispatch(Arrow, 'bibi:taps',   Eve);
-            E.dispatch(Arrow, 'bibi:tapped', Eve);
+            E.dispatch(Arrow, ['bibi:taps', 'bibi:tapped'], Eve);
             I.Turner.turn(Turner.Distance);
         }
     });
     E.add('bibi:commands:move-by', Par => { // indicate direction
         if(!L.Opened || !Par || typeof Par.Distance != 'number') return false;
-        switch(Par.Distance) {
-            case -1: return E.dispatch(Arrows.Back,    'bibi:tapped', null);
-            case  1: return E.dispatch(Arrows.Forward, 'bibi:tapped', null);
-        }
-        return false;
+        const Distance = Math.round(Par.Distance);  if(Distance == 0) return false;
+        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped', null);
     });
     E.add('bibi:loaded-item', Item => {
         /*
@@ -4120,8 +4096,7 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
                 if(I.Turner.isAbleToTurn({ Distance: MovingParameter })) {
                     const Turner = I.Turner[MovingParameter];
                     const Arrow = Turner.Arrow;
-                    E.dispatch(Arrow, 'bibi:taps',   Eve);
-                    E.dispatch(Arrow, 'bibi:tapped', Eve);
+                    E.dispatch(Arrow, ['bibi:taps', 'bibi:tapped'], Eve);
                     I.Turner.turn(Turner.Distance);
                 }
             }
@@ -4175,7 +4150,10 @@ I.createButtonGroup = (Par = {}) => {
         if(!Button) return null;
         Button.ButtonGroup = this;
         Button.ButtonBox = Button.ButtonGroup.appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type }));
-        if(!O.TouchOS) I.setHoverActions(I.observeHover(Button.ButtonBox));
+        if(!O.TouchOS) {
+            I.observeHover(Button.ButtonBox)
+            I.setHoverActions(Button.ButtonBox);
+        }
         Button.ButtonBox.appendChild(Button)
         Button.ButtonGroup.Buttons.push(Button);
         return Button;
@@ -4222,7 +4200,7 @@ I.createButton = (Par = {}) => {
         if(Button.ButtonGroup && Button.ButtonGroup.Busy) return false;
         return (Button.UIState != 'disabled');
     };
-    if(typeof Button.action == 'function') Button.addTapEventListener('tapped', () => Button.isAvailable() ? Button.action.apply(Button, arguments) : null);
+    if(typeof Button.action == 'function') E.add(Button, 'bibi:tapped', () => Button.isAvailable() ? Button.action.apply(Button, arguments) : null);
     Button.Busy = false;
     return Button;
 };
@@ -4263,7 +4241,7 @@ I.createSubpanel = (Par = {}) => {
         }
     });
     Subpanel.bindOpener = (Opener) => {
-        Opener.addTapEventListener('tapped', () => Subpanel.toggle());
+        E.add(Opener, 'bibi:tapped', () => Subpanel.toggle());
         Subpanel.Opener = Opener;
         return Subpanel.Opener;
     }
@@ -4345,14 +4323,17 @@ I.setToggleAction = (Obj, Par = {}) => {
 
 
 I.observeHover = (Ele) => {
-    Ele.onBibiHover = (On, Eve) => E.dispatch(Ele, On ? 'bibi:hovers' : 'bibi:unhovers', Eve);
+    Ele.onBibiHover = (On, Eve) => {
+        if(On) E.dispatch(Ele, ['bibi:hovers',   'bibi:hovered'  ], Eve);
+        else   E.dispatch(Ele, ['bibi:unhovers', 'bibi:unhovered'], Eve);
+    };
     Ele.addEventListener(E['pointerover'], Eve => Ele.onBibiHover(true,  Eve));
     Ele.addEventListener(E['pointerout'],  Eve => Ele.onBibiHover(false, Eve));
     return Ele;
 };
 
 I.setHoverActions = (Ele) => {
-    E.add(Ele, 'bibi:hovers', Eve => {
+    E.add(Ele, 'bibi:hovered', Eve => {
         if(Ele.Hover) return Ele;
         if(Ele.isAvailable && !Ele.isAvailable(Eve)) return Ele;
         Ele.Hover = true;
@@ -4360,7 +4341,7 @@ I.setHoverActions = (Ele) => {
         if(Ele.showHelp) Ele.showHelp();
         return Ele;
     });
-    E.add(Ele, 'bibi:unhovers', Eve => {
+    E.add(Ele, 'bibi:unhovered', Eve => {
         if(!Ele.Hover) return Ele;
         Ele.Hover = false;
         Ele.classList.remove('hover');
@@ -4371,8 +4352,7 @@ I.setHoverActions = (Ele) => {
 };
 
 
-I.observeTap = (Ele, Opt) => {
-    if(!Opt) Opt = {};
+I.observeTap = (Ele, Opt = {}) => {
     if(!Ele.addTapEventListener) {
         Ele.addTapEventListener = (EN, Fun) => {
             E.add(Ele, 'bibi:' + (/tap$/.test(EN) ? EN.replace(/tap$/, 'taps') : EN), Eve => Fun.call(Ele, Eve));
@@ -4477,12 +4457,12 @@ I.setFeedback = (Ele, Opt = {}) => {
             return Ele;
         }
     }
-    if(!O.TouchOS) I.observeHover(Ele);
-    I.setHoverActions(Ele);
+    if(!O.TouchOS) {
+        I.observeHover(Ele);
+        I.setHoverActions(Ele);
+    }
     I.observeTap(Ele, Opt);
     I.setTapAction(Ele);
-    Ele.addTapEventListener('tap',    Eve => Ele.isAvailable && !Ele.isAvailable() ? false : E.dispatch('bibi:is-going-to:tap:ui', Ele));
-    Ele.addTapEventListener('tapped', Eve =>                                                 E.dispatch('bibi:tapped:ui',          Ele));
     I.setUIState(Ele, Opt.Checked ? 'active' : 'default');
     return Ele;
 };
@@ -4863,9 +4843,9 @@ S.update = (Settings) => {
             }                               return 'horizontal';
         })();
     }
-        S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
      S['apparent-reading-axis']      = (S['reader-view-mode']   == 'paged'   ) ? 'horizontal' : S['reader-view-mode'];
      S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
+        S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
     S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S['page-progression-direction'] != 'rtl') ? 'ttb' : 'rtl';
     //S['spread-gap'] = S['book-rendition-layout'] == 'reflowable' ? S['spread-gap_reflowable'] : S['spread-gap_pre-paginated'];
     for(const Mode in S.Modes) {
@@ -5467,23 +5447,24 @@ O.getBibiEventCoord = (Eve) => { const EventCoord = { X: 0, Y: 0 };
         EventCoord.Y -= O.Body.scrollTop;
     } else {
         const Main = R.Main;
-        const MainScale = Main.Transformation.Scale;
-        const MainTransformOriginInMain_X = Main.offsetWidth  / 2;
-        const MainTransformOriginInMain_Y = Main.offsetHeight / 2;
-        const MainTranslation_X = Main.Transformation.TranslateX;
-        const MainTranslation_Y = Main.Transformation.TranslateY;
+        const MainTransformation = Main.Transformation || { Scale: 1, TranslateX: 0, TranslateY: 0 };
+        const MainScale = MainTransformation.Scale;
+        const MainTransformOriginX_InMain = Main.offsetWidth  / 2;
+        const MainTransformOriginY_InMain = Main.offsetHeight / 2;
+        const MainTranslationX = MainTransformation.TranslateX;
+        const MainTranslationY = MainTransformation.TranslateY;
         const Item = Eve.target.ownerDocument.documentElement.Item;
         const ItemScale = Item.Scale;
         const ItemCoordInMain = O.getElementCoord(Item, Main);
         if(Item.Ref['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
-        EventCoord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginInMain_X + MainTranslation_X) + ((((ItemCoordInMain.X + (EventCoord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginInMain_X) * MainScale)));
-        EventCoord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginInMain_Y + MainTranslation_Y) + ((((ItemCoordInMain.Y + (EventCoord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginInMain_Y) * MainScale)));
-        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation  ) + ((((ItemCoord_in_Main + EventCoord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
-        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation  ) + (((EventCoord_in_Main                               - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
-        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation  ) + ((EventCoord_in_Viewport_of_Main                                       - MainTransformOrigin_in_Main) * MainScale)))
-        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation  ) + (EventCoord_from_MainTransformOrigin_in_Main                                                          * MainScale)))
-        //                       (MainCoord       + (MainTransformOrigin_in_Translated-Main            + EventCoord_from_TransformOrigin_in_Scaled-Main                                                                    ))
-        //                       (MainCoord       + EventCoord_in_Transformed-Main                                                                                                                                          )
+        EventCoord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (EventCoord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
+        EventCoord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (EventCoord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
+        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + EventCoord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
+        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (((EventCoord_in_Main                               - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
+        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((EventCoord_in_Viewport_of_Main                                       - MainTransformOrigin_in_Main) * MainScale)))
+        //                       (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (EventCoord_from_MainTransformOrigin_in_Main                                                          * MainScale)))
+        //                       (MainCoord       + (MainTransformOrigin_in_Translated-Main           + EventCoord_from_TransformOrigin_in_Scaled-Main                                                                    ))
+        //                       (MainCoord       + EventCoord_in_Transformed-Main                                                                                                                                         )
         //                       EventCoord
     }/*
     console.log(

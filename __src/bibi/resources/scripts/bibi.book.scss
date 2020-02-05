@@ -18,13 +18,15 @@ html {
 	overflow: hidden;
 }*/
 
-img.bibi-spine-item-image {
-	display: block;
-	margin: 0;
-	border: none 0;
-	padding: 0;
-	width: auto;
-	height: auto;
+html {
+	img.bibi-spine-item-image {
+		display: block;
+		margin: 0;
+		border: none 0;
+		padding: 0;
+		width: auto;
+		height: auto;
+	}
 }
 
 html.bibi-columned {
