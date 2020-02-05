@@ -52,7 +52,8 @@ Bibi.preset({
 
 "base-font-size"             : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"   : 1.25, // Number of scale
-"loupe-max-scale"            : 4, // Number of scale (minimum: 2)
+"loupe-max-scale"            : 4, // Number of scale (greater than 1)
+"loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
