@@ -35,6 +35,13 @@ html.bibi-columned {
 	}
 }
 
+html.bibi-flick-active {
+	&.bibi-flick-hot { user-select: none; }
+	img {
+		pointer-events: none;
+	}
+}
+
 html.bibi-with-gutters {
 	> head {
 		display: block;
