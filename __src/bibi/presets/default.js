@@ -22,9 +22,6 @@ Bibi.preset({
 "autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
 "start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
-"double-spread-for-reflowable" : "yes", // "yes" or "no" or "desktop" or "mobile"
-"allow-placeholders"           : "yes", // "yes" or "no" or "desktop" or "mobile"
-
 
 //==============================================================================================================================================
 //-- UI / Design
@@ -113,6 +110,8 @@ Bibi.preset({
 "accept-blob-converted-data"         : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
 "accept-base64-encoded-data"         : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 
+"pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
+"allow-placeholders"                 : true, // true or false. (true is highly recommended.)
 "prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
 
 
@@ -140,8 +139,6 @@ Bibi.preset({
 
 
 //==============================================================================================================================================
-//-- Additional Info.
-//----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ## <01> You can use a path begins with "http(s)://" for "bookshelf" option in cases of the below:
@@ -178,6 +175,17 @@ Bibi.preset({
 
     ### Note:
     * Extension of the file is required even if "extract-if-necessary" is "" (or includes "*").
+
+
+## <04> Setting "x" for "pagination-method" option
+
+    It affects only for reflowable vertical-text books.
+    If "x" is set for "pagination-method", Bibi tries to use an experimental layout method on modern web-browsers.
+    It realizes more prettier layout for simple books like novels.
+    But sometime causes bad result for some books with figures or floating objects.
+
+
+//==============================================================================================================================================
 
 
 */

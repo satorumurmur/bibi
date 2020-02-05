@@ -1409,10 +1409,11 @@ R.renderReflowableItem = (Item) => {
         Item.Neck.innerHTML = '';
         delete Item.Neck;
     }
+    const ReverseItemPaginationDirectionIfNecessary = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
     if(Item.Columned) {
         sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
         Item.HTML.classList.remove('bibi-columned');
-        if(O.ReverseItemPaginationDirectionIfNecessary && Item.ReversedColumned) {
+        if(ReverseItemPaginationDirectionIfNecessary && Item.ReversedColumned) {
             Item.HTML.style.direction = '';
             sML.forEach(Item.contentDocument.querySelectorAll('body > *'))(Ele => Ele.style.direction = '');
         }
@@ -1421,12 +1422,15 @@ R.renderReflowableItem = (Item) => {
     Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
     Item.ReversedColumned = false;
     Item.Half = false;
-    if(S['double-spread-for-reflowable'] && S.SLA == 'horizontal' && (O.PaginateWithCSSShapes || /-tb$/.test(Item.WritingMode))) {
+    Item.Spreaded = (
+        S.SLA == 'horizontal' && (S['pagination-method'] == 'x' || /-tb$/.test(Item.WritingMode))
+            &&
+        (Item.Ref['rendition:spread'] == 'both' || R.Orientation == Item.Ref['rendition:spread'] || R.Orientation == 'landscape')
+    );
+    if(Item.Spreaded) {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
-        if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) {
-            PageCL = HalfL;
-            Item.Half = true;
-        }
+        if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) PageCL = HalfL;
+        else Item.Spreaded = false;
     }
     sML.style(Item, {
         [C.L_SIZE_b]: PageCB + 'px',
@@ -1449,7 +1453,7 @@ R.renderReflowableItem = (Item) => {
     });
     let PaginateWith = '';
     if(!Item.Outsourcing) {
-        if(O.PaginateWithCSSShapes) {
+        if(S['pagination-method'] == 'x') {
                  if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL) PaginateWith = 'S'; // VM:Paged            WM:Vertical   LA:Horizontal
             else if(                    Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:      Vertical WM:Vertical LA:Vertical
         } else   if(S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:Paged/Vertical WM:Vertical LA:Vertical
@@ -1471,18 +1475,21 @@ R.renderReflowableItem = (Item) => {
             Item.HTML.classList.add('bibi-with-gutters');
             const ItemLength = (PageCL + PageGap) * HowManyPages - PageGap;
             Item.HTML.style[C.L_SIZE_L] = ItemLength + 'px';
-            const Points = [0, 0];
+            const Points = [];//[0, 0];
             for(let i = 1; i < HowManyPages; i++) {
-                const   End = (PageCL + PageGap) * i;
-                const Start = End - PageGap;
-                Points.push(     0), Points.push(Start);
-                Points.push(PageCB), Points.push(Start);
-                Points.push(PageCB), Points.push(  End);
-                Points.push(     0), Points.push(  End);
+                const Start = 0, End = PageCB, After = (PageCL + PageGap) * i, Before = After - PageGap;
+                Points.push(Start), Points.push(Before);
+                Points.push(  End), Points.push(Before);
+                Points.push(  End), Points.push(After );
+                Points.push(Start), Points.push(After );
             }
             if(/^tb-/.test(Item.WritingMode)) Points.reverse();
             const Polygon = [];
-            for(let Pt = '', l = Points.length, i = 0; i < l; i++) if(i % 2 == 0) Pt = Points[i] + 'px'; else Polygon.push(Pt + ' ' + Points[i] + 'px');
+            for(let Pt = '', l = Points.length, i = 0; i < l; i++) {
+                const Px = Points[i] + (Points[i] ? 'px' : '');
+                if(i % 2 == 0) Pt = Px;
+                else Polygon.push(Pt + ' ' + Px);
+            }
             const Neck = Bibi.createElement('bibi-neck'), Throat = Neck.appendChild(Bibi.createElement('bibi-throat')), ShadowOrThroat = Throat.attachShadow ? Throat.attachShadow({ mode: 'open' }) : Throat.createShadowRoot ? Throat.createShadowRoot() : Throat;
             ShadowOrThroat.appendChild(document.createElement('style')).textContent = (ShadowOrThroat != Throat ? ':host' : 'bibi-throat') + ` { ${C.L_SIZE_b}: ${PageCB}px; ${C.L_SIZE_l}: ${ItemLength}px; shape-outside: polygon(${ Polygon.join(', ') }); }`;
             Item.Neck = Item.Head.appendChild(Neck);
@@ -1500,7 +1507,7 @@ R.renderReflowableItem = (Item) => {
             });
             R.Columned = true;
             Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
-            if(O.ReverseItemPaginationDirectionIfNecessary) {
+            if(ReverseItemPaginationDirectionIfNecessary) {
                 let ToBeReversedColumnAxis = false;
                 switch(Item.WritingMode) {
                     case 'lr-tb': case 'tb-lr': if(S['page-progression-direction'] != 'ltr') ToBeReversedColumnAxis = true; break;
@@ -4637,52 +4644,61 @@ U.initialize = () => { // formerly O.readExtras
         if(typeof DataString != 'string') return false;
         DataString.replace(' ', '').split(',').forEach(PnV => {
             PnV = PnV.split(':'); if(PnV.length != 2) return;
-            switch(PnV[0]) {
+            let _P = PnV[0], _V = PnV[1];
+            switch(_P) {
                 case 'parent-title':
                 case 'parent-uri':
                 case 'parent-origin':
                 case 'parent-jo-path':
                 case 'parent-bibi-label':
                 case 'parent-holder-id':
-                    PnV[1] = decodeURIComponent(PnV[1].replace('_BibiKakkoClose_', ')').replace('_BibiKakkoOpen_', '(')); if(!PnV[1]) PnV[1] = ''; 
-                    break;
+                    _V = decodeURIComponent(_V.replace('_BibiKakkoClose_', ')').replace('_BibiKakkoOpen_', '(')); if(!_V) _V = ''; 
+                    break; ////
                 case 'to':
-                    PnV[1] = R.getBibiToDestination(PnV[1]); if(!PnV[1]) return;
-                    break;
+                    _V = R.getBibiToDestination(_V); if(!_V) return;
+                    break; ////
                 case 'nav':
-                    if(/^[1-9][0-9]*$/.test(PnV[1])) PnV[1] *= 1; else return;
-                    break;
+                    if(/^[1-9][0-9]*$/.test(_V)) _V *= 1; else return;
+                    break; ////
                 case 'si-ppis':
-                    if(/^\d+\-(0(\.\d+)*|1)$/.test(PnV[1])) PnV[1] = { 'SI-PPiS': PnV[1] }; else return;
-                    break;
-                case 'horizontal':
-                case 'vertical':
-                case 'paged':
-                    PnV = ['reader-view-mode', PnV[0]];
-                    break;
+                    if(/^\d+\-(0(\.\d+)*|1)$/.test(_V)) _V = { 'SI-PPiS': _V }; else return;
+                    break; ////
+                case 'paged': case 'horizontal': case 'vertical':
+                    _V = _P, _P = 'reader-view-mode';
+                    break; ////
+                case 'view': case 'rvm': case 'view-mode':
+                    _P = 'reader-view-mode';
                 case 'reader-view-mode':
-                    if(!/^(horizontal|vertical|paged)$/.test(PnV[1])) return;
-                    break;
+                    _V = _V == 'p' ? 'paged' : _V == 'h' ? 'horizontal' : _V == 'v' ? 'vertical' : _V;
+                    if(!/^(paged|horizontal|vertical)$/.test(_V)) return;
+                    break; ////
+                case 'ppd': case 'default-ppd':
+                    _P = 'default-page-progression-direction';
                 case 'default-page-progression-direction':
-                    if(!/^(ltr|rtl)$/.test(PnV[1])) return;
-                    break;
+                    if(!/^(ltr|rtl)$/.test(_V)) return;
+                    break; ////
+                case 'pagination':
+                    _P = 'pagination-method';
+                case 'pagination-method':
+                    if(_V != 'x') return;
+                    break; ////
                 default:
-                    if(O.SettingTypes['boolean'].concat(O.SettingTypes_UserOnly['boolean']).includes(PnV[0])) {
-                             if(PnV[1] == 'true' ) PnV[1] = true;
-                        else if(PnV[1] == 'false') PnV[1] = false;
+                    if(O.SettingTypes['boolean'].concat(O.SettingTypes_UserOnly['boolean']).includes(_P)) {
+                             if(_V == 'true' ) _V = true;
+                        else if(_V == 'false') _V = false;
                         else return;
-                    } else if(O.SettingTypes['yes-no'].concat(O.SettingTypes_UserOnly['yes-no']).includes(PnV[0])) {
-                        if(!/^(yes|no|mobile|desktop)$/.test(PnV[1])) return;
-                    } else if(O.SettingTypes['integer'].concat(O.SettingTypes_UserOnly['integer']).includes(PnV[0])) {
-                        if(/^(0|[1-9][0-9]*)$/.test(PnV[1])) PnV[1] *= 1; else return;
-                    } else if(O.SettingTypes['number'].concat(O.SettingTypes_UserOnly['number']).includes(PnV[0])) {
-                        if(/^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(PnV[1])) PnV[1] *= 1; else return;
+                    } else if(O.SettingTypes['yes-no'].concat(O.SettingTypes_UserOnly['yes-no']).includes(_P)) {
+                        if(!/^(yes|no|mobile|desktop)$/.test(_V)) return;
+                    } else if(O.SettingTypes['integer'].concat(O.SettingTypes_UserOnly['integer']).includes(_P)) {
+                        if(/^(0|[1-9][0-9]*)$/.test(_V)) _V *= 1; else return;
+                    } else if(O.SettingTypes['number'].concat(O.SettingTypes_UserOnly['number']).includes(_P)) {
+                        if(/^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(_V)) _V *= 1; else return;
                     } else {
                         return;
                     }
             }
-            if(!PnV[0] || typeof PnV[1] == 'undefined') return;
-            U[PnV[0]] = PnV[1];
+            if(!_P || typeof _V == 'undefined') return;
+            U[_P] = _V;
         });
         if(U['si-ppis']) {
             delete U['nav'];
@@ -4752,6 +4768,8 @@ S.initialize = (before, after) => {
     });
     if(!S['use-menubar']) S['use-full-height'] = true;
     // --------
+    S['pagination-method'] = (sML.UA.Trident || sML.UA.EdgeHTML) ? 'auto' : S['pagination-method'] == 'x' ? 'x' : 'auto';
+    // --------
     E.bind('bibi:initialized-book', () => {
         const BookBiscuits = O.Biscuits.remember('Book');
         if(S['keep-settings']) {
@@ -4782,8 +4800,6 @@ S.initialize = (before, after) => {
     }
     // --------
     E.dispatch('bibi:initialized-settings');
-    O.PaginateWithCSSShapes = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
-    O.ReverseItemPaginationDirectionIfNecessary = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
 };
 
 
@@ -4795,7 +4811,7 @@ S.update = (Settings) => {
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
     S['page-progression-direction'] = B.PPD;
-    if(O.PaginateWithCSSShapes) {
+    if(S['pagination-method'] == 'x') {
         S['spread-layout-axis'] = S['reader-view-mode'] == 'vertical' ? 'vertical' : 'horizontal';
     } else {
         S['spread-layout-axis'] = (() => {
@@ -5526,15 +5542,14 @@ O.Biscuits = {
 
 O.SettingTypes = {
     'boolean': [
+        'allow-placeholders',
         'prioritise-fallbacks'
     ],
     'yes-no': [
         'accept-orthogonal-input',
-        'allow-placeholders',
         'animate-page-flipping',
         'autostart',
         'autostart-embedded',
-        'double-spread-for-reflowable',
         'fix-nav-ttb',
         'fix-reader-view-mode',
         'start-embedded-in-new-window',
@@ -5552,7 +5567,8 @@ O.SettingTypes = {
     ],
     'string': [
         'slider-mode',
-        'default-page-progression-direction'
+        'default-page-progression-direction',
+        'pagination-method'
     ],
     'integer': [
         'item-padding-bottom',
