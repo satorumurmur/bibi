@@ -143,8 +143,6 @@ How to Arrange Development Environment
 2. $ `cd <the local repository>`
 3. $ `npm install`
 
-And files and folders are generated in `__dist` folder.
-
 
 
 ### How to Develop
@@ -182,9 +180,9 @@ If you want to modify them, please edit files in the `Source` column instead of 
 
 ### How to Make a Ditribution Package
 
-* $ `npm run make:distribution-package`
-    1. webpack generates production version of Bibi to `__dist` folder.
-    2. gulp generates zipped archive to `__archives` folder.
+* $ `npm run make:package`
+    1. webpack generates temporary files of production version of Bibi.
+    2. gulp generates zipped archive to `__archives` folder. After that, the temporary files are removed.
 
 
 
@@ -196,7 +194,7 @@ License
 
 ### Bibi ([ja](https://bibi.epub.link) / [en](https://github.com/satorumurmur/bibi))
 
-* Copyright &copy; [Satoru MATSUSHIMA](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
+* Copyright &copy; [Satoru Matsushima](https://string-letters.com) ([@satorumurmur](https://twitter.com/satorumurmur))
 * Licensed under [the MIT License](https://github.com/satorumurmur/bibi/blob/master/LICENSE).
 
 
@@ -204,7 +202,7 @@ License
 ### Bibi is including and powered by these open source softwares:
 
 * Core:
-    - [sML.js](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru MATSUSHIMA (Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
+    - [sML.js](https://github.com/satorumurmur/sML) ... Copyright &copy; Satoru Matsushima (Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE).)
     - [Material Icons](https://material.io/icons/) ... Copyright &copy; Material Design Authors / Google Inc. (Licensed under [the Apache License version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).)
 * Extensions:
     - [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) ... Copyright &copy; Lunascape (Licensed under [the MIT License](https://github.com/lunascape/bibi-zip-loader/blob/master/LICENSE).)

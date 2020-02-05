@@ -9,7 +9,7 @@
 const Bibi = {
     'version': '1.0.1',
     'author': {
-        'name': 'Satoru MATSUSHIMA'
+        'name': 'Satoru Matsushima'
     },
     'description': 'Bibi | EPUB Reader on your website.',
     'homepage': 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
@@ -45,7 +45,7 @@ Bibi.Banners = {
 
 '/bibi.js': _banner(`Bibi | EPUB Reader on your website.`, 'default', `
  *  * Including:
- *      - sML.js ... Copyright (c) Satoru MATSUSHIMA - https://github.com/satorumurmur/sML (Licensed under the MIT License.)
+ *      - sML.js ... Copyright (c) Satoru Matsushima - https://github.com/satorumurmur/sML (Licensed under the MIT License.)
 `, true),
 
 // -----------------------------------------------------------------------------------------------------------------------------

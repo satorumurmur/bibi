@@ -31,10 +31,10 @@ gulp.task('clean', done => {
             X => Bibi.DIST + '/' + X
         ));
         [
-            'bibi',
             'bibi-bookshelf',
+            'bibi',
+            'bib/bookshelf',
             'bib/i',
-          //'bib/bookshelf',
             'bib'
         ].forEach(Dir => {
             try { Dir = Bibi.DIST + '/' + Dir ; if(!fs.readdirSync(Dir).length) del.sync(Dir); } catch(E) {}
@@ -46,12 +46,12 @@ gulp.task('clean', done => {
 
 gulp.task('initialize', done => {
     [
-        'bibi',
+      //'bibi',
         'bibi-bookshelf'
     ].concat(Bibi.WithBCK ? [
-        'bib',
-        'bib/i',
-      //'bib/bookshelf'
+      //'bib',
+      //'bib/i',
+        'bib/bookshelf'
     ] : []).forEach(Dir => {
         fs.mkdirSync((Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST) + '/' + Dir, { recursive: true });
     });
