@@ -1247,7 +1247,7 @@ R.initialize = () => {
             }
             if(BibiEvent.Target.tagName) {
                 if(I.Slider.UI && (I.Slider.contains(BibiEvent.Target) || BibiEvent.Target == I.Slider)) return false;
-                if(O.isAnchorContent(BibiEvent.Target)) return false;
+                if(O.isPointableContent(BibiEvent.Target)) return false;
             }
             if(I.OpenedSubpanel) {
                 I.OpenedSubpanel.close();
@@ -3081,7 +3081,7 @@ I.Loupe = { create: () => {
             const BibiEvent = O.getBibiEvent(Eve);
             if(BibiEvent.Target.tagName) {
                 if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return null;
-                if(O.isAnchorContent(BibiEvent.Target)) return null;
+                if(O.isPointableContent(BibiEvent.Target)) return null;
                 if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return null;
             }
             return BibiEvent;
@@ -3829,7 +3829,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
                 if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.Target.id)) return true;
                 if(/^(spread|item|page)( |-|$)/.test(BibiEvent.Target.className)) return true;
             } else {
-                return O.isAnchorContent(BibiEvent.Target) ? false : true;
+                return O.isPointableContent(BibiEvent.Target) ? false : true;
             }
             return false;
         }
@@ -5280,7 +5280,8 @@ O.preprocess = (Item) => {
                 Patterns: [
                     { Attribute: 'href',           Extensions: 'css', ForceURI: true },
                     { Attribute: 'src',            Extensions: 'js|svg', ForceURI: true },//{ Attribute: 'src',        Extensions: 'js|svg|xml|xht(ml?)?|html?', ForceURI: true },
-                    { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g' }
+                    { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g|mp([34]|e?g)|m4[av]' },
+                    { Attribute: 'poster',         Extensions: 'gif|png|jpe?g' }
                 ]
             }]
         }
@@ -5406,9 +5407,9 @@ O.getViewportByOriginalResolution = (Str) => {
 };
 
 
-O.isAnchorContent = (Ele) => {
+O.isPointableContent = (Ele) => {
     while(Ele) {
-        if(/^a$/i.test(Ele.tagName)) return true;
+        if(/^(a|audio|video)$/i.test(Ele.tagName)) return true;
         Ele = Ele.parentElement;
     }
     return false;
