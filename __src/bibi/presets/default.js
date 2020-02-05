@@ -38,8 +38,6 @@ Bibi.preset({
 "use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"animate-page-flipping"      : "no", // "yes" or "no" or "desktop" or "mobile". Animate page flipping on paged view mode, or not.
-
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
 
@@ -58,22 +56,17 @@ Bibi.preset({
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
-"flipper-width"              : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
+"flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
 
-"item-padding-left"          : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-right"         : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-top"           : 40, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-bottom"        : 20, // Number of pixel (It is used only if the book is reflowable.)
+"item-padding-left"          : 24, // Number of pixel (It affects only for reflowable books.)
+"item-padding-right"         : 24, // Number of pixel (It affects only for reflowable books.)
+"item-padding-top"           : 48, // Number of pixel (It affects only for reflowable books.)
+"item-padding-bottom"        : 24, // Number of pixel (It affects only for reflowable books.)
 
-"spread-gap"                 : 2, // Number of pixel
+"spread-gap"                 : 48, // Number of pixel (It affects only in paged view mode.)
 "spread-margin"              : 0, // Number of pixel
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
-
-"spread-border-radius"       : "", // CSS border-radius value or ""
-"spread-box-shadow"          : "", // CSS box-shadow value or ""
-
-"book-background"            : "", // CSS background value or ""
 
 
 //==============================================================================================================================================

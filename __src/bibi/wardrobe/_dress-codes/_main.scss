@@ -11,3 +11,12 @@
 	font-weight: bold;
 	color: rgb(192,192,192);
 }
+
+@mixin Main__SubpanelOpened() {
+	background: $HTML_Background;
+	filter: brightness(87.5%);
+}
+
+@mixin Main-Book__SubpanelOpened() {
+	opacity: .75;
+}

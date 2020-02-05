@@ -1305,7 +1305,7 @@ R.resetStage = () => {
     window.scrollTo(0, 0);
     if(!S['use-full-height']) R.Stage.Height -= I.Menu.Height;
     if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
-    R.Main.style['background'] = S['book-background'] ? S['book-background'] : '';
+    //R.Main.style['background'] = S['book-background'] ? S['book-background'] : '';
 };
 
 
@@ -1374,10 +1374,7 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
     }
     SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
     SpreadBox.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
-    sML.style(Spread, {
-        'border-radius': S['spread-border-radius'],
-        'box-shadow':    S['spread-box-shadow']
-    });
+    //sML.style(Spread, { 'border-radius': S['spread-border-radius'], 'box-shadow': S['spread-box-shadow'] });
     E.dispatch('bibi:reset-spread', Spread);
     return Spread;
 });
@@ -2078,7 +2075,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     ScrollTarget[C.L_AXIS_L] = Par.FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     return sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && (S.RVM != 'paged' || S['animate-page-flipping'])) ? 222 : 0,
+        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 222 : 0,
         Easing: (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
         R.Moving = false;
@@ -5593,7 +5590,6 @@ O.SettingTypes = {
     ],
     'yes-no': [
         'accept-orthogonal-input',
-        'animate-page-flipping',
         'autostart',
         'autostart-embedded',
         'fix-nav-ttb',
