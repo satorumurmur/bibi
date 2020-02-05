@@ -920,12 +920,9 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 A.setAttribute('data-bibi-original-href', HrefPathInSource);
                 A.setAttribute(HrefAttribute, B.Path + '/' + HrefPath);
                 A.InNav = InNav;
-                A.Destination = (Item.Ref['rendition:layout'] == 'pre-paginated') ? {
-                    Page: Item.Pages[0]
-                } : {
-                    Item: Item,
-                    ElementSelector: (HrefHash ? '#' + HrefHash : undefined)
-                };
+                A.Destination = { Item: Item };
+                     if(Item.Ref['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
+                else if(HrefHash)                                        A.Destination.ElementSelector = '#' + HrefHash;
                 L.coordinateLinkages.setJump(A);
                 return 'break'; //// break sML.forEach()
             }
@@ -1829,7 +1826,7 @@ R.onScroll = (Eve) => {
         O.HTML.classList.add('scrolling');
     }
     E.dispatch('bibi:scrolls');
-    R.ScrollHistory.unshift(R.Main['scroll' + C.L_OOBL_L]);
+    R.ScrollHistory.unshift(Math.ceil(R.Main['scroll' + C.L_OOBL_L])); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
     if(R.ScrollHistory.length > 2) R.ScrollHistory.pop();
     if(++R.onScroll.Count == 8) {
         R.onScroll.Count = 0;
@@ -1963,7 +1960,7 @@ R.updateCurrent = () => {
     R.updateCurrent.getFrame = () => {
         const Frame = {};
         Frame.Length = R.Main['offset' + C.L_SIZE_L];
-        Frame[C.L_OOBL_L                              ] = R.Main['scroll' + C.L_OOBL_L];
+        Frame[C.L_OOBL_L                              ] = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
         Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
         //if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return false;
         return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
@@ -2054,9 +2051,14 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     R.Moving = true;
     Par.FocusPoint = 0;
     if(S['book-rendition-layout'] == 'reflowable') {
-        Par.FocusPoint = O.getElementCoord(Par.Destination.Page)[C.L_AXIS_L];
-        if(Par.Destination.Side == 'after') Par.FocusPoint += (Par.Destination.Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
-        if(S.SLD == 'rtl') Par.FocusPoint += Par.Destination.Page.offsetWidth - R.Stage.Width;
+        if(typeof Par.Destination.Point == 'number') {
+            Par.FocusPoint = Par.Destination.Point;
+        } else {
+            Par.FocusPoint = O.getElementCoord(Par.Destination.Page)[C.L_AXIS_L];
+            if(Par.Destination.Side == 'after') Par.FocusPoint += (Par.Destination.Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
+            if(S.SLD == 'rtl') Par.FocusPoint += Par.Destination.Page.offsetWidth;
+        }
+        if(S.SLD == 'rtl') Par.FocusPoint -= R.Stage.Width;
     } else {
         if(S['allow-placeholders'] && Par.Turn != false) R.turnSpreads({ Origin: Par.Destination.Page.Spread });
         if(R.Stage[C.L_SIZE_L] >= Par.Destination.Page.Spread['offset' + C.L_SIZE_L]) {
@@ -2085,15 +2087,31 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
 
     R.hatchDestination = (Dest) => {
         if(!Dest) return null;
-        if(Dest.Page) return Dest;
+        if(
+            (Dest.Element || Dest.ElementSelector)
+                &&
+            S.BRL == 'reflowable'
+                &&
+            (S.SLA == 'vertical' && /-tb$/.test(B.WritingMode) || S.SLA == 'horizontal' && /^tb-/.test(B.WritingMode))
+        ) {
+            Dest.Point = R.hatchPoint(Dest);
+            return Dest;
+        }
+        delete Dest.Point;
+        if(Dest.Page) {
+            if(R.Pages[Dest.Page.Index] != Dest.Page) delete Dest.Page; // Pages of the Item have been replaced.
+            else return Dest;
+        }
         if(typeof Dest == 'number' || (typeof Dest == 'string' && /^\d+$/.test(Dest))) {
             Dest = R.getBibiToDestination(Dest);
         } else if(typeof Dest == 'string') {
                  if(Dest == 'head' || Dest == 'foot') Dest = { Edge: Dest };
             else if(X['EPUBCFI'])                     Dest = X['EPUBCFI'].getDestination(Dest);
+        } else if(typeof Dest.IndexInItem == 'number') {
+            if(R.Pages[Dest.Index] == Dest) return { Page: Dest }; // Page (If Pages of the Item have not been replaced)
+        } else if(typeof Dest.Index == 'number') {
+            return { Page: Dest.Pages[0] }; // Item or Spread
         } else if(Dest.tagName) {
-            if(typeof Dest.IndexInItem == 'number') return { Page: Dest }; // Page
-            if(typeof Dest.Index       == 'number') return { Page: Dest.Pages[0] }; // Item or Spread
             Dest = { Element: Dest };
         }
         Dest.Page = R.hatchPage(Dest);
@@ -2104,13 +2122,13 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         if(Dest.Page) return Dest.Page;
         if(Dest.Edge == 'head') return R.Pages[0];
         if(Dest.Edge == 'foot') return R.Pages[R.Pages.length - 1];
-        if(typeof Dest.PageIndex    == 'number') return R.Pages[Dest.PageIndex];
+        if(typeof Dest.PageIndex == 'number') return R.Pages[Dest.PageIndex];
         if(typeof Dest.PageProgressInSpread != 'number' && typeof Dest.SpreadIndex != 'number' && !Dest.Spread && typeof Dest['SI-PPiS'] == 'string') [Dest.SpreadIndex, Dest.PageProgressInSpread] = Dest['SI-PPiS'].split('-').map(Num => Num * 1);
         try {
             if(typeof    Dest.PageIndexInItem   == 'number') return R.hatchItem(Dest).Pages[Dest.PageIndexInItem];
             if(typeof    Dest.PageIndexInSpread == 'number') return R.hatchSpread(Dest).Pages[Dest.PageIndexInSpread];
             if(typeof Dest.PageProgressInSpread == 'number') return (DestSpread => DestSpread.Pages[Math.floor(DestSpread.Pages.length * Dest.PageProgressInSpread)])(R.hatchSpread(Dest));
-            if(typeof Dest.ElementSelector == 'string') Dest.Element = R.hatchItem(Dest).contentDocument.querySelector(Dest.ElementSelector);
+            if(typeof Dest.ElementSelector == 'string') { Dest.Element = R.hatchItem(Dest).contentDocument.querySelector(Dest.ElementSelector); delete Dest.ElementSelector; }
             if(Dest.Element) return R.hatchNearestPageOfElement(Dest.Element);
             return (R.hatchItem(Dest) || R.hatchSpread(Dest)).Pages[0];
         } catch(_) {}
@@ -2135,17 +2153,17 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         R.hatchNearestPageOfElement = (Ele) => {
             if(!Ele || !Ele.tagName) return null;
             const Item = Ele.ownerDocument.body.Item;
-            if(!Item) return null;
+            if(!Item || !Item.Pages) return null;
             let NearestPage, ElementCoordInItem;
             if(Item.Columned) {
-                sML.style(Item.HTML, { 'column-width': '' });
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_B];
-                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = Item.offsetWidth - (S['item-padding-left'] + S['item-padding-right']) - ElementCoordInItem - Ele.offsetWidth;
-                sML.style(Item.HTML, { 'column-width': Item.ColumnLength + 'px' });
-                NearestPage = Item.Pages[Math.ceil(ElementCoordInItem / Item.ColumnBreadth)];
+                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **Body**
+                NearestPage = Item.Pages[ElementCoordInItem <= 0 ? 0 : Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
             } else {
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_L];
-                if(S.SLD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
+                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **HTML**
+                NearestPage = Item.Pages[Math.floor(ElementCoordInItem / R.Stage[C.L_SIZE_L])];
+                /*
                 NearestPage = Item.Pages[0];
                 for(let l = Item.Pages.length, i = 0; i < l; i++) {
                     ElementCoordInItem -= Item.Pages[i]['offset' + C.L_SIZE_L];
@@ -2154,8 +2172,32 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
                         break;
                     }
                 }
+                //*/
             }
             return NearestPage;
+        };
+
+    R.hatchPoint = (Dest) => {
+        try {
+            if(typeof Dest.ElementSelector == 'string') { Dest.Element = R.hatchItem(Dest).contentDocument.querySelector(Dest.ElementSelector); delete Dest.ElementSelector; }
+            if(Dest.Element) return R.hatchPointOfElement(Dest.Element);
+        } catch(_) {}
+        return null;
+    };
+
+        R.hatchPointOfElement = (Ele) => {
+            if(!Ele || !Ele.tagName) return null;
+            const Item = Ele.ownerDocument.body.Item;
+            if(!Item || !Item.Pages) return null;
+            let ElementCoordInItem;
+            if(Item.Columned) {
+                ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_B];
+                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **Body**
+            } else {
+                ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_L];
+                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem += Ele.offsetWidth; // Use offsetWidth of **Body**
+            }
+            return O.getElementCoord(Item)[C.L_AXIS_L] + S['item-padding-' + C.L_OOBL_l] + ElementCoordInItem;
         };
 
 
@@ -3295,7 +3337,7 @@ I.Slider = { create: () => {
         progress: () => {
             if(Slider.Touching) return;
             Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
-            let Scrolled = R.Main['scroll' + C.L_OOBL_L];
+            let Scrolled = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
                  if(S.ARA == S.SLA) ScrollLength -= I.Loupe.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
             else if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height; // <- Paged (HorizontalAppearance) && VerticalText
