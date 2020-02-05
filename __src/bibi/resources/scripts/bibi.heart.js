@@ -951,7 +951,10 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         Eve.preventDefault(); 
         Eve.stopPropagation();
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
-            if(L.Opened) return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
+            if(L.Opened) {
+                I.History.add();
+                return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
+            }
             if(!L.Waiting) return false;
             if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
             S['to'] = A.Destination;
