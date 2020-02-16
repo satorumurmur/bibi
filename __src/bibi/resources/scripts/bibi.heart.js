@@ -4611,7 +4611,7 @@ U.initialize = () => { // formerly O.readExtras
                     if(/^[1-9][0-9]*$/.test(PnV[1])) PnV[1] *= 1; else return;
                     break;
                 case 'si-ppis':
-                    if(/^\d+\-(0(\.\d+)*|1)$/.test(PnV[1])) PnV[1] = { 'SI-PPiS': Pnv[1] }; else return;
+                    if(/^\d+\-(0(\.\d+)*|1)$/.test(PnV[1])) PnV[1] = { 'SI-PPiS': PnV[1] }; else return;
                     break;
                 case 'horizontal':
                 case 'vertical':
