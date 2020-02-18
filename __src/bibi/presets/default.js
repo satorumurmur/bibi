@@ -30,13 +30,24 @@ Bibi.preset({
 "use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile". If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
-"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
-"use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 "accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
+"flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
+
+"use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
+"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
+
+"use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+
+"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
+"base-font-size"             : "auto", // Number of pixel or "auto"
+"font-size-scale-per-step"   : 1.25, // Number of scale
+
+"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"loupe-max-scale"            : 4, // Number of scale (greater than 1)
+"loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
 
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
@@ -44,20 +55,9 @@ Bibi.preset({
 "use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 
 
-"use-slider"                 : "yes",
-"slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
-"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
-
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
-"base-font-size"             : "auto", // Number of pixel or "auto"
-"font-size-scale-per-step"   : 1.25, // Number of scale
-"loupe-max-scale"            : 4, // Number of scale (greater than 1)
-"loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
-
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
-
-"flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
 
 "item-padding-left"          : 24, // Number of pixel (It affects only for reflowable books.)
 "item-padding-right"         : 24, // Number of pixel (It affects only for reflowable books.)
