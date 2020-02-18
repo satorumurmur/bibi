@@ -1073,7 +1073,6 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
-        //console.log(Item.src);
         Item.Loaded = true;
         ItemBox.classList.add('loaded');
         E.dispatch('bibi:loaded-item', Item);
@@ -1149,7 +1148,6 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     };
     if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 33);
 }).then(() => {
-    //console.log(Item.StyleSheets);
     if(!Item.Preprocessed) {
         if(B.Package.Metadata['ebpaj:guide-version']) {
             const Versions = B.Package.Metadata['ebpaj:guide-version'].split('.');
