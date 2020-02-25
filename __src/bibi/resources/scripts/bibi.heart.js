@@ -602,6 +602,7 @@ L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process
 L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then(() => E.dispatch('bibi:loaded-package-document'));
 
     L.loadPackage.process = (Doc) => { // This is Used also from the Zine Extention.
+        const _Package  = Doc.getElementsByTagName('package' )[0];
         const _Metadata = Doc.getElementsByTagName('metadata')[0], Metadata = B.Package.Metadata = {};// = { 'identifier': [], 'title': [], 'creator': [], 'publisher': [], 'language': [] };
         const _Manifest = Doc.getElementsByTagName('manifest')[0], Manifest = B.Package.Manifest;
         const _Spine    = Doc.getElementsByTagName('spine'   )[0], Spine    = B.Package.Spine;
@@ -609,7 +610,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // ================================================================================
         // METADATA
         // --------------------------------------------------------------------------------
-        const DCNS = _Metadata.getAttribute('xmlns:dc');
+        const DCNS = _Package.getAttribute('xmlns:dc') || _Metadata.getAttribute('xmlns:dc');
         ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
         sML.forEach(_Metadata.getElementsByTagName('meta'))(_Meta => {
             if(_Meta.getAttribute('refines')) return; // It's BAD and Wanted to Be FIXed.
