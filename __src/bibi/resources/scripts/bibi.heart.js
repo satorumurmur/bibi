@@ -510,7 +510,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
             Promised: (
                 FileOrFolder == 'Folder' ? O.download(RootFile).then(() => (B.PathDelimiter = '/') && '') :
                 O.RangeLoader            ?  O.extract(RootFile).then(() => 'on-the-fly') :
-                                           O.loadZippedBookData(B.Path)  .then(() => 'at-once')
+                                 O.loadZippedBookData( B.Path ).then(() => 'at-once')
             ).then(ExtractionPolicy => {
                 B.ExtractionPolicy = ExtractionPolicy;
                 //O.log(`Succeed to Open as ${ B.Type } ${ FileOrFolder }.`);
@@ -613,7 +613,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         const DCNS = _Package.getAttribute('xmlns:dc') || _Metadata.getAttribute('xmlns:dc');
         ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
         sML.forEach(_Metadata.getElementsByTagName('meta'))(_Meta => {
-            if(_Meta.getAttribute('refines')) return; // It's BAD and Wanted to Be FIXed.
+            if(_Meta.getAttribute('refines')) return; // Should be solved.
             let Property = _Meta.getAttribute('property');
             if(Property) {
                 if(/^dcterms:/.test(Property)) {
@@ -784,7 +784,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         const FullTitleFragments = [B.Title];
         if(B.Creator)   FullTitleFragments.push(B.Creator);
         if(B.Publisher) FullTitleFragments.push(B.Publisher);
-        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>')
+        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>');
         O.Title.innerHTML = '';
         O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
         try { O.Info.querySelector('h1').innerHTML = document.title; } catch(_) {}
@@ -1292,7 +1292,7 @@ R.resetBibiHeight = () => {
 
 
 R.resetStage = () => {
-    const WIH = R.resetBibiHeight(WIH);
+    const WIH = R.resetBibiHeight();
     R.Stage = {};
     R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = '';
@@ -5026,7 +5026,7 @@ O.isToBeExtractedIfNecessary = (Path) => {
 
 
 O.item = (Item) => {
-    if(!Item.Path) throw `Path Not Defined`;
+    if(!Item.Path) throw `Item.Path Is Not Defined`;
     if(!B.Package.Manifest.Items[Item.Path]) B.Package.Manifest.Items[Item.Path] = Item;
     return B.Package.Manifest.Items[Item.Path];
 };
@@ -5155,7 +5155,7 @@ O.preprocess = (Item) => {
     Item = O.item(Item);
     // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.preprocess)`;
     const ResItems = [];
-    const Setting = O.preprocess.getSetting(Item.Path); if(!Setting) return Promise.resolve(Item.Content);
+    const Setting = O.preprocess.getSetting(Item.Path); if(!Setting) return Promise.resolve(Item);
     const Promises = [];
     if(Setting.ReplaceRules) Item.Content = Setting.ReplaceRules.reduce((ItemContent, Rule) => ItemContent.replace(Rule[0], Rule[1]), Item.Content);
     if(Setting.ResolveRules) { // RRR
