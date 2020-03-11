@@ -7,6 +7,7 @@
 'use strict';
 
 const Webpack = require('webpack');
+const path = require('path');
 
 const Package = require('./package.json');
 const Bibi = require('./bibi.info.js');
@@ -103,7 +104,11 @@ const Config = {
             }
         }]
     }, {
-        test: /\/(bibi\.heart|jo)\.js$/,
+        test: /(bibi\.heart|jo)\.js$/,
+        include: [
+            path.resolve(__dirname, '__src/bibi/and'),
+            path.resolve(__dirname, '__src/bibi/resources/scripts')
+        ],
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /____Bibi-Version____/ig,
@@ -137,7 +142,10 @@ const Config = {
     ];
     Config.module.rules.push({
         test: /\.scss$/,
-        exclude: /\/(bibi\.book|jo)\.scss$/,
+        exclude: [
+            path.resolve(__dirname, '__src/bibi/resources/scripts/bibi.book.scss'),
+            path.resolve(__dirname, '__src/bibi/and/jo.scss')
+        ],
         use: [
             MiniCSSExtractPlugin.loader,
             StringReplacePlugin.replace({ replacements: [{
@@ -147,13 +155,20 @@ const Config = {
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\/(bibi\.book|jo)\.scss$/,
+        test: /\.scss$/,
+        include: [
+            path.resolve(__dirname, '__src/bibi/resources/scripts/bibi.book.scss'),
+            path.resolve(__dirname, '__src/bibi/and/jo.scss')
+        ],
         use: [
             { loader: 'style-loader' }
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\/MaterialIcons-Regular\.(eot|svg|ttf|wof|woff|woff2)$/,
+        test: /MaterialIcons-Regular\.(eot|svg|ttf|wof|woff|woff2)$/,
+        include: [
+            path.resolve(__dirname, 'node_modules/material-icons/iconfont')
+        ],
         use: [
             { loader: 'file-loader', options: {
                 outputPath: 'bibi/resources/styles/fonts',
