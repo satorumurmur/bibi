@@ -134,6 +134,7 @@ How to Arrange Development Environment
 * [Node.js + npm](https://nodejs.org/en/)
     - [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/).
     - Or [Downloads](https://nodejs.org/en/download/)
+* Windows development requires additional tools(Python + Visual C++ Build Environment). For more information consult the [documentation](https://github.com/nodejs/node-gyp#on-windows)
 
 
 
