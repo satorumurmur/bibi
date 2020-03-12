@@ -75,7 +75,8 @@ const Config = {
     })([], {
         [Bibi.SRC]: [
             'bibi/*.html',
-            'bibi/presets/**'
+            'bibi/presets/**',
+            'bibi-bookshelf/__samples/**/*.epub'
         ],
         [Bibi.SRCBC]: Bibi.WithBCK ? [
             'README.BackCompatKit.md',

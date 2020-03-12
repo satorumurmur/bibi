@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="ja" prefix="rendition: http://www.idpf.org/vocab/rendition/#" unique-identifier="uid">
+    <metadata xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">
+        <dc:identifier id="uid">urn:uuid:D7F57A3B-8D31-4004-A5BF-543B40DA21E8</dc:identifier>
+        <dc:title>Sample: Pre-Paginated RtL</dc:title>
+        <dc:language>ja-jp</dc:language>
+		<dc:creator>Bibi Lalalu</dc:creator>
+		<dc:publisher>bibi.epub.link</dc:publisher>
+        <meta property="dcterms:modified">2020-03-11T12:00:00Z</meta>
+        <meta property="rendition:layout">pre-paginated</meta>
+        <meta property="rendition:orientation">portrait</meta>
+        <meta property="rendition:spread">landscape</meta>
+        <meta name="original-resolution" content="1440x2000" />
+        <meta name="cover" content="cov" />
+    </metadata>
+    <manifest>
+        <item id="nav" media-type="application/xhtml+xml" href="nav.xhtml" properties="nav" />
+		<item id="cov" media-type="image/png" href="cov.png" properties="cover-image" />
+        <item id="p02" media-type="image/png" href="p02.png" />
+        <item id="p03" media-type="image/png" href="p03.png" />
+        <item id="p04" media-type="image/png" href="p04.png" />
+        <item id="p05" media-type="image/png" href="p05.png" />
+        <item id="p06" media-type="image/png" href="p06.png" />
+        <item id="p07" media-type="image/png" href="p07.png" />
+    </manifest>
+    <spine page-progression-direction="rtl">
+        <itemref idref="cov" properties="page-spread-center" />
+        <itemref idref="p02" properties="page-spread-left" />
+        <itemref idref="p03" properties="page-spread-right" />
+        <itemref idref="p04" properties="page-spread-left" />
+        <itemref idref="p05" properties="page-spread-right" />
+        <itemref idref="p06" properties="page-spread-left" />
+        <itemref idref="p07" properties="page-spread-right" />
+    </spine>
+</package>
