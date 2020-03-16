@@ -124,6 +124,13 @@ Bibi.Banners = {
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
+'/extensions/sanitizer.js': _banner('Bibi Extension: Sanitizer', 'default', `
+ *  * Including:
+ *      - DOMPurify ... Copyright (c) Mario Heiderich - https://github.com/cure53/DOMPurify (Dual licensed under the Apache License Version 2.0 or the Mozilla Public License Version 2.0.)
+`, true),
+
+// -----------------------------------------------------------------------------------------------------------------------------
+
 '/extensions/unaccessibilizer.js': _banner(`# Bibi Extension: Unaccessibilizer ("What a...")`, `
  *  * Reluctantly coded by ${ Bibi.author.name } - ${ Bibi.homepage }
  *  * Released into the public domain under the Unlicense. - http://unlicense.org/UNLICENSE
