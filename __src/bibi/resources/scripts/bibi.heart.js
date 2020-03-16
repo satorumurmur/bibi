@@ -5532,6 +5532,7 @@ O.SettingTypes_PresetOnly = {
     'boolean': [
         'accept-base64-encoded-data',
         'accept-blob-converted-data',
+        'allow-scripts-in-content',
         'remove-bibi-website-link'
     ],
     'yes-no': [
