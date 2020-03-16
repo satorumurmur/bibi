@@ -139,6 +139,7 @@ Bibi.initialize = () => {
 Bibi.loadExtensions = () => {
     return new Promise((resolve, reject) => {
         const AdditionalExtensions = [];
+        if(!S['allow-scripts-in-content']) AdditionalExtensions.push('sanitizer.js');
         let ReadyForExtraction = false, ReadyForBibiZine = false;
         if(S['book']) {
             if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
