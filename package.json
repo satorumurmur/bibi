@@ -74,6 +74,7 @@
     "classlist-polyfill": "^1.2.0",
     "current-script-polyfill": "^1.0.0",
     "custom-event-polyfill": "^1.0.7",
+    "dompurify": "^2.0.8",
     "easing-js": "^1.1.2",
     "intersection-observer": "^0.7.0",
     "js-yaml": "^3.13.1",
