@@ -47,7 +47,7 @@ gulp.task('clean', done => {
 gulp.task('initialize', done => {
     [
       //'bibi',
-        'bibi-bookshelf'
+      //'bibi-bookshelf'
     ].concat(Bibi.WithBCK ? [
       //'bib',
       //'bib/i',

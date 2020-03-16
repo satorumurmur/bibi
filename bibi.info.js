@@ -154,7 +154,10 @@ Bibi.Banners = {
 
 // =============================================================================================================================
 
-Bibi.ARCHIVES = '__archives', Bibi.ARCHIVETMP = Bibi.ARCHIVES + '/.tmp', Bibi.DIST = '__dist', Bibi.SRC = '__src', Bibi.SRCBC = '__src__back-compat';
+Bibi.ARCHIVES = '__archives', Bibi.ARCHIVETMP = Bibi.ARCHIVES + '/.tmp';
+Bibi.DIST = '__dist';
+Bibi.SRC = '__src';
+Bibi.SRCBC = '__src__back-compat';
 
 // =============================================================================================================================
 

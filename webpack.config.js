@@ -57,9 +57,9 @@ const Config = {
             'bibi/resources/styles/bibi.css',
             'bibi/resources/scripts/bibi.js',
         ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
-        [Bibi.SRCBC]: Bibi.WithBCK ? [
+        [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'bib/i.js'
-        ] : []
+        ]
     }, {
         'node_modules': {
             'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': 'bibi-zip-loader/dist/lszlw.js'
@@ -78,11 +78,11 @@ const Config = {
             'bibi/presets/**',
             'bibi-bookshelf/__samples/**/*.epub'
         ],
-        [Bibi.SRCBC]: Bibi.WithBCK ? [
+        [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'README.BackCompatKit.md',
             'bib/i/*.html',
             'bib/i/presets/**'
-        ] : [],
+        ],
         '': [
             'LICENSE',
             'README.md'
