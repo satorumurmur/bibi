@@ -1,5 +1,5 @@
 /*!
- *                                                                                                                          (邃 )
+ *                                                                                                                          (℠)
  *  # Additional Webpack Config for Bibi
  *
  */
@@ -31,7 +31,7 @@ Bibi.WithBCK = (Bibi.Arguments['bc'] || Bibi.ForPack);
 // =============================================================================================================================
 
 const _banner = (Name, Credit, Extra, Mark) => '/*!' + `
- *` + (!Mark ? '' : `                                                                                                                          (邃 )`) + `
+ *` + (!Mark ? '' : `                                                                                                                          (℠)`) + `
  *  # ${ Name }
  *` + (!Credit ? '' : (Credit == 'default' ? `
  *  * Copyright (c) ${ Bibi.author.name } - ${ Bibi.homepage }
