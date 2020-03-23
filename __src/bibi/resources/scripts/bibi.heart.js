@@ -282,8 +282,7 @@ Bibi.bindBook = (LayoutOption) => {
     }
     return R.layOut(LayoutOption).then(() => {
         LayoutOption.removeResetter();
-        R.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
-        Bibi.Eyes.wearGlasses();
+        E.dispatch('bibi:laid-out-for-the-first-time', LayoutOption);
         return LayoutOption
     });
 };
@@ -300,11 +299,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     E.dispatch('bibi:opened');
     resolve();
 }).then(() => {
-    window.addEventListener(E['resize'], R.onResize);
-    R.Main.addEventListener('scroll', R.onScroll);
-    E.bind(['bibi:changed-intersection', 'bibi:scrolled'], R.updateCurrent);
-    R.updateCurrent();
-    const LandingPage = R.hatchPage(LayoutOption.Destination);
+    const LandingPage = R.hatchPage(LayoutOption.Destination) || R.Pages[0];
     if(!I.History.List.length) {
         I.History.List = [{ UI: Bibi, Spread: LandingPage.Spread, PageProgressInSpread: LandingPage.IndexInSpread / LandingPage.Spread.Pages.length }];
         I.History.update();
@@ -316,7 +311,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
         E.add('bibi:changed-intersection', () => !I.Slider.Touching ? R.turnSpreads() : false);
     }
     if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
-        const CurrentPage = R.Current.List[0].Page;
+        const CurrentPage = I.PageObserver.Current.List[0].Page;
         O.Biscuits.memorize('Book', { 'Position': { 'SI-PPiS': CurrentPage.Spread.Index + '-' + (CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length) } });
     } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
@@ -362,48 +357,6 @@ Bibi.createDevNote = () => {
         if(!NoLog) O.log(InnerHTML.replace(/<[^<>]*>/g, ''), '<*/>');
         return P;
     };
-
-
-Bibi.Eyes = {
-    watch: (Ent) => {
-        const Page = Ent.target;
-        let IntersectionChanging = false;
-        //const IntersectionRatio = Math.round(Ent.intersectionRatio * 10000) / 100;
-        if(Ent.isIntersecting) {
-            if(!R.IntersectingPages.includes(Page)) {
-                IntersectionChanging = true;
-                R.IntersectingPages.push(Page);
-            }
-        } else {
-            if( R.IntersectingPages.includes(Page)) {
-                IntersectionChanging = true;
-                R.IntersectingPages = R.IntersectingPages.filter(IntersectingPage => IntersectingPage != Page);
-            }
-        }
-        if(IntersectionChanging) {
-            if(R.IntersectingPages.length) R.IntersectingPages.sort((A, B) => A.Index - B.Index);
-            E.dispatch('bibi:changes-intersection', R.IntersectingPages);
-            clearTimeout(Bibi.Eyes.Timer_IntersectionChange);
-            Bibi.Eyes.Timer_IntersectionChange = setTimeout(() => {
-                E.dispatch('bibi:changed-intersection', R.IntersectingPages);
-            }, 9);
-        }
-    },
-    wearGlasses: () => {
-        Bibi.Glasses = new IntersectionObserver(Ents => Ents.forEach(Bibi.Eyes.watch), {
-            root: R.Main,
-            rootMargin: '0px',
-            threshold: [0, 0.5, 1]
-        });
-        Bibi.Eyes.observe = (Page) => Bibi.Glasses.observe(Page);
-        Bibi.Eyes.unobserve = (Page) => Bibi.Glasses.unobserve(Page);
-        Bibi.Eyes.PagesToBeObserved.forEach(PageToBeObserved => Bibi.Glasses.observe(PageToBeObserved));
-        delete Bibi.Eyes.PagesToBeObserved;
-    },
-    PagesToBeObserved: [],
-    observe: (Page) => !Bibi.Eyes.PagesToBeObserved.includes(Page) ? Bibi.Eyes.PagesToBeObserved.push(Page) : Bibi.Eyes.PagesToBeObserved.length,
-    unobserve: (Page) => (Bibi.Eyes.PagesToBeObserved = Bibi.Eyes.PagesToBeObserved.filter(PageToBeObserved => PageToBeObserved != Page)).length
-};
 
 
 Bibi.createElement = (...Args) => {
@@ -766,7 +719,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
                         IndexInItem: 0
                     });
                     Item.Pages.push(Item.Box.appendChild(Page));
-                    Bibi.Eyes.observe(Page);
+                    I.PageObserver.observePageIntersection(Page);
                 } else {
                     Item.PrePaginated = Spread.PrePaginated = false;
                 }
@@ -1487,7 +1440,7 @@ R.renderReflowableItem = (Item) => {
     Item.Box.style[C.L_SIZE_b] = ItemBoxB + 'px';
     Item.Box.style[C.L_SIZE_l] = ItemBoxL + 'px';
     Item.Pages.forEach(Page => {
-        Bibi.Eyes.unobserve(Page);
+        I.PageObserver.unobservePageIntersection(Page);
         Item.Box.removeChild(Page);
     });
     Item.Pages = [];
@@ -1497,7 +1450,7 @@ R.renderReflowableItem = (Item) => {
         Page.Item = Item, Page.Spread = Item.Spread;
         Page.IndexInItem = Item.Pages.length;
         Item.Pages.push(Page);
-        Bibi.Eyes.observe(Page);
+        I.PageObserver.observePageIntersection(Page);
     }
     /*
     if(Item.Index == 2) { //setTimeout(() => {
@@ -1594,10 +1547,10 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
     if(!S['allow-placeholders']) return resolve();
     const Range     = [-1, 2];
-    const Direction = (R.ScrollHistory.length > 1) && (R.ScrollHistory[1] * C.L_AXIS_D > R.ScrollHistory[0] * C.L_AXIS_D) ? -1 : 1;
+    const Direction = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
     const Origin = Opt.Origin || (
-        R.Current.List.length      ? (Direction > 0 ?      R.Current.List.slice(-1) :      R.Current.List)[0].Page.Spread :
-        R.IntersectingPages.length ? (Direction > 0 ? R.IntersectingPages.slice(-1) : R.IntersectingPages)[0     ].Spread :
+        I.PageObserver.Current.List.length      ? (Direction > 0 ?      I.PageObserver.Current.List.slice(-1) :      I.PageObserver.Current.List)[0].Page.Spread :
+        I.PageObserver.IntersectingPages.length ? (Direction > 0 ? I.PageObserver.IntersectingPages.slice(-1) : I.PageObserver.IntersectingPages)[0     ].Spread :
         null
     );
     if(!Origin) return resolve();
@@ -1709,7 +1662,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     //     before: Function
     // }
     if(R.LayingOut) return reject();
-    R.ScrollHistory = [];
+    I.ScrollObserver.History = [];
     R.LayingOut = true;
     O.log(`Laying out...`, '<g:>');
     if(Opt) O.log(`Option: %O`, Opt); else Opt = {};
@@ -1720,7 +1673,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     O.HTML.classList.add('laying-out');
     if(!Opt.NoNotification) I.note(`Laying out...`);
     if(!Opt.Destination) {
-        const CurrentPage = R.Current.List.length ? R.Current.List[0].Page : R.Pages[0];
+        const CurrentPage = I.PageObserver.Current.List.length ? I.PageObserver.Current.List[0].Page : R.Pages[0];
         Opt.Destination = { SpreadIndex: CurrentPage.Spread.Index, PageProgressInSpread: CurrentPage.IndexInSpread / CurrentPage.Spread.Pages.length }
     }
     if(Opt.Setting) S.update(Opt.Setting);
@@ -1770,63 +1723,6 @@ R.updateOrientation = () => {
 };
 
 
-R.ScrollHistory = [];
-
-R.onScroll = (Eve) => { if(R.LayingOut || !L.Opened) return;
-    if(!R.Scrolling) {
-        R.Scrolling = true;
-        O.HTML.classList.add('scrolling');
-    }
-    E.dispatch('bibi:is-scrolling');
-    R.ScrollHistory.unshift(Math.ceil(R.Main['scroll' + C.L_OOBL_L])); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
-    if(R.ScrollHistory.length > 2) R.ScrollHistory.pop();
-    if(++R.onScroll.Count == 8) {
-        R.onScroll.Count = 0;
-        E.dispatch('bibi:scrolled');
-    }
-    clearTimeout(R.Timer_onScrollEnd);
-    R.Timer_onScrollEnd = setTimeout(() => {
-        R.Scrolling = false;
-        R.onScroll.Count = 0;
-        O.HTML.classList.remove('scrolling');
-        E.dispatch('bibi:scrolled');
-    }, 123);
-};
-
-    R.onScroll.Count = 0;
-
-
-R.onResize = (Eve) => { if(R.LayingOut || !L.Opened) return;
-    if(!R.Resizing) {
-        R.Resizing = true;
-        //R.FirstIntersectingPageBeforeResizing = R.IntersectingPages[0];
-        //R.onResize.TargetPageAfterResizing = R.Current.List && R.Current.List[0] && R.Current.List[0].Page ? R.Current.List[0].Page : R.IntersectingPages[0];
-        R.onResize.TargetPageAfterResizing = R.Current.List[0] ? R.Current.List[0].Page : null;
-        ////////R.Main.removeEventListener('scroll', R.onScroll);
-        O.Busy = true;
-        O.HTML.classList.add('busy');
-        O.HTML.classList.add('resizing');
-    };
-    clearTimeout(R.Timer_onResizeEnd);
-    R.Timer_onResizeEnd = setTimeout(() => {
-        R.updateOrientation();
-        const Page = R.onResize.PageAfterResizing;
-        R.layOut({
-            Reset: true,
-            Destination: Page ? { SpreadIndex: Page.Spread.Index, PageProgressInSpread: Page.IndexInSpread / Page.Spread.Pages.length } : null
-        }).then(() => {
-            E.dispatch('bibi:resized', Eve);
-            O.HTML.classList.remove('resizing');
-            O.HTML.classList.remove('busy');
-            O.Busy = false;
-            ////////R.Main.addEventListener('scroll', R.onScroll);
-            //R.onScroll();
-            R.Resizing = false;
-        });
-    }, sML.UA.Trident ? 1200 : O.TouchOS ? 600 : 300);
-};
-
-
 R.changeView = (Par, Opt = {}) => {
     if(
         S['fix-reader-view-mode'] ||
@@ -1869,103 +1765,10 @@ R.changeView = (Par, Opt = {}) => {
 };
 
 
-R.Current = { List: [], Frame: {} };
-
-R.updateCurrent = () => {
-    const CurrentFrame = R.updateCurrent.getFrame();
-    if(CurrentFrame) {
-        R.Current.Frame = CurrentFrame;
-        const CurrentList = R.updateCurrent.getList();
-        if(CurrentList) {
-            R.Current.List = CurrentList;
-            R.updateCurrent.classify();
-        }
-    }
-    return R.Current;
-};
-
-    R.updateCurrent.getFrame = () => {
-        const Frame = {};
-        Frame.Length = R.Main['offset' + C.L_SIZE_L];
-        Frame[C.L_OOBL_L                              ] = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
-        Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
-        //if(R.Current.List.length && Frame[C.L_BASE_B] == R.Current.Frame.Before && Frame[C.L_BASE_A] == R.Current.Frame.After) return false;
-        return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
-    };
-
-    R.updateCurrent.getList = () => {
-        let List = [], List_SpreadContained = [];
-        let PageList = undefined;
-        const QSW = Math.ceil(R.Stage.Width / 4), QSH = Math.ceil(R.Stage.Height / 4), CheckRoute = [5, 6, 4, 2, 8];
-        for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
-            const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
-            if(Ele) {
-                     if(Ele.IndexInItem) PageList = [Ele];
-                else if(Ele.Pages)       PageList = Ele.Pages;
-                else if(Ele.Content)     PageList = Ele.Content.Pages;
-            }
-            if(PageList) break;
-        }
-        if(!PageList && R.IntersectingPages.length) PageList = R.IntersectingPages;
-        if(!PageList || !PageList[0] || typeof PageList[0].Index != 'number') return null;
-        const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
-        const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
-        for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
-            const PageIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page, 'WithDetail');
-            if(PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
-                if(List.length) break;
-            } else {
-                const Current = { Page: Page, PageIntersectionStatus: PageIntersectionStatus };
-                if(List.length) {
-                    const Prev = List[List.length - 1];
-                    if(Prev.Page.Item   == Page.Item  )   Current.ItemIntersectionStatus =   Prev.ItemIntersectionStatus;
-                    if(Prev.Page.Spread == Page.Spread) Current.SpreadIntersectionStatus = Prev.SpreadIntersectionStatus;
-                }
-                if(  !Current.ItemIntersectionStatus)   Current.ItemIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Item.Box); // Item is scaled.
-                if(!Current.SpreadIntersectionStatus) Current.SpreadIntersectionStatus = R.updateCurrent.getIntersectionStatus(Page.Spread);   // SpreadBox has margin.
-                if(Current.SpreadIntersectionStatus.Ratio == 1) List_SpreadContained.push(Current);
-                if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [Current], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
-                else                                                            List.push(Current);
-            }
-        }
-        return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
-    };
-
-    R.updateCurrent.getIntersectionStatus = (Ele, WithDetail) => {
-        const Coord = sML.getCoord(Ele), _D = C.L_AXIS_D;
-        const LengthInside = Math.min(R.Current.Frame.After * _D, Coord[C.L_BASE_A] * _D) - Math.max(R.Current.Frame.Before * _D, Coord[C.L_BASE_B] * _D);
-        const Ratio = (LengthInside <= 0 || !Coord[C.L_SIZE_L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[C.L_SIZE_L];
-        const IntersectionStatus = { Ratio: Ratio };
-        if(Ratio <= 0) {} else if(WithDetail) {
-            if(Ratio >= 1) {
-                IntersectionStatus.Contained = true;
-            } else {
-                const FC_B = R.Current.Frame.Before * _D, FC_A = R.Current.Frame.After * _D;
-                const PC_B = Coord[C.L_BASE_B]      * _D, PC_A = Coord[C.L_BASE_A]     * _D;
-                     if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
-                else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
-                else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
-                else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
-                if(R.Main['offset' + L] < Coord[C.L_SIZE_L]) IntersectionStatus.Oversize = true;
-            }
-        }
-        return IntersectionStatus;
-    };
-
-    R.updateCurrent.classify = () => {
-        const CurrentElements = [], PastCurrentElements = R.Main.Book.querySelectorAll('.current');
-        R.Current.List.forEach(Current => {
-            const Page = Current.Page, ItemBox = Page.Item.Box, SpreadBox = Page.Spread.Box;
-            if(!CurrentElements.includes(SpreadBox)) SpreadBox.classList.add('current'), CurrentElements.push(SpreadBox);
-            if(!CurrentElements.includes(  ItemBox))   ItemBox.classList.add('current'), CurrentElements.push(  ItemBox);
-            Page.classList.add('current'), CurrentElements.push(Page);
-        });
-        sML.forEach(PastCurrentElements)(PastCurrentElement => {
-            if(!CurrentElements.includes(PastCurrentElement)) {
-                PastCurrentElement.classList.remove('current');
-            }
-        });
-    };
+Object.defineProperties(R, { // To ensure backward compatibility.
+    Current: { get: () => I.PageObserver.Current },
+    updateCurrent: { get: () => I.PageObserver.updateCurrent }
+});
 
 
 R.focusOn = (Par) => new Promise((resolve, reject) => {
@@ -2174,7 +1977,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
     //Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
-    const Current = (Par.Distance > 0 ? R.Current.List.slice(-1) : R.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
+    const Current = (Par.Distance > 0 ? I.PageObserver.Current.List.slice(-1) : I.PageObserver.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
     let Promised = {};
     if(
         true ||
@@ -2267,6 +2070,9 @@ I.initialize = () => {
     I.Notifier.create();
     I.Veil.create();
     E.bind('bibi:readied', () => {
+        I.ScrollObserver.create();
+        I.ResizeObserver.create();
+        I.PageObserver.create();
         I.Catcher.create();
         I.Menu.create();
         I.Panel.create();
@@ -2275,18 +2081,18 @@ I.initialize = () => {
         I.FontSizeChanger.create();
         I.Loupe.create();
     });
+    E.bind('bibi:initialized-book', () => {
+        I.BookmarkManager.create();
+    });
     E.bind('bibi:prepared', () => {
+        I.FlickObserver.create();
+        I.PinchObserver.create();
+        I.KeyObserver.create();
         I.Nombre.create();
         I.Slider.create();
         I.Turner.create();
         I.Arrows.create();
-        I.FlickObserver.create();
-        I.PinchObserver.create();
-        I.KeyObserver.create();
         I.Spinner.create();
-    });
-    E.bind('bibi:initialized-book', () => {
-        I.BookmarkManager.create();
     });
     I.Utilities = I.setToggleAction({}, {
         onopened: () => E.dispatch('bibi:opens-utilities'),
@@ -2296,6 +2102,245 @@ I.initialize = () => {
     E.add('bibi:commands:close-utilities',  () => I.Utilities.close());
     E.add('bibi:commands:toggle-utilities', () => I.Utilities.toggle());
 };
+
+
+I.ScrollObserver = { create: () => {
+    const ScrollObserver = I.ScrollObserver = {
+        History: [],
+        Count: 0,
+        onScroll: (Eve) => { if(R.LayingOut || !L.Opened) return;
+            if(!ScrollObserver.Scrolling) {
+                ScrollObserver.Scrolling = true;
+                O.HTML.classList.add('scrolling');
+            }
+            E.dispatch('bibi:is-scrolling');
+            ScrollObserver.History.unshift(Math.ceil(R.Main['scroll' + C.L_OOBL_L])); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
+            if(ScrollObserver.History.length > 2) ScrollObserver.History.pop();
+            if(++ScrollObserver.Count == 8) {
+                ScrollObserver.Count = 0;
+                E.dispatch('bibi:scrolled');
+            }
+            clearTimeout(R.Timer_onScrollEnd);
+            R.Timer_onScrollEnd = setTimeout(() => {
+                ScrollObserver.Scrolling = false;
+                ScrollObserver.Count = 0;
+                O.HTML.classList.remove('scrolling');
+                E.dispatch('bibi:scrolled');
+            }, 123);
+        },
+        observe: () => {
+            R.Main.addEventListener('scroll', ScrollObserver.onScroll);
+        }
+    }
+    E.bind('bibi:opened', ScrollObserver.observe);
+}};
+
+
+I.PageObserver = { create: () => {
+    const PageObserver = I.PageObserver = {
+        // ---- Intersection
+        IntersectingPages: [],
+        PagesToBeObserved: [],
+        observePageIntersection: (Page) => !PageObserver.PagesToBeObserved.includes(Page) ? PageObserver.PagesToBeObserved.push(Page) : PageObserver.PagesToBeObserved.length,
+        unobservePageIntersection: (Page) => (PageObserver.PagesToBeObserved = PageObserver.PagesToBeObserved.filter(PageToBeObserved => PageToBeObserved != Page)).length,
+        observeIntersection: () => {
+            const Glasses = new IntersectionObserver(Ents => Ents.forEach(Ent => {
+                const Page = Ent.target;
+                let IntersectionChanging = false;
+                //const IntersectionRatio = Math.round(Ent.intersectionRatio * 10000) / 100;
+                if(Ent.isIntersecting) {
+                    if(!PageObserver.IntersectingPages.includes(Page)) {
+                        IntersectionChanging = true;
+                        PageObserver.IntersectingPages.push(Page);
+                    }
+                } else {
+                    if( PageObserver.IntersectingPages.includes(Page)) {
+                        IntersectionChanging = true;
+                        PageObserver.IntersectingPages = PageObserver.IntersectingPages.filter(IntersectingPage => IntersectingPage != Page);
+                    }
+                }
+                if(IntersectionChanging) {
+                    if(PageObserver.IntersectingPages.length) PageObserver.IntersectingPages.sort((A, B) => A.Index - B.Index);
+                    E.dispatch('bibi:changes-intersection', PageObserver.IntersectingPages);
+                    clearTimeout(PageObserver.Timer_IntersectionChange);
+                    PageObserver.Timer_IntersectionChange = setTimeout(() => {
+                        E.dispatch('bibi:changed-intersection', PageObserver.IntersectingPages);
+                    }, 9);
+                }
+            }), {
+                root: R.Main,
+                rootMargin: '0px',
+                threshold: [0, 0.5, 1]
+            });
+            PageObserver.observePageIntersection = (Page) => Glasses.observe(Page);
+            PageObserver.unobservePageIntersection = (Page) => Glasses.unobserve(Page);
+            PageObserver.PagesToBeObserved.forEach(PageToBeObserved => Glasses.observe(PageToBeObserved));
+            delete PageObserver.PagesToBeObserved;
+        },
+        // ---- Current
+        Current: { List: [], Pages: [], Frame: {} },
+        updateCurrent: () => {
+            const Frame = PageObserver.getFrame();
+            if(Frame) {
+                PageObserver.Current.Frame = Frame;
+                const List = PageObserver.getList();
+                if(List) {
+                    PageObserver.Current.List = List;
+                    PageObserver.Current.Pages = List.map(CE => CE.Page);
+                    PageObserver.classify();
+                }
+            }
+            return PageObserver.Current;
+        },
+        getFrame: () => {
+            const Frame = {};
+            Frame.Length = R.Main['offset' + C.L_SIZE_L];
+            Frame[C.L_OOBL_L                              ] = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
+            Frame[C.L_OOBL_L == 'Top' ? 'Bottom' : 'Right'] = Frame[C.L_OOBL_L] + Frame.Length;
+            //if(PageObserver.Current.List.length && Frame[C.L_BASE_B] == PageObserver.Current.Frame.Before && Frame[C.L_BASE_A] == PageObserver.Current.Frame.After) return false;
+            return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
+        },
+        getList: () => {
+            let List = [], List_SpreadContained = [];
+            let PageList = undefined;
+            const QSW = Math.ceil(R.Stage.Width / 4), QSH = Math.ceil(R.Stage.Height / 4), CheckRoute = [5, 6, 4, 2, 8];
+            for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
+                const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
+                if(Ele) {
+                         if(Ele.IndexInItem) PageList = [Ele];
+                    else if(Ele.Pages)       PageList = Ele.Pages;
+                    else if(Ele.Content)     PageList = Ele.Content.Pages;
+                }
+                if(PageList) break;
+            }
+            if(!PageList && I.PageObserver.IntersectingPages.length) PageList = I.PageObserver.IntersectingPages;
+            if(!PageList || !PageList[0] || typeof PageList[0].Index != 'number') return null;
+            const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
+            const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
+            for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
+                const PageIntersectionStatus = PageObserver.getIntersectionStatus(Page, 'WithDetail');
+                if(PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
+                    if(List.length) break;
+                } else {
+                    const CurrentEntry = { Page: Page, PageIntersectionStatus: PageIntersectionStatus };
+                    if(List.length) {
+                        const Prev = List[List.length - 1];
+                        if(Prev.Page.Item   == Page.Item  )   CurrentEntry.ItemIntersectionStatus =   Prev.ItemIntersectionStatus;
+                        if(Prev.Page.Spread == Page.Spread) CurrentEntry.SpreadIntersectionStatus = Prev.SpreadIntersectionStatus;
+                    }
+                    if(  !CurrentEntry.ItemIntersectionStatus)   CurrentEntry.ItemIntersectionStatus = PageObserver.getIntersectionStatus(Page.Item.Box); // Item is scaled.
+                    if(!CurrentEntry.SpreadIntersectionStatus) CurrentEntry.SpreadIntersectionStatus = PageObserver.getIntersectionStatus(Page.Spread);   // SpreadBox has margin.
+                    if(CurrentEntry.SpreadIntersectionStatus.Ratio == 1) List_SpreadContained.push(CurrentEntry);
+                    if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [CurrentEntry], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
+                    else                                                            List.push(CurrentEntry);
+                }
+            }
+            return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
+        },
+        getIntersectionStatus: (Ele, WithDetail) => {
+            const Coord = sML.getCoord(Ele), _D = C.L_AXIS_D;
+            const LengthInside = Math.min(PageObserver.Current.Frame.After * _D, Coord[C.L_BASE_A] * _D) - Math.max(PageObserver.Current.Frame.Before * _D, Coord[C.L_BASE_B] * _D);
+            const Ratio = (LengthInside <= 0 || !Coord[C.L_SIZE_L] || isNaN(LengthInside)) ? 0 : LengthInside / Coord[C.L_SIZE_L];
+            const IntersectionStatus = { Ratio: Ratio };
+            if(Ratio <= 0) {} else if(WithDetail) {
+                if(Ratio >= 1) {
+                    IntersectionStatus.Contained = true;
+                } else {
+                    const FC_B = PageObserver.Current.Frame.Before * _D, FC_A = PageObserver.Current.Frame.After * _D;
+                    const PC_B = Coord[C.L_BASE_B]                 * _D, PC_A = Coord[C.L_BASE_A]                * _D;
+                         if(FC_B <  PC_B        ) IntersectionStatus.Entering = true;
+                    else if(FC_B == PC_B        ) IntersectionStatus.Headed   = true;
+                    else if(        PC_A == FC_A) IntersectionStatus.Footed   = true;
+                    else if(        PC_A <  FC_A) IntersectionStatus.Passing  = true;
+                    if(R.Main['offset' + L] < Coord[C.L_SIZE_L]) IntersectionStatus.Oversize = true;
+                }
+            }
+            return IntersectionStatus;
+        },
+        classify: () => {
+            const CurrentElements = [], PastCurrentElements = R.Main.Book.querySelectorAll('.current');
+            PageObserver.Current.List.forEach(CurrentEntry => {
+                const Page = CurrentEntry.Page, ItemBox = Page.Item.Box, SpreadBox = Page.Spread.Box;
+                if(!CurrentElements.includes(SpreadBox)) SpreadBox.classList.add('current'), CurrentElements.push(SpreadBox);
+                if(!CurrentElements.includes(  ItemBox))   ItemBox.classList.add('current'), CurrentElements.push(  ItemBox);
+                Page.classList.add('current'), CurrentElements.push(Page);
+            });
+            sML.forEach(PastCurrentElements)(PastCurrentElement => {
+                if(!CurrentElements.includes(PastCurrentElement)) {
+                    PastCurrentElement.classList.remove('current');
+                }
+            });
+        },
+        observeCurrent: () => {
+            E.bind(['bibi:changed-intersection', 'bibi:scrolled'], PageObserver.updateCurrent);
+        },
+        // ---- PageChange
+        Past: { Pages: [] },
+        observePageMove: () => {
+            E.bind('bibi:scrolled', () => {
+                const CurrentStartPage = PageObserver.Current.Pages[0], CurrentEndPage = PageObserver.Current.Pages.slice(-1)[0];
+                if(CurrentStartPage != PageObserver.Past.Pages[0] || CurrentEndPage != PageObserver.Past.Pages.slice(-1)[0]) {
+                    E.dispatch('bibi:moved-page', {
+                        PastPages: PageObserver.Past.Pages,
+                        CurrentPages: PageObserver.Current.Pages,
+                        OnTheFirstPage: (CurrentStartPage.Index == 0),
+                        OnTheLastPage: (CurrentEndPage.Index == R.Pages.length - 1)
+                    });
+                }
+                PageObserver.Past.Pages = PageObserver.Current.Pages;
+            });
+        }
+    }
+    E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
+        PageObserver.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
+        PageObserver.observeIntersection();
+    });
+    E.bind('bibi:opened', () => {
+        PageObserver.updateCurrent();
+        PageObserver.observeCurrent();
+        PageObserver.observePageMove();
+    });
+}};
+
+
+I.ResizeObserver = { create: () => {
+    const ResizeObserver = I.ResizeObserver = {
+        Resizing: false,
+        TargetPageAfterResizing: null,
+        onResize: (Eve) => { if(R.LayingOut || !L.Opened) return;
+            if(!ResizeObserver.Resizing) {
+                ResizeObserver.Resizing = true;
+                //ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List && I.PageObserver.Current.List[0] && I.PageObserver.Current.List[0].Page ? I.PageObserver.Current.List[0].Page : I.PageObserver.IntersectingPages[0];
+                ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null;
+                ////////R.Main.removeEventListener('scroll', I.ScrollObserver.onScroll);
+                O.Busy = true;
+                O.HTML.classList.add('busy');
+                O.HTML.classList.add('resizing');
+            };
+            clearTimeout(ResizeObserver.Timer_onResizeEnd);
+            ResizeObserver.Timer_onResizeEnd = setTimeout(() => {
+                R.updateOrientation();
+                const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
+                R.layOut({
+                    Reset: true,
+                    Destination: Page ? { ItemIndex: Page.Item.Index, PageProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
+                }).then(() => {
+                    E.dispatch('bibi:resized', Eve);
+                    O.HTML.classList.remove('resizing');
+                    O.HTML.classList.remove('busy');
+                    O.Busy = false;
+                    ////////R.Main.addEventListener('scroll', I.ScrollObserver.onScroll);
+                    //I.ScrollObserver.onScroll();
+                    ResizeObserver.Resizing = false;
+                });
+            }, sML.UA.Trident ? 1200 : O.TouchOS ? 600 : 300);
+        },
+        observe: () => {
+            window.addEventListener(E['resize'], ResizeObserver.onResize);
+        }
+    };
+    E.bind('bibi:opened', ResizeObserver.observe);
+}};
 
 
 I.TouchObserver = { create: () => {
@@ -2454,7 +2499,7 @@ I.FlickObserver = { create: () => {
                 Item: Eve.srcElement.ownerDocument.body.Item || null,
                 TimeStamp: Eve.timeStamp,
                 ScrollLeft: R.Main.scrollLeft,
-                OriginList: R.updateCurrent().List
+                OriginList: I.PageObserver.updateCurrent().List
             };
             //Eve.preventDefault();
             E.add('bibi:moved-pointer', FlickObserver.onTouchMove);
@@ -2546,7 +2591,7 @@ I.FlickObserver = { create: () => {
                         (270 <  Deg && Deg <  315) ? ['top',     'left'] /* to bottom, right */ : ['', ''];
             Dir = S['accept-orthogonal-input'] ? Dir[0] : Dir.includes('left') ? 'left' : Dir.includes('right') ? 'right' : '';
             const Distance = (I.Turner[Dir] ? I.Turner[Dir].Distance : 0) || 0;
-            const CurrentList = R.updateCurrent().List;
+            const CurrentList = I.PageObserver.updateCurrent().List;
             return R.focusOn({ Destination: { Page: (Distance >= 0 ? CurrentList.slice(-1)[0].Page : CurrentList[0].Page) }, Duration: FlickObserver.isScrollable() ? FlickObserver.FocusDurationIfScrollable : 0 });
         },
         onWheel: (Eve) => {
@@ -2703,6 +2748,118 @@ I.PinchObserver = { create: () => {
     E.add('bibi:commands:deactivate-pinch', () => PinchObserver.close());
     E.add('bibi:commands:toggle-pinch',     () => PinchObserver.toggle());
     E.dispatch('bibi:created-pinchobserver');
+}};
+
+
+I.KeyObserver = { create: () => { if(!S['use-keys']) return;
+    const KeyObserver = I.KeyObserver = {
+        ActiveKeys: {},
+        KeyCodes: { 'keydown': {}, 'keyup': {}, 'keypress': {} },
+        updateKeyCodes: (EventTypes, KeyCodesToUpdate) => {
+            if(typeof EventTypes.join != 'function')  EventTypes = [EventTypes];
+            if(typeof KeyCodesToUpdate == 'function') KeyCodesToUpdate = KeyCodesToUpdate();
+            EventTypes.forEach(EventType => KeyObserver.KeyCodes[EventType] = sML.edit(KeyObserver.KeyCodes[EventType], KeyCodesToUpdate));
+        },
+        MovingParameters: {},
+        initializeMovingParameters: () => {
+            let _ = {};
+            if(S['accept-orthogonal-input']) switch(B.PPD) {
+                case 'ltr': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
+                case 'rtl': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
+            }
+            sML.applyRtL(_, { 'End': 'foot',  'Home': 'head' });
+            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : _[p] == 'head' ? 'foot' : _[p] == 'foot' ? 'head' : 0;
+            //sML.applyRtL(_, { 'Space': 1, 'SPACE': -1 }); // Space key is reserved for Loupe.
+            return KeyObserver.MovingParameters = _;
+        },
+        updateMovingParameters: () => {
+            if(S['accept-orthogonal-input']) return;
+            let _ = {};
+            switch(S.ARD) {
+                case 'ltr': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
+                case 'rtl': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
+                case 'ttb': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  0, 'Right Arrow':  0 }; break;
+            }
+            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : 0;
+            sML.applyRtL(KeyObserver.MovingParameters, _);
+        },
+        getBibiKeyName: (Eve) => {
+            const KeyName = KeyObserver.KeyCodes[Eve.type][Eve.keyCode];
+            return KeyName ? KeyName : '';
+        },
+        onEvent: (Eve) => {
+            if(!L.Opened) return false;
+            Eve.BibiKeyName = KeyObserver.getBibiKeyName(Eve);
+            Eve.BibiModifierKeys = [];
+            if(Eve.shiftKey) Eve.BibiModifierKeys.push('Shift');
+            if(Eve.ctrlKey)  Eve.BibiModifierKeys.push('Control');
+            if(Eve.altKey)   Eve.BibiModifierKeys.push('Alt');
+            if(Eve.metaKey)  Eve.BibiModifierKeys.push('Meta');
+            //if(!Eve.BibiKeyName) return false;
+            if(Eve.BibiKeyName) Eve.preventDefault();
+            return true;
+        },
+        onKeyDown: (Eve) => {
+            if(!KeyObserver.onEvent(Eve)) return false;
+            if(Eve.BibiKeyName) {
+                if(!KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
+                    KeyObserver.ActiveKeys[Eve.BibiKeyName] = Date.now();
+                } else {
+                    E.dispatch('bibi:is-holding-key', Eve);
+                }
+            }
+            E.dispatch('bibi:downed-key', Eve);
+        },
+        onKeyUp: (Eve) => {
+            if(!KeyObserver.onEvent(Eve)) return false;
+            if(KeyObserver.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyObserver.ActiveKeys[Eve.BibiKeyName] < 300) {
+                E.dispatch('bibi:touched-key', Eve);
+            }
+            if(Eve.BibiKeyName) {
+                if(KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
+                    delete KeyObserver.ActiveKeys[Eve.BibiKeyName];
+                }
+            }
+            E.dispatch('bibi:upped-key', Eve);
+        },
+        onKeyPress: (Eve) => {
+            if(!KeyObserver.onEvent(Eve)) return false;
+            E.dispatch('bibi:pressed-key', Eve);
+        },
+        observe: (Doc) => {
+            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyObserver['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
+        },
+        tryMoving: (Eve) => {
+            if(!Eve.BibiKeyName) return false;
+            const MovingParameter = KeyObserver.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
+            if(!MovingParameter) return false;
+            Eve.preventDefault();
+            if(typeof MovingParameter == 'string') return R.focusOn({ Destination: MovingParameter, Duration: 0 });
+            if(typeof MovingParameter == 'number') {
+                if(I.Turner.isAbleToTurn({ Distance: MovingParameter })) {
+                    const Turner = I.Turner[MovingParameter];
+                    const Arrow = Turner.Arrow;
+                    E.dispatch(Arrow, 'bibi:tapped', Eve);
+                    I.Turner.turn(Turner.Distance);
+                }
+            }
+        }
+    };
+    KeyObserver.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
+        32: 'Space'
+    });
+    KeyObserver.updateKeyCodes(['keydown', 'keyup'], {
+        33: 'Page Up',     34: 'Page Down',
+        35: 'End',         36: 'Home',
+        37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
+    });
+    E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyObserver.observe(Item.contentDocument));
+    E.add('bibi:opened', () => {
+        KeyObserver.initializeMovingParameters(), KeyObserver.updateMovingParameters(), E.add('bibi:changed-view', () => KeyObserver.updateMovingParameters());
+        KeyObserver.observe(document);
+        E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyObserver.tryMoving(Eve));
+    });
+    E.dispatch('bibi:created-keylistener');
 }};
 
 
@@ -3555,7 +3712,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
         },
         progress: (PageInfo) => {
             clearTimeout(Nombre.Timer_hide);
-            if(!PageInfo) PageInfo = R.Current;
+            if(!PageInfo) PageInfo = I.PageObserver.Current;
             if(!PageInfo.List.length) return; ////////
             const StartPageNumber = PageInfo.List[          0].Page.Index + 1;
             const   EndPageNumber = PageInfo.List.slice(-1)[0].Page.Index + 1;
@@ -3593,7 +3750,7 @@ I.History = {
     update: () => I.History.Updaters.forEach(fun => fun()),
     add: (Opt = {}) => {
         if(!Opt.UI) Opt.UI = Bibi;
-        const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { R.updateCurrent(); return R.Current.List[0].Page; })(),
+        const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })(),
                  LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List[I.History.List.length - 1].UI == Opt.UI) I.History.List.pop();
@@ -3679,7 +3836,7 @@ I.Slider = { create: () => {
             Eve.preventDefault();
             //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
             //setTimeout(() => R.Main.style.overflow = '', 1);
-            if(Slider.History) Slider.History.add({ Page: R.Current.List[0].Page });
+            if(Slider.History) Slider.History.add({ Page: I.PageObserver.Current.List[0].Page });
             Slider.Touching = true;
             Slider.TouchStartThumbCenterCoord = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2;
             Slider.TouchStartCoord = Slider.TouchingCoord = Slider.getTouchStartCoord(Eve);
@@ -3724,7 +3881,7 @@ I.Slider = { create: () => {
         focus: (Eve, Par = {}) => {
             const TargetPage = Slider.UI.identifyPage(Eve)
             Par.Destination = TargetPage;
-            for(let l = R.Current.List.length, i = 0; i < l; i++) if(R.Current.List[i].Page == TargetPage) return Promise.resolve();
+            for(let l = I.PageObserver.Current.List.length, i = 0; i < l; i++) if(I.PageObserver.Current.List[i].Page == TargetPage) return Promise.resolve();
             Par.Duration = 0;
             return R.focusOn(Par);
         },
@@ -3966,8 +4123,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             let Bookmark = null, ExistingBookmark = null;
             if(Opt.Added) Bookmark = Opt.Added;
             else if(L.Opened) {
-                R.updateCurrent();
-                const Page = R.Current.List[0].Page;
+                I.PageObserver.updateCurrent();
+                const Page = I.PageObserver.Current.List[0].Page;
                 Bookmark = {
                     'SI-PPiS': Page.Spread.Index + '-' + (Page.IndexInSpread / Page.Spread.Pages.length),
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
@@ -4082,12 +4239,12 @@ I.Turner = { create: () => {
                 if(Turner[Par.Direction]) Par.Distance = Turner[Par.Direction].Distance;
             }
             if(typeof Par.Distance == 'number') {
-                if(!R.Current.List.length) R.updateCurrent();
-                if(R.Current.List.length) {
+                if(!I.PageObserver.Current.List.length) I.PageObserver.updateCurrent();
+                if(I.PageObserver.Current.List.length) {
                     let CurrentEdge, BookEdgePage, Edged;
                     switch(Par.Distance) {
-                        case -1: CurrentEdge = R.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed'; break;
-                        case  1: CurrentEdge = R.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed'; break;
+                        case -1: CurrentEdge = I.PageObserver.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed'; break;
+                        case  1: CurrentEdge = I.PageObserver.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed'; break;
                     }
                     if(L.Opened && (
                         CurrentEdge.Page != BookEdgePage
@@ -4108,8 +4265,8 @@ I.Turner = { create: () => {
             Turner.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
                 const CIs = [
-                    R.Current.List[          0].Page.Index,
-                    R.Current.List.slice(-1)[0].Page.Index
+                    I.PageObserver.Current.List[          0].Page.Index,
+                    I.PageObserver.Current.List.slice(-1)[0].Page.Index
                 ], TI = CIs[Distance < 0 ? 0 : 1] + Distance;
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
@@ -4234,118 +4391,6 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return;
         `${ Context } div#bibi-arrow-back, ${ Context } div#bibi-arrow-forward`,
         `${ WidthOrHeight }: calc(100% - ${ Margin }px); ${ WidthOrHeight }: calc(100v${ WidthOrHeight.charAt(0) } - ${ Margin }px);`
     ));
-}};
-
-
-I.KeyObserver = { create: () => { if(!S['use-keys']) return;
-    const KeyObserver = I.KeyObserver = {
-        ActiveKeys: {},
-        KeyCodes: { 'keydown': {}, 'keyup': {}, 'keypress': {} },
-        updateKeyCodes: (EventTypes, KeyCodesToUpdate) => {
-            if(typeof EventTypes.join != 'function')  EventTypes = [EventTypes];
-            if(typeof KeyCodesToUpdate == 'function') KeyCodesToUpdate = KeyCodesToUpdate();
-            EventTypes.forEach(EventType => KeyObserver.KeyCodes[EventType] = sML.edit(KeyObserver.KeyCodes[EventType], KeyCodesToUpdate));
-        },
-        MovingParameters: {},
-        initializeMovingParameters: () => {
-            let _ = {};
-            if(S['accept-orthogonal-input']) switch(B.PPD) {
-                case 'ltr': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
-                case 'rtl': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
-            }
-            sML.applyRtL(_, { 'End': 'foot',  'Home': 'head' });
-            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : _[p] == 'head' ? 'foot' : _[p] == 'foot' ? 'head' : 0;
-            //sML.applyRtL(_, { 'Space': 1, 'SPACE': -1 }); // Space key is reserved for Loupe.
-            return KeyObserver.MovingParameters = _;
-        },
-        updateMovingParameters: () => {
-            if(S['accept-orthogonal-input']) return;
-            let _ = {};
-            switch(S.ARD) {
-                case 'ltr': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow': -1, 'Right Arrow':  1 }; break;
-                case 'rtl': _ = { 'Up Arrow':  0, 'Down Arrow': 0, 'Left Arrow':  1, 'Right Arrow': -1 }; break;
-                case 'ttb': _ = { 'Up Arrow': -1, 'Down Arrow': 1, 'Left Arrow':  0, 'Right Arrow':  0 }; break;
-            }
-            for(const p in _) _[p.toUpperCase()] = _[p] == -1 ? 'head' : _[p] == 1 ? 'foot' : 0;
-            sML.applyRtL(KeyObserver.MovingParameters, _);
-        },
-        getBibiKeyName: (Eve) => {
-            const KeyName = KeyObserver.KeyCodes[Eve.type][Eve.keyCode];
-            return KeyName ? KeyName : '';
-        },
-        onEvent: (Eve) => {
-            if(!L.Opened) return false;
-            Eve.BibiKeyName = KeyObserver.getBibiKeyName(Eve);
-            Eve.BibiModifierKeys = [];
-            if(Eve.shiftKey) Eve.BibiModifierKeys.push('Shift');
-            if(Eve.ctrlKey)  Eve.BibiModifierKeys.push('Control');
-            if(Eve.altKey)   Eve.BibiModifierKeys.push('Alt');
-            if(Eve.metaKey)  Eve.BibiModifierKeys.push('Meta');
-            //if(!Eve.BibiKeyName) return false;
-            if(Eve.BibiKeyName) Eve.preventDefault();
-            return true;
-        },
-        onKeyDown: (Eve) => {
-            if(!KeyObserver.onEvent(Eve)) return false;
-            if(Eve.BibiKeyName) {
-                if(!KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
-                    KeyObserver.ActiveKeys[Eve.BibiKeyName] = Date.now();
-                } else {
-                    E.dispatch('bibi:is-holding-key', Eve);
-                }
-            }
-            E.dispatch('bibi:downed-key', Eve);
-        },
-        onKeyUp: (Eve) => {
-            if(!KeyObserver.onEvent(Eve)) return false;
-            if(KeyObserver.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyObserver.ActiveKeys[Eve.BibiKeyName] < 300) {
-                E.dispatch('bibi:touched-key', Eve);
-            }
-            if(Eve.BibiKeyName) {
-                if(KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
-                    delete KeyObserver.ActiveKeys[Eve.BibiKeyName];
-                }
-            }
-            E.dispatch('bibi:upped-key', Eve);
-        },
-        onKeyPress: (Eve) => {
-            if(!KeyObserver.onEvent(Eve)) return false;
-            E.dispatch('bibi:pressed-key', Eve);
-        },
-        observe: (Doc) => {
-            ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyObserver['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
-        },
-        tryMoving: (Eve) => {
-            if(!Eve.BibiKeyName) return false;
-            const MovingParameter = KeyObserver.MovingParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
-            if(!MovingParameter) return false;
-            Eve.preventDefault();
-            if(typeof MovingParameter == 'string') return R.focusOn({ Destination: MovingParameter, Duration: 0 });
-            if(typeof MovingParameter == 'number') {
-                if(I.Turner.isAbleToTurn({ Distance: MovingParameter })) {
-                    const Turner = I.Turner[MovingParameter];
-                    const Arrow = Turner.Arrow;
-                    E.dispatch(Arrow, 'bibi:tapped', Eve);
-                    I.Turner.turn(Turner.Distance);
-                }
-            }
-        }
-    };
-    KeyObserver.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
-        32: 'Space'
-    });
-    KeyObserver.updateKeyCodes(['keydown', 'keyup'], {
-        33: 'Page Up',     34: 'Page Down',
-        35: 'End',         36: 'Home',
-        37: 'Left Arrow',  38: 'Up Arrow',  39: 'Right Arrow',  40: 'Down Arrow'
-    });
-    E.add('bibi:postprocessed-item', Item => Item.IsPlaceholder ? false : KeyObserver.observe(Item.contentDocument));
-    E.add('bibi:opened', () => {
-        KeyObserver.initializeMovingParameters(), KeyObserver.updateMovingParameters(), E.add('bibi:changed-view', () => KeyObserver.updateMovingParameters());
-        KeyObserver.observe(document);
-        E.add(['bibi:touched-key', 'bibi:is-holding-key'], Eve => KeyObserver.tryMoving(Eve));
-    });
-    E.dispatch('bibi:created-keylistener');
 }};
 
 
