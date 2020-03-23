@@ -12,15 +12,16 @@ Bibi.preset({
 //-- Behavior
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"reader-view-mode"             : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
-"fix-reader-view-mode"         : "no", // "yes" or "no" or "desktop" or "mobile"
+"reader-view-mode"              : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
+"full-breadth-layout-in-scroll" : "no", // "yes" or "no" or "desktop" or "mobile"
+"fix-reader-view-mode"          : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"keep-settings"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-"resume-from-last-position"    : "yes", // "yes" or "no" or "desktop" or "mobile"
+"keep-settings"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"resume-from-last-position"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"autostart"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
-"autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
-"start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
+"autostart"                     : "yes", // "yes" or "no" or "desktop" or "mobile"
+"autostart-embedded"            : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
+"start-embedded-in-new-window"  : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
 
 //==============================================================================================================================================

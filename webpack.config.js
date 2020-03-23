@@ -56,6 +56,7 @@ const Config = {
             'bibi/resources/scripts/polyfills/intersection-observer.js',
             'bibi/resources/styles/bibi.css',
             'bibi/resources/scripts/bibi.js',
+            'bibi-demo/embedding/index.css'
         ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'bib/i.js'
@@ -76,7 +77,8 @@ const Config = {
         [Bibi.SRC]: [
             'bibi/*.html',
             'bibi/presets/**',
-            'bibi-bookshelf/__samples/**/*.epub'
+            'bibi-bookshelf/__samples/**/*.epub',
+            'bibi-demo/**/*.html'
         ],
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'README.BackCompatKit.md',

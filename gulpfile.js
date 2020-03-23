@@ -26,7 +26,9 @@ gulp.task('clean', done => {
             'bibi/wardrobe',
             'bib/i/*.html',
             'bib/i.js',
-            'bib/i/presets'
+            'bib/i/presets',
+            'bibi-bookshelf/__samples',
+            'bibi-demo'
         ].map(
             X => Bibi.DIST + '/' + X
         ));

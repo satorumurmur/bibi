@@ -5,50 +5,69 @@ Bibi.x({
     id: 'Zine',
     description: 'Utilities for BibiZine.',
     author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '1.1.1'
+    version: '1.2.0'
 
 })(function() {
 
     'use strict';
 
-    B.ZineData = { Path: 'zine.yaml', Dir: '' };
+    this.loadZineData = () => this.setZineMode().then(this.openYAML).then(this.createPackageDocument).then(L.loadPackage.process);
 
-    this.loadZineData = () => this.openYAML(B.ZineData.Path).then(this.processZineData).then(L.loadPackage.process);
+    this.setZineMode = () => {
+        delete B.Container;
+        B.Package.Path = B.ZineData.Path;
+        Object.defineProperty(B, 'ZineData', { get: () => B.Package });
+        return Promise.resolve();
+    };
 
-    this.openYAML = (Path) => O.file(Path).then(jsyaml.safeLoad);
+    this.openYAML = () => O.file(B.ZineData).then(ZineFile => jsyaml.safeLoad(ZineFile.Content));
 
-    this.processZineData = (Data) => {
-        sML.edit(B.Package, B.ZineData);
-        const Doc = document.createElement('bibi:zine');
+    this.createPackageDocument = (YAML) => {
+        const NS = {
+            OPF: 'http://www.idpf.org/2007/opf',
+             DC: 'http://purl.org/dc/elements/1.1/'
+        };
+        const Doc = document.implementation.createDocument(NS.OPF, 'package');
+        // Package
+        const Package = Doc.documentElement;
+        Package.setAttribute('xmlns',    NS.OPF);
+        Package.setAttribute('xmlns:dc', NS.DC);
         // Metadata
-        const Metadata = Doc.appendChild(document.createElement('metadata'));
-        ['identifier', 'title', 'creator', 'publisher', 'language', 'rendition-layout', 'rendition-orientation', 'rendition-spread'].forEach(Pro => {
-            if(!Data[Pro]) return;
-            const Meta = Metadata.appendChild(document.createElement('meta'));
+        const Metadata = Package.appendChild(document.createElementNS(NS.OPF, 'metadata'));
+        ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => {
+            if(!YAML[Pro]) return;
+            const Meta = Metadata.appendChild(document.createElementNS(NS.DC, 'dc:' + Pro));
+            Meta.textContent = YAML[Pro];
+        });
+        ['rendition-layout', 'rendition-orientation', 'rendition-spread'].forEach(Pro => {
+            if(!YAML[Pro]) return;
+            const Meta = Metadata.appendChild(document.createElementNS(NS.OPF, 'meta'));
             Meta.setAttribute('property', Pro.replace('-', ':'));
-            Meta.textContent = Data[Pro];
+            Meta.textContent = YAML[Pro];
         });
         // Manifest & Spine
-        const Manifest = Doc.appendChild(document.createElement('manifest'));
+        const Manifest = Package.appendChild(document.createElementNS(NS.OPF, 'manifest'));
         ['cover-image', 'nav'].forEach(Pro => {
-            if(!Data[Pro]) return;
-            const Item = Manifest.appendChild(document.createElement('item'));
+            if(!YAML[Pro]) return;
+            const Item = Manifest.appendChild(document.createElementNS(NS.OPF, 'item'));
             Item.setAttribute('id', Pro + '-item');
             Item.setAttribute('properties', Pro);
-            Item.setAttribute('href', Data[Pro]);
+            Item.setAttribute('media-type', O.getContentType(YAML[Pro]));
+            Item.setAttribute('href', YAML[Pro]);
         });
-        const Spine = Doc.appendChild(document.createElement('spine'));
-        if(Data['page-progression-direction']) Spine.setAttribute('page-progression-direction', Data['page-progression-direction']);
-        Data['spine'].forEach((ItemrefData, i) => {
-            if(!ItemrefData) return;
-            ItemrefData = ItemrefData.trim().replace(/\s+/, ' ').split(' ');
+        const Spine = Package.appendChild(document.createElementNS(NS.OPF, 'spine'));
+        if(YAML['page-progression-direction']) Spine.setAttribute('page-progression-direction', YAML['page-progression-direction']);
+        YAML['spine'].forEach((ItemRefData, i) => {
+            if(!ItemRefData) return;
             const ID = 'spine-item-' + (i + 1 + '').padStart(3, 0);
-            const Item = Manifest.appendChild(document.createElement('item'));
+            const [Href, PageSpread] = ItemRefData.trim().replace(/\s+/, ' ').split(' ');
+            const Item = Manifest.appendChild(document.createElementNS(NS.OPF, 'item'));
             Item.setAttribute('id', ID);
-            Item.setAttribute('href', ItemrefData[0]);
-            const Itemref = Spine.appendChild(document.createElement('itemref'));
-            Itemref.setAttribute('idref', ID);
-            if(ItemrefData[1]) Itemref.setAttribute('properties', 'page-spread-' + ItemrefData[1]);
+            Item.setAttribute('media-type', O.getContentType(Href));
+            Item.setAttribute('href', Href);
+            const ItemRef = Spine.appendChild(document.createElementNS(NS.OPF, 'itemref'));
+            ItemRef.setAttribute('idref', ID);
+            if(PageSpread) ItemRef.setAttribute('properties', 'page-spread-' + PageSpread);
         });
         return Promise.resolve(Doc);
     };
