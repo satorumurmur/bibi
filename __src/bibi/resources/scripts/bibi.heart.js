@@ -225,10 +225,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     return L.createCover(); // ← loading is async
 }).then(() => {
     // Load Navigation
-    if(!B.NavItem) {
-        O.log(`No Navigation.`)
-        return resolve();
-    }
+    if(!B.NavItem) return O.log(`No Navigation.`)
     O.log(`Loading Navigation...`, '<g:>');
     return L.loadNavigation().then(PNav => {
         O.log(`${ B.NavItem.NavType }: %O`, B.NavItem);
@@ -2897,38 +2894,20 @@ I.Notifier = { create: () => {
 I.Veil = { create: () => {
     const Veil = I.Veil = I.setToggleAction(O.Body.appendChild(sML.create('div', { id: 'bibi-veil' })), {
         // Translate: 240, /* % */ // Rotate: -48, /* deg */ // Perspective: 240, /* px */
-        onopened:  function() {
-            O.HTML.classList.add('veil-opened');
-            this.classList.remove('closed');
-        },
-        onclosed: function() {
-            this.classList.add('closed');
-            O.HTML.classList.remove('veil-opened');
-        }
+        onopened: () => (O.HTML.classList.add('veil-opened'), Veil.classList.remove('closed')),
+        onclosed: () => (Veil.classList.add('closed'), O.HTML.classList.remove('veil-opened'))
     });
     Veil.open();
     const PlayButtonTitle = (O.TouchOS ? 'Tap' : 'Click') + ' to Open';
-    Veil.PlayButton = Veil.appendChild(
+    const PlayButton = Veil.PlayButton = Veil.appendChild(
         sML.create('p', { id: 'bibi-veil-play', title: PlayButtonTitle,
             innerHTML: `<span class="non-visual">${ PlayButtonTitle }</span>`,
-            play: (Eve) => {
-                Eve.stopPropagation();
-                L.play();
-                //M.post('bibi:play:button:' + location.href);
-                E.dispatch('bibi:played:by-button');
-            },
-            hide: function() {
-                sML.style(this, {
-                    opacity: 0,
-                    cursor: 'default'
-                }).then(Eve => this.parentNode.removeChild(this));
-            },
-            on: {
-                click: function(Eve) { this.play(Eve); }
-            }
+            play: (Eve) => (Eve.stopPropagation(), L.play(), E.dispatch('bibi:played:by-button')),
+            hide: (   ) => sML.style(PlayButton, { opacity: 0, cursor: 'default' }).then(Eve => Veil.removeChild(PlayButton)),
+            on: { click: Eve => PlayButton.play(Eve) }
         })
     );
-    E.add('bibi:played', () => Veil.PlayButton.hide());
+    E.add('bibi:played', () => PlayButton.hide());
     Veil.byebye = (Msg = {}) => {
         Veil.innerHTML = '';
         Veil.ByeBye = Veil.appendChild(sML.create('p', { id: 'bibi-veil-byebye' }));
@@ -4932,12 +4911,8 @@ S.initialize = (before, after) => {
     else                          S['accept-local-file'] = S['accept-local-file'] && (S['extract-if-necessary'].includes('*') || S['extract-if-necessary'].includes('.epub') || S['extract-if-necessary'].includes('.zip')) ? true : false;
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
-    S['autostart'] = (() => {
-        if( S['wait']) return false;
-        if(!S['book']) return true;
-        return O.Embedded ? S['autostart-embedded'] : S['autostart'];
-    })();
-    S['start-in-new-window'] = (O.Embedded && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
+    S['autostart'] = S['wait'] ? false : !S['book'] ? true : window.parent != window ? S['autostart-embedded'] : S['autostart'];
+    S['start-in-new-window'] = (window.parent != window && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
     const MaxOfHistoryAndBookmarks = { 'history': 19, 'bookmarks': 9 };
