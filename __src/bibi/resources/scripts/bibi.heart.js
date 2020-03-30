@@ -683,9 +683,9 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
                 Item.Index = R.Items.length;
                 R.Items.push(Item);
                 let Spread = null;
-                if(ItemRef['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
+                if(ItemRef['rendition:layout'] == 'pre-paginated' && ItemRef['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
                     const PreviousItem = R.Items[Item.Index - 1];
-                    if(PreviousItem.Ref['rendition:page-spread'] == SpreadBefore) {
+                    if(ItemRef['rendition:layout'] == 'pre-paginated' && PreviousItem.Ref['rendition:page-spread'] == SpreadBefore) {
                         PreviousItem.SpreadPair = Item;
                         Item.SpreadPair = PreviousItem;
                         Spread = Item.Spread = PreviousItem.Spread;
