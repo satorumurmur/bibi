@@ -211,6 +211,7 @@ License
     - [JSZip](http://stuk.github.io/jszip) ... Copyright &copy; Stuart Knightley (Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown).)
     - [JSZipUtils](http://stuk.github.io/jszip-utils) ... Copyright &copy; Stuart Knightley (Dual licensed under [the the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown).)
     - [JS-YAML](http://nodeca.github.io/js-yaml/) ... Copyright &copy; Vitaly Puzrin (Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE).)
+    - [DOMPurify](https://github.com/cure53/DOMPurify) ... Copyright &copy; Mario Heiderich (Dual licensed under [the Apache License Version 2.0 or the Mozilla Public License Version 2.0](https://github.com/cure53/DOMPurify/blob/master/LICENSE).)
 * Polyfills:
     - [classlist-polyfill](https://github.com/yola/classlist-polyfill) ... by Yola Inc. (Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE))
     - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) ... by Erik Arvidsson (Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md).)

@@ -46,6 +46,7 @@ const Config = {
             'bibi/extensions/epubcfi.js',
             'bibi/extensions/extractor/at-once.js',
             'bibi/extensions/extractor/on-the-fly.js',
+            'bibi/extensions/sanitizer.js',
             'bibi/extensions/unaccessibilizer.js',
             'bibi/extensions/zine.js',
             'bibi/resources/scripts/bibi.js',

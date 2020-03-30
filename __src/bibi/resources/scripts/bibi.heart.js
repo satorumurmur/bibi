@@ -139,6 +139,7 @@ Bibi.initialize = () => {
 Bibi.loadExtensions = () => {
     return new Promise((resolve, reject) => {
         const AdditionalExtensions = [];
+        if(!S['allow-scripts-in-content']) AdditionalExtensions.push('sanitizer.js');
         let ReadyForExtraction = false, ReadyForBibiZine = false;
         if(S['book']) {
             if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
@@ -901,7 +902,12 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 const HrefHashInSource = HrefPathInSource.split('#')[1];
                 HrefPathInSource = (HrefHashInSource ? '#' + HrefHashInSource : R.Items[0].RefChain[0])
             } else {
-                A.setAttribute('target', A.getAttribute('target') || '_blank');
+                A.addEventListener('click', Eve => {
+                    Eve.preventDefault(); 
+                    Eve.stopPropagation();
+                    window.open(A.href);
+                    return false;
+                });
                 continue;
             }
         }
@@ -1011,84 +1017,68 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     }
     ItemBox.classList.remove('loaded');
     return new Promise((resolve, reject) => {
-        if(Item.BlobURL) { resolve({}); return; }
-        if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            if(!B.ExtractionPolicy /*!!!!!!!!*/ && !sML.UA.Gecko /*!!!!!!!!*/ ) { // Extracted (exclude Gecko from here, because of such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault.)
-                resolve({
-                    URL: O.fullPath(Item.Path)
-                }); return;
-            }
-            O.file(Item, { Preprocess: true }).then(Item => { // Archived (or Gecko. It's NOT Gecko's fault...)
-                resolve({
-                    HTML: Item.Content.replace(/^<\?.+?\?>/, '')
-                })
-            }).catch(reject); return;
-        }
-        if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
-            O.file(Item, { URI: true }).then(Item => {
-                resolve({
-                    Head: (Item.Ref['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
-                    Body: `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
-                })
-            }).catch(reject); return;
-        }
-        if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
-            O.file(Item, { Preprocess: true }).then(Item => {
-                const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Content.match(StyleSheetRE);
-                let StyleSheets = '', Content = Item.Content;
-                if(MatchedStyleSheets) StyleSheets = MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join(''), Content = Content.replace(StyleSheetRE, '');
-                resolve({
-                    Head: (!B.ExtractionPolicy ? `<base href="${ O.fullPath(Item.Path) }" />` : '') + StyleSheets,
-                    Body: Content
-                });
-            }).catch(reject); return;
-        }
-        resolve({});
+        if(Item.BlobURL) {
+            resolve();
+        } else if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
+            O.file(Item, {
+                Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
+                initialize: () => {
+                    if(!S['allow-scripts-in-content']) O.sanitizeItemContent(Item, { As: 'HTML' });
+                }
+            }).then(Item => resolve(Item.Content));
+        } else if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
+            O.file(Item, {
+                URI: true
+            }).then(Item => resolve([
+                (Item.Ref['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
+                `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
+            ]));
+        } else if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
+            O.file(Item, {
+                Preprocess: (B.ExtractionPolicy ? true : false),
+                initialize: () => {
+                    const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Content.match(StyleSheetRE);
+                    if(!S['allow-scripts-in-content']) O.sanitizeItemContent(Item, { As: 'SVG' });
+                    Item.Content = (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('') : '') + '<bibi:boundary/>' + Item.Content; // Join for preprocessing.
+                }
+            }).then(Item => resolve(Item.Content.split('<bibi:boundary/>')));
+        } else reject();
+    }).catch(() => {
+        Item.Skipped = true;
+        return {};
     }).then(Source => new Promise(resolve => {
         const DefaultStyleID = 'bibi-default-style';
-        if(Source.URL) {
-            Item.onload = () => {
-                const Head = Item.contentDocument.getElementsByTagName('head')[0];
-                const Link = sML.create('link', { rel: 'stylesheet', id: DefaultStyleID, href: Bibi.BookStyleURL, onload: resolve });
-                Head.insertBefore(Link, Head.firstChild);
-            };
-            Item.src = Source.URL;
-        } else {
-            if(!Item.BlobURL) {
-                let HTML = Source.HTML || `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source.Head || '' }</head><body>${ Source.Body || '' }</body></html>`;
-                HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />`);
-                if(sML.UA.Trident || sML.UA.EdgeHTML) {
-                    // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
-                    HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
-                    Item.onLoaded = () => {
-                        resolve();
-                        const Script = Item.contentDocument.getElementById('bibi-onload');
-                        Script.parentNode.removeChild(Script);
-                        delete Item.onLoaded;
-                    };
-                    Item.src = '';
-                    ItemBox.insertBefore(Item, ItemBox.firstChild);
-                    Item.contentDocument.open();
-                    Item.contentDocument.write(HTML);
-                    Item.contentDocument.close();
-                    return;
-                }
-                Item.BlobURL = URL.createObjectURL(new Blob([HTML], { type: 'text/html' })), Item.Content = '';
+        Item.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+        if(!Item.BlobURL) {
+            let HTML = typeof Source == 'string' ? Source : `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source[0] || '' }</head><body>${ Source[1] || '' }</body></html>`;
+            HTML = HTML.replace(/^<\?.+?\?>/, '').replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!Item.Preprocessed ? `<base href="${ O.fullPath(Item.Path) }" />` : ''));
+            if(sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
+                HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
+                Item.onLoaded = () => {
+                    resolve();
+                    Item.contentDocument.head.removeChild(Item.contentDocument.getElementById('bibi-onload'));
+                    delete Item.onLoaded;
+                };
+                Item.src = '';
+                ItemBox.insertBefore(Item, ItemBox.firstChild);
+                Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
+                return;
             }
-            Item.onload = resolve;
-            Item.src = Item.BlobURL;
+            Item.BlobURL = URL.createObjectURL(new Blob([HTML], { type: 'text/html' }));
+            Item.Content = '';
         }
+        Item.onload = () => resolve();
+        Item.src = Item.BlobURL;
         ItemBox.insertBefore(Item, ItemBox.firstChild);
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
-        //console.log(Item.src);
         Item.Loaded = true;
         ItemBox.classList.add('loaded');
         E.dispatch('bibi:loaded-item', Item);
         Item.stamp('Loaded');
-        return Item;
-    }).catch(() => Promise.reject());
+        return !Item.Skipped ? Promise.resolve(Item) : Promise.reject(Item);
+    });
 };
 
 
@@ -1143,6 +1133,7 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     Item.StyleSheets = [];
     sML.forEach(Item.HTML.querySelectorAll('link, style'))(SSEle => {
         if(/^link$/i.test(SSEle.tagName)) {
+            if(!SSEle.href) return;
             if(!/^(alternate )?stylesheet$/.test(SSEle.rel)) return;
             if((sML.UA.Safari || sML.OS.iOS) && SSEle.rel == 'alternate stylesheet') return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
         }
@@ -1157,7 +1148,6 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     };
     if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 33);
 }).then(() => {
-    //console.log(Item.StyleSheets);
     if(!Item.Preprocessed) {
         if(B.Package.Metadata['ebpaj:guide-version']) {
             const Versions = B.Package.Metadata['ebpaj:guide-version'].split('.');
@@ -5003,7 +4993,10 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
             case 'on-the-fly': return O.extract(Item);
         }
         return O.download(Item);
-    })().then(Item => (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item).then(() => {
+    })().then(Item => {
+        if(typeof Opt.initialize == 'function') Opt.initialize();
+        return (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item;
+    }).then(Item => {
         if(Opt.URI) O.getBlobURL(Item).then(Item => { Item.Content = ''; resolve(Item); });
         else resolve(Item);
      }).catch(reject);
@@ -5532,6 +5525,7 @@ O.SettingTypes_PresetOnly = {
     'boolean': [
         'accept-base64-encoded-data',
         'accept-blob-converted-data',
+        'allow-scripts-in-content',
         'remove-bibi-website-link'
     ],
     'yes-no': [
