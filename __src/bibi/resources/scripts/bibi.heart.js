@@ -1229,49 +1229,57 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
         });
     });
 }).then(() => {
-    const SpreadSize = { Width: 0, Height: 0 }, SpreadItems = Spread.Items, SpreadBox = Spread.Box;
-    Spread.Spreaded = (SpreadItems[0].Spreaded || (SpreadItems[1] && SpreadItems[1].Spreaded)) ? true : false;
-    SpreadBox.classList.toggle('spreaded', Spread.Spreaded);
-    if(SpreadItems.length == 1) {
-        // Single Reflowable/Pre-Paginated Item
-        SpreadSize.Width  = SpreadItems[0].Box.offsetWidth;
-        SpreadSize.Height = SpreadItems[0].Box.offsetHeight;
-        if(Spread.Spreaded && SpreadItems[0].Ref['rendition:layout'] == 'pre-paginated' && /^(left|right)$/.test(SpreadItems[0].Ref['rendition:page-spread'])) {
-            // Single Pre-Paginated Spreaded Left/Right Item
-            SpreadSize.Width *= 2;
-        }
-    } else if(SpreadItems[0].Ref['rendition:layout'] == 'pre-paginated' && SpreadItems[1].Ref['rendition:layout'] == 'pre-paginated') {
-        // Paired Pre-Paginated Items
-        if(Spread.Spreaded || S.RVM != 'vertical') {
-            SpreadSize.Width  =          SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth;
-            SpreadSize.Height = Math.max(SpreadItems[0].Box.offsetHeight, SpreadItems[1].Box.offsetHeight);
-        } else {
-            SpreadSize.Width  = Math.max(SpreadItems[0].Box.offsetWidth,   SpreadItems[1].Box.offsetWidth);
-            SpreadSize.Height =          SpreadItems[0].Box.offsetHeight + SpreadItems[1].Box.offsetHeight;
-        }
+    const SpreadSize = { Width: 0, Height: 0 }, SpreadBox = Spread.Box;
+    if(Spread.Items.length == 1) {
+        const Item = Spread.Items[0];
+        Spread.Spreaded = Item.Spreaded ? true : false;
+        SpreadSize.Width  = (Spread.Spreaded && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.Ref['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
+        SpreadSize.Height = Item.Box.offsetHeight;
     } else {
-        // Paired Items Including Reflowable
-        if(S.SLA == 'horizontal') { // if(R.Stage.Width > SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth) {
-            // horizontal layout
-            SpreadSize.Width  =          SpreadItems[0].Box.offsetWidth + SpreadItems[1].Box.offsetWidth;
-            SpreadSize.Height = Math.max(SpreadItems[0].Box.offsetHeight, SpreadItems[1].Box.offsetHeight);
-            if(Bibi.Dev) {
-                O.log(`Paired Items incl/Reflowable (Horizontal)`, '<g:>');
-                O.log(`[0] w${ SpreadItems[0].Box.offsetWidth }/h${ SpreadItems[0].Box.offsetHeight } %O`, SpreadItems[0]);
-                O.log(`[1] w${ SpreadItems[1].Box.offsetWidth }/h${ SpreadItems[1].Box.offsetHeight } %O`, SpreadItems[1]);
-                O.log(`-=> w${               SpreadSize.Width }/h${               SpreadSize.Height } %O`, Spread, '</g>');
+        const ItemA = Spread.Items[0], ItemB = Spread.Items[1];
+        Spread.Spreaded = (ItemA.Spreaded || ItemB.Spreaded) ? true : false;
+        if(ItemA.Ref['rendition:layout'] == 'pre-paginated' && ItemB.Ref['rendition:layout'] == 'pre-paginated') {
+            // Paired Pre-Paginated Items
+            if(Spread.Spreaded || S.RVM != 'vertical') {
+                // Spreaded
+                SpreadSize.Width  =          ItemA.Box.offsetWidth  + ItemB.Box.offsetWidth;
+                SpreadSize.Height = Math.max(ItemA.Box.offsetHeight,  ItemB.Box.offsetHeight);
+            } else {
+                // Not Spreaded (Vertical)
+                SpreadSize.Width  = Math.max(ItemA.Box.offsetWidth,   ItemB.Box.offsetWidth);
+                SpreadSize.Height =          ItemA.Box.offsetHeight + ItemB.Box.offsetHeight;
             }
         } else {
-            // vertical layout
-            SpreadSize.Width  = Math.max(SpreadItems[0].Box.offsetWidth,   SpreadItems[1].Box.offsetWidth);
-            SpreadSize.Height =          SpreadItems[0].Box.offsetHeight + SpreadItems[1].Box.offsetHeight;
-            if(Bibi.Dev) {
-                O.log(`Paired Items incl/Reflowable (Vertical)`, '<g:>');
-                O.log(`[0] w${ SpreadItems[0].Box.offsetWidth }/h${ SpreadItems[0].Box.offsetHeight } %O`, SpreadItems[0]);
-                O.log(`[1] w${ SpreadItems[1].Box.offsetWidth }/h${ SpreadItems[1].Box.offsetHeight } %O`, SpreadItems[1]);
-                O.log(`-=> w${               SpreadSize.Width }/h${               SpreadSize.Height } %O`, Spread, '</g>');
+            // Paired Items Including Reflowable // currently not appearable.
+            if(S.SLA == 'horizontal') { // if(R.Stage.Width > ItemA.Box.offsetWidth + ItemB.Box.offsetWidth) {
+                // horizontal layout
+                SpreadSize.Width  =          ItemA.Box.offsetWidth + ItemB.Box.offsetWidth;
+                SpreadSize.Height = Math.max(ItemA.Box.offsetHeight, ItemB.Box.offsetHeight);
+                if(Bibi.Dev) {
+                    O.log(`Paired Items incl/Reflowable (Horizontal)`, '<g:>');
+                    O.log(`[0] w${ ItemA.Box.offsetWidth }/h${ ItemA.Box.offsetHeight } %O`, ItemA);
+                    O.log(`[1] w${ ItemB.Box.offsetWidth }/h${ ItemB.Box.offsetHeight } %O`, ItemB);
+                    O.log(`-=> w${      SpreadSize.Width }/h${      SpreadSize.Height } %O`, Spread, '</g>');
+                }
+            } else {
+                // vertical layout
+                SpreadSize.Width  = Math.max(ItemA.Box.offsetWidth,   ItemB.Box.offsetWidth);
+                SpreadSize.Height =          ItemA.Box.offsetHeight + ItemB.Box.offsetHeight;
+                if(Bibi.Dev) {
+                    O.log(`Paired Items incl/Reflowable (Vertical)`, '<g:>');
+                    O.log(`[0] w${ ItemA.Box.offsetWidth }/h${ ItemA.Box.offsetHeight } %O`, ItemA);
+                    O.log(`[1] w${ ItemB.Box.offsetWidth }/h${ ItemB.Box.offsetHeight } %O`, ItemB);
+                    O.log(`-=> w${      SpreadSize.Width }/h${      SpreadSize.Height } %O`, Spread, '</g>');
+                }
             }
         }
+    }
+    const MinSpaceOfEdge = (S.RVM != 'paged' && (Spread.Index == 0 || Spread.Index == R.Spreads.length - 1)) ? Math.floor((R.Stage[C.L_SIZE_L] - SpreadSize[C.L_SIZE_L]) / 2) : 0;
+    if(MinSpaceOfEdge > 0) {
+        if(Spread.Index == 0                   ) Spread.style['padding' + C.L_BASE_B] = MinSpaceOfEdge + 'px', SpreadSize[C.L_SIZE_L] += MinSpaceOfEdge;
+        if(Spread.Index == R.Spreads.length - 1) Spread.style['padding' + C.L_BASE_A] = MinSpaceOfEdge + 'px', SpreadSize[C.L_SIZE_L] += MinSpaceOfEdge;
+    } else {
+        Spread.style.padding = '';
     }
     if(O.Scrollbars.Height && S.SLA == 'vertical' && S.ARA != 'vertical') {
         SpreadBox.style.minHeight    = S.RVM == 'paged' ?   'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
@@ -1279,6 +1287,7 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
     } else {
         SpreadBox.style.minHeight = SpreadBox.style.marginBottom = ''
     }
+    SpreadBox.classList.toggle('spreaded', Spread.Spreaded);
     SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
     SpreadBox.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
     //sML.style(Spread, { 'border-radius': S['spread-border-radius'], 'box-shadow': S['spread-box-shadow'] });
