@@ -491,7 +491,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
     if(!Par || !Par.BookData) return reject(`Book Data Is Undefined.`);
     let BookData = Par.BookData;
     const BookDataFormat =
-        typeof BookData == 'string' ? (/^https?:\/\//.test(BookData) ? 'URI' : 'Base64') :
+        typeof BookData == 'string' ? (/^https?:\/\//.test(BookData) || /^ms-local-stream:\/\//.test(BookData) ? 'URI' : 'Base64') :
         typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'BLOB' : '') : '';
     if(!BookDataFormat) return reject(`Book Data Is Unknown.`);
     if(BookDataFormat == 'URI') {
