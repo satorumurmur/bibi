@@ -7,6 +7,7 @@
 'use strict';
 
 const Webpack = require('webpack');
+const Path = require('path'), resolvePath = (..._) => Path.resolve(__dirname, _.join('/'));
 
 const Package = require('./package.json');
 const Bibi = require('./bibi.info.js');
@@ -37,8 +38,8 @@ const Config = {
     optimization: { minimizer: [] },
     output: { path: __dirname + '/' + (Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
     entry: ((Entries, PathListsA, PathListsB) => {
-        for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = __dirname + '/' + SrcDir + '/' +                     P.replace(/\.css$/, '.scss'));
-        for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = __dirname + '/' + SrcDir + '/' + PathListsB[SrcDir][P].replace(/\.css$/, '.scss') ;
+        for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir,                     P.replace(/\.css$/, '.scss')));
+        for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, PathListsB[SrcDir][P].replace(/\.css$/, '.scss')) ;
         return Entries;
     })({}, {
         [Bibi.SRC]: [
@@ -70,7 +71,7 @@ const Config = {
         for(const SrcDir in PathLists) {
             const Entries = [];
             PathLists[SrcDir].forEach(P => Entries.push({ from: P, to: '.' }));
-            RelativeCopySettings.push(new CopyPlugin(Entries, { context: SrcDir }));
+            RelativeCopySettings.push(new CopyPlugin(Entries, { context: resolvePath(SrcDir) }));
         }
         return RelativeCopySettings;
     })([], {
@@ -97,7 +98,9 @@ const Config = {
     ]),
     module: { rules: [{
         test: /\.m?js$/,
-        exclude: /\/on-the-fly\.bibi-zip-loader\.worker\.js$/,
+        exclude: [
+            /bibi-zip-loader/
+        ],
         use: [{
             loader: 'babel-loader', options: {
                 babelrc: false,
@@ -110,7 +113,10 @@ const Config = {
             }
         }]
     }, {
-        test: /\/(bibi\.heart|jo)\.js$/,
+        include: [
+            resolvePath(Bibi.SRC, 'bibi/and/jo.js'),
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.heart.js')
+        ],
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /____Bibi-Version____/ig,
@@ -144,7 +150,10 @@ const Config = {
     ];
     Config.module.rules.push({
         test: /\.scss$/,
-        exclude: /\/(bibi\.book|jo)\.scss$/,
+        exclude: [
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss'),
+            resolvePath(Bibi.SRC, 'bibi/and/jo.scss')
+        ],
         use: [
             MiniCSSExtractPlugin.loader,
             StringReplacePlugin.replace({ replacements: [{
@@ -154,13 +163,19 @@ const Config = {
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\/(bibi\.book|jo)\.scss$/,
+        include: [
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss'),
+            resolvePath(Bibi.SRC, 'bibi/and/jo.scss')
+        ],
         use: [
             { loader: 'style-loader' }
         ].concat(CommonLoadersForCSS)
     });
     Config.module.rules.push({
-        test: /\/MaterialIcons-Regular\.(eot|svg|ttf|wof|woff|woff2)$/,
+        test: /\.(eot|svg|ttf|wof|woff|woff2)$/,
+        include: [
+            resolvePath('node_modules/material-icons/iconfont/MaterialIcons-Regular')
+        ],
         use: [
             { loader: 'file-loader', options: {
                 outputPath: 'bibi/resources/styles/fonts',
@@ -179,7 +194,9 @@ const Config = {
 
 if(IsDev) {
     Config.module.rules.push({
-        test: /\/bibi\.heart\.js$/,
+        include: [
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.heart.js')
+        ],
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /$/,
@@ -189,7 +206,9 @@ if(IsDev) {
     });
 } else {
     Config.module.rules.push({
-        test: /bibi-zip-loader/,
+        include: [
+            /bibi-zip-loader/
+        ],
         use: [
             StringReplacePlugin.replace({ replacements: [{
                 pattern: /# sourceURL=webpack:\/+/g,
@@ -206,7 +225,7 @@ if(IsDev) {
             }]})
         ]
     });
-    for(const N in Bibi.Banners) if(N) Config.plugins.push(new Webpack.BannerPlugin({ test: new RegExp(N.replace(/([\/\.])/g, '\\$1') + '$'), banner: Bibi.Banners[N], raw: true }));
+    for(const B in Bibi.Banners) if(B && Bibi.Banners[B]) Config.plugins.push(new Webpack.BannerPlugin({ test: B, banner: Bibi.Banners[B], raw: true }));
     Config.optimization.minimizer.push(new TerserPlugin({
         cache: true,
         parallel: true,
