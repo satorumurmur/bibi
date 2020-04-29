@@ -78,14 +78,14 @@ Bibi.SettingTypes_PresetOnly = {
         'bookshelf'
     ],
     'integer': [
-        'max-history',
-        'max-bookmarks'
+        'max-bookmarks',
+        'max-history'
     ],
     'number': [
     ],
     'array': [
-        'extract-if-necessary',
         'extensions',
+        'extract-if-necessary',
         'trustworthy-origins'
     ]
 };
@@ -118,35 +118,38 @@ Bibi.SettingTypes_UserOnly = {
 Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue[SettingType](_P, _V, Fill); (Verifiers => { for(const SettingType in Verifiers) Bibi.verifySettingValue[SettingType] = Verifiers[SettingType]; })({
     'boolean': (_P, _V, Fill) => {
         if(typeof _V == 'boolean') return _V;
-        if(_V == 'true'  || _V == '1' || _V == 1) return true;
-        if(_V == 'false' || _V == '0' || _V == 0) return false;
+        if(_V === 'true'  || _V === '1' || _V === 1) return true;
+        if(_V === 'false' || _V === '0' || _V === 0) return false;
         if(Fill) return false;
     },
     'yes-no': (_P, _V, Fill) => {
         if(/^(yes|no|mobile|desktop)$/.test(_V)) return _V;
-        if(_V == 'true'  || _V == '1' || _V == 1) return 'yes';
-        if(_V == 'false' || _V == '0' || _V == 0) return 'no';
+        if(_V === 'true'  || _V === '1' || _V === 1) return 'yes';
+        if(_V === 'false' || _V === '0' || _V === 0) return 'no';
         if(Fill) return 'no';
     },
     'string': (_P, _V, Fill) => {
-        if(typeof _V == 'string' && _V) {
+        if(typeof _V == 'string') {
             switch(_P) {
-                case 'book': return decodeURIComponent(_V).trim() || undefined;
-                case 'bibidi': return R.getBibiToDestination(_V) || undefined;
-                case 'reader-view-mode': return /^(paged|horizontal|vertical)$/.test(_V) ? _V : undefined;
-                case 'default-page-progression-direction': return /^(ltr|rtl)$/.test(_V) ? _V : undefined;
-                case 'pagination-method': return (_V == 'x') ? _V : undefined;
+                case 'bibidi'                             : return R.getBibiToDestination(_V)                   || undefined;
+                case 'book'                               : return decodeURIComponent(_V).trim()                || undefined;
+                case 'default-page-progression-direction' : return /^(ltr|rtl)$/.test(_V)                   ? _V : 'ltr';
+                case 'pagination-method'                  : return _V == 'x'                                ? _V : 'auto';
+                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V) ? _V : 'paged';
             }
             return _V;
         }
         if(Fill) return '';
     },
     'integer': (_P, _V, Fill) => {
-        if(typeof (_V *= 1) == 'number' && isFinite(_V) && _V >= 0) {
+        if(typeof (_V *= 1) == 'number' && isFinite(_V)) {
+            _V = Math.max(Math.round(_V), 0);
             switch(_P) {
-                case 'log': return _V > 9 ? 9 : Math.round(_V);
+                case 'log'           : return Math.min(_V,  9);
+                case 'max-bookmarks' : return Math.min(_V,  9);
+                case 'max-history'   : return Math.min(_V, 19);
             }
-            return Math.round(_V);
+            return _V;
         }
         if(Fill) return 0;
     },
@@ -155,11 +158,17 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(Fill) return 0;
     },
     'array': (_P, _V, Fill) => {
-        if(_V instanceof Array) return _V;
+        if(_V instanceof Array) {
+            switch(_P) {
+                case 'extensions'           : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
+                case 'extract-if-necessary' : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
+                case 'trustworthy-origins'  : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
+            }
+            return _V.filter(_I => typeof _I != 'function');
+        }
         if(Fill) return [];
     }
 });
-
 
 Bibi.applyFilteredSettingsTo = (To, From, ListOfSettingTypes, Fill) => {
     ListOfSettingTypes.forEach(STs => {
@@ -3295,20 +3304,20 @@ I.Menu = { create: () => {
             const Config = I.Menu.Config;
             const /* SpreadShapes */ SSs = (/* SpreadShape */ SS => SS + SS + SS)((/* ItemShape */ IS => `<span class="bibi-shape bibi-shape-spread">${ IS + IS }</span>`)(`<span class="bibi-shape bibi-shape-item"></span>`));
             const Section = Config.ViewModeSection = Config.addSection({
-                Labels: { default: { default: `View Mode`, ja: `表示モード` } },
+                Labels: { default: { default: `View Mode`, ja: `閲覧モード` } },
                 ButtonGroups: [{
                     ButtonType: 'radio',
                     Buttons: [{
                         Mode: 'paged',
-                        Labels: { default: { default: `Paged <small>(Flip with ${ O.TouchOS ? 'Tap/Swipe' : 'Click/Wheel' })</small>`, ja: `ページ単位<small>（${ O.TouchOS ? 'タップ／スワイプ' : 'クリック／ホイール' }で移動）</small>` } },
+                        Labels: { default: { default: `Spread / Page`, ja: `見開き／ページ` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-paged"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">${ SSs }</span></span>`
                     }, {
                         Mode: 'horizontal',
-                        Labels: { default: { default: `Horizontal Scroll`, ja: `横スクロール` } },
+                        Labels: { default: { default: `<span class="non-visual-in-label">⇄ </span>Horizontal Scroll`, ja: `<span class="non-visual-in-label">⇄ </span>横スクロール` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-horizontal"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">${ SSs }</span></span>`
                     }, {
                         Mode: 'vertical',
-                        Labels: { default: { default: `Vertical Scroll`, ja: `縦スクロール` } },
+                        Labels: { default: { default: `<span class="non-visual-in-label">⇅ </span>Vertical Scroll`, ja: `<span class="non-visual-in-label">⇅ </span>縦スクロール` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
                     }].map(Button => sML.edit(Button, {
                         Notes: true,
@@ -4289,8 +4298,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 }),
                 Position: 'left',
                 id: 'bibi-subpanel_bookmarks',
-                onopened: () => { E.add(   'bibi:scrolled', () => BookmarkManager.update()); BookmarkManager.update(); },
-                onclosed: () => { E.remove('bibi:scrolled', () => BookmarkManager.update()); }
+                onopened: () => { E.add(   'bibi:scrolled', BookmarkManager.update); BookmarkManager.update(); },
+                onclosed: () => { E.remove('bibi:scrolled', BookmarkManager.update); }
             });
             BookmarkManager.ButtonGroup = BookmarkManager.Subpanel.addSection({
                 id: 'bibi-subpanel-section_bookmarks',
@@ -4429,7 +4438,9 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 }
             }
             O.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks });
-            E.dispatch('bibi:updated-bookmarks', BookmarkManager.Bookmarks);
+            /**/            E.dispatch('bibi:updated-bookmarks', BookmarkManager.Bookmarks);
+            if(Opt.Added)   E.dispatch(  'bibi:added-bookmark',  BookmarkManager.Bookmarks);
+            if(Opt.Removed) E.dispatch('bibi:removed-bookmark',  BookmarkManager.Bookmarks);
         },
     };
     BookmarkManager.initialize();
@@ -5091,18 +5102,6 @@ S.initialize = () => {
     // --------
     if(typeof S['parent-bibi-index'] != 'number') delete S['parent-bibi-index'];
     // --------
-    S['extract-if-necessary'] = (() => {
-        if(!S['extract-if-necessary'].length) return [];
-        if(S['extract-if-necessary'].includes('*')) return ['*'];
-        const UnzipIfNecessary = [];
-        for(let l = S['extract-if-necessary'].length, i = 0; i < l; i++) {
-            let Ext = S['extract-if-necessary'][i];
-            if(typeof Ext != 'string' || !/^(\.[\w\d]+)*$/.test(Ext)) continue;
-            Ext = Ext.toLowerCase();
-            if(!UnzipIfNecessary.includes(Ext)) UnzipIfNecessary.push(Ext);
-        }
-        return UnzipIfNecessary;
-    })();
     if(S['book'] || !window.File) S['accept-local-file'] = false, S['accept-blob-converted-data'] = false, S['accept-base64-encoded-data'] = false;
     else                          S['accept-local-file'] = S['accept-local-file'] && (S['extract-if-necessary'].includes('*') || S['extract-if-necessary'].includes('.epub') || S['extract-if-necessary'].includes('.zip')) ? true : false;
     // --------

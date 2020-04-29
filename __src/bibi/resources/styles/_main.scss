@@ -2,7 +2,6 @@
 // + Main
 // --------------------------------------------------------------------------------
 
-
 main#bibi-main {
 	& {
 		overflow: hidden;
@@ -84,6 +83,7 @@ main#bibi-main {
 		// @____Bibi:Dress__('-') @include Main__SubpanelOpened();
 	}
 }
+
 	div#bibi-main-book {
 		box-sizing: content-box;//box-sizing: border-box;
 		display: flex;
