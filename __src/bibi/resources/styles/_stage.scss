@@ -58,6 +58,8 @@ html {
 	user-select: none;
 	&.Blink { touch-action: none; }
 	// @____Bibi:Dress__('-') background: $HTML_Background;
+	overscroll-behavior-x: none;
+	overscroll-behavior-y: none;
 }
 
 body {

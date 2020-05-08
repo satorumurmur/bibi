@@ -32,13 +32,12 @@ Bibi.preset({
 "use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile". If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
 "use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
 "flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
+
+"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 "slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
-"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 
@@ -49,6 +48,7 @@ Bibi.preset({
 "use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)
 "loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
+"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
@@ -69,6 +69,20 @@ Bibi.preset({
 "spread-margin"              : 0, // Number of pixel
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
+
+"content-draggable"          : [true, true], // [<TF>, <TF>]
+"orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
+"orthogonal-edges"           : ["utilities", "utilities"], // [<S1>, <S2>]
+"orthogonal-touch-moves"     : ["move", "switch"], // [<S1>, <S2>]
+"orthogonal-wheelings"       : ["move", "across"], // [<S1>, <S3>]
+//                             ^ Each item of the arrays corresponds to the view mode:
+//                                 * the first is for the "paged" view mode, and
+//                                 * the second is for the "horizontal"/"vertical" scroll view modes.
+//                             ^ Types of the values:
+//                                 * <TF>: true or false
+//                                 * <S1>: "" (ignore) or "utilities" or "move"
+//                                 * <S2>: "" (ignore) or "utilities" or "move" or "switch"
+//                                 * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
 
 
 //==============================================================================================================================================
