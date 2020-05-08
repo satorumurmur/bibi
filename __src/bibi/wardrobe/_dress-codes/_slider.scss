@@ -5,9 +5,9 @@
 $Slider_Size: 64px;
 
 $Slider_PaddingStart__SliderOpened: 8px;
-$Slider_PaddingEnd__SliderOpened:   8px;
+$Slider_PaddingEnd__SliderOpened: 8px;
 $Slider_PaddingBefore__SliderOpened: 8px;  $Slider_PaddingBefore__SliderOpened__WithHistory: 48px;
-$Slider_PaddingAfter__SliderOpened:   8px;
+$Slider_PaddingAfter__SliderOpened: 8px;
 
 $Slider_Transition__Open: .01s ease;
 $Slider_Transition__Close: .1s ease;
@@ -41,32 +41,35 @@ $Slider-Thumb_BackgroundColor__Active: rgb(160,160,160);
 $Slider-Thumb_BorderColor: transparent;//rgb(32,32,32);
 // [ja] └ 画面中央タップ以前の細い状態（スクロールバーを模した状態）の Slider の、現在位置表示となるサムの色（Slider 以外のスクロールバーは WebKit/Blink 系のみに適用されます）
 
-$Slider-Thumb-Circle_Size: 16px;
-$Slider-Thumb-Circle_BackgroundColor: $Slider_KeyColor;
+$Slider-Thumb_Size__SliderOpened: 11px;
 
-$Slider-Thumb-Circle_BorderColor: $Slider-Thumb-Circle_BackgroundColor;
-$Slider-Thumb-Circle_BorderWidth: 0;
+$Slider-Thumb_Border__SliderOpened: none 0 transparent;//solid 1px rgba($Slider_KeyColor, .1);
+$Slider-Thumb_BackgroundColor__SliderOpened: rgba($Slider_KeyColor, .5);//linear-gradient(to left, $Slider_KeyColor 0, $Slider_KeyColor $Slider-Thumb_Size__SliderOpened, rgba($Slider_KeyColor, .25) $Slider-Thumb_Size__SliderOpened, rgba($Slider_KeyColor, .25) 100%);
 
-$Slider-Thumb-Circle-Halo_Width: 1px;
-$Slider-Thumb-Circle-Halo_Color: rgba(white, .5);
+$Slider-Thumb_Border__SliderOpened__Min: $Slider-Thumb_Border__SliderOpened;//none 0 transparent;
+$Slider-Thumb_BackgroundColor__SliderOpened__Min: $Slider-Thumb_BackgroundColor__SliderOpened;//$Slider_KeyColor;
+
+$Slider-Thumb-Halo_Width__SliderOpened: 0;//1px;
+$Slider-Thumb-Halo_Color__SliderOpened: transparent;//rgba(white, .625);
 
 
 // - . Rail
 // --------------------------------------------------------------------------------
 
-$Slider-Rail_Width__SliderOpened: 1px;
-$Slider-Rail-Progress_Width__SliderOpened: 2px;
-$Slider-Rail_Color:                 rgb(192,192,192);//rgba(gray, 0.250);
-$Slider-Rail_Color__Hover:          $Slider-Rail_Color;
-$Slider-Rail-Progress_Color:        $Slider_KeyColor;
-$Slider-Rail-Progress_Color__Hover: $Slider_KeyColor;
+$Slider-Rail-FullLength_Width__SliderOpened: 1px;
+$Slider-Rail-FullLength_Color__SliderOpened: rgb(216,216,216);
+$Slider-Rail-FullLength_Color__SliderOpened__Hover: $Slider-Rail-FullLength_Color__SliderOpened;
+
+$Slider-Rail-Groove_Width__SliderOpened: 1px;
+$Slider-Rail-Groove_Color__SliderOpened: rgb(216,216,216);
+$Slider-Rail-Groove_Color__SliderOpened__Hover: $Slider-Rail-Groove_Color__SliderOpened;
+
+$Slider-Rail-Progress_Width__SliderOpened: 3px;
+$Slider-Rail-Progress_Color__SliderOpened:        $Slider_KeyColor;
+$Slider-Rail-Progress_Color__SliderOpened__Hover: $Slider_KeyColor;
 
 
-// - UI Box (Edgebar Box, Bookmap Box)
-// --------------------------------------------------------------------------------
-
-
-// - Edgebar, Bookmap
+// - Edgebar Box
 // --------------------------------------------------------------------------------
 
 
@@ -75,41 +78,6 @@ $Slider-Rail-Progress_Color__Hover: $Slider_KeyColor;
 
 $Slider-Edgebar_BorderRadius: 2px;//($Slider_Size - $Slider_PaddingStart__SliderOpened - $Slider_PaddingEnd__SliderOpened) * 0.5;
 $Slider-Edgebar_Background: white;
-
-
-// - Bookmap
-// --------------------------------------------------------------------------------
-
-
-// - . Bookmap > Spread Box
-// --------------------------------------------------------------------------------
-
-$Slider-Bookmap-SpreadBox_Color: transparent;
-$Slider-Bookmap-SpreadBox_Color__Hover: rgba($Slider_KeyColor, .33);
-
-
-// - . Bookmap > Spread Box > Spread
-// --------------------------------------------------------------------------------
-
-$Slider-Bookmap-Spread_Background: rgba(white, .5);
-
-
-// - . Bookmap > Spread Box > Spread > Item Box
-// --------------------------------------------------------------------------------
-
-$Slider-Bookmap-ItemBox_BorderColor__ForReflowable: rgb(216,216,216);
-
-
-// - . Bookmap > Spread Box > Spread > Item Box > Item
-// --------------------------------------------------------------------------------
-
-
-// - . Bookmap > Spread Box > Spread > Item Box > Page
-// --------------------------------------------------------------------------------
-
-$Slider-Bookmap-Page_Color__SliderOpened: white;
-$Slider-Bookmap-Page_Color__SliderOpened__Hover: lighten($Slider_KeyColor, 33%);
-$Slider-Bookmap-Page_BorderColor__SliderOpened__Hover: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
 
 
 

@@ -20,6 +20,7 @@ Bibi.SettingTypes = {
         'autostart-embedded',
         'fix-nav-ttb',
         'fix-reader-view-mode',
+        'flip-pages-during-sliding',
         'full-breadth-layout-in-scroll',
         'start-embedded-in-new-window',
         'use-arrows',
@@ -36,7 +37,6 @@ Bibi.SettingTypes = {
     ],
     'string': [
         'book',
-        'slider-mode',
         'default-page-progression-direction',
         'pagination-method',
         'reader-view-mode'
@@ -517,9 +517,8 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     }
     if(S['allow-placeholders']) {
         R.turnSpreads({ Origin: LandingPage.Spread });
-        setTimeout(() => { R.turnSpreads(); }, 123);
-        E.add('bibi:scrolled', () => setTimeout(() => R.turnSpreads(), 123));
-        E.add('bibi:changed-intersection', () => !I.Slider.Touching ? R.turnSpreads() : false);
+        setTimeout(() => R.turnSpreads(), 123);
+        E.add(['bibi:scrolled', 'bibi:changed-intersection'], () => R.turnSpreads());
     }
     if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
         const CurrentPage = I.PageObserver.Current.List[0].Page;
@@ -1761,7 +1760,7 @@ R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewpor
 
 
 R.turnSpreads = (Opt = {}) => new Promise(resolve => {
-    if(!S['allow-placeholders']) return resolve();
+    if(R.DoNotTurn || !S['allow-placeholders']) return resolve();
     const Range     = [-1, 2];
     const Direction = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
     const Origin = Opt.Origin || (
@@ -2364,6 +2363,10 @@ I.ScrollObserver = { create: () => {
         },
         breakCurrentScrolling: () => {
             try { R.Breaking = true; sML.Scroller.Scrolling.cancel(); setTimeout(() => R.Breaking = false, 333); } catch(Err) { R.Breaking = false; }
+        },
+        forceStopScrolling: () => {
+            ScrollObserver.breakCurrentScrolling();
+            R.Main.style.overflow = 'hidden', R.Main.scrollLeft = R.Main.scrollLeft, R.Main.scrollTop = R.Main.scrollTop, R.Main.style.overflow = '';
         }
     }
     E.bind('bibi:opened', ScrollObserver.observe);
@@ -4032,20 +4035,23 @@ I.Loupe = { create: () => {
 
 I.Nombre = { create: () => { if(!S['use-nombre']) return;
     const Nombre = I.Nombre = O.Body.appendChild(sML.create('div', { id: 'bibi-nombre',
-        show: () => {
+        clearTimers: () => {
             clearTimeout(Nombre.Timer_hot);
             clearTimeout(Nombre.Timer_vanish);
+            clearTimeout(Nombre.Timer_autohide);
+        },
+        show: () => {
+            Nombre.clearTimers();
             Nombre.classList.add('active');
             Nombre.Timer_hot = setTimeout(() => Nombre.classList.add('hot'), 10);
         },
         hide: () => {
-            clearTimeout(Nombre.Timer_hot);
-            clearTimeout(Nombre.Timer_vanish);
+            Nombre.clearTimers();
             Nombre.classList.remove('hot');
             Nombre.Timer_vanish = setTimeout(() => Nombre.classList.remove('active'), 255);
         },
         progress: (PageInfo) => {
-            clearTimeout(Nombre.Timer_hide);
+            Nombre.clearTimers();
             if(!PageInfo) PageInfo = I.PageObserver.Current;
             if(!PageInfo.List.length) return; ////////
             const StartPageNumber = PageInfo.List[          0].Page.Index + 1;
@@ -4059,19 +4065,18 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
             Nombre.Total.innerHTML     = R.Pages.length;
             Nombre.Percent.innerHTML   = `(${ Percent }<span class="unit">%</span>)`;
             Nombre.show();
-            Nombre.Timer_hide = setTimeout(Nombre.hide, 1234);
+            if(I.Slider.UIState != 'active') Nombre.Timer_autohide = setTimeout(Nombre.hide, 1234);
         }
     }));
-    Nombre.Current   = Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-current'   }));
-    Nombre.Delimiter = Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-delimiter' }));
-    Nombre.Total     = Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-total'     }));
-    Nombre.Percent   = Nombre.appendChild(sML.create('span', { id: 'bibi-nombre-percent'   }));
-    E.add('bibi:opened' , () => {
-        setTimeout(() => {
-            Nombre.progress();
-            E.add('bibi:changed-intersection', () => Nombre.progress());
-        }, 321);
-    });
+    Nombre.Current   = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-current'   }));
+    Nombre.Delimiter = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-delimiter' }));
+    Nombre.Total     = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-total'     }));
+    Nombre.Percent   = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-percent'   }));
+    E.add('bibi:opened' , () => setTimeout(() => {
+        Nombre.progress();
+        E.add(['bibi:is-scrolling', 'bibi:opened-slider'], () => Nombre.progress());
+        E.add('bibi:closed-slider', Nombre.hide);
+    }, 321));
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
     sML.appendCSSRule('html.view-horizontal div#bibi-nombre', 'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
     sML.appendCSSRule('html.view-vertical div#bibi-nombre',    'right: ' + (O.Scrollbars.Height + 2) + 'px;');
@@ -4110,262 +4115,149 @@ I.History = {
 I.Slider = { create: () => {
     if(!S['use-slider']) return false;
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
+        RailProgressMode: 'end', // or 'center'
         Size: I.Slider.Size,
         initialize: () => {
-            //if(!/^(edgebar|bookmap)$/.test(S['slider-mode'])) S['slider-mode'] = (O.TouchOS || R.Stage.Width / R.Items.length < 20) ? 'edgebar' : 'bookmap';
-            if(S['slider-mode'] != 'bookmap') S['slider-mode'] = 'edgebar';
-            Slider.UI = (S['slider-mode'] == 'edgebar' ? Slider.Edgebar : Slider.Bookmap).create().initialize();
-            const UIBox = Slider.appendChild(Slider.UI.Box);
-            Slider.Rail           = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
-            Slider.Rail.Progress  = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
-            Slider.Thumb          = UIBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
-            if(!S['use-history']) return;
-            Slider.classList.add('bibi-slider-with-history');
-            Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }));
-            Slider.History.add    = (Destination) => I.History.add({ UI: Slider, SumUp: false, Destination: Destination })
-            Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
-                Type: 'normal',
-                Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
-                Help: false,
-                Icon: `<span class="bibi-icon bibi-icon-history"></span>`,
-                action: () => I.History.back(),
-                update: function() {
-                    this.Icon.style.transform = `rotate(${ 360 * (I.History.List.length - 1) }deg)`;
-                         if(I.History.List.length <= 1) I.setUIState(this, 'disabled');
-                    else if(this.UIState == 'disabled') I.setUIState(this, 'default');
-                }
-            });
-            I.History.Updaters.push(() => Slider.History.Button.update());
+            const EdgebarBox = Slider.appendChild(sML.create('div', { id: 'bibi-slider-edgebar-box' }));
+            Slider.Edgebar = EdgebarBox.appendChild(sML.create('div', { id: 'bibi-slider-edgebar' }));
+            Slider.Rail    = EdgebarBox.appendChild(sML.create('div', { id: 'bibi-slider-rail' }));
+            Slider.RailGroove   = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-groove' }));
+            Slider.RailProgress = Slider.RailGroove.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
+            Slider.Thumb   = EdgebarBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
+            if(S['use-history']) {
+                Slider.classList.add('bibi-slider-with-history');
+                Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }));
+                Slider.History.add    = (Destination) => I.History.add({ UI: Slider, SumUp: false, Destination: Destination })
+                Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
+                    Type: 'normal',
+                    Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
+                    Help: false,
+                    Icon: `<span class="bibi-icon bibi-icon-history"></span>`,
+                    action: () => I.History.back(),
+                    update: function() {
+                        this.Icon.style.transform = `rotate(${ 360 * (I.History.List.length - 1) }deg)`;
+                             if(I.History.List.length <= 1) I.setUIState(this, 'disabled');
+                        else if(this.UIState == 'disabled') I.setUIState(this, 'default');
+                    }
+                });
+                I.History.Updaters.push(() => Slider.History.Button.update());
+            }
+            if(S['use-nombre']) {
+                E.add(Slider.Edgebar, ['mouseover', 'mousemove'], Eve => { if(!Slider.Touching) I.Nombre.progress({ List: [{ Page: Slider.getPointedPage(O.getBibiEventCoord(Eve)[C.A_AXIS_L]) }] }); });
+                E.add(Slider.Edgebar,  'mouseout',                Eve => { if(!Slider.Touching) I.Nombre.progress(); });
+            }
+            if(!S['flip-pages-during-sliding']) Slider.flipPagesDuringSliding = () => false;
         },
-        resetThumbAndRailSize: () => {
-            let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-            if(S.ARA == S.SLA) ScrollLength -= I.Loupe.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
-            const ThumbLengthPercent = R.Stage[C.L_SIZE_L]/*R.Main['offset' + C.L_SIZE_L]*/ / ScrollLength * 100;
-            Slider.Thumb.style[C.A_SIZE_l] = (      ThumbLengthPercent) + '%';
-            Slider.Rail.style[ C.A_SIZE_l] = (100 - ThumbLengthPercent) + '%';
-            Slider.Thumb.style[C.A_SIZE_b] = Slider.Rail.style[C.A_SIZE_b] = '';
-            Slider.resetRailCoords();
+        resetUISize: () => {
+            Slider.MainLength = R.Main['scroll' + C.L_SIZE_L];
+            const ThumbLengthPercent = R.Main['offset' + C.L_SIZE_L] / Slider.MainLength * 100;
+            Slider.RailGroove.style[C.A_SIZE_b] = Slider.Thumb.style[C.A_SIZE_b] = '';
+            Slider.RailGroove.style[C.A_SIZE_l] = (100 - (Slider.RailProgressMode == 'center' ? ThumbLengthPercent : 0)) + '%';
+                 Slider.Thumb.style[C.A_SIZE_l] =                                               ThumbLengthPercent       + '%';
+            setTimeout(() => Slider.Thumb.classList.toggle('min', (STACS => STACS.width == STACS.height)(getComputedStyle(Slider.Thumb, '::after'))), 0);
+               Slider.Edgebar.Before = O.getElementCoord(Slider.Edgebar)[C.A_AXIS_L];
+               Slider.Edgebar.Length = Slider.Edgebar['offset' + C.A_SIZE_L];
+               Slider.Edgebar.After  = Slider.Edgebar.Before + Slider.Edgebar.Length;
+            Slider.RailGroove.Before = O.getElementCoord(Slider.RailGroove)[C.A_AXIS_L];
+            Slider.RailGroove.Length = Slider.RailGroove['offset' + C.A_SIZE_L];
+            Slider.RailGroove.After  = Slider.RailGroove.Before + Slider.RailGroove.Length;
+                 Slider.Thumb.Length = Slider.Thumb['offset' + C.A_SIZE_L];
         },
-        resetRailCoords: () => {
-            Slider.Rail.Coords = [O.getElementCoord(Slider.Rail)[C.A_AXIS_L]];
-            Slider.Rail.Coords.push(Slider.Rail.Coords[0] + Slider.Rail['offset' + C.A_SIZE_L]);
-            //console.log(Slider.Rail.Coords);
-        },
-        progress: () => {
-            if(Slider.Touching) return;
-            Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
-            let Scrolled = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
-            let ScrollLength = R.Main['scroll' + C.L_SIZE_L];
-                 if(S.ARA == S.SLA) ScrollLength -= I.Loupe.BookStretchingEach * (S.SLA == 'horizontal' ? 2 : 3);
-            else if(S.ARD == 'rtl') Scrolled = ScrollLength - Scrolled - R.Stage.Height; // <- Paged (HorizontalAppearance) && VerticalText
-            Slider.Thumb.style[C.A_OOBL_l] = (Scrolled / ScrollLength * 100) + '%';
-            Slider.Rail.Progress.style.width = Slider.Rail.Progress.style.height = '';
-            let Progress = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2 - O.getElementCoord(Slider.Rail)[C.A_AXIS_L];
-            if(S.ARD == 'rtl') Progress = Slider.Rail['offset' + C.A_SIZE_L] - Progress;
-            Slider.Rail.Progress.style[C.A_SIZE_l] = (Progress / Slider.Rail['offset' + C.A_SIZE_L] * 100) + '%';
-        },
-        onTouchStart: (Eve) => { // console.log(Eve);
-            //if(!Eve.target || (!Slider.contains(Eve.target) && Eve.target != Slider)) return;
+        onTouchStart: (Eve) => {
+            I.ScrollObserver.forceStopScrolling();
             Eve.preventDefault();
-            //R.Main.style.overflow = 'hidden'; // ← ↓ to stop momentum scrolling
-            //setTimeout(() => R.Main.style.overflow = '', 1);
             if(Slider.History) Slider.History.add({ Page: I.PageObserver.Current.List[0].Page });
             Slider.Touching = true;
-            Slider.TouchStartThumbCenterCoord = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2;
-            Slider.TouchStartCoord = Slider.TouchingCoord = Slider.getTouchStartCoord(Eve);
+            Slider.StartedOn = {
+                ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
+                RailProgressLength: Slider.RailProgress['offset' + C.A_SIZE_L],
+                MainScrollBefore: Math.ceil(R.Main['scroll' + C.L_OOBL_L]) // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
+            };
+            Slider.StartedOn.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
             clearTimeout(Slider.Timer_onTouchEnd);
             O.HTML.classList.add('slider-sliding');
             E.add('bibi:moved-pointer', Slider.onTouchMove);
         },
-        getTouchStartCoord: (Eve) => {
-            return (Eve.target == Slider.Thumb) ?
-                O.getBibiEventCoord(Eve)[C.A_AXIS_L] : // ← Move Thumb naturally. // ↓ Bring Thumb's center to the touched coord at the next pointer moving.
-                O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] + Slider.Thumb['offset' + C.A_SIZE_L] / 2;
-        },
         onTouchMove: (Eve) => {
-            Slider.TouchingCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
-            Slider.flip(Eve);
+            clearTimeout(Slider.Timer_move);
+            const TouchMoveCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
+            const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedOn.Coord,
+                Slider.Edgebar.Before -  Slider.StartedOn.ThumbBefore,
+                Slider.Edgebar.After  - (Slider.StartedOn.ThumbBefore + Slider.Thumb.Length)
+            );
+            sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
+            sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedOn.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
+            Slider.flipPagesDuringSliding(TouchMoveCoord);
+        }, // ⇅ If S['flip-pages-during-sliding'] is false, Slider.flipPagesDuringSliding is `() => false`.
+        flipPagesDuringSliding: (TouchMoveCoord) => {
+            R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
+            Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord); }, 123);
         },
         onTouchEnd: (Eve) => {
             if(!Slider.Touching) return;
+            clearTimeout(Slider.Timer_move);
             Slider.Touching = false;
             E.remove('bibi:moved-pointer', Slider.onTouchMove);
-            Slider.onTouchMove(Eve);
-            Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 125);
-        },
-        flip: (Eve) => {
-            if(Slider.Touching) {
-                let Translation = Slider.TouchingCoord - Slider.TouchStartCoord;
-                const TranslatedThumbCenterCoord = Slider.TouchStartThumbCenterCoord + Translation;
-                     if(TranslatedThumbCenterCoord < Slider.Rail.Coords[0]) Translation = Slider.Rail.Coords[0] - Slider.TouchStartThumbCenterCoord;
-                else if(TranslatedThumbCenterCoord > Slider.Rail.Coords[1]) Translation = Slider.Rail.Coords[1] - Slider.TouchStartThumbCenterCoord;
-                let ProgressLength = Slider.Thumb['offset' + C.A_OOBL_L] + Translation;
-                if(S.ARD == 'rtl') ProgressLength = Slider.Rail['offset' + C.A_SIZE_L] - ProgressLength;
-                sML.style(Slider.Thumb,         { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
-                sML.style(Slider.Rail.Progress, { [C.A_SIZE_l]: ProgressLength + 'px' });
-                setTimeout(() => Slider.focus(Eve, { Turn: false, History: false }), 9);
-            } else Slider.focus(Eve).then(Destination => {
-                sML.style(Slider.Thumb,         { transform: '' });
-                sML.style(Slider.Rail.Progress, { [C.A_SIZE_l]: '' });
+            const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
+            if(TouchEndCoord == Slider.StartedOn.Coord) Slider.StartedOn.Coord = Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2;
+            R.DoNotTurn = false;
+            Slider.flip(TouchEndCoord).then(Destination => {
+                sML.style(Slider.Thumb,        { transform: '' });
+                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
                 if(Slider.History) Slider.History.add(Destination);
             });
+            delete Slider.StartedOn;
+            Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
-        focus: (Eve, Par = {}) => {
-            const TargetPage = Slider.UI.identifyPage(Eve)
-            Par.Destination = TargetPage;
-            for(let l = I.PageObserver.Current.List.length, i = 0; i < l; i++) if(I.PageObserver.Current.List[i].Page == TargetPage) return Promise.resolve();
-            Par.Duration = 0;
-            return R.focusOn(Par);
+        flip: (TouchedCoord) => { switch(S.RVM) {
+            case 'paged':
+                const TargetPage = Slider.getPointedPage(TouchedCoord);
+                return I.PageObserver.Current.Pages.includes(TargetPage) ? Promise.resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 });
+            default:
+                R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
+                return Promise.resolve();
+        } },
+        progress: () => {
+            if(Slider.Touching) return;
+            Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
+            let MainScrollBefore = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
+            if(S.ARA != S.SLA && S.ARD == 'rtl') MainScrollBefore = Slider.MainLength - MainScrollBefore - R.Main.offsetHeight; // <- Paged (HorizontalAppearance) && VerticalText
+            Slider.Thumb.style[C.A_OOBL_l] = (MainScrollBefore / Slider.MainLength * 100) + '%';
+            Slider.RailProgress.style.width = Slider.RailProgress.style.height = '';
+            const ThumbBeforeInRailGroove = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] - Slider.RailGroove.Before;
+            Slider.RailProgress.style[C.A_SIZE_l] = (Slider.RailProgressMode == 'center' ?
+                (S.ARD != 'rtl' ?               ThumbBeforeInRailGroove + Slider.Thumb.Length / 2 :
+                    Slider.RailGroove.Length - (ThumbBeforeInRailGroove + Slider.Thumb.Length / 2) ) :
+                (S.ARD != 'rtl' ?               ThumbBeforeInRailGroove + Slider.Thumb.Length :
+                    Slider.RailGroove.Length - (ThumbBeforeInRailGroove) ) ) / Slider.RailGroove.Length * 100 + '%';
         },
-        getTouchEndCoord: () => {
-            const TouchEndCoord = {};
-            TouchEndCoord[C.A_AXIS_L] = sML.limitMinMax(Slider.TouchingCoord, Slider.Rail.Coords[0], Slider.Rail.Coords[1]);
-            TouchEndCoord[C.A_AXIS_B] = O.getElementCoord(Slider)[C.A_AXIS_B] + Slider['offset' + C.A_SIZE_B] / 2;
-            return TouchEndCoord;
-        }
-    }));
-    Slider.Edgebar = { create: () => sML.create('div', { id: 'bibi-slider-edgebar',
-        initialize: function() {
-            (this.Box = sML.create('div', { id: 'bibi-slider-edgebar-box' })).appendChild(this);//.addEventListener(E['pointerover'], Eve => this.PointedPage = this.getPointedPage());
-            if(!O.TouchOS) this.addEventListener(E['pointermove'], Eve => I.Nombre.progress({ List: [{ Page: this.getPointedPage({ X: Eve.offsetX, Y: Eve.offsetY }) }] }));
-            return Slider.Edgebar = this;
-        },
-        getPointedPage: (Coord) => {
-            //const START = Date.now();
-            //const log = (OPI, FPI, SUPER) => console.log(Date.now() - START, '[Method02' + (SUPER ? '★' : '') + '] - O:' + OPI + ' F:' + FPI + ' G:' + (FPI - OPI));
-            let Ratio = Coord[C.A_AXIS_L] / Slider.Edgebar['offset' + C.A_SIZE_L];
-            const CoordInBook = R.Main.Book['offset' + C.L_SIZE_L] * (S.ARD != 'rtl' || S.SLD != 'ttb' ? Ratio : 1 - Ratio);
-            const OriginPageIndex = Math.max(Math.round(R.Pages.length * (S.ARD != 'rtl' ? Ratio : 1 - Ratio)) - 1, 0);
-            let ThePage = R.Pages[OriginPageIndex];
-            let MinimumDistance = CoordInBook - O.getElementCoord(ThePage, R.Main.Book)[C.L_AXIS_L] + ThePage['offset' + C.L_SIZE_L] * 0.5;
-            if(Math.abs(MinimumDistance) < window['inner' + C.L_SIZE_L] / 4) return ThePage;
-            const Dir = (S.SLD == 'rtl' ? -1 : 1) * MinimumDistance < 0 ? -1 : 1;
-            MinimumDistance = Math.abs(MinimumDistance);
-            for(let i = OriginPageIndex + Dir; R.Pages[i]; i += Dir) {
-                const Page = R.Pages[i];
-                const PageDistance = Math.abs(CoordInBook - O.getElementCoord(Page, R.Main.Book)[C.L_AXIS_L] + Page['offset' + C.L_SIZE_L] * 0.5);
-                if(PageDistance < MinimumDistance) MinimumDistance = PageDistance, ThePage = Page; else break;
-            }
+        getPointedPage: (PointedCoord) => {
+            let RatioInSlider = (PointedCoord - Slider.Edgebar.Before) / Slider.Edgebar['offset' + C.A_SIZE_L];
+            const OriginPageIndex = sML.limitMinMax(Math.round(R.Pages.length * (S.ARD == 'rtl' ? 1 - RatioInSlider : RatioInSlider)), 0, R.Pages.length - 1);
+            const PointedCoordInBook = R.Main['scroll' + C.L_SIZE_L] * (S.ARD == 'rtl' && S.SLD == 'ttb' ? 1 - RatioInSlider : RatioInSlider);
+            let ThePage = R.Pages[OriginPageIndex], MinDist = Slider.getPageDistanceFromPoint(ThePage, PointedCoordInBook);
+            [-1, 1].forEach(PM => { for(let i = OriginPageIndex + PM; R.Pages[i]; i += PM) {
+                const Page = R.Pages[i], Dist = Slider.getPageDistanceFromPoint(Page, PointedCoordInBook);
+                if(Dist < MinDist) ThePage = Page, MinDist = Dist; else break;
+            } });
             return ThePage;
         },
-        identifyPage: () => {
-            const Coord = Slider.getTouchEndCoord();
-            Coord[C.A_AXIS_L] -= Slider.Edgebar.Box['offset' + C.A_OOBL_L];
-            return Slider.Edgebar.getPointedPage(Coord);
+        getPageDistanceFromPoint: (Page, PointedCoordInBook) => {
+            return Math.abs(PointedCoordInBook - (O.getElementCoord(Page, R.Main)[C.L_AXIS_L] + Page['offset' + C.L_SIZE_L] * 0.5));
         }
-    }) };
-    Slider.Bookmap = { create: () => sML.create('div', { id: 'bibi-slider-bookmap',
-        initialize: function() {
-            this.Box = sML.create('div', { id: 'bibi-slider-bookmap-box' });
-            R.Spreads.forEach(Spread => {
-                Spread.BookmapSpread = sML.create('div', { className: 'bookmap-spread', Box: this.appendChild(document.createElement('div')) });
-                Spread.Items.forEach(Item => Item.BookmapItem = { Box: Spread.BookmapSpread.appendChild(document.createElement('div')) });
-                Spread.BookmapSpread.Box.appendChild(Spread.BookmapSpread);
-            });
-            return Slider.Bookmap = this;
-        },
-        putAway: (Lock) => {
-            clearTimeout(Slider.Bookmap.Timer_putIn);
-            if(Slider.Bookmap.Locked) return false;
-            Slider.Bookmap.Locked = Lock;
-            return Slider.Bookmap.parentElement
-                ? Slider.Bookmap.Box.removeChild(Slider.Bookmap)
-                : false;
-        },
-        putIn: (Unlock) => {
-            if(Unlock) Slider.Bookmap.Locked = false;
-            if(Slider.Bookmap.Locked) return false;
-            return !Slider.Bookmap.parentElement
-                ? (Slider.Bookmap.Timer_putIn = setTimeout(() => { Slider.Bookmap.Box.appendChild(Slider.Bookmap); Slider.resetThumbAndRailSize(); }, Unlock ? 0 : 456))
-                : false;
-        },
-        reset: () => setTimeout(() => {
-            Slider.Bookmap.putAway('Lock');
-            R.Spreads.forEach(Spread => setTimeout(Slider.Bookmap.resetSpread, 0, Spread));
-            Slider.Bookmap.putIn('Unlock');
-        }, 456),
-        resetSpread: (Spread) => {
-            Slider.Bookmap.putAway();
-            const SpreadBox = Spread.Box, BmSpread = Spread.BookmapSpread, BmSpreadBox = BmSpread.Box;
-            sML.forEach(BmSpread.querySelectorAll('span.bookmap-page'))(OldBmPage => OldBmPage.parentElement.removeChild(OldBmPage));
-            BmSpreadBox.className = 'bookmap-spread-box'; sML.forEach(SpreadBox.classList)(ClassName => { if(ClassName != 'spread-box') BmSpreadBox.classList.add(ClassName); });
-            BmSpreadBox.style[C.A_SIZE_b] = BmSpread.style[C.A_SIZE_b] = '';
-            BmSpreadBox.style[C.A_SIZE_l] = (SpreadBox['offset' + C.L_SIZE_L] / R.Main[   'scroll' + C.L_SIZE_L] * 100) + '%';
-            BmSpread.style[   C.A_SIZE_l] = (Spread[   'offset' + C.L_SIZE_L] / SpreadBox['offset' + C.L_SIZE_L] * 100) + '%';
-            Spread.Items.forEach(Item => {
-                const ItemBox = Item.Box, BmItemBox = Item.BookmapItem.Box;
-                BmItemBox.className = 'bookmap-item-box'; sML.forEach(ItemBox.classList)(ClassName => { if(ClassName != 'item-box') BmItemBox.classList.add(ClassName); });
-                BmItemBox.style[C.A_SIZE_b] = (ItemBox['offset' + C.L_SIZE_B] / Spread['offset' + C.L_SIZE_B] * 100) + '%';
-                BmItemBox.style[C.A_SIZE_l] = (ItemBox['offset' + C.L_SIZE_L] / Spread['offset' + C.L_SIZE_L] * 100) + '%';
-                Item.Pages.forEach(Page => {
-                    const BmPage = Page.BookmapPage = sML.create('span', { className: 'bookmap-page', Page: Page });
-                    BmPage.style[C.A_SIZE_l] = (1 / Item.Pages.length * 100) + '%';
-                    if(I.Nombre.progress) {
-                        BmPage.addEventListener(E['pointerover'], () => {
-                            if(Slider.Touching) return;
-                            clearTimeout(Slider.Timer_BookmapPagePointerOut);
-                            I.Nombre.progress({ List: [{ Page: Page }] });
-                        });
-                        BmPage.addEventListener(E['pointerout'], () => {
-                            if(Slider.Touching) return;
-                            Slider.Timer_BookmapPagePointerOut = setTimeout(() => {
-                                clearTimeout(I.Nombre.Timer_hide);
-                                I.Nombre.hide();
-                            }, 200);
-                        });
-                    }
-                    //BmPage.Labels = { default: { default: `P.${ Page.Index + 1 }` } };
-                    I.setFeedback(BmPage);
-                    if(Item.SpreadPair && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.SpreadPair.Ref['rendition:layout'] == 'pre-paginated') {
-                        E.add(BmPage, 'bibi:hovered',   function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.add(   'hover'); });
-                        E.add(BmPage, 'bibi:unhovered', function(Eve) { this.Page.Item.SpreadPair.Pages[0].BookmapPage.classList.remove('hover'); });
-                    }
-                    BmItemBox.appendChild(BmPage);
-                });
-            });
-            Slider.Bookmap.putIn();
-        },
-        identifyPage: (Eve) => {
-            let TouchEndElement;
-            if(!O.TouchOS && (Eve.target == Slider.Bookmap || Slider.Bookmap.contains(Eve.target))) {
-                TouchEndElement = Eve.target;
-            } else {
-                const TouchEndCoord = Slider.getTouchEndCoord();
-                TouchEndElement = document.elementFromPoint(TouchEndCoord.X, TouchEndCoord.Y);
-            }
-            return Slider.Bookmap.narrowDownToPage(TouchEndElement);
-        },
-        narrowDownToPage: (Ele) => {
-            if(Ele.classList.contains('bookmap-page')) return Ele.Page;
-            const Ones = (Ele.classList.contains('bookmap-item') || Ele.classList.contains('bookmap-spread')) ? Ele.querySelectorAll('span.bookmap-page') : Slider.Bookmap.querySelectorAll('div.bookmap-spread');
-            const TouchingCoord = Slider.TouchingCoord * C.A_AXIS_D;
-            let TheOne = Ones[Ones.length - 1], PrevOne = null, PrevOneFootCoord = 0;
-            for(let l = Ones.length, i = 0; i < l; i++) {
-                const One = Ones[i], OneCoord = O.getElementCoord(One)[C.A_AXIS_L], OneFootCoord = (OneCoord + (S.ARD != 'rtl' ? One['offset' + C.A_SIZE_L] : 0)) * C.A_AXIS_D;
-                if(OneFootCoord < TouchingCoord) {
-                    PrevOne = One, PrevOneFootCoord = OneFootCoord;
-                    continue;
-                }
-                const OneHeadCoord = (OneCoord + (S.ARD == 'rtl' ? One['offset' + C.A_SIZE_L] : 0)) * C.A_AXIS_D;
-                TheOne = (TouchingCoord < OneHeadCoord && PrevOne && TouchingCoord - PrevOneFootCoord < OneHeadCoord - TouchingCoord) ? PrevOne : One;
-            }
-            return Slider.Bookmap.narrowDownToPage(TheOne);
-        }
-    }) };
+    }));
     Slider.initialize();
     I.setToggleAction(Slider, {
         onopened: () => {
             O.HTML.classList.add('slider-opened');
-            setTimeout(Slider.resetRailCoords, 0);
+            setTimeout(Slider.resetUISize, 0);
             E.dispatch('bibi:opened-slider');
         },
         onclosed: () => {
-            new Promise(resolve => setTimeout(resolve, S['zoom-out-for-utilities'] ? 111 : 0)).then(() => {
-                if(Slider.UI.reset) Slider.UI.reset();
-            });
+            new Promise(resolve => setTimeout(resolve, S['zoom-out-for-utilities'] ? 111 : 0));
             O.HTML.classList.remove('slider-opened');
-            setTimeout(Slider.resetRailCoords, 0);
+            setTimeout(Slider.resetUISize, 0);
             E.dispatch('bibi:closed-slider');
         }
     });
@@ -4376,15 +4268,15 @@ I.Slider = { create: () => {
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-slider',  Opt));
     E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd));
     E.add('bibi:opened', () => {
-        Slider.UI.addEventListener(E['pointerdown'], Slider.onTouchStart);
+        Slider.Edgebar.addEventListener(E['pointerdown'], Slider.onTouchStart);
         Slider.Thumb.addEventListener(E['pointerdown'], Slider.onTouchStart);
         O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
-        E.add('bibi:changed-intersection', () => Slider.progress());
+        if(Slider.History) Slider.History.Button.addEventListener(E['pointerup'], Slider.onTouchEnd);
+        E.add('bibi:is-scrolling', Slider.progress);
         Slider.progress();
     });
-    if(Slider.UI.reset) E.add(['bibi:opened', 'bibi:changed-view'], Slider.UI.reset);
-    E.add('bibi:laid-out', () => {
-        Slider.resetThumbAndRailSize();
+    E.add(['bibi:opened-slider', 'bibi:closed-slider', 'bibi:laid-out'], () => {
+        Slider.resetUISize();
         Slider.progress();
     });
     { // Optimize to Scrollbar Size
@@ -4415,8 +4307,9 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 }),
                 Position: 'left',
                 id: 'bibi-subpanel_bookmarks',
-                onopened: () => { E.add(   'bibi:scrolled', BookmarkManager.update); BookmarkManager.update(); },
-                onclosed: () => { E.remove('bibi:scrolled', BookmarkManager.update); }
+                updateBookmarks: () => BookmarkManager.update(),
+                onopened: () => { E.add(   'bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); BookmarkManager.Subpanel.updateBookmarks (); },
+                onclosed: () => { E.remove('bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); }
             });
             BookmarkManager.ButtonGroup = BookmarkManager.Subpanel.addSection({
                 id: 'bibi-subpanel-section_bookmarks',
@@ -4432,12 +4325,10 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             return null;
         },
         add: (Bookmark) => {
-            const ExistingBookmark = BookmarkManager.exists(Bookmark);
-            if(!ExistingBookmark) {
-                Bookmark.IsHot = true;
-                BookmarkManager.Bookmarks.push(Bookmark);
-                BookmarkManager.update({ Added: Bookmark });
-            } else BookmarkManager.update();
+            if(BookmarkManager.exists(Bookmark)) return BookmarkManager.update();
+            Bookmark.IsHot = true;
+            BookmarkManager.Bookmarks.push(Bookmark);
+            BookmarkManager.update({ Added: Bookmark });
         },
         remove: (Bookmark) => {
             BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk.IIPP != Bookmark.IIPP);
@@ -4450,16 +4341,15 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 BookmarkManager.ButtonGroup.innerHTML = '';
             }
             //BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => typeof Bmk.IIPP == 'number' && typeof Bmk['%'] == 'number');
-            let Bookmark = null, ExistingBookmark = null;
+            let Bookmarks = [], ExistingBookmarks = [];
             if(typeof Opt.Bookmarks == 'object' && Opt.Bookmarks.map) BookmarkManager.Bookmarks = Opt.Bookmarks;
-            if(Opt.Added) Bookmark = Opt.Added;
+            if(Opt.Added) Bookmarks = [Opt.Added];
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
-                const Page = I.PageObserver.Current.List[0].Page;
-                Bookmark = {
+                Bookmarks = I.PageObserver.Current.Pages.map(Page => ({
                     IIPP: Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length,
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
-                };
+                }));
             }
             if(BookmarkManager.Bookmarks.length) {
                 const UpdatedBookmarks = []
@@ -4495,8 +4385,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         else      Label +=  `<span class="${BB}-percent">` +                                    `<span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span>`                                    + `</span>`;
                     }
                     const Labels = Label ? { default: { default: Label, ja: Label } } : { default: { default: `Bookmark #${ UpdatedBookmarks.length + 1 }`, ja: `しおり #${ UpdatedBookmarks.length + 1 }` } };
-                    if(Bookmark && Bmk.IIPP == Bookmark.IIPP) {
-                        ExistingBookmark = Bmk;
+                    if(Bookmarks.reduce((Exists, Bookmark) => Exists = Bmk.IIPP == Bookmark.IIPP ? true : Exists, false)) {
+                        ExistingBookmarks.push(Bmk);
                         ClassName = `bibi-button-bookmark-is-current`;
                         Labels.default.default += ` <span class="${BB}-is-current"></span>`;
                         Labels.default.ja      += ` <span class="${BB}-is-current ${BB}-is-current-ja"></span>`;
@@ -4522,18 +4412,10 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
                     if(Bmk.IsHot) {
                         delete Bmk.IsHot;
-                        I.setUIState(Button, 'active'); setTimeout(() => { I.setUIState(Button, ExistingBookmark == Bmk ? 'disabled' : 'default'); }, 234);/*
-                        Button.classList.add('bibi-button-bookmark-is-hot');
-                        setTimeout(() => {
-                            Button.classList.remove('bibi-button-bookmark-is-hot');
-                            Button.classList.add('bibi-button-bookmark-is-cold');
-                            setTimeout(() => {
-                                Button.classList.remove('bibi-button-bookmark-is-cold');
-                            }, 234);
-                        }, 234);*/
+                        I.setUIState(Button, 'active'); setTimeout(() => I.setUIState(Button, ExistingBookmarks.includes(Bmk) ? 'disabled' : 'default'), 234);
                     }
-                    else if(ExistingBookmark == Bmk) I.setUIState(Button, 'disabled');
-                    else                             I.setUIState(Button,  'default');
+                    else if(ExistingBookmarks.includes(Bmk)) I.setUIState(Button, 'disabled');
+                    else                                     I.setUIState(Button,  'default');
                     const UpdatedBookmark = { IIPP: Bmk.IIPP };
                     if(Bmk['%']) UpdatedBookmark['%'] = Bmk['%'];
                     UpdatedBookmarks.push(UpdatedBookmark);
@@ -4548,9 +4430,9 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     Type: 'normal',
                     Labels: { default: { default: `Add a Bookmark to Current Page`, ja: `現在のページにしおりを挟む` } },
                     Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
-                    action: () => Bookmark ? BookmarkManager.add(Bookmark) : false
+                    action: () => Bookmarks.length ? BookmarkManager.add(Bookmarks[0]) : false
                 });
-                if(!Bookmark || ExistingBookmark) {
+                if(!Bookmarks.length || ExistingBookmarks.length) {
                     I.setUIState(BookmarkManager.AddButton, 'disabled');
                 }
             }
