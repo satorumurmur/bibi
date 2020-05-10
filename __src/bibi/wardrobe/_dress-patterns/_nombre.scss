@@ -2,26 +2,33 @@
 // + Nombre
 // --------------------------------------------------------------------------------
 
-
 div#bibi-nombre {
-	border-radius: $Nombre_Height * 0.5;
-	@include size($Nombre_Width, $Nombre_Height);
-	line-height: $Nombre_Height;
-	color: $Nombre_Color;
-	background: $Nombre_BackgroundColor;
-	html.view-vertical & {
-		transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
+	& {
+		border-radius: $Nombre_Height * 0.5;
+		@include size($Nombre_Width, $Nombre_Height);
+		line-height: $Nombre_Height;
+		background: $Nombre_BackgroundColor;
 	}
-	html.slider-opened.appearance-horizontal & {
-		bottom: $Slider_Size + 2px !important;
-	}
-	html.slider-opened.appearance-vertical & {
-		right: $Slider_Size + 2px !important;
+	html.slider-opened & { background: $Nombre_BackgroundColor__SliderOpened; }
+	html.view-vertical & { transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5); }
+	html.slider-opened.appearance-horizontal & { bottom: $Slider_PaddingEnd__SliderOpened !important; }
+	html.slider-opened.appearance-vertical   & {  right: $Slider_PaddingEnd__SliderOpened !important; }
+	span {
+		&.bibi-nombre-current {
+			color: $Nombre-Current_Color;
+			html.slider-opened & { color: $Nombre-Current_Color__SliderOpened; }
+		}
+		&.bibi-nombre-delimiter {
+			color: $Nombre-Delimiter_Color;
+			html.slider-opened & { color: $Nombre-Delimiter_Color__SliderOpened; }
+		}
+		&.bibi-nombre-total {
+			color: $Nombre-Total_Color;
+			html.slider-opened & { color: $Nombre-Total_Color__SliderOpened; }
+		}
+		&.bibi-nombre-percent {
+			color: $Nombre-Percent_Color;
+			html.slider-opened & { color: $Nombre-Percent_Color__SliderOpened; }
+		}
 	}
 }
-	span#bibi-nombre-current {
-		color: $Nombre-Current_Color;
-	}
-	span#bibi-nombre-percent {
-		color: $Nombre-Percent_Color;
-	}

@@ -12,18 +12,16 @@ Bibi.preset({
 //-- Behavior
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"reader-view-mode"             : "paged", // "paged" or "vertical" or "horizontal" ("paged" is for flipping, "vertical" and "horizontal" are for scrolling)
-"fix-reader-view-mode"         : "no", // "yes" or "no" or "desktop" or "mobile"
+"reader-view-mode"              : "paged", // "paged" or "horizontal" or "vertical" ("paged" is for flipping, "horizontal" and "vertical" are for scrolling)
+"full-breadth-layout-in-scroll" : "no", // "yes" or "no" or "desktop" or "mobile"
+"fix-reader-view-mode"          : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"keep-settings"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-"resume-from-last-position"    : "yes", // "yes" or "no" or "desktop" or "mobile"
+"keep-settings"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"resume-from-last-position"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"autostart"                    : "yes", // "yes" or "no" or "desktop" or "mobile"
-"autostart-embedded"           : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
-"start-embedded-in-new-window" : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
-
-"double-spread-for-reflowable" : "yes", // "yes" or "no" or "desktop" or "mobile"
-"allow-placeholders"           : "yes", // "yes" or "no" or "desktop" or "mobile"
+"autostart"                     : "yes", // "yes" or "no" or "desktop" or "mobile"
+"autostart-embedded"            : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
+"start-embedded-in-new-window"  : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
 
 
 //==============================================================================================================================================
@@ -33,15 +31,24 @@ Bibi.preset({
 "use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile". If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
-"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
+
+"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
+
+"use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"flip-pages-during-sliding"  : "yes", // "yes" or "no" or "desktop" or "mobile"
+
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
-"accept-orthogonal-input"    : "no", // "yes" or "no" or "desktop" or "mobile"
+"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
+"base-font-size"             : "auto", // Number of pixel or "auto"
+"font-size-scale-per-step"   : 1.25, // Number of scale
 
-"animate-page-flipping"      : "no", // "yes" or "no" or "desktop" or "mobile". Animate page flipping on paged view mode, or not.
+"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"loupe-max-scale"            : 4, // Number of scale (greater than 1)
+"loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
+"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
 "use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
@@ -49,34 +56,33 @@ Bibi.preset({
 "use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
 "max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 
 
-"use-slider"                 : "yes",
-"slider-mode"                : "auto", // "edgebar" or "bookmap" or "auto"
-"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
-
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
-
-"base-font-size"             : "auto", // Number of pixel or "auto"
-"font-size-scale-per-step"   : 1.25, // Number of scale
-"loupe-max-scale"            : 4, // Number of scale (minimum: 2)
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
 
-"flipper-width"              : 0.3, // Number of ratio (lower than 1) or pixel (1 or higher)
+"item-padding-left"          : 24, // Number of pixel (It affects only for reflowable books.)
+"item-padding-right"         : 24, // Number of pixel (It affects only for reflowable books.)
+"item-padding-top"           : 48, // Number of pixel (It affects only for reflowable books.)
+"item-padding-bottom"        : 24, // Number of pixel (It affects only for reflowable books.)
 
-"item-padding-left"          : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-right"         : 28, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-top"           : 40, // Number of pixel (It is used only if the book is reflowable.)
-"item-padding-bottom"        : 20, // Number of pixel (It is used only if the book is reflowable.)
-
-"spread-gap"                 : 2, // Number of pixel
+"spread-gap"                 : 48, // Number of pixel (It affects only in paged view mode.)
 "spread-margin"              : 0, // Number of pixel
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"spread-border-radius"       : "", // CSS border-radius value or ""
-"spread-box-shadow"          : "", // CSS box-shadow value or ""
-
-"book-background"            : "", // CSS background value or ""
+"content-draggable"          : [true, true], // [<TF>, <TF>]
+"orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
+"orthogonal-edges"           : ["utilities", "utilities"], // [<S1>, <S2>]
+"orthogonal-touch-moves"     : ["move", "switch"], // [<S1>, <S2>]
+"orthogonal-wheelings"       : ["move", "across"], // [<S1>, <S3>]
+//                             ^ Each item of the arrays corresponds to the view mode:
+//                                 * the first is for the "paged" view mode, and
+//                                 * the second is for the "horizontal"/"vertical" scroll view modes.
+//                             ^ Types of the values:
+//                                 * <TF>: true or false
+//                                 * <S1>: "" (ignore) or "utilities" or "move"
+//                                 * <S2>: "" (ignore) or "utilities" or "move" or "switch"
+//                                 * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
 
 
 //==============================================================================================================================================
@@ -113,17 +119,35 @@ Bibi.preset({
 "accept-blob-converted-data"         : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
 "accept-base64-encoded-data"         : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
 
+"pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
+"allow-placeholders"                 : true, // true or false. (true is highly recommended.)
 "prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
 
-"trustworthy-origins"                : [],
+
+//==============================================================================================================================================
+//-- DANGER ZONE
+//----------------------------------------------------------------------------------------------------------------------------------------------
+// If you publish Bibi online,
+// * keep these options as default, or/and
+// * keep your Bibi and website not to open files which you can not guarantee its security.
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+/* !!!! BE CAREFUL !!!! */ "allow-scripts-in-content" : false, // true or false (false is recommended).
+// If you change its value `true`, Bibi does not remove scripts natively-included in EPUB.
+// It makes Bibi to be able to open EPUBs including useful scripts.
+// But on the other hand, it may also allow XSS of malicious EPUB in some cases.
+
+/* !!!! BE CAREFUL !!!! */ "trustworthy-origins" : [], // origins you trust other than where this Bibi is installed. (blank is recommended).
+// If you add origins to it, Bibi is made to open not only EPUBs in the same origin as Bibi itself is installed but also EPUBs in remote origins.
+// It is useful for some cases like that you want to set directory on the other storaging server as "bookshelf".
+// But note that not to set an origin where someone else also can publish files.
+// If you do so, someone else can publish one's EPUB as it is on your website, and it may also allow XSS of malicious EPUB in some cases.
 
 
 /*
 
 
 //==============================================================================================================================================
-//-- Additional Info.
-//----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ## <01> You can use a path begins with "http(s)://" for "bookshelf" option in cases of the below:
@@ -160,6 +184,17 @@ Bibi.preset({
 
     ### Note:
     * Extension of the file is required even if "extract-if-necessary" is "" (or includes "*").
+
+
+## <04> Setting "x" for "pagination-method" option
+
+    It affects only for reflowable vertical-text books.
+    If "x" is set for "pagination-method", Bibi tries to use an experimental layout method on modern web-browsers.
+    It realizes more prettier layout for simple books like novels.
+    But sometime causes bad result for some books with figures or floating objects.
+
+
+//==============================================================================================================================================
 
 
 */

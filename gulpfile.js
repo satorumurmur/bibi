@@ -12,44 +12,48 @@ const Package = JSON.parse(fs.readFileSync('package.json'));
 const Bibi = require('./bibi.info.js');
 
 gulp.task('clean', done => {
-    del.sync([
-        '**/.DS_Store',
-        '**/Thumbs.db',
-        'LICENSE',
-        '*.md',
-        'bibi/*.html',
-        'bibi/and',
-        'bibi/extensions',
-        'bibi/presets',
-        'bibi/resources',
-        'bibi/wardrobe',
-        'bib/i/*.html',
-        'bib/i.js',
-        'bib/i/presets'
-    ].map(
-        X => Bibi.DIST + '/' + X
-    ));
-    [
-        'bibi',
-        'bibi-bookshelf',
-        'bib/i',
-      //'bib/bookshelf',
-        'bib'
-    ].forEach(Dir => {
-        try { Dir = Bibi.DIST + '/' + Dir ; if(!fs.readdirSync(Dir).length) del.sync(Dir); } catch(E) {}
-    });
+    if(!Bibi.ForPack) {
+        del.sync([
+            '**/.DS_Store',
+            '**/Thumbs.db',
+            'LICENSE',
+            '*.md',
+            'bibi/*.html',
+            'bibi/and',
+            'bibi/extensions',
+            'bibi/presets',
+            'bibi/resources',
+            'bibi/wardrobe',
+            'bib/i/*.html',
+            'bib/i.js',
+            'bib/i/presets',
+            'bibi-bookshelf/__samples',
+            'bibi-demo'
+        ].map(
+            X => Bibi.DIST + '/' + X
+        ));
+        [
+            'bibi-bookshelf',
+            'bibi',
+            'bib/bookshelf',
+            'bib/i',
+            'bib'
+        ].forEach(Dir => {
+            try { Dir = Bibi.DIST + '/' + Dir ; if(!fs.readdirSync(Dir).length) del.sync(Dir); } catch(E) {}
+        });
+    }
     del.sync(Bibi.ARCHIVETMP);
     done();
 });
 
 gulp.task('initialize', done => {
     [
-        'bibi',
-        'bibi-bookshelf'
+      //'bibi',
+      //'bibi-bookshelf'
     ].concat(Bibi.WithBCK ? [
-        'bib',
-        'bib/i',
-      //'bib/bookshelf'
+      //'bib',
+      //'bib/i',
+        'bib/bookshelf'
     ] : []).forEach(Dir => {
         fs.mkdirSync((Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST) + '/' + Dir, { recursive: true });
     });

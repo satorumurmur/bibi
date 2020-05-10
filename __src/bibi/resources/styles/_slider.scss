@@ -64,6 +64,8 @@ div#bibi-slider {
 	html.waiting &,
 	html.busy &,
 	html.panel-opened & { display: none; }
+	overscroll-behavior-x: none;
+	overscroll-behavior-y: none;
 }
 
 
@@ -160,15 +162,19 @@ div#bibi-slider-thumb {
 	// @____Bibi:Dress__('-') html:not(.slider-opened):not(.touch) &:hover:before  { background-color: $Slider-Thumb_BackgroundColor__Hover; }
 	// @____Bibi:Dress__('-') html:not(.slider-opened):not(.touch) &:active:before { background-color: $Slider-Thumb_BackgroundColor__Active; }
 	&:after {
-		// @____Bibi:Dress__('-') @include offset($Slider-Thumb-Circle_Size * -1);
-		// @____Bibi:Dress__('-') @include size($Slider-Thumb-Circle_Size);
-		border-style: solid;
-		// @____Bibi:Dress__('-') border-width: $Slider-Thumb-Circle_BorderWidth;
-		// @____Bibi:Dress__('-') border-color: $Slider-Thumb-Circle_BorderColor;
-		border-radius: 50%;
-		// @____Bibi:Dress__('-') background: $Slider-Thumb-Circle_BackgroundColor;
-		// @____Bibi:Dress__('-') box-shadow: 0 0 0 $Slider-Thumb-Circle-Halo_Width $Slider-Thumb-Circle-Halo_Color;
+		// @____Bibi:Dress__('-') @include offset($Slider-Thumb_Size__SliderOpened * -1);
+		// @____Bibi:Dress__('-') html.appearance-horizontal & { @include size(100%, $Slider-Thumb_Size__SliderOpened); }
+		// @____Bibi:Dress__('-') html.appearance-vertical   & { @include size($Slider-Thumb_Size__SliderOpened, 100%); }
+		// @____Bibi:Dress__('-') @include min-size($Slider-Thumb_Size__SliderOpened);
+		// @____Bibi:Dress__('-') border-radius: $Slider-Thumb_Size__SliderOpened * .5;
+		// @____Bibi:Dress__('-') border: $Slider-Thumb_Border__SliderOpened;
+		// @____Bibi:Dress__('-') background: $Slider-Thumb_BackgroundColor__SliderOpened;
+		// @____Bibi:Dress__('-') box-shadow: 0 0 0 $Slider-Thumb-Halo_Width__SliderOpened $Slider-Thumb-Halo_Color__SliderOpened;
 		html:not(.slider-opened) & { transform: scale(0); opacity: 0; }
+	}
+	&.min:after {
+		// @____Bibi:Dress__('-') border: $Slider-Thumb_Border__SliderOpened__Min;
+		// @____Bibi:Dress__('-') background: $Slider-Thumb_BackgroundColor__SliderOpened__Min;
 	}
 }
 
@@ -176,53 +182,70 @@ div#bibi-slider-thumb {
 // - . Rail
 // --------------------------------------------------------------------------------
 
-div#bibi-slider-rail {
+div#bibi-slider-rail,
+div#bibi-slider-rail-groove,
+div#bibi-slider-rail-progress {
 	& {
-		content: "";
-		//overflow: hidden;
-		// display: none; // DO NOT SET `none` !!
 		box-sizing: border-box;
 		position: absolute;
-		z-index: 10000;
-		//@include offset(-100vh, -100vw);
-		@include offset(0);
-		margin: auto;
-		// @____Bibi:Dress__('-') background: $Slider-Rail_Color;
 		pointer-events: none;
 		transition: background-color linear .33s;
 	}
-	html.appearance-horizontal & { height: 0; }
-	html.appearance-vertical   & { width: 0; }
-	// @____Bibi:Dress__('-') html.slider-opened                       & { border-radius: $Slider-Rail_Width__SliderOpened / 2; }
-	// @____Bibi:Dress__('-') html.slider-opened.appearance-horizontal & { height: $Slider-Rail_Width__SliderOpened; }
-	// @____Bibi:Dress__('-') html.slider-opened.appearance-vertical   & { width: $Slider-Rail_Width__SliderOpened; }
-	// @____Bibi:Dress__('-') div#bibi-slider:hover                    & { background: $Slider-Rail_Color__Hover; }
+}
+
+div#bibi-slider-rail {
+	& {
+		z-index: 10000;
+		@include offset(0);
+		margin: auto;
+		// @____Bibi:Dress__('-') background: $Slider-Rail-FullLength_Color__SliderOpened;
+	}
+	html.appearance-horizontal & { @include size(100%, 0); }
+	html.appearance-vertical   & { @include size(0, 100%); }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-horizontal & { height: $Slider-Rail-FullLength_Width__SliderOpened; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-vertical   & { width: $Slider-Rail-FullLength_Width__SliderOpened; }
+	// @____Bibi:Dress__('-') div#bibi-slider:hover                    & { background: $Slider-Rail-FullLength_Color__SliderOpened__Hover; }
+}
+
+div#bibi-slider-rail-groove,
+div#bibi-slider-rail-progress {
+	& {
+		@include size(0);
+	}
+}
+
+div#bibi-slider-rail-groove {
+	& {
+		// @____Bibi:Dress__('-') border-top-color: $Slider-Rail-Groove_Color__SliderOpened;
+	}
+	html.appearance-horizontal & { @include offset(-100%); margin: auto; }
+	html.appearance-vertical &   { @include offset(-100%); margin: auto; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-horizontal & { border-top: $Slider-Rail-Groove_Width__SliderOpened; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-vertical   & { width: $Slider-Rail-Groove_Width__SliderOpened; }
+	// @____Bibi:Dress__('-') div#bibi-slider:hover                    & { background: $Slider-Rail-Groove_Color__SliderOpened__Hover; }
 }
 
 div#bibi-slider-rail-progress {
 	& {
-		position: absolute;
-		@include size(0);
-		// @____Bibi:Dress__('-') background: $Slider-Rail-Progress_Color;
-		transition: background-color linear .33s;
-		will-change: transform;
+		// @____Bibi:Dress__('-') background: $Slider-Rail-Progress_Color__SliderOpened;
+		will-change: width, height;
 	}
-	html.appearance-horizontal & { top: -100%; bottom: -100%; margin: auto 0;                                        }
-	html.appearance-rtl &        {                                             right: 0; transform-origin: 100% 50%; }
-	html.appearance-ltr &        {                                             left:  0; transform-origin:   0  50%; }
-	html.appearance-vertical &   { left: -100%; right: -100%; margin: 0 auto;  top:   0; transform-origin:  50%  0 ; }
-	// @____Bibi:Dress__('-') html.slider-opened                       & {}
+	html.appearance-rtl & { @include offset(-100%, 0, -100%, auto); margin: auto 0; transform-origin: 100% 50%; }
+	html.appearance-ltr & { @include offset(-100%, auto, -100%, 0); margin: auto 0; transform-origin:   0  50%; }
+	html.appearance-ttb & { @include offset(0, -100%, auto, -100%); margin: 0 auto; transform-origin:  50%  0 ; }
 	// @____Bibi:Dress__('-') html.slider-opened.appearance-horizontal & { height: $Slider-Rail-Progress_Width__SliderOpened; }
 	// @____Bibi:Dress__('-') html.slider-opened.appearance-vertical   & { width:  $Slider-Rail-Progress_Width__SliderOpened; }
-	// @____Bibi:Dress__('-') div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__Hover; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-ltr        & { border-radius: 0 ($Slider-Rail-Progress_Width__SliderOpened * .5) ($Slider-Rail-Progress_Width__SliderOpened * .5) 0; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-rtl        & { border-radius: ($Slider-Rail-Progress_Width__SliderOpened * .5) 0 0 ($Slider-Rail-Progress_Width__SliderOpened * .5); }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-ttb        & { border-radius: 0 0 ($Slider-Rail-Progress_Width__SliderOpened * .5) ($Slider-Rail-Progress_Width__SliderOpened * .5); }
+	// @____Bibi:Dress__('-') div#bibi-slider:hover                    & { background: $Slider-Rail-Progress_Color__SliderOpened__Hover; }
 }
 
 
-// - UI Box (Edgebar Box, Bookmap Box)
+// - Edgebar Box
 // --------------------------------------------------------------------------------
 
-div#bibi-slider-edgebar-box,
-div#bibi-slider-bookmap-box {
+div#bibi-slider-edgebar-box {
 	& {
 		box-sizing: border-box;
 		position: absolute;
@@ -292,11 +315,10 @@ div#bibi-slider-bookmap-box {
 }
 
 
-// - Edgebar, Bookmap
+// - Edgebar
 // --------------------------------------------------------------------------------
 
-div#bibi-slider-edgebar,
-div#bibi-slider-bookmap {
+div#bibi-slider-edgebar {
 	box-sizing: border-box;
 	position: absolute;
 	z-index: 10;
@@ -312,150 +334,6 @@ div#bibi-slider-bookmap {
 
 div#bibi-slider-edgebar {
 	// @____Bibi:Dress__('-') background: $Slider-Edgebar_Background;
-}
-
-
-// - Bookmap
-// --------------------------------------------------------------------------------
-
-div#bibi-slider-bookmap {
-	display: flex;
-	flex-wrap: nowrap;
-	justify-content: space-between;
-	html.appearance-ltr & { flex-direction: row; }
-	html.appearance-rtl & { flex-direction: row-reverse; }
-	html.appearance-ttb & { flex-direction: column; }
-	box-sizing: border-box;
-	position: absolute;
-	z-index: 10;
-	@include offset(0);
-	@include size(100%);
-	margin: auto;
-}
-
-	div.bookmap-spread-box,
-	div.bookmap-spread,
-	div.bookmap-item-box,
-	span.bookmap-item,
-	span.bookmap-page {
-		html.appearance-horizontal & { height: 100%; }
-		html.appearance-vertical   & { width: 100%; }
-	}
-
-
-// - . Bookmap > Spread Box
-// --------------------------------------------------------------------------------
-
-div.bookmap-spread-box {
-	box-sizing: border-box;
-	flex-shrink: 0;
-	position: relative;
-	// @____Bibi:Dress__('-') background: $Slider-Bookmap-SpreadBox_Color;
-	&.hover {
-		//background: $Slider-Bookmap-SpreadBox_Color__Hover;
-	}
-}
-
-
-// - . Bookmap > Spread Box > Spread
-// --------------------------------------------------------------------------------
-
-div.bookmap-spread {
-	box-sizing: border-box;
-	position: absolute;
-	z-index: 1;
-	@include offset(0);
-	margin: auto;
-	display: flex;
-	flex-wrap: nowrap;
-	justify-content: center;
-	html.page-ltr &                                            { flex-direction: row; }
-	html.page-rtl &                                            { flex-direction: row-reverse; }
-	html.view-vertical div.bookmap-spread-box:not(.spreaded) & { flex-direction: column; }
-	div.bookmap-spread-box.single-item-spread-before & { justify-content: flex-start; }
-	div.bookmap-spread-box.single-item-spread-after &  { justify-content: flex-end; }
-	align-items: center;
-	// @____Bibi:Dress__('-') background: $Slider-Bookmap-Spread_Background;
-}
-
-
-// - . Bookmap > Spread Box > Spread > Item Box
-// --------------------------------------------------------------------------------
-
-div.bookmap-item-box {
-	box-sizing: border-box;
-	flex-shrink: 0;
-	position: relative;
-	&.reflowable {
-		display: flex;
-		html.appearance-ltr & { flex-direction: row; }
-		html.appearance-rtl & { flex-direction: row-reverse; }
-		html.appearance-ttb & { flex-direction: column; }
-		flex-wrap: nowrap;
-		justify-content: flex-start;
-		align-items: center;
-		&:before {
-			content: "";
-			display: block;
-			position: absolute;
-			// @____Bibi:Dress__('-') background: $Slider-Bookmap-ItemBox_BorderColor__ForReflowable;
-			html.book-reflowable.appearance-horizontal & { @include size(1px, calc(100% + 2px)); top: -1px; bottom: -1px; margin: auto 0; }
-			html.book-reflowable.appearance-vertical & { @include size(calc(100% + 2px), 1px); left: -1px; right: -1px; margin: 0 auto; }
-			html.book-reflowable.appearance-rtl & { right: -1px; left: auto; }
-			html.book-reflowable.appearance-ltr & { left: -1px; right: auto; }
-			html.book-reflowable.appearance-ttb & { top: -1px; bottom: auto; }
-			html:not(.slider-opened) & { display: none; }
-		}
-	}
-}
-
-
-// - . Bookmap > Spread Box > Spread > Item Box > Item
-// --------------------------------------------------------------------------------
-
-span.bookmap-item {
-	/*
-	box-sizing: content-box;
-	display: block;
-	position: absolute;
-	z-index: 1;
-	@include offset(0);
-	margin: 0;
-	padding: 0;
-	@include size(100%);
-	border: none 0;
-	line-height: 1;
-	vertical-align: top;
-	*/
-	display: none;
-}
-
-
-// - . Bookmap > Spread Box > Spread > Item Box > Page
-// --------------------------------------------------------------------------------
-
-span.bookmap-page {
-	box-sizing: border-box;
-	display: block;
-	z-index: 10;
-	div.bookmap-item-box.reflowable & {
-		position: relative;
-		flex-shrink: 0;
-	}
-	div.bookmap-item-box.pre-paginated & {
-		position: absolute;
-		@include offset(0);//trbl(-1px);
-		margin: auto;
-		@include size(100%);
-	}
-	background: transparent;
-	html.slider-opened & {
-		// @____Bibi:Dress__('-') background-color: $Slider-Bookmap-Page_Color__SliderOpened;
-	}
-	html.slider-opened &.hover {
-		// @____Bibi:Dress__('-') background-color: $Slider-Bookmap-Page_Color__SliderOpened__Hover;
-		// @____Bibi:Dress__('-') border: solid 1px $Slider-Bookmap-Page_BorderColor__SliderOpened__Hover;
-	}
 }
 
 

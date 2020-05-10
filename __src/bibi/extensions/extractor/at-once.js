@@ -50,10 +50,14 @@ Bibi.x({
         }
         if(!FilesToBeExtract.length) return reject(`Does Not Contain Any Resources`);
         let FolderName = '', FolderNameRE = undefined;
-        if(!FilesToBeExtract.includes(B.Container.Path) && !FilesToBeExtract.includes(B.ZineData.Path)) {
-            [B.Container.Path, B.ZineData.Path].forEach(ToBeFound => {
+        const PathsToBeChecked = [];
+        if(B.Type != 'Zine') PathsToBeChecked.push(B.Container.Path); // EPUB or unknown.
+        if(B.Type != 'EPUB') PathsToBeChecked.push(B.ZineData.Path ); // Zine or unknown.
+        if(!PathsToBeChecked.filter(PathToBeChecked => FilesToBeExtract.includes(PathToBeChecked)).length) {
+            PathsToBeChecked.forEach(PathToBeChecked => {
+                if(!PathToBeChecked) return;
                 if(FolderName) return;
-                const RE = new RegExp('^(.+?\\/)' + ToBeFound.replace(/\//g, '\\/').replace(/\./g, '\\.') + '$');
+                const RE = new RegExp('^(.+?\\/)' +  PathToBeChecked.replace(/\//g, '\\/').replace(/\./g, '\\.') + '$');
                 for(let l = FilesToBeExtract.length, i = 0; i < l; i++) {
                     const FileName = FilesToBeExtract[i];
                     if(RE.test(FileName)) {
@@ -64,15 +68,11 @@ Bibi.x({
                 }
             });
         }
-        if(FilesToBeExtract.includes(FolderName + B.Container.Path)) {
-            if(!B.Type) B.Type = 'EPUB';
-            else if(B.Type == 'Zine') reject({ BookTypeError: `It Seems to Be an EPUB. Not a Zine.` });
-        } else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path)) {
-            if(!B.Type) B.Type = 'Zine';
-            else if(B.Type == 'EPUB') reject({ BookTypeError: `It Seems to Be a Zine. Not an EPUB.` });
-        } else {
-            reject(`Required Metafile Is Not Contained.`);
-        }
+        let RootFileFound = false;
+             if(B.Type) RootFileFound = FilesToBeExtract.includes(FolderName + PathsToBeChecked[0]);
+        else if(FilesToBeExtract.includes(FolderName + B.Container.Path)) B.Type = 'EPUB', RootFileFound = true;
+        else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path )) B.Type = 'Zine', RootFileFound = true;
+        if(!RootFileFound) return reject(`Required Metafile${ B.Type ? ' (' + (B.Type != 'EPUB' ? B.ZineData.Path : B.Container.Path).split('/').slice(-1)[0] + ')' : '' } Is Not Contained.`);
         const FileCount = { Particular: 0 };
         const FileTypesToBeCounted = {
             'Meta XML':   'xml|opf|ncx',
@@ -95,7 +95,7 @@ Bibi.x({
         O.log(`Extracting Book Data...`, '<g:>');
         const Promises = [];
         FilesToBeExtract.forEach(FileName => {
-            if(FolderName) FileName = FileName.replace(FolderNameRE, '');
+            if(FolderNameRE) FileName = FileName.replace(FolderNameRE, '');
             const IsBin = O.isBin({ Path: FileName });
             Promises.push(
                 BookDataArchive.file(FolderName + FileName).async(IsBin ? 'blob' : 'string').then(FileContent => {
