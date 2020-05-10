@@ -5,9 +5,17 @@
 $Nombre_Width: 140px;
 $Nombre_Height: 20px;
 
-$Nombre_Color: rgb(64,64,64);
-$Nombre-Current_Color: darken($Nombre_Color, 25%);
-$Nombre-Percent_Color: lighten($Nombre_Color, 25%);
+$Nombre_KeyColor: rgb(48,48,48);
 
-$Nombre_BackgroundColor: rgba(240,240,240,0.9);
-$Nombre_BackgroundColor: rgb(240,240,240);
+$Nombre-Current_Color: $Nombre_KeyColor;
+$Nombre-Delimiter_Color: lighten($Nombre_KeyColor, 20%);
+$Nombre-Total_Color: lighten($Nombre_KeyColor, 10%);
+$Nombre-Percent_Color: lighten($Nombre_KeyColor, 20%);
+$Nombre_BackgroundColor: rgba(lighten($Nombre_KeyColor, 77%), .9);
+
+$Nombre_KeyColor__SliderOpened: $Slider_KeyColor;
+$Nombre-Current_Color__SliderOpened: $Nombre_KeyColor__SliderOpened;
+$Nombre-Delimiter_Color__SliderOpened: lighten($Nombre_KeyColor__SliderOpened, 20%);
+$Nombre-Total_Color__SliderOpened: lighten($Nombre_KeyColor__SliderOpened, 10%);
+$Nombre-Percent_Color__SliderOpened: lighten($Nombre_KeyColor__SliderOpened, 20%);
+$Nombre_BackgroundColor__SliderOpened: transparent;

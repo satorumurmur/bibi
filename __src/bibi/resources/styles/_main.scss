@@ -2,7 +2,6 @@
 // + Main
 // --------------------------------------------------------------------------------
 
-
 main#bibi-main {
 	& {
 		overflow: hidden;
@@ -15,12 +14,13 @@ main#bibi-main {
 		//@include offset(-100vh, -100vw);
 		//margin: auto;
 		width: 100%;
+		background: transparent;
 		transition:
-			//padding .1s ease,
-			transform .1s ease,
-			opacity .15s ease;
+			transform .1s ease/*,
+			opacity .15s ease,
+			filter .15s ease*/;
 		transform-origin: 50% 50%;
-		will-change: scroll-position, padding, transform, opacity;
+		will-change: scroll-position, padding, transform/*, opacity, filter*/;
 	}
 	html.book-full-height & {
 		height: 100%;
@@ -79,7 +79,11 @@ main#bibi-main {
 		transform: translateX(100px);
 		opacity: 0;
 	}*/
+	html.subpanel-opened & {
+		// @____Bibi:Dress__('-') @include Main__SubpanelOpened();
+	}
 }
+
 	div#bibi-main-book {
 		box-sizing: content-box;//box-sizing: border-box;
 		display: flex;
@@ -89,21 +93,19 @@ main#bibi-main {
 		position: relative;
 		z-index: $INVARIABLE__Main-Book_ZIndex;
 		@include size(100%);
-		transition: 0.5s ease-in-out;
-		transition-property: transform;
-//		transform: translateY( 0  );
-//		html.panel-opened & { transform: translateY(36px); /* transform-origin: 50% 100%; transform: rotateX(-45deg); */ }
-		transition: opacity .15s ease;
+		transition:
+			transform 0.5s ease-in-out,
+			opacity .15s ease;
 		will-change: width, height, opacity;
 		html.spread-ltr & { flex-direction: row; }
 		html.spread-rtl & { flex-direction: row-reverse; }
 		html.spread-ttb & { flex-direction: column; }
-		html.subpanel-opened & {
-			opacity: 0.5;
-		}
 		html.resizing &,
 		html.changing-view & {
 			visibility: hidden;
+		}
+		html.subpanel-opened & {
+			// @____Bibi:Dress__('-') @include Main-Book__SubpanelOpened();
 		}
 	}
 		div.spread-box {

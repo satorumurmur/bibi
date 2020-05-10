@@ -2,25 +2,33 @@
 // + Nombre
 // --------------------------------------------------------------------------------
 
-
 div#bibi-nombre {
-	box-sizing: border-box;
-	overflow: hidden;
-	position: absolute;
-	z-index: $INVARIABLE__Nombre_ZIndex;
-	margin: auto;
-	// @____Bibi:Dress__('-') border-radius: $Nombre_Height * 0.5;
-	// @____Bibi:Dress__('-') @include size($Nombre_Width, $Nombre_Height);
-	// @____Bibi:Dress__('-') line-height: $Nombre_Height;
-	font-size: 12px;
-	text-align: center;
-	// @____Bibi:Dress__('-') color: $Nombre_Color;
-	// @____Bibi:Dress__('-') background: $Nombre_BackgroundColor;
-	opacity: 0;
-	transition: 0.125s ease-out;
+	& {
+		display: none;
+		pointer-events: none;
+		box-sizing: border-box;
+		overflow: hidden;
+		position: absolute;
+		z-index: $INVARIABLE__Nombre_ZIndex;
+		margin: auto;
+		// @____Bibi:Dress__('-') border-radius: $Nombre_Height * 0.5;
+		// @____Bibi:Dress__('-') @include size($Nombre_Width, $Nombre_Height);
+		// @____Bibi:Dress__('-') line-height: $Nombre_Height;
+		font-size: 10px;
+		text-align: center;
+		// @____Bibi:Dress__('-') background: $Nombre_BackgroundColor;
+		// @____Bibi:Dress__('-') html.slider-opened & { background: $Nombre_BackgroundColor__SliderOpened; }
+		opacity: 0;
+		transition: .125s ease-out;
+	}
+	html.busy & { display: none !important; }
+	&.active    { display: block; }
+	&.hot       { opacity: 1; }
 	html.view-paged &,
 	html.view-horizontal & {
-		@include offset(auto, -100%);
+		top: auto;
+		right: -100%;
+		left: -100%;
 	}
 	html.view-paged & {
 		bottom: 2px;
@@ -35,34 +43,35 @@ div#bibi-nombre {
 		left: auto;
 		// @____Bibi:Dress__('-') transform: rotate(90deg) translateY(($Nombre_Width - $Nombre_Height) * -0.5);
 	}
-	html.slider-opened.appearance-horizontal & {
-		// @____Bibi:Dress__('-') bottom: $Slider_Size + 2px !important;
-	}
-	html.slider-opened.appearance-vertical & {
-		// @____Bibi:Dress__('-') right: $Slider_Size + 2px !important;
-	}
-	&        { display: none;  }
-	&.active { display: block; }
-	&.hot    { opacity: 1; transition: 0.125s ease-out; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-horizontal & { bottom: $Slider_PaddingEnd__SliderOpened !important; }
+	// @____Bibi:Dress__('-') html.slider-opened.appearance-vertical   & {  right: $Slider_PaddingEnd__SliderOpened !important;  }
 	span {
-		display: inline-block;
-	}
-}
-	span#bibi-nombre-current {
-		font-size: 1.2em;
-		font-weight: bold;
-		// @____Bibi:Dress__('-') color: $Nombre-Current_Color;
-	}
-	span#bibi-nombre-delimiter {
-		margin: 0 0.1em 0 0.2em;
-	}
-	span#bibi-nombre-total {
-	}
-	span#bibi-nombre-percent {
-		margin-left: .25em;
-		// @____Bibi:Dress__('-') color: $Nombre-Percent_Color;
-		span.unit {
-			margin-left: .125em;
-			font-size: .75em;
+		& {
+			display: inline-block;
+		}
+		&.bibi-nombre-current {
+			font-size: 1.2em;
+			font-weight: bold;
+			// @____Bibi:Dress__('-') color: $Nombre-Current_Color;
+			// @____Bibi:Dress__('-') html.slider-opened & { color: $Nombre-Current_Color__SliderOpened; }
+		}
+		&.bibi-nombre-delimiter {
+			margin: 0 0.1em 0 0.2em;
+			// @____Bibi:Dress__('-') color: $Nombre-Delimiter_Color;
+			// @____Bibi:Dress__('-') html.slider-opened & { color: $Nombre-Delimiter_Color__SliderOpened; }
+		}
+		&.bibi-nombre-total {
+			// @____Bibi:Dress__('-') color: $Nombre-Total_Color;
+			// @____Bibi:Dress__('-') html.slider-opened & { color: $Nombre-Total_Color__SliderOpened; }
+		}
+		&.bibi-nombre-percent {
+			margin-left: .25em;
+			// @____Bibi:Dress__('-') color: $Nombre-Percent_Color;
+			// @____Bibi:Dress__('-') html.slider-opened & { color: $Nombre-Percent_Color__SliderOpened; }
+			span.unit {
+				margin-left: .125em;
+				font-size: .75em;
+			}
 		}
 	}
+}

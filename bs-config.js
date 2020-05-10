@@ -9,19 +9,6 @@ module.exports = {
         baseDir: Bibi.DIST,
         index: 'index.html'
     },
-    files: [
-        'bibi/**'
-    ],
     startPath: 'bibi/?book=',
-    snippetOptions: {
-        whitelist: [
-            'bibi/*',
-            'bibi/**/',
-            'bibi/*[?]*/**'
-        ],
-        blacklist: [
-            '**'
-        ]
-    },
     ghostMode: false
 };
