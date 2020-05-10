@@ -162,7 +162,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(Fill) return 0;
     },
     'array': (_P, _V, Fill) => {
-        if(_V instanceof Array) {
+        if(Array.isArray(_V)) {
             switch(_P) {
                 case 'content-draggable'      : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
                 case 'extensions'             : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
@@ -207,7 +207,10 @@ Bibi.applyFilteredSettingsTo = (To, From, ListOfSettingTypes, Fill) => {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
+Bibi.at1st = () => Bibi.at1st.List.forEach(fn => typeof fn == 'function' ? fn() : true), Bibi.at1st.List = [];
+
 Bibi.hello = () => new Promise(resolve => {
+    Bibi.at1st();
     O.log.initialize();
     O.log(`Hello!`, '<b:>');
     O.log(`[ja] ${ Bibi['href'] }`);
@@ -255,7 +258,7 @@ Bibi.initialize = () => {
         if(Bibi.Dev)   O.HTML.classList.add('dev');
         if(Bibi.Debug) O.HTML.classList.add('debug');
         O.HTML.classList.add('default-lang-' + (O.Language = (NLs => { // Language
-            if(navigator.languages instanceof Array) NLs = NLs.concat(navigator.languages);
+            if(Array.isArray(navigator.languages)) NLs = NLs.concat(navigator.languages);
             if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
             for(let l = NLs.length, i = 0; i < l; i++) {
                 const Lan = NLs[i].split ? NLs[i].split('-')[0] : '';
@@ -671,7 +674,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
     if(!Par || !Par.BookData) return reject(`Book Data Is Undefined.`);
     let BookData = Par.BookData;
     const BookDataFormat =
-        typeof BookData == 'string' ? (/^https?:\/\//.test(BookData) ? 'URI' : 'Base64') :
+        typeof BookData == 'string' ? (/^data:/.test(BookData) ? 'Base64' : 'URI') :
         typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'BLOB' : '') : '';
     if(!BookDataFormat) return reject(`Book Data Is Unknown.`);
     if(BookDataFormat == 'URI') {
@@ -1221,14 +1224,14 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
         } else reject();
     }).catch(() => {
         Item.Skipped = true;
-        return {};
+        return [];
     }).then(Source => new Promise(resolve => {
         const DefaultStyleID = 'bibi-default-style';
         Item.setAttribute('sandbox', 'allow-same-origin allow-scripts');
         if(!Item.BlobURL) {
             let HTML = typeof Source == 'string' ? Source : `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source[0] || '' }</head><body>${ Source[1] || '' }</body></html>`;
             HTML = HTML.replace(/^<\?.+?\?>/, '').replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!Item.Preprocessed ? `<base href="${ O.fullPath(Item.Path) }" />` : ''));
-            if(sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>.
+            if(sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
                 HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
                 Item.onLoaded = () => {
                     resolve();
@@ -1243,7 +1246,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
             Item.BlobURL = URL.createObjectURL(new Blob([HTML], { type: 'text/html' }));
             Item.Content = '';
         }
-        Item.onload = () => resolve();
+        Item.onload = resolve;
         Item.src = Item.BlobURL;
         ItemBox.insertBefore(Item, ItemBox.firstChild);
     })).then(() => {
@@ -3017,13 +3020,13 @@ I.PinchObserver = { create: () => {
         },
         onTouchMove: (Eve) => {
             if(Eve.touches.length != 2 || !PinchObserver.PinchStart) return;
-            console.log(PinchObserver.Pinching++);
             Eve.preventDefault(); Eve.stopPropagation();
             const Ratio = PinchObserver.getEventCoords(Eve).Distance / PinchObserver.PinchStart.Coords.Distance;
+            /* // Switch Utilities with Pinch-In/Out
             if(PinchObserver.Pinching++ < 3 && PinchObserver.PinchStart.Scale == 1) switch(I.Utilities.UIState) {
                 case 'default': if(Ratio < 1) { PinchObserver.onTouchEnd(); I.Utilities.openGracefuly();  return; } break;
                 case  'active': if(Ratio > 1) { PinchObserver.onTouchEnd(); I.Utilities.closeGracefuly(); return; } break;
-            }
+            } //*/
             clearTimeout(PinchObserver.Timer_TransitionRestore);
             sML.style(R.Main, { transition: 'none' });
             I.Loupe.scale(PinchObserver.PinchStart.Scale * Ratio, { Center: PinchObserver.PinchStart.Coords.Center, Stepless: true });
@@ -4316,7 +4319,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 Labels: { default: { default: `Bookmarks`, ja: `しおり` } }
             }).addButtonGroup();
             const BookmarkBiscuits = O.Biscuits.remember('Book', 'Bookmarks');
-            if(BookmarkBiscuits instanceof Array && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
+            if(Array.isArray(BookmarkBiscuits) && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
             //E.add(['bibi:opened', 'bibi:resized'], () => BookmarkManager.update());
             delete BookmarkManager.initialize;
         },
@@ -4342,7 +4345,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             }
             //BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => typeof Bmk.IIPP == 'number' && typeof Bmk['%'] == 'number');
             let Bookmarks = [], ExistingBookmarks = [];
-            if(typeof Opt.Bookmarks == 'object' && Opt.Bookmarks.map) BookmarkManager.Bookmarks = Opt.Bookmarks;
+            if(Array.isArray(Opt.Bookmarks)) BookmarkManager.Bookmarks = Opt.Bookmarks;
             if(Opt.Added) Bookmarks = [Opt.Added];
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
@@ -4592,7 +4595,7 @@ I.createButtonGroup = (Par = {}) => {
     if(Par.Sticky) ClassNames.push('sticky');
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
-    const ButtonsToAdd = (Par.Buttons instanceof Array) ? Par.Buttons : Par.Button ? [Par.Button] : [];
+    const ButtonsToAdd = Array.isArray(Par.Buttons) ? Par.Buttons : Par.Button ? [Par.Button] : [];
     delete Par.Buttons;
     delete Par.Button;
     const ButtonGroup = sML.create('ul', Par);
@@ -4664,7 +4667,7 @@ I.createSubpanel = (Par = {}) => {
     const ClassNames = ['bibi-subpanel', 'bibi-subpanel-' + (Par.Position == 'left' ? 'left' : 'right')];
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
-    const SectionsToAdd = Par.Sections instanceof Array ? Par.Sections : Par.Section ? [Par.Section] : [];
+    const SectionsToAdd = Array.isArray(Par.Sections) ? Par.Sections : Par.Section ? [Par.Section] : [];
     delete Par.Sections;
     delete Par.Section;
     const Subpanel = O.Body.appendChild(sML.create('div', Par));
@@ -4720,10 +4723,10 @@ I.createSubpanelSection = (Par = {}) => {
     const ClassNames = ['bibi-subpanel-section'];
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
-    const PGroupsToAdd = Par.PGroups instanceof Array ? Par.PGroups : Par.PGroup ? [Par.PGroup] : [];
+    const PGroupsToAdd = Array.isArray(Par.PGroups) ? Par.PGroups : Par.PGroup ? [Par.PGroup] : [];
     delete Par.PGroups;
     delete Par.PGroup;
-    const ButtonGroupsToAdd = Par.ButtonGroups instanceof Array ? Par.ButtonGroups : Par.ButtonGroup ? [Par.ButtonGroup] : [];
+    const ButtonGroupsToAdd = Array.isArray(Par.ButtonGroups) ? Par.ButtonGroups : Par.ButtonGroup ? [Par.ButtonGroup] : [];
     delete Par.ButtonGroups;
     delete Par.ButtonGroup;
     const SubpanelSection = sML.create('div', Par);
@@ -4876,11 +4879,11 @@ I.getBookIcon = () => sML.create('div', { className: 'book-icon', innerHTML: `<s
 export const P = {}; // Bibi.Preset
 
 
-Bibi.preset = (Preset) => {
+Bibi.preset = (Preset) => Bibi.at1st.List.push(() => {
     Bibi.applyFilteredSettingsTo(P, Preset, [Bibi.SettingTypes, Bibi.SettingTypes_PresetOnly], 'Fill');
     delete P['book'];
     P.Script = document.getElementById('bibi-preset');
-};
+});
 
 
 P.initialize = () => {
@@ -4905,7 +4908,7 @@ P.initialize = () => {
             Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHref).href }));
             if(Extensions_HTML.length) P['extensions'] = Extensions_HTML;
         }
-        return !(P['extensions'] instanceof Array) ? [] : P['extensions'].filter(Xtn => {
+        return !Array.isArray(P['extensions']) ? [] : P['extensions'].filter(Xtn => {
             if(Xtn.hasOwnProperty('-spell-of-activation-')) {
                 const SoA = Xtn['-spell-of-activation-'];
                 if(!SoA || !/^[a-zA-Z0-9_\-]+$/.test(SoA) || !U.hasOwnProperty(SoA)) return false;
@@ -4926,41 +4929,40 @@ P.initialize = () => {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-export const U = (() => {
-    let Q = {};
-    Q.translateData = (PnV) => {
-        let [_P, _V] = PnV;
-        switch(_P) {
-            case 'bbd': _P = 'bibidi'; break;
-            case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
-            case 'view': case 'rvm': _P = 'reader-view-mode'; break;
-            case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
-            case 'pagination': _P = 'pagination-method'; break;
-        }
-        return [_P, _V];
-    };
-    const LS = location.search;
-    if(typeof LS != 'string') return Q;
-    LS.replace(/^\?/, '').split('&').forEach(PnV => {
+
+export const U = {};
+
+
+Bibi.at1st.List.unshift(() => {
+    const LS = location.search; if(typeof LS != 'string') return;
+    Object.assign(U, Bibi.applyFilteredSettingsTo({}, LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
         let [_P, _V] = PnV.split('=');
         if(!_V) _V = undefined;
         switch(_P) {
-            case 'log':
-                if(!_V) _V = '1'; break;
-            case 'book':
-                if(!_V) return;
-            case 'zine': case 'wait': case 'debug':
-                if(!_V) _V = 'true'; break;
-            default: 
-                [_P, _V] = Q.translateData([_P, _V]);
+            case 'log': if(!_V) _V = '1'; break;
+            case 'book': if(!_V) return; break;
+            case 'zine': case 'wait': case 'debug': if(!_V) _V = 'true'; break;
+            default: [_P, _V] = U.translateData([_P, _V]);
         }
         Q[_P] = _V;
-    });
-    Object.assign(Q, Bibi.applyFilteredSettingsTo({}, Q, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
-    if(!Q['book']) delete Q['zine'];
-    if(Q['debug']) Bibi.Debug = true, Q['log'] = 9;
-    return Q;
-})();
+        return Q;
+    }, {}), [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
+    if(!U['book']) delete U['zine'];
+    if(U['debug']) Bibi.Debug = true, U['log'] = 9;
+});
+
+
+U.translateData = (PnV) => {
+    let [_P, _V] = PnV;
+    switch(_P) {
+        case 'bbd': _P = 'bibidi'; break;
+        case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
+        case 'view': case 'rvm': _P = 'reader-view-mode'; break;
+        case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
+        case 'pagination': _P = 'pagination-method'; break;
+    }
+    return [_P, _V];
+};
 
 
 U.initialize = () => {
@@ -5237,7 +5239,7 @@ O.logSets = (...Args) => {
     let Repeats = [], Sets = []; Sets.length = 1;
     Args.reverse();
     for(let i = 0; i < Args.length; i++) {
-        if(!Args[i].map) Args[i] = [Args[i]];
+        if(!Array.isArray(Args[i])) Args[i] = [Args[i]];
         Repeats[i] = Sets.length;
         Sets.length = Sets.length * Args[i].length;
     }
@@ -5838,7 +5840,7 @@ O.Biscuits = {
                 delete O.Biscuits.Memories[Label];
             } else {
                 if(typeof Keys == 'string') Keys = [Keys];
-                if(Keys instanceof Array) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete O.Biscuits.Memories[Label][Key]);
+                if(Array.isArray(Keys)) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete O.Biscuits.Memories[Label][Key]);
                 localStorage.setItem(Label, JSON.stringify(O.Biscuits.Memories[Label]));
             }
         }
@@ -5885,16 +5887,16 @@ E.initialize = () => {
     //sML.applyRtL(E, new sML.CustomEvents('bibi'));
     E.CustomEvents = new sML.CustomEvents('bibi');
     E.add = function(/*[Tar,]*/ Nam, fun, Opt) {
-        if(arguments[0] instanceof Array                                        ) return arguments[0].forEach(AI => E.add(AI, arguments[1], arguments[2], arguments[3]));
-        if(arguments[1] instanceof Array                                        ) return arguments[1].forEach(AI => E.add(arguments[0], AI, arguments[2], arguments[3]));
-        if(arguments[2] instanceof Array && typeof arguments[2][0] == 'function') return arguments[2].forEach(AI => E.add(arguments[0], arguments[1], AI, arguments[3]));
+        if(Array.isArray(arguments[0])                                        ) return arguments[0].forEach(AI => E.add(AI, arguments[1], arguments[2], arguments[3]));
+        if(Array.isArray(arguments[1])                                        ) return arguments[1].forEach(AI => E.add(arguments[0], AI, arguments[2], arguments[3]));
+        if(Array.isArray(arguments[2]) && typeof arguments[2][0] == 'function') return arguments[2].forEach(AI => E.add(arguments[0], arguments[1], AI, arguments[3]));
         let Tar = document; if(typeof fun != 'function') Tar = arguments[0], Nam = arguments[1], fun = arguments[2], Opt = arguments[3];
         return /^bibi:/.test(Nam) ? E.CustomEvents.add(Tar, Nam, fun) : Tar.addEventListener(Nam, fun, Opt);
     };
     E.remove = function(/*[Tar,]*/ Nam, fun, Opt) {
-        if(arguments[0] instanceof Array                                        ) return arguments[0].forEach(AI => E.remove(AI, arguments[1], arguments[2], arguments[3]));
-        if(arguments[1] instanceof Array                                        ) return arguments[1].forEach(AI => E.remove(arguments[0], AI, arguments[2], arguments[3]));
-        if(arguments[2] instanceof Array && typeof arguments[2][0] == 'function') return arguments[2].forEach(AI => E.remove(arguments[0], arguments[1], AI, arguments[3]));
+        if(Array.isArray(arguments[0])                                        ) return arguments[0].forEach(AI => E.remove(AI, arguments[1], arguments[2], arguments[3]));
+        if(Array.isArray(arguments[1])                                        ) return arguments[1].forEach(AI => E.remove(arguments[0], AI, arguments[2], arguments[3]));
+        if(Array.isArray(arguments[2]) && typeof arguments[2][0] == 'function') return arguments[2].forEach(AI => E.remove(arguments[0], arguments[1], AI, arguments[3]));
         let Tar = document; if(typeof fun != 'function') Tar = arguments[0], Nam = arguments[1], fun = arguments[2], Opt = arguments[3];
         return /^bibi:/.test(Nam) ? E.CustomEvents.remove(Tar, Nam, fun) : Tar.removeEventListener(Nam, fun, Opt);
     };

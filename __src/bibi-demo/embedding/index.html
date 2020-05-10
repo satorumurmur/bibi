@@ -31,7 +31,7 @@
 const Jo = window['bibi:jo'];
 
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
 
 	const OneMoreBibi = new Jo.Bibi({
 		// [Pre-Paginated:LtR] / Default View-Mode: Vertical Scrolling (Unchangeable) / Autostart
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-const DEMO__addEventListeners = (Bibi) => {
+const DEMO__addEventListeners = function(Bibi) {
     
 	// CustomEvents which can be received from the viewer in default:
 	Bibi.Receiver.addEventListener('bibi:initialized',          DEMO__test); // bibi:initialized          ... Fires when the initializing of the settings is done.
@@ -65,16 +65,16 @@ const DEMO__addEventListeners = (Bibi) => {
 };
 
 
-const DEMO__test = (Eve) => DEMO__log(Eve) || DEMO__colour(Eve);
+const DEMO__test = function(Eve) { DEMO__log(Eve) || DEMO__colour(Eve); };
 
-const DEMO__log = (Eve) => console.log('[Bibi #' + (Jo.Bibis.indexOf(Eve.srcElement.Bibi) + 1) + '] "' + Eve.type + '"', Eve.detail); // Log the events in console.
+const DEMO__log = function(Eve) { console.log('[Bibi #' + (Jo.Bibis.indexOf(Eve.srcElement.Bibi) + 1) + '] "' + Eve.type + '"', Eve.detail); }; // Log the events in console.
 
-const DEMO__colour = (Eve) => { // Feedback the event dispatching. Its only for this testing page and the CSS is in demo.css.
+const DEMO__colour = function(Eve) { // Feedback the event dispatching. Its only for this testing page and the CSS is in demo.css.
 	const Frame = Eve.srcElement.Bibi.Frame;
 	clearTimeout(Frame.Timer);
 	Frame.classList.remove('hot');
 	Frame.classList.add('hot');
-	Frame.Timer = setTimeout(() => Frame.classList.remove('hot'), 222);
+	Frame.Timer = setTimeout(function() { Frame.classList.remove('hot'); }, 222);
 };
 
 
