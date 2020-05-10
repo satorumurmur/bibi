@@ -72,6 +72,7 @@ Bibi.Banners = Object.assign({
  *      - document.currentScript Polyfill   : © Adam Miller - https://github.com/amiller-gh/currentScript-polyfill / Licensed under the MIT License - https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE
  *      - custom-event-polyfill             : © Evan Krambuhl - https://github.com/kumarharsh/custom-event-polyfill / Licensed under the MIT License - https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE
  *      - Native Promise Only (NPO)         : © Kyle Simpson - https://github.com/getify/native-promise-only / Licensed under the MIT License - https://getify.mit-license.org/
+ *      - ES6 Object.assign()               : © Rubén Norte - https://github.com/rubennorte/es6-object-assign / Licensed under the MIT License - https://github.com/rubennorte/es6-object-assign/blob/master/LICENSE
  *      - Polyfill Array.prototype.includes : © Kevin Latusinski - https://github.com/latusinski/polyfill-array-includes / Licensed under the MIT License - https://github.com/kevlatus/polyfill-array-includes/blob/master/LICENSE
  *      - String.prototype.padStart         : © Khaled Al-Ansari - https://github.com/KhaledElAnsari/String.prototype.padStart / Licensed under the MIT License - https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE
  *      - url-polyfill                      : © Valentin Richard - https://github.com/lifaon74/url-polyfill / Licensed under the MIT License - https://github.com/lifaon74/url-polyfill/blob/master/LICENSE

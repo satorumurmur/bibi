@@ -218,6 +218,7 @@ License
     - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) : © Adam Miller / Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE)
     - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) : © Evan Krambuhl / Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE)
     - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) : © Kyle Simpson / Licensed under [the MIT License](http://getify.mit-license.org/)
+    - [ES6 Object.assign()](https://github.com/rubennorte/es6-object-assign) : © Rubén Norte / Licensed under [the MIT License](https://github.com/rubennorte/es6-object-assign/blob/master/LICENSE)
     - [Polyfill Array.prototype.includes](https://github.com/latusinski/polyfill-array-includes) : © Kevin Latusinski / Licensed under [the MIT License](https://www.npmjs.com/package/polyfill-array-includes)
     - [String.prototype.padStart](https://github.com/KhaledElAnsari/String.prototype.padStart) : © Khaled Al-Ansari / Licensed under [the MIT License](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE)
     - [url-polyfill](https://github.com/lifaon74/url-polyfill) : © Valentin Richard / Licensed under [the MIT License](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE)
