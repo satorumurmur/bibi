@@ -28,7 +28,7 @@ And you can embed it in other webpages (like YouTube videos).
 2. [How to Arrange Development Environment](#how-to-arrange-development-environment) (for Developers)
 3. [License](#license)
 4. [Special Thanks](#special-thanks)
-5. [Supported and Sponsored by](#supported-and-sponsored-by)
+5. [Supported by](#supported-by)
 
 
 
@@ -235,12 +235,12 @@ Thanks to the contributors and the users around the world.
 
 
 
-Supported and Sponsored by
+Supported by
 --------------------------------------------------------------------------------------------------------------------------------
 
-### [Lunascape](https://lunascape.org)
+### [Lunascape](https://www.lunascape.tv)
 
-* Bibi v1.0.0 was developed with greateful support and sponsoring from [Lunascape](https://lunascape.org) (and their parent company [MEDIA DO Co.,Ltd.](https://mediado.jp/mediado) who absorbed and merged them).
+* Bibi v1.0.0 was developed with greateful support and sponsoring from [Lunascape](https://www.lunascape.tv).
 * Lunascape also developed [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) especially for Bibi, which realized fast progressive loading of zipped EPUBs.
 
 
