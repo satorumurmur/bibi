@@ -36,12 +36,12 @@ const Config = {
     stats: 'errors-warnings',//IsDev ? 'errors-warnings' : 'normal',
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
-    output: { path: __dirname + '/' + (Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
-    entry: ((Entries, PathListsA, PathListsB) => {
+    output: { path: resolvePath(Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
+    entry: ((PathListsA, PathListsB) => { const Entries = {};
         for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir,                     P.replace(/\.css$/, '.scss')));
         for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, PathListsB[SrcDir][P].replace(/\.css$/, '.scss')) ;
         return Entries;
-    })({}, {
+    })({
         [Bibi.SRC]: [
             'bibi/and/jo.js',
             'bibi/extensions/analytics.js',
@@ -101,8 +101,8 @@ const Config = {
         exclude: [
             /bibi-zip-loader/
         ],
-        use: [{
-            loader: 'babel-loader', options: {
+        use: [
+            { loader: 'babel-loader', options: {
                 babelrc: false,
                 presets: [
                     ['@babel/preset-env', {
@@ -110,8 +110,8 @@ const Config = {
                         useBuiltIns: false//, corejs: 3
                     }]
                 ]
-            }
-        }]
+            }}
+        ]
     }, {
         include: [
             resolvePath(Bibi.SRC, 'bibi/and/jo.js'),
@@ -123,7 +123,7 @@ const Config = {
                 replacement: () => Bibi.version
             }]})
         ]
-    }] }
+    }]}
 };
 
 {
@@ -151,8 +151,8 @@ const Config = {
     Config.module.rules.push({
         test: /\.scss$/,
         exclude: [
-            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss'),
-            resolvePath(Bibi.SRC, 'bibi/and/jo.scss')
+            resolvePath(Bibi.SRC, 'bibi/and/jo.scss'),
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss')
         ],
         use: [
             MiniCSSExtractPlugin.loader,
@@ -164,8 +164,8 @@ const Config = {
     });
     Config.module.rules.push({
         include: [
-            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss'),
-            resolvePath(Bibi.SRC, 'bibi/and/jo.scss')
+            resolvePath(Bibi.SRC, 'bibi/and/jo.scss'),
+            resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.book.scss')
         ],
         use: [
             { loader: 'style-loader' }
