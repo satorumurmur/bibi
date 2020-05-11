@@ -2314,7 +2314,7 @@ I.initialize = () => {
         I.EdgeObserver.create();
         I.Nombre.create();
         I.Slider.create();
-        I.Turner.create();
+        I.Flipper.create();
         I.Arrows.create();
         I.AxisSwitcher.create();
         I.Spinner.create();
@@ -3137,11 +3137,11 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             Eve.preventDefault();
             switch(typeof KeyParameter) {
                 case 'number':
-                    if(I.Turner.isAbleToTurn(KeyParameter)) {
+                    if(I.Flipper.isAbleToFlip(KeyParameter)) {
                         const Dist = KeyParameter;
-                        const Arrow = I.Turner[Dist].Arrow;
+                        const Arrow = I.Flipper[Dist].Arrow;
                         E.dispatch(Arrow, 'bibi:tapped', Eve);
-                        I.Turner.turn(Dist);
+                        I.Flipper.flip(Dist);
                     } break;
                 case 'string': 
                     switch(KeyParameter) {
@@ -3176,10 +3176,10 @@ I.EdgeObserver = { create: () => {
         E.add(['bibi:tapped-not-center', 'bibi:doubletapped-not-center'], Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
-            const Dir = I.Turner.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
+            const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
             if(Dist) {
                 if(I.Arrows && I.Arrows.areAvailable(BibiEvent)) E.dispatch(I.Arrows[Dist], 'bibi:tapped', Eve);
-                if(I.Turner.isAbleToTurn(Dist)) I.Turner.turn(Dist);
+                if(I.Flipper.isAbleToFlip(Dist)) I.Flipper.flip(Dist);
             } else if(typeof C.DDD[Dir] == 'string') switch(Ortho) {
                 case 'utilities': I.Utilities.toggleGracefuly(); break;
                 case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
@@ -3190,8 +3190,8 @@ I.EdgeObserver = { create: () => {
                 if(I.isPointerStealth()) return false;
                 const BibiEvent = O.getBibiEvent(Eve);
                 if(I.Arrows.areAvailable(BibiEvent)) {
-                    const Dir = I.Turner.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
-                    if(Dist && I.Turner.isAbleToTurn(Dist)) {
+                    const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
+                    if(Dist && I.Flipper.isAbleToFlip(Dist)) {
                         EdgeObserver.Hovering = true;
                         if(I.Arrows) {
                             const Arrow = I.Arrows[Dist];
@@ -4450,13 +4450,13 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
 }};
 
 
-I.Turner = { create: () => {
-    const Turner = I.Turner = {
+I.Flipper = { create: () => {
+    const Flipper = I.Flipper = {
         Back: { Distance: -1 }, Forward: { Distance: 1 },
         getDirection: (Division) => { switch(S.ARA) {
             case 'horizontal': return Division.X != 'center' ? Division.X : Division.Y;
             case 'vertical'  : return Division.Y != 'middle' ? Division.Y : Division.X; } },
-        isAbleToTurn: (Dist) => {
+        isAbleToFlip: (Dist) => {
             if(L.Opened && !I.OpenedSubpanel && typeof Dist == 'number' && Dist) {
                 if(!I.PageObserver.Current.List.length) I.PageObserver.updateCurrent();
                 if(I.PageObserver.Current.List.length) {
@@ -4471,10 +4471,10 @@ I.Turner = { create: () => {
             }
             return false;
         },
-        turn: (Distance, Opt = {}) => {
+        flip: (Distance, Opt = {}) => {
             I.ScrollObserver.forceStopScrolling();
-            const IsSameDirection = (Distance == Turner.PreviousDistance);
-            Turner.PreviousDistance = Distance;
+            const IsSameDirection = (Distance == Flipper.PreviousDistance);
+            Flipper.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
                 const CIs = [
                     I.PageObserver.Current.List[          0].Page.Index,
@@ -4483,10 +4483,10 @@ I.Turner = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Turner, SumUp: IsSameDirection, Destination: Destination }));
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: IsSameDirection, Destination: Destination }));
         }
     };
-    Turner[-1] = Turner.Back, Turner[1] = Turner.Forward;
+    Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
 }};
 
 
@@ -4494,13 +4494,13 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     const Arrows = I.Arrows = {
         navigate: () => {
             setTimeout(() => {
-                [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Turner.isAbleToTurn(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
+                [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Flipper.isAbleToFlip(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
                 setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
             }, 400);
         },
         check: () => {
             [Arrows.Back, Arrows.Forward].forEach(Arrow =>
-                I.Turner.isAbleToTurn(Arrow.Distance)
+                I.Flipper.isAbleToFlip(Arrow.Distance)
                     ? sML.replaceClass(Arrow, 'unavailable', 'available')
                     : sML.replaceClass(Arrow, 'available', 'unavailable')
             );
@@ -4527,8 +4527,8 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     O.HTML.classList.add('arrows-active');
     Arrows.Back    = O.Body.appendChild(sML.create('div', { className: 'bibi-arrow', id: 'bibi-arrow-back',    Labels: { default: { default: `Back`,    ja: `戻る` } }, Distance: -1 }));
     Arrows.Forward = O.Body.appendChild(sML.create('div', { className: 'bibi-arrow', id: 'bibi-arrow-forward', Labels: { default: { default: `Forward`, ja: `進む` } }, Distance:  1 }));
-    Arrows[-1] = Arrows.Forward.Pair = I.Turner.Back.Arrow    = Arrows.Back;
-    Arrows[ 1] = Arrows.Back.Pair    = I.Turner.Forward.Arrow = Arrows.Forward;
+    Arrows[-1] = Arrows.Forward.Pair = I.Flipper.Back.Arrow    = Arrows.Back;
+    Arrows[ 1] = Arrows.Back.Pair    = I.Flipper.Forward.Arrow = Arrows.Forward;
     [Arrows.Back, Arrows.Forward].forEach(Arrow => {
         I.setFeedback(Arrow);
         const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap, Arrow.BibiTapObserver.onDoubleTap];
@@ -4934,6 +4934,19 @@ P.initialize = () => {
 export const U = {};
 
 
+U.translateData = (PnV) => {
+    let [_P, _V] = PnV;
+    switch(_P) {
+        case 'bbd': _P = 'bibidi'; break;
+        case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
+        case 'view': case 'rvm': _P = 'reader-view-mode'; break;
+        case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
+        case 'pagination': _P = 'pagination-method'; break;
+    }
+    return [_P, _V];
+};
+
+
 Bibi.at1st.List.unshift(() => {
     const LS = location.search; if(typeof LS != 'string') return;
     Object.assign(U, Bibi.applyFilteredSettingsTo({}, LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
@@ -4951,19 +4964,6 @@ Bibi.at1st.List.unshift(() => {
     if(!U['book']) delete U['zine'];
     if(U['debug']) Bibi.Debug = true, U['log'] = 9;
 });
-
-
-U.translateData = (PnV) => {
-    let [_P, _V] = PnV;
-    switch(_P) {
-        case 'bbd': _P = 'bibidi'; break;
-        case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
-        case 'view': case 'rvm': _P = 'reader-view-mode'; break;
-        case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
-        case 'pagination': _P = 'pagination-method'; break;
-    }
-    return [_P, _V];
-};
 
 
 U.initialize = () => {
