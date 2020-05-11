@@ -4077,7 +4077,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
     Nombre.Percent   = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-percent'   }));
     E.add('bibi:opened' , () => setTimeout(() => {
         Nombre.progress();
-        E.add(['bibi:is-scrolling', 'bibi:opened-slider'], () => Nombre.progress());
+        E.add(['bibi:is-scrolling', 'bibi:scrolled', 'bibi:opened-slider'], () => Nombre.progress());
         E.add('bibi:closed-slider', Nombre.hide);
     }, 321));
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
@@ -4213,14 +4213,14 @@ I.Slider = { create: () => {
             delete Slider.StartedOn;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
-        flip: (TouchedCoord) => { switch(S.RVM) {
+        flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
-                return I.PageObserver.Current.Pages.includes(TargetPage) ? Promise.resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 });
+                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 });
             default:
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
-                return Promise.resolve();
-        } },
+                return resolve();
+        } }),
         progress: () => {
             if(Slider.Touching) return;
             Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
@@ -4472,6 +4472,7 @@ I.Turner = { create: () => {
             return false;
         },
         turn: (Distance, Opt = {}) => {
+            I.ScrollObserver.forceStopScrolling();
             const IsSameDirection = (Distance == Turner.PreviousDistance);
             Turner.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
@@ -4940,7 +4941,7 @@ Bibi.at1st.List.unshift(() => {
         if(!_V) _V = undefined;
         switch(_P) {
             case 'log': if(!_V) _V = '1'; break;
-            case 'book': if(!_V) return; break;
+            case 'book': if(!_V) return Q; break;
             case 'zine': case 'wait': case 'debug': if(!_V) _V = 'true'; break;
             default: [_P, _V] = U.translateData([_P, _V]);
         }
