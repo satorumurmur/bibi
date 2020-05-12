@@ -2807,9 +2807,9 @@ I.FlickObserver = { create: () => {
                 if(!I.Loupe.Transforming) {
                     if(FlickObserver.StartedOn.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
                         // Orthogonal Pan/Releace
-                        cb = FlickObserver.switchAxis_or_toggleUtilities();
+                        cb = FlickObserver.getOrthogonalTouchMoveFunction();
                     }
-                    if(!cb && Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3) {
+                    if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
                         // Moved (== not Tap)
                         Eve.preventDefault();
                         Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedOn.TimeStamp);
@@ -2842,7 +2842,7 @@ I.FlickObserver = { create: () => {
             if(!Dist) {
                 // Orthogonal (not for "move")
                 return new Promise(resolve => {
-                    FlickObserver.switchAxis_or_toggleUtilities()();
+                    FlickObserver.getOrthogonalTouchMoveFunction()();
                     resolve();
                 });
             } else if(S.RVM == 'paged' || S.RVM != (/^[lr]/.test(Dir) ? 'horizontal' : /^[tb]/.test(Dir) ? 'vertical' : '')) {
@@ -2875,8 +2875,8 @@ I.FlickObserver = { create: () => {
                 Duration: !I.isScrollable() ? 0 : S['content-draggable'][0] ? 123 : 0
             });
         },
-        switchAxis_or_toggleUtilities: () => { switch(I.orthogonal('touch-moves')) {
-            case 'switch': if(S.RVM != 'paged' && I.AxisSwitcher) return I.AxisSwitcher.switchAxis; break;
+        getOrthogonalTouchMoveFunction: () => { switch(I.orthogonal('touch-moves')) {
+            case 'switch': if(I.AxisSwitcher) return I.AxisSwitcher.switchAxis; break;
             case 'utilities': return I.Utilities.toggleGracefuly; break;
         } },
         getCNPf: (Ele) => Ele.ownerDocument == document ? '' : 'bibi-',
@@ -4568,7 +4568,7 @@ I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSw
         switchAxis: () => new Promise(resolve => {
             if(S.RVM == 'paged') return resolve();
             const ViewMode = S.RVM == 'horizontal' ? 'vertical' : 'horizontal';
-            I.Menu.Config.ViewModeSection.ButtonGroups[0].Buttons.filter(I => I.Mode == ViewMode)[0].BibiTapObserver.onTap();
+            I.Menu.Config.ViewModeSection.ButtonGroups[0].Buttons.filter(Button => Button.Mode == ViewMode)[0].BibiTapObserver.onTap();
             resolve();
         })
     };
