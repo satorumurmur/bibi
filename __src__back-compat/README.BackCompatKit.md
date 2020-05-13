@@ -11,7 +11,7 @@ Please try this way, if you already have publicated books on the web with BiB/i 
 1. At first, upload the new "bibi" folder to the same directory of the "bib" directory on your web server.
 2. Next, Replace "index.html" file in the "bib/i" directory on your web server with the one in the new "bib/i" folder (If you haven't customized the "index.html" file, you can simply overwrite with new one).
 
-Just by that, your Bibi is updated to v1.0.0, and ready to open your books via the same "https://your.server/bib/i/?book=***" style URL as before. There's no need to move EPUB data out of the "bib/bookshelf" directory.
+Just by that, your Bibi is updated to the newest version, and ready to open your books via the same "https://your.server/bib/i/?book=***" style URL as before. There's no need to move EPUB data out of the "bib/bookshelf" directory.
 What's more, you can also use the new "https://your.server/bibi/?book=****" style URL to open books stored in the "bibi-bookshelf" directory (this is the default method since Bibi v1.0.0).
 
 If you interested in more info, read below too:
@@ -25,7 +25,7 @@ If you interested in more info, read below too:
 --------------------------------------------------------------------------------------------------------------------------------
 
 
-[ja] v1.0.0 以前と同じ URL で、書籍をウェブ公開するには
+[ja] v1.0.0 未満と同じ URL で、書籍をウェブ公開するには
 ================================================================================================
 
 Bibi v1.0.0 でフォルダー構造が変更され、それに伴って書籍を発行するための URL も変更されました。
@@ -36,7 +36,7 @@ Bibi v1.0.0 でフォルダー構造が変更され、それに伴って書籍�
 1. まず、新しい「bibi」フォルダを、ウェブサーバ上の「bib」ディレクトリと同じディレクトリにアップロードします。
 2. 次に、ウェブサーバ上の「bib/i」ディレクトリにある「index.html」ファイルを、新しい「bib/i」フォルダ内にある「index.html」に交換します（「index.html」ファイルをカスタマイズしていなければ、単純に上書きしてかまいません）。
 
-それだけで、Bibi は v1.0.0 に更新され、以前と同じ「https://your.server/bib/i/?book=***」形式の URL で本を開けるようになります。EPUB データを「bib/bookshelf」ディレクトリから移動する必要もありません。
+それだけで、Bibi は最新版に更新され、以前と同じ「https://your.server/bib/i/?book=***」形式の URL で本を開けるようになります。EPUB データを「bib/bookshelf」ディレクトリから移動する必要もありません。
 しかも、新しい「https://your.server/bibi/?book=****」形式の URL を使用して「bibi-bookshelf」ディレクトリに保存された本を開くこともできます（これは、Bibi v1.0.0 以降のデフォルトの方法です）。
 
 もし、より詳細な情報に興味があれば、以下もお読みください。

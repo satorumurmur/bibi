@@ -205,21 +205,22 @@ License
 
 * Core:
     - [sML.js](https://github.com/satorumurmur/sML) : © Satoru Matsushima / Licensed under [the MIT License](https://github.com/satorumurmur/sML/blob/master/LICENSE)
+* UI:
     - [Material Icons](https://material.io/icons/) : © Material Design Authors &amp; Google Inc. / Licensed under [the Apache License version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html)
 * Extensions:
     - [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) : © Lunascape / Licensed under [the MIT License](https://github.com/lunascape/bibi-zip-loader/blob/master/LICENSE)
+    - [DOMPurify](https://github.com/cure53/DOMPurify) : © Mario Heiderich / Dual licensed under [the Apache License Version 2.0 or the Mozilla Public License Version 2.0](https://github.com/cure53/DOMPurify/blob/master/LICENSE)
     - [JSZip](http://stuk.github.io/jszip) : © Stuart Knightley / Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown)
     - [JSZipUtils](http://stuk.github.io/jszip-utils) : © Stuart Knightley / Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown)
     - [JS-YAML](http://nodeca.github.io/js-yaml/) : © Vitaly Puzrin / Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
-    - [DOMPurify](https://github.com/cure53/DOMPurify) : © Mario Heiderich / Dual licensed under [the Apache License Version 2.0 or the Mozilla Public License Version 2.0](https://github.com/cure53/DOMPurify/blob/master/LICENSE)
 * Polyfills:
     - [classlist-polyfill](https://github.com/yola/classlist-polyfill) : by Yola Inc. / Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE)
     - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) : by Erik Arvidsson / Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md)
     - [IntersectionObserver polyfill](https://github.com/w3c/IntersectionObserver) : © W3C / Licensed under [the W3C Software and Document License](https://github.com/w3c/IntersectionObserver/blob/master/LICENSE.md)
-    - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) : © Adam Miller / Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE)
     - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) : © Evan Krambuhl / Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE)
-    - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) : © Kyle Simpson / Licensed under [the MIT License](http://getify.mit-license.org/)
+    - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) : © Adam Miller / Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE)
     - [ES6 Object.assign()](https://github.com/rubennorte/es6-object-assign) : © Rubén Norte / Licensed under [the MIT License](https://github.com/rubennorte/es6-object-assign/blob/master/LICENSE)
+    - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) : © Kyle Simpson / Licensed under [the MIT License](http://getify.mit-license.org/)
     - [Polyfill Array.prototype.includes](https://github.com/latusinski/polyfill-array-includes) : © Kevin Latusinski / Licensed under [the MIT License](https://www.npmjs.com/package/polyfill-array-includes)
     - [String.prototype.padStart](https://github.com/KhaledElAnsari/String.prototype.padStart) : © Khaled Al-Ansari / Licensed under [the MIT License](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE)
     - [url-polyfill](https://github.com/lifaon74/url-polyfill) : © Valentin Richard / Licensed under [the MIT License](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE)
@@ -230,7 +231,7 @@ License
 Special Thanks
 --------------------------------------------------------------------------------------------------------------------------------
 
-Thanks to the contributors and the users around the world.
+Thanks to the contributors and the users around the world!
 
 
 
@@ -238,9 +239,17 @@ Thanks to the contributors and the users around the world.
 Supported by
 --------------------------------------------------------------------------------------------------------------------------------
 
+
+
+### [Media Do Co.,Ltd](https://www.mediado.jp)
+
+* Bibi v1.1.1 was developed with the huge support and many feedbacks from Media Do Co.,Ltd.
+
+
+
 ### [Lunascape](https://www.lunascape.tv)
 
-* Bibi v1.0.0 was developed with greateful support and sponsoring from [Lunascape](https://www.lunascape.tv).
+* Bibi v1.0.0 was developed with greateful support and sponsoring from Lunascape.
 * Lunascape also developed [Bibi Zip Loader](https://github.com/lunascape/bibi-zip-loader) especially for Bibi, which realized fast progressive loading of zipped EPUBs.
 
 
