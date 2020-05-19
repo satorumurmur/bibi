@@ -1991,8 +1991,8 @@ Object.defineProperties(R, { // To ensure backward compatibility.
 
 R.focusOn = (Par) => new Promise((resolve, reject) => {
     if(R.Moving) return reject();
-    if(!Par) return reject();
     if(typeof Par == 'number') Par = { Destination: Par };
+    if(!Par) return reject();
     const _ = Par.Destination = R.hatchDestination(Par.Destination);
     if(!_) return reject();
     E.dispatch('bibi:is-going-to:focus-on', Par);
@@ -5797,7 +5797,6 @@ O.Biscuits = {
     Memories: {}, Labels: {},
     initialize: (Tag) => {
         if(typeof Tag != 'string') {
-            O.Biscuits.__forget_about_cookies();
             O.Biscuits.LabelBase = 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), '');
             E.bind('bibi:initialized',      () => O.Biscuits.initialize('Bibi'));
             E.bind('bibi:initialized-book', () => O.Biscuits.initialize('Book'));
@@ -5846,8 +5845,7 @@ O.Biscuits = {
             }
         }
         return O.Biscuits.Memories;
-    },
-    __forget_about_cookies: () => setTimeout(() => { try { sML.Cookies.write(O.Cookies.Label, '', { Expires: 0 }); } catch(Err) {} }, 999)
+    }
 };
 
 
