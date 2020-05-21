@@ -224,10 +224,7 @@ Bibi.hello = () => new Promise(resolve => {
 .then(Bibi.loadBook)
 .then(Bibi.bindBook)
 .then(Bibi.openBook)
-.catch(Mes => {
-    I.note(Mes, 99999999999, 'ErrorOccured');
-    throw Mes;
-});
+.catch(O.error);
 
 
 Bibi.initialize = () => {
@@ -298,10 +295,10 @@ Bibi.initialize = () => {
     }
     if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) { // Say Bye-bye
         I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
-        O.error(I.Veil.byebye({
+        throw I.Veil.byebye({
             'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
             'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
-        }));
+        });
     } else { // Say Welcome!
         I.note(`<span class="non-visual">Welcome!</span>`);
     }
@@ -764,7 +761,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
     return InitializedAs;
 })).catch(Log => {
     //if(S['accept-local-file']) O.HTML.classList.add('waiting-file');
-    O.error(`Failed to Open the Book:` + '\n' + Log);
+    throw `Failed to Open the Book:` + '\n' + Log;
 });
 
 
@@ -5041,7 +5038,7 @@ S.initialize = () => {
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
     S['book'] = (!B.Data && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
-    if(!B.Data && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) O.error(`The Origin of the Path of the Book Is Not Allowed.`);
+    if(!B.Data && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
     // --------
     if(typeof S['parent-bibi-index'] != 'number') delete S['parent-bibi-index'];
     // --------
@@ -5257,14 +5254,15 @@ O.logSets = (...Args) => {
 };
 
 
-O.error = (Msg) => {
+O.error = (Err) => {
     O.Busy = false;
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('loading');
     O.HTML.classList.remove('waiting');
-    E.dispatch('bibi:x_x', Msg);
-    O.log(Msg, '<e/>');
-    return Msg;
+    I.note(Err, 99999999999, 'ErrorOccured');
+    O.log(Err, '<e/>');
+    E.dispatch('bibi:x_x', typeof Err == 'string' ? new Error(Err) : Err);
+    throw Err;
 };
 
 
@@ -5550,7 +5548,7 @@ O.preprocess = (Item) => {
 O.parseDocument = (Item) => (new DOMParser()).parseFromString(Item.Content, /\.(xml|opf|ncx)$/i.test(Item.Path) ? 'text/xml' : 'text/html');
 
 
-O.openDocument = (Item) => O.file(Item).then(O.parseDocument).catch(O.error);
+O.openDocument = (Item) => O.file(Item).then(O.parseDocument);
 
 
 O.editCSSRules = function() {
