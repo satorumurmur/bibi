@@ -2014,9 +2014,10 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 222 : 0,
         Easing: (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
-        R.Moving = false;
         resolve(_);
         E.dispatch('bibi:focused-on', Par);
+    }).catch(reject).then(() => {
+        R.Moving = false;
     });
 }).catch(() => Promise.resolve());
 
@@ -2179,10 +2180,12 @@ R.selectTextLocation = (_) => {
 R.moveBy = (Par) => new Promise((resolve, reject) => {
     if(R.Moving || !L.Opened) return reject();
     if(!Par) return reject();
-    if(typeof Par == 'number') Par = { Distance: Par };
-    if(!Par.Distance || typeof Par.Distance != 'number') return reject();
-    Par.Distance *= 1;
-    if(Par.Distance == 0 || isNaN(Par.Distance)) return reject();
+    switch(typeof Par) {
+        case 'string':
+        case 'number': Par = { Distance: Par };
+        case 'object': Par.Distance *= 1;
+    }
+    if(typeof Par.Distance != 'number' || !isFinite(Par.Distance) || !Par.Distance) return reject();
     //Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
     const Current = (Par.Distance > 0 ? I.PageObserver.Current.List.slice(-1) : I.PageObserver.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
@@ -3126,10 +3129,8 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             Eve.preventDefault();
             switch(typeof KeyParameter) {
                 case 'number': if(I.Flipper.isAbleToFlip(KeyParameter)) {
-                    const Dist = KeyParameter;
-                    const Arrow = I.Flipper[Dist].Arrow;
-                    E.dispatch(Arrow, 'bibi:tapped', Eve);
-                    I.Flipper.flip(Dist);
+                    if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:tapped', Eve);
+                    I.Flipper.flip(KeyParameter);
                 } break;
                 case 'string': switch(KeyParameter) {
                     case 'head': case 'foot': return R.focusOn({ Destination: KeyParameter, Duration: 0 });
@@ -4444,19 +4445,18 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
 
 I.Flipper = { create: () => {
     const Flipper = I.Flipper = {
+        PreviousDistance: 0,
         Back: { Distance: -1 }, Forward: { Distance: 1 },
         getDirection: (Division) => { switch(S.ARA) {
             case 'horizontal': return Division.X != 'center' ? Division.X : Division.Y;
             case 'vertical'  : return Division.Y != 'middle' ? Division.Y : Division.X; } },
-        isAbleToFlip: (Dist) => {
-            if(L.Opened && !I.OpenedSubpanel && typeof Dist == 'number' && Dist) {
+        isAbleToFlip: (Distance) => {
+            if(L.Opened && !I.OpenedSubpanel && typeof (Distance * 1) == 'number' && Distance) {
                 if(!I.PageObserver.Current.List.length) I.PageObserver.updateCurrent();
                 if(I.PageObserver.Current.List.length) {
                     let CurrentEdge, BookEdgePage, Edged;
-                    switch(Dist) {
-                        case -1: CurrentEdge = I.PageObserver.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed'; break;
-                        case  1: CurrentEdge = I.PageObserver.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed'; break;
-                    }
+                    if(Distance < 0) CurrentEdge = I.PageObserver.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed';
+                    else             CurrentEdge = I.PageObserver.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed';
                     if(CurrentEdge.Page != BookEdgePage) return true;
                     if(!CurrentEdge.PageIntersectionStatus.Contained && !CurrentEdge.PageIntersectionStatus[Edged]) return true;
                 }
@@ -4464,8 +4464,9 @@ I.Flipper = { create: () => {
             return false;
         },
         flip: (Distance, Opt = {}) => {
+            if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
             I.ScrollObserver.forceStopScrolling();
-            const IsSameDirection = (Distance == Flipper.PreviousDistance);
+            const SumUpHistory = (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1));
             Flipper.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
                 const CIs = [
@@ -4475,7 +4476,7 @@ I.Flipper = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: IsSameDirection, Destination: Destination }));
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }));
         }
     };
     Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
@@ -4523,10 +4524,9 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
         if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.BibiHoverObserver.onHover, Arrow.BibiHoverObserver.onUnHover);
         FunctionsToBeCanceled.forEach(f2BC => f2BC = () => {});
     });
-    E.add('bibi:commands:move-by', Par => { // indicate direction
-        if(!L.Opened || !Par || typeof Par.Distance != 'number') return false;
-        const Dist = Math.round(Par.Distance);
-        return Dist ? E.dispatch(Dist < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped', null) : false;
+    E.add('bibi:commands:move-by', Distance => { // indicate direction
+        if(!L.Opened || typeof (Distance *= 1) != 'number' || !isFinite(Distance) || !(Distance = Math.round(Distance))) return false;
+        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped', null);
     });
     E.add('bibi:loaded-item', Item => {/*
         sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="left"]',   'cursor: w-resize;');
