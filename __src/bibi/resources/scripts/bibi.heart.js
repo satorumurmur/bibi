@@ -278,7 +278,7 @@ Bibi.initialize = () => {
             if(window.parent == window) { O.HTML.classList.add('window-direct'  );                                                                         return                            0; } // false
             else                        { O.HTML.classList.add('window-embedded'); try { if(location.host == parent.location.host || parent.location.href) return 1; } catch(Err) {} return -1; } // true (1:Reachable or -1:Unreachable)
         })();
-        O.ParentBibi = O.Embedded == 1 && typeof S['parent-bibi-index'] == 'number' ? window.parent['bibi:jo'].Bibis[S['parent-bibi-index']] || null : null;
+        O.ParentBibi = O.Embedded === 1 && typeof S['parent-bibi-index'] == 'number' ? window.parent['bibi:jo'].Bibis[S['parent-bibi-index']] || null : null;
         O.ParentOrigin = O.ParentBibi ? window.parent.location.origin : '';
         O.FullscreenTarget = (() => { // Fullscreen Target
             const FsT = (() => {
@@ -291,6 +291,7 @@ Bibi.initialize = () => {
         if(O.ParentBibi) {
             O.ParentBibi.Window = window, O.ParentBibi.Document = document, O.ParentBibi.HTML = O.HTML, O.ParentBibi.Body = O.Body;
             ['bibi:initialized', 'bibi:readied', 'bibi:prepared', 'bibi:opened'].forEach(EN => E.add(EN, Det => O.ParentBibi.dispatch(EN, Det)));
+            window.addEventListener('message', M.receive, false);
         }
     }
     if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) { // Say Bye-bye
