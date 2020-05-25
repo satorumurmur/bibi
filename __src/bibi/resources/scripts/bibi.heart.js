@@ -450,11 +450,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
         const Item = typeof R.StartOn.Item == 'object' ? R.StartOn.Item : (() => {
             if(typeof R.StartOn.IIPP == 'number') {
                 let II = Math.floor(R.StartOn.IIPP);
-                if(II >= R.Items.length) {
-                    const PP = R.StartOn.IIPP - II;
-                    II = R.Items.length - 1;
-                    R.StartOn.IIPP = II + PP;
-                }
+                if(II >= R.Items.length) II = R.StartOn.IIPP = R.Items.length - 1;
                 return R.Items[II];
             }
             if(typeof R.StartOn.ItemIndex == 'number') {
@@ -520,10 +516,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
         setTimeout(() => R.turnSpreads(), 123);
         E.add(['bibi:scrolled', 'bibi:changed-intersection'], () => R.turnSpreads());
     }
-    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try {
-        const CurrentPage = I.PageObserver.Current.List[0].Page;
-        O.Biscuits.memorize('Book', { Position: { IIPP: CurrentPage.Item.Index + CurrentPage.IndexInItem / CurrentPage.Item.Pages.length } });
-    } catch(Err) {} });
+    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try { O.Biscuits.memorize('Book', { Position: { IIPP: I.PageObserver.getIIPP() } }); } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
@@ -1887,10 +1880,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     O.HTML.classList.add('busy');
     O.HTML.classList.add('laying-out');
     if(!Opt.NoNotification) I.note(`Laying out...`);
-    if(!Opt.Destination) {
-        const CurrentPage = I.PageObserver.Current.List.length ? I.PageObserver.Current.List[0].Page : R.Pages[0];
-        Opt.Destination = { Item: CurrentPage.Item, PageProgressInItem: CurrentPage.IndexInItem / CurrentPage.Item.Pages.length };
-    }
+    if(!Opt.Destination) Opt.Destination = { IIPP: I.PageObserver.getIIPP() };
     if(Opt.Setting) S.update(Opt.Setting);
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
     O.log(`Layout: %O`, Layout);
@@ -2068,8 +2058,8 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         if(_.Edge == 'foot') return R.Pages[R.Pages.length - 1];
         if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
         if(typeof _.BibiTo == 'string' && _.BibiTo) Object.assign(_, R.getBibiToDestination(_.BibiTo));
-        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = _.IIPP - _.ItemIndex;
-        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = _.SIPP - _.SpreadIndex;
+        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
+        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
         try {
             if(typeof    _.PageIndexInItem   == 'number') return R.hatchItem(_).Pages[_.PageIndexInItem];
             if(typeof    _.PageIndexInSpread == 'number') return R.hatchSpread(_).Pages[_.PageIndexInSpread];
@@ -2535,7 +2525,8 @@ I.PageObserver = { create: () => {
                 if(AtTheEnd      ) E.dispatch('bibi:got-to-the-end',       ReturnValue);
                 Object.assign(PageObserver.Past, PageObserver.Current);
             });
-        }
+        },
+        getIIPP: (Page = PageObserver.Current.Pages[0] || R.Pages[0]) => Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length
     }
     E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
         PageObserver.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
@@ -4090,10 +4081,10 @@ I.History = {
     add: (Opt = {}) => {
         if(!Opt.UI) Opt.UI = Bibi;
         const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })(),
-                 LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
+                 LastPage = R.hatchPage(I.History.List.slice(-1)[0]);
         if(CurrentPage != LastPage) {
-            if(Opt.SumUp && I.History.List[I.History.List.length - 1].UI == Opt.UI) I.History.List.pop();
-            I.History.List.push({ UI: Opt.UI, Item: CurrentPage.Item, PageProgressInItem: CurrentPage.IndexInItem / CurrentPage.Item.Pages.length });
+            if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
+            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP(CurrentPage) });
             if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
                 I.History.List.shift(); // Remove the second
@@ -4105,7 +4096,7 @@ I.History = {
     back: () => {
         if(I.History.List.length <= 1) return Promise.reject();
         const CurrentPage = R.hatchPage(I.History.List.pop()),
-                 LastPage = R.hatchPage(I.History.List[I.History.List.length - 1]);
+                 LastPage = R.hatchPage(I.History.List.slice(-1)[0]);
         I.History.update();
         return R.focusOn({ Destination: LastPage, Duration: 0 });
     }
@@ -4352,7 +4343,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
                 Bookmarks = I.PageObserver.Current.Pages.map(Page => ({
-                    IIPP: Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length,
+                    IIPP: I.PageObserver.getIIPP(Page),
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
                 }));
             }
@@ -4370,7 +4361,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         }
                     }
                     if(typeof Bmk.IIPP != 'number') continue;
-                    if(/^\d+(\.\d+)?$/.test(Bmk['%'])) Bmk['%'] *= 1; else delete Bmk['%'];
+                    if(/^(\d*\.)?\d+?$/.test(Bmk['%'])) Bmk['%'] *= 1; else delete Bmk['%'];
                     let Label = '', ClassName = '';
                     const BB = 'bibi-bookmark';
                     const Page = R.hatchPage(Bmk);
