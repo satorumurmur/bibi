@@ -4146,7 +4146,6 @@ I.Slider = { create: () => {
                 E.add(Slider.Edgebar, ['mouseover', 'mousemove'], Eve => { if(!Slider.Touching) I.Nombre.progress({ List: [{ Page: Slider.getPointedPage(O.getBibiEventCoord(Eve)[C.A_AXIS_L]) }] }); });
                 E.add(Slider.Edgebar,  'mouseout',                Eve => { if(!Slider.Touching) I.Nombre.progress(); });
             }
-            if(!S['flip-pages-during-sliding']) Slider.flipPagesDuringSliding = () => false;
         },
         resetUISize: () => {
             Slider.MainLength = R.Main['scroll' + C.L_SIZE_L];
@@ -4181,18 +4180,23 @@ I.Slider = { create: () => {
         onTouchMove: (Eve) => {
             clearTimeout(Slider.Timer_move);
             const TouchMoveCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
-            const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedOn.Coord,
-                Slider.Edgebar.Before -  Slider.StartedOn.ThumbBefore,
-                Slider.Edgebar.After  - (Slider.StartedOn.ThumbBefore + Slider.Thumb.Length)
-            );
-            sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
-            sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedOn.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
+            if(Slider.Touching) {
+                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedOn.Coord,
+                    Slider.Edgebar.Before -  Slider.StartedOn.ThumbBefore,
+                    Slider.Edgebar.After  - (Slider.StartedOn.ThumbBefore + Slider.Thumb.Length)
+                );
+                sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
+                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedOn.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
+            }
             Slider.flipPagesDuringSliding(TouchMoveCoord);
-        }, // ⇅ If S['flip-pages-during-sliding'] is false, Slider.flipPagesDuringSliding is `() => false`.
-        flipPagesDuringSliding: (TouchMoveCoord) => {
-            R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
-            Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord); }, 123);
         },
+        flipPagesDuringSliding: (_) => (Slider.flipPagesDuringSliding = !S['flip-pages-during-sliding'] ? // switch and define at the first call.
+            () => false :
+            (TouchMoveCoord) => {
+                R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
+                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord); }, 123);
+            }
+        )(_),
         onTouchEnd: (Eve) => {
             if(!Slider.Touching) return;
             clearTimeout(Slider.Timer_move);
@@ -4213,25 +4217,26 @@ I.Slider = { create: () => {
         flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
-                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 });
+                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(resolve);
             default:
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
         } }),
         progress: () => {
             if(Slider.Touching) return;
-            Slider.Thumb.style.top = Slider.Thumb.style.right = Slider.Thumb.style.bottom = Slider.Thumb.style.left = '';
             let MainScrollBefore = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             if(S.ARA != S.SLA && S.ARD == 'rtl') MainScrollBefore = Slider.MainLength - MainScrollBefore - R.Main.offsetHeight; // <- Paged (HorizontalAppearance) && VerticalText
+            switch(S.ARA) {
+                case 'horizontal': Slider.Thumb.style.top  = '', Slider.RailProgress.style.height = ''; break;
+                case   'vertical': Slider.Thumb.style.left = '', Slider.RailProgress.style.width  = ''; break;
+            }
             Slider.Thumb.style[C.A_OOBL_l] = (MainScrollBefore / Slider.MainLength * 100) + '%';
-            Slider.RailProgress.style.width = Slider.RailProgress.style.height = '';
-            const ThumbBeforeInRailGroove = O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] - Slider.RailGroove.Before;
-            Slider.RailProgress.style[C.A_SIZE_l] = (Slider.RailProgressMode == 'center' ?
-                (S.ARD != 'rtl' ?               ThumbBeforeInRailGroove + Slider.Thumb.Length / 2 :
-                    Slider.RailGroove.Length - (ThumbBeforeInRailGroove + Slider.Thumb.Length / 2) ) :
-                (S.ARD != 'rtl' ?               ThumbBeforeInRailGroove + Slider.Thumb.Length :
-                    Slider.RailGroove.Length - (ThumbBeforeInRailGroove) ) ) / Slider.RailGroove.Length * 100 + '%';
+            Slider.RailProgress.style[C.A_SIZE_l] = Slider.getRailProgressLength(O.getElementCoord(Slider.Thumb)[C.A_AXIS_L] - Slider.RailGroove.Before) / Slider.RailGroove.Length * 100 + '%';
         },
+        getRailProgressLength: (_) => (Slider.getRailProgressLength = Slider.RailProgressMode == 'center' ? // switch and define at the first call.
+            (ThumbBeforeInRailGroove) => S.ARD != 'rtl' ? ThumbBeforeInRailGroove + Slider.Thumb.Length / 2 : Slider.RailGroove.Length - (ThumbBeforeInRailGroove + Slider.Thumb.Length / 2) :
+            (ThumbBeforeInRailGroove) => S.ARD != 'rtl' ? ThumbBeforeInRailGroove + Slider.Thumb.Length     : Slider.RailGroove.Length -  ThumbBeforeInRailGroove
+        )(_),
         getPointedPage: (PointedCoord) => {
             let RatioInSlider = (PointedCoord - Slider.Edgebar.Before) / Slider.Edgebar['offset' + C.A_SIZE_L];
             const OriginPageIndex = sML.limitMinMax(Math.round(R.Pages.length * (S.ARD == 'rtl' ? 1 - RatioInSlider : RatioInSlider)), 0, R.Pages.length - 1);
@@ -4272,7 +4277,7 @@ I.Slider = { create: () => {
         Slider.Thumb.addEventListener(E['pointerdown'], Slider.onTouchStart);
         O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
         if(Slider.History) Slider.History.Button.addEventListener(E['pointerup'], Slider.onTouchEnd);
-        E.add('bibi:is-scrolling', Slider.progress);
+        E.add(['bibi:is-scrolling', 'bibi:scrolled'], Slider.progress);
         Slider.progress();
     });
     E.add(['bibi:opened-slider', 'bibi:closed-slider', 'bibi:laid-out'], () => {
