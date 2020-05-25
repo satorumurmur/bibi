@@ -1192,6 +1192,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
             O.file(Item, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize: () => {
+                    //Item.Content = Item.Content.replace(/<script([^>]*?)\/>/, '<script$1></script>');
                     if(!S['allow-scripts-in-content']) O.sanitizeItemContent(Item, { As: 'HTML' });
                 }
             }).then(Item => resolve(Item.Content));
@@ -1928,7 +1929,7 @@ R.updateOrientation = () => {
 };
 
 
-R.changeView = (Par, Opt = {}) => {
+R.changeView = (Par) => {
     if(
         S['fix-reader-view-mode'] ||
         !Par || typeof Par.Mode != 'string' || !/^(paged|horizontal|vertical)$/.test(Par.Mode) ||
@@ -1949,7 +1950,7 @@ R.changeView = (Par, Opt = {}) => {
         setTimeout(() => {
             R.layOut({
                 Reset: true,
-                NoNotification: Opt.NoNotification,
+                NoNotification: Par.NoNotification,
                 Setting: {
                     'reader-view-mode': Par.Mode
                 }
@@ -3124,19 +3125,17 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             if(!KeyParameter) return false;
             Eve.preventDefault();
             switch(typeof KeyParameter) {
-                case 'number':
-                    if(I.Flipper.isAbleToFlip(KeyParameter)) {
-                        const Dist = KeyParameter;
-                        const Arrow = I.Flipper[Dist].Arrow;
-                        E.dispatch(Arrow, 'bibi:tapped', Eve);
-                        I.Flipper.flip(Dist);
-                    } break;
-                case 'string': 
-                    switch(KeyParameter) {
-                        case 'head': case 'foot': return R.focusOn({ Destination: KeyParameter, Duration: 0 });
-                        case 'utilities': return I.Utilities.toggleGracefuly();
-                        case 'switch': return I.AxisSwitcher ? I.AxisSwitcher.switchAxis() : false;
-                    } break;
+                case 'number': if(I.Flipper.isAbleToFlip(KeyParameter)) {
+                    const Dist = KeyParameter;
+                    const Arrow = I.Flipper[Dist].Arrow;
+                    E.dispatch(Arrow, 'bibi:tapped', Eve);
+                    I.Flipper.flip(Dist);
+                } break;
+                case 'string': switch(KeyParameter) {
+                    case 'head': case 'foot': return R.focusOn({ Destination: KeyParameter, Duration: 0 });
+                    case 'utilities': return I.Utilities.toggleGracefuly();
+                    case 'switch': return I.AxisSwitcher ? I.AxisSwitcher.switchAxis() : false;
+                } break;
             }
         }
     };
@@ -3437,7 +3436,7 @@ I.Menu = { create: () => {
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
                     }].map(Button => sML.edit(Button, {
                         Notes: true,
-                        action: () => R.changeView(Button, { NoNotification: true })
+                        action: () => R.changeView({ Mode: Button.Mode, NoNotification: true })
                     }))
                 }, /*{
                     Buttons: []
@@ -4485,19 +4484,15 @@ I.Flipper = { create: () => {
 
 I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     const Arrows = I.Arrows = {
-        navigate: () => {
-            setTimeout(() => {
-                [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Flipper.isAbleToFlip(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
-                setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
-            }, 400);
-        },
-        check: () => {
-            [Arrows.Back, Arrows.Forward].forEach(Arrow =>
-                I.Flipper.isAbleToFlip(Arrow.Distance)
-                    ? sML.replaceClass(Arrow, 'unavailable', 'available')
-                    : sML.replaceClass(Arrow, 'available', 'unavailable')
-            );
-        },
+        navigate: () => setTimeout(() => {
+            [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Flipper.isAbleToFlip(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
+            setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
+        }, 400),
+        toggleState: () => [Arrows.Back, Arrows.Forward].forEach(Arrow => {
+            const Availability = I.Flipper.isAbleToFlip(Arrow.Distance);
+            Arrow.classList.toggle(  'available',  Availability);
+            Arrow.classList.toggle('unavailable', !Availability);
+        }),
         areAvailable: (BibiEvent) => {
             if(!L.Opened) return false;
             if(I.OpenedSubpanel) return false;
@@ -4540,9 +4535,9 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
         sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="bottom"]', 'cursor: s-resize;');*/
         sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor]', 'cursor: pointer;');
     });
-    E.add('bibi:opened',       () => setTimeout(() => { Arrows.check(); Arrows.navigate(); }, 123));
+    E.add('bibi:opened',       () => setTimeout(() => { Arrows.toggleState(); Arrows.navigate(); }, 123));
+    E.add('bibi:scrolled',     () => Arrows.toggleState());
     E.add('bibi:changed-view', () => Arrows.navigate());
-    E.add('bibi:scrolled',     () => Arrows.check());
     E.dispatch('bibi:created-arrows');
      // Optimize to Scrollbar Size
     (_ => {
