@@ -67,14 +67,10 @@ const Config = {
             'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': 'bibi-zip-loader/dist/lszlw.js'
         }
     }),
-    plugins: ((RelativeCopySettings, PathLists) => {
-        for(const SrcDir in PathLists) {
-            const Entries = [];
-            PathLists[SrcDir].forEach(P => Entries.push({ from: P, to: '.' }));
-            RelativeCopySettings.push(new CopyPlugin(Entries, { context: resolvePath(SrcDir) }));
-        }
+    plugins: (PathLists => { const RelativeCopySettings = [];
+        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) RelativeCopySettings.push(new CopyPlugin({ patterns: PathLists[SrcDir].map(P => ({ context: resolvePath(SrcDir), from: P, to: '.' })) }));
         return RelativeCopySettings;
-    })([], {
+    })({
         [Bibi.SRC]: [
             'bibi/*.html',
             'bibi/presets/**',
@@ -83,10 +79,9 @@ const Config = {
         ],
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'README.BackCompatKit.md',
-            'bib/i/*.html',
-            'bib/i/presets/**'
+            'bib/i/*.html'
         ],
-        '': [
+        '.': [
             'LICENSE',
             'README.md'
         ]
