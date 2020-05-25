@@ -17,7 +17,7 @@ gulp.task('clean', done => {
             '**/.DS_Store',
             '**/Thumbs.db',
             'LICENSE',
-            'README.md',
+            '*.md',
             'bibi/*.html',
             'bibi/and',
             'bibi/extensions',
