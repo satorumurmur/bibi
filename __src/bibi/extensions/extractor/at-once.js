@@ -100,8 +100,8 @@ Bibi.x({
             Promises.push(
                 BookDataArchive.file(FolderName + FileName).async(IsBin ? 'blob' : 'string').then(FileContent => {
                     const Item = B.Package.Manifest.Items[FileName] = IsBin ?
-                        { Path: FileName, DataType: 'blob', Content: FileContent } :
-                        { Path: FileName, DataType: 'text', Content: FileContent.trim() };
+                        { Path: FileName, DataType: 'Blob', Content: FileContent } :
+                        { Path: FileName, DataType: 'Text', Content: FileContent.trim() };
                     for(const FileType in FileTypesToBeCounted) {
                         if(new RegExp('\\.(' + FileTypesToBeCounted[FileType] + ')$', 'i').test(FileName)) {
                             if(!FileCount[FileType]) FileCount[FileType] = 1; else FileCount[FileType]++;
