@@ -231,8 +231,8 @@ Bibi.initialize = () => {
     //const PromiseTryingRangeRequest = O.tryRangeRequest().then(() => true).catch(() => false).then(TF => O.RangeRequest = TF);
     { // Path / URI
         O.Origin = location.origin || (location.protocol + '//' + (location.host || (location.hostname + (location.port ? ':' + location.port : ''))));
+        O.Local = location.protocol == 'file:';
         O.RequestedURL = location.href;
-        O.BookURL = O.Origin + location.pathname + location.search;
     }
     { // DOM
         O.contentWindow = window;
@@ -517,7 +517,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
         setTimeout(() => R.turnSpreads(), 123);
         E.add(['bibi:scrolled', 'bibi:changed-intersection'], () => R.turnSpreads());
     }
-    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try { O.Biscuits.memorize('Book', { Position: { IIPP: I.PageObserver.getIIPP() } }); } catch(Err) {} });
+    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try { if(O.Biscuits) O.Biscuits.memorize('Book', { Position: { IIPP: I.PageObserver.getIIPP() } }); } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
@@ -666,10 +666,11 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
     let BookData = Par.BookData;
     const BookDataFormat =
         typeof BookData == 'string' ? (/^data:/.test(BookData) ? 'Base64' : 'URI') :
-        typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'BLOB' : '') : '';
+        typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'Blob' : '') : '';
     if(!BookDataFormat) return reject(`Book Data Is Unknown.`);
     if(BookDataFormat == 'URI') {
         // Online
+        if(O.Local) return reject(`Bibi Can't Open Books via URL on Local Mode.`);
         B.Path = BookData;
         let RootFile;
         switch(B.Type) {
@@ -727,9 +728,9 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
                 }
                 B.Path = '[Base64 Encoded Data]';
             } else {
-                // BLOB of EPUB/Zine Data
-                if(!S['accept-blob-converted-data']) return reject(`To Open BLOB Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.`);
-                B.Path = '[BLOB Converted Data]';
+                // Blob of EPUB/Zine Data
+                if(!S['accept-blob-converted-data']) return reject(`To Open Blob Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.`);
+                B.Path = '[Blob Converted Data]';
             }
             if(!MIMETypeREs['EPUB'].test(BookData.type) && !MIMETypeREs['Zine'].test(BookData.type)) return reject(MIMETypeErrorMessage);
             FileOrData = 'Data';
@@ -776,6 +777,8 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // METADATA
         // --------------------------------------------------------------------------------
         const DCNS = _Package.getAttribute('xmlns:dc') || _Metadata.getAttribute('xmlns:dc');
+        const UIDID = _Package.getAttribute('unique-identifier'), UIDE = UIDID ? Doc.getElementById(UIDID) : null, UIDTC = UIDE ? UIDE.textContent : '';
+        Metadata['unique-identifier'] = UIDTC ? UIDTC.trim() : '';
         ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
         sML.forEach(_Metadata.getElementsByTagName('meta'))(_Meta => {
             if(_Meta.getAttribute('refines')) return; // Should be solved.
@@ -795,7 +798,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
             }
         });
         // --------------------------------------------------------------------------------
-        if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [O.BookURL];
+        if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [];
         if(!Metadata['language'  ]) Metadata['language'  ] = Metadata['dcterms:language'  ] || ['en'];
         if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
         // --------------------------------------------------------------------------------
@@ -948,8 +951,8 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // --------------------------------------------------------------------------------
         B.FileDigit = (Spine.Items.length + '').length;
         // ================================================================================
-        B.ID        =  Metadata['identifier'][0];
-        B.Language  =  Metadata['language'  ][0].split('-')[0];
+        B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
+        B.Language  =  Metadata['language'][0].split('-')[0];
         B.Title     =  Metadata['title'     ].join(', ');
         B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
         B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
@@ -1134,7 +1137,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
     });
 
 
-L.preprocessResources = () => new Promise((resolve, reject) => {
+L.preprocessResources = () => {
     E.dispatch('bibi:is-going-to:preprocess-resources');
     const Promises = [], PreprocessedResources = [], pushItemPreprocessingPromise = (Item, URI) => Promises.push(O.file(Item, { Preprocess: true, URI: URI }).then(() => PreprocessedResources.push(Item)));
     if(B.ExtractionPolicy) for(const FilePath in B.Package.Manifest.Items) {
@@ -1144,7 +1147,7 @@ L.preprocessResources = () => new Promise((resolve, reject) => {
             pushItemPreprocessingPromise(Item, true);
         }
     }
-    Promise.all(Promises).then(() => {/*
+    return Promise.all(Promises).then(() => {/*
         if(B.ExtractionPolicy != 'at-once' && (S.BRL == 'pre-paginated' || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PreprocessedResources);
         R.Items.forEach(Item => pushItemPreprocessingPromise(Item, O.isBin(Item))); // Spine Items
         return Promise.all(Promises).then(() => resolve(PreprocessedResources));*/
@@ -1153,9 +1156,8 @@ L.preprocessResources = () => new Promise((resolve, reject) => {
             O.log(`Preprocessed. (${ PreprocessedResources.length } Resource${ PreprocessedResources.length > 1 ? 's' : '' })`, '</g>');
         }
         E.dispatch('bibi:preprocessed-resources');
-        resolve();
     });
-});
+};
 
 
 L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
@@ -1187,7 +1189,7 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     }
     ItemBox.classList.remove('loaded');
     return new Promise((resolve, reject) => {
-        if(Item.BlobURL) {
+        if(Item.ContentURL) {
             resolve();
         } else if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
             O.file(Item, {
@@ -1220,10 +1222,11 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
     }).then(Source => new Promise(resolve => {
         const DefaultStyleID = 'bibi-default-style';
         Item.setAttribute('sandbox', 'allow-same-origin allow-scripts');
-        if(!Item.BlobURL) {
+        let Promised = null;
+        if(!Item.ContentURL) {
             let HTML = typeof Source == 'string' ? Source : `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source[0] || '' }</head><body>${ Source[1] || '' }</body></html>`;
             HTML = HTML.replace(/^<\?.+?\?>/, '').replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!Item.Preprocessed ? `<base href="${ O.fullPath(Item.Path) }" />` : ''));
-            if(sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURIs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
+            if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
                 HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
                 Item.onLoaded = () => {
                     resolve();
@@ -1235,12 +1238,16 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
                 return;
             }
-            Item.BlobURL = URL.createObjectURL(new Blob([HTML], { type: 'text/html' }));
-            Item.Content = '';
-        }
-        Item.onload = resolve;
-        Item.src = Item.BlobURL;
-        ItemBox.insertBefore(Item, ItemBox.firstChild);
+            Promised = O.createBlobURL('Text', HTML, 'text/html').then(ContentURL => {
+                Item.ContentURL = ContentURL;
+                Item.Content = '';
+            });
+        } else Promised = Promise.resolve();
+        Promised.then(() => {
+            Item.onload = resolve;
+            Item.src = Item.ContentURL;
+            ItemBox.insertBefore(Item, ItemBox.firstChild);
+        });
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
@@ -1968,7 +1975,7 @@ R.changeView = (Par) => {
         });
         L.play();
     }
-    if(S['keep-settings']) O.Biscuits.memorize('Book', { RVM: Par.Mode });
+    if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { RVM: Par.Mode });
 };
 
 
@@ -2190,7 +2197,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
     //Par.Distance = Par.Distance < 0 ? -1 : 1;
     E.dispatch('bibi:is-going-to:move-by', Par);
     const Current = (Par.Distance > 0 ? I.PageObserver.Current.List.slice(-1) : I.PageObserver.Current.List)[0], CurrentPage = Current.Page, CurrentItem = CurrentPage.Item;
-    let Promised = {};
+    let Promised = null;
     if(
         true ||
         R.Columned ||
@@ -3455,7 +3462,7 @@ I.Menu = { create: () => {
                             if(IsActive) O.HTML.classList.add(   'book-full-breadth');
                             else         O.HTML.classList.remove('book-full-breadth');
                             if(S.RVM == 'horizontal' || S.RVM == 'vertical') R.changeView({ Mode: S.RVM, Force: true });
-                            if(S['keep-settings']) O.Biscuits.memorize('Book', { FBL: S['full-breadth-layout-in-scroll'] });
+                            if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { FBL: S['full-breadth-layout-in-scroll'] });
                         }
                     }]
                 }]
@@ -3624,7 +3631,7 @@ I.PoweredBy = { create: () => {
 I.FontSizeChanger = { create: () => {
     const FontSizeChanger = I.FontSizeChanger = {};
     if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
-    if(S['use-font-size-changer'] && S['keep-settings']) {
+    if(S['use-font-size-changer'] && S['keep-settings'] && O.Biscuits) {
         const BibiBiscuits = O.Biscuits.remember('Bibi');
         if(BibiBiscuits && BibiBiscuits.FontSize && BibiBiscuits.FontSize.Step != undefined) FontSizeChanger.Step = BibiBiscuits.FontSize.Step * 1;
     }
@@ -3682,7 +3689,7 @@ I.FontSizeChanger = { create: () => {
         E.dispatch('bibi:changes-font-size');
         if(typeof Actions.before == 'function') Actions.before();
         FontSizeChanger.Step = Step;
-        if(S['use-font-size-changer'] && S['keep-settings']) {
+        if(S['use-font-size-changer'] && S['keep-settings'] && O.Biscuits) {
             O.Biscuits.memorize('Book', { FontSize: { Step: Step } });
         }
         setTimeout(() => {
@@ -4081,8 +4088,8 @@ I.History = {
     update: () => I.History.Updaters.forEach(fun => fun()),
     add: (Opt = {}) => {
         if(!Opt.UI) Opt.UI = Bibi;
-        const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })(),
-                 LastPage = R.hatchPage(I.History.List.slice(-1)[0]);
+        const    LastPage = R.hatchPage(I.History.List.slice(-1)[0]),
+              CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
             I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP(CurrentPage) });
@@ -4157,7 +4164,6 @@ I.Slider = { create: () => {
         onTouchStart: (Eve) => {
             I.ScrollObserver.forceStopScrolling();
             Eve.preventDefault();
-            if(Slider.History) Slider.History.add({ Page: I.PageObserver.Current.List[0].Page });
             Slider.Touching = true;
             Slider.StartedOn = {
                 ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
@@ -4197,11 +4203,11 @@ I.Slider = { create: () => {
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(TouchEndCoord == Slider.StartedOn.Coord) Slider.StartedOn.Coord = Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
-            Slider.flip(TouchEndCoord).then(Destination => {
+            Slider.flip(TouchEndCoord).then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
-                if(Slider.History) Slider.History.add(Destination);
+                if(Slider.History) Slider.History.add();
             });
             delete Slider.StartedOn;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
@@ -4209,7 +4215,7 @@ I.Slider = { create: () => {
         flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
-                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(resolve);
+                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
             default:
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
@@ -4288,7 +4294,7 @@ I.Slider = { create: () => {
 }};
 
 
-I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
+I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) return;
     const BookmarkManager = I.BookmarkManager = {
         Bookmarks: [],
         initialize: () => {
@@ -5050,7 +5056,7 @@ S.initialize = () => {
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
     // --------
     if(!S['reader-view-mode']) S['reader-view-mode'] = 'paged';
-    E.bind('bibi:initialized-book', () => {
+    if(O.Biscuits) E.bind('bibi:initialized-book', () => {
         const BookBiscuits = O.Biscuits.remember('Book');
         if(S['keep-settings']) {
             if(!U['reader-view-mode']              && BookBiscuits.RVM) S['reader-view-mode']              = BookBiscuits.RVM;
@@ -5338,7 +5344,6 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
         //if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
         if(Item.URI) return resolve(Item);
     }
-    let _Promise = null;
     (() => {
         if(Item.Content) return Promise.resolve(Item);
         switch(B.ExtractionPolicy) {
@@ -5350,7 +5355,7 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
         if(typeof Opt.initialize == 'function') Opt.initialize();
         return (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item;
     }).then(Item => {
-        if(Opt.URI) O.getBlobURL(Item).then(Item => { Item.Content = ''; resolve(Item); });
+        if(Opt.URI) O.setBlobURLToItemURI(Item).then(() => { Item.Content = ''; resolve(Item); });
         else resolve(Item);
      }).catch(reject);
 });
@@ -5359,35 +5364,28 @@ O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
 O.isBin = (Item) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Item.Path);
 
 
-O.getBlobURL = (Item) => new Promise(resolve => {
+O.setBlobURLToItemURI = (Item) => {
     Item = O.item(Item);
-    if(!Item.URI) {
-        // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.getBlobURL)`;
-        if(!Item['media-type']) Item['media-type'] = O.getContentType(Item.Path);
-        Item.URI = URL.createObjectURL(Item.DataType == 'Blob' ? Item.Content: new Blob([Item.Content], { type: Item['media-type'] }));
-    }
-    resolve(Item);
-});
+    if(Item.URI) return Promise.resolve(Item.URI);
+    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.setBlobURLToItemURI)`;
+    if(!Item['media-type']) Item['media-type'] = O.getContentType(Item.Path);
+    return O.createBlobURL(Item.DataType, Item.Content, Item['media-type']).then(BlobURL => Item.URI = BlobURL);
+};
 
+O.createBlobURL = (DT, CB, MT) => new Promise(resolve => resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB)));
 
-O.getDataURI = (Item) => new Promise(resolve => {
+/*
+O.setDataURLToItemURI = (Item) => {
     Item = O.item(Item);
-    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.getDataURI)`;
+    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.setDataURLToItemURI)`;
     // if(Item.DataType != 'Text') throw `Item Content Is Not Text.`;
-    if(Item.URI) resolve(Item);
-    else if(Item.DataType == 'Text') {
-        Item.URI = 'data:' + Item['media-type'] + ';base64,' + btoa(unescape(encodeURIComponent(Item.Content)));
-        resolve(Item);
-    } else {
-        const FR = new FileReader();
-        FR.onload = () => {
-            Item.URI = FR.result;
-            resolve(Item);
-        };
-        FR.readAsDataURL(Item.Content);
-    }
-});
+    if(Item.URI) return Promise.resolve(Item.URI);
+    if(!Item['media-type']) Item['media-type'] = O.getContentType(Item.Path);
+    return O.createDataURL(Item.DataType, Item.Content, Item['media-type']).then(DataURL => Item.URI = DataURL);
+};
 
+O.createDataURL = (DT, CB, MT) => new Promise((resolve, reject) => DT == 'Text' ? resolve('data:' + MT + ';base64,' + btoa(unescape(encodeURIComponent(CB)))) : (FR => { FR.onloadend = () => FR.error ? reject(FR.error) : resolve(FR.result); FR.readAsDataURL(CB); })(new FileReader()));
+*/
 
 O.ContentTypes = {
     'pdf'     : 'application/pdf',
@@ -5421,7 +5419,10 @@ O.preprocess = (Item) => {
     Item = O.item(Item);
     // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.preprocess)`;
     const ResItems = [];
-    const Setting = O.preprocess.getSetting(Item.Path); if(!Setting) return Promise.resolve(Item);
+    const Setting = O.preprocess.getSetting(Item.Path);
+    if(!Setting) {
+        return Promise.resolve(Item);
+    }
     const Promises = [];
     if(Setting.ReplaceRules) Item.Content = Setting.ReplaceRules.reduce((ItemContent, Rule) => ItemContent.replace(Rule[0], Rule[1]), Item.Content);
     if(Setting.ResolveRules) { // RRR
@@ -5436,9 +5437,7 @@ O.preprocess = (Item) => {
                 const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? './' : '') + ResPathInSource).split('#');
                 if(!ExtRE.test(ResPaths[0])) return;
                 ResItems.push(O.item({ Path: ResPaths[0] }));
-                //const Promised = (!B.ExtractionPolicy && !Pattern.ForceURI) ? Promise.resolve(B.Path + '/' + ResPaths[0]) : O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true });
-                const Promised = O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true });
-                Promises.push(Promised.then(ChildItem => {
+                Promises.push(O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true }).then(ChildItem => {
                     ResPaths[0] = ChildItem.URI;
                     Item.Content = Item.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join('#')));
                 }));
@@ -5466,7 +5465,7 @@ O.preprocess = (Item) => {
                 getRE: () => /@import\s+["'](?!(?:https?|data):)(.+?)['"]/g,
                 PathRef: '$1',
                 Patterns: [
-                    { Extensions: 'css', ForceURI: true }
+                    { Extensions: 'css' }
                 ]
             }, {
                 getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
@@ -5513,8 +5512,8 @@ O.preprocess = (Item) => {
                 getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
                 PathRef: '$2',
                 Patterns: [
-                    { Attribute: 'href',           Extensions: 'css', ForceURI: true },
-                    { Attribute: 'src',            Extensions: 'svg', ForceURI: true },
+                    { Attribute: 'href',           Extensions: 'css' },
+                    { Attribute: 'src',            Extensions: 'svg' },
                     { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g' }
                 ]
             }]
@@ -5527,8 +5526,8 @@ O.preprocess = (Item) => {
                 getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
                 PathRef: '$2',
                 Patterns: [
-                    { Attribute: 'href',           Extensions: 'css', ForceURI: true },
-                    { Attribute: 'src',            Extensions: 'js|svg', ForceURI: true },//{ Attribute: 'src',        Extensions: 'js|svg|xml|xht(ml?)?|html?', ForceURI: true },
+                    { Attribute: 'href',           Extensions: 'css' },
+                    { Attribute: 'src',            Extensions: 'js|svg' },
                     { Attribute: 'src|xlink:href', Extensions: 'gif|png|jpe?g|mp([34]|e?g)|m4[av]' },
                     { Attribute: 'poster',         Extensions: 'gif|png|jpe?g' }
                 ]
@@ -5786,13 +5785,18 @@ O.Cookies = {
 O.Biscuits = {
     Memories: {}, Labels: {},
     initialize: (Tag) => {
+        if(!localStorage) return O.Biscuits = null;
         if(typeof Tag != 'string') {
             O.Biscuits.LabelBase = 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), '');
             E.bind('bibi:initialized',      () => O.Biscuits.initialize('Bibi'));
             E.bind('bibi:initialized-book', () => O.Biscuits.initialize('Book'));
             return null;
         }
-        if(Tag != 'Bibi' && Tag != 'Book') return null;
+        switch(Tag) {
+            case 'Bibi': break;
+            case 'Book': if(B.ID) break;
+            default: return null;
+        }
         const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID.replace(/^urn:uuid:/, '') : '');
         const BiscuitsOfTheLabel = localStorage.getItem(Label);
         O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
