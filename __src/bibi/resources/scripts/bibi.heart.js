@@ -4081,8 +4081,8 @@ I.History = {
     update: () => I.History.Updaters.forEach(fun => fun()),
     add: (Opt = {}) => {
         if(!Opt.UI) Opt.UI = Bibi;
-        const CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })(),
-                 LastPage = R.hatchPage(I.History.List.slice(-1)[0]);
+        const    LastPage = R.hatchPage(I.History.List.slice(-1)[0]),
+              CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
             I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP(CurrentPage) });
@@ -4157,7 +4157,6 @@ I.Slider = { create: () => {
         onTouchStart: (Eve) => {
             I.ScrollObserver.forceStopScrolling();
             Eve.preventDefault();
-            if(Slider.History) Slider.History.add({ Page: I.PageObserver.Current.List[0].Page });
             Slider.Touching = true;
             Slider.StartedOn = {
                 ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
@@ -4197,11 +4196,11 @@ I.Slider = { create: () => {
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(TouchEndCoord == Slider.StartedOn.Coord) Slider.StartedOn.Coord = Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
-            Slider.flip(TouchEndCoord).then(Destination => {
+            Slider.flip(TouchEndCoord).then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
-                if(Slider.History) Slider.History.add(Destination);
+                if(Slider.History) Slider.History.add();
             });
             delete Slider.StartedOn;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
@@ -4209,7 +4208,7 @@ I.Slider = { create: () => {
         flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
-                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(resolve);
+                return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
             default:
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
