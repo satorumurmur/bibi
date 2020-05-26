@@ -7,7 +7,7 @@
 'use strict';
 
 const Bibi = {
-    'version': '1.1.2',
+    'version': '1.1.3',
     'author': {
         'name': 'Satoru Matsushima'
     },
