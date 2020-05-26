@@ -776,6 +776,8 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // METADATA
         // --------------------------------------------------------------------------------
         const DCNS = _Package.getAttribute('xmlns:dc') || _Metadata.getAttribute('xmlns:dc');
+        const UIDID = _Package.getAttribute('unique-identifier'), UIDE = UIDID ? Doc.getElementById(UIDID) : null, UIDTC = UIDE ? UIDE.textContent : '';
+        Metadata['unique-identifier'] = UIDTC ? UIDTC.trim() : '';
         ['identifier', 'language', 'title', 'creator', 'publisher'].forEach(Pro => sML.forEach(Doc.getElementsByTagNameNS(DCNS, Pro))(_Meta => (Metadata[Pro] ? Metadata[Pro] : Metadata[Pro] = []).push(_Meta.textContent.trim())));
         sML.forEach(_Metadata.getElementsByTagName('meta'))(_Meta => {
             if(_Meta.getAttribute('refines')) return; // Should be solved.
@@ -795,7 +797,7 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
             }
         });
         // --------------------------------------------------------------------------------
-        if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [O.BookURL];
+        if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [];
         if(!Metadata['language'  ]) Metadata['language'  ] = Metadata['dcterms:language'  ] || ['en'];
         if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
         // --------------------------------------------------------------------------------
@@ -948,8 +950,8 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // --------------------------------------------------------------------------------
         B.FileDigit = (Spine.Items.length + '').length;
         // ================================================================================
-        B.ID        =  Metadata['identifier'][0];
-        B.Language  =  Metadata['language'  ][0].split('-')[0];
+        B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
+        B.Language  =  Metadata['language'][0].split('-')[0];
         B.Title     =  Metadata['title'     ].join(', ');
         B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
         B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
@@ -5791,7 +5793,11 @@ O.Biscuits = {
             E.bind('bibi:initialized-book', () => O.Biscuits.initialize('Book'));
             return null;
         }
-        if(Tag != 'Bibi' && Tag != 'Book') return null;
+        switch(Tag) {
+            case 'Bibi': break;
+            case 'Book': if(B.ID) break;
+            default: return null;
+        }
         const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID.replace(/^urn:uuid:/, '') : '');
         const BiscuitsOfTheLabel = localStorage.getItem(Label);
         O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
