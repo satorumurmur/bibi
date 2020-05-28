@@ -37,9 +37,8 @@ const Config = {
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: resolvePath(Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
-    entry: ((PathListsA, PathListsB) => { const Entries = {};
-        for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir,                     P.replace(/\.css$/, '.scss')));
-        for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, PathListsB[SrcDir][P].replace(/\.css$/, '.scss')) ;
+    entry: (PathLists => { const Entries = {};
+        for(const SrcDir in PathLists) PathLists[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, P.replace(/\.css$/, '.scss')));
         return Entries;
     })({
         [Bibi.SRC]: [
@@ -62,24 +61,21 @@ const Config = {
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'bib/i.js'
         ]
-    }, {
-        'node_modules': {
-            'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': 'bibi-zip-loader/dist/lszlw.js'
-        }
     }),
-    plugins: (PathLists => { const RelativeCopySettings = [];
-        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) RelativeCopySettings.push(new CopyPlugin({ patterns: PathLists[SrcDir].map(P => ({ context: resolvePath(SrcDir), from: P, to: '.' })) }));
-        return RelativeCopySettings;
+    plugins: (PathLists => { const ContextualCopySettings = [];
+        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) ContextualCopySettings.push(new CopyPlugin({ patterns: PathLists[SrcDir].map(P => ({ context: resolvePath(SrcDir), from: P, to: '.' })) }));
+        return ContextualCopySettings;
     })({
         [Bibi.SRC]: [
             'bibi/*.html',
+            'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.*',
             'bibi/presets/**',
             'bibi-bookshelf/__samples/**/*.epub',
             'bibi-demo/**/*.html'
         ],
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
-            'README.BackCompatKit.md',
-            'bib/i/*.html'
+            'bib/i/*.html',
+            'README.BackCompatKit.md'
         ],
         '.': [
             'LICENSE',
@@ -93,9 +89,6 @@ const Config = {
     ]),
     module: { rules: [{
         test: /\.m?js$/,
-        exclude: [
-            /bibi-zip-loader/
-        ],
         use: [
             { loader: 'babel-loader', options: {
                 babelrc: false,
@@ -200,26 +193,6 @@ if(IsDev) {
         ]
     });
 } else {
-    Config.module.rules.push({
-        include: [
-            /bibi-zip-loader/
-        ],
-        use: [
-            StringReplacePlugin.replace({ replacements: [{
-                pattern: /# sourceURL=webpack:\/+/g,
-                replacement: () => ''
-            }, {
-                pattern: /(\\n)(\\t|\s)+/g,
-                replacement: () => '\\n '
-            }, {
-                pattern: /(\\n ){2,}/g,
-                replacement: () => '\\n '
-            }, {
-                pattern: /(\\n){2,}/g,
-                replacement: () => '\\n'
-            }]})
-        ]
-    });
     for(const B in Bibi.Banners) if(B && Bibi.Banners[B]) Config.plugins.push(new Webpack.BannerPlugin({ test: B, banner: Bibi.Banners[B], raw: true }));
     Config.optimization.minimizer.push(new TerserPlugin({
         cache: true,
