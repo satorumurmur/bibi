@@ -197,6 +197,13 @@ Bibi.applyFilteredSettingsTo = (To, From, ListOfSettingTypes, Fill) => {
 };
 
 
+Bibi.ErrorMessages = {
+       NotFound: `404 Not Found`,
+    CORSBlocked: `Probably CORS Blocked`,
+    DataInvalid: `Data Invalid`
+};
+
+
 
 
 //==============================================================================================================================================
@@ -662,61 +669,62 @@ L.play = () => {
 
 
 L.initializeBook = (Par) => new Promise((resolve, reject) => {
-    if(!Par || !Par.BookData) return reject(`Book Data Is Undefined.`);
+    const reject_failedToOpenTheBook = (Msg) => reject(`Failed to open the book (${ Msg })`);
+    if(!Par || !Par.BookData) return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
     let BookData = Par.BookData;
     const BookDataFormat =
         typeof BookData == 'string' ? (/^data:/.test(BookData) ? 'Base64' : 'URI') :
         typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'Blob' : '') : '';
-    if(!BookDataFormat) return reject(`Book Data Is Unknown.`);
+    if(!BookDataFormat) return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
     if(BookDataFormat == 'URI') {
         // Online
-        if(O.Local) return reject(`Bibi Can't Open Books via URL on Local Mode.`);
+        if(O.Local) return reject(`Bibi can't open books via URL on local mode`);
         B.Path = BookData;
         let RootFile;
         switch(B.Type) {
             case 'EPUB': RootFile = B.Container; break; // Online EPUB
             case 'Zine': RootFile = B.ZineData;  break; // Online Zine
         }
-        const initialize_as = (FileOrFolder) => ({
+        const InitErrors = [], initialize_as = (FileOrFolder) => ({
             Promised: (
-                FileOrFolder == 'Folder' ? O.download(RootFile).then(() => (B.PathDelimiter = '/') && '') :
+                FileOrFolder == 'folder' ? O.download(RootFile).then(() => (B.PathDelimiter = '/') && '') :
                 O.RangeLoader            ?  O.extract(RootFile).then(() => 'on-the-fly') :
                                  O.loadZippedBookData( B.Path ).then(() => 'at-once')
             ).then(ExtractionPolicy => {
                 B.ExtractionPolicy = ExtractionPolicy;
                 //O.log(`Succeed to Open as ${ B.Type } ${ FileOrFolder }.`);
-                resolve(`${ B.Type} ${ FileOrFolder }`);
-            }).catch(ErrorDetail => {
-                if(ErrorDetail.BookTypeError) return reject(ErrorDetail.BookTypeError);
-                O.log(`Failed to Open as ${ B.Type } ${ FileOrFolder }: ${ ErrorDetail }`);
+                resolve(`${ B.Type } ${ FileOrFolder }`);
+            }).catch(Err => {
+                InitErrors.push(Err = (/404/.test('' + Err) ? Bibi.ErrorMessages.NotFound : String(Err).replace(/^Error: /, '')));
+                O.log(`Failed as ${ /^[aiueo]/i.test(B.Type) ? 'an' : 'a' } ${ B.Type } ${ FileOrFolder }: ` + Err);
                 return Promise.reject();
             }),
-            or:        function(fun) { return this.Promised.catch(ErrorDetail => fun(ErrorDetail)); },
-            or_reject: function(Msg) { return this.or(() => reject(Msg)); }
+            or:        function(fun) { return this.Promised.catch(fun); },
+            or_reject: function(fun) { return this.or(() => reject_failedToOpenTheBook(InitErrors.length < 2 || InitErrors[0] == InitErrors[1] ? InitErrors[0] : `as a file: ${ InitErrors[0] } / as a folder: ${ InitErrors[1] }`)); }
         });
         O.isToBeExtractedIfNecessary(B.Path)
-            ? initialize_as('File').or(() => initialize_as('Folder').or_reject(`(Both as ${ B.Type } File/Folder)`))
-            :                                initialize_as('Folder').or_reject(`Changing "extract-if-necessary" May Be Required to Open This Book as ${ B.Type } File.`);
+            ? initialize_as('file').or(() => initialize_as('folder').or_reject())
+            :                                initialize_as('folder').or_reject();
     } else {
         let FileOrData;
         const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
-        const MIMETypeErrorMessage = 'Can Not Open This Type of File.';
+        const MIMETypeErrorMessage = 'File of this type is unacceptable';
         if(BookDataFormat == 'File') {
             // Local-Archived EPUB/Zine File
-            if(!S['accept-local-file'])                      return reject(`To Open Local Files, Changing "accept-local-file" in default.js Is Required.`);
-            if(!BookData.name)                               return reject(`Book File Is Invalid.`);
-            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`Can Not Open Local Files without Extension.`);
-            if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`To Open This File, Changing "extract-if-necessary" in default.js Is Required.`);
+            if(!S['accept-local-file'])                      return reject(`Local file is set to unacceptable`);
+            if(!BookData.name)                               return reject(`File without a name is unacceptable`);
+            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`Local file without extension is set to unacceptable`);
+            if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`File with this extension is set to unacceptable`);
             if(BookData.type) {
                 if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs['EPUB'].test(BookData.type) :
                     /\.zip$/i.test(BookData.name) ? !MIMETypeREs['Zine'].test(BookData.type) : true) return reject(MIMETypeErrorMessage);
             }
-            FileOrData = 'File';
+            FileOrData = 'file';
             B.Path = '[Local File] ' + BookData.name;
         } else {
             if(BookDataFormat == 'Base64') {
                 // Base64-Encoded EPUB/Zine Data
-                if(!S['accept-base64-encoded-data']) return reject(`To Open Base64 Encoded Data, Changing "accept-base64-encoded-data" in default.js Is Required.`);
+                if(!S['accept-base64-encoded-data']) return reject(`Base64 encoded data is set to unacceptable`);
                 try {
                     const Bin = atob(BookData.replace(/^.*,/, ''));
                     const Buf = new Uint8Array(Bin.length);
@@ -724,27 +732,27 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
                     BookData = new Blob([Buf.buffer], { type: Par.BookDataType });
                     if(!BookData || !(BookData instanceof Blob)) throw '';
                 } catch(_) {
-                    return reject(`Book Data Is Invalid.`);
+                    return reject(Bibi.ErrorMessages.DataInvalid);
                 }
                 B.Path = '[Base64 Encoded Data]';
             } else {
                 // Blob of EPUB/Zine Data
-                if(!S['accept-blob-converted-data']) return reject(`To Open Blob Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.`);
+                if(!S['accept-blob-converted-data']) return reject(`Blob converted data is set to unacceptable`);
                 B.Path = '[Blob Converted Data]';
             }
             if(!MIMETypeREs['EPUB'].test(BookData.type) && !MIMETypeREs['Zine'].test(BookData.type)) return reject(MIMETypeErrorMessage);
-            FileOrData = 'Data';
+            FileOrData = 'data';
         }
-        if(!BookData.size) return reject(`Book ${ FileOrData } Is Empty.`);
+        if(!BookData.size) return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
         O.loadZippedBookData(BookData).then(() => {
             switch(B.Type) {
                 case 'EPUB': case 'Zine':
                     B.ExtractionPolicy = 'at-once';
                     return resolve(`${ B.Type } ${ FileOrData }`);
                 default:
-                    return reject(`Book ${ FileOrData } Is Invalid.`);
+                    return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
             }
-        }).catch(reject);
+        }).catch(reject_failedToOpenTheBook);
     }
 }).then(InitializedAs => new Promise(resolve => {
     switch(B.Type) {
@@ -754,10 +762,7 @@ L.initializeBook = (Par) => new Promise((resolve, reject) => {
 }).then(() => {
     E.dispatch('bibi:initialized-book');
     return InitializedAs;
-})).catch(Log => {
-    //if(S['accept-local-file']) O.HTML.classList.add('waiting-file');
-    throw `Failed to Open the Book:` + '\n' + Log;
-});
+}));
 
 
 L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process).then(() => E.dispatch('bibi:loaded-container'));
@@ -5185,7 +5190,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
     else if(/^<..>$/.test(A2)) Tag = A2;
     else if(A2)      Obj = A2;
     switch(Tag) {
-        case '<e/>': throw '\n' + Log;
+        case '<e/>': return console.error(Log);
         case '</g>': O.log.Depth--;
     }
     if(
@@ -5230,7 +5235,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
             console[Method].apply(console, Args);
         };
     };
-
+/*
 O.logSets = (...Args) => {
     let Repeats = [], Sets = []; Sets.length = 1;
     Args.reverse();
@@ -5249,7 +5254,7 @@ O.logSets = (...Args) => {
         });
     });
     Sets.forEach(Set => console.log('- ' + Set + ': ' + eval(Set)));
-};
+};*/
 
 
 O.error = (Err) => {
@@ -5260,7 +5265,6 @@ O.error = (Err) => {
     I.note(Err, 99999999999, 'ErrorOccured');
     O.log(Err, '<e/>');
     E.dispatch('bibi:x_x', typeof Err == 'string' ? new Error(Err) : Err);
-    throw Err;
 };
 
 
@@ -5308,7 +5312,10 @@ O.extract = (Item) => {
         if(O.isBin(Item)) Item.DataType = 'Blob', Item.Content = new Blob([ABuf], { type: Item['media-type'] });
         else              Item.DataType = 'Text', Item.Content = new TextDecoder('utf-8').decode(new Uint8Array(ABuf));
         return Item;
-    }).catch(() => Promise.reject());
+    }).catch(Err => {
+        Err = '' + Err;
+        return Promise.reject(/404/.test(Err) ? Bibi.ErrorMessages.NotFound : /fetch/.test(Err) ? Bibi.ErrorMessages.CORSBlocked : /invalid/.test(Err) ? Bibi.ErrorMessages.DataInvalid : Err);
+    });
 };
 
 O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
@@ -5319,7 +5326,7 @@ O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
     const RemotePath = (/^([a-z]+:\/\/|\/)/.test(Item.Path) ? '' : B.Path + '/') + Item.Path;
     XHR.open('GET', RemotePath, true); // async
     XHR.responseType = IsBin ? 'blob' : 'text';
-    XHR.onerror   = () => reject(`${ XHR.status === 404 ? 'File Not Found' : 'Could Not Download File' }: "${ RemotePath }"`);
+    XHR.onerror   = () => reject(XHR.status == 404 ? Bibi.ErrorMessages.NotFound : XHR.status == 0 ? Bibi.ErrorMessages.CORSBlocked : XHR.status + ' ' + XHR.statusText);
     XHR.onloadend = () => {
         if(XHR.status !== 200) return XHR.onerror();
         Item.Content = XHR.response;
