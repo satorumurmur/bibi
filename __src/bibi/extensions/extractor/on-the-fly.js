@@ -1,4 +1,4 @@
-const RangeLoader = new (require('bibi-zip-loader'))({ url: S['book'], worker: document.currentScript.src.replace(/\.js$/, '.bibi-zip-loader.worker.js') });
+const RangeLoader = new (require('./on-the-fly.bibi-zip-loader.js'))({ url: S['book'], worker: document.currentScript.src.replace(/\.js$/, '.bibi-zip-loader.worker' + (sML.UA.Trident ? '.alt' : '') + '.js') });
 
 Bibi.x({
 
