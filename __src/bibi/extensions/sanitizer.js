@@ -9,14 +9,15 @@ Bibi.x({
 
 })(function() {
 
-    O.sanitizeItemContent = (Item, Opt) => {
-        if(Item && typeof Item.Content == 'string' && Opt && typeof Opt.As == 'string') {
-            const Settings = O.sanitizeItemContent.Settings[Opt.As];
+    O.sanitizeItemSource = (Source, Opt) => {
+        if(Source && typeof Source.Content == 'string' && Opt && typeof Opt.As == 'string') {
+            const Settings = O.sanitizeItemSource.Settings[Opt.As];
             if(Settings) {
-                (pp => pp ? pp(Item) : true)(Settings.preprocess);
-                Item.Content = DOMPurify.sanitize(Item.Content, Settings.Options);
-                (pp => pp ? pp(Item) : true)(Settings.postprocess);
-                return Item.Content;
+                (pp => pp ? pp(Source) : true)(Settings.preprocess);
+                Source.Content = DOMPurify.sanitize(Source.Content, Settings.Options);
+                (pp => pp ? pp(Source) : true)(Settings.postprocess);
+                //console.log(Source.Content);
+                return Source.Content;
             }
         }
         const ErrorMessage = `Sanitizer: Invalid Arguments.`;
@@ -25,22 +26,10 @@ Bibi.x({
         throw new Error(ErrorMessage);
     };
 
-        O.sanitizeItemContent.Settings = {
+        O.sanitizeItemSource.Settings = {
             'HTML': {
-                Options: { WHOLE_DOCUMENT: true, ADD_TAGS: ['link'] },
-                preprocess: (Item) => {
-                    const ContentHTMLAttributes = (Matched => Matched ? Matched[1] : '')(Item.Content.match(/<html(\s[^>]+)>/));
-                    if(!ContentHTMLAttributes) return;
-                    Item.HasContentHTMLAttributes = true;
-                    Item.Content += `<div${ ContentHTMLAttributes }>bibi:html-attributes</div>`;
-                },
-                postprocess: (Item) => {
-                    if(!Item.HasContentHTMLAttributes) return;
-                    delete Item.HasContentHTMLAttributes;
-                    const HolderRE = /<div(\s[^>]+)>bibi:html-attributes<\/div>/;
-                    const ContentHTMLAttributes = (Matched => Matched ? Matched[1] : '')(Item.Content.match(HolderRE));
-                    if(ContentHTMLAttributes) Item.Content = Item.Content.replace(HolderRE, '').replace('<html>', '<html' + ContentHTMLAttributes + '>');
-                }
+                Options: { WHOLE_DOCUMENT: true, ADD_TAGS: ['link', 'meta'], ADD_ATTR: ['xmlns', 'xmlns:epub', 'charset', 'http-equiv', 'content'] },
+                postprocess: (Source) => Source.Content = Source.Content.replace(/(<head[\s>])/, '\n$1').replace(/(<\/body>)/, '$1\n')
             },
             'SVG' : {}
         };
