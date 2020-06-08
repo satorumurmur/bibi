@@ -27,7 +27,7 @@ Bibi.x({
 
     const load = (BookData) => new Promise((resolve, reject) => // resolve(ArrayBuffer)
         typeof BookData == 'string' ? JSZipUtils.getBinaryContent(BookData, (Err, ABuf) => Err ? reject(Bibi.ErrorMessages.NotFound) : resolve(ABuf)) :
-        BookData instanceof Blob    ? (() => { const FR = new FileReader(); FR.onerror = () => reject(Bibi.ErrorMessages.DataInvalid); FR.onload = () => resolve(FR.result); FR.readAsArrayBuffer(BookData); })() :
+        BookData.size && BookData.type ? (() => { const FR = new FileReader(); FR.onerror = () => reject(Bibi.ErrorMessages.DataInvalid); FR.onload = () => resolve(FR.result); FR.readAsArrayBuffer(BookData); })() :
         reject(Bibi.ErrorMessages.DataInvalid)
     ).then(ArrayBuffer => JSZip.loadAsync(ArrayBuffer).catch(Err => Promise.reject(Bibi.ErrorMessages.DataInvalid)));
 
@@ -50,8 +50,8 @@ Bibi.x({
         if(!FilesToBeExtract.length) return reject(Bibi.ErrorMessages.DataInvalid);
         let FolderName = '', FolderNameRE = undefined;
         const PathsToBeChecked = [];
-        if(B.Type != 'Zine') PathsToBeChecked.push(B.Container.Path); // EPUB or unknown.
-        if(B.Type != 'EPUB') PathsToBeChecked.push(B.ZineData.Path ); // Zine or unknown.
+        if(B.Type != 'Zine') PathsToBeChecked.push(B.Container.Source.Path); // EPUB or unknown.
+        if(B.Type != 'EPUB') PathsToBeChecked.push( B.ZineData.Source.Path); // Zine or unknown.
         if(!PathsToBeChecked.filter(PathToBeChecked => FilesToBeExtract.includes(PathToBeChecked)).length) {
             PathsToBeChecked.forEach(PathToBeChecked => {
                 if(!PathToBeChecked) return;
@@ -69,9 +69,9 @@ Bibi.x({
         }
         let RootFileFound = false;
              if(B.Type) RootFileFound = FilesToBeExtract.includes(FolderName + PathsToBeChecked[0]);
-        else if(FilesToBeExtract.includes(FolderName + B.Container.Path)) B.Type = 'EPUB', RootFileFound = true;
-        else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path )) B.Type = 'Zine', RootFileFound = true;
-        if(!RootFileFound) return reject(`${ B.Type ? (B.Type == 'EPUB' ? B.Container.Path : B.ZineData.Path).split('/').slice(-1)[0] : '' } Not Contained`);
+        else if(FilesToBeExtract.includes(FolderName + B.Container.Source.Path)) B.Type = 'EPUB', RootFileFound = true;
+        else if(FilesToBeExtract.includes(FolderName +  B.ZineData.Source.Path)) B.Type = 'Zine', RootFileFound = true;
+        if(!RootFileFound) return reject(`${ B.Type ? (B.Type == 'EPUB' ? B.Container.Source.Path : B.ZineData.Source.Path).split('/').slice(-1)[0] : '' } Not Contained`);
         const FileCount = { Particular: 0 };
         const FileTypesToBeCounted = {
             'Meta XML':   'xml|opf|ncx',
