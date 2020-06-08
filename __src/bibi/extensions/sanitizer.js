@@ -5,7 +5,7 @@ Bibi.x({
     id: 'Sanitizer',
     description: 'Content Sanitizer.',
     author: 'Satoru Matsushima (@satorumurmur)',
-    version: '1.0.0'
+    version: '1.2.0'
 
 })(function() {
 
