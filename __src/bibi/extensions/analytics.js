@@ -2,8 +2,8 @@ Bibi.x({
 
     id: 'Analytics',
     description: 'Utilities for Tracking and Logging with Google Analytics.',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '2.0.1'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0-demo'
 
 })(function() {
 

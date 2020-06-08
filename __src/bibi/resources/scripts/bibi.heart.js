@@ -79,7 +79,10 @@ Bibi.SettingTypes_PresetOnly = {
         'resume-from-last-position'
     ],
     'string': [
-        'bookshelf'
+        'bookshelf',
+        'website-name-in-title',
+        'website-name-in-menu',
+        'website-href'
     ],
     'integer': [
         'max-bookmarks',
@@ -494,7 +497,7 @@ Bibi.bindBook = (LayoutOption) => {
         R.organizePages();
         R.layOutStage();
     }
-    return R.layOut(LayoutOption).then(() => {
+    return R.layOutBook(LayoutOption).then(() => {
         LayoutOption.removeResetter();
         E.dispatch('bibi:laid-out-for-the-first-time', LayoutOption);
         return LayoutOption
@@ -653,9 +656,9 @@ L.wait = () => {
 };
 
 
-L.openNewWindow = (Href) => {
-    const WO = window.open(Href);
-    return WO ? WO : location.href = Href;
+L.openNewWindow = (HRef) => {
+    const WO = window.open(HRef);
+    return WO ? WO : location.href = HRef;
 };
 
 
@@ -1062,11 +1065,11 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
             A.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
             A.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
         }
-        let HrefPathInSource = A.getAttribute('href'), HrefAttribute = 'href';
-        if(!HrefPathInSource) {
-            HrefPathInSource = A.getAttribute('xlink:href');
-            if(HrefPathInSource) {
-                HrefAttribute = 'xlink:href';
+        let HRefPathInSource = A.getAttribute('href'), HRefAttribute = 'href';
+        if(!HRefPathInSource) {
+            HRefPathInSource = A.getAttribute('xlink:href');
+            if(HRefPathInSource) {
+                HRefAttribute = 'xlink:href';
             } else {
                 if(InNav) {
                     A.addEventListener('click', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
@@ -1075,10 +1078,10 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 continue;
             }
         }
-        if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
-            if(HrefPathInSource.split('#')[0] == location.href.split('#')[0]) {
-                const HrefHashInSource = HrefPathInSource.split('#')[1];
-                HrefPathInSource = (HrefHashInSource ? '#' + HrefHashInSource : R.Items[0].RefChain[0])
+        if(/^[a-zA-Z]+:/.test(HRefPathInSource)) {
+            if(HRefPathInSource.split('#')[0] == location.href.split('#')[0]) {
+                const HRefHashInSource = HRefPathInSource.split('#')[1];
+                HRefPathInSource = (HRefHashInSource ? '#' + HRefHashInSource : R.Items[0].RefChain[0])
             } else {
                 A.addEventListener('click', Eve => {
                     Eve.preventDefault(); 
@@ -1089,28 +1092,28 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 continue;
             }
         }
-        const HrefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HrefPathInSource) ? './' : '') + (/^#/.test(HrefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HrefPathInSource);
-        const HrefFnH = HrefPath.split('#');
-        const HrefFile = HrefFnH[0] ? HrefFnH[0] : BasePath;
-        const HrefHash = HrefFnH[1] ? HrefFnH[1] : '';
+        const HRefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HRefPathInSource) ? './' : '') + (/^#/.test(HRefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HRefPathInSource);
+        const HRefFnH = HRefPath.split('#');
+        const HRefFile = HRefFnH[0] ? HRefFnH[0] : BasePath;
+        const HRefHash = HRefFnH[1] ? HRefFnH[1] : '';
         sML.forEach(R.Items)(Item => {
-            if(HrefFile == Item.RefChain[0]) {
-                A.setAttribute('data-bibi-original-href', HrefPathInSource);
-                A.setAttribute(HrefAttribute, B.Path + '/' + HrefPath);
+            if(HRefFile == Item.RefChain[0]) {
+                A.setAttribute('data-bibi-original-href', HRefPathInSource);
+                A.setAttribute(HRefAttribute, B.Path + '/' + HRefPath);
                 A.InNav = InNav;
                 A.Destination = { ItemIndex: Item.Index }; // not IIPP. ElementSelector may be added.
-                     if(Item.Ref['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
-                else if(HrefHash)                                        A.Destination.ElementSelector = '#' + HrefHash;
+                     if(Item['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
+                else if(HRefHash)                                    A.Destination.ElementSelector = '#' + HRefHash;
                 L.coordinateLinkages.setJump(A);
                 return 'break'; //// break sML.forEach()
             }
         });
-        if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
-            A.setAttribute('data-bibi-original-href', HrefPathInSource);
-            A.setAttribute(HrefAttribute, B.Path + '/#' + HrefHash);
+        if(HRefHash && /^epubcfi\(.+\)$/.test(HRefHash)) {
+            A.setAttribute('data-bibi-original-href', HRefPathInSource);
+            A.setAttribute(HRefAttribute, B.Path + '/#' + HRefHash);
             if(X['EPUBCFI']) {
                 A.InNav = InNav;
-                A.Destination = X['EPUBCFI'].getDestination(HrefHash);
+                A.Destination = X['EPUBCFI'].getDestination(HRefHash);
                 L.coordinateLinkages.setJump(A);
             } else {
                 A.addEventListener('click', Eve => {
@@ -1875,7 +1878,7 @@ R.layOutStage = () => {
 };
 
 
-R.layOut = (Opt) => new Promise((resolve, reject) => {
+R.layOutBook = (Opt) => new Promise((resolve, reject) => {
     // Opt: {
     //     Destination: BibiDestination,
     //     Reset: Boolean, (default: false)
@@ -1961,7 +1964,7 @@ R.changeView = (Par) => {
             E.dispatch('bibi:closes-utilities');
         }, Delay[0]);
         setTimeout(() => {
-            R.layOut({
+            R.layOutBook({
                 Reset: true,
                 NoNotification: Par.NoNotification,
                 Setting: {
@@ -2078,8 +2081,8 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         try {
             if(typeof    _.PageIndexInItem   == 'number') return R.hatchItem(_).Pages[_.PageIndexInItem];
             if(typeof    _.PageIndexInSpread == 'number') return R.hatchSpread(_).Pages[_.PageIndexInSpread];
-            if(typeof _.PageProgressInItem   == 'number') return (_Item   =>   _Item.Pages[sML.limitMax(Math.floor(  _Item.Pages.length * _.PageProgressInItem  ),   _Item.Pages.length - 1)])(R.hatchItem(  _));
-            if(typeof _.PageProgressInSpread == 'number') return (_Spread => _Spread.Pages[sML.limitMax(Math.floor(_Spread.Pages.length * _.PageProgressInSpread), _Spread.Pages.length - 1)])(R.hatchSpread(_));
+            if(typeof _.PageProgressInItem   == 'number') return (Item   =>   Item.Pages[sML.limitMax(Math.floor(  Item.Pages.length * _.PageProgressInItem  ),   Item.Pages.length - 1)])(R.hatchItem(  _));
+            if(typeof _.PageProgressInSpread == 'number') return (Spread => Spread.Pages[sML.limitMax(Math.floor(Spread.Pages.length * _.PageProgressInSpread), Spread.Pages.length - 1)])(R.hatchSpread(_));
             if(typeof _.ElementSelector == 'string') { _.Element = R.hatchItem(_).contentDocument.querySelector(_.ElementSelector); delete _.ElementSelector; }
             if(_.Element) return R.hatchNearestPageOfElement(_.Element);
             return (R.hatchItem(_) || R.hatchSpread(_)).Pages[0];
@@ -2154,7 +2157,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
 
 
 R.getBibiToDestination = (BibitoString) => {
-    if(typeof BibitoString == 'number') BibitoString = '' + BibitoString;
+    if(typeof BibitoString == 'number') BibitoString = String(BibitoString);
     if(typeof BibitoString != 'string' || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
     let ElementSelector = '', InE = BibitoString.split('-'), ItemIndexInSpine = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
     if(ElementIndex) ElementIndex.split('.').forEach(Index => ElementSelector += '>*:nth-child(' + Index + ')');
@@ -2576,7 +2579,7 @@ I.ResizeObserver = { create: () => {
             ResizeObserver.Timer_onResizeEnd = setTimeout(() => {
                 R.updateOrientation();
                 const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
-                R.layOut({
+                R.layOutBook({
                     Reset: true,
                     Destination: Page ? { ItemIndex: Page.Item.Index, PageProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
                 }).then(() => {
@@ -3698,7 +3701,7 @@ I.FontSizeChanger = { create: () => {
             O.Biscuits.memorize('Book', { FontSize: { Step: Step } });
         }
         setTimeout(() => {
-            R.layOut({
+            R.layOutBook({
                 before: () => R.Items.forEach(Item => { if(Item.changeFontSizeStep) Item.changeFontSizeStep(Step); }),
                 Reset: true,
                 DoNotCloseUtilities: true,
@@ -4906,7 +4909,7 @@ P.initialize = () => {
     P['extensions'] = (() => {
         let Extensions_HTML = document.getElementById('bibi-preset').getAttribute('data-bibi-extensions');
         if(Extensions_HTML) {
-            Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHref).href }));
+            Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHRef).href }));
             if(Extensions_HTML.length) P['extensions'] = Extensions_HTML;
         }
         return !Array.isArray(P['extensions']) ? [] : P['extensions'].filter(Xtn => {
@@ -5202,7 +5205,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
         let Ls = [], Ss = [];
         if(Log) switch(Tag) {
             case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })` + (Bibi.Dev ? ':%cDEV' : '')), Ss.push(O.log.NStyle); if(Bibi.Dev) Ss.push(O.log.BStyle); break;
-            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
+            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + String(Time % 1000).padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
             case '<g:>': Ls.unshift(`┌`); Ls.push(Log); break;
             case '</g>': Ls.unshift(`└`); Ls.push(Log); break;
           //case '<o/>': Ls.unshift( `>`); Ls.push(Log); break;
@@ -5274,7 +5277,7 @@ O.getTimeLabel = (TimeFromOrigin = Date.now() - Bibi.TimeOrigin) => [
     TimeFromOrigin / 1000 / 60 / 60,
     TimeFromOrigin / 1000 / 60 % 60,
     TimeFromOrigin / 1000 % 60
-].map(Val => (Math.floor(Val) + '').padStart(2, 0)).join(':') + '.' + (TimeFromOrigin % 1000 + '').padStart(3, 0);
+].map(Val => String(Math.floor(Val)).padStart(2, 0)).join(':') + '.' + String(TimeFromOrigin % 1000).padStart(3, 0);
 
 O.stamp = (What, TimeCard = O.TimeCard) => {
     const TimeFromOrigin = Date.now() - Bibi.TimeOrigin;
@@ -5804,7 +5807,7 @@ O.Biscuits = {
             case 'Book': if(B.ID) break;
             default: return null;
         }
-        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID.replace(/^urn:uuid:/, '') : '');
+        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID : '');
         const BiscuitsOfTheLabel = localStorage.getItem(Label);
         O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
         return O.Biscuits.Memories[Label];

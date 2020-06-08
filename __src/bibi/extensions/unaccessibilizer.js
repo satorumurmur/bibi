@@ -2,8 +2,8 @@ Bibi.x({
 
     id: 'Unaccessibilizer',
     description: 'What a...',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '0.3.3'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0'
 
 })(function() {
 
@@ -33,6 +33,7 @@ Bibi.x({
             Item.contentDocument.addEventListener('contextmenu', O.preventDefault);
         }
     };
-    unaccessibilize(O), E.bind('bibi:postprocessed-item', unaccessibilize);
+
+    E.bind('bibi:postprocessed-item', unaccessibilize);
 
 });

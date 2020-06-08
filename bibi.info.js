@@ -38,8 +38,8 @@ Bibi.Dresses = (_ => {
 })(Ds => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : []);
 
 const _banner = (Opt) => '/*!' + `
- *` + (!Opt.Mark ? '' : `                                                                                                                          (℠)`) + `
- *  # ${ Opt.Name }
+ *
+ *  # ${ Opt.Name }` + (!Opt.Mark ? '' : (s => { for(let l = Math.max(69 - (6 + Opt.Name.length) - 4, 1), i = 0; i < l; i++) s = ' ' + s; return s; })(`(℠)`)) + `
  *` + (!Opt.Credit ? '' : (Opt.Credit == Bibi ? `
  *  * © ${ Bibi.author.name } - ${ Bibi.homepage }
  *  * Open source under the MIT License - https://github.com/satorumurmur/bibi/blob/master/LICENSE` : '\n' + Opt.Credit.replace(/^\n|\n$/g, '')) + `

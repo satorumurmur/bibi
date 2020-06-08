@@ -5,8 +5,8 @@ Bibi.x({
 
     id: 'Extractor_at-once',
     description: 'Utilities for Zipped Books. (Method: at-once)',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '2.1.1'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0'
 
 })(function() {
 
@@ -98,7 +98,7 @@ Bibi.x({
             const IsBin = O.isBin({ Path: FileName });
             Promises.push(
                 BookDataArchive.file(FolderName + FileName).async(IsBin ? 'blob' : 'string').then(FileContent => {
-                    const Item = B.Package.Manifest.Items[FileName] = IsBin ?
+                    B.Package.Manifest[FileName] = IsBin ?
                         { Path: FileName, DataType: 'Blob', Content: FileContent } :
                         { Path: FileName, DataType: 'Text', Content: FileContent.trim() };
                     for(const FileType in FileTypesToBeCounted) {

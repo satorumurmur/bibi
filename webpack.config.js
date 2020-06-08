@@ -12,13 +12,6 @@ const Path = require('path'), resolvePath = (..._) => Path.resolve(__dirname, _.
 const Package = require('./package.json');
 const Bibi = require('./bibi.info.js');
 
-const Dresses = (_ => {
-    const Dresses = require('./' + Bibi.SRC + '/bibi/wardrobe/_dresses.js') || {};
-    Dresses['custom-made'] = _(Dresses['custom-made']).filter(D => !Dresses['ready-made'].includes(D));
-    Dresses[ 'ready-made'] = _(Dresses[ 'ready-made']);
-    return Dresses;
-})(Ds => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : []);
-
 const HardSourcePlugin = require('hard-source-webpack-plugin');
 const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
@@ -57,14 +50,15 @@ const Config = {
             'bibi/resources/styles/bibi.css',
             'bibi/resources/scripts/bibi.js',
             'bibi-demo/embedding/index.css'
-        ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
+        ].concat(Bibi.Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'bib/i.js'
         ]
     }),
-    plugins: (PathLists => { const ContextualCopySettings = [];
-        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) ContextualCopySettings.push(new CopyPlugin({ patterns: PathLists[SrcDir].map(P => ({ context: resolvePath(SrcDir), from: P, to: '.' })) }));
-        return ContextualCopySettings;
+    plugins: (PathLists => { const Patterns = [];
+        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) PathLists[SrcDir].forEach(P => Patterns.push({ context: resolvePath(SrcDir), from: P, to: '.' }));
+        return [new CopyPlugin(Patterns)]; // for CopyWebpackPlugin v5.1.1
+    //  return [new CopyPlugin({ patterns: Patterns })]; // for CopyWebpackPlugin v6.x.x
     })({
         [Bibi.SRC]: [
             'bibi/*.html',
@@ -117,9 +111,10 @@ const Config = {
 {
     if(Bibi.Arguments['watch']) Config.watch = true;
     if(IsDev) Config.devtool = 'inline-source-map';
-    const CommonLoadersForCSS = [
+    const getCommonLoadersForCSS = (Opt = {}) => [
         { loader: 'css-loader', options: {
-            url: true,
+            url: Opt.url ? true : false,
+            import: Opt.import ? true : false,
             sourceMap: IsDev,
             importLoaders: 2
         }},
@@ -148,7 +143,7 @@ const Config = {
                 pattern: IsDev ? null : /@charset \\"UTF-8\\";\\n?/ig,
                 replacement: () => ''
             }]})
-        ].concat(CommonLoadersForCSS)
+        ].concat(getCommonLoadersForCSS({ url: true, import: true }))
     });
     Config.module.rules.push({
         include: [
@@ -157,10 +152,10 @@ const Config = {
         ],
         use: [
             { loader: 'style-loader' }
-        ].concat(CommonLoadersForCSS)
+        ].concat(getCommonLoadersForCSS({ url: true, import: true }))
     });
     Config.module.rules.push({
-        test: /\.(eot|svg|ttf|wof|woff|woff2)$/,
+        test: /\.(eot|svg|ttf|otf|wof|woff|woff2)$/,
         include: [
             resolvePath('node_modules/material-icons/iconfont/MaterialIcons-Regular')
         ],

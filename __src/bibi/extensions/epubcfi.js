@@ -2,8 +2,8 @@ Bibi.x({
 
     id: 'EPUBCFI',
     description: 'Utilities for EPUBCFI', // An Example Is at the Bottom of This Document.
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '0.2.1'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0-demo'
 
 })(function() {
 

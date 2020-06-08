@@ -4,8 +4,8 @@ Bibi.x({
 
     id: 'Extractor_on-the-fly',
     description: 'Utilities for Zipped Books. (Method: on-the-fly)',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '1.0.0'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0'
 
 })(function() {
 

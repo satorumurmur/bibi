@@ -4,7 +4,7 @@ Bibi.x({
 
     id: 'Zine',
     description: 'Utilities for BibiZine.',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
+    author: 'Satoru Matsushima (@satorumurmur)',
     version: '1.2.0'
 
 })(function() {

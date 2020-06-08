@@ -121,7 +121,7 @@ Bibi.preset({
 
 "pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
 "allow-placeholders"                 : true, // true or false. (true is highly recommended.)
-"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
+"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.)
 
 
 //==============================================================================================================================================
