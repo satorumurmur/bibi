@@ -5460,6 +5460,12 @@ O.preprocess = (Source) => {
                     { Extensions: 'css' }
                 ]
             }, {
+                getRE: () => /@import\s+url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
+                PathRef: '$1',
+                Patterns: [
+                    { Extensions: 'css' }
+                ]
+            }, {
                 getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
                 PathRef: '$1',
                 Patterns: [
