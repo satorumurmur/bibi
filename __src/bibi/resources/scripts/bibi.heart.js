@@ -4901,7 +4901,7 @@ U.translateData = (PnV) => {
 
 Bibi.at1st.List.unshift(() => {
     const LS = location.search; if(typeof LS != 'string') return;
-    Object.assign(U, Bibi.applyFilteredSettingsTo({}, LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
+    const Q = LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
         let [_P, _V] = PnV.split('=');
         if(!_V) _V = undefined;
         switch(_P) {
@@ -4912,7 +4912,8 @@ Bibi.at1st.List.unshift(() => {
         }
         Q[_P] = _V;
         return Q;
-    }, {}), [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
+    }, {});
+    Object.assign(U, Bibi.applyFilteredSettingsTo(Q, Q, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
     if(!U['book']) delete U['zine'];
     if(U['debug']) Bibi.Debug = true, U['log'] = 9;
 });
