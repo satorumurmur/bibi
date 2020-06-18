@@ -1892,7 +1892,7 @@ Object.defineProperties(R, { // To ensure backward compatibility.
 
 R.focusOn = (Par) => new Promise((resolve, reject) => {
     if(R.Moving) return reject();
-    if(typeof Par == 'number') Par = { Destination: Par };
+    if(typeof Par == 'number' || /^\d+$/.test(Par)) Par = { Destination: Par };
     if(!Par) return reject();
     const _ = Par.Destination = R.hatchDestination(Par.Destination);
     if(!_) return reject();
