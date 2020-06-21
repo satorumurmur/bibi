@@ -529,7 +529,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
     E.add('bibi:commands:change-view', R.changeView);
-    (Bibi.Dev && !/:61671/.test(location.href)) ? Bibi.createDevNote() : delete Bibi.createDevNote;
+    (Bibi.Dev && location.hostname != 'localhost') ? Bibi.createDevNote() : delete Bibi.createDevNote;
     /*
     alert((Alert => {
         [
@@ -883,7 +883,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                         Items: [], Pages: [],
                         Index: R.Spreads.length
                     });
-                    Spread.Box = sML.create('div', { className: 'spread-box ' + Item['rendition:layout'], Content: Spread, Spread: Spread });
+                    Spread.Box = sML.create('div', { className: 'spread-box ' + Item['rendition:layout'], Inside: Spread, Spread: Spread });
                     if(Item['rendition:page-spread']) {
                         Spread.Box.classList.add('single-item-spread-' + Item['rendition:page-spread']);
                         switch(Item['rendition:page-spread']) {
@@ -894,7 +894,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                     R.Spreads.push(SpreadsDocumentFragment.appendChild(Spread.Box).appendChild(Spread));
                 }
                 Item.IndexInSpread = Spread.Items.push(Item) - 1;
-                Item.Box = Spread.appendChild(sML.create('div', { className: 'item-box ' + Item['rendition:layout'], Content: Item, Item: Item }));
+                Item.Box = Spread.appendChild(sML.create('div', { className: 'item-box ' + Item['rendition:layout'], Inside: Item, Item: Item }));
                 Item.Pages = [];
                 if(Item['rendition:layout'] == 'pre-paginated') {
                     Item.PrePaginated = true;
@@ -2008,11 +2008,11 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
             let NearestPage, ElementCoordInItem;
             if(Item.Columned) {
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_B];
-                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **Body**
+                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = /* !!!! Use offsetWidth of **Body** >>>> */ Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
                 NearestPage = Item.Pages[ElementCoordInItem <= 0 ? 0 : Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
             } else {
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_L];
-                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **HTML**
+                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = /* !!!! Use offsetWidth of **HTML** >>>> */ Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
                 NearestPage = Item.Pages[Math.floor(ElementCoordInItem / R.Stage[C.L_SIZE_L])];
                 /*
                 NearestPage = Item.Pages[0];
@@ -2353,7 +2353,7 @@ I.PageObserver = { create: () => {
                 if(Ele) {
                          if(Ele.IndexInItem) PageList = [Ele];
                     else if(Ele.Pages)       PageList = Ele.Pages;
-                    else if(Ele.Content)     PageList = Ele.Content.Pages;
+                    else if(Ele.Inside)      PageList = Ele.Inside.Pages;
                 }
                 if(PageList) break;
             }
@@ -2713,7 +2713,7 @@ I.FlickObserver = { create: () => {
             if(I.Loupe.Transforming) return;
             FlickObserver.LastEvent = Eve;
             const EventCoord = O.getBibiEventCoord(Eve);
-            FlickObserver.StartedOn = {
+            FlickObserver.StartedAt = {
                 X: EventCoord.X,
                 Y: EventCoord.Y,
                 Item: Eve.target.ownerDocument.body.Item || null,
@@ -2727,7 +2727,7 @@ I.FlickObserver = { create: () => {
             E.add('bibi:upped-pointer', FlickObserver.onTouchEnd);
         },
         cancel: () => {
-            delete FlickObserver.StartedOn;
+            delete FlickObserver.StartedAt;
             delete FlickObserver.LastEvent;
             E.remove('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
@@ -2736,26 +2736,26 @@ I.FlickObserver = { create: () => {
         onTouchMove: (Eve) => {
             //if(Eve.touches && Eve.touches.length == 1 && O.getViewportZooming() <= 1) Eve.preventDefault();
             I.ScrollObserver.breakCurrentScrolling();
-            if(FlickObserver.StartedOn) {
-                if(!FlickObserver.Moving && Eve.timeStamp - FlickObserver.StartedOn.TimeStamp > 333) return FlickObserver.cancel();
+            if(FlickObserver.StartedAt) {
+                if(!FlickObserver.Moving && Eve.timeStamp - FlickObserver.StartedAt.TimeStamp > 333) return FlickObserver.cancel();
                 const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedOn.X, Y: EventCoord.Y - FlickObserver.StartedOn.Y };
+                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
                 if(++FlickObserver.Moving <= 3) {
                     const Deg = FlickObserver.getDegree(Passage);
-                    FlickObserver.StartedOn.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
+                    FlickObserver.StartedAt.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
                                                             ( 45 <  Deg && Deg <  135) || (225 <  Deg && Deg <  315) ? 'Y' : '';
                 }
-                if(FlickObserver.StartedOn.LaunchingAxis == C.A_AXIS_B) {
+                if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
                     // Orthogonal
                 } else {
                     // Natural
                     if(S.RVM != 'paged' && Eve.type == 'touchmove') return FlickObserver.cancel();
-                    if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedOn['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
+                    if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
                 }
                 Eve.preventDefault();
-                if(FlickObserver.StartedOn.Item) {
-                    FlickObserver.StartedOn.Item.HTML.classList.add('bibi-flick-hot');
-                    FlickObserver.StartedOn.Item.contentWindow.getSelection().empty();
+                if(FlickObserver.StartedAt.Item) {
+                    FlickObserver.StartedAt.Item.HTML.classList.add('bibi-flick-hot');
+                    FlickObserver.StartedAt.Item.contentWindow.getSelection().empty();
                 }
                 FlickObserver.LastEvent = Eve;
                 if(EventCoord[C.A_AXIS_L] <= 0 || EventCoord[C.A_AXIS_L] >= R.Stage[C.A_SIZE_L] || EventCoord[C.A_AXIS_B] <= 0 || EventCoord[C.A_AXIS_B] >= R.Stage[C.A_SIZE_B]) return FlickObserver.onTouchEnd(Eve, { Swipe: true });
@@ -2767,22 +2767,22 @@ I.FlickObserver = { create: () => {
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
             FlickObserver.Moving = 0;
             let cb = undefined, Par = {};
-            if(FlickObserver.StartedOn) {
+            if(FlickObserver.StartedAt) {
                 const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedOn.X, Y: EventCoord.Y - FlickObserver.StartedOn.Y };
-                if(FlickObserver.StartedOn.Item) FlickObserver.StartedOn.Item.HTML.classList.remove('bibi-flick-hot');
+                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
+                if(FlickObserver.StartedAt.Item) FlickObserver.StartedAt.Item.HTML.classList.remove('bibi-flick-hot');
                 if(!I.Loupe.Transforming) {
-                    if(FlickObserver.StartedOn.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
+                    if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
                         // Orthogonal Pan/Releace
                         cb = FlickObserver.getOrthogonalTouchMoveFunction();
                     }
                     if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
                         // Moved (== not Tap)
                         Eve.preventDefault();
-                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedOn.TimeStamp);
+                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp);
                         Par.Deg = FlickObserver.getDegree(Passage);
-                        if(O.getViewportZooming() <= 1 && (Eve.timeStamp - FlickObserver.StartedOn.TimeStamp) <= 300) {
-                            Par.OriginList = FlickObserver.StartedOn.OriginList;
+                        if(O.getViewportZooming() <= 1 && (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp) <= 300) {
+                            Par.OriginList = FlickObserver.StartedAt.OriginList;
                             cb = (Opt && Opt.Swipe) ? FlickObserver.onSwipe : FlickObserver.onFlick;
                         } else if(I.isScrollable()) {
                             cb = FlickObserver.onPanRelease;
@@ -2792,7 +2792,7 @@ I.FlickObserver = { create: () => {
                         // [[[[ Do Nothing ]]]] (to avoid conflicts with other tap events on other UIs like Arrows.)
                     }
                 }
-                delete FlickObserver.StartedOn;
+                delete FlickObserver.StartedAt;
             }
             delete FlickObserver.LastEvent;
             return (cb ? cb(Eve, Par) : Promise.resolve());
@@ -4135,12 +4135,12 @@ I.Slider = { create: () => {
             I.ScrollObserver.forceStopScrolling();
             Eve.preventDefault();
             Slider.Touching = true;
-            Slider.StartedOn = {
+            Slider.StartedAt = {
                 ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
                 RailProgressLength: Slider.RailProgress['offset' + C.A_SIZE_L],
                 MainScrollBefore: Math.ceil(R.Main['scroll' + C.L_OOBL_L]) // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             };
-            Slider.StartedOn.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
+            Slider.StartedAt.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
             clearTimeout(Slider.Timer_onTouchEnd);
             O.HTML.classList.add('slider-sliding');
             E.add('bibi:moved-pointer', Slider.onTouchMove);
@@ -4149,12 +4149,12 @@ I.Slider = { create: () => {
             clearTimeout(Slider.Timer_move);
             const TouchMoveCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(Slider.Touching) {
-                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedOn.Coord,
-                    Slider.Edgebar.Before -  Slider.StartedOn.ThumbBefore,
-                    Slider.Edgebar.After  - (Slider.StartedOn.ThumbBefore + Slider.Thumb.Length)
+                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedAt.Coord,
+                    Slider.Edgebar.Before -  Slider.StartedAt.ThumbBefore,
+                    Slider.Edgebar.After  - (Slider.StartedAt.ThumbBefore + Slider.Thumb.Length)
                 );
                 sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
-                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedOn.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
+                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedAt.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
             }
             Slider.flipPagesDuringSliding(TouchMoveCoord);
         },
@@ -4171,7 +4171,7 @@ I.Slider = { create: () => {
             Slider.Touching = false;
             E.remove('bibi:moved-pointer', Slider.onTouchMove);
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
-            if(TouchEndCoord == Slider.StartedOn.Coord) Slider.StartedOn.Coord = Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2;
+            if(TouchEndCoord == Slider.StartedAt.Coord) Slider.StartedAt.Coord = Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
             Slider.flip(TouchEndCoord).then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
@@ -4179,7 +4179,7 @@ I.Slider = { create: () => {
                 Slider.progress();
                 if(Slider.History) Slider.History.add();
             });
-            delete Slider.StartedOn;
+            delete Slider.StartedAt;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
         flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
@@ -4187,7 +4187,7 @@ I.Slider = { create: () => {
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
                 return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
             default:
-                R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
+                R.Main['scroll' + C.L_OOBL_L] = Slider.StartedAt.MainScrollBefore + (TouchedCoord - Slider.StartedAt.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
         } }),
         progress: () => {
