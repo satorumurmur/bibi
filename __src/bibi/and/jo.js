@@ -71,6 +71,7 @@ Jo.callBibi = (Love) => {
         Fragments.add('parent-bibi-index',  Bibi.Index);
         [
             'autostart-embedded', 'autostart',
+            'p',
             'fix-reader-view-mode', 'fix-view', 'view-unchangeable',
             'full-breadth-layout-in-scroll',
             'iipp',
@@ -79,6 +80,7 @@ Jo.callBibi = (Love) => {
             'start-embedded-in-new-window', 'start-in-new-window'
         ].forEach(K => { let V = '' + (Love.ownerDocument ? Love.getAttribute('data-bibi-' + K) || '' : Love['bibi-' + K]);
             if(V && (() => { switch(K) {
+                case 'p':                return                            /^(\d*\.)?\d+$/;
                 case 'iipp':             return                            /^(\d*\.)?\d+$/;
                 case 'nav':              return                            /^[1-9][0-9]*$/;
                 case 'rvm': case 'view': K = 'reader-view-mode';
