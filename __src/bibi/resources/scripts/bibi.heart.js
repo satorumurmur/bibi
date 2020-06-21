@@ -106,8 +106,9 @@ Bibi.SettingTypes_UserOnly = {
     'yes-no': [
     ],
     'string': [
+        'edge',
         'epubcfi',
-        'bibidi'
+        'p',
     ],
     'integer': [
         'log',
@@ -138,11 +139,12 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'string': (_P, _V, Fill) => {
         if(typeof _V == 'string') {
             switch(_P) {
-                case 'bibidi'                             : return R.getBibiToDestination(_V)                   || undefined;
-                case 'book'                               : return decodeURIComponent(_V).trim()                || undefined;
-                case 'default-page-progression-direction' : return /^(ltr|rtl)$/.test(_V)                   ? _V : 'ltr';
-                case 'pagination-method'                  : return _V == 'x'                                ? _V : 'auto';
-                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V) ? _V : 'paged';
+                case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
+                case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
+                case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
+                case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
+                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
             }
             return _V;
         }
@@ -460,20 +462,42 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     };
     if(typeof R.StartOn == 'object') {
         const Item = typeof R.StartOn.Item == 'object' ? R.StartOn.Item : (() => {
-            if(typeof R.StartOn.IIPP == 'number') {
-                let II = Math.floor(R.StartOn.IIPP);
-                if(II >= R.Items.length) II = R.StartOn.IIPP = R.Items.length - 1;
-                return R.Items[II];
-            }
             if(typeof R.StartOn.ItemIndex == 'number') {
-                if(R.StartOn.ItemIndex >= R.Items.length) R.StartOn.ItemIndex = R.Items.length - 1;
+                let II = R.StartOn.ItemIndex;
+                     if(II <  0             ) R.StartOn = { ItemIndex: 0 };
+                else if(II >= R.Items.length) R.StartOn = { ItemIndex: R.Items.length - 1 };
                 return R.Items[R.StartOn.ItemIndex];
             }
             if(typeof R.StartOn.ItemIndexInSpine  == 'number') {
-                if(R.StartOn.ItemIndexInSpine >= B.Package.Spine.length) R.StartOn.ItemIndexInSpine = B.Package.Spine.length - 1;
-                const Item = B.Package.Spine[R.StartOn.ItemIndexInSpine];
-                if(Item.Spread) return Item;
-                R.StartOn = { ItemIndex: 0 };
+                let IIIS = R.StartOn.ItemIndexInSpine;
+                     if(IIIS <  0                     ) IIIS = 0;
+                else if(IIIS >= B.Package.Spine.length) IIIS = B.Package.Spine.length - 1;
+                let Item = B.Package.Spine[R.StartOn.ItemIndexInSpine];
+                if(!Item.Spread) {
+                    R.StartOn = { ItemIndex: 0 };
+                    Item = R.Items[0];
+                }
+                return Item;
+            }
+            if(typeof R.StartOn.P == 'string') {
+                const Steps = R.StartOn.P.split('.');
+                let II = Steps.shift() * 1 - 1;
+                     if(II <  0             ) II = 0,                  R.StartOn = { P: String(II + 1) };
+                else if(II >= R.Items.length) II = R.Items.length - 1, R.StartOn = { P: String(II + 1) };
+                return R.Items[II];
+            }
+            if(typeof R.StartOn.IIPP == 'number') {
+                let II = Math.floor(R.StartOn.IIPP);
+                     if(II <  0             ) II = 0,                  R.StartOn = { IIPP: II };
+                else if(II >= R.Items.length) II = R.Items.length - 1, R.StartOn = { IIPP: II };
+                return R.Items[II];
+            }
+            if(typeof R.StartOn.Edge == 'string') {
+                R.StartOn = (R.StartOn.Edge != 'foot') ? { Edge: 'head' } : { Edge: 'foot' };
+                switch(R.StartOn.Edge) {
+                    case 'head': return R.Items[0];
+                    case 'foot': return R.Items[R.Items.length - 1];
+                }
             }
         })();
         LayoutOption.TargetSpreadIndex = Item && Item.Spread ? Item.Spread.Index : 0;
@@ -1936,11 +1960,11 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     R.hatchDestination = (_) => {
         if(!_) return null;
         if(
-            (_.Element || _.ElementSelector)
-                &&
             S.BRL == 'reflowable'
                 &&
             (S.SLA == 'vertical' && /-tb$/.test(B.WritingMode) || S.SLA == 'horizontal' && /^tb-/.test(B.WritingMode))
+                &&
+            ((_.P & /\./.test(_.P)) || _.Element || _.ElementSelector)
         ) {
             _.Point = R.hatchPoint(_);
             return _;
@@ -1967,20 +1991,27 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     };
 
     R.hatchPage = (_) => {
+        if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
         if(_.Page) return _.Page;
+        if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
+        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
+        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
         if(_.Edge == 'head') return R.Pages[0];
         if(_.Edge == 'foot') return R.Pages[R.Pages.length - 1];
-        if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
-        if(typeof _.BibiTo == 'string' && _.BibiTo) Object.assign(_, R.getBibiToDestination(_.BibiTo));
-        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
-        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
         try {
+            if(typeof _.ElementSelector == 'string') {
+                if(!_.Item) _.Item = R.hatchItem(_);
+                if( _.Item) _.Element = _.Item.contentDocument.querySelector(_.ElementSelector);
+                delete _.ElementSelector;
+            }
+            if(_.Element) {
+                const NPOE = R.hatchNearestPageOfElement(_.Element);
+                if(NPOE) return NPOE;
+            }
             if(typeof    _.PageIndexInItem   == 'number') return R.hatchItem(_).Pages[_.PageIndexInItem];
             if(typeof    _.PageIndexInSpread == 'number') return R.hatchSpread(_).Pages[_.PageIndexInSpread];
             if(typeof _.PageProgressInItem   == 'number') return (Item   =>   Item.Pages[sML.limitMax(Math.floor(  Item.Pages.length * _.PageProgressInItem  ),   Item.Pages.length - 1)])(R.hatchItem(  _));
             if(typeof _.PageProgressInSpread == 'number') return (Spread => Spread.Pages[sML.limitMax(Math.floor(Spread.Pages.length * _.PageProgressInSpread), Spread.Pages.length - 1)])(R.hatchSpread(_));
-            if(typeof _.ElementSelector == 'string') { _.Element = R.hatchItem(_).contentDocument.querySelector(_.ElementSelector); delete _.ElementSelector; }
-            if(_.Element) return R.hatchNearestPageOfElement(_.Element);
             return (R.hatchItem(_) || R.hatchSpread(_)).Pages[0];
         } catch(Err) {}
         return null;
@@ -2030,6 +2061,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
 
     R.hatchPoint = (_) => {
         try {
+            if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
             if(typeof _.ElementSelector == 'string') { _.Element = R.hatchItem(_).contentDocument.querySelector(_.ElementSelector); delete _.ElementSelector; }
             if(_.Element) return R.hatchPointOfElement(_.Element);
         } catch(_) {}
@@ -2052,15 +2084,26 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         };
 
 
-R.getBibiToDestination = (BibitoString) => {
-    if(typeof BibitoString == 'number') BibitoString = String(BibitoString);
-    if(typeof BibitoString != 'string' || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    let ElementSelector = '', InE = BibitoString.split('-'), ItemIndexInSpine = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
-    if(ElementIndex) ElementIndex.split('.').forEach(Index => ElementSelector += '>*:nth-child(' + Index + ')');
-    return {
-        ItemIndexInSpine: ItemIndexInSpine,
-        ElementSelector: (ElementSelector ? 'body' + ElementSelector : undefined)
-    };
+R.getPDestination = (PString) => {
+    PString = Bibi.verifySettingValue('string', 'p', PString);
+    if(!PString) return null;
+    if(/^[a-z]+$/.test(PString)) return (PString == 'head' || PString == 'foot') ? { Edge: PString } : null;
+    const Steps = PString.split(/-[a-z]+$/.test(PString) ? '-' : '.');
+    const ItemIndex = parseInt(Steps.shift()) - 1;
+    if(ItemIndex <                  0) return { Edge: 'head' };
+    if(ItemIndex > R.Items.length - 1) return { Edge: 'foot' };
+    const Item = R.Items[ItemIndex];
+    if(Steps.length) {
+        if(/^[a-z]+$/.test(Steps[0])) {
+            if(Steps[0] == 'end') return { Page: Item.Pages[Item.Pages.length - 1] };
+        } else {
+            let ElementSelector = `body`;
+            Steps.forEach(Step => ElementSelector += `>*:nth-child(` + Step + `)`);
+            const Element = Item.contentDocument.querySelector(ElementSelector);
+            if(Element) return { Element: Element };
+        }
+    }
+    return { Page: Item.Pages[0] };
 };
 
 
@@ -2442,7 +2485,89 @@ I.PageObserver = { create: () => {
                 Object.assign(PageObserver.Past, PageObserver.Current);
             });
         },
-        getIIPP: (Page = PageObserver.Current.Pages[0] || R.Pages[0]) => Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length,
+        getIIPP: (Par = {}) => {
+            const Page = (Par.Page && typeof Par.Page.IndexInItem == 'number') ? Par.Page : (PageObserver.Current.Pages[0] || (Par.Item && Par.Item.IndexInSpine ? Par.Item.Pages[0] : R.Pages[0]));
+            return Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length;
+        },
+        getP: (Par = {}) => {
+            let Item = null, Element = null;
+            if(Par.Element && Par.Element.ownerDocument && Par.Element.ownerDocument.body.Item) {
+                Item = Par.Element.ownerDocument.body.Item;
+                Element = Par.Element;
+            } else {
+                if(B.Package.Metadata['rendition:layout'] == 'pre-paginated') return { P: String((PageObserver.Current.Pages[0] || R.Pages[0]).Item.Index + 1) };
+                if(!Par.Page || typeof Par.Page.IndexInItem != 'number') Par.Page = null;
+                const Page = Par.Page ? Par.Page : (
+                       B.WritingMode.split('-')[0] == 'tb' && S.SLA == 'vertical'
+                    || B.WritingMode.split('-')[1] == 'tb' && S.SLA == 'horizontal'
+                ) ? PageObserver.Current.Pages[0] : PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * PageObserver.getIntersectionStatus(ISP).Ratio > 3)[0];
+                if(!Page) return '';
+                Item = Page.Item;
+                const PageCoord = O.getElementCoord(Page, R.Main);
+                const PageArea = { Left: PageCoord.X, Right: PageCoord.X + Page.offsetWidth, Top: PageCoord.Y, Bottom: PageCoord.Y + Page.offsetHeight };
+                PageArea[C.L_OOBL_B] += S['item-padding-' + C.L_OOBL_b];
+                PageArea[C.L_OEBL_B] -= S['item-padding-' + C.L_OEBL_b];
+                if(Item.Columned) {
+                    PageArea[C.L_OOBL_L] += S['item-padding-' + C.L_OOBL_l];
+                    PageArea[C.L_OEBL_L] -= S['item-padding-' + C.L_OEBL_l];
+                }
+                const ItemCoord = O.getElementCoord(Item, R.Main);
+                const HTMLArea = { Left: ItemCoord.X + S['item-padding-left'], Top: ItemCoord.Y + S['item-padding-top'] }; HTMLArea.Right = HTMLArea.Left + Item.HTML.offsetWidth, HTMLArea.Bottom = HTMLArea.Top + Item.HTML.offsetHeight;
+                const ViewArea = { Left: R.Main.scrollLeft, Right: R.Main.scrollLeft + R.Stage.Width, Top: R.Main.scrollTop, Bottom: R.Main.scrollTop + R.Stage.Height };
+                const PagedHTMLArea = Par.Page ? {
+                    Left: Math.max(PageArea.Left, HTMLArea.Left               ) - HTMLArea.Left,  Right: Math.min(PageArea.Right,  HTMLArea.Right                  ) - HTMLArea.Left,
+                     Top: Math.max(PageArea.Top,  HTMLArea.Top                ) - HTMLArea.Top , Bottom: Math.min(PageArea.Bottom, HTMLArea.Bottom                 ) - HTMLArea.Top
+                } : {
+                    Left: Math.max(PageArea.Left, HTMLArea.Left, ViewArea.Left) - HTMLArea.Left,  Right: Math.min(PageArea.Right,  HTMLArea.Right,  ViewArea.Right ) - HTMLArea.Left,
+                     Top: Math.max(PageArea.Top,  HTMLArea.Top,  ViewArea.Top ) - HTMLArea.Top , Bottom: Math.min(PageArea.Bottom, HTMLArea.Bottom, ViewArea.Bottom) - HTMLArea.Top
+                };
+                PagedHTMLArea.Right--, PagedHTMLArea.Bottom--;
+                const AbsoluteDistance = 10;
+                let LPM = 1, BPM = 1, getFirstElement = (l, b) => Item.contentDocument.elementFromPoint(l, b);
+                if(S.ARD == 'rtl') {
+                    LPM *= -1;
+                } else if(S.ARD == 'ttb') {
+                    if(S.PPD == 'rtl') BPM *= -1;
+                    getFirstElement = (l, b) => Item.contentDocument.elementFromPoint(b, l);
+                }
+                if(Par.TagNames) Par.TagNames = !Array.isArray(Par.TagNames) ? null : Par.TagNames.map(TN => typeof TN != 'string' ? '' : TN.replace(/\s+/, '').toLowerCase()).filter(TN => TN ? true : false);
+                if(!Par.TagNames || !Par.TagNames.length) delete Par.TagNames;
+                __: for(let i = 0, l = PagedHTMLArea[C.A_BASE_B], lp = Math.round((PagedHTMLArea[C.A_BASE_A] - PagedHTMLArea[C.A_BASE_B]) / 9); l * LPM < PagedHTMLArea[C.A_BASE_A] * LPM; l += lp) {
+                    for(let j = 0, b = PagedHTMLArea[C.A_BASE_S], bp = Math.round((PagedHTMLArea[C.A_BASE_E] - PagedHTMLArea[C.A_BASE_S]) / 3); b * BPM < PagedHTMLArea[C.A_BASE_E] * BPM; b += bp) {
+                        const Ele = getFirstElement(l, b);
+                        if(Par.TagNames) {
+                            if(Par.TagNames.includes(Ele.tagName.toLowerCase())) Element = Ele;
+                        } else if(Ele != Item.HTML && Ele != Item.Body) {
+                            Element = Ele;
+                        }
+                        if(Element) break __;
+                    }
+                }
+                if(!Element) return (Page.IndexInItem < Item.Pages.length - 1) ? PageObserver.getP({ Page: Item.Pages[Page.IndexInItem + 1], TagNames: Par.TagNames }) : Item.Index < R.Items.length - 1 ? (Item.Index + 2) : 'foot';
+            }
+            const Steps = [];
+            let Ele = Element; while(Ele != Item.Body) {
+                let Nth = 0;
+                sML.forEach(Ele.parentElement.childNodes)((CN, i) => {
+                    if(CN.nodeType != 1) return;
+                    Nth++;
+                    if(CN == Ele) {
+                        Steps.unshift(Nth);
+                        Ele = Ele.parentElement;
+                        return 'break';
+                    }
+                });
+            }
+            Steps.unshift(Item.Index + 1);
+            return Steps.join('.');/*
+            return {
+                P: Steps.join('.'),
+                ItemIndex: Item.Index,
+                ElementSelector: 'body'; Steps.forEach(Step => ElementSelector += `>*:nth-child(` + Step + `)`),
+                Item: Item,
+                Element: Element
+            };*/
+        },
         // ---- Turning Face-up/down
         MaxTurning: 4,
         TurningItems_FaceUp: [],
@@ -4052,7 +4177,7 @@ I.History = {
               CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
-            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP(CurrentPage) });
+            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP({ Page: CurrentPage }) });
             if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
                 I.History.List.shift(); // Remove the second
@@ -4310,7 +4435,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
                 Bookmarks = I.PageObserver.Current.Pages.map(Page => ({
-                    IIPP: I.PageObserver.getIIPP(Page),
+                    IIPP: I.PageObserver.getIIPP({ Page: Page }),
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
                 }));
             }
@@ -4879,7 +5004,6 @@ export const U = {};
 U.translateData = (PnV) => {
     let [_P, _V] = PnV;
     switch(_P) {
-        case 'bbd': _P = 'bibidi'; break;
         case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
         case 'view': case 'rvm': _P = 'reader-view-mode'; break;
         case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
@@ -4944,8 +5068,10 @@ U.initialize = () => {
         U[Pro] = undefined; delete U[Pro];
     }
     Object.assign(U, _U);
-         if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  };
+         if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  }; // to be converted in L.coordinateLinkages
+    else if(typeof U['p']    == 'string')                                  R.StartOn = { P:    U['p']    };
     else if(typeof U['iipp'] == 'number')                                  R.StartOn = { IIPP: U['iipp'] };
+    else if(typeof U['edge'] == 'string')                                  R.StartOn = { Edge: U['edge'] };
     else if(typeof U['EPUBCFI'] == 'string') E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(U['EPUBCFI']); });
 };
 
@@ -5139,16 +5265,19 @@ C.update = () => {
             C._app(L_A, 'BASE', { b: LR_RL[0], a: LR_RL[1], s: 'top', e: 'bottom' });
             C._app(L_A, 'SIZE', { b: 'height', l: 'width'                         });
             C._app(L_A, 'OOBL', { b: 'top',    l: 'left'                          });
+            C._app(L_A, 'OEBL', { b: 'bottom', l: 'right'                         });
             C._app(L_A, 'AXIS', { b: 'y',      l: 'x'                             }); C[L_A + '_AXIS_D'] = S.PPD == 'ltr' ? 1 : -1;
         } else {
             C._app(L_A, 'BASE', { b: 'top', a: 'bottom', s: LR_RL[0], e: LR_RL[1] });
             C._app(L_A, 'SIZE', { b: 'width',  l: 'height'                        });
             C._app(L_A, 'OOBL', { b: 'left',   l: 'top'                           });
+            C._app(L_A, 'OEBL', { b: 'right',  l: 'bottom'                        });
             C._app(L_A, 'AXIS', { b: 'x',      l: 'y'                             }); C[L_A + '_AXIS_D'] = 1;
         }
         // BASE: Directions ("B"efore-"A"fter-"S"tart-"E"nd. Top-Bottom-Left-Right on TtB, Left-Right-Top-Bottom on LtR, and Right-Left-Top-Bottom on RtL.)
         // SIZE: Breadth, Length (Width-Height on TtB, Height-Width on LtR and RtL.)
         // OOBL: "O"ffset "O"rigin of "B"readth and "L"ength
+        // OOBL: "O"ffset "E"nd of "B"readth and "L"ength
         // AXIS: X or Y for Breadth and Length (X-Y on TtB, Y-X on LtR and RtL), and ±1 for Culcuration of Length (1 on TtB and LtR, -1 on RtL.)
     };
 
