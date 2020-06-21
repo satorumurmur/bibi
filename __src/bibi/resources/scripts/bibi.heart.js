@@ -2737,7 +2737,12 @@ I.FlickObserver = { create: () => {
             //if(Eve.touches && Eve.touches.length == 1 && O.getViewportZooming() <= 1) Eve.preventDefault();
             I.ScrollObserver.breakCurrentScrolling();
             if(FlickObserver.StartedAt) {
-                if(!FlickObserver.Moving && Eve.timeStamp - FlickObserver.StartedAt.TimeStamp > 333) return FlickObserver.cancel();
+                if(!FlickObserver.Moving) {
+                    const TimeFromTouchStarted = Eve.timeStamp - FlickObserver.StartedAt.TimeStamp;
+                    if(!O.TouchOS && (Eve.type == 'mousemove' || Eve.pointerType == 'mouse')) { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
+                    else                                                                      { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
+                    FlickObserver.StartedAt.TimeStamp = Eve.timeStamp;
+                }
                 const EventCoord = O.getBibiEventCoord(Eve);
                 const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
                 if(++FlickObserver.Moving <= 3) {
