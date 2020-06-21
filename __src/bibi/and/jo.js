@@ -66,7 +66,7 @@ Jo.callBibi = (Love) => {
     });
     Anchor.style.display = 'none';
     if(!Jo.TrustworthyOrigins.includes(Anchor.origin)) Jo.TrustworthyOrigins.push(Anchor.origin); // It is NOT reflected to S['trustworthy-origins'].
-    Anchor.href += (/#/.test(Anchor.href) ? ',' : '#') + (() => {
+    Anchor.href += (/#/.test(Anchor.href) ? '&' : '#') + (() => {
         const Fragments = new Jo.Fragments();
         Fragments.add('parent-bibi-index',  Bibi.Index);
         [
@@ -157,8 +157,8 @@ Jo.Fragments = function() { // constructor
     this.make = function() {
         if(!this.FragmentKeys.length) return '';
         const Fragments = [];
-        for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }:${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
-        return `jo(${ Fragments.join(',') })`;
+        for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }=${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
+        return `jo(${ Fragments.join('&') })`;
     };
     return this;
 };

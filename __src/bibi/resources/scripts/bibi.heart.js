@@ -1063,7 +1063,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 return 'break'; //// break sML.forEach()
             }
         });
-        if(HRefHash && /^epubcfi\(.+\)$/.test(HRefHash)) {
+        if(HRefHash && /^epubcfi\(.+?\)$/.test(HRefHash)) {
             A.setAttribute('data-bibi-original-href', HRefPathInSource);
             A.setAttribute(HRefAttribute, B.Path + '/#' + HRefHash);
             if(X['EPUBCFI']) {
@@ -1092,7 +1092,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
             }
             if(!L.Waiting) return false;
-            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
+            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
             R.StartOn = A.Destination;
             L.play();
         });
@@ -4363,7 +4363,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
                         action: () => {
                             if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }));
                             if(!L.Waiting) return false;
-                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(iipp:' + Bmk.IIPP + ')');
+                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(iipp=' + Bmk.IIPP + ')');
                             R.StartOn = { IIPP: Bmk.IIPP };
                             L.play();
                         },
@@ -4912,53 +4912,51 @@ Bibi.at1st.List.unshift(() => {
 U.initialize = () => {
     const _U = Bibi.applyFilteredSettingsTo({}, U, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
     const HashData = (() => {
-        const Hash = location.hash;
-        const Data = {}, ParREStr = '([a-z_]+)\\(([^\\(\\)]+)\\)';
-        if(typeof Hash != 'string') return Data;
-        //if(!new RegExp('^#?' + ParREStr + '(,' + ParREStr + ')*$').test(Hash)) return Data;
-        const Pars = Hash.match(new RegExp(ParREStr, 'g'));
-        if(!Pars || !Pars.length) return Data;
-        Pars.forEach(Par => {
-            const Label_KnV = Par.match(new RegExp(ParREStr));
-            Data[Label_KnV[1]] = Label_KnV[2];
+        let Hash = location.hash;
+        if(typeof Hash != 'string') return {};
+        const Data = {};
+        const CatGroupREStr = '([&#])([a-zA-Z_]+)\\(([^\\(\\)]+)\\)', CatGroups = Hash.match(new RegExp(CatGroupREStr, 'g'));
+        if(CatGroups && CatGroups.length) CatGroups.forEach(CatGroup => {
+            const CatGroupParts = CatGroup.match(new RegExp(CatGroupREStr));
+            let Cat = CatGroupParts[2].toLowerCase(), Dat = CatGroupParts[3];
+            if(Dat) {
+                Cat = Cat == 'bibi' ? 'Bibi' : Cat == 'jo' ? 'Jo' : Cat == 'epubcfi' ? 'EPUBCFI' : undefined;
+                if(Cat) Data[Cat] = Dat;
+            }
+            Hash = Hash.replace(CatGroup, CatGroupParts[1]);
         });
+        Data['#'] = Hash.replace(/^#|&$/, '');
+        for(const Cat in Data) {
+            if(Cat == 'EPUBCFI') continue;
+            const ParsedData = U.initialize.parseDataString(Data[Cat]);
+            if(!ParsedData) continue;
+            Data[Cat] = Bibi.applyFilteredSettingsTo({}, ParsedData, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
+            delete Data[Cat]['book'];
+        }
         return Data;
     })();
-    if(HashData['bibi']) {
-        HashData['bibi'] = U.initialize.parseDataString(HashData['bibi']);
-        delete HashData['bibi']['book'];
-        _U['Bibi'] = Bibi.applyFilteredSettingsTo({}, HashData['bibi'], [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-        Object.assign(_U, _U['Bibi']);
-    }
-    if(HashData['jo']) {
-        HashData['jo'] = U.initialize.parseDataString(HashData['jo']);
-        delete HashData['jo']['book'];
-        _U['Jo'] = Bibi.applyFilteredSettingsTo({}, HashData['jo'], [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-        Object.assign(_U, _U['Jo']);
-        if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]jo\([^\)]*\)$/g, ''));
-    }
-    if(HashData['epubcfi']) {
-        U['epubcfi'] = HashData['epubcfi'];
-        E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(H['epubcfi']); });
-    }
-    _U['Query'] = {};
-    for(const Pro in U) {
+    if(HashData['#']      ) { Object.assign(_U, _U['#']       = HashData['#']   ); }
+    if(HashData['Bibi']   ) { Object.assign(_U, _U['Bibi']    = HashData['Bibi']); }
+    if(HashData['Jo']     ) { Object.assign(_U, _U['Jo']      = HashData['Jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[&#]jo\([^\)]*\)$/g, '')); }
+    if(HashData['EPUBCFI']) {                   _U['EPUBCFI'] = HashData['EPUBCFI']; }
+    _U['Query'] = {}; for(const Pro in U) {
         if(typeof U[Pro] != 'function') _U['Query'][Pro] = U[Pro];
         U[Pro] = undefined; delete U[Pro];
     }
     Object.assign(U, _U);
          if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  };
     else if(typeof U['iipp'] == 'number')                                  R.StartOn = { IIPP: U['iipp'] };
+    else if(typeof U['EPUBCFI'] == 'string') E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(U['EPUBCFI']); });
 };
 
     U.initialize.parseDataString = (DataString) => {
-        const Data = {};
-        if(typeof DataString != 'string') return false;
-        DataString.replace(' ', '').split(',').forEach(PnV => {
-            const DD = U.translateData(PnV.split(':'));
-            if(DD && typeof DD[1] != 'undefined') Data[DD[0]] = DD[1];
+        if(typeof DataString != 'string' || !DataString) return null;
+        const ParsedData = {}; let HasData = false;
+        DataString.split('&').forEach(PnV => {
+            const DD = U.translateData(PnV.split('='));
+            if(DD && DD[1] != undefined) ParsedData[DD[0]] = DD[1], HasData = true;
         });
-        return Data;
+        return HasData ? ParsedData : null;
     };
 
 
