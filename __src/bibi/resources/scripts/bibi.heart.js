@@ -2362,7 +2362,7 @@ I.PageObserver = { create: () => {
             }), {
                 root: R.Main,
                 rootMargin: '0px',
-                threshold: [0, 0.5, 1]
+                threshold: 0
             });
             PageObserver.observePageIntersection = (Page) => Glasses.observe(Page);
             PageObserver.unobservePageIntersection = (Page) => Glasses.unobserve(Page);
@@ -2392,21 +2392,22 @@ I.PageObserver = { create: () => {
             //if(PageObserver.Current.List.length && Frame[C.L_BASE_B] == PageObserver.Current.Frame.Before && Frame[C.L_BASE_A] == PageObserver.Current.Frame.After) return false;
             return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
         },
-        getList: () => {
-            let List = [], List_SpreadContained = [];
-            let PageList = undefined;
-            const QSW = Math.ceil(R.Stage.Width / 4), QSH = Math.ceil(R.Stage.Height / 4), CheckRoute = [5, 6, 4, 2, 8];
+        getCandidatePageList: () => {
+            const QSW = Math.ceil((R.Stage.Width - 1) / 4), QSH = Math.ceil((R.Stage.Height - 1) / 4), CheckRoute = [5, 6, 4, 2, 8]; // 4x4 matrix
             for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
                 const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
                 if(Ele) {
-                         if(Ele.IndexInItem) PageList = [Ele];
-                    else if(Ele.Pages)       PageList = Ele.Pages;
-                    else if(Ele.Inside)      PageList = Ele.Inside.Pages;
+                         if(Ele.IndexInItem) return [Ele]; // Page
+                    else if(Ele.Pages)       return Ele.Pages; // Item or Spread
+                    else if(Ele.Inside)      return Ele.Inside.Pages; // ItemBox or SpreadBox
                 }
-                if(PageList) break;
             }
-            if(!PageList && I.PageObserver.IntersectingPages.length) PageList = I.PageObserver.IntersectingPages;
-            if(!PageList || !PageList[0] || typeof PageList[0].Index != 'number') return null;
+            return PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : [];
+        },
+        getList: () => {
+            let List = [], List_SpreadContained = [];
+            const PageList = PageObserver.getCandidatePageList();
+            if(!PageList.length || typeof PageList[0].Index != 'number') return null;
             const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
             const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
             for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
@@ -2577,15 +2578,16 @@ I.PageObserver = { create: () => {
         MaxTurning: 4,
         TurningItems_FaceUp: [],
         TurningItems_FaceDown: [],
-        getTurningOriginItem: (Dir) => {
+        getTurningOriginItem: (Dir = 1) => {
             const List = PageObserver.Current.List.length ? PageObserver.Current.List : PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : null;
             try { return (Dir > 0 ? List[0] : List[List.length - 1]).Page.Item; } catch(Err) {} return null;
         },
-        turnItems: (Opt = {}) => {
+        turnItems: (Opt) => {
             if(R.DoNotTurn || !S['allow-placeholders']) return;
+            if(typeof Opt != 'object') Opt = {};
             const Dir = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
             const Origin = Opt.Origin || PageObserver.getTurningOriginItem(Dir); if(!Origin) return;
-            const MUST = [Origin], NEW_ = [], KEEP = [];
+            const MUST = [Origin], NEW_ = [], KEEP = []; // const ___X = [];
             const Next = R.Items[Origin.Index + Dir]; if(Next) MUST.push(Next);
             const Prev = R.Items[Origin.Index - Dir]; if(Prev) MUST.push(Prev);
             MUST.forEach(Item => {
@@ -2600,11 +2602,22 @@ I.PageObserver = { create: () => {
                 if(KEEP.includes(Item)) return;
                 if(KEEP.length + NEW_.length < PageObserver.MaxTurning) return KEEP.push(Item);
                 clearTimeout(Item.Timer_Turn);
-                PageObserver.turnItem(Item, { Down: true });
+                PageObserver.turnItem(Item, { Down: true }); // ___X.push(Item);
             });
             NEW_.forEach((Item, i) => PageObserver.turnItem(Item, { Up: true, Delay: (MUST.includes(Item) ? 99 : 999) * i }));
+            /*
+            console.log('--------');
+            console.log('Origin', Origin.Index);
+            console.log('MUST', MUST.map(Item => Item.Index));
+            console.log('KEEP', KEEP.map(Item => Item.Index));
+            console.log('NEW_', NEW_.map(Item => Item.Index));
+            // console.log('___X', ___X.map(Item => Item.Index));
+            //*/
         },
-        turnItem: (Item, Opt = {}) => new Promise(resolve => {
+        turnItem: (Item, Opt) => new Promise(resolve => {
+            if(R.DoNotTurn || !S['allow-placeholders']) return;
+            if(!Item) Item = PageObserver.getTurningOriginItem();
+            if(typeof Opt != 'object') Opt = { Up: true };
             if(Opt.Up) {
                 if(PageObserver.TurningItems_FaceUp.includes(Item)) return resolve();
                 PageObserver.TurningItems_FaceUp.push(Item), PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
@@ -2613,13 +2626,11 @@ I.PageObserver = { create: () => {
                 PageObserver.TurningItems_FaceDown.push(Item), PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
                 if(O.RangeLoader) O.cancelExtraction(Item.Source);
             }
-            Item.Timer_Turn = setTimeout(() => {
-                L.loadItem(Item, { IsPlaceholder: !(Opt.Up) }).then(() => {
-                    if(Opt.Up) PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
-                    else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
-                    R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
-                });
-            }, Opt.Delay || 0);
+            Item.Timer_Turn = setTimeout(() => L.loadItem(Item, { IsPlaceholder: !(Opt.Up) }).then(() => {
+                if(Opt.Up) PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
+                else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
+                R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
+            }), Opt.Delay || 0);
         })
     }
     E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
@@ -4297,7 +4308,7 @@ I.Slider = { create: () => {
             () => false :
             (TouchMoveCoord) => {
                 R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
-                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord); }, 123);
+                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord, 'FORCE'); }, 333);
             }
         )(_),
         onTouchEnd: (Eve) => {
@@ -4308,7 +4319,7 @@ I.Slider = { create: () => {
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(TouchEndCoord == Slider.StartedAt.Coord) Slider.StartedAt.Coord = Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
-            Slider.flip(TouchEndCoord).then(() => {
+            Slider.flip(TouchEndCoord, 'FORCE').then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
@@ -4317,14 +4328,16 @@ I.Slider = { create: () => {
             delete Slider.StartedAt;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
-        flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
+        flip: (TouchedCoord, Force) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
                 return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
             default:
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedAt.MainScrollBefore + (TouchedCoord - Slider.StartedAt.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
-        } }),
+        } }).then(() => {
+            if(Force) I.PageObserver.turnItems();
+        }),
         progress: () => {
             if(Slider.Touching) return;
             let MainScrollBefore = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
