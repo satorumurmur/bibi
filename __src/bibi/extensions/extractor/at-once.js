@@ -5,8 +5,8 @@ Bibi.x({
 
     id: 'Extractor_at-once',
     description: 'Utilities for Zipped Books. (Method: at-once)',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
-    version: '2.1.1'
+    author: 'Satoru Matsushima (@satorumurmur)',
+    version: '1.2.0'
 
 })(function() {
 
@@ -22,17 +22,16 @@ Bibi.x({
         I.Veil.Cover.appendChild(I.getBookIcon());
         L.wait().then(() => resolve(BookData));
     })
-    .then(makeArrayBuffer)
-    .then(JSZip.loadAsync)
-    .then(extractArchive);
+    .then(load)
+    .then(extract);
 
-    const makeArrayBuffer = (BookData) => new Promise((resolve, reject) => // resolve(ArrayBuffer)
-        typeof BookData == 'string' ? JSZipUtils.getBinaryContent(BookData, (Err, ABuf) => Err ? reject(`Book File Is Not Found or Invalid.`) : resolve(ABuf)) :
-        BookData instanceof Blob    ? (() => { const FR = new FileReader(); FR.onerror = () => reject(`Book Data Is Invalid.`); FR.onload = () => resolve(FR.result); FR.readAsArrayBuffer(BookData); })() :
-        reject(`Book Data Is Invalid.`)
-    );
+    const load = (BookData) => new Promise((resolve, reject) => // resolve(ArrayBuffer)
+        typeof BookData == 'string' ? JSZipUtils.getBinaryContent(BookData, (Err, ABuf) => Err ? reject(Bibi.ErrorMessages.NotFound) : resolve(ABuf)) :
+        BookData.size && BookData.type ? (() => { const FR = new FileReader(); FR.onerror = () => reject(Bibi.ErrorMessages.DataInvalid); FR.onload = () => resolve(FR.result); FR.readAsArrayBuffer(BookData); })() :
+        reject(Bibi.ErrorMessages.DataInvalid)
+    ).then(ArrayBuffer => JSZip.loadAsync(ArrayBuffer).catch(Err => Promise.reject(Bibi.ErrorMessages.DataInvalid)));
 
-    const extractArchive = (BookDataArchive) => new Promise((resolve, reject) => {
+    const extract = (BookDataArchive) => new Promise((resolve, reject) => {
         if(I.Catcher.Input) I.Catcher.style.opacity = 0;
         const FilesToBeExtract = [];
         for(let FileName in BookDataArchive.files) {
@@ -48,11 +47,11 @@ Bibi.x({
             }
             FilesToBeExtract.push(FileName);
         }
-        if(!FilesToBeExtract.length) return reject(`Does Not Contain Any Resources`);
+        if(!FilesToBeExtract.length) return reject(Bibi.ErrorMessages.DataInvalid);
         let FolderName = '', FolderNameRE = undefined;
         const PathsToBeChecked = [];
-        if(B.Type != 'Zine') PathsToBeChecked.push(B.Container.Path); // EPUB or unknown.
-        if(B.Type != 'EPUB') PathsToBeChecked.push(B.ZineData.Path ); // Zine or unknown.
+        if(B.Type != 'Zine') PathsToBeChecked.push(B.Container.Source.Path); // EPUB or unknown.
+        if(B.Type != 'EPUB') PathsToBeChecked.push( B.ZineData.Source.Path); // Zine or unknown.
         if(!PathsToBeChecked.filter(PathToBeChecked => FilesToBeExtract.includes(PathToBeChecked)).length) {
             PathsToBeChecked.forEach(PathToBeChecked => {
                 if(!PathToBeChecked) return;
@@ -70,9 +69,9 @@ Bibi.x({
         }
         let RootFileFound = false;
              if(B.Type) RootFileFound = FilesToBeExtract.includes(FolderName + PathsToBeChecked[0]);
-        else if(FilesToBeExtract.includes(FolderName + B.Container.Path)) B.Type = 'EPUB', RootFileFound = true;
-        else if(FilesToBeExtract.includes(FolderName + B.ZineData.Path )) B.Type = 'Zine', RootFileFound = true;
-        if(!RootFileFound) return reject(`Required Metafile${ B.Type ? ' (' + (B.Type != 'EPUB' ? B.ZineData.Path : B.Container.Path).split('/').slice(-1)[0] + ')' : '' } Is Not Contained.`);
+        else if(FilesToBeExtract.includes(FolderName + B.Container.Source.Path)) B.Type = 'EPUB', RootFileFound = true;
+        else if(FilesToBeExtract.includes(FolderName +  B.ZineData.Source.Path)) B.Type = 'Zine', RootFileFound = true;
+        if(!RootFileFound) return reject(`${ B.Type ? (B.Type == 'EPUB' ? B.Container.Source.Path : B.ZineData.Source.Path).split('/').slice(-1)[0] : '' } Not Contained`);
         const FileCount = { Particular: 0 };
         const FileTypesToBeCounted = {
             'Meta XML':   'xml|opf|ncx',
@@ -99,7 +98,7 @@ Bibi.x({
             const IsBin = O.isBin({ Path: FileName });
             Promises.push(
                 BookDataArchive.file(FolderName + FileName).async(IsBin ? 'blob' : 'string').then(FileContent => {
-                    const Item = B.Package.Manifest.Items[FileName] = IsBin ?
+                    B.Package.Manifest[FileName] = IsBin ?
                         { Path: FileName, DataType: 'Blob', Content: FileContent } :
                         { Path: FileName, DataType: 'Text', Content: FileContent.trim() };
                     for(const FileType in FileTypesToBeCounted) {

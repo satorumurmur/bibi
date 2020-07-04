@@ -66,11 +66,12 @@ Jo.callBibi = (Love) => {
     });
     Anchor.style.display = 'none';
     if(!Jo.TrustworthyOrigins.includes(Anchor.origin)) Jo.TrustworthyOrigins.push(Anchor.origin); // It is NOT reflected to S['trustworthy-origins'].
-    Anchor.href += (/#/.test(Anchor.href) ? ',' : '#') + (() => {
+    Anchor.href += (/#/.test(Anchor.href) ? '&' : '#') + (() => {
         const Fragments = new Jo.Fragments();
         Fragments.add('parent-bibi-index',  Bibi.Index);
         [
             'autostart-embedded', 'autostart',
+            'p',
             'fix-reader-view-mode', 'fix-view', 'view-unchangeable',
             'full-breadth-layout-in-scroll',
             'iipp',
@@ -79,6 +80,7 @@ Jo.callBibi = (Love) => {
             'start-embedded-in-new-window', 'start-in-new-window'
         ].forEach(K => { let V = '' + (Love.ownerDocument ? Love.getAttribute('data-bibi-' + K) || '' : Love['bibi-' + K]);
             if(V && (() => { switch(K) {
+                case 'p':                return                            /^(\d*\.)?\d+$/;
                 case 'iipp':             return                            /^(\d*\.)?\d+$/;
                 case 'nav':              return                            /^[1-9][0-9]*$/;
                 case 'rvm': case 'view': K = 'reader-view-mode';
@@ -157,8 +159,8 @@ Jo.Fragments = function() { // constructor
     this.make = function() {
         if(!this.FragmentKeys.length) return '';
         const Fragments = [];
-        for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }:${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
-        return `jo(${ Fragments.join(',') })`;
+        for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }=${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
+        return `jo(${ Fragments.join('&') })`;
     };
     return this;
 };

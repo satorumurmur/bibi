@@ -12,13 +12,6 @@ const Path = require('path'), resolvePath = (..._) => Path.resolve(__dirname, _.
 const Package = require('./package.json');
 const Bibi = require('./bibi.info.js');
 
-const Dresses = (_ => {
-    const Dresses = require('./' + Bibi.SRC + '/bibi/wardrobe/_dresses.js') || {};
-    Dresses['custom-made'] = _(Dresses['custom-made']).filter(D => !Dresses['ready-made'].includes(D));
-    Dresses[ 'ready-made'] = _(Dresses[ 'ready-made']);
-    return Dresses;
-})(Ds => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : []);
-
 const HardSourcePlugin = require('hard-source-webpack-plugin');
 const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
@@ -37,9 +30,8 @@ const Config = {
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: resolvePath(Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
-    entry: ((PathListsA, PathListsB) => { const Entries = {};
-        for(const SrcDir in PathListsA)    PathListsA[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir,                     P.replace(/\.css$/, '.scss')));
-        for(const SrcDir in PathListsB) for(const P in PathListsB[SrcDir]) Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, PathListsB[SrcDir][P].replace(/\.css$/, '.scss')) ;
+    entry: (PathLists => { const Entries = {};
+        for(const SrcDir in PathLists) PathLists[SrcDir].forEach(P => Entries[P.replace(/\.js$/, '')] = resolvePath(SrcDir, P.replace(/\.css$/, '.scss')));
         return Entries;
     })({
         [Bibi.SRC]: [
@@ -58,28 +50,26 @@ const Config = {
             'bibi/resources/styles/bibi.css',
             'bibi/resources/scripts/bibi.js',
             'bibi-demo/embedding/index.css'
-        ].concat(Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
+        ].concat(Bibi.Dresses['custom-made'].map(D => 'bibi/wardrobe/' + D + '/bibi.dress.css')),
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
             'bib/i.js'
         ]
-    }, {
-        'node_modules': {
-            'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.js': 'bibi-zip-loader/dist/lszlw.js'
-        }
     }),
-    plugins: (PathLists => { const RelativeCopySettings = [];
-        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) RelativeCopySettings.push(new CopyPlugin({ patterns: PathLists[SrcDir].map(P => ({ context: resolvePath(SrcDir), from: P, to: '.' })) }));
-        return RelativeCopySettings;
+    plugins: (PathLists => { const Patterns = [];
+        for(const SrcDir in PathLists) if(PathLists[SrcDir].length) PathLists[SrcDir].forEach(P => Patterns.push({ context: resolvePath(SrcDir), from: P, to: '.' }));
+        return [new CopyPlugin(Patterns)]; // for CopyWebpackPlugin v5.1.1
+    //  return [new CopyPlugin({ patterns: Patterns })]; // for CopyWebpackPlugin v6.x.x
     })({
         [Bibi.SRC]: [
             'bibi/*.html',
+            'bibi/extensions/extractor/on-the-fly.bibi-zip-loader.worker.*',
             'bibi/presets/**',
             'bibi-bookshelf/__samples/**/*.epub',
             'bibi-demo/**/*.html'
         ],
         [Bibi.SRCBC]: !Bibi.WithBCK ? [] : [
-            'README.BackCompatKit.md',
-            'bib/i/*.html'
+            'bib/i/*.html',
+            'README.BackCompatKit.md'
         ],
         '.': [
             'LICENSE',
@@ -93,9 +83,6 @@ const Config = {
     ]),
     module: { rules: [{
         test: /\.m?js$/,
-        exclude: [
-            /bibi-zip-loader/
-        ],
         use: [
             { loader: 'babel-loader', options: {
                 babelrc: false,
@@ -124,9 +111,10 @@ const Config = {
 {
     if(Bibi.Arguments['watch']) Config.watch = true;
     if(IsDev) Config.devtool = 'inline-source-map';
-    const CommonLoadersForCSS = [
+    const getCommonLoadersForCSS = (Opt = {}) => [
         { loader: 'css-loader', options: {
-            url: true,
+            url: Opt.url ? true : false,
+            import: Opt.import ? true : false,
             sourceMap: IsDev,
             importLoaders: 2
         }},
@@ -155,7 +143,7 @@ const Config = {
                 pattern: IsDev ? null : /@charset \\"UTF-8\\";\\n?/ig,
                 replacement: () => ''
             }]})
-        ].concat(CommonLoadersForCSS)
+        ].concat(getCommonLoadersForCSS({ url: true, import: true }))
     });
     Config.module.rules.push({
         include: [
@@ -164,10 +152,10 @@ const Config = {
         ],
         use: [
             { loader: 'style-loader' }
-        ].concat(CommonLoadersForCSS)
+        ].concat(getCommonLoadersForCSS({ url: true, import: true }))
     });
     Config.module.rules.push({
-        test: /\.(eot|svg|ttf|wof|woff|woff2)$/,
+        test: /\.(eot|svg|ttf|otf|wof|woff|woff2)$/,
         include: [
             resolvePath('node_modules/material-icons/iconfont/MaterialIcons-Regular')
         ],
@@ -200,26 +188,6 @@ if(IsDev) {
         ]
     });
 } else {
-    Config.module.rules.push({
-        include: [
-            /bibi-zip-loader/
-        ],
-        use: [
-            StringReplacePlugin.replace({ replacements: [{
-                pattern: /# sourceURL=webpack:\/+/g,
-                replacement: () => ''
-            }, {
-                pattern: /(\\n)(\\t|\s)+/g,
-                replacement: () => '\\n '
-            }, {
-                pattern: /(\\n ){2,}/g,
-                replacement: () => '\\n '
-            }, {
-                pattern: /(\\n){2,}/g,
-                replacement: () => '\\n'
-            }]})
-        ]
-    });
     for(const B in Bibi.Banners) if(B && Bibi.Banners[B]) Config.plugins.push(new Webpack.BannerPlugin({ test: B, banner: Bibi.Banners[B], raw: true }));
     Config.optimization.minimizer.push(new TerserPlugin({
         cache: true,
