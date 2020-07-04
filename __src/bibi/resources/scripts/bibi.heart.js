@@ -2575,42 +2575,56 @@ I.TouchObserver = { create: () => {
             return Ele;
         },
         observeElementTap: (Ele, Opt = {}) => {
-            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 200, U2D: 200 };
+            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 300, U2D: 300 };
                 Ele.BibiTapObserver = {
                     care: Opt.PreventDefault ? (Opt.StopPropagation ? _ => _.preventDefault() || _.stopPropagation() : _ => _.preventDefault()) : (Opt.StopPropagation ? _ => _.stopPropagation() : () => {}),
-                    onPointerDown: function(Eve) { this.care(Eve);
+                    onPointerDown: function(Eve) {
+                        if((typeof Eve.buttons == 'number' && Eve.buttons !== 1) || Eve.ctrlKey) return true;
+                        this.care(Eve);
                         clearTimeout(this.Timer_forgetFloating);
-                        clearTimeout(this.Timer_fireSingleTap);
+                        clearTimeout(this.Timer_fireTap);
                         const DownTime = Date.now();
                         this.Touching = { Time: DownTime, Coord: O.getBibiEventCoord(Eve), Event: Eve };
                         if(!this.Floating) return;
                         if((DownTime - this.Floating.Time) < TimeLimit.U2D) {
-                            this.Floating.FirstTouching.Event.preventDefault();
+                            this.Floating.PreviousTouching.Event.preventDefault();
                             this.Floating.Event.preventDefault();
                             Eve.preventDefault();
-                            this.Touching.Doubled = true;
+                        } else {
+                            delete this.Floating;
                         }
-                        delete this.Floating;
                     },
-                    onPointerUp: function(Eve) { this.care(Eve);
+                    onPointerUp: function(Eve) {
+                        this.care(Eve);
                         if(!this.Touching) return;
                         const UpTime = Date.now();
                         if((UpTime - this.Touching.Time) < TimeLimit.D2U) {
                             const TouchEndCoord = O.getBibiEventCoord(Eve);
                             if(Math.abs(TouchEndCoord.X - this.Touching.Coord.X) < 3 && Math.abs(TouchEndCoord.Y - this.Touching.Coord.Y) < 3) {
-                                if(!this.Touching.Doubled) {
-                                    this.Floating = { Time: UpTime, Event: Eve, FirstTouching: this.Touching };
-                                    this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; },      TimeLimit.U2D);
-                                    this.Timer_fireSingleTap  = setTimeout(() => Ele.BibiTapObserver.onTap(Eve), TimeLimit.U2D);
+                                let SDT = 0;
+                                const Floating = { Time: UpTime, Event: Eve, PreviousTouching: this.Touching };
+                                if(!this.Floating) {
+                                    SDT = 1;
+                                    this.Floating = Object.assign(Floating, { WaitingFor: 2 });
                                 } else {
-                                    Ele.BibiTapObserver.onDoubleTap(Eve);
+                                    SDT = this.Floating.WaitingFor;
+                                    this.Floating = Object.assign(Floating, { WaitingFor: ++this.Floating.WaitingFor });
                                 }
+                                this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; }, TimeLimit.U2D);
+                                this.Timer_fireTap = setTimeout(() => { switch(SDT) {
+                                    case 1: return Ele.BibiTapObserver.onTap(      Eve);
+                                    case 2: return Ele.BibiTapObserver.onDoubleTap(Eve);
+                                    case 3: return Ele.BibiTapObserver.onTripleTap(Eve);
+                                }}, TimeLimit.U2D);
+                            } else {
+                                delete this.Floating;
                             }
                         }
                         delete this.Touching;
                     },
                     onTap:       (Eve) => E.dispatch(Ele, 'bibi:tapped'      , Eve),
-                    onDoubleTap: (Eve) => E.dispatch(Ele, 'bibi:doubletapped', Eve)
+                    onDoubleTap: (Eve) => E.dispatch(Ele, 'bibi:doubletapped', Eve),
+                    onTripleTap: (Eve) => E.dispatch(Ele, 'bibi:tripletapped', Eve)
                 };
                 Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(Eve));
                 Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(Eve));
@@ -2646,6 +2660,7 @@ I.TouchObserver = { create: () => {
             TouchObserver.observeElementTap(HTML); const TOPENs = TouchObserver.PointerEventNames;
             E.add(HTML, 'bibi:tapped',       Eve => E.dispatch('bibi:tapped',         Eve));
             E.add(HTML, 'bibi:doubletapped', Eve => E.dispatch('bibi:doubletapped',   Eve)); //HTML.ownerDocument.addEventListener('dblclick', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
+            E.add(HTML, 'bibi:tripletapped', Eve => E.dispatch('bibi:tripletapped',   Eve));
             E.add(HTML, TOPENs[0],           Eve => E.dispatch('bibi:downed-pointer', Eve), E.Cpt1Psv0);
             E.add(HTML, TOPENs[1],           Eve => E.dispatch('bibi:upped-pointer',  Eve), E.Cpt1Psv0);
             E.add(HTML, TOPENs[2],           Eve => {
