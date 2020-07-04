@@ -243,7 +243,7 @@ Supported by
 
 ### [Media Do Co.,Ltd](https://www.mediado.jp)
 
-* Bibi v1.1.1 was developed with the huge support and many feedbacks from Media Do Co.,Ltd.
+* Bibi v1.2.0 was developed with the huge support and many feedbacks from Media Do Co.,Ltd.
 
 
 
