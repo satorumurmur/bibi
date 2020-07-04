@@ -38,6 +38,8 @@ Bibi.SettingTypes = {
     'string': [
         'book',
         'default-page-progression-direction',
+        'on-doubletap',
+        'on-tripletap',
         'pagination-method',
         'reader-view-mode'
     ],
@@ -79,7 +81,10 @@ Bibi.SettingTypes_PresetOnly = {
         'resume-from-last-position'
     ],
     'string': [
-        'bookshelf'
+        'bookshelf',
+        'website-name-in-title',
+        'website-name-in-menu',
+        'website-href'
     ],
     'integer': [
         'max-bookmarks',
@@ -103,8 +108,9 @@ Bibi.SettingTypes_UserOnly = {
     'yes-no': [
     ],
     'string': [
+        'edge',
         'epubcfi',
-        'bibidi'
+        'p',
     ],
     'integer': [
         'log',
@@ -135,11 +141,13 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'string': (_P, _V, Fill) => {
         if(typeof _V == 'string') {
             switch(_P) {
-                case 'bibidi'                             : return R.getBibiToDestination(_V)                   || undefined;
-                case 'book'                               : return decodeURIComponent(_V).trim()                || undefined;
-                case 'default-page-progression-direction' : return /^(ltr|rtl)$/.test(_V)                   ? _V : 'ltr';
-                case 'pagination-method'                  : return _V == 'x'                                ? _V : 'auto';
-                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V) ? _V : 'paged';
+                case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
+                case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
+                case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'on-doubletap': case 'on-tripletap'  : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
+                case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
+                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
             }
             return _V;
         }
@@ -194,6 +202,14 @@ Bibi.applyFilteredSettingsTo = (To, From, ListOfSettingTypes, Fill) => {
         }
     });
     return To;
+};
+
+
+Bibi.ErrorMessages = {
+       Canceled: `Fetch Canceled`,
+    CORSBlocked: `Probably CORS Blocked`,
+    DataInvalid: `Data Invalid`,
+       NotFound: `404 Not Found`
 };
 
 
@@ -266,12 +282,11 @@ Bibi.initialize = () => {
     }
     { // Modules
         E.initialize(); O.Biscuits.initialize();
-        R.initialize();
-        I.initialize();
-        B.initialize();
         P.initialize();
         U.initialize();
+        D.initialize();
         S.initialize();
+        I.initialize();
     }
     { // Embedding, Window, Fullscreen
         O.Embedded = (() => { // Window Embedded or Not
@@ -340,7 +355,7 @@ Bibi.loadExtensions = () => {
         let ReadyForExtraction = false, ReadyForBibiZine = false;
         if(S['book']) {
             if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
-            if(B.Type == 'Zine')                        ReadyForBibiZine = true;
+            if(S['zine'])                               ReadyForBibiZine   = true;
         } else {
             if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
         }
@@ -378,11 +393,12 @@ Bibi.ready = () => new Promise(resolve => {
 
 
 Bibi.getBookData = () =>
-    B.Data                 ?     Promise.resolve({ BookData: B.Data, BookDataType: B.DataType }) :
-    S['book']              ?     Promise.resolve({ BookData: S['book'] }) :
+    S['book-data']         ?     Promise.resolve({ BookData: S['book-data'], BookDataMIMEType: S['book-data-mimetype'] }) :
+    S['book']              ?     Promise.resolve({ Book: S['book'] }) :
     S['accept-local-file'] ? new Promise(resolve => { Bibi.getBookData.resolve = (Par) => { resolve(Par), O.HTML.classList.remove('waiting-file'); }; O.HTML.classList.add('waiting-file'); }) :
                                  Promise.reject (`Tell me EPUB name via ${ O.Embedded ? 'embedding tag' : 'URI' }.`);
 
+Bibi.setBookData = (Par) => Bibi.getBookData.resolve ? Bibi.getBookData.resolve(Par) : Promise.reject(Par);
 
 Bibi.busyHerself = () => new Promise(resolve => {
     O.Busy = true;
@@ -398,13 +414,13 @@ Bibi.busyHerself = () => new Promise(resolve => {
 });
 
 
-Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
+Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     Bibi.busyHerself();
     I.note(`Loading...`);
     O.log(`Initializing Book...`, '<g:>');
-    return L.initializeBook(BookDataParam).then(InitializedAs => {
+    return L.initializeBook(BookInfo).then(InitializedAs => {
         O.log(`${ InitializedAs }: %O`, B);
-        O.log(`Initialized.`, '</g>');
+        O.log(`Initialized. (as ${ /^[aiueo]/i.test(InitializedAs) ? 'an' : 'a' } ${ InitializedAs })`, '</g>');
     });
 }).then(() => {
     S.update();
@@ -413,8 +429,8 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
 }).then(() => {
     // Create Cover
     O.log(`Creating Cover...`, '<g:>');
-    if(B.CoverImageItem) {
-        O.log(`Cover Image: %O`, B.CoverImageItem);
+    if(B.CoverImage.Source) {
+        O.log(`Cover Image: %O`, B.CoverImage.Source);
         O.log(`Will Be Created.`, '</g>');
     } else {
         O.log(`Will Be Created. (w/o Image)`, '</g>');
@@ -422,12 +438,12 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     return L.createCover(); // ← loading is async
 }).then(() => {
     // Load Navigation
-    if(!B.NavItem) return O.log(`No Navigation.`)
+    if(!B.Nav.Source) return O.log(`No Navigation.`)
     O.log(`Loading Navigation...`, '<g:>');
     return L.loadNavigation().then(PNav => {
-        O.log(`${ B.NavItem.NavType }: %O`, B.NavItem);
+        O.log(`${ B.Nav.Type }: %O`, B.Nav.Source);
         O.log(`Loaded.`, '</g>');
-        E.dispatch('bibi:loaded-navigation', B.NavItem);
+        E.dispatch('bibi:loaded-navigation', B.Nav.Source);
     });
 }).then(() => {
     // Announce "Prepared" (and Wait, sometime)
@@ -449,20 +465,42 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     };
     if(typeof R.StartOn == 'object') {
         const Item = typeof R.StartOn.Item == 'object' ? R.StartOn.Item : (() => {
-            if(typeof R.StartOn.IIPP == 'number') {
-                let II = Math.floor(R.StartOn.IIPP);
-                if(II >= R.Items.length) II = R.StartOn.IIPP = R.Items.length - 1;
-                return R.Items[II];
-            }
             if(typeof R.StartOn.ItemIndex == 'number') {
-                if(R.StartOn.ItemIndex >= R.Items.length) R.StartOn.ItemIndex = R.Items.length - 1;
+                let II = R.StartOn.ItemIndex;
+                     if(II <  0             ) R.StartOn = { ItemIndex: 0 };
+                else if(II >= R.Items.length) R.StartOn = { ItemIndex: R.Items.length - 1 };
                 return R.Items[R.StartOn.ItemIndex];
             }
             if(typeof R.StartOn.ItemIndexInSpine  == 'number') {
-                if(R.StartOn.ItemIndexInSpine >= B.Package.Spine.Items.length) R.StartOn.ItemIndexInSpine = B.Package.Spine.Items.length - 1;
-                const Item = B.Package.Spine.Items[R.StartOn.ItemIndexInSpine];
-                if(Item.Spread) return Item;
-                R.StartOn = { ItemIndex: 0 };
+                let IIIS = R.StartOn.ItemIndexInSpine;
+                     if(IIIS <  0                     ) IIIS = 0;
+                else if(IIIS >= B.Package.Spine.length) IIIS = B.Package.Spine.length - 1;
+                let Item = B.Package.Spine[R.StartOn.ItemIndexInSpine];
+                if(!Item.Spread) {
+                    R.StartOn = { ItemIndex: 0 };
+                    Item = R.Items[0];
+                }
+                return Item;
+            }
+            if(typeof R.StartOn.P == 'string') {
+                const Steps = R.StartOn.P.split('.');
+                let II = Steps.shift() * 1 - 1;
+                     if(II <  0             ) II = 0,                  R.StartOn = { P: String(II + 1) };
+                else if(II >= R.Items.length) II = R.Items.length - 1, R.StartOn = { P: String(II + 1) };
+                return R.Items[II];
+            }
+            if(typeof R.StartOn.IIPP == 'number') {
+                let II = Math.floor(R.StartOn.IIPP);
+                     if(II <  0             ) II = 0,                  R.StartOn = { IIPP: II };
+                else if(II >= R.Items.length) II = R.Items.length - 1, R.StartOn = { IIPP: II };
+                return R.Items[II];
+            }
+            if(typeof R.StartOn.Edge == 'string') {
+                R.StartOn = (R.StartOn.Edge != 'foot') ? { Edge: 'head' } : { Edge: 'foot' };
+                switch(R.StartOn.Edge) {
+                    case 'head': return R.Items[0];
+                    case 'foot': return R.Items[R.Items.length - 1];
+                }
             }
         })();
         LayoutOption.TargetSpreadIndex = Item && Item.Spread ? Item.Spread.Index : 0;
@@ -473,7 +511,7 @@ Bibi.loadBook = (BookDataParam) => Promise.resolve().then(() => {
     R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != LayoutOption.TargetSpreadIndex }).then(() => {
         LoadedItems += Spread.Items.length;
         I.note(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
-        !LayoutOption.Reset ? R.layOutSpread(Spread).then(resolve) : resolve();
+        !LayoutOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
     }))));
     return Promise.all(Promises).then(() => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
@@ -487,7 +525,7 @@ Bibi.bindBook = (LayoutOption) => {
         R.organizePages();
         R.layOutStage();
     }
-    return R.layOut(LayoutOption).then(() => {
+    return R.layOutBook(LayoutOption).then(() => {
         LayoutOption.removeResetter();
         E.dispatch('bibi:laid-out-for-the-first-time', LayoutOption);
         return LayoutOption
@@ -512,17 +550,13 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
         I.History.List = [{ UI: Bibi, Item: LandingPage.Item, PageProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
         I.History.update();
     }
-    if(S['allow-placeholders']) {
-        R.turnSpreads({ Origin: LandingPage.Spread });
-        setTimeout(() => R.turnSpreads(), 123);
-        E.add(['bibi:scrolled', 'bibi:changed-intersection'], () => R.turnSpreads());
-    }
+    if(S['allow-placeholders']) E.add('bibi:scrolled', () => I.PageObserver.turnItems());
     if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try { if(O.Biscuits) O.Biscuits.memorize('Book', { Position: { IIPP: I.PageObserver.getIIPP() } }); } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
     E.add('bibi:commands:change-view', R.changeView);
-    (Bibi.Dev && !/:61671/.test(location.href)) ? Bibi.createDevNote() : delete Bibi.createDevNote;
+    (Bibi.Dev && location.hostname != 'localhost') ? Bibi.createDevNote() : delete Bibi.createDevNote;
     /*
     alert((Alert => {
         [
@@ -588,27 +622,11 @@ Bibi.createElement = (...Args) => {
 export const B = { // Bibi.Book
     Path: '',
     PathDelimiter: ' > ',
-    Container: { Path: 'META-INF/container.xml' },
-    Package: { Metadata: {}, Manifest: { Items: {} }, Spine: { Items: [] } },
+    DataElement: null,
+    Container: { Source: { Path: 'META-INF/container.xml' } },
+    Package: { Source: {}, Metadata: {}, Manifest: {}, Spine: [] },
+    Nav: {}, CoverImage: {},
     FileDigit: 0
-};
-
-
-B.initialize = () => {
-    const BookDataElement = document.getElementById('bibi-book-data');
-    if(BookDataElement) {
-        const BookData = BookDataElement.innerText.trim();
-        if(BookData) {
-            const BookDataType = BookDataElement.getAttribute('data-bibi-book-mimetype');
-            if(/^application\/(epub\+zip|zip|x-zip(-compressed)?)$/i.test(BookDataType)) B.Data = BookData, B.DataType = BookDataType;
-        }
-        if(!B.Data) {
-            BookDataElement.innerHTML = '';
-            BookDataElement.parentNode.removeChild(BookDataElement);
-        }
-    }
-    B.Type = !U['book'] ? '' : U['zine'] ? 'Zine' : 'EPUB';
-    if(B.Type != 'EPUB') B.ZineData = { Path: 'zine.yaml' };
 };
 
 
@@ -646,9 +664,9 @@ L.wait = () => {
 };
 
 
-L.openNewWindow = (Href) => {
-    const WO = window.open(Href);
-    return WO ? WO : location.href = Href;
+L.openNewWindow = (HRef) => {
+    const WO = window.open(HRef);
+    return WO ? WO : location.href = HRef;
 };
 
 
@@ -661,118 +679,108 @@ L.play = () => {
 };
 
 
-L.initializeBook = (Par) => new Promise((resolve, reject) => {
-    if(!Par || !Par.BookData) return reject(`Book Data Is Undefined.`);
-    let BookData = Par.BookData;
+L.initializeBook = (BookInfo = {}) => new Promise((resolve, reject) => {
+    const reject_failedToOpenTheBook = (Msg) => reject(`Failed to open the book (${ Msg })`);
+    if(!BookInfo.Book && !BookInfo.BookData) return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
     const BookDataFormat =
-        typeof BookData == 'string' ? (/^data:/.test(BookData) ? 'Base64' : 'URI') :
-        typeof BookData == 'object' ? (BookData instanceof File ? 'File' : BookData instanceof Blob ? 'Blob' : '') : '';
-    if(!BookDataFormat) return reject(`Book Data Is Unknown.`);
+        typeof BookInfo.Book     == 'string' ? 'URI' :
+        typeof BookInfo.BookData == 'string' ? 'Base64' :
+        typeof BookInfo.BookData == 'object' && BookInfo.BookData.size && BookInfo.BookData.type ? (BookInfo.BookData.name ? 'File' : 'Blob') : '';
+    if(!BookDataFormat) return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
+    B.Type = !S['book'] ? '' : S['zine'] ? 'Zine' : 'EPUB';
+    if(B.Type != 'EPUB') B.ZineData = { Source: { Path: 'zine.yaml' } };
     if(BookDataFormat == 'URI') {
         // Online
-        if(O.Local) return reject(`Bibi Can't Open Books via URL on Local Mode.`);
-        B.Path = BookData;
-        let RootFile;
-        switch(B.Type) {
-            case 'EPUB': RootFile = B.Container; break; // Online EPUB
-            case 'Zine': RootFile = B.ZineData;  break; // Online Zine
-        }
-        const initialize_as = (FileOrFolder) => ({
+        if(O.Local) return reject(`Bibi can't open books via ${ D['book'] ? 'data-bibi-book' : 'URL' } on local mode`);
+        B.Path = BookInfo.Book;
+        const RootSource = (B.Type == 'Zine' ? B.ZineData : B.Container).Source;
+        const InitErrors = [], initialize_as = (FileOrFolder) => ({
             Promised: (
-                FileOrFolder == 'Folder' ? O.download(RootFile).then(() => (B.PathDelimiter = '/') && '') :
-                O.RangeLoader            ?  O.extract(RootFile).then(() => 'on-the-fly') :
-                                 O.loadZippedBookData( B.Path ).then(() => 'at-once')
+                FileOrFolder == 'folder' ? O.download(RootSource).then(() => (B.PathDelimiter = '/') && '') :
+                O.RangeLoader            ?  O.extract(RootSource).then(() => 'on-the-fly') :
+                                 O.loadZippedBookData(  B.Path  ).then(() => 'at-once')
             ).then(ExtractionPolicy => {
                 B.ExtractionPolicy = ExtractionPolicy;
                 //O.log(`Succeed to Open as ${ B.Type } ${ FileOrFolder }.`);
-                resolve(`${ B.Type} ${ FileOrFolder }`);
-            }).catch(ErrorDetail => {
-                if(ErrorDetail.BookTypeError) return reject(ErrorDetail.BookTypeError);
-                O.log(`Failed to Open as ${ B.Type } ${ FileOrFolder }: ${ ErrorDetail }`);
+                resolve(`${ B.Type } ${ FileOrFolder }`);
+            }).catch(Err => {
+                InitErrors.push(Err = (/404/.test(String(Err)) ? Bibi.ErrorMessages.NotFound : String(Err).replace(/^Error: /, '')));
+                O.log(`Failed as ${ /^[aiueo]/i.test(B.Type) ? 'an' : 'a' } ${ B.Type } ${ FileOrFolder }: ` + Err);
                 return Promise.reject();
             }),
-            or:        function(fun) { return this.Promised.catch(ErrorDetail => fun(ErrorDetail)); },
-            or_reject: function(Msg) { return this.or(() => reject(Msg)); }
+            or:        function(fun) { return this.Promised.catch(fun); },
+            or_reject: function(fun) { return this.or(() => reject_failedToOpenTheBook(InitErrors.length < 2 || InitErrors[0] == InitErrors[1] ? InitErrors[0] : `as a file: ${ InitErrors[0] } / as a folder: ${ InitErrors[1] }`)); }
         });
-        O.isToBeExtractedIfNecessary(B.Path)
-            ? initialize_as('File').or(() => initialize_as('Folder').or_reject(`(Both as ${ B.Type } File/Folder)`))
-            :                                initialize_as('Folder').or_reject(`Changing "extract-if-necessary" May Be Required to Open This Book as ${ B.Type } File.`);
+        O.isToBeExtractedIfNecessary(B.Path) ? initialize_as('file').or(() => initialize_as('folder').or_reject()) : initialize_as('folder').or_reject();
     } else {
+        let BookData = BookInfo.BookData;
         let FileOrData;
         const MIMETypeREs = { EPUB: /^application\/epub\+zip$/, Zine: /^application\/(zip|x-zip(-compressed)?)$/ };
-        const MIMETypeErrorMessage = 'Can Not Open This Type of File.';
+        const MIMETypeErrorMessage = 'File of this type is unacceptable';
         if(BookDataFormat == 'File') {
             // Local-Archived EPUB/Zine File
-            if(!S['accept-local-file'])                      return reject(`To Open Local Files, Changing "accept-local-file" in default.js Is Required.`);
-            if(!BookData.name)                               return reject(`Book File Is Invalid.`);
-            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`Can Not Open Local Files without Extension.`);
-            if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`To Open This File, Changing "extract-if-necessary" in default.js Is Required.`);
+            if(!S['accept-local-file'])                      return reject(`Local file is set to unacceptable`);
+            if(!BookData.name)                               return reject(`File without a name is unacceptable`);
+            if(!/\.[\w\d]+$/.test(BookData.name))            return reject(`Local file without extension is set to unacceptable`);
+            if(!O.isToBeExtractedIfNecessary(BookData.name)) return reject(`File with this extension is set to unacceptable`);
             if(BookData.type) {
                 if(/\.epub$/i.test(BookData.name) ? !MIMETypeREs['EPUB'].test(BookData.type) :
                     /\.zip$/i.test(BookData.name) ? !MIMETypeREs['Zine'].test(BookData.type) : true) return reject(MIMETypeErrorMessage);
             }
-            FileOrData = 'File';
+            FileOrData = 'file';
             B.Path = '[Local File] ' + BookData.name;
         } else {
             if(BookDataFormat == 'Base64') {
                 // Base64-Encoded EPUB/Zine Data
-                if(!S['accept-base64-encoded-data']) return reject(`To Open Base64 Encoded Data, Changing "accept-base64-encoded-data" in default.js Is Required.`);
+                if(!S['accept-base64-encoded-data']) return reject(`Base64 encoded data is set to unacceptable`);
                 try {
                     const Bin = atob(BookData.replace(/^.*,/, ''));
                     const Buf = new Uint8Array(Bin.length);
                     for(let l = Bin.length, i = 0; i < l; i++) Buf[i] = Bin.charCodeAt(i);
-                    BookData = new Blob([Buf.buffer], { type: Par.BookDataType });
-                    if(!BookData || !(BookData instanceof Blob)) throw '';
+                    BookData = new Blob([Buf.buffer], { type: BookInfo.BookDataMIMEType });
+                    if(!BookData || !BookData.size || !BookData.type) throw '';
                 } catch(_) {
-                    return reject(`Book Data Is Invalid.`);
+                    return reject(Bibi.ErrorMessages.DataInvalid);
                 }
                 B.Path = '[Base64 Encoded Data]';
             } else {
                 // Blob of EPUB/Zine Data
-                if(!S['accept-blob-converted-data']) return reject(`To Open Blob Converted Data, Changing "accept-blob-converted-data" in default.js Is Required.`);
+                if(!S['accept-blob-converted-data']) return reject(`Blob converted data is set to unacceptable`);
                 B.Path = '[Blob Converted Data]';
             }
             if(!MIMETypeREs['EPUB'].test(BookData.type) && !MIMETypeREs['Zine'].test(BookData.type)) return reject(MIMETypeErrorMessage);
-            FileOrData = 'Data';
+            FileOrData = 'data';
         }
-        if(!BookData.size) return reject(`Book ${ FileOrData } Is Empty.`);
         O.loadZippedBookData(BookData).then(() => {
             switch(B.Type) {
                 case 'EPUB': case 'Zine':
                     B.ExtractionPolicy = 'at-once';
                     return resolve(`${ B.Type } ${ FileOrData }`);
                 default:
-                    return reject(`Book ${ FileOrData } Is Invalid.`);
+                    return reject_failedToOpenTheBook(Bibi.ErrorMessages.DataInvalid);
             }
-        }).catch(reject);
+        }).catch(reject_failedToOpenTheBook);
     }
-}).then(InitializedAs => new Promise(resolve => {
-    switch(B.Type) {
-        case 'EPUB': return L.loadContainer().then(L.loadPackage).then(resolve);
-        case 'Zine': return X.Zine.loadZineData().then(resolve);
-    }
-}).then(() => {
-    E.dispatch('bibi:initialized-book');
-    return InitializedAs;
-})).catch(Log => {
-    //if(S['accept-local-file']) O.HTML.classList.add('waiting-file');
-    throw `Failed to Open the Book:` + '\n' + Log;
+}).then(InitializedAs => {
+    delete S['book-data'];
+    delete S['book-data-mimetype'];
+    return (B.Type == 'Zine' ? X.Zine.loadZineData() : L.loadContainer().then(L.loadPackage)).then(() => E.dispatch('bibi:initialized-book')).then(() => InitializedAs);
 });
 
 
-L.loadContainer = () => O.openDocument(B.Container).then(L.loadContainer.process).then(() => E.dispatch('bibi:loaded-container'));
+L.loadContainer = () => O.openDocument(B.Container.Source).then(L.loadContainer.process);
 
-    L.loadContainer.process = (Doc) => B.Package.Path = Doc.getElementsByTagName('rootfile')[0].getAttribute('full-path');
+    L.loadContainer.process = (Doc) => B.Package.Source.Path = Doc.getElementsByTagName('rootfile')[0].getAttribute('full-path');
 
 
-L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then(() => E.dispatch('bibi:loaded-package-document'));
+L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.process);
 
     L.loadPackage.process = (Doc) => { // This is Used also from the Zine Extention.
         const _Package  = Doc.getElementsByTagName('package' )[0];
         const _Metadata = Doc.getElementsByTagName('metadata')[0], Metadata = B.Package.Metadata;
         const _Manifest = Doc.getElementsByTagName('manifest')[0], Manifest = B.Package.Manifest;
         const _Spine    = Doc.getElementsByTagName('spine'   )[0], Spine    = B.Package.Spine;
-        const _ItemPaths = {};
+        const SourcePaths = {};
         // ================================================================================
         // METADATA
         // --------------------------------------------------------------------------------
@@ -813,106 +821,88 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
         // ================================================================================
         // MANIFEST
         // --------------------------------------------------------------------------------
-        const PackageDir  = B.Package.Path.replace(/\/?[^\/]+$/, '');
+        const PackageDir  = B.Package.Source.Path.replace(/\/?[^\/]+$/, '');
         sML.forEach(_Manifest.getElementsByTagName('item'))(_Item => {
-            let Item = {
+            let Source = {
                 'id': _Item.getAttribute('id'),
                 'href': _Item.getAttribute('href'),
                 'media-type': _Item.getAttribute('media-type')
             };
-            if(!Item['id'] || !Item['href'] || (!Item['media-type'] && B.Type == 'EPUB')) return false;
-            Item.Path = O.getPath(PackageDir, Item['href']);
-            if(Manifest.Items[Item.Path]) Item = sML.edit(Manifest.Items[Item.Path], Item);
-            if(!Item.Content) Item.Content = '';
+            if(!Source['id'] || !Source['href'] || (!Source['media-type'] && B.Type == 'EPUB')) return false;
+            Source.Path = O.getPath(PackageDir, Source['href']);
+            if(Manifest[Source.Path]) Source = Object.assign(Manifest[Source.Path], Source);
+            if(!Source.Content) Source.Content = '';
+            Source.Of = [];
             let Properties = _Item.getAttribute('properties');
             if(Properties) {
                 Properties = Properties.trim().replace(/\s+/g, ' ').split(' ');
-                     if(Properties.includes('cover-image')) B.CoverImageItem = Item;
-                else if(Properties.includes('nav'        )) B.NavItem        = Item, Item.NavType = 'Navigation Document';
+                     if(Properties.includes('cover-image')) B.CoverImage.Source = Source;
+                else if(Properties.includes('nav'        )) B.Nav.Source        = Source, B.Nav.Type = 'Navigation Document';
             }
             const FallbackItemID = _Item.getAttribute('fallback');
-            if(FallbackItemID) Item['fallback'] = FallbackItemID;
-            Manifest.Items[Item.Path] = Item;
-            _ItemPaths[Item['id']] = Item.Path;
+            if(FallbackItemID) Source['fallback'] = FallbackItemID;
+            Manifest[Source.Path] = Source;
+            SourcePaths[Source['id']] = Source.Path;
         });
-        [B.Container, B.Package].forEach(MetaItem => {
-            if(!MetaItem) return;
-            const MetaItemPath = MetaItem.Path;
-            (Item => ['Path', 'Content', 'DataType'].forEach(Pro => { Item[Pro] = undefined; delete Item[Pro]; }))(Manifest.Items[MetaItemPath]);
-            delete Manifest.Items[MetaItemPath];
-        });
+        [B.Container, B.Package].forEach(Meta => { if(Meta && Meta.Source) Meta.Source.Content = ''; });
         // ================================================================================
         // SPINE
         // --------------------------------------------------------------------------------
-        if(!B.NavItem) {
-            const Item = Manifest.Items[_ItemPaths[_Spine.getAttribute('toc')]];
-            if(Item) B.NavItem = Item, Item.NavType = 'TOC-NCX';
+        if(!B.Nav.Source) {
+            const Source = Manifest[SourcePaths[_Spine.getAttribute('toc')]];
+            if(Source) B.Nav.Source = Source, B.Nav.Type = 'TOC-NCX';
         }
+        if(       B.Nav.Source)        B.Nav.Source.Of.push(       B.Nav);
+        if(B.CoverImage.Source) B.CoverImage.Source.Of.push(B.CoverImage);
         // --------------------------------------------------------------------------------
-        Spine['page-progression-direction'] = _Spine.getAttribute('page-progression-direction');
-        if(!Spine['page-progression-direction'] || !/^(ltr|rtl)$/.test(Spine['page-progression-direction'])) Spine['page-progression-direction'] = S['default-page-progression-direction']; // default;
-        B.PPD = Spine['page-progression-direction'];
+        B.PPD = _Spine.getAttribute('page-progression-direction');
+        if(!B.PPD || !/^(ltr|rtl)$/.test(B.PPD)) B.PPD = S['default-page-progression-direction']; // default;
         // --------------------------------------------------------------------------------
         const PropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-(.+)$/;
         let SpreadBefore, SpreadAfter;
         if(B.PPD == 'rtl') SpreadBefore = 'right', SpreadAfter = 'left';
         else               SpreadBefore = 'left',  SpreadAfter = 'right';
         const SpreadsDocumentFragment = document.createDocumentFragment();
-        sML.forEach(_Spine.getElementsByTagName('itemref'))(_ItemRef => {
-            const ItemRef = {
-                'idref': _ItemRef.getAttribute('idref')
-            };
-            if(!ItemRef['idref']) return false;
-            let Item = Manifest.Items[_ItemPaths[ItemRef['idref']]];
-            if(!Item) return false;
-            const FallbackChain = [];
-            if(S['prioritise-fallbacks']) {
-                while(Item['fallback']) {
-                    const FallbackItem = Manifest.Items[_ItemPaths[Item['fallback']]];
-                    if(FallbackItem) {
-                        FallbackChain.push(Item.Path);
-                        Item = FallbackItem;
-                    } else delete Item['fallback'];
-                }
+        sML.forEach(_Spine.getElementsByTagName('itemref'))(ItemRef => {
+            const IDRef = ItemRef.getAttribute('idref'); if(!IDRef) return false;
+            const Source = Manifest[SourcePaths[IDRef]]; if(!Source) return false;
+            const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true' /*, TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); }*/ });
+            Item['idref'] = IDRef;
+            Item.Source = Source;
+            Item.AnchorPath = Source.Path;
+            Item.FallbackChain = [];
+            if(S['prioritise-fallbacks']) while(Item.Source['fallback']) {
+                const FallbackItem = Manifest[SourcePaths[Item.Source['fallback']]];
+                if(FallbackItem) Item.FallbackChain.push(Item.Source = FallbackItem);
+                else delete Item.Source['fallback'];
             }
-            Item.RefChain = FallbackChain.concat(Item.Path);
-            ItemRef['linear'] = _ItemRef.getAttribute('linear');
-            if(ItemRef['linear'] != 'no') ItemRef['linear'] = 'yes';
-            let Properties = _ItemRef.getAttribute('properties');
+            Item.Source.Of.push(Item);
+            let Properties = ItemRef.getAttribute('properties');
             if(Properties) {
                 Properties = Properties.trim().replace(/\s+/g, ' ').split(' ');
-                Properties.forEach(Pro => { if(PropertyRE.test(Pro)) _ItemRef[Pro.replace(PropertyRE, '$1')] = Pro.replace(PropertyRE, '$4'); });
+                Properties.forEach(Pro => { if(PropertyRE.test(Pro)) ItemRef[Pro.replace(PropertyRE, '$1')] = Pro.replace(PropertyRE, '$4'); });
             }
-            ItemRef['rendition:layout']      = _ItemRef['rendition:layout']      || Metadata['rendition:layout'];
-            ItemRef['rendition:orientation'] = _ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
-            ItemRef['rendition:spread']      = _ItemRef['rendition:spread']      || Metadata['rendition:spread'];
-            const PageSpread = _ItemRef['rendition:page-spread'] || _ItemRef['page-spread'] || undefined;
-            if(PageSpread) ItemRef['rendition:page-spread'] = PageSpread;
+            Item['rendition:layout']      = ItemRef['rendition:layout']      || Metadata['rendition:layout'];
+            Item['rendition:orientation'] = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
+            Item['rendition:spread']      = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
+            Item['rendition:page-spread'] = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            Item = sML.create('iframe', Item, { className: 'item', scrolling: 'no', allowtransparency: 'true',
-                TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },
-                IndexInSpine: Spine.Items.length,
-                Ref: ItemRef,
-                Pages: []
-            });
-            Item.Box = sML.create('div', { className: 'item-box ' + ItemRef['rendition:layout'], Content: Item, Item: Item });
-            Item.RefChain.forEach(FallbackPath => Manifest.Items[FallbackPath] = Item);
-            Spine.Items.push(Item);
-            if(ItemRef['linear'] != 'yes') {
-                Item.IndexInNonLinearItems = R.NonLinearItems.length;
-                R.NonLinearItems.push(Item);
+            Item.IndexInSpine = Spine.push(Item) - 1;
+            if(ItemRef.getAttribute('linear') == 'no') {
+                Item['linear'] = 'no';
+                Item.IndexInNonLinearItems = R.NonLinearItems.push(Item) - 1;
             } else {
-                Item.Index = R.Items.length;
-                R.Items.push(Item);
+                Item['linear'] = 'yes';
+                Item.Index = R.Items.push(Item) - 1;
                 let Spread = null;
-                if(ItemRef['rendition:layout'] == 'pre-paginated' && ItemRef['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
+                if(Item['rendition:layout'] == 'pre-paginated' && Item['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
                     const PreviousItem = R.Items[Item.Index - 1];
-                    if(ItemRef['rendition:layout'] == 'pre-paginated' && PreviousItem.Ref['rendition:page-spread'] == SpreadBefore) {
+                    if(Item['rendition:layout'] == 'pre-paginated' && PreviousItem['rendition:page-spread'] == SpreadBefore) {
                         PreviousItem.SpreadPair = Item;
                         Item.SpreadPair = PreviousItem;
                         Spread = Item.Spread = PreviousItem.Spread;
                         Spread.Box.classList.remove('single-item-spread-before', 'single-item-spread-' + SpreadBefore);
-                        Spread.Box.classList.add(ItemRef['rendition:layout']);
+                        Spread.Box.classList.add(Item['rendition:layout']);
                     }
                 }
                 if(!Spread) {
@@ -920,20 +910,20 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
                         Items: [], Pages: [],
                         Index: R.Spreads.length
                     });
-                    Spread.Box = sML.create('div', { className: 'spread-box ' + ItemRef['rendition:layout'], Content: Spread, Spread: Spread });
-                    if(ItemRef['rendition:page-spread']) {
-                        Spread.Box.classList.add('single-item-spread-' + ItemRef['rendition:page-spread']);
-                        switch(ItemRef['rendition:page-spread']) {
+                    Spread.Box = sML.create('div', { className: 'spread-box ' + Item['rendition:layout'], Inside: Spread, Spread: Spread });
+                    if(Item['rendition:page-spread']) {
+                        Spread.Box.classList.add('single-item-spread-' + Item['rendition:page-spread']);
+                        switch(Item['rendition:page-spread']) {
                             case SpreadBefore: Spread.Box.classList.add('single-item-spread-before'); break;
                             case SpreadAfter:  Spread.Box.classList.add('single-item-spread-after' ); break;
                         }
                     }
                     R.Spreads.push(SpreadsDocumentFragment.appendChild(Spread.Box).appendChild(Spread));
                 }
-                Item.IndexInSpread = Spread.Items.length;
-                Spread.Items.push(Item);
-                Spread.appendChild(Item.Box);//.appendChild(Item);
-                if(ItemRef['rendition:layout'] == 'pre-paginated') {
+                Item.IndexInSpread = Spread.Items.push(Item) - 1;
+                Item.Box = Spread.appendChild(sML.create('div', { className: 'item-box ' + Item['rendition:layout'], Inside: Item, Item: Item }));
+                Item.Pages = [];
+                if(Item['rendition:layout'] == 'pre-paginated') {
                     Item.PrePaginated = true;
                     if(Item.IndexInSpread == 0) Spread.PrePaginated = true;
                     const Page = sML.create('span', { className: 'page',
@@ -947,9 +937,9 @@ L.loadPackage = () => O.openDocument(B.Package).then(L.loadPackage.process).then
                 }
             }
         });
-        R.Main.Book.appendChild(SpreadsDocumentFragment);
+        R.createSpine(SpreadsDocumentFragment);
         // --------------------------------------------------------------------------------
-        B.FileDigit = (Spine.Items.length + '').length;
+        B.FileDigit = String(Spine.length).length;
         // ================================================================================
         B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
         B.Language  =  Metadata['language'][0].split('-')[0];
@@ -983,10 +973,10 @@ L.createCover = () => {
         return BookID.join(' ');
     })();
     return Promise.resolve(new Promise((resolve, reject) => {
-        if(!B.CoverImageItem || !B.CoverImageItem.Path) return reject();
+        if(!B.CoverImage.Source || !B.CoverImage.Source.Path) return reject();
         let TimedOut = false;
         const TimerID = setTimeout(() => { TimedOut = true; reject(); }, 5000);
-        O.file(B.CoverImageItem, { URI: true }).then(Item => {
+        O.file(B.CoverImage.Source, { URI: true }).then(Item => {
             if(!TimedOut) resolve(Item.URI);
         }).catch(() => {
             if(!TimedOut) reject();
@@ -1006,11 +996,11 @@ L.createCover = () => {
     ) + `</span>`;
 
 
-L.loadNavigation = () => O.openDocument(B.NavItem).then(Doc => {
+L.loadNavigation = () => O.openDocument(B.Nav.Source).then(Doc => {
     const PNav = I.Panel.BookInfo.Navigation = I.Panel.BookInfo.insertBefore(sML.create('div', { id: 'bibi-panel-bookinfo-navigation' }), I.Panel.BookInfo.firstElementChild);
     PNav.innerHTML = '';
     const NavContent = document.createDocumentFragment();
-    if(B.NavItem.NavType == 'Navigation Document') {
+    if(B.Nav.Type == 'Navigation Document') {
         sML.forEach(Doc.querySelectorAll('nav'))(Nav => {
             switch(Nav.getAttribute('epub:type')) {
                 case 'toc':       Nav.classList.add('bibi-nav-toc'); break;
@@ -1043,8 +1033,8 @@ L.loadNavigation = () => O.openDocument(B.NavItem).then(Doc => {
         if(NavUL) NavContent.appendChild(document.createElement('nav')).appendChild(NavUL);
     }
     PNav.appendChild(NavContent);
-    L.coordinateLinkages(B.NavItem.Path, PNav, 'InNav');
-    B.NavItem.Content = '';
+    L.coordinateLinkages(B.Nav.Source.Path, PNav, 'InNav');
+    if(B.Nav.Source.Of.length == 1) B.Nav.Source.Content = '';
     return PNav;
 });
 
@@ -1057,11 +1047,11 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
             A.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
             A.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
         }
-        let HrefPathInSource = A.getAttribute('href'), HrefAttribute = 'href';
-        if(!HrefPathInSource) {
-            HrefPathInSource = A.getAttribute('xlink:href');
-            if(HrefPathInSource) {
-                HrefAttribute = 'xlink:href';
+        let HRefPathInSource = A.getAttribute('href'), HRefAttribute = 'href';
+        if(!HRefPathInSource) {
+            HRefPathInSource = A.getAttribute('xlink:href');
+            if(HRefPathInSource) {
+                HRefAttribute = 'xlink:href';
             } else {
                 if(InNav) {
                     A.addEventListener('click', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
@@ -1070,10 +1060,10 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 continue;
             }
         }
-        if(/^[a-zA-Z]+:/.test(HrefPathInSource)) {
-            if(HrefPathInSource.split('#')[0] == location.href.split('#')[0]) {
-                const HrefHashInSource = HrefPathInSource.split('#')[1];
-                HrefPathInSource = (HrefHashInSource ? '#' + HrefHashInSource : R.Items[0].RefChain[0])
+        if(/^[a-zA-Z]+:/.test(HRefPathInSource)) {
+            if(HRefPathInSource.split('#')[0] == location.href.split('#')[0]) {
+                const HRefHashInSource = HRefPathInSource.split('#')[1];
+                HRefPathInSource = (HRefHashInSource ? '#' + HRefHashInSource : R.Items[0].AnchorPath)
             } else {
                 A.addEventListener('click', Eve => {
                     Eve.preventDefault(); 
@@ -1084,28 +1074,28 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 continue;
             }
         }
-        const HrefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HrefPathInSource) ? './' : '') + (/^#/.test(HrefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HrefPathInSource);
-        const HrefFnH = HrefPath.split('#');
-        const HrefFile = HrefFnH[0] ? HrefFnH[0] : BasePath;
-        const HrefHash = HrefFnH[1] ? HrefFnH[1] : '';
+        const HRefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HRefPathInSource) ? './' : '') + (/^#/.test(HRefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HRefPathInSource);
+        const HRefFnH = HRefPath.split('#');
+        const HRefFile = HRefFnH[0] ? HRefFnH[0] : BasePath;
+        const HRefHash = HRefFnH[1] ? HRefFnH[1] : '';
         sML.forEach(R.Items)(Item => {
-            if(HrefFile == Item.RefChain[0]) {
-                A.setAttribute('data-bibi-original-href', HrefPathInSource);
-                A.setAttribute(HrefAttribute, B.Path + '/' + HrefPath);
+            if(HRefFile == Item.AnchorPath) {
+                A.setAttribute('data-bibi-original-href', HRefPathInSource);
+                A.setAttribute(HRefAttribute, B.Path + '/' + HRefPath);
                 A.InNav = InNav;
                 A.Destination = { ItemIndex: Item.Index }; // not IIPP. ElementSelector may be added.
-                     if(Item.Ref['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
-                else if(HrefHash)                                        A.Destination.ElementSelector = '#' + HrefHash;
+                     if(Item['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
+                else if(HRefHash)                                    A.Destination.ElementSelector = '#' + HRefHash;
                 L.coordinateLinkages.setJump(A);
                 return 'break'; //// break sML.forEach()
             }
         });
-        if(HrefHash && /^epubcfi\(.+\)$/.test(HrefHash)) {
-            A.setAttribute('data-bibi-original-href', HrefPathInSource);
-            A.setAttribute(HrefAttribute, B.Path + '/#' + HrefHash);
+        if(HRefHash && /^epubcfi\(.+?\)$/.test(HRefHash)) {
+            A.setAttribute('data-bibi-original-href', HRefPathInSource);
+            A.setAttribute(HRefAttribute, B.Path + '/#' + HRefHash);
             if(X['EPUBCFI']) {
                 A.InNav = InNav;
-                A.Destination = X['EPUBCFI'].getDestination(HrefHash);
+                A.Destination = X['EPUBCFI'].getDestination(HRefHash);
                 L.coordinateLinkages.setJump(A);
             } else {
                 A.addEventListener('click', Eve => {
@@ -1129,7 +1119,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
             }
             if(!L.Waiting) return false;
-            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(nav:' + A.NavANumber + ')');
+            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
             R.StartOn = A.Destination;
             L.play();
         });
@@ -1140,8 +1130,8 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
 L.preprocessResources = () => {
     E.dispatch('bibi:is-going-to:preprocess-resources');
     const Promises = [], PreprocessedResources = [], pushItemPreprocessingPromise = (Item, URI) => Promises.push(O.file(Item, { Preprocess: true, URI: URI }).then(() => PreprocessedResources.push(Item)));
-    if(B.ExtractionPolicy) for(const FilePath in B.Package.Manifest.Items) {
-        const Item = B.Package.Manifest.Items[FilePath];
+    if(B.ExtractionPolicy) for(const FilePath in B.Package.Manifest) {
+        const Item = B.Package.Manifest[FilePath];
         if(/\/(css|javascript)$/.test(Item['media-type'])) { // CSSs & JavaScripts in Manifest
             if(!Promises.length) O.log(`Preprocessing Resources...`, '<g:>');
             pushItemPreprocessingPromise(Item, true);
@@ -1164,7 +1154,7 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
     Spread.AllowPlaceholderItems = (S['allow-placeholders'] && Opt.AllowPlaceholderItems);
     let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
     Spread.Items.forEach(Item => {
-        L.loadItem(Item, { AllowPlaceholder: Opt.AllowPlaceholderItems })
+        L.loadItem(Item, { IsPlaceholder: Opt.AllowPlaceholderItems })
         .then(() =>  LoadedItemsInSpread++) // Loaded
        .catch(() => SkippedItemsInSpread++) // Skipped
         .then(() => {
@@ -1174,60 +1164,65 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
 });
 
 
-L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread and load with spread-pair. !!!!
-    const IsPlaceholder = (S['allow-placeholders'] && Item.Ref['rendition:layout'] == 'pre-paginated' && Opt.AllowPlaceholder);
-    if(typeof Item.IsPlaceholder != 'undefined' && Item.IsPlaceholder == IsPlaceholder) return Promise.reject(Item);
+L.loadItem = (Item, Opt = {}) => {
+    const IsPlaceholder = (S['allow-placeholders'] && Item['rendition:layout'] == 'pre-paginated' && Opt.IsPlaceholder);
+    if(IsPlaceholder === Item.IsPlaceholder) return Item.Loading ? Item.Loading : Promise.resolve(Item);
     Item.IsPlaceholder = IsPlaceholder;
     const ItemBox = Item.Box;
-    ItemBox.classList.toggle('placeholder', Item.IsPlaceholder);
-    if(Item.IsPlaceholder) {
-        if(Item.parentElement) Item.parentElement.removeChild(Item);
-        Item.onload = Item.onLoaded = undefined;
-        Item.src = '';
-        Item.HTML = Item.Head = Item.Body = Item.Pages[0];
-        return Promise.resolve(Item);
-    }
     ItemBox.classList.remove('loaded');
-    return new Promise((resolve, reject) => {
-        if(Item.ContentURL) {
-            resolve();
-        } else if(/\.(html?|xht(ml)?|xml)$/i.test(Item.Path)) { // (X)HTML
-            O.file(Item, {
+    ItemBox.classList.toggle('placeholder', Item.IsPlaceholder);
+    return Item.Loading = ( // Promise
+        Item.IsPlaceholder ? Promise.reject()
+        : Item.ContentURL ? Promise.resolve()
+        : /\.(html?|xht(ml)?|xml)$/i.test(Item.Source.Path) ? // (X)HTML
+            O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize: () => {
-                    //Item.Content = Item.Content.replace(/<script([^>]*?)\/>/, '<script$1></script>');
-                    if(!S['allow-scripts-in-content']) O.sanitizeItemContent(Item, { As: 'HTML' });
+                    if(!S['allow-scripts-in-content']) {
+                        Item.Source.Content = Item.Source.Content.replace(/<script(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '');
+                        O.sanitizeItemSource(Item.Source, { As: 'HTML' });
+                    }
                 }
-            }).then(Item => resolve(Item.Content));
-        } else if(/\.(gif|jpe?g|png)$/i.test(Item.Path)) { // Bitmap-in-Spine
-            O.file(Item, {
+            }).then(ItemSource =>
+                ItemSource.Content
+            )
+        : /\.(gif|jpe?g|png)$/i.test(Item.Source.Path) ? // Bitmap-in-Spine
+            O.file(Item.Source, {
                 URI: true
-            }).then(Item => resolve([
-                (Item.Ref['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
-                `<img class="bibi-spine-item-image" alt="" src="${ Item.URI }" />` // URI is BlobURL or URI
-            ]));
-        } else if(/\.(svg)$/i.test(Item.Path)) { // SVG-in-Spine
-            O.file(Item, {
+            }).then(ItemSource => [
+                (Item['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
+                `<img class="bibi-spine-item-image" alt="" src="${ Item.Source.URI }" />` // URI is BlobURL or URI
+            ])
+        : /\.(svg)$/i.test(Item.Source.Path) ? // SVG-in-Spine
+            O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy ? true : false),
                 initialize: () => {
-                    const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Content.match(StyleSheetRE);
-                    if(!S['allow-scripts-in-content']) O.sanitizeItemContent(Item, { As: 'SVG' });
-                    Item.Content = (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('') : '') + '<bibi:boundary/>' + Item.Content; // Join for preprocessing.
+                    const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Source.Content.match(StyleSheetRE);
+                    if(!S['allow-scripts-in-content']) O.sanitizeItemSource(Item.Source, { As: 'SVG' });
+                    Item.Source.Content = (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('') : '') + '<bibi:boundary/>' + Item.Source.Content; // Join for preprocessing.
                 }
-            }).then(Item => resolve(Item.Content.split('<bibi:boundary/>')));
-        } else reject();
-    }).catch(() => {
-        Item.Skipped = true;
-        return [];
-    }).then(Source => new Promise(resolve => {
+            }).then(ItemSource =>
+                ItemSource.Content.split('<bibi:boundary/>')
+            )
+        : Item.Skipped = true && Promise.resolve([])
+    ).then(ItemSourceContent => new Promise(resolve => {
         const DefaultStyleID = 'bibi-default-style';
-        Item.setAttribute('sandbox', 'allow-same-origin allow-scripts');
-        let Promised = null;
         if(!Item.ContentURL) {
-            let HTML = typeof Source == 'string' ? Source : `<!DOCTYPE html>\n<html><head><meta charset="utf-8" /><title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>${ Source[0] || '' }</head><body>${ Source[1] || '' }</body></html>`;
-            HTML = HTML.replace(/^<\?.+?\?>/, '').replace(/(<head(\s[^>]+)?>)/i, `$1<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!Item.Preprocessed ? `<base href="${ O.fullPath(Item.Path) }" />` : ''));
+            let HTML = typeof ItemSourceContent == 'string' ? ItemSourceContent : [`<!DOCTYPE html>`,
+                `<html>`,
+                    `<head>`,
+                        `<meta charset="utf-8" />`,
+                        `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
+                        (ItemSourceContent[0] ? ItemSourceContent[0] + '\n' : '') +
+                    `</head>`,
+                    `<body>`,
+                        (ItemSourceContent[1] ? ItemSourceContent[1] + '\n' : '') +
+                    `</body>`,
+                `</html>`
+            ].join('\n');
+            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
             if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
-                HTML = HTML.replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script></head>`);
+                HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script>\n</head>`);
                 Item.onLoaded = () => {
                     resolve();
                     Item.contentDocument.head.removeChild(Item.contentDocument.getElementById('bibi-onload'));
@@ -1238,30 +1233,35 @@ L.loadItem = (Item, Opt = {}) => { // !!!! Don't Call Directly. Use L.loadSpread
                 Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
                 return;
             }
-            Promised = O.createBlobURL('Text', HTML, 'text/html').then(ContentURL => {
-                Item.ContentURL = ContentURL;
-                Item.Content = '';
-            });
-        } else Promised = Promise.resolve();
-        Promised.then(() => {
-            Item.onload = resolve;
-            Item.src = Item.ContentURL;
-            ItemBox.insertBefore(Item, ItemBox.firstChild);
-        });
+            Item.ContentURL = O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html'), Item.Source.Content = '';
+        }
+        Item.onload = resolve;
+        Item.src = Item.ContentURL;
+        ItemBox.insertBefore(Item, ItemBox.firstChild);
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
-        Item.Loaded = true;
         ItemBox.classList.add('loaded');
         E.dispatch('bibi:loaded-item', Item);
-        Item.stamp('Loaded');
-        return !Item.Skipped ? Promise.resolve(Item) : Promise.reject(Item);
+        // Item.stamp('Loaded');
+        Item.Loaded = true;
+        Item.Turned = 'Up';
+    }).catch(() => { // Placeholder
+        if(Item.parentElement) Item.parentElement.removeChild(Item);
+        Item.onload = Item.onLoaded = undefined;
+        Item.src = '';
+        Item.HTML = Item.Head = Item.Body = Item.Pages[0];
+        Item.Loaded = false;
+        Item.Turned = 'Down';
+    }).then(() => {
+        delete Item.Loading;
+        return Promise.resolve(Item);
     });
 };
 
 
 L.postprocessItem = (Item) => {
-    Item.stamp('Postprocess');
+    // Item.stamp('Postprocess');
     Item.HTML = Item.contentDocument.getElementsByTagName('html')[0]; Item.HTML.classList.add(...sML.Environments);
     Item.Head = Item.contentDocument.getElementsByTagName('head')[0];
     Item.Body = Item.contentDocument.getElementsByTagName('body')[0];
@@ -1282,7 +1282,7 @@ L.postprocessItem = (Item) => {
             }
         }
     });
-    L.coordinateLinkages(Item.Path, Item.Body);
+    L.coordinateLinkages(Item.Source.Path, Item.Body);
     const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
     if(Lv1Eles && Lv1Eles.length == 1) {
         const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
@@ -1291,9 +1291,9 @@ L.postprocessItem = (Item) => {
         else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
         else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
-    return (Item.Ref['rendition:layout'] == 'pre-paginated' ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
+    return (Item['rendition:layout'] == 'pre-paginated' ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
         E.dispatch('bibi:postprocessed-item', Item);
-        Item.stamp('Postprocessed');
+        // Item.stamp('Postprocessed');
         return Item;
     });
 };
@@ -1318,7 +1318,7 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     };
     if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 33);
 }).then(() => {
-    if(!Item.Preprocessed) {
+    if(!Item.Source.Preprocessed) {
         if(B.Package.Metadata['ebpaj:guide-version']) {
             const Versions = B.Package.Metadata['ebpaj:guide-version'].split('.');
             if(Versions[0] * 1 == 1 && Versions[1] * 1 == 1 && Versions[2] * 1 <=3) Item.Body.style.textUnderlinePosition = 'under left';
@@ -1392,9 +1392,10 @@ export const R = { // Bibi.Reader
 };
 
 
-R.initialize = () => {
+R.createSpine = (SpreadsDocumentFragment) => {
     R.Main      = O.Body.insertBefore(sML.create('main', { id: 'bibi-main' }), O.Body.firstElementChild);
     R.Main.Book =  R.Main.appendChild(sML.create('div',  { id: 'bibi-main-book' }));
+    R.Main.Book.appendChild(SpreadsDocumentFragment);
   //R.Sub       = O.Body.insertBefore(sML.create('div',  { id: 'bibi-sub' }),  R.Main.nextSibling);
 };
 
@@ -1427,29 +1428,32 @@ R.resetStage = () => {
 };
 
 
-R.layOutSpread = (Spread) => new Promise(resolve => {
-    E.dispatch('bibi:is-going-to:reset-spread', Spread);
+R.layOutSpreadAndItsItems = (Spread, Opt = {}) => {
     //Spread.style.width = Spread.style.height = '';
+    return (Spread.Items.length == 1 ? R.layOutItem(Spread.Items[0])
+     : !Opt.Reverse                  ? R.layOutItem(Spread.Items[0]).then(() => R.layOutItem(Spread.Items[1]))
+     :                                 R.layOutItem(Spread.Items[1]).then(() => R.layOutItem(Spread.Items[0]))
+    ).then(() => R.layOutSpread(Spread, Opt));
+};
+
+
+R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
+    if(Opt.Makeover) {
+        Spread.PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
+        Spread.OldPages = Spread.Pages.concat(); // copy
+    }
     Spread.Pages = [];
-    R.layOutItem(Spread.Items[0]).then(Item => {
-        Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
-        if(Spread.Items.length == 1) return resolve();
-        R.layOutItem(Spread.Items[1]).then(Item => {
-            Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1);
-            resolve();
-        });
-    });
-}).then(() => {
+    Spread.Items.forEach(Item => Item.Pages.forEach(Page => Page.IndexInSpread = Spread.Pages.push(Page) - 1));
     const SpreadSize = { Width: 0, Height: 0 }, SpreadBox = Spread.Box;
     if(Spread.Items.length == 1) {
         const Item = Spread.Items[0];
         Spread.Spreaded = Item.Spreaded ? true : false;
-        SpreadSize.Width  = (Spread.Spreaded && Item.Ref['rendition:layout'] == 'pre-paginated' && Item.Ref['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
+        SpreadSize.Width  = (Spread.Spreaded && Item['rendition:layout'] == 'pre-paginated' && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
         SpreadSize.Height = Item.Box.offsetHeight;
     } else {
         const ItemA = Spread.Items[0], ItemB = Spread.Items[1];
         Spread.Spreaded = (ItemA.Spreaded || ItemB.Spreaded) ? true : false;
-        if(ItemA.Ref['rendition:layout'] == 'pre-paginated' && ItemB.Ref['rendition:layout'] == 'pre-paginated') {
+        if(ItemA['rendition:layout'] == 'pre-paginated' && ItemB['rendition:layout'] == 'pre-paginated') {
             // Paired Pre-Paginated Items
             if(Spread.Spreaded || S.RVM != 'vertical') {
                 // Spreaded
@@ -1502,19 +1506,30 @@ R.layOutSpread = (Spread) => new Promise(resolve => {
     SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
     SpreadBox.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
     //sML.style(Spread, { 'border-radius': S['spread-border-radius'], 'box-shadow': S['spread-box-shadow'] });
-    E.dispatch('bibi:reset-spread', Spread);
-    return Spread;
+    if(Opt.Makeover) {
+        if(!Spread.PrePaginated) R.replacePages(Spread.OldPages, Spread.Pages);
+        const ChangedSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L] - Spread.PreviousSpreadBoxLength;
+        if(ChangedSpreadBoxLength != 0) {
+            const Correct = (C.L_AXIS_L == 'X' && O.getElementCoord(Spread, R.Main).X + Spread.offsetWidth <= R.Main.scrollLeft + R.Main.offsetWidth);
+            R.Main.Book.style[C.L_SIZE_l] = (parseFloat(getComputedStyle(R.Main.Book)[C.L_SIZE_l]) + ChangedSpreadBoxLength) + 'px';
+            if(Correct) {
+                R.Main.scrollLeft += ChangedSpreadBoxLength;
+                I.Slider.resetUISize();
+                I.Slider.progress();
+            }
+        }
+        delete Spread.OldPages, delete Spread.PreviousSpreadBoxLength;
+    }
+    resolve(Spread);
 });
 
 
 R.layOutItem = (Item) => new Promise(resolve => {
-    O.stamp('Reset...', Item.TimeCard);
-    E.dispatch('bibi:is-going-to:reset-item', Item);
+    // Item.stamp('Reset...');
     Item.Scale = 1;
     //Item.Box.style.width = Item.Box.style.height = Item.style.width = Item.style.height = '';
-    (Item.Ref['rendition:layout'] != 'pre-paginated') ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
-    E.dispatch('bibi:reset-item', Item);
-    O.stamp('Reset.', Item.TimeCard);
+    (Item['rendition:layout'] != 'pre-paginated') ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
+    // Item.stamp('Reset.');
     resolve(Item);
 });
 
@@ -1549,7 +1564,7 @@ R.renderReflowableItem = (Item) => {
     Item.Spreaded = (
         S.SLA == 'horizontal' && (S['pagination-method'] == 'x' || /-tb$/.test(Item.WritingMode))
             &&
-        (Item.Ref['rendition:spread'] == 'both' || R.Orientation == Item.Ref['rendition:spread'] || R.Orientation == 'landscape')
+        (Item['rendition:spread'] == 'both' || R.Orientation == Item['rendition:spread'] || R.Orientation == 'landscape')
     );
     if(Item.Spreaded) {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
@@ -1686,7 +1701,7 @@ R.renderPrePaginatedItem = (Item) => {
     Item.Spreaded = (
         (S.RVM == 'paged' || !S['full-breadth-layout-in-scroll'])
             &&
-        (Item.Ref['rendition:spread'] == 'both' || R.Orientation == Item.Ref['rendition:spread'] || R.Orientation == 'landscape')
+        (Item['rendition:spread'] == 'both' || R.Orientation == Item['rendition:spread'] || R.Orientation == 'landscape')
     );
     if(!Item.Viewport) Item.Viewport = R.getItemViewport(Item);
   //if( Item.Viewport && !B.ICBViewport) B.ICBViewport = Item.Viewport;
@@ -1714,7 +1729,7 @@ R.renderPrePaginatedItem = (Item) => {
             LoPairItem.Scale *= LoBaseItem.Scale;
         } else {
             const SpreadViewPort = {
-                Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item.Ref['rendition:page-spread']) ? 2 : 1),
+                Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1),
                 Height: ItemLoVp.Height
             };
             Item.Scale = Math.min(
@@ -1756,100 +1771,17 @@ R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
 
 
 R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewport ? B.ICBViewport : {
-    Width:  R.Stage.Height * S['orientation-border-ratio'] / (/*Item.Spreaded &&*/ /^(left|right)$/.test(Item.Ref['rendition:page-spread']) ? 2 : 1),
+    Width:  R.Stage.Height * S['orientation-border-ratio'] / (/*Item.Spreaded &&*/ /^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1),
     Height: R.Stage.Height
 };
 
 
-R.turnSpreads = (Opt = {}) => new Promise(resolve => {
-    if(R.DoNotTurn || !S['allow-placeholders']) return resolve();
-    const Range     = [-1, 2];
-    const Direction = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
-    const Origin = Opt.Origin || (
-        I.PageObserver.Current.List.length      ? (Direction > 0 ?      I.PageObserver.Current.List.slice(-1) :      I.PageObserver.Current.List)[0].Page.Spread :
-        I.PageObserver.IntersectingPages.length ? (Direction > 0 ? I.PageObserver.IntersectingPages.slice(-1) : I.PageObserver.IntersectingPages)[0     ].Spread :
-        null
-    );
-    if(!Origin) return resolve();
-    const Promises = [];
-    const SpreadsToBeTurnedFaceUp = []; /* <== */ for(let i = Range[0]; i <= Range[1]; i++) {
-        const Spread = R.Spreads[Origin.Index + i * Direction]; if(!Spread) continue;
-        if(Spread.Turned != 'Up' && Spread.Turning != 'Up') {
-            clearTimeout(Spread.Timer_TurningFaceUp);
-            SpreadsToBeTurnedFaceUp.push(Spread);
-        }
-    }//*
-    const MinimumTurning = 2;//Math.random() < 0.25 ? 2 : 1;
-    while(SpreadsToBeTurnedFaceUp.length < MinimumTurning) {
-        const i = ++Range[1]; if(i > 9) break;
-        const Spread = R.Spreads[Origin.Index + i * Direction]; if(!Spread) break;
-        if(Spread.Turned != 'Up' && Spread.Turning != 'Up') {
-            clearTimeout(Spread.Timer_TurningFaceUp);
-            SpreadsToBeTurnedFaceUp.push(Spread);
-        }
-    }//*/
-    const SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet = []; /* <== */ if(R.turnSpreads.SpreadsTurnedFaceUp) R.turnSpreads.SpreadsTurnedFaceUp.forEach(Spread => {
-        if(Spread.Turned != 'Up' && Spread.Turning != 'Up' && !SpreadsToBeTurnedFaceUp.includes(Spread)) {
-            clearTimeout(Spread.Timer_TurningFaceUp);
-            setTimeout(() => R.turnSpread(Spread, false), 0);
-            SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet.push(Spread);
-        }
-    });
-    R.turnSpreads.SpreadsTurnedFaceUp = []; /* <== */ [SpreadsToBeTurnedFaceUp, SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet].forEach((Spreads, i) => Spreads.forEach((Spread, j) => {
-        const ItemLength = Spread.Items.length;
-        if(Spread == Origin || i + j == 0)   Promises.push(R.turnSpread(Spread, true));
-        else Spread.Timer_TurningFaceUp = setTimeout(() => R.turnSpread(Spread, true), 88 * (i + j * 0.1));
-        R.turnSpreads.SpreadsTurnedFaceUp.push(Spread);
-    }));/*
-    console.log(
-        R.turnSpreads.SpreadsTurnedFaceUp.length + '(' + SpreadsToBeTurnedFaceUp.length + '+' + SpreadsThatMustBeTurnedFaceUpAlreadyButNotYet.length + ')',
-        R.turnSpreads.SpreadsTurnedFaceUp.map(Sd => 'Sp:' + Sd.Index + '/pp' + Sd.Pages.map(Pg => Pg.Index + 1).join('-'))
-    );*/
-    (Promises.length ? Promise.all(Promises) : Promise.resolve()).then(resolve);
-});
-
-    R.turnSpread = (Spread, TF) => new Promise(resolve => { // !!!! Don't Call Directly. Use R.turnSpreads. !!!!
-        Spread.Turning = TF ? 'Up' : 'Down';
-        Spread.Turned  = false;
-        const AllowPlaceholderItems = !(TF);
-        if(!S['allow-placeholders'] || Spread.AllowPlaceholderItems == AllowPlaceholderItems) return resolve(); // no need to turn
-        /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: '' }, { background: 'rgba(255,0,0,0.5)' });
-        const PreviousSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L];
-        const OldPages = Spread.Pages.reduce((OldPages, OldPage) => { OldPages.push(OldPage); return OldPages; }, []);
-        if(!TF) {
-            R.cancelSpreadRetlieving(Spread);
-            //Spread.Items.forEach(Item => console.log('Canceled Retlieving for: %O', Item));
-        }
-        L.loadSpread(Spread, { AllowPlaceholderItems: AllowPlaceholderItems }).then(Spread => {
-            resolve(); // ←↙ do asynchronous
-            R.layOutSpread(Spread).then(() => {
-                if(!Spread.PrePaginated) R.replacePages(OldPages, Spread.Pages);
-                const ChangedSpreadBoxLength = Spread.Box['offset' + C.L_SIZE_L] - PreviousSpreadBoxLength;
-                if(ChangedSpreadBoxLength != 0) R.Main.Book.style[C.L_SIZE_l] = (parseFloat(getComputedStyle(R.Main.Book)[C.L_SIZE_l]) + ChangedSpreadBoxLength) + 'px';
-            });
-        }).catch(Spread => resolve());
-    }).then(() => {
-        /* DEBUG */ if(Bibi.Debug && TF) sML.style(Spread.Box, { transition: 'background linear .5s' }, { background: '' });
-        Spread.Turning = false;
-        Spread.Turned  = TF ? 'Up' : 'Down';
-    });
-
-    R.cancelSpreadRetlieving = (Spread) => O.RangeLoader ? Spread.Items.forEach(Item => {
-        if(Item.ResItems) Item.ResItems.forEach(ResItem => O.cancelExtraction(ResItem));
-        O.cancelExtraction(Item);
-    }) : false;
-
-
-R.organizePages = () => {
-    const NewPages = [];
-    R.Spreads.forEach(Spread => Spread.Pages.forEach(Page => { Page.Index = NewPages.length; NewPages.push(Page); /* Page.id = 'page-' + (Page.Index + 1 + '').padStart(B.FileDigit, 0); */ }));
-    return R.Pages = NewPages;
-};
+R.organizePages = () => R.Pages = R.Spreads.reduce((NewPages, Spread) => Spread.Pages.reduce((NewPages, Page) => { Page.Index = NewPages.push(Page) - 1; return NewPages; }, NewPages), []);
 
 
 R.replacePages = (OldPages, NewPages) => {
     const StartIndex = OldPages[0].Index, OldLength = OldPages.length, NewLength = NewPages.length;
-    NewPages.forEach((NewPage, i) => NewPage.Index = StartIndex + i);
+    for(let l = NewPages.length, i = 0; i < l; i++) NewPages[i].Index = StartIndex + i;
     if(NewLength != OldLength) {
         const Dif = NewLength - OldLength;
         let i = OldPages[OldLength - 1].Index + 1;
@@ -1870,7 +1802,7 @@ R.layOutStage = () => {
 };
 
 
-R.layOut = (Opt) => new Promise((resolve, reject) => {
+R.layOutBook = (Opt) => new Promise((resolve, reject) => {
     // Opt: {
     //     Destination: BibiDestination,
     //     Reset: Boolean, (default: false)
@@ -1899,7 +1831,7 @@ R.layOut = (Opt) => new Promise((resolve, reject) => {
     } else {
         R.resetStage();
         const Promises = [];
-        R.Spreads.forEach(Spread => Promises.push(R.layOutSpread(Spread)));
+        R.Spreads.forEach(Spread => Promises.push(R.layOutSpreadAndItsItems(Spread)));
         Promise.all(Promises).then(() => {
             R.organizePages();
             R.layOutStage();
@@ -1956,7 +1888,7 @@ R.changeView = (Par) => {
             E.dispatch('bibi:closes-utilities');
         }, Delay[0]);
         setTimeout(() => {
-            R.layOut({
+            R.layOutBook({
                 Reset: true,
                 NoNotification: Par.NoNotification,
                 Setting: {
@@ -1987,7 +1919,7 @@ Object.defineProperties(R, { // To ensure backward compatibility.
 
 R.focusOn = (Par) => new Promise((resolve, reject) => {
     if(R.Moving) return reject();
-    if(typeof Par == 'number') Par = { Destination: Par };
+    if(typeof Par == 'number' || /^\d+$/.test(Par)) Par = { Destination: Par * 1 };
     if(!Par) return reject();
     const _ = Par.Destination = R.hatchDestination(Par.Destination);
     if(!_) return reject();
@@ -2004,7 +1936,6 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         }
         if(S.SLD == 'rtl') Par.FocusPoint -= R.Stage.Width;
     } else {
-        if(S['allow-placeholders'] && Par.Turn != false) R.turnSpreads({ Origin: _.Page.Spread });
         if(R.Stage[C.L_SIZE_L] >= _.Page.Spread['offset' + C.L_SIZE_L]) {
             Par.FocusPoint = O.getElementCoord(_.Page.Spread)[C.L_AXIS_L];
             Par.FocusPoint -= Math.floor((R.Stage[C.L_SIZE_L] - _.Page.Spread['offset' + C.L_SIZE_L]) / 2);
@@ -2032,11 +1963,11 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     R.hatchDestination = (_) => {
         if(!_) return null;
         if(
-            (_.Element || _.ElementSelector)
-                &&
             S.BRL == 'reflowable'
                 &&
             (S.SLA == 'vertical' && /-tb$/.test(B.WritingMode) || S.SLA == 'horizontal' && /^tb-/.test(B.WritingMode))
+                &&
+            ((_.P & /\./.test(_.P)) || _.Element || _.ElementSelector)
         ) {
             _.Point = R.hatchPoint(_);
             return _;
@@ -2063,20 +1994,27 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     };
 
     R.hatchPage = (_) => {
+        if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
         if(_.Page) return _.Page;
+        if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
+        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
+        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
         if(_.Edge == 'head') return R.Pages[0];
         if(_.Edge == 'foot') return R.Pages[R.Pages.length - 1];
-        if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
-        if(typeof _.BibiTo == 'string' && _.BibiTo) Object.assign(_, R.getBibiToDestination(_.BibiTo));
-        if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
-        if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
         try {
+            if(typeof _.ElementSelector == 'string') {
+                if(!_.Item) _.Item = R.hatchItem(_);
+                if( _.Item) _.Element = _.Item.contentDocument.querySelector(_.ElementSelector);
+                delete _.ElementSelector;
+            }
+            if(_.Element) {
+                const NPOE = R.hatchNearestPageOfElement(_.Element);
+                if(NPOE) return NPOE;
+            }
             if(typeof    _.PageIndexInItem   == 'number') return R.hatchItem(_).Pages[_.PageIndexInItem];
             if(typeof    _.PageIndexInSpread == 'number') return R.hatchSpread(_).Pages[_.PageIndexInSpread];
-            if(typeof _.PageProgressInItem   == 'number') return (_Item   =>   _Item.Pages[sML.limitMax(Math.floor(  _Item.Pages.length * _.PageProgressInItem  ),   _Item.Pages.length - 1)])(R.hatchItem(  _));
-            if(typeof _.PageProgressInSpread == 'number') return (_Spread => _Spread.Pages[sML.limitMax(Math.floor(_Spread.Pages.length * _.PageProgressInSpread), _Spread.Pages.length - 1)])(R.hatchSpread(_));
-            if(typeof _.ElementSelector == 'string') { _.Element = R.hatchItem(_).contentDocument.querySelector(_.ElementSelector); delete _.ElementSelector; }
-            if(_.Element) return R.hatchNearestPageOfElement(_.Element);
+            if(typeof _.PageProgressInItem   == 'number') return (Item   =>   Item.Pages[sML.limitMax(Math.floor(  Item.Pages.length * _.PageProgressInItem  ),   Item.Pages.length - 1)])(R.hatchItem(  _));
+            if(typeof _.PageProgressInSpread == 'number') return (Spread => Spread.Pages[sML.limitMax(Math.floor(Spread.Pages.length * _.PageProgressInSpread), Spread.Pages.length - 1)])(R.hatchSpread(_));
             return (R.hatchItem(_) || R.hatchSpread(_)).Pages[0];
         } catch(Err) {}
         return null;
@@ -2085,7 +2023,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         R.hatchItem = (_) => {
             if(_.Item) return _.Item;
             if(typeof _.ItemIndex == 'number') return R.Items[_.ItemIndex];
-            if(typeof _.ItemIndexInSpine == 'number') return B.Package.Spine.Items[_.ItemIndexInSpine];
+            if(typeof _.ItemIndexInSpine == 'number') return B.Package.Spine[_.ItemIndexInSpine];
             if(typeof _.ItemIndexInSpread == 'number') try { return R.hatchSpread(_).Items[_.ItemIndexInSpread]; } catch(_) { return null; }
             //if(_.Element && _.Element.ownerDocument.body.Item && _.Element.ownerDocument.body.Item.Pages) return _.Element.ownerDocument.body.Item;
             return null;
@@ -2104,11 +2042,11 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
             let NearestPage, ElementCoordInItem;
             if(Item.Columned) {
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_B];
-                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **Body**
+                if(S.PPD == 'rtl' && S.SLA == 'vertical') ElementCoordInItem = /* !!!! Use offsetWidth of **Body** >>>> */ Item.Body.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
                 NearestPage = Item.Pages[ElementCoordInItem <= 0 ? 0 : Math.floor(ElementCoordInItem / Item.ColumnBreadth)];
             } else {
                 ElementCoordInItem = O.getElementCoord(Ele)[C.L_AXIS_L];
-                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth; // Use offsetWidth of **HTML**
+                if(S.PPD == 'rtl' && S.SLA == 'horizontal') ElementCoordInItem = /* !!!! Use offsetWidth of **HTML** >>>> */ Item.HTML.offsetWidth - ElementCoordInItem - Ele.offsetWidth;
                 NearestPage = Item.Pages[Math.floor(ElementCoordInItem / R.Stage[C.L_SIZE_L])];
                 /*
                 NearestPage = Item.Pages[0];
@@ -2126,6 +2064,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
 
     R.hatchPoint = (_) => {
         try {
+            if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
             if(typeof _.ElementSelector == 'string') { _.Element = R.hatchItem(_).contentDocument.querySelector(_.ElementSelector); delete _.ElementSelector; }
             if(_.Element) return R.hatchPointOfElement(_.Element);
         } catch(_) {}
@@ -2148,15 +2087,26 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         };
 
 
-R.getBibiToDestination = (BibitoString) => {
-    if(typeof BibitoString == 'number') BibitoString = '' + BibitoString;
-    if(typeof BibitoString != 'string' || !/^[1-9][0-9]*(-[1-9][0-9]*(\.[1-9][0-9]*)*)?$/.test(BibitoString)) return null;
-    let ElementSelector = '', InE = BibitoString.split('-'), ItemIndexInSpine = parseInt(InE[0]) - 1, ElementIndex = InE[1] ? InE[1] : null;
-    if(ElementIndex) ElementIndex.split('.').forEach(Index => ElementSelector += '>*:nth-child(' + Index + ')');
-    return {
-        ItemIndexInSpine: ItemIndexInSpine,
-        ElementSelector: (ElementSelector ? 'body' + ElementSelector : undefined)
-    };
+R.getPDestination = (PString) => {
+    PString = Bibi.verifySettingValue('string', 'p', PString);
+    if(!PString) return null;
+    if(/^[a-z]+$/.test(PString)) return (PString == 'head' || PString == 'foot') ? { Edge: PString } : null;
+    const Steps = PString.split(/-[a-z]+$/.test(PString) ? '-' : '.');
+    const ItemIndex = parseInt(Steps.shift()) - 1;
+    if(ItemIndex <                  0) return { Edge: 'head' };
+    if(ItemIndex > R.Items.length - 1) return { Edge: 'foot' };
+    const Item = R.Items[ItemIndex];
+    if(Steps.length) {
+        if(/^[a-z]+$/.test(Steps[0])) {
+            if(Steps[0] == 'end') return { Page: Item.Pages[Item.Pages.length - 1] };
+        } else {
+            let ElementSelector = `body`;
+            Steps.forEach(Step => ElementSelector += `>*:nth-child(` + Step + `)`);
+            const Element = Item.contentDocument.querySelector(ElementSelector);
+            if(Element) return { Element: Element };
+        }
+    }
+    return { Page: Item.Pages[0] };
 };
 
 
@@ -2203,7 +2153,7 @@ R.moveBy = (Par) => new Promise((resolve, reject) => {
         R.Columned ||
         S.BRL == 'pre-paginated' ||
         S.BRL == 'reflowable' && S.RVM == 'paged' ||
-        CurrentItem.Ref['rendition:layout'] == 'pre-paginated' ||
+        CurrentItem['rendition:layout'] == 'pre-paginated' ||
         CurrentItem.Outsourcing ||
         CurrentItem.Pages.length == 1 ||
         Par.Distance < 0 && CurrentPage.IndexInItem == 0 ||
@@ -2410,7 +2360,7 @@ I.PageObserver = { create: () => {
             }), {
                 root: R.Main,
                 rootMargin: '0px',
-                threshold: [0, 0.5, 1]
+                threshold: 0
             });
             PageObserver.observePageIntersection = (Page) => Glasses.observe(Page);
             PageObserver.unobservePageIntersection = (Page) => Glasses.unobserve(Page);
@@ -2440,21 +2390,22 @@ I.PageObserver = { create: () => {
             //if(PageObserver.Current.List.length && Frame[C.L_BASE_B] == PageObserver.Current.Frame.Before && Frame[C.L_BASE_A] == PageObserver.Current.Frame.After) return false;
             return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
         },
-        getList: () => {
-            let List = [], List_SpreadContained = [];
-            let PageList = undefined;
-            const QSW = Math.ceil(R.Stage.Width / 4), QSH = Math.ceil(R.Stage.Height / 4), CheckRoute = [5, 6, 4, 2, 8];
+        getCandidatePageList: () => {
+            const QSW = Math.ceil((R.Stage.Width - 1) / 4), QSH = Math.ceil((R.Stage.Height - 1) / 4), CheckRoute = [5, 6, 4, 2, 8]; // 4x4 matrix
             for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
                 const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
                 if(Ele) {
-                         if(Ele.IndexInItem) PageList = [Ele];
-                    else if(Ele.Pages)       PageList = Ele.Pages;
-                    else if(Ele.Content)     PageList = Ele.Content.Pages;
+                         if(Ele.IndexInItem) return [Ele]; // Page
+                    else if(Ele.Pages)       return Ele.Pages; // Item or Spread
+                    else if(Ele.Inside)      return Ele.Inside.Pages; // ItemBox or SpreadBox
                 }
-                if(PageList) break;
             }
-            if(!PageList && I.PageObserver.IntersectingPages.length) PageList = I.PageObserver.IntersectingPages;
-            if(!PageList || !PageList[0] || typeof PageList[0].Index != 'number') return null;
+            return PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : [];
+        },
+        getList: () => {
+            let List = [], List_SpreadContained = [];
+            const PageList = PageObserver.getCandidatePageList();
+            if(!PageList.length || typeof PageList[0].Index != 'number') return null;
             const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
             const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
             for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
@@ -2538,7 +2489,147 @@ I.PageObserver = { create: () => {
                 Object.assign(PageObserver.Past, PageObserver.Current);
             });
         },
-        getIIPP: (Page = PageObserver.Current.Pages[0] || R.Pages[0]) => Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length
+        getIIPP: (Par = {}) => {
+            const Page = (Par.Page && typeof Par.Page.IndexInItem == 'number') ? Par.Page : (PageObserver.Current.Pages[0] || (Par.Item && Par.Item.IndexInSpine ? Par.Item.Pages[0] : R.Pages[0]));
+            return Page.Item.Index + Page.IndexInItem / Page.Item.Pages.length;
+        },
+        getP: (Par = {}) => {
+            let Item = null, Element = null;
+            if(Par.Element && Par.Element.ownerDocument && Par.Element.ownerDocument.body.Item) {
+                Item = Par.Element.ownerDocument.body.Item;
+                Element = Par.Element;
+            } else {
+                if(B.Package.Metadata['rendition:layout'] == 'pre-paginated') return { P: String((PageObserver.Current.Pages[0] || R.Pages[0]).Item.Index + 1) };
+                if(!Par.Page || typeof Par.Page.IndexInItem != 'number') Par.Page = null;
+                const Page = Par.Page ? Par.Page : (
+                       B.WritingMode.split('-')[0] == 'tb' && S.SLA == 'vertical'
+                    || B.WritingMode.split('-')[1] == 'tb' && S.SLA == 'horizontal'
+                ) ? PageObserver.Current.Pages[0] : PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * PageObserver.getIntersectionStatus(ISP).Ratio > 3)[0];
+                if(!Page) return '';
+                Item = Page.Item;
+                const PageCoord = O.getElementCoord(Page, R.Main);
+                const PageArea = { Left: PageCoord.X, Right: PageCoord.X + Page.offsetWidth, Top: PageCoord.Y, Bottom: PageCoord.Y + Page.offsetHeight };
+                PageArea[C.L_OOBL_B] += S['item-padding-' + C.L_OOBL_b];
+                PageArea[C.L_OEBL_B] -= S['item-padding-' + C.L_OEBL_b];
+                if(Item.Columned) {
+                    PageArea[C.L_OOBL_L] += S['item-padding-' + C.L_OOBL_l];
+                    PageArea[C.L_OEBL_L] -= S['item-padding-' + C.L_OEBL_l];
+                }
+                const ItemCoord = O.getElementCoord(Item, R.Main);
+                const HTMLArea = { Left: ItemCoord.X + S['item-padding-left'], Top: ItemCoord.Y + S['item-padding-top'] }; HTMLArea.Right = HTMLArea.Left + Item.HTML.offsetWidth, HTMLArea.Bottom = HTMLArea.Top + Item.HTML.offsetHeight;
+                const ViewArea = { Left: R.Main.scrollLeft, Right: R.Main.scrollLeft + R.Stage.Width, Top: R.Main.scrollTop, Bottom: R.Main.scrollTop + R.Stage.Height };
+                const PagedHTMLArea = Par.Page ? {
+                    Left: Math.max(PageArea.Left, HTMLArea.Left               ) - HTMLArea.Left,  Right: Math.min(PageArea.Right,  HTMLArea.Right                  ) - HTMLArea.Left,
+                     Top: Math.max(PageArea.Top,  HTMLArea.Top                ) - HTMLArea.Top , Bottom: Math.min(PageArea.Bottom, HTMLArea.Bottom                 ) - HTMLArea.Top
+                } : {
+                    Left: Math.max(PageArea.Left, HTMLArea.Left, ViewArea.Left) - HTMLArea.Left,  Right: Math.min(PageArea.Right,  HTMLArea.Right,  ViewArea.Right ) - HTMLArea.Left,
+                     Top: Math.max(PageArea.Top,  HTMLArea.Top,  ViewArea.Top ) - HTMLArea.Top , Bottom: Math.min(PageArea.Bottom, HTMLArea.Bottom, ViewArea.Bottom) - HTMLArea.Top
+                };
+                PagedHTMLArea.Right--, PagedHTMLArea.Bottom--;
+                const AbsoluteDistance = 10;
+                let LPM = 1, BPM = 1, getFirstElement = (l, b) => Item.contentDocument.elementFromPoint(l, b);
+                if(S.ARD == 'rtl') {
+                    LPM *= -1;
+                } else if(S.ARD == 'ttb') {
+                    if(S.PPD == 'rtl') BPM *= -1;
+                    getFirstElement = (l, b) => Item.contentDocument.elementFromPoint(b, l);
+                }
+                if(Par.TagNames) Par.TagNames = !Array.isArray(Par.TagNames) ? null : Par.TagNames.map(TN => typeof TN != 'string' ? '' : TN.replace(/\s+/, '').toLowerCase()).filter(TN => TN ? true : false);
+                if(!Par.TagNames || !Par.TagNames.length) delete Par.TagNames;
+                __: for(let i = 0, l = PagedHTMLArea[C.A_BASE_B], lp = Math.round((PagedHTMLArea[C.A_BASE_A] - PagedHTMLArea[C.A_BASE_B]) / 9); l * LPM < PagedHTMLArea[C.A_BASE_A] * LPM; l += lp) {
+                    for(let j = 0, b = PagedHTMLArea[C.A_BASE_S], bp = Math.round((PagedHTMLArea[C.A_BASE_E] - PagedHTMLArea[C.A_BASE_S]) / 3); b * BPM < PagedHTMLArea[C.A_BASE_E] * BPM; b += bp) {
+                        const Ele = getFirstElement(l, b);
+                        if(Par.TagNames) {
+                            if(Par.TagNames.includes(Ele.tagName.toLowerCase())) Element = Ele;
+                        } else if(Ele != Item.HTML && Ele != Item.Body) {
+                            Element = Ele;
+                        }
+                        if(Element) break __;
+                    }
+                }
+                if(!Element) return (Page.IndexInItem < Item.Pages.length - 1) ? PageObserver.getP({ Page: Item.Pages[Page.IndexInItem + 1], TagNames: Par.TagNames }) : Item.Index < R.Items.length - 1 ? (Item.Index + 2) : 'foot';
+            }
+            const Steps = [];
+            let Ele = Element; while(Ele != Item.Body) {
+                let Nth = 0;
+                sML.forEach(Ele.parentElement.childNodes)((CN, i) => {
+                    if(CN.nodeType != 1) return;
+                    Nth++;
+                    if(CN == Ele) {
+                        Steps.unshift(Nth);
+                        Ele = Ele.parentElement;
+                        return 'break';
+                    }
+                });
+            }
+            Steps.unshift(Item.Index + 1);
+            return Steps.join('.');/*
+            return {
+                P: Steps.join('.'),
+                ItemIndex: Item.Index,
+                ElementSelector: 'body'; Steps.forEach(Step => ElementSelector += `>*:nth-child(` + Step + `)`),
+                Item: Item,
+                Element: Element
+            };*/
+        },
+        // ---- Turning Face-up/down
+        MaxTurning: 4,
+        TurningItems_FaceUp: [],
+        TurningItems_FaceDown: [],
+        getTurningOriginItem: (Dir = 1) => {
+            const List = PageObserver.Current.List.length ? PageObserver.Current.List : PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : null;
+            try { return (Dir > 0 ? List[0] : List[List.length - 1]).Page.Item; } catch(Err) {} return null;
+        },
+        turnItems: (Opt) => {
+            if(R.DoNotTurn || !S['allow-placeholders']) return;
+            if(typeof Opt != 'object') Opt = {};
+            const Dir = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
+            const Origin = Opt.Origin || PageObserver.getTurningOriginItem(Dir); if(!Origin) return;
+            const MUST = [Origin], NEW_ = [], KEEP = []; // const ___X = [];
+            const Next = R.Items[Origin.Index + Dir]; if(Next) MUST.push(Next);
+            const Prev = R.Items[Origin.Index - Dir]; if(Prev) MUST.push(Prev);
+            MUST.forEach(Item => {
+                if(Item.Turned != 'Up') (PageObserver.TurningItems_FaceUp.includes(Item) ? KEEP : NEW_).push(Item);
+            });
+            let i = 1/*, x = 0*/; while(++i < 9/* && x < 2*/ && KEEP.length + NEW_.length < PageObserver.MaxTurning) {
+                const Item = R.Items[Origin.Index + i * Dir]; if(!Item) break;
+                if(MUST.includes(Item)) continue;
+                if(Item.Turned != 'Up') (PageObserver.TurningItems_FaceUp.includes(Item) ? KEEP : NEW_).push(Item);/* x++;*/
+            }
+            PageObserver.TurningItems_FaceUp.forEach(Item => { // use `forEach`, not `for`.
+                if(KEEP.includes(Item)) return;
+                if(KEEP.length + NEW_.length < PageObserver.MaxTurning) return KEEP.push(Item);
+                clearTimeout(Item.Timer_Turn);
+                PageObserver.turnItem(Item, { Down: true }); // ___X.push(Item);
+            });
+            NEW_.forEach((Item, i) => PageObserver.turnItem(Item, { Up: true, Delay: (MUST.includes(Item) ? 99 : 999) * i }));
+            /*
+            console.log('--------');
+            console.log('Origin', Origin.Index);
+            console.log('MUST', MUST.map(Item => Item.Index));
+            console.log('KEEP', KEEP.map(Item => Item.Index));
+            console.log('NEW_', NEW_.map(Item => Item.Index));
+            // console.log('___X', ___X.map(Item => Item.Index));
+            //*/
+        },
+        turnItem: (Item, Opt) => new Promise(resolve => {
+            if(R.DoNotTurn || !S['allow-placeholders']) return;
+            if(!Item) Item = PageObserver.getTurningOriginItem();
+            if(typeof Opt != 'object') Opt = { Up: true };
+            if(Opt.Up) {
+                if(PageObserver.TurningItems_FaceUp.includes(Item)) return resolve();
+                PageObserver.TurningItems_FaceUp.push(Item), PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
+            } else {
+                if(PageObserver.TurningItems_FaceDown.includes(Item)) return resolve();
+                PageObserver.TurningItems_FaceDown.push(Item), PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
+                if(O.RangeLoader) O.cancelExtraction(Item.Source);
+            }
+            Item.Timer_Turn = setTimeout(() => L.loadItem(Item, { IsPlaceholder: !(Opt.Up) }).then(() => {
+                if(Opt.Up) PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
+                else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
+                R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
+            }), Opt.Delay || 0);
+        })
     }
     E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
         PageObserver.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
@@ -2571,7 +2662,7 @@ I.ResizeObserver = { create: () => {
             ResizeObserver.Timer_onResizeEnd = setTimeout(() => {
                 R.updateOrientation();
                 const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
-                R.layOut({
+                R.layOutBook({
                     Reset: true,
                     Destination: Page ? { ItemIndex: Page.Item.Index, PageProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
                 }).then(() => {
@@ -2623,42 +2714,56 @@ I.TouchObserver = { create: () => {
             return Ele;
         },
         observeElementTap: (Ele, Opt = {}) => {
-            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 200, U2D: 200 };
+            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 300, U2D: 300 };
                 Ele.BibiTapObserver = {
                     care: Opt.PreventDefault ? (Opt.StopPropagation ? _ => _.preventDefault() || _.stopPropagation() : _ => _.preventDefault()) : (Opt.StopPropagation ? _ => _.stopPropagation() : () => {}),
-                    onPointerDown: function(Eve) { this.care(Eve);
+                    onPointerDown: function(Eve) {
+                        if((typeof Eve.buttons == 'number' && Eve.buttons !== 1) || Eve.ctrlKey) return true;
+                        this.care(Eve);
                         clearTimeout(this.Timer_forgetFloating);
-                        clearTimeout(this.Timer_fireSingleTap);
+                        clearTimeout(this.Timer_fireTap);
                         const DownTime = Date.now();
                         this.Touching = { Time: DownTime, Coord: O.getBibiEventCoord(Eve), Event: Eve };
                         if(!this.Floating) return;
                         if((DownTime - this.Floating.Time) < TimeLimit.U2D) {
-                            this.Floating.FirstTouching.Event.preventDefault();
+                            this.Floating.PreviousTouching.Event.preventDefault();
                             this.Floating.Event.preventDefault();
                             Eve.preventDefault();
-                            this.Touching.Doubled = true;
+                        } else {
+                            delete this.Floating;
                         }
-                        delete this.Floating;
                     },
-                    onPointerUp: function(Eve) { this.care(Eve);
+                    onPointerUp: function(Eve) {
+                        this.care(Eve);
                         if(!this.Touching) return;
                         const UpTime = Date.now();
                         if((UpTime - this.Touching.Time) < TimeLimit.D2U) {
                             const TouchEndCoord = O.getBibiEventCoord(Eve);
                             if(Math.abs(TouchEndCoord.X - this.Touching.Coord.X) < 3 && Math.abs(TouchEndCoord.Y - this.Touching.Coord.Y) < 3) {
-                                if(!this.Touching.Doubled) {
-                                    this.Floating = { Time: UpTime, Event: Eve, FirstTouching: this.Touching };
-                                    this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; },      TimeLimit.U2D);
-                                    this.Timer_fireSingleTap  = setTimeout(() => Ele.BibiTapObserver.onTap(Eve), TimeLimit.U2D);
+                                let SDT = 0;
+                                const Floating = { Time: UpTime, Event: Eve, PreviousTouching: this.Touching };
+                                if(!this.Floating) {
+                                    SDT = 1;
+                                    this.Floating = Object.assign(Floating, { WaitingFor: 2 });
                                 } else {
-                                    Ele.BibiTapObserver.onDoubleTap(Eve);
+                                    SDT = this.Floating.WaitingFor;
+                                    this.Floating = Object.assign(Floating, { WaitingFor: ++this.Floating.WaitingFor });
                                 }
+                                this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; }, TimeLimit.U2D);
+                                this.Timer_fireTap = setTimeout(() => { switch(SDT) {
+                                    case 1: return Ele.BibiTapObserver.onTap(      Eve);
+                                    case 2: return Ele.BibiTapObserver.onDoubleTap(Eve);
+                                    case 3: return Ele.BibiTapObserver.onTripleTap(Eve);
+                                }}, TimeLimit.U2D);
+                            } else {
+                                delete this.Floating;
                             }
                         }
                         delete this.Touching;
                     },
                     onTap:       (Eve) => E.dispatch(Ele, 'bibi:tapped'      , Eve),
-                    onDoubleTap: (Eve) => E.dispatch(Ele, 'bibi:doubletapped', Eve)
+                    onDoubleTap: (Eve) => E.dispatch(Ele, 'bibi:doubletapped', Eve),
+                    onTripleTap: (Eve) => E.dispatch(Ele, 'bibi:tripletapped', Eve)
                 };
                 Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(Eve));
                 Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(Eve));
@@ -2694,6 +2799,7 @@ I.TouchObserver = { create: () => {
             TouchObserver.observeElementTap(HTML); const TOPENs = TouchObserver.PointerEventNames;
             E.add(HTML, 'bibi:tapped',       Eve => E.dispatch('bibi:tapped',         Eve));
             E.add(HTML, 'bibi:doubletapped', Eve => E.dispatch('bibi:doubletapped',   Eve)); //HTML.ownerDocument.addEventListener('dblclick', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
+            E.add(HTML, 'bibi:tripletapped', Eve => E.dispatch('bibi:tripletapped',   Eve));
             E.add(HTML, TOPENs[0],           Eve => E.dispatch('bibi:downed-pointer', Eve), E.Cpt1Psv0);
             E.add(HTML, TOPENs[1],           Eve => E.dispatch('bibi:upped-pointer',  Eve), E.Cpt1Psv0);
             E.add(HTML, TOPENs[2],           Eve => {
@@ -2746,7 +2852,7 @@ I.FlickObserver = { create: () => {
             if(I.Loupe.Transforming) return;
             FlickObserver.LastEvent = Eve;
             const EventCoord = O.getBibiEventCoord(Eve);
-            FlickObserver.StartedOn = {
+            FlickObserver.StartedAt = {
                 X: EventCoord.X,
                 Y: EventCoord.Y,
                 Item: Eve.target.ownerDocument.body.Item || null,
@@ -2760,7 +2866,7 @@ I.FlickObserver = { create: () => {
             E.add('bibi:upped-pointer', FlickObserver.onTouchEnd);
         },
         cancel: () => {
-            delete FlickObserver.StartedOn;
+            delete FlickObserver.StartedAt;
             delete FlickObserver.LastEvent;
             E.remove('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
@@ -2769,26 +2875,31 @@ I.FlickObserver = { create: () => {
         onTouchMove: (Eve) => {
             //if(Eve.touches && Eve.touches.length == 1 && O.getViewportZooming() <= 1) Eve.preventDefault();
             I.ScrollObserver.breakCurrentScrolling();
-            if(FlickObserver.StartedOn) {
-                if(!FlickObserver.Moving && Eve.timeStamp - FlickObserver.StartedOn.TimeStamp > 333) return FlickObserver.cancel();
+            if(FlickObserver.StartedAt) {
+                if(!FlickObserver.Moving) {
+                    const TimeFromTouchStarted = Eve.timeStamp - FlickObserver.StartedAt.TimeStamp;
+                    if(!O.TouchOS && (Eve.type == 'mousemove' || Eve.pointerType == 'mouse')) { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
+                    else                                                                      { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
+                    FlickObserver.StartedAt.TimeStamp = Eve.timeStamp;
+                }
                 const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedOn.X, Y: EventCoord.Y - FlickObserver.StartedOn.Y };
+                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
                 if(++FlickObserver.Moving <= 3) {
                     const Deg = FlickObserver.getDegree(Passage);
-                    FlickObserver.StartedOn.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
+                    FlickObserver.StartedAt.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
                                                             ( 45 <  Deg && Deg <  135) || (225 <  Deg && Deg <  315) ? 'Y' : '';
                 }
-                if(FlickObserver.StartedOn.LaunchingAxis == C.A_AXIS_B) {
+                if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
                     // Orthogonal
                 } else {
                     // Natural
                     if(S.RVM != 'paged' && Eve.type == 'touchmove') return FlickObserver.cancel();
-                    if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedOn['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
+                    if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
                 }
                 Eve.preventDefault();
-                if(FlickObserver.StartedOn.Item) {
-                    FlickObserver.StartedOn.Item.HTML.classList.add('bibi-flick-hot');
-                    FlickObserver.StartedOn.Item.contentWindow.getSelection().empty();
+                if(FlickObserver.StartedAt.Item) {
+                    FlickObserver.StartedAt.Item.HTML.classList.add('bibi-flick-hot');
+                    FlickObserver.StartedAt.Item.contentWindow.getSelection().empty();
                 }
                 FlickObserver.LastEvent = Eve;
                 if(EventCoord[C.A_AXIS_L] <= 0 || EventCoord[C.A_AXIS_L] >= R.Stage[C.A_SIZE_L] || EventCoord[C.A_AXIS_B] <= 0 || EventCoord[C.A_AXIS_B] >= R.Stage[C.A_SIZE_B]) return FlickObserver.onTouchEnd(Eve, { Swipe: true });
@@ -2800,22 +2911,22 @@ I.FlickObserver = { create: () => {
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
             FlickObserver.Moving = 0;
             let cb = undefined, Par = {};
-            if(FlickObserver.StartedOn) {
+            if(FlickObserver.StartedAt) {
                 const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedOn.X, Y: EventCoord.Y - FlickObserver.StartedOn.Y };
-                if(FlickObserver.StartedOn.Item) FlickObserver.StartedOn.Item.HTML.classList.remove('bibi-flick-hot');
+                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
+                if(FlickObserver.StartedAt.Item) FlickObserver.StartedAt.Item.HTML.classList.remove('bibi-flick-hot');
                 if(!I.Loupe.Transforming) {
-                    if(FlickObserver.StartedOn.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
+                    if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
                         // Orthogonal Pan/Releace
                         cb = FlickObserver.getOrthogonalTouchMoveFunction();
                     }
                     if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
                         // Moved (== not Tap)
                         Eve.preventDefault();
-                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedOn.TimeStamp);
+                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp);
                         Par.Deg = FlickObserver.getDegree(Passage);
-                        if(O.getViewportZooming() <= 1 && (Eve.timeStamp - FlickObserver.StartedOn.TimeStamp) <= 300) {
-                            Par.OriginList = FlickObserver.StartedOn.OriginList;
+                        if(O.getViewportZooming() <= 1 && (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp) <= 300) {
+                            Par.OriginList = FlickObserver.StartedAt.OriginList;
                             cb = (Opt && Opt.Swipe) ? FlickObserver.onSwipe : FlickObserver.onFlick;
                         } else if(I.isScrollable()) {
                             cb = FlickObserver.onPanRelease;
@@ -2825,7 +2936,7 @@ I.FlickObserver = { create: () => {
                         // [[[[ Do Nothing ]]]] (to avoid conflicts with other tap events on other UIs like Arrows.)
                     }
                 }
-                delete FlickObserver.StartedOn;
+                delete FlickObserver.StartedAt;
             }
             delete FlickObserver.LastEvent;
             return (cb ? cb(Eve, Par) : Promise.resolve());
@@ -3281,7 +3392,7 @@ I.Veil = { create: () => {
 }};
 
 
-I.Catcher = { create: () => { if(B.Data || S['book'] || !S['accept-local-file']) return;
+I.Catcher = { create: () => { if(S['book-data'] || S['book'] || !S['accept-local-file']) return;
     const Catcher = I.Catcher = O.Body.appendChild(sML.create('div', { id: 'bibi-catcher' }));
     Catcher.insertAdjacentHTML('afterbegin', I.distillLabels.distillLanguage({
         default: [
@@ -3564,12 +3675,6 @@ I.Panel = { create: () => {
     E.add('bibi:commands:close-panel',  Panel.close);
     E.add('bibi:commands:toggle-panel', Panel.toggle);
     E.add('bibi:closes-utilities',      Panel.close);
-    /*
-    Panel.Labels = {
-        default: { default: `Opoen this Index`, ja: `この目次を開く`   },
-        active:  { default: `Close this Index`, ja: `この目次を閉じる` }
-    };
-    */
     I.setFeedback(Panel, { StopPropagation: true });
     E.add(Panel, 'bibi:tapped', () => E.dispatch('bibi:commands:toggle-panel'));
     Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
@@ -3588,6 +3693,8 @@ I.Panel = { create: () => {
     E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
     E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
     E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+    if(S['on-doubletap'] == 'panel') E.add('bibi:doubletapped',   () => Panel.toggle());
+    if(S['on-tripletap'] == 'panel') E.add('bibi:tripletapped',   () => Panel.toggle());
     //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
     E.dispatch('bibi:created-panel');
 }};
@@ -3636,7 +3743,7 @@ I.FontSizeChanger = { create: () => {
         if(BibiBiscuits && BibiBiscuits.FontSize && BibiBiscuits.FontSize.Step != undefined) FontSizeChanger.Step = BibiBiscuits.FontSize.Step * 1;
     }
     if(typeof FontSizeChanger.Step != 'number' || FontSizeChanger.Step < -2 || 2 < FontSizeChanger.Step) FontSizeChanger.Step = 0;
-    E.bind('bibi:postprocessed-item', Item => { if(Item.Ref['rendition:layout'] == 'pre-paginated') return false;
+    E.bind('bibi:postprocessed-item', Item => { if(Item['rendition:layout'] == 'pre-paginated') return false;
         Item.changeFontSize = (FontSize) => {
             if(Item.FontSizeStyleRule) sML.deleteCSSRule(Item.contentDocument, Item.FontSizeStyleRule);
             Item.FontSizeStyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + FontSize + 'px !important;');
@@ -3646,7 +3753,7 @@ I.FontSizeChanger = { create: () => {
             Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1
         };
         Item.FontSize.Base = Item.FontSize.Default;
-        if(Item.Preprocessed && (sML.UA.Chrome || sML.UA.Trident)) {
+        if(Item.Source.Preprocessed && (sML.UA.Chrome || sML.UA.Trident)) {
             sML.forEach(Item.HTML.querySelectorAll('body, body *'))(Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + 'rem');
         } else {
             O.editCSSRules(Item.contentDocument, CSSRule => {
@@ -3693,7 +3800,7 @@ I.FontSizeChanger = { create: () => {
             O.Biscuits.memorize('Book', { FontSize: { Step: Step } });
         }
         setTimeout(() => {
-            R.layOut({
+            R.layOutBook({
                 before: () => R.Items.forEach(Item => { if(Item.changeFontSizeStep) Item.changeFontSizeStep(Step); }),
                 Reset: true,
                 DoNotCloseUtilities: true,
@@ -3920,21 +4027,15 @@ I.Loupe = { create: () => {
             }
             return BibiEvent;
         },
-        onTap: (Eve) => {
-            if(!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space']) return Promise.resolve(); // Requires pressing space-key.
+        onTap: (Eve, HowManyTaps) => {
+            if(HowManyTaps == 1 && (!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space'])) return Promise.resolve(); // Requires pressing space-key on single-tap.
             const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
             if(!BibiEvent) return Promise.resolve();
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
-        },
-        onDoubleTap: (Eve) => {
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
-            if(!BibiEvent) return Promise.resolve();
-            if(BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle') return Promise.resolve();
-            //if(Eve.target.ownerDocument == document) return Loupe.CurrentTransformation.Scale > 1 ? Loupe.scale(1) : Promise.resolve();
+            //if(HowManyTaps > 1 && (BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle')) return Promise.resolve();
             Eve.preventDefault();
             try { Eve.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
-            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale']) return Loupe.scale(1);
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * S['loupe-scale-per-step'], { Center: BibiEvent.Coord });
+            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !Eve.shiftKey) return Loupe.scale(1);
+            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
         },
         onPointerDown: (Eve) => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
@@ -3987,8 +4088,9 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve));
-    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTap(Eve));
+    E.add('bibi:tapped',                                         Eve => Loupe.onTap(Eve, 1));
+    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
+    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped',   Eve => Loupe.onTap(Eve, 3));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
@@ -4092,7 +4194,7 @@ I.History = {
               CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
         if(CurrentPage != LastPage) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
-            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP(CurrentPage) });
+            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP({ Page: CurrentPage }) });
             if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
                 I.History.List.shift(); // Remove the second
@@ -4165,12 +4267,12 @@ I.Slider = { create: () => {
             I.ScrollObserver.forceStopScrolling();
             Eve.preventDefault();
             Slider.Touching = true;
-            Slider.StartedOn = {
+            Slider.StartedAt = {
                 ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
                 RailProgressLength: Slider.RailProgress['offset' + C.A_SIZE_L],
                 MainScrollBefore: Math.ceil(R.Main['scroll' + C.L_OOBL_L]) // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             };
-            Slider.StartedOn.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
+            Slider.StartedAt.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
             clearTimeout(Slider.Timer_onTouchEnd);
             O.HTML.classList.add('slider-sliding');
             E.add('bibi:moved-pointer', Slider.onTouchMove);
@@ -4179,12 +4281,12 @@ I.Slider = { create: () => {
             clearTimeout(Slider.Timer_move);
             const TouchMoveCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(Slider.Touching) {
-                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedOn.Coord,
-                    Slider.Edgebar.Before -  Slider.StartedOn.ThumbBefore,
-                    Slider.Edgebar.After  - (Slider.StartedOn.ThumbBefore + Slider.Thumb.Length)
+                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedAt.Coord,
+                    Slider.Edgebar.Before -  Slider.StartedAt.ThumbBefore,
+                    Slider.Edgebar.After  - (Slider.StartedAt.ThumbBefore + Slider.Thumb.Length)
                 );
                 sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
-                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedOn.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
+                sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedAt.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
             }
             Slider.flipPagesDuringSliding(TouchMoveCoord);
         },
@@ -4192,7 +4294,7 @@ I.Slider = { create: () => {
             () => false :
             (TouchMoveCoord) => {
                 R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
-                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord); }, 123);
+                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord, 'FORCE'); }, 333);
             }
         )(_),
         onTouchEnd: (Eve) => {
@@ -4201,25 +4303,27 @@ I.Slider = { create: () => {
             Slider.Touching = false;
             E.remove('bibi:moved-pointer', Slider.onTouchMove);
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
-            if(TouchEndCoord == Slider.StartedOn.Coord) Slider.StartedOn.Coord = Slider.StartedOn.ThumbBefore + Slider.Thumb.Length / 2;
+            if(TouchEndCoord == Slider.StartedAt.Coord) Slider.StartedAt.Coord = Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
-            Slider.flip(TouchEndCoord).then(() => {
+            Slider.flip(TouchEndCoord, 'FORCE').then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
                 if(Slider.History) Slider.History.add();
             });
-            delete Slider.StartedOn;
+            delete Slider.StartedAt;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
-        flip: (TouchedCoord) => new Promise(resolve => { switch(S.RVM) {
+        flip: (TouchedCoord, Force) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
                 return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
             default:
-                R.Main['scroll' + C.L_OOBL_L] = Slider.StartedOn.MainScrollBefore + (TouchedCoord - Slider.StartedOn.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
+                R.Main['scroll' + C.L_OOBL_L] = Slider.StartedAt.MainScrollBefore + (TouchedCoord - Slider.StartedAt.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
-        } }),
+        } }).then(() => {
+            if(Force) I.PageObserver.turnItems();
+        }),
         progress: () => {
             if(Slider.Touching) return;
             let MainScrollBefore = Math.ceil(R.Main['scroll' + C.L_OOBL_L]); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
@@ -4350,7 +4454,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
                 Bookmarks = I.PageObserver.Current.Pages.map(Page => ({
-                    IIPP: I.PageObserver.getIIPP(Page),
+                    IIPP: I.PageObserver.getIIPP({ Page: Page }),
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
                 }));
             }
@@ -4403,7 +4507,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
                         action: () => {
                             if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }));
                             if(!L.Waiting) return false;
-                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? ',' : '#') + 'jo(iipp:' + Bmk.IIPP + ')');
+                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(iipp=' + Bmk.IIPP + ')');
                             R.StartOn = { IIPP: Bmk.IIPP };
                             L.play();
                         },
@@ -4883,25 +4987,12 @@ Bibi.preset = (Preset) => Bibi.at1st.List.push(() => {
 
 
 P.initialize = () => {
-    const DocHref = location.href.split('?')[0];
-    P['bookshelf'] = (() => {
-        const Bookshelf_HTML = document.getElementById('bibi-preset').getAttribute('data-bibi-bookshelf');
-        return (Bookshelf_HTML ? new URL(Bookshelf_HTML, DocHref) : new URL(P['bookshelf'] || '../../bibi-bookshelf', P.Script.src)).href.replace(/\/$/, '');
-    })();
-    P['book'] = (() => {
-        if(!B.Data) {
-            const Book_HTML = O.Body.getAttribute('data-bibi-book');
-            if(Book_HTML) {
-                delete U['book'];
-                return Book_HTML;
-            }
-        }
-        return '';
-    })();
+    const DocHRef = location.href.split('?')[0];
+    P['bookshelf'] = new URL(P['bookshelf'] || '../../bibi-bookshelf', P.Script.src).href.replace(/\/$/, '');
     P['extensions'] = (() => {
         let Extensions_HTML = document.getElementById('bibi-preset').getAttribute('data-bibi-extensions');
         if(Extensions_HTML) {
-            Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHref).href }));
+            Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHRef).href }));
             if(Extensions_HTML.length) P['extensions'] = Extensions_HTML;
         }
         return !Array.isArray(P['extensions']) ? [] : P['extensions'].filter(Xtn => {
@@ -4932,7 +5023,6 @@ export const U = {};
 U.translateData = (PnV) => {
     let [_P, _V] = PnV;
     switch(_P) {
-        case 'bbd': _P = 'bibidi'; break;
         case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
         case 'view': case 'rvm': _P = 'reader-view-mode'; break;
         case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
@@ -4944,7 +5034,7 @@ U.translateData = (PnV) => {
 
 Bibi.at1st.List.unshift(() => {
     const LS = location.search; if(typeof LS != 'string') return;
-    Object.assign(U, Bibi.applyFilteredSettingsTo({}, LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
+    const Q = LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
         let [_P, _V] = PnV.split('=');
         if(!_V) _V = undefined;
         switch(_P) {
@@ -4955,7 +5045,8 @@ Bibi.at1st.List.unshift(() => {
         }
         Q[_P] = _V;
         return Q;
-    }, {}), [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
+    }, {});
+    Object.assign(U, Bibi.applyFilteredSettingsTo(Q, Q, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
     if(!U['book']) delete U['zine'];
     if(U['debug']) Bibi.Debug = true, U['log'] = 9;
 });
@@ -4964,54 +5055,99 @@ Bibi.at1st.List.unshift(() => {
 U.initialize = () => {
     const _U = Bibi.applyFilteredSettingsTo({}, U, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
     const HashData = (() => {
-        const Hash = location.hash;
-        const Data = {}, ParREStr = '([a-z_]+)\\(([^\\(\\)]+)\\)';
-        if(typeof Hash != 'string') return Data;
-        //if(!new RegExp('^#?' + ParREStr + '(,' + ParREStr + ')*$').test(Hash)) return Data;
-        const Pars = Hash.match(new RegExp(ParREStr, 'g'));
-        if(!Pars || !Pars.length) return Data;
-        Pars.forEach(Par => {
-            const Label_KnV = Par.match(new RegExp(ParREStr));
-            Data[Label_KnV[1]] = Label_KnV[2];
+        let Hash = location.hash;
+        if(typeof Hash != 'string') return {};
+        const Data = {};
+        const CatGroupREStr = '([&#])([a-zA-Z_]+)\\(([^\\(\\)]+)\\)', CatGroups = Hash.match(new RegExp(CatGroupREStr, 'g'));
+        if(CatGroups && CatGroups.length) CatGroups.forEach(CatGroup => {
+            const CatGroupParts = CatGroup.match(new RegExp(CatGroupREStr));
+            let Cat = CatGroupParts[2].toLowerCase(), Dat = CatGroupParts[3];
+            if(Dat) {
+                Cat = Cat == 'bibi' ? 'Bibi' : Cat == 'jo' ? 'Jo' : Cat == 'epubcfi' ? 'EPUBCFI' : undefined;
+                if(Cat) Data[Cat] = Dat;
+            }
+            Hash = Hash.replace(CatGroup, CatGroupParts[1]);
         });
+        Data['#'] = Hash.replace(/^#|&$/, '');
+        for(const Cat in Data) {
+            if(Cat == 'EPUBCFI') continue;
+            const ParsedData = U.initialize.parseDataString(Data[Cat]);
+            if(!ParsedData) continue;
+            Data[Cat] = Bibi.applyFilteredSettingsTo({}, ParsedData, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
+            delete Data[Cat]['book'];
+        }
         return Data;
     })();
-    if(HashData['bibi']) {
-        HashData['bibi'] = U.initialize.parseDataString(HashData['bibi']);
-        delete HashData['bibi']['book'];
-        _U['Bibi'] = Bibi.applyFilteredSettingsTo({}, HashData['bibi'], [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-        Object.assign(_U, _U['Bibi']);
-    }
-    if(HashData['jo']) {
-        HashData['jo'] = U.initialize.parseDataString(HashData['jo']);
-        delete HashData['jo']['book'];
-        _U['Jo'] = Bibi.applyFilteredSettingsTo({}, HashData['jo'], [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-        Object.assign(_U, _U['Jo']);
-        if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]jo\([^\)]*\)$/g, ''));
-    }
-    if(HashData['epubcfi']) {
-        U['epubcfi'] = HashData['epubcfi'];
-        E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(H['epubcfi']); });
-    }
-    _U['Query'] = {};
-    for(const Pro in U) {
+    if(HashData['#']      ) { Object.assign(_U, _U['#']       = HashData['#']   ); }
+    if(HashData['Bibi']   ) { Object.assign(_U, _U['Bibi']    = HashData['Bibi']); }
+    if(HashData['Jo']     ) { Object.assign(_U, _U['Jo']      = HashData['Jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[&#]jo\([^\)]*\)$/g, '')); }
+    if(HashData['EPUBCFI']) {                   _U['EPUBCFI'] = HashData['EPUBCFI']; }
+    _U['Query'] = {}; for(const Pro in U) {
         if(typeof U[Pro] != 'function') _U['Query'][Pro] = U[Pro];
         U[Pro] = undefined; delete U[Pro];
     }
     Object.assign(U, _U);
-         if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  };
+         if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  }; // to be converted in L.coordinateLinkages
+    else if(typeof U['p']    == 'string')                                  R.StartOn = { P:    U['p']    };
     else if(typeof U['iipp'] == 'number')                                  R.StartOn = { IIPP: U['iipp'] };
+    else if(typeof U['edge'] == 'string')                                  R.StartOn = { Edge: U['edge'] };
+    else if(typeof U['EPUBCFI'] == 'string') E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(U['EPUBCFI']); });
 };
 
     U.initialize.parseDataString = (DataString) => {
-        const Data = {};
-        if(typeof DataString != 'string') return false;
-        DataString.replace(' ', '').split(',').forEach(PnV => {
-            const DD = U.translateData(PnV.split(':'));
-            if(DD && typeof DD[1] != 'undefined') Data[DD[0]] = DD[1];
+        if(typeof DataString != 'string' || !DataString) return null;
+        const ParsedData = {}; let HasData = false;
+        DataString.split('&').forEach(PnV => {
+            const DD = U.translateData(PnV.split('='));
+            if(DD && DD[1] != undefined) ParsedData[DD[0]] = DD[1], HasData = true;
         });
-        return Data;
+        return HasData ? ParsedData : null;
     };
+
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Document-Defined Settings (Bookshelf, Book, Book-Data)
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+export const D = {};
+
+
+D.initialize = () => {
+    const Bookshelf = document.getElementById('bibi-preset').getAttribute('data-bibi-bookshelf');
+    if(Bookshelf) {
+        D['bookshelf'] = new URL(Bookshelf, location.href.split('?')[0]);
+        //delete P['bookshelf'];
+    }
+    const Book = document.body.getAttribute('data-bibi-book');
+    if(Book) {
+        D['book'] = document.body.getAttribute('data-bibi-book');
+    }
+    const BookDataElement = document.getElementById('bibi-book-data');
+    if(BookDataElement) {
+        const BookData = BookDataElement.innerText.trim();
+        if(BookData) {
+            const BookDataMIMEType = BookDataElement.getAttribute('data-bibi-book-mimetype');
+            if(/^application\/(epub\+zip|zip|x-zip(-compressed)?)$/i.test(BookDataMIMEType)) {
+                D['book-data']          = BookData;
+                D['book-data-mimetype'] = BookDataMIMEType;
+            }
+        }
+        BookDataElement.innerHTML = '';
+        BookDataElement.parentNode.removeChild(BookDataElement);
+    }
+    if(D['book'] || D['book-data']) {
+        //delete U['book'];
+        let HRef = location.href.replace(/([\?&])book=[^&]*&?/, '$1');
+        if(!HRef.split('?')[1]) HRef = HRef.split('?')[0];
+        history.replaceState(null, document.title, HRef);
+    }
+    delete D.initialize;
+};
 
 
 
@@ -5031,12 +5167,13 @@ S.initialize = () => {
     for(const Pro in S) if(typeof S[Pro] != 'function') delete S[Pro];
     sML.applyRtL(S, P, 'ExceptFunctions');
     sML.applyRtL(S, U, 'ExceptFunctions');
+    sML.applyRtL(S, D, 'ExceptFunctions');
     Bibi.SettingTypes['yes-no'].concat(Bibi.SettingTypes_PresetOnly['yes-no']).concat(Bibi.SettingTypes_UserOnly['yes-no']).forEach(Pro => S[Pro] = (S[Pro] == 'yes' || (S[Pro] == 'mobile' && O.TouchOS) || (S[Pro] == 'desktop' && !O.TouchOS)));
     // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
-    S['book'] = (!B.Data && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
-    if(!B.Data && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
+    S['book'] = (!S['book-data'] && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
+    if(!S['book-data'] && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
     // --------
     if(typeof S['parent-bibi-index'] != 'number') delete S['parent-bibi-index'];
     // --------
@@ -5147,16 +5284,19 @@ C.update = () => {
             C._app(L_A, 'BASE', { b: LR_RL[0], a: LR_RL[1], s: 'top', e: 'bottom' });
             C._app(L_A, 'SIZE', { b: 'height', l: 'width'                         });
             C._app(L_A, 'OOBL', { b: 'top',    l: 'left'                          });
+            C._app(L_A, 'OEBL', { b: 'bottom', l: 'right'                         });
             C._app(L_A, 'AXIS', { b: 'y',      l: 'x'                             }); C[L_A + '_AXIS_D'] = S.PPD == 'ltr' ? 1 : -1;
         } else {
             C._app(L_A, 'BASE', { b: 'top', a: 'bottom', s: LR_RL[0], e: LR_RL[1] });
             C._app(L_A, 'SIZE', { b: 'width',  l: 'height'                        });
             C._app(L_A, 'OOBL', { b: 'left',   l: 'top'                           });
+            C._app(L_A, 'OEBL', { b: 'right',  l: 'bottom'                        });
             C._app(L_A, 'AXIS', { b: 'x',      l: 'y'                             }); C[L_A + '_AXIS_D'] = 1;
         }
         // BASE: Directions ("B"efore-"A"fter-"S"tart-"E"nd. Top-Bottom-Left-Right on TtB, Left-Right-Top-Bottom on LtR, and Right-Left-Top-Bottom on RtL.)
         // SIZE: Breadth, Length (Width-Height on TtB, Height-Width on LtR and RtL.)
         // OOBL: "O"ffset "O"rigin of "B"readth and "L"ength
+        // OOBL: "O"ffset "E"nd of "B"readth and "L"ength
         // AXIS: X or Y for Breadth and Length (X-Y on TtB, Y-X on LtR and RtL), and ±1 for Culcuration of Length (1 on TtB and LtR, -1 on RtL.)
     };
 
@@ -5185,7 +5325,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
     else if(/^<..>$/.test(A2)) Tag = A2;
     else if(A2)      Obj = A2;
     switch(Tag) {
-        case '<e/>': throw '\n' + Log;
+        case '<e/>': return console.error(Log);
         case '</g>': O.log.Depth--;
     }
     if(
@@ -5197,7 +5337,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
         let Ls = [], Ss = [];
         if(Log) switch(Tag) {
             case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })` + (Bibi.Dev ? ':%cDEV' : '')), Ss.push(O.log.NStyle); if(Bibi.Dev) Ss.push(O.log.BStyle); break;
-            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + (Time % 1000 + '').padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
+            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + String(Time % 1000).padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
             case '<g:>': Ls.unshift(`┌`); Ls.push(Log); break;
             case '</g>': Ls.unshift(`└`); Ls.push(Log); break;
           //case '<o/>': Ls.unshift( `>`); Ls.push(Log); break;
@@ -5230,7 +5370,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
             console[Method].apply(console, Args);
         };
     };
-
+/*
 O.logSets = (...Args) => {
     let Repeats = [], Sets = []; Sets.length = 1;
     Args.reverse();
@@ -5249,7 +5389,7 @@ O.logSets = (...Args) => {
         });
     });
     Sets.forEach(Set => console.log('- ' + Set + ': ' + eval(Set)));
-};
+};*/
 
 
 O.error = (Err) => {
@@ -5260,7 +5400,6 @@ O.error = (Err) => {
     I.note(Err, 99999999999, 'ErrorOccured');
     O.log(Err, '<e/>');
     E.dispatch('bibi:x_x', typeof Err == 'string' ? new Error(Err) : Err);
-    throw Err;
 };
 
 
@@ -5270,7 +5409,7 @@ O.getTimeLabel = (TimeFromOrigin = Date.now() - Bibi.TimeOrigin) => [
     TimeFromOrigin / 1000 / 60 / 60,
     TimeFromOrigin / 1000 / 60 % 60,
     TimeFromOrigin / 1000 % 60
-].map(Val => (Math.floor(Val) + '').padStart(2, 0)).join(':') + '.' + (TimeFromOrigin % 1000 + '').padStart(3, 0);
+].map(Val => String(Math.floor(Val)).padStart(2, 0)).join(':') + '.' + String(TimeFromOrigin % 1000).padStart(3, 0);
 
 O.stamp = (What, TimeCard = O.TimeCard) => {
     const TimeFromOrigin = Date.now() - Bibi.TimeOrigin;
@@ -5279,7 +5418,6 @@ O.stamp = (What, TimeCard = O.TimeCard) => {
     TimeCard[TimeLabel].push(What);
     return TimeFromOrigin;
 };
-//O.stamp = () => '';
 
 
 O.isToBeExtractedIfNecessary = (Path) => {
@@ -5291,101 +5429,105 @@ O.isToBeExtractedIfNecessary = (Path) => {
 };
 
 
-O.item = (Item) => {
-    if(!Item.Path) throw `Item.Path Is Not Defined`;
-    if(!B.Package.Manifest.Items[Item.Path]) B.Package.Manifest.Items[Item.Path] = Item;
-    return B.Package.Manifest.Items[Item.Path];
+O.src = (Source) => {
+    if(!B.Package.Manifest[Source.Path]) B.Package.Manifest[Source.Path] = Source;
+    if(!Source['media-type']) Source['media-type'] = O.getContentType(Source.Path);
+    return B.Package.Manifest[Source.Path];
 };
 
 
 O.RangeLoader = null;
 
-O.cancelExtraction = (Item) => { try { return O.RangeLoader.abort(Item.Path); } catch(Err) {} return false; };
-
-O.extract = (Item) => {
-    Item = O.item(Item);
-    return O.RangeLoader.getBuffer(Item.Path).then(ABuf => {
-        if(O.isBin(Item)) Item.DataType = 'Blob', Item.Content = new Blob([ABuf], { type: Item['media-type'] });
-        else              Item.DataType = 'Text', Item.Content = new TextDecoder('utf-8').decode(new Uint8Array(ABuf));
-        return Item;
-    }).catch(() => Promise.reject());
+O.cancelExtraction = (Source) => {
+    if(Source.Resources) Source.Resources.forEach(Res => Res.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Res.Path));
+    return Source.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Source.Path);
 };
 
-O.download = (Item/*, Opt = {}*/) => new Promise((resolve, reject) => {
-    Item = O.item(Item);
-    if(Item.Content) return resolve(Item);
-    const IsBin = O.isBin(Item);
+O.extract = (Source) => { 
+    Source = O.src(Source);
+    if(Source.Retlieving) return Source.Retlieving;
+    if(Source.Content) return Promise.resolve(Source);
+    if(Source.URI) return O.download(Source);
+    return Source.Retlieving = O.RangeLoader.getBuffer(Source.Path).then(ABuf => {
+        if(O.isBin(Source)) Source.DataType = 'Blob', Source.Content = new Blob([ABuf], { type: Source['media-type'] });
+        else                Source.DataType = 'Text', Source.Content = new TextDecoder('utf-8').decode(new Uint8Array(ABuf));
+        Source.Retlieved = true;
+        delete Source.Retlieving;
+        return Source;
+    }).catch(Err => {
+        delete Source.Retlieving;
+        return Promise.reject(
+                /404/.test(Err) ? Bibi.ErrorMessages.NotFound :
+            /aborted/.test(Err) ? Bibi.ErrorMessages.Canceled :
+              /fetch/.test(Err) ? Bibi.ErrorMessages.CORSBlocked :
+          /not found/.test(Err) ? Bibi.ErrorMessages.DataInvalid :
+            /invalid/.test(Err) ? Bibi.ErrorMessages.DataInvalid :
+        Err);
+    });
+};
+
+O.download = (Source/*, Opt = {}*/) => {
+    Source = O.src(Source);
+    if(Source.Retlieving) return Source.Retlieving;
+    if(Source.Content) return Promise.resolve(Source);
+    const IsBin = O.isBin(Source);
     const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
-    const RemotePath = (/^([a-z]+:\/\/|\/)/.test(Item.Path) ? '' : B.Path + '/') + Item.Path;
-    XHR.open('GET', RemotePath, true); // async
-    XHR.responseType = IsBin ? 'blob' : 'text';
-    XHR.onerror   = () => reject(`${ XHR.status === 404 ? 'File Not Found' : 'Could Not Download File' }: "${ RemotePath }"`);
-    XHR.onloadend = () => {
-        if(XHR.status !== 200) return XHR.onerror();
-        Item.Content = XHR.response;
-        Item.DataType = IsBin ? 'Blob' : 'Text';
-        resolve(Item);
-    };
-    XHR.send(null);
-});
+    const RemotePath = Source.URI ? Source.URI : (/^([a-z]+:\/\/|\/)/.test(Source.Path) ? '' : B.Path + '/') + Source.Path;
+    return Source.Retlieving = new Promise((resolve, reject) => {
+        XHR.open('GET', RemotePath, true);
+        XHR.responseType = IsBin ? 'blob' : 'text';
+        XHR.onloadend = () => XHR.status == 200 ? resolve() : reject();
+        XHR.onerror = () => reject();
+        XHR.send(null);
+    }).then(() => {
+        Source.DataType = IsBin ? 'Blob' : 'Text', Source.Content = XHR.response;
+        Source.Retlieved = true;
+        delete Source.Retlieving;
+        return Source;
+    }).catch(() => {
+        delete Source.Retlieving;
+        return Promise.reject(
+            XHR.status == 404 ? Bibi.ErrorMessages.NotFound :
+            XHR.status ==   0 ? Bibi.ErrorMessages.CORSBlocked :
+        XHR.status + ' ' + XHR.statusText);
+    });
+};
 
 O.tryRangeRequest = (Path = Bibi.Script.src, Bytes = '0-0') => new Promise((resolve, reject) => {
-    const XHR = new XMLHttpRequest;
+    const XHR = new XMLHttpRequest();
     XHR.onloadend = () => XHR.status != 206 ? reject() : resolve();
     XHR.open('GET', Path, true);
     XHR.setRequestHeader('Range', 'bytes=' + Bytes);
     XHR.send(null);
 });
 
-
-O.file = (Item, Opt = {}) => new Promise((resolve, reject) => {
-    Item = O.item(Item);
-    if(Opt.URI) {
-        //if(!B.ExtractionPolicy) Item.URI = O.fullPath(Item.Path), Item.Content = '';
-        if(Item.URI) return resolve(Item);
-    }
+O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
+    Source = O.src(Source);
+    if(Opt.URI && Source.URI) return resolve(Source);
     (() => {
-        if(Item.Content) return Promise.resolve(Item);
+        if(Source.Content) return Promise.resolve(Source);
+        if(Source.URI || !B.ExtractionPolicy) return O.download(Source);
         switch(B.ExtractionPolicy) {
-            case 'at-once':    return Promise.reject(`File Not Included: "${ Item.Path }"`);
-            case 'on-the-fly': return O.extract(Item);
+            case 'on-the-fly': return O.extract(Source);
+            case 'at-once':    return Promise.reject(`File Not Included: "${ Source.Path }"`);
         }
-        return O.download(Item);
-    })().then(Item => {
-        if(typeof Opt.initialize == 'function') Opt.initialize();
-        return (Opt.Preprocess && !Item.Preprocessed) ? O.preprocess(Item) : Item;
-    }).then(Item => {
-        if(Opt.URI) O.setBlobURLToItemURI(Item).then(() => { Item.Content = ''; resolve(Item); });
-        else resolve(Item);
+    })().then(Source => {
+        if(typeof Opt.initialize == 'function') Opt.initialize(Source);
+        return (Opt.Preprocess && !Source.Preprocessed) ? O.preprocess(Source) : Source;
+    }).then(Source => {
+        if(Opt.URI) {
+            if(!Source.URI) Source.URI = O.createBlobURL(Source.DataType, Source.Content, Source['media-type']);
+            Source.Content = '';
+        }
+        resolve(Source);
      }).catch(reject);
 });
 
 
-O.isBin = (Item) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Item.Path);
+O.isBin = (Source) => /\.(aac|gif|jpe?g|m4[av]|mp[g34]|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Source.Path);
 
+O.createBlobURL = (DT, CB, MT) => URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB);
 
-O.setBlobURLToItemURI = (Item) => {
-    Item = O.item(Item);
-    if(Item.URI) return Promise.resolve(Item.URI);
-    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.setBlobURLToItemURI)`;
-    if(!Item['media-type']) Item['media-type'] = O.getContentType(Item.Path);
-    return O.createBlobURL(Item.DataType, Item.Content, Item['media-type']).then(BlobURL => Item.URI = BlobURL);
-};
-
-O.createBlobURL = (DT, CB, MT) => new Promise(resolve => resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB)));
-
-/*
-O.setDataURLToItemURI = (Item) => {
-    Item = O.item(Item);
-    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.setDataURLToItemURI)`;
-    // if(Item.DataType != 'Text') throw `Item Content Is Not Text.`;
-    if(Item.URI) return Promise.resolve(Item.URI);
-    if(!Item['media-type']) Item['media-type'] = O.getContentType(Item.Path);
-    return O.createDataURL(Item.DataType, Item.Content, Item['media-type']).then(DataURL => Item.URI = DataURL);
-};
-
-O.createDataURL = (DT, CB, MT) => new Promise((resolve, reject) => DT == 'Text' ? resolve('data:' + MT + ';base64,' + btoa(unescape(encodeURIComponent(CB)))) : (FR => { FR.onloadend = () => FR.error ? reject(FR.error) : resolve(FR.result); FR.readAsDataURL(CB); })(new FileReader()));
-*/
 
 O.ContentTypes = {
     'pdf'     : 'application/pdf',
@@ -5406,7 +5548,8 @@ O.ContentTypes = {
     'js'      :        'text/javascript',
     'html?'   :        'text/html',
     'mp4'     :       'video/mp4',
-    'webm'    :       'video/webm'
+    'webm'    :       'video/webm',
+    'ya?ml'   : 'application/x-yaml'
 };
 
 O.getContentType = (FileName) => {
@@ -5415,39 +5558,39 @@ O.getContentType = (FileName) => {
 };
 
 
-O.preprocess = (Item) => {
-    Item = O.item(Item);
-    // if(!Item.Content) throw `Item "${Item.id}" Has No Content. (O.preprocess)`;
-    const ResItems = [];
-    const Setting = O.preprocess.getSetting(Item.Path);
+O.preprocess = (Source) => {
+    Source = O.src(Source);
+    const Resources = [];
+    const Setting = O.preprocess.getSetting(Source.Path);
     if(!Setting) {
-        return Promise.resolve(Item);
+        return Promise.resolve(Source);
     }
     const Promises = [];
-    if(Setting.ReplaceRules) Item.Content = Setting.ReplaceRules.reduce((ItemContent, Rule) => ItemContent.replace(Rule[0], Rule[1]), Item.Content);
+    if(Setting.ReplaceRules) Source.Content = Setting.ReplaceRules.reduce((SourceContent, Rule) => SourceContent.replace(Rule[0], Rule[1]), Source.Content);
     if(Setting.ResolveRules) { // RRR
-        const FileDir = Item.Path.replace(/\/?[^\/]+$/, '');
+        const FileDir = Source.Path.replace(/\/?[^\/]+$/, '');
         Setting.ResolveRules.forEach(ResolveRule => ResolveRule.Patterns.forEach(Pattern => {
             const ResRE = ResolveRule.getRE(Pattern.Attribute);
-            const Reses = Item.Content.match(ResRE);
+            const Reses = Source.Content.match(ResRE);
             if(!Reses) return;
             const ExtRE = new RegExp('\\.(' + Pattern.Extensions + ')$', 'i');
             Reses.forEach(Res => {
                 const ResPathInSource = Res.replace(ResRE, ResolveRule.PathRef);
                 const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? './' : '') + ResPathInSource).split('#');
                 if(!ExtRE.test(ResPaths[0])) return;
-                ResItems.push(O.item({ Path: ResPaths[0] }));
-                Promises.push(O.file({ Path: ResPaths[0] }, { Preprocess: true, URI: true }).then(ChildItem => {
-                    ResPaths[0] = ChildItem.URI;
-                    Item.Content = Item.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join('#')));
+                const Resource = O.src({ Path: ResPaths[0] });
+                Resources.push(Resource);
+                Promises.push(O.file(Resource, { Preprocess: true, URI: true }).then(ChildSource => {
+                    ResPaths[0] = ChildSource.URI;
+                    Source.Content = Source.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join('#')));
                 }));
             });
         }));
     }
     return Promise.all(Promises).then(() => {
-        Item.Preprocessed = true;
-        Item.ResItems = ResItems;
-        return Item;
+        Source.Preprocessed = true;
+        Source.Resources = Resources;
+        return Source;
     });
 };
 
@@ -5459,10 +5602,17 @@ O.preprocess = (Item) => {
     O.preprocess.Settings = {
         'css': {
             ReplaceRules: [
-                [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, '']
+                [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ''],
+                [/[\r\n]+/g, '\n']
             ],
             ResolveRules: [{
                 getRE: () => /@import\s+["'](?!(?:https?|data):)(.+?)['"]/g,
+                PathRef: '$1',
+                Patterns: [
+                    { Extensions: 'css' }
+                ]
+            }, {
+                getRE: () => /@import\s+url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
                 PathRef: '$1',
                 Patterns: [
                     { Extensions: 'css' }
@@ -5536,10 +5686,7 @@ O.preprocess = (Item) => {
     };
 
 
-O.parseDocument = (Item) => (new DOMParser()).parseFromString(Item.Content, /\.(xml|opf|ncx)$/i.test(Item.Path) ? 'text/xml' : 'text/html');
-
-
-O.openDocument = (Item) => O.file(Item).then(O.parseDocument);
+O.openDocument = (Source) => O.file(Source).then(Source => (new DOMParser()).parseFromString(Source.Content, /\.(xml|opf|ncx)$/i.test(Source.Path) ? 'text/xml' : 'text/html'));
 
 
 O.editCSSRules = function() {
@@ -5741,7 +5888,7 @@ O.getCoordInViewport = (Coord, Doc) => {
         const Item = Doc.documentElement.Item;
         const ItemScale = Item.Scale;
         const ItemCoordInMain = O.getElementCoord(Item, Main);
-        if(Item.Ref['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
+        if(Item['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
         Coord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (Coord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
         Coord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (Coord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
         //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + Coord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
@@ -5797,7 +5944,7 @@ O.Biscuits = {
             case 'Book': if(B.ID) break;
             default: return null;
         }
-        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID.replace(/^urn:uuid:/, '') : '');
+        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID : '');
         const BiscuitsOfTheLabel = localStorage.getItem(Label);
         O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
         return O.Biscuits.Memories[Label];

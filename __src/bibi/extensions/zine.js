@@ -4,7 +4,7 @@ Bibi.x({
 
     id: 'Zine',
     description: 'Utilities for BibiZine.',
-    author: 'Satoru MATSUSHIMA (@satorumurmur)',
+    author: 'Satoru Matsushima (@satorumurmur)',
     version: '1.2.0'
 
 })(function() {
@@ -15,12 +15,12 @@ Bibi.x({
 
     this.setZineMode = () => {
         delete B.Container;
-        B.Package.Path = B.ZineData.Path;
+        B.Package.Source = O.src(B.ZineData.Source);
         Object.defineProperty(B, 'ZineData', { get: () => B.Package });
         return Promise.resolve();
     };
 
-    this.openYAML = () => O.file(B.ZineData).then(ZineFile => jsyaml.safeLoad(ZineFile.Content));
+    this.openYAML = () => O.file(B.ZineData.Source).then(() => jsyaml.safeLoad(B.ZineData.Source.Content));
 
     this.createPackageDocument = (YAML) => {
         const NS = {

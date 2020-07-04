@@ -70,6 +70,9 @@ Bibi.preset({
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
 
+"on-doubletap"               : "",
+"on-tripletap"               : "",
+
 "content-draggable"          : [true, true], // [<TF>, <TF>]
 "orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
 "orthogonal-edges"           : ["utilities", "utilities"], // [<S1>, <S2>]
@@ -121,7 +124,7 @@ Bibi.preset({
 
 "pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
 "allow-placeholders"                 : true, // true or false. (true is highly recommended.)
-"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.
+"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.)
 
 
 //==============================================================================================================================================
