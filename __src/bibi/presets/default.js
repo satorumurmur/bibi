@@ -70,6 +70,9 @@ Bibi.preset({
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
 
+"on-doubletap"               : "",
+"on-tripletap"               : "",
+
 "content-draggable"          : [true, true], // [<TF>, <TF>]
 "orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
 "orthogonal-edges"           : ["utilities", "utilities"], // [<S1>, <S2>]

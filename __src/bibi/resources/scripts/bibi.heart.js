@@ -38,6 +38,8 @@ Bibi.SettingTypes = {
     'string': [
         'book',
         'default-page-progression-direction',
+        'on-doubletap',
+        'on-tripletap',
         'pagination-method',
         'reader-view-mode'
     ],
@@ -142,6 +144,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'on-doubletap': case 'on-tripletap'  : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
                 case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
@@ -3690,6 +3693,8 @@ I.Panel = { create: () => {
     E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
     E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
     E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+    if(S['on-doubletap'] == 'panel') E.add('bibi:doubletapped',   () => Panel.toggle());
+    if(S['on-tripletap'] == 'panel') E.add('bibi:tripletapped',   () => Panel.toggle());
     //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
     E.dispatch('bibi:created-panel');
 }};
@@ -4083,8 +4088,9 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve, 1));
-    E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
+    E.add('bibi:tapped',                                         Eve => Loupe.onTap(Eve, 1));
+    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
+    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped',   Eve => Loupe.onTap(Eve, 3));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
