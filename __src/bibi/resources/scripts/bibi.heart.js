@@ -3881,21 +3881,15 @@ I.Loupe = { create: () => {
             }
             return BibiEvent;
         },
-        onTap: (Eve) => {
-            if(!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space']) return Promise.resolve(); // Requires pressing space-key.
+        onTap: (Eve, HowManyTaps) => {
+            if(HowManyTaps == 1 && (!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space'])) return Promise.resolve(); // Requires pressing space-key on single-tap.
             const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
             if(!BibiEvent) return Promise.resolve();
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
-        },
-        onDoubleTap: (Eve) => {
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
-            if(!BibiEvent) return Promise.resolve();
-            if(BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle') return Promise.resolve();
-            //if(Eve.target.ownerDocument == document) return Loupe.CurrentTransformation.Scale > 1 ? Loupe.scale(1) : Promise.resolve();
+            //if(HowManyTaps > 1 && (BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle')) return Promise.resolve();
             Eve.preventDefault();
             try { Eve.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
-            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale']) return Loupe.scale(1);
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * S['loupe-scale-per-step'], { Center: BibiEvent.Coord });
+            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !Eve.shiftKey) return Loupe.scale(1);
+            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
         },
         onPointerDown: (Eve) => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
@@ -3948,8 +3942,8 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve));
-    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTap(Eve));
+    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve, 1));
+    E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));

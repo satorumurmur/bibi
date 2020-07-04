@@ -206,8 +206,8 @@ ul#bibi-buttongroup_font-size {
 }
 
 ul#bibi-buttongroup_loupe {
-	html.waiting &,
-	html.book-reflowable & {
+	html.waiting &/*,
+	html.book-reflowable &*/ {
 		display: none;
 	}
 }
