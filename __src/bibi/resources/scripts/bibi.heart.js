@@ -38,6 +38,8 @@ Bibi.SettingTypes = {
     'string': [
         'book',
         'default-page-progression-direction',
+        'on-doubletap',
+        'on-tripletap',
         'pagination-method',
         'reader-view-mode'
     ],
@@ -142,6 +144,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'on-doubletap': case 'on-tripletap'  : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
                 case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
@@ -1916,7 +1919,7 @@ Object.defineProperties(R, { // To ensure backward compatibility.
 
 R.focusOn = (Par) => new Promise((resolve, reject) => {
     if(R.Moving) return reject();
-    if(typeof Par == 'number' || /^\d+$/.test(Par)) Par = { Destination: Par };
+    if(typeof Par == 'number' || /^\d+$/.test(Par)) Par = { Destination: Par * 1 };
     if(!Par) return reject();
     const _ = Par.Destination = R.hatchDestination(Par.Destination);
     if(!_) return reject();
@@ -1991,11 +1994,11 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     };
 
     R.hatchPage = (_) => {
+        if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
         if(_.Page) return _.Page;
         if(typeof _.PageIndex == 'number') return R.Pages[_.PageIndex];
         if(typeof _.SIPP == 'number' && ((typeof _.PageIndexInSpread != 'number' && typeof _.PageProgressInSpread != 'number') || (typeof _.SpreadIndex != 'number' && !_.Spread))) _.SpreadIndex = Math.floor(_.SIPP), _.PageProgressInSpread = String(_.SIPP).replace(/^\d*\./, '0.') * 1;
         if(typeof _.IIPP == 'number' && ((typeof _.PageIndexInItem   != 'number' && typeof _.PageProgressInItem   != 'number') || (typeof _.ItemIndex   != 'number' && !_.Item  ))) _.ItemIndex   = Math.floor(_.IIPP), _.PageProgressInItem   = String(_.IIPP).replace(/^\d*\./, '0.') * 1;
-        if(typeof _.P == 'string' && _.P) Object.assign(_, R.getPDestination(_.P));
         if(_.Edge == 'head') return R.Pages[0];
         if(_.Edge == 'foot') return R.Pages[R.Pages.length - 1];
         try {
@@ -2088,12 +2091,7 @@ R.getPDestination = (PString) => {
     PString = Bibi.verifySettingValue('string', 'p', PString);
     if(!PString) return null;
     if(/^[a-z]+$/.test(PString)) return (PString == 'head' || PString == 'foot') ? { Edge: PString } : null;
-    let Steps;
-    if(/-[a-z]+$/.test(PString)) {
-        Steps = PString.split('-');
-    } else {
-        Steps = PString.split('.');
-    }
+    const Steps = PString.split(/-[a-z]+$/.test(PString) ? '-' : '.');
     const ItemIndex = parseInt(Steps.shift()) - 1;
     if(ItemIndex <                  0) return { Edge: 'head' };
     if(ItemIndex > R.Items.length - 1) return { Edge: 'foot' };
@@ -2716,7 +2714,7 @@ I.TouchObserver = { create: () => {
             return Ele;
         },
         observeElementTap: (Ele, Opt = {}) => {
-            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 200, U2D: 200 };
+            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 300, U2D: 300 };
                 Ele.BibiTapObserver = {
                     care: Opt.PreventDefault ? (Opt.StopPropagation ? _ => _.preventDefault() || _.stopPropagation() : _ => _.preventDefault()) : (Opt.StopPropagation ? _ => _.stopPropagation() : () => {}),
                     onPointerDown: function(Eve) {
@@ -3677,12 +3675,6 @@ I.Panel = { create: () => {
     E.add('bibi:commands:close-panel',  Panel.close);
     E.add('bibi:commands:toggle-panel', Panel.toggle);
     E.add('bibi:closes-utilities',      Panel.close);
-    /*
-    Panel.Labels = {
-        default: { default: `Opoen this Index`, ja: `この目次を開く`   },
-        active:  { default: `Close this Index`, ja: `この目次を閉じる` }
-    };
-    */
     I.setFeedback(Panel, { StopPropagation: true });
     E.add(Panel, 'bibi:tapped', () => E.dispatch('bibi:commands:toggle-panel'));
     Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
@@ -3701,6 +3693,8 @@ I.Panel = { create: () => {
     E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
     E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
     E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
+    if(S['on-doubletap'] == 'panel') E.add('bibi:doubletapped',   () => Panel.toggle());
+    if(S['on-tripletap'] == 'panel') E.add('bibi:tripletapped',   () => Panel.toggle());
     //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
     E.dispatch('bibi:created-panel');
 }};
@@ -4033,24 +4027,15 @@ I.Loupe = { create: () => {
             }
             return BibiEvent;
         },
-        scaleByTap: (Eve, BibiEvent) => {
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
-        },
-        onTap: (Eve) => {
-            if(!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space']) return Promise.resolve(); // Requires pressing space-key.
+        onTap: (Eve, HowManyTaps) => {
+            if(HowManyTaps == 1 && (!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space'])) return Promise.resolve(); // Requires pressing space-key on single-tap.
             const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
             if(!BibiEvent) return Promise.resolve();
-            return Loupe.scaleByTap(Eve, BibiEvent);
-        },
-        onDoubleTap: (Eve) => {
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
-            if(!BibiEvent) return Promise.resolve();
-            if(BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle') return Promise.resolve();
-            //if(Eve.target.ownerDocument == document) return Loupe.CurrentTransformation.Scale > 1 ? Loupe.scale(1) : Promise.resolve();
+            //if(HowManyTaps > 1 && (BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle')) return Promise.resolve();
             Eve.preventDefault();
             try { Eve.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
             if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !Eve.shiftKey) return Loupe.scale(1);
-            return Loupe.scaleByTap(Eve, BibiEvent);
+            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
         },
         onPointerDown: (Eve) => {
             Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
@@ -4103,8 +4088,9 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',         Eve => Loupe.onTap(Eve));
-    E.add('bibi:doubletapped',   Eve => Loupe.onDoubleTap(Eve));
+    E.add('bibi:tapped',                                         Eve => Loupe.onTap(Eve, 1));
+    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
+    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped',   Eve => Loupe.onTap(Eve, 3));
     E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
     E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
     E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
@@ -5094,7 +5080,7 @@ U.initialize = () => {
     })();
     if(HashData['#']      ) { Object.assign(_U, _U['#']       = HashData['#']   ); }
     if(HashData['Bibi']   ) { Object.assign(_U, _U['Bibi']    = HashData['Bibi']); }
-    if(HashData['Jo']     ) { Object.assign(_U, _U['Jo']      = HashData['Jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[\,#]jo\([^\)]*\)$/g, '')); }
+    if(HashData['Jo']     ) { Object.assign(_U, _U['Jo']      = HashData['Jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[&#]jo\([^\)]*\)$/g, '')); }
     if(HashData['EPUBCFI']) {                   _U['EPUBCFI'] = HashData['EPUBCFI']; }
     _U['Query'] = {}; for(const Pro in U) {
         if(typeof U[Pro] != 'function') _U['Query'][Pro] = U[Pro];
