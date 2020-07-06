@@ -1010,27 +1010,27 @@ L.loadNavigation = () => O.openDocument(B.Nav.Source).then(Doc => {
             sML.forEach(Nav.getElementsByTagName('*'))(Ele => Ele.removeAttribute('style'));
             NavContent.appendChild(Nav);
         });
-    } else {
-        const makeNavULTree = (Ele) => {
+    } else { // toc.ncx
+        const makeNavOLTree = (Ele) => {
             const ChildNodes = Ele.childNodes;
-            let UL = undefined;
+            let OL = undefined;
             for(let l = ChildNodes.length, i = 0; i < l; i++) {
                 if(ChildNodes[i].nodeType != 1 || !/^navPoint$/i.test(ChildNodes[i].tagName)) continue;
                 const NavPoint = ChildNodes[i];
                 const NavLabel = NavPoint.getElementsByTagName('navLabel')[0];
                 const Content  = NavPoint.getElementsByTagName('content')[0];
                 const Text = NavPoint.getElementsByTagName('text')[0];
-                if(!UL) UL = document.createElement('ul');
+                if(!OL) OL = document.createElement('ol');
                 const LI = sML.create('li', { id: NavPoint.getAttribute('id') }); LI.setAttribute('playorder', NavPoint.getAttribute('playorder'));
                 const A  = sML.create('a', { href: Content.getAttribute('src'), innerHTML: Text.innerHTML.trim() });
-                UL.appendChild(LI).appendChild(A);
-                const ChildUL = makeNavULTree(NavPoint);
-                if(ChildUL) LI.appendChild(ChildUL);
+                OL.appendChild(LI).appendChild(A);
+                const ChildOL = makeNavOLTree(NavPoint);
+                if(ChildOL) LI.appendChild(ChildOL);
             }
-            return UL;
+            return OL;
         };
-        const NavUL = makeNavULTree(Doc.getElementsByTagName('navMap')[0]);
-        if(NavUL) NavContent.appendChild(document.createElement('nav')).appendChild(NavUL);
+        const NavOL = makeNavOLTree(Doc.getElementsByTagName('navMap')[0]);
+        if(NavOL) NavContent.appendChild(document.createElement('nav')).appendChild(NavOL);
     }
     PNav.appendChild(NavContent);
     L.coordinateLinkages(B.Nav.Source.Path, PNav, 'InNav');
