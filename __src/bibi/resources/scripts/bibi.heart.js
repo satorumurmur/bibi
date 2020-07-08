@@ -4265,6 +4265,7 @@ I.Slider = { create: () => {
         },
         onTouchStart: (Eve) => {
             I.ScrollObserver.forceStopScrolling();
+            clearTimeout(Slider.Timer_onTouchEnd);
             Eve.preventDefault();
             Slider.Touching = true;
             Slider.StartedAt = {
@@ -4273,48 +4274,52 @@ I.Slider = { create: () => {
                 MainScrollBefore: Math.ceil(R.Main['scroll' + C.L_OOBL_L]) // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             };
             Slider.StartedAt.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
-            clearTimeout(Slider.Timer_onTouchEnd);
             O.HTML.classList.add('slider-sliding');
+            Slider.onTouchUpdate(Eve);
             E.add('bibi:moved-pointer', Slider.onTouchMove);
         },
-        onTouchMove: (Eve) => {
-            clearTimeout(Slider.Timer_move);
-            const TouchMoveCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
-            if(Slider.Touching) {
-                const Translation = sML.limitMinMax(TouchMoveCoord - Slider.StartedAt.Coord,
+        onTouchUpdate: (Eve) => {
+            Slider.LastEvent = Eve;
+            const TouchingCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
+            Slider.progressTemporarily(TouchingCoord);
+            if(S['flip-pages-during-sliding']) Slider.flipPagesDuringSliding(TouchingCoord);
+        },
+            progressTemporarily: (TouchingCoord) => {
+                const Translation = sML.limitMinMax(TouchingCoord - Slider.StartedAt.Coord,
                     Slider.Edgebar.Before -  Slider.StartedAt.ThumbBefore,
                     Slider.Edgebar.After  - (Slider.StartedAt.ThumbBefore + Slider.Thumb.Length)
                 );
                 sML.style(Slider.Thumb,        { transform: 'translate' + C.A_AXIS_L + '(' + Translation + 'px)' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: (Slider.StartedAt.RailProgressLength + Translation * (S.ARD == 'rtl' ? -1 : 1)) + 'px' });
-            }
-            Slider.flipPagesDuringSliding(TouchMoveCoord);
+            },
+            flipPagesDuringSliding: (TouchingCoord) => {
+                R.DoNotTurn = true; Slider.flip(TouchingCoord);
+                clearTimeout(Slider.Timer_flipPagesDuringSliding);
+                Slider.Timer_flipPagesDuringSliding = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchingCoord, 'TURN-FORCE'); }, 333);
+            },
+        onTouchMove: (Eve) => {
+            if(Eve.buttons === 0) return Slider.onTouchEnd(Slider.LastEvent);
+            Slider.onTouchUpdate(Eve);
         },
-        flipPagesDuringSliding: (_) => (Slider.flipPagesDuringSliding = !S['flip-pages-during-sliding'] ? // switch and define at the first call.
-            () => false :
-            (TouchMoveCoord) => {
-                R.DoNotTurn = true; Slider.flip(TouchMoveCoord);
-                Slider.Timer_move = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchMoveCoord, 'FORCE'); }, 333);
-            }
-        )(_),
         onTouchEnd: (Eve) => {
             if(!Slider.Touching) return;
-            clearTimeout(Slider.Timer_move);
+            clearTimeout(Slider.Timer_flipPagesDuringSliding);
             Slider.Touching = false;
             E.remove('bibi:moved-pointer', Slider.onTouchMove);
             const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
             if(TouchEndCoord == Slider.StartedAt.Coord) Slider.StartedAt.Coord = Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
-            Slider.flip(TouchEndCoord, 'FORCE').then(() => {
+            Slider.flip(TouchEndCoord, 'TURN-FORCE').then(() => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
                 if(Slider.History) Slider.History.add();
             });
             delete Slider.StartedAt;
+            delete Slider.LastEvent;
             Slider.Timer_onTouchEnd = setTimeout(() => O.HTML.classList.remove('slider-sliding'), 123);
         },
-        flip: (TouchedCoord, Force) => new Promise(resolve => { switch(S.RVM) {
+        flip: (TouchedCoord, TurnForce) => new Promise(resolve => { switch(S.RVM) {
             case 'paged':
                 const TargetPage = Slider.getPointedPage(TouchedCoord);
                 return I.PageObserver.Current.Pages.includes(TargetPage) ? resolve() : R.focusOn({ Destination: TargetPage, Duration: 0 }).then(() => resolve());
@@ -4322,7 +4327,7 @@ I.Slider = { create: () => {
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedAt.MainScrollBefore + (TouchedCoord - Slider.StartedAt.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
         } }).then(() => {
-            if(Force) I.PageObserver.turnItems();
+            if(TurnForce) I.PageObserver.turnItems();
         }),
         progress: () => {
             if(Slider.Touching) return;
