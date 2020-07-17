@@ -75,7 +75,7 @@ Bibi.preset({
 
 "content-draggable"          : [true, true], // [<TF>, <TF>]
 "orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
-"orthogonal-edges"           : ["utilities", "utilities"], // [<S1>, <S2>]
+"orthogonal-edge-tappings"   : ["utilities", "utilities"], // [<S1>, <S2>]
 "orthogonal-touch-moves"     : ["move", "switch"], // [<S1>, <S2>]
 "orthogonal-wheelings"       : ["move", "across"], // [<S1>, <S3>]
 //                             ^ Each item of the arrays corresponds to the view mode:

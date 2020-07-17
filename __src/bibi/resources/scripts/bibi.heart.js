@@ -61,7 +61,7 @@ Bibi.SettingTypes = {
     ],
     'array': [
         'content-draggable',
-        'orthogonal-edges',
+        'orthogonal-edge-tappings',
         'orthogonal-arrow-keys',
         'orthogonal-touch-moves',
         'orthogonal-wheelings'
@@ -172,14 +172,14 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'array': (_P, _V, Fill) => {
         if(Array.isArray(_V)) {
             switch(_P) {
-                case 'content-draggable'      : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
-                case 'extensions'             : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
-                case 'extract-if-necessary'   : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
-                case 'orthogonal-arrow-keys'  :
-                case 'orthogonal-edges'       :
-                case 'orthogonal-touch-moves' :
-                case 'orthogonal-wheelings'   : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' ? _V[i] : ''; return _V;
-                case 'trustworthy-origins'    : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
+                case 'content-draggable'        : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
+                case 'extensions'               : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
+                case 'extract-if-necessary'     : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
+                case 'orthogonal-arrow-keys'    :
+                case 'orthogonal-edge-tappings' :
+                case 'orthogonal-touch-moves'   :
+                case 'orthogonal-wheelings'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' ? _V[i] : ''; return _V;
+                case 'trustworthy-origins'      : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
             }
             return _V.filter(_I => typeof _I != 'function');
         }
@@ -2824,18 +2824,15 @@ I.TouchObserver = { create: () => {
     };
     E.bind('bibi:readied',            (    ) => TouchObserver.activateHTML(   O.HTML));
     E.bind('bibi:postprocessed-item', (Item) => TouchObserver.activateHTML(Item.HTML));
-    E.add('bibi:tapped', Eve => { if(I.isPointerStealth()) return false;
+    ['bibi:tapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, Eve => {
+        if(I.isPointerStealth()) return false;
         if(I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
+        if(!L.Opened) return false;
         const BibiEvent = O.getBibiEvent(Eve);
         if(!checkTapAvailability(BibiEvent)) return false;
-        return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:tapped-center', Eve) : E.dispatch('bibi:tapped-not-center', Eve);
-    });
-    E.add('bibi:doubletapped', Eve => { if(I.isPointerStealth() || !L.Opened) return false;
-        if(I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
-        const BibiEvent = O.getBibiEvent(Eve);
-        if(!checkTapAvailability(BibiEvent)) return false;
-        return BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? E.dispatch('bibi:doubletapped-center', Eve) : E.dispatch('bibi:doubletapped-not-center', Eve);
-    });
+        return E.dispatch(EN + (BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? '' : '-not') + '-center', Eve);
+        // ^ 'bibi:tapped-center' / 'bibi:tapped-not-center' || 'bibi:doubletapped-center' / 'bibi:doubletapped-not-center' || 'bibi:tripletapped-center' / 'bibi:tripletapped-not-center'
+    }));
     E.add('bibi:tapped-center', () => I.Utilities.toggleGracefuly());
     E.dispatch('bibi:created-touch-observer');
 }};
@@ -3280,10 +3277,10 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
 I.EdgeObserver = { create: () => {
     const EdgeObserver = I.EdgeObserver = {};
     E.add('bibi:opened', () => {
-        E.add(['bibi:tapped-not-center', 'bibi:doubletapped-not-center'], Eve => {
+        E.add('bibi:tapped-not-center', Eve => {
             if(I.isPointerStealth()) return false;
             const BibiEvent = O.getBibiEvent(Eve);
-            const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
+            const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
             if(Dist) {
                 if(I.Arrows && I.Arrows.areAvailable(BibiEvent)) E.dispatch(I.Arrows[Dist], 'bibi:tapped', Eve);
                 if(I.Flipper.isAbleToFlip(Dist)) I.Flipper.flip(Dist);
@@ -3297,7 +3294,7 @@ I.EdgeObserver = { create: () => {
                 if(I.isPointerStealth()) return false;
                 const BibiEvent = O.getBibiEvent(Eve);
                 if(I.Arrows.areAvailable(BibiEvent)) {
-                    const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edges'), Dist = C.d2d(Dir, Ortho == 'move');
+                    const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist && I.Flipper.isAbleToFlip(Dist)) {
                         EdgeObserver.Hovering = true;
                         if(I.Arrows) {
@@ -4636,7 +4633,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     Arrows[ 1] = Arrows.Back.Pair    = I.Flipper.Forward.Arrow = Arrows.Forward;
     [Arrows.Back, Arrows.Forward].forEach(Arrow => {
         I.setFeedback(Arrow);
-        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap, Arrow.BibiTapObserver.onDoubleTap];
+        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap, Arrow.BibiTapObserver.onDoubleTap, Arrow.BibiTapObserver.onTripleTap];
         if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.BibiHoverObserver.onHover, Arrow.BibiHoverObserver.onUnHover);
         FunctionsToBeCanceled.forEach(f2BC => f2BC = () => {});
     });
