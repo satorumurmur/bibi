@@ -11,7 +11,7 @@ const Jo = window['bibi:jo'] = { 'version': '____Bibi-Version____',
     Loaded: 0,
 };
 
-const BibiEventRE = /^bibi:[a-z][a-z:_\-]*$/;
+const BibiEventRE = /^bibi:[a-z][a-z0-9:_\-]*$/;
 
 
 

@@ -2260,7 +2260,7 @@ I.initialize = () => {
         I.WheelObserver.create();
         I.PinchObserver.create();
         I.KeyObserver.create();
-        I.EdgeObserver.create();
+        I.Matrix.create();
         I.Nombre.create();
         I.Slider.create();
         I.Flipper.create();
@@ -2714,34 +2714,34 @@ I.TouchObserver = { create: () => {
             return Ele;
         },
         observeElementTap: (Ele, Opt = {}) => {
-            if(!Ele.BibiTapObserver) { const TimeLimit = { D2U: 300, U2D: 300 };
+            if(!Ele.BibiTapObserver) {
+                const TimeLimit = { D2U: 300, U2D: 300 };
+                Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(E.aBCD(Eve)));
+                Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(  E.aBCD(Eve)));
                 Ele.BibiTapObserver = {
                     care: Opt.PreventDefault ? (Opt.StopPropagation ? _ => _.preventDefault() || _.stopPropagation() : _ => _.preventDefault()) : (Opt.StopPropagation ? _ => _.stopPropagation() : () => {}),
-                    onPointerDown: function(Eve) {
-                        if((typeof Eve.buttons == 'number' && Eve.buttons !== 1) || Eve.ctrlKey) return true;
-                        this.care(Eve);
+                    onPointerDown: function(BibiEvent) {
+                        if((typeof BibiEvent.buttons == 'number' && BibiEvent.buttons !== 1) || BibiEvent.ctrlKey) return true;
+                        this.care(BibiEvent);
                         clearTimeout(this.Timer_forgetFloating);
                         clearTimeout(this.Timer_fireTap);
-                        const DownTime = Date.now();
-                        this.Touching = { Time: DownTime, Coord: O.getBibiEventCoord(Eve), Event: Eve };
+                        this.Touching = BibiEvent;
                         if(!this.Floating) return;
-                        if((DownTime - this.Floating.Time) < TimeLimit.U2D) {
-                            this.Floating.PreviousTouching.Event.preventDefault();
-                            this.Floating.Event.preventDefault();
-                            Eve.preventDefault();
+                        if((BibiEvent.timeStamp - this.Floating.timeStamp) < TimeLimit.U2D) {
+                            this.Floating.PreviousTouching.preventDefault();
+                            this.Floating.preventDefault();
+                            BibiEvent.preventDefault();
                         } else {
                             delete this.Floating;
                         }
                     },
-                    onPointerUp: function(Eve) {
-                        this.care(Eve);
+                    onPointerUp: function(BibiEvent) {
+                        this.care(BibiEvent);
                         if(!this.Touching) return;
-                        const UpTime = Date.now();
-                        if((UpTime - this.Touching.Time) < TimeLimit.D2U) {
-                            const TouchEndCoord = O.getBibiEventCoord(Eve);
-                            if(Math.abs(TouchEndCoord.X - this.Touching.Coord.X) < 3 && Math.abs(TouchEndCoord.Y - this.Touching.Coord.Y) < 3) {
+                        if((BibiEvent.timeStamp - this.Touching.timeStamp) < TimeLimit.D2U) {
+                            if(Math.abs(BibiEvent.Coord.X - this.Touching.Coord.X) < 3 && Math.abs(BibiEvent.Coord.Y - this.Touching.Coord.Y) < 3) {
                                 let SDT = 0;
-                                const Floating = { Time: UpTime, Event: Eve, PreviousTouching: this.Touching };
+                                const Floating = Object.assign(BibiEvent, { PreviousTouching: this.Touching });
                                 if(!this.Floating) {
                                     SDT = 1;
                                     this.Floating = Object.assign(Floating, { WaitingFor: 2 });
@@ -2751,9 +2751,9 @@ I.TouchObserver = { create: () => {
                                 }
                                 this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; }, TimeLimit.U2D);
                                 this.Timer_fireTap = setTimeout(() => { switch(SDT) {
-                                    case 1: return Ele.BibiTapObserver.onTap(      Eve);
-                                    case 2: return Ele.BibiTapObserver.onDoubleTap(Eve);
-                                    case 3: return Ele.BibiTapObserver.onTripleTap(Eve);
+                                    case 1: return Ele.BibiTapObserver.onTap(      BibiEvent);
+                                    case 2: return Ele.BibiTapObserver.onDoubleTap(BibiEvent);
+                                    case 3: return Ele.BibiTapObserver.onTripleTap(BibiEvent);
                                 }}, TimeLimit.U2D);
                             } else {
                                 delete this.Floating;
@@ -2761,32 +2761,30 @@ I.TouchObserver = { create: () => {
                         }
                         delete this.Touching;
                     },
-                    onTap:       (Eve) => E.dispatch(Ele, 'bibi:tapped'      , Eve),
-                    onDoubleTap: (Eve) => E.dispatch(Ele, 'bibi:doubletapped', Eve),
-                    onTripleTap: (Eve) => E.dispatch(Ele, 'bibi:tripletapped', Eve)
+                    onTap:       (BibiEvent) => E.dispatch(Ele, 'bibi:tapped'      , BibiEvent),
+                    onDoubleTap: (BibiEvent) => E.dispatch(Ele, 'bibi:doubletapped', BibiEvent),
+                    onTripleTap: (BibiEvent) => E.dispatch(Ele, 'bibi:tripletapped', BibiEvent)
                 };
-                Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(Eve));
-                Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(Eve));
             }
             return Ele;
         },
         setElementTapActions: (Ele) => {
             const onTap = (() => { switch(Ele.Type) {
-                case 'toggle': return (Eve) => { if(Ele.UIState == 'disabled') return false;
+                case 'toggle': return () => { if(Ele.UIState == 'disabled') return false;
                     I.setUIState(Ele, Ele.UIState == 'default' ? 'active' : 'default');
                 };
-                case 'radio': return (Eve) => { if(Ele.UIState == 'disabled') return false;
+                case 'radio': return () => { if(Ele.UIState == 'disabled') return false;
                     Ele.ButtonGroup.Buttons.forEach(Button => { if(Button != Ele) I.setUIState(Button, ''); });
                     I.setUIState(Ele, 'active');
                 };
-                default: return (Eve) => { if(Ele.UIState == 'disabled') return false;
+                default: return () => { if(Ele.UIState == 'disabled') return false;
                     I.setUIState(Ele, 'active');
                     clearTimeout(Ele.Timer_deactivate);
                     Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, Ele.UIState == 'disabled' ? 'disabled' : ''), 200);
                 };
             } })();
-            E.add(Ele, 'bibi:tapped', Eve => { if((Ele.isAvailable && !Ele.isAvailable(Eve)) || (Ele.UIState == 'disabled') || (Ele.UIState == 'active' && Ele.Type == 'radio')) return Ele;
-                onTap(Eve);
+            E.add(Ele, 'bibi:tapped', BibiEvent => { if((Ele.isAvailable && !Ele.isAvailable(BibiEvent)) || (Ele.UIState == 'disabled') || (Ele.UIState == 'active' && Ele.Type == 'radio')) return Ele;
+                onTap();
                 if(Ele.hideHelp) Ele.hideHelp();
                 if(Ele.note) setTimeout(Ele.note, 0);
                 return Ele;
@@ -2796,44 +2794,25 @@ I.TouchObserver = { create: () => {
         PointerEventNames: O.TouchOS ? [['touchstart', 'mousedown'], ['touchend', 'mouseup'], ['touchmove', 'mousemove']] : document.onpointermove !== undefined ? ['pointerdown', 'pointerup', 'pointermove'] : ['mousedown', 'mouseup', 'mousemove'],
         PreviousPointerCoord: { X: 0, Y: 0 },
         activateHTML: (HTML) => {
-            TouchObserver.observeElementTap(HTML); const TOPENs = TouchObserver.PointerEventNames;
-            E.add(HTML, 'bibi:tapped',       Eve => E.dispatch('bibi:tapped',         Eve));
-            E.add(HTML, 'bibi:doubletapped', Eve => E.dispatch('bibi:doubletapped',   Eve)); //HTML.ownerDocument.addEventListener('dblclick', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
-            E.add(HTML, 'bibi:tripletapped', Eve => E.dispatch('bibi:tripletapped',   Eve));
-            E.add(HTML, TOPENs[0],           Eve => E.dispatch('bibi:downed-pointer', Eve), E.Cpt1Psv0);
-            E.add(HTML, TOPENs[1],           Eve => E.dispatch('bibi:upped-pointer',  Eve), E.Cpt1Psv0);
-            E.add(HTML, TOPENs[2],           Eve => {
-                const CC = O.getBibiEventCoord(Eve), PC = TouchObserver.PreviousPointerCoord;
-                E.dispatch((PC.X != CC.X || PC.Y != CC.Y) ? 'bibi:moved-pointer' : 'bibi:stopped-pointer', Eve);
+            TouchObserver.observeElementTap(HTML);
+            E.add(HTML, 'bibi:tapped',       BibiEvent => E.dispatch('bibi:tapped',       BibiEvent));
+            E.add(HTML, 'bibi:doubletapped', BibiEvent => E.dispatch('bibi:doubletapped', BibiEvent)); //HTML.ownerDocument.addEventListener('dblclick', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
+            E.add(HTML, 'bibi:tripletapped', BibiEvent => E.dispatch('bibi:tripletapped', BibiEvent));
+            const TOPENs = TouchObserver.PointerEventNames;
+            E.add(HTML, TOPENs[0], Eve => E.dispatch('bibi:downed-pointer', E.aBCD(Eve)), E.Cpt1Psv0);
+            E.add(HTML, TOPENs[1], Eve => E.dispatch('bibi:upped-pointer',  E.aBCD(Eve)), E.Cpt1Psv0);
+            E.add(HTML, TOPENs[2], Eve => {
+                const BibiEvent = E.aBCD(Eve);
+                const CC = BibiEvent.Coord, PC = TouchObserver.PreviousPointerCoord;
+                E.dispatch((PC.X != CC.X || PC.Y != CC.Y) ? 'bibi:moved-pointer' : 'bibi:stopped-pointer', BibiEvent);
                 TouchObserver.PreviousPointerCoord = CC;
                 //Eve.preventDefault();
                 Eve.stopPropagation();
             }, E.Cpt1Psv0);
         }
     }
-    const checkTapAvailability = (BibiEvent) => {
-        switch(S.RVM) {
-            case 'horizontal': if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; else break;
-            case 'vertical':   if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; else break;
-        }
-        if(BibiEvent.Target.ownerDocument) {
-            if(O.isPointableContent(BibiEvent.Target)) return false;
-            if(I.Slider.ownerDocument && (BibiEvent.Target == I.Slider || I.Slider.contains(BibiEvent.Target))) return false;
-        }
-        return true;
-    };
     E.bind('bibi:readied',            (    ) => TouchObserver.activateHTML(   O.HTML));
     E.bind('bibi:postprocessed-item', (Item) => TouchObserver.activateHTML(Item.HTML));
-    ['bibi:tapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, Eve => {
-        if(I.isPointerStealth()) return false;
-        if(I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
-        if(!L.Opened) return false;
-        const BibiEvent = O.getBibiEvent(Eve);
-        if(!checkTapAvailability(BibiEvent)) return false;
-        return E.dispatch(EN + (BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle' ? '' : '-not') + '-center', Eve);
-        // ^ 'bibi:tapped-center' / 'bibi:tapped-not-center' || 'bibi:doubletapped-center' / 'bibi:doubletapped-not-center' || 'bibi:tripletapped-center' / 'bibi:tripletapped-not-center'
-    }));
-    E.add('bibi:tapped-center', () => I.Utilities.toggleGracefuly());
     E.dispatch('bibi:created-touch-observer');
 }};
 
@@ -2842,23 +2821,22 @@ I.FlickObserver = { create: () => {
     const FlickObserver = I.FlickObserver = {
         Moving: 0,
         getDegree: (_) => (Deg => Deg < 0 ? Deg + 360 : Deg)(Math.atan2(_.Y * -1, _.X) * 180 / Math.PI),
-        onTouchStart: (Eve) => {
+        onTouchStart: (BibiEvent) => {
             if(!L.Opened) return;
             //if(S.RVM != 'paged' && O.TouchOS) return;
             if(FlickObserver.LastEvent) return FlickObserver.onTouchEnd();
             if(I.Loupe.Transforming) return;
-            FlickObserver.LastEvent = Eve;
-            const EventCoord = O.getBibiEventCoord(Eve);
+            FlickObserver.LastEvent = BibiEvent;
             FlickObserver.StartedAt = {
-                X: EventCoord.X,
-                Y: EventCoord.Y,
-                Item: Eve.target.ownerDocument.body.Item || null,
-                TimeStamp: Eve.timeStamp,
+                X: BibiEvent.Coord.X,
+                Y: BibiEvent.Coord.Y,
+                Item: BibiEvent.target.ownerDocument.body.Item || null,
+                TimeStamp: BibiEvent.timeStamp,
                 ScrollLeft: R.Main.scrollLeft,
                 ScrollTop: R.Main.scrollTop,
                 OriginList: I.PageObserver.updateCurrent().List
             };
-            //Eve.preventDefault();
+            //BibiEvent.preventDefault();
             E.add('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.add('bibi:upped-pointer', FlickObserver.onTouchEnd);
         },
@@ -2869,18 +2847,17 @@ I.FlickObserver = { create: () => {
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
             FlickObserver.Moving = 0;
         },
-        onTouchMove: (Eve) => {
-            //if(Eve.touches && Eve.touches.length == 1 && O.getViewportZooming() <= 1) Eve.preventDefault();
+        onTouchMove: (BibiEvent) => {
+            //if(BibiEvent.touches && BibiEvent.touches.length == 1 && O.getViewportZooming() <= 1) BibiEvent.preventDefault();
             I.ScrollObserver.breakCurrentScrolling();
             if(FlickObserver.StartedAt) {
                 if(!FlickObserver.Moving) {
-                    const TimeFromTouchStarted = Eve.timeStamp - FlickObserver.StartedAt.TimeStamp;
-                    if(!O.TouchOS && (Eve.type == 'mousemove' || Eve.pointerType == 'mouse')) { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
-                    else                                                                      { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
-                    FlickObserver.StartedAt.TimeStamp = Eve.timeStamp;
+                    const TimeFromTouchStarted = BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp;
+                    if(!O.TouchOS && (BibiEvent.type == 'mousemove' || BibiEvent.pointerType == 'mouse')) { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
+                    else                                                                                  { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
+                    FlickObserver.StartedAt.TimeStamp = BibiEvent.timeStamp;
                 }
-                const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
+                const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
                 if(++FlickObserver.Moving <= 3) {
                     const Deg = FlickObserver.getDegree(Passage);
                     FlickObserver.StartedAt.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
@@ -2890,27 +2867,26 @@ I.FlickObserver = { create: () => {
                     // Orthogonal
                 } else {
                     // Natural
-                    if(S.RVM != 'paged' && Eve.type == 'touchmove') return FlickObserver.cancel();
+                    if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return FlickObserver.cancel();
                     if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
                 }
-                Eve.preventDefault();
+                BibiEvent.preventDefault();
                 if(FlickObserver.StartedAt.Item) {
                     FlickObserver.StartedAt.Item.HTML.classList.add('bibi-flick-hot');
                     FlickObserver.StartedAt.Item.contentWindow.getSelection().empty();
                 }
-                FlickObserver.LastEvent = Eve;
-                if(EventCoord[C.A_AXIS_L] <= 0 || EventCoord[C.A_AXIS_L] >= R.Stage[C.A_SIZE_L] || EventCoord[C.A_AXIS_B] <= 0 || EventCoord[C.A_AXIS_B] >= R.Stage[C.A_SIZE_B]) return FlickObserver.onTouchEnd(Eve, { Swipe: true });
+                FlickObserver.LastEvent = BibiEvent;
+                if(BibiEvent.Coord[C.A_AXIS_L] <= 0 || BibiEvent.Coord[C.A_AXIS_L] >= R.Stage[C.A_SIZE_L] || BibiEvent.Coord[C.A_AXIS_B] <= 0 || BibiEvent.Coord[C.A_AXIS_B] >= R.Stage[C.A_SIZE_B]) return FlickObserver.onTouchEnd(BibiEvent, { Swipe: true });
             }
         },
-        onTouchEnd: (Eve, Opt) => {
-            if(!Eve) Eve = FlickObserver.LastEvent;
+        onTouchEnd: (BibiEvent, Opt) => {
+            if(!BibiEvent) BibiEvent = FlickObserver.LastEvent;
             E.remove('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
             FlickObserver.Moving = 0;
             let cb = undefined, Par = {};
             if(FlickObserver.StartedAt) {
-                const EventCoord = O.getBibiEventCoord(Eve);
-                const Passage = { X: EventCoord.X - FlickObserver.StartedAt.X, Y: EventCoord.Y - FlickObserver.StartedAt.Y };
+                const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
                 if(FlickObserver.StartedAt.Item) FlickObserver.StartedAt.Item.HTML.classList.remove('bibi-flick-hot');
                 if(!I.Loupe.Transforming) {
                     if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
@@ -2919,10 +2895,10 @@ I.FlickObserver = { create: () => {
                     }
                     if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
                         // Moved (== not Tap)
-                        Eve.preventDefault();
-                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp);
+                        BibiEvent.preventDefault();
+                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp);
                         Par.Deg = FlickObserver.getDegree(Passage);
-                        if(O.getViewportZooming() <= 1 && (Eve.timeStamp - FlickObserver.StartedAt.TimeStamp) <= 300) {
+                        if(O.getViewportZooming() <= 1 && (BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp) <= 300) {
                             Par.OriginList = FlickObserver.StartedAt.OriginList;
                             cb = (Opt && Opt.Swipe) ? FlickObserver.onSwipe : FlickObserver.onFlick;
                         } else if(I.isScrollable()) {
@@ -2936,9 +2912,9 @@ I.FlickObserver = { create: () => {
                 delete FlickObserver.StartedAt;
             }
             delete FlickObserver.LastEvent;
-            return (cb ? cb(Eve, Par) : Promise.resolve());
+            return (cb ? cb(BibiEvent, Par) : Promise.resolve());
         },
-        onFlick: (Eve, Par) => {
+        onFlick: (BibiEvent, Par) => {
             if(S.RVM != 'paged' && !S['content-draggable'][S.RVM == 'paged' ? 0 : 1]) return Promise.resolve();
             if(typeof Par.Deg != 'number') return Promise.resolve();
             const Deg = Par.Deg;
@@ -2970,8 +2946,8 @@ I.FlickObserver = { create: () => {
                 });
             }
         },
-        onSwipe: (Eve, Par) => FlickObserver.onFlick(Eve, Par),
-        onPanRelease: (Eve, Par) => {
+        onSwipe: (BibiEvent, Par) => FlickObserver.onFlick(BibiEvent, Par),
+        onPanRelease: (BibiEvent, Par) => {
             if(S.RVM != 'paged' || !S['content-draggable'][0]) return Promise.resolve(); // Only for Paged View ====
             const Deg = Par.Deg;
             const Dir = (270 <  Deg || Deg <   90) ? 'left'  /* to right */ :
@@ -2989,13 +2965,13 @@ I.FlickObserver = { create: () => {
         } },
         getCNPf: (Ele) => Ele.ownerDocument == document ? '' : 'bibi-',
         activateElement: (Ele) => { if(!Ele) return false;
-            Ele.addEventListener(E['pointerdown'], FlickObserver.onTouchStart, E.Cpt1Psv0);
+            Ele.addEventListener(E['pointerdown'], Eve => FlickObserver.onTouchStart(E.aBCD(Eve)), E.Cpt1Psv0);
             const CNPf = FlickObserver.getCNPf(Ele);
-            /**/                             Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-active');
+            /**/                 Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-active');
             if(I.isScrollable()) Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-scrollable');
         },
         deactivateElement: (Ele) => { if(!Ele) return false;
-            Ele.removeEventListener(E['pointerdown'], FlickObserver.onTouchStart, E.Cpt1Psv0);
+            Ele.removeEventListener(E['pointerdown'], Eve => FlickObserver.onTouchStart(E.aBCD(Eve)), E.Cpt1Psv0);
             const CNPf = FlickObserver.getCNPf(Ele);
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-active');
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-scrollable');
@@ -3245,7 +3221,7 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             Eve.preventDefault();
             switch(typeof KeyParameter) {
                 case 'number': if(I.Flipper.isAbleToFlip(KeyParameter)) {
-                    if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:tapped', Eve);
+                    if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:tapped');
                     I.Flipper.flip(KeyParameter);
                 } break;
                 case 'string': switch(KeyParameter) {
@@ -3274,55 +3250,148 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
 }};
 
 
-I.EdgeObserver = { create: () => {
-    const EdgeObserver = I.EdgeObserver = {};
-    E.add('bibi:opened', () => {
-        E.add('bibi:tapped-not-center', Eve => {
-            if(I.isPointerStealth()) return false;
-            const BibiEvent = O.getBibiEvent(Eve);
-            const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
-            if(Dist) {
-                if(I.Arrows && I.Arrows.areAvailable(BibiEvent)) E.dispatch(I.Arrows[Dist], 'bibi:tapped', Eve);
-                if(I.Flipper.isAbleToFlip(Dist)) I.Flipper.flip(Dist);
-            } else if(typeof C.DDD[Dir] == 'string') switch(Ortho) {
-                case 'utilities': I.Utilities.toggleGracefuly(); break;
-                case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
+I.Matrix = { create: () => {
+    const Matrix = I.Matrix = {
+        checkTapAvailability: (BibiEvent) => {
+            switch(S.RVM) {
+                case 'horizontal': if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; else break;
+                case 'vertical':   if(BibiEvent.Coord.X > window.innerWidth  - O.Scrollbars.Width)  return false; else break;
             }
-        });
-        if(!O.TouchOS) {
-            E.add('bibi:moved-pointer', Eve => {
+            if(BibiEvent.target.ownerDocument) {
+                if(O.isPointableContent(BibiEvent.target)) return false;
+                if(I.Slider.ownerDocument && (BibiEvent.target == I.Slider || I.Slider.contains(BibiEvent.target))) return false;
+            }
+            return true;
+        },
+        checkFlipperAvailability: (BibiEvent) => {
+            if(!L.Opened) return false;
+            if(I.OpenedSubpanel) return false;
+            if(I.Panel && I.Panel.UIState == 'active') return false;
+            //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
+            const Buf = 3;
+                 if(BibiEvent.Coord.X <= Buf || BibiEvent.Coord.Y <= Buf) return false;
+            else if(S.ARA == 'horizontal') { if(BibiEvent.Coord.X >= window.innerWidth  - Buf || BibiEvent.Coord.Y >= window.innerHeight - O.Scrollbars.Height - Buf) return false; }
+            else if(S.ARA == 'vertical'  ) { if(BibiEvent.Coord.Y >= window.innerHeight - Buf || BibiEvent.Coord.X >= window.innerWidth  - O.Scrollbars.Width  - Buf) return false; }
+            if(BibiEvent.target.ownerDocument.documentElement == O.HTML) {
+                if(BibiEvent.target == O.HTML || BibiEvent.target == O.Body || BibiEvent.target == I.Menu) return true;
+                if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.target.id)) return true;
+                if(/^(spread|item|page)( |-|$)/.test(BibiEvent.target.className)) return true;
+            } else {
+                return O.isPointableContent(BibiEvent.target) ? false : true;
+            }
+            return false;
+        },
+        getDirection: (BibiEvent) => { switch(S.ARA) {
+            case 'horizontal': return BibiEvent.Division.X != 'center' ? BibiEvent.Division.X : BibiEvent.Division.Y;
+            case 'vertical'  : return BibiEvent.Division.Y != 'middle' ? BibiEvent.Division.Y : BibiEvent.Division.X;
+        } },
+    };
+    ['bibi:tapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, BibiEvent => {
+        if(I.isPointerStealth()) return false;
+        if(I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
+        if(!L.Opened) return false;
+        if(!Matrix.checkTapAvailability(BibiEvent)) return false;
+        E.dispatch(EN + '-book', BibiEvent);
+        // ^ 'bibi:tapped-division' || 'bibi:doubletapped-division' || 'bibi:tripletapped-division'
+    }));
+    { // Both (O.TouchOS || !O.TouchOS)
+        E.add('bibi:opened', () => {
+            E.add('bibi:tapped-book', BibiEvent => {
                 if(I.isPointerStealth()) return false;
-                const BibiEvent = O.getBibiEvent(Eve);
-                if(I.Arrows.areAvailable(BibiEvent)) {
-                    const Dir = I.Flipper.getDirection(BibiEvent.Division), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
-                    if(Dist && I.Flipper.isAbleToFlip(Dist)) {
-                        EdgeObserver.Hovering = true;
-                        if(I.Arrows) {
-                            const Arrow = I.Arrows[Dist];
-                            E.dispatch(Arrow,      'bibi:hovered',   Eve);
-                            E.dispatch(Arrow.Pair, 'bibi:unhovered', Eve);
+                if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
+                if(Matrix.checkFlipperAvailability(BibiEvent)) {
+                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
+                    if(Dist) {
+                        if(I.Flipper.isAbleToFlip(Dist)) {
+                            I.Flipper.flip(Dist);
+                            if(I.Arrows) E.dispatch(I.Arrows[Dist], 'bibi:tapped');
                         }
-                        const HoveringHTML = BibiEvent.Target.ownerDocument.documentElement;
-                        if(EdgeObserver.HoveringHTML != HoveringHTML) {
-                            if(EdgeObserver.HoveringHTML) EdgeObserver.HoveringHTML.removeAttribute('data-bibi-cursor');
-                            (EdgeObserver.HoveringHTML = HoveringHTML).setAttribute('data-bibi-cursor', Dir);
-                        }
-                        return;
+                    } else if(typeof C.DDD[Dir] == 'string') switch(Ortho) {
+                        case 'utilities': I.Utilities.toggleGracefuly(); break;
+                        case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
                     }
                 }
-                if(EdgeObserver.Hovering) {
-                    EdgeObserver.Hovering = false;
-                    if(I.Arrows) E.dispatch([I.Arrows.Back, I.Arrows.Forward], 'bibi:unhovered', Eve);
-                    if(EdgeObserver.HoveringHTML) EdgeObserver.HoveringHTML.removeAttribute('data-bibi-cursor'), EdgeObserver.HoveringHTML = null;
+            });
+        });
+    }
+    if(!O.TouchOS) {
+        E.add('bibi:opened', () => {
+            E.add('bibi:moved-pointer', BibiEvent => {
+                if(I.isPointerStealth()) return false;
+                if(Matrix.checkFlipperAvailability(BibiEvent)) {
+                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
+                    if(Dist) {
+                        if(I.Flipper.isAbleToFlip(Dist)) {
+                            Matrix.Hovering = true;
+                            if(I.Arrows) {
+                                const Arrow = I.Arrows[Dist];
+                                E.dispatch(Arrow,      'bibi:hovered',   BibiEvent);
+                                E.dispatch(Arrow.Pair, 'bibi:unhovered', BibiEvent);
+                            }
+                            const HoveringHTML = BibiEvent.target.ownerDocument.documentElement;
+                            if(Matrix.HoveringHTML != HoveringHTML) {
+                                if(Matrix.HoveringHTML) Matrix.HoveringHTML.removeAttribute('data-bibi-cursor');
+                                (Matrix.HoveringHTML = HoveringHTML).setAttribute('data-bibi-cursor', Dir);
+                            }
+                            return;
+                        }
+                    }
+                }
+                if(Matrix.Hovering) {
+                    Matrix.Hovering = false;
+                    if(I.Arrows) E.dispatch([I.Arrows.Back, I.Arrows.Forward], 'bibi:unhovered', BibiEvent);
+                    if(Matrix.HoveringHTML) Matrix.HoveringHTML.removeAttribute('data-bibi-cursor'), Matrix.HoveringHTML = null;
                 }
             });
             sML.forEach(O.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault));
-        }
-    });
-    if(!O.TouchOS) {
-        E.add('bibi:loaded-item', Item => sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault)));
+        });
+        E.add('bibi:loaded-item', Item => {/*
+            sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="left"]',   'cursor: w-resize;');
+            sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="right"]',  'cursor: e-resize;');
+            sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="top"]',    'cursor: n-resize;');
+            sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="bottom"]', 'cursor: s-resize;');*/
+            sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor]', 'cursor: pointer;');
+            sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault))
+        });
     }
-    E.dispatch('bibi:created-edge-observer');
+    E.dispatch('bibi:created-boundary-observer');
+}};
+
+
+I.Flipper = { create: () => {
+    const Flipper = I.Flipper = {
+        PreviousDistance: 0,
+        Back: { Distance: -1 }, Forward: { Distance: 1 },
+        isAbleToFlip: (Distance) => {
+            if(L.Opened && !I.OpenedSubpanel && typeof (Distance * 1) == 'number' && Distance) {
+                if(!I.PageObserver.Current.List.length) I.PageObserver.updateCurrent();
+                if(I.PageObserver.Current.List.length) {
+                    let CurrentEdge, BookEdgePage, Edged;
+                    if(Distance < 0) CurrentEdge = I.PageObserver.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed';
+                    else             CurrentEdge = I.PageObserver.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed';
+                    if(CurrentEdge.Page != BookEdgePage) return true;
+                    if(!CurrentEdge.PageIntersectionStatus.Contained && !CurrentEdge.PageIntersectionStatus[Edged]) return true;
+                }
+            }
+            return false;
+        },
+        flip: (Distance, Opt = {}) => {
+            if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
+            I.ScrollObserver.forceStopScrolling();
+            const SumUpHistory = (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1));
+            Flipper.PreviousDistance = Distance;
+            if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
+                const CIs = [
+                    I.PageObserver.Current.List[          0].Page.Index,
+                    I.PageObserver.Current.List.slice(-1)[0].Page.Index
+                ], TI = CIs[Distance < 0 ? 0 : 1] + Distance;
+                CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
+                                    try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
+            }
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }));
+        }
+    };
+    Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
 }};
 
 
@@ -3471,14 +3540,13 @@ I.Menu = { create: () => {
         Menu.addEventListener('pointerover', console.log);
     }*/
     if(!O.TouchOS) E.add('bibi:opened', () => {
-        E.add('bibi:moved-pointer', Eve => {
+        E.add('bibi:moved-pointer', BibiEvent => {
             if(I.isPointerStealth()) return false;
-            const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(Menu.Timer_close);
             if(BibiEvent.Division.Y == 'top') { //if(BibiEvent.Coord.Y < Menu.Height * 1.5) {
-                E.dispatch(Menu, 'bibi:hovered', Eve);
+                E.dispatch(Menu, 'bibi:hovered', BibiEvent);
             } else if(Menu.Hover) {
-                Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovered', Eve), 123);
+                Menu.Timer_close = setTimeout(() => E.dispatch(Menu, 'bibi:unhovered', BibiEvent), 123);
             }
         });
     });
@@ -4014,48 +4082,45 @@ I.Loupe = { create: () => {
             //if(S.BRL == 'reflowable') return false;
             return true;
         },
-        checkAndGetBibiEventForTaps: (Eve) => {
-            if(!Eve || !Loupe.isAvailable()) return null;
-            const BibiEvent = O.getBibiEvent(Eve);
-            if(BibiEvent.Target.tagName) {
-                if(/bibi-menu|bibi-slider/.test(BibiEvent.Target.id)) return null;
-                if(O.isPointableContent(BibiEvent.Target)) return null;
-                if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return null;
+        checkBibiEventForTaps: (BibiEvent) => {
+            if(!BibiEvent || !Loupe.isAvailable()) return false;
+            if(BibiEvent.target.tagName) {
+                if(/bibi-menu|bibi-slider/.test(BibiEvent.target.id)) return false;
+                if(O.isPointableContent(BibiEvent.target)) return false;
+                if(S.RVM == 'horizontal' && BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false;
             }
-            return BibiEvent;
+            return true;
         },
-        onTap: (Eve, HowManyTaps) => {
+        onTap: (BibiEvent, HowManyTaps) => {
             if(HowManyTaps == 1 && (!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space'])) return Promise.resolve(); // Requires pressing space-key on single-tap.
-            const BibiEvent = Loupe.checkAndGetBibiEventForTaps(Eve);
-            if(!BibiEvent) return Promise.resolve();
+            if(!Loupe.checkBibiEventForTaps(BibiEvent)) return Promise.resolve();
             //if(HowManyTaps > 1 && (BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle')) return Promise.resolve();
-            Eve.preventDefault();
-            try { Eve.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
-            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !Eve.shiftKey) return Loupe.scale(1);
-            return Loupe.scale(Loupe.CurrentTransformation.Scale * (Eve.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
+            BibiEvent.preventDefault();
+            try { BibiEvent.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
+            if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !BibiEvent.shiftKey) return Loupe.scale(1);
+            return Loupe.scale(Loupe.CurrentTransformation.Scale * (BibiEvent.shiftKey ? 1 / S['loupe-scale-per-step'] : S['loupe-scale-per-step']), { Center: BibiEvent.Coord });
         },
-        onPointerDown: (Eve) => {
-            Loupe.PointerDownCoord = O.getBibiEvent(Eve).Coord;
+        onPointerDown: (BibiEvent) => {
+            Loupe.PointerDownCoord = BibiEvent.Coord;
             Loupe.PointerDownTransformation = {
                 Scale: Loupe.CurrentTransformation.Scale,
                 TranslateX: Loupe.CurrentTransformation.TranslateX,
                 TranslateY: Loupe.CurrentTransformation.TranslateY
             };
         },
-        onPointerUp: (Eve) => {
+        onPointerUp: (BibiEvent) => {
             O.HTML.classList.remove('dragging');
             Loupe.Dragging = false;
             delete Loupe.PointerDownCoord;
             delete Loupe.PointerDownTransformation;
         },
-        onPointerMove: (Eve) => {
+        onPointerMove: (BibiEvent) => {
             if(I.PinchObserver.Hot) return false;
             if(!Loupe.isAvailable()) return false;
             if(Loupe.CurrentTransformation.Scale == 1 || !Loupe.PointerDownCoord) return false;
-            Eve.preventDefault();
+            BibiEvent.preventDefault();
             Loupe.Dragging = true;
             O.HTML.classList.add('dragging');
-            const BibiEvent = O.getBibiEvent(Eve);
             clearTimeout(Loupe.Timer_TransitionRestore);
             sML.style(R.Main, { transition: 'none' }, { cursor: 'move' });
             Loupe.transform({
@@ -4085,12 +4150,12 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',                                         Eve => Loupe.onTap(Eve, 1));
-    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped',   Eve => Loupe.onTap(Eve, 2));
-    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped',   Eve => Loupe.onTap(Eve, 3));
-    E.add('bibi:downed-pointer', Eve => Loupe.onPointerDown(Eve));
-    E.add('bibi:upped-pointer',  Eve => Loupe.onPointerUp(Eve));
-    E.add('bibi:moved-pointer',  Eve => Loupe.onPointerMove(Eve));
+    E.add('bibi:tapped',                                       BibiEvent => Loupe.onTap(BibiEvent, 1));
+    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped', BibiEvent => Loupe.onTap(BibiEvent, 2));
+    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped', BibiEvent => Loupe.onTap(BibiEvent, 3));
+    E.add('bibi:downed-pointer',                               BibiEvent => Loupe.onPointerDown(BibiEvent));
+    E.add('bibi:upped-pointer',                                BibiEvent => Loupe.onPointerUp(BibiEvent));
+    E.add('bibi:moved-pointer',                                BibiEvent => Loupe.onPointerMove(BibiEvent));
     if(S['zoom-out-for-utilities']) {
         E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true ));
         E.add('bibi:closes-utilities', () => Loupe.transformForUtilities(false));
@@ -4241,7 +4306,7 @@ I.Slider = { create: () => {
                 I.History.Updaters.push(() => Slider.History.Button.update());
             }
             if(S['use-nombre']) {
-                E.add(Slider.Edgebar, ['mouseover', 'mousemove'], Eve => { if(!Slider.Touching) I.Nombre.progress({ List: [{ Page: Slider.getPointedPage(O.getBibiEventCoord(Eve)[C.A_AXIS_L]) }] }); });
+                E.add(Slider.Edgebar, ['mouseover', 'mousemove'], Eve => { if(!Slider.Touching) I.Nombre.progress({ List: [{ Page: Slider.getPointedPage(E.aBCD(Eve).Coord[C.A_AXIS_L]) }] }); });
                 E.add(Slider.Edgebar,  'mouseout',                Eve => { if(!Slider.Touching) I.Nombre.progress(); });
             }
         },
@@ -4260,24 +4325,24 @@ I.Slider = { create: () => {
             Slider.RailGroove.After  = Slider.RailGroove.Before + Slider.RailGroove.Length;
                  Slider.Thumb.Length = Slider.Thumb['offset' + C.A_SIZE_L];
         },
-        onTouchStart: (Eve) => {
+        onTouchStart: (BibiEvent) => {
             I.ScrollObserver.forceStopScrolling();
             clearTimeout(Slider.Timer_onTouchEnd);
-            Eve.preventDefault();
+            BibiEvent.preventDefault();
             Slider.Touching = true;
             Slider.StartedAt = {
                 ThumbBefore: O.getElementCoord(Slider.Thumb)[C.A_AXIS_L],
                 RailProgressLength: Slider.RailProgress['offset' + C.A_SIZE_L],
                 MainScrollBefore: Math.ceil(R.Main['scroll' + C.L_OOBL_L]) // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
             };
-            Slider.StartedAt.Coord = Eve.target == Slider.Thumb ? O.getBibiEventCoord(Eve)[C.A_AXIS_L] : Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
+            Slider.StartedAt.Coord = BibiEvent.target == Slider.Thumb ? BibiEvent.Coord[C.A_AXIS_L] : Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2; // ← ? <Move Thumb naturally> : <Bring Thumb's center to the touched coord at the next pointer moving>
             O.HTML.classList.add('slider-sliding');
-            Slider.onTouchUpdate(Eve);
+            Slider.onTouchUpdate(BibiEvent);
             E.add('bibi:moved-pointer', Slider.onTouchMove);
         },
-        onTouchUpdate: (Eve) => {
-            Slider.LastEvent = Eve;
-            const TouchingCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
+        onTouchUpdate: (BibiEvent) => {
+            Slider.LastEvent = BibiEvent;
+            const TouchingCoord = BibiEvent.Coord[C.A_AXIS_L];
             Slider.progressTemporarily(TouchingCoord);
             if(S['flip-pages-during-sliding']) Slider.flipPagesDuringSliding(TouchingCoord);
         },
@@ -4294,16 +4359,16 @@ I.Slider = { create: () => {
                 clearTimeout(Slider.Timer_flipPagesDuringSliding);
                 Slider.Timer_flipPagesDuringSliding = setTimeout(() => { R.DoNotTurn = false; Slider.flip(TouchingCoord, 'TURN-FORCE'); }, 333);
             },
-        onTouchMove: (Eve) => {
-            if(Eve.buttons === 0) return Slider.onTouchEnd(Slider.LastEvent);
-            Slider.onTouchUpdate(Eve);
+        onTouchMove: (BibiEvent) => {
+            if(BibiEvent.buttons === 0) return Slider.onTouchEnd(Slider.LastEvent);
+            Slider.onTouchUpdate(BibiEvent);
         },
-        onTouchEnd: (Eve) => {
+        onTouchEnd: (BibiEvent) => {
             if(!Slider.Touching) return;
             clearTimeout(Slider.Timer_flipPagesDuringSliding);
             Slider.Touching = false;
             E.remove('bibi:moved-pointer', Slider.onTouchMove);
-            const TouchEndCoord = O.getBibiEventCoord(Eve)[C.A_AXIS_L];
+            const TouchEndCoord = BibiEvent.Coord[C.A_AXIS_L];
             if(TouchEndCoord == Slider.StartedAt.Coord) Slider.StartedAt.Coord = Slider.StartedAt.ThumbBefore + Slider.Thumb.Length / 2;
             R.DoNotTurn = false;
             Slider.flip(TouchEndCoord, 'TURN-FORCE').then(() => {
@@ -4377,10 +4442,12 @@ I.Slider = { create: () => {
     E.add('bibi:closes-utilities',  Opt => E.dispatch('bibi:commands:close-slider',  Opt));
     E.add('bibi:loaded-item', Item => Item.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd));
     E.add('bibi:opened', () => {
-        Slider.Edgebar.addEventListener(E['pointerdown'], Slider.onTouchStart);
-        Slider.Thumb.addEventListener(E['pointerdown'], Slider.onTouchStart);
-        O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
-        if(Slider.History) Slider.History.Button.addEventListener(E['pointerup'], Slider.onTouchEnd);
+        E.add('bibi:downed-pointer', BibiEvent => [Slider.Edgebar, Slider.Thumb].includes(BibiEvent.target) ? Slider.onTouchStart(BibiEvent) : false);
+        //Slider.Edgebar.addEventListener(E['pointerdown'], Slider.onTouchStart);
+        //Slider.Thumb.addEventListener(E['pointerdown'], Slider.onTouchStart);
+        E.add('bibi:upped-pointer', BibiEvent => Slider.onTouchEnd(BibiEvent));
+        //O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
+        //if(Slider.History) Slider.History.Button.addEventListener(E['pointerup'], Slider.onTouchEnd);
         E.add(['bibi:is-scrolling', 'bibi:scrolled'], Slider.progress);
         Slider.progress();
     });
@@ -4556,46 +4623,6 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
 }};
 
 
-I.Flipper = { create: () => {
-    const Flipper = I.Flipper = {
-        PreviousDistance: 0,
-        Back: { Distance: -1 }, Forward: { Distance: 1 },
-        getDirection: (Division) => { switch(S.ARA) {
-            case 'horizontal': return Division.X != 'center' ? Division.X : Division.Y;
-            case 'vertical'  : return Division.Y != 'middle' ? Division.Y : Division.X; } },
-        isAbleToFlip: (Distance) => {
-            if(L.Opened && !I.OpenedSubpanel && typeof (Distance * 1) == 'number' && Distance) {
-                if(!I.PageObserver.Current.List.length) I.PageObserver.updateCurrent();
-                if(I.PageObserver.Current.List.length) {
-                    let CurrentEdge, BookEdgePage, Edged;
-                    if(Distance < 0) CurrentEdge = I.PageObserver.Current.List[          0], BookEdgePage = R.Pages[          0], Edged = 'Headed';
-                    else             CurrentEdge = I.PageObserver.Current.List.slice(-1)[0], BookEdgePage = R.Pages.slice(-1)[0], Edged = 'Footed';
-                    if(CurrentEdge.Page != BookEdgePage) return true;
-                    if(!CurrentEdge.PageIntersectionStatus.Contained && !CurrentEdge.PageIntersectionStatus[Edged]) return true;
-                }
-            }
-            return false;
-        },
-        flip: (Distance, Opt = {}) => {
-            if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
-            I.ScrollObserver.forceStopScrolling();
-            const SumUpHistory = (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1));
-            Flipper.PreviousDistance = Distance;
-            if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
-                const CIs = [
-                    I.PageObserver.Current.List[          0].Page.Index,
-                    I.PageObserver.Current.List.slice(-1)[0].Page.Index
-                ], TI = CIs[Distance < 0 ? 0 : 1] + Distance;
-                CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
-                                    try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
-            }
-            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }));
-        }
-    };
-    Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
-}};
-
-
 I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     const Arrows = I.Arrows = {
         navigate: () => setTimeout(() => {
@@ -4606,25 +4633,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
             const Availability = I.Flipper.isAbleToFlip(Arrow.Distance);
             Arrow.classList.toggle(  'available',  Availability);
             Arrow.classList.toggle('unavailable', !Availability);
-        }),
-        areAvailable: (BibiEvent) => {
-            if(!L.Opened) return false;
-            if(I.OpenedSubpanel) return false;
-            if(I.Panel && I.Panel.UIState == 'active') return false;
-            //if(BibiEvent.Coord.Y < I.Menu.Height/* * 1.5*/) return false;
-            const Buf = 3;
-                 if(BibiEvent.Coord.X <= Buf || BibiEvent.Coord.Y <= Buf) return false;
-            else if(S.ARA == 'horizontal') { if(BibiEvent.Coord.X >= window.innerWidth  - Buf || BibiEvent.Coord.Y >= window.innerHeight - O.Scrollbars.Height - Buf) return false; }
-            else if(S.ARA == 'vertical'  ) { if(BibiEvent.Coord.Y >= window.innerHeight - Buf || BibiEvent.Coord.X >= window.innerWidth  - O.Scrollbars.Width  - Buf) return false; }
-            if(BibiEvent.Target.ownerDocument.documentElement == O.HTML) {
-                if(BibiEvent.Target == O.HTML || BibiEvent.Target == O.Body || BibiEvent.Target == I.Menu) return true;
-                if(/^(bibi-main|bibi-arrow|bibi-help|bibi-poweredby)/.test(BibiEvent.Target.id)) return true;
-                if(/^(spread|item|page)( |-|$)/.test(BibiEvent.Target.className)) return true;
-            } else {
-                return O.isPointableContent(BibiEvent.Target) ? false : true;
-            }
-            return false;
-        }
+        })
     };
     O.HTML.classList.add('arrows-active');
     Arrows.Back    = O.Body.appendChild(sML.create('div', { className: 'bibi-arrow', id: 'bibi-arrow-back',    Labels: { default: { default: `Back`,    ja: `戻る` } }, Distance: -1 }));
@@ -4639,14 +4648,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     });
     E.add('bibi:commands:move-by', Distance => { // indicate direction
         if(!L.Opened || typeof (Distance *= 1) != 'number' || !isFinite(Distance) || !(Distance = Math.round(Distance))) return false;
-        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped', null);
-    });
-    E.add('bibi:loaded-item', Item => {/*
-        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="left"]',   'cursor: w-resize;');
-        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="right"]',  'cursor: e-resize;');
-        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="top"]',    'cursor: n-resize;');
-        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor="bottom"]', 'cursor: s-resize;');*/
-        sML.appendCSSRule(Item.contentDocument, 'html[data-bibi-cursor]', 'cursor: pointer;');
+        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped');
     });
     E.add('bibi:opened',       () => setTimeout(() => { Arrows.toggleState(); Arrows.navigate(); }, 123));
     E.add('bibi:scrolled',     () => Arrows.toggleState());
@@ -5821,90 +5823,6 @@ O.stopPropagation = (Eve) => { Eve.stopPropagation(); return false; };
 O.preventDefault  = (Eve) => { Eve.preventDefault();  return false; };
 
 
-O.getBibiEvent = (Eve) => {
-    if(!Eve) return {};
-    const Coord = O.getBibiEventCoord(Eve);
-    const FlipperWidth = S['flipper-width'];
-    const Ratio = {
-        X: Coord.X / window.innerWidth,
-        Y: Coord.Y / window.innerHeight
-    };
-    let BorderT, BorderR, BorderB, BorderL;
-    if(FlipperWidth < 1) { // Ratio
-        BorderL = BorderT =     FlipperWidth;
-        BorderR = BorderB = 1 - FlipperWidth;
-    } else { // Pixel to Ratio
-        BorderL = FlipperWidth / window.innerWidth;
-        BorderT = FlipperWidth / window.innerHeight;
-        BorderR = 1 - BorderL;
-        BorderB = 1 - BorderT;
-    }
-    const Division = { /* 9: 5 */ };
-         if(Ratio.X < BorderL          ) Division.X = 'left';//,   Division[9] -= 1;
-    else if(          BorderR < Ratio.X) Division.X = 'right';//,  Division[9] += 1;
-    else                                 Division.X = 'center';
-         if(Ratio.Y < BorderT          ) Division.Y = 'top';//,    Division[9] -= 3;
-    else if(          BorderB < Ratio.Y) Division.Y = 'bottom';//, Division[9] += 3;
-    else                                 Division.Y = 'middle';
-    return {
-        Target: Eve.target,
-        Coord: Coord,
-        Ratio: Ratio,
-        Division: Division
-    };
-};
-
-O.getBibiEventCoord = (Eve) => { let Coord = { X: 0, Y: 0 };
-    if(/^touch/.test(Eve.type)) {
-        Coord.X = Eve.changedTouches[0].pageX;
-        Coord.Y = Eve.changedTouches[0].pageY;
-    } else {
-        Coord.X = Eve.pageX;
-        Coord.Y = Eve.pageY;
-    }
-    Coord = O.getCoordInViewport(Coord, Eve.target.ownerDocument);/*
-    console.log(
-        `[${ Eve.target.ownerDocument == document ? 'PARENT' : 'CHILD' }]`,
-        Coord,
-        {
-            X: Eve.screenX - window.screenX - (window.outerWidth  - window.innerWidth),
-            Y: Eve.screenY - window.screenY - (window.outerHeight - window.innerHeight)
-        },
-        Eve
-    );//*/
-    return Coord;
-};
-
-O.getCoordInViewport = (Coord, Doc) => {
-    if(Doc == document) {
-        Coord.X -= O.Body.scrollLeft;
-        Coord.Y -= O.Body.scrollTop;
-    } else {
-        const Main = R.Main;
-        const MainTransformation = I.Loupe.CurrentTransformation || { Scale: 1, TranslateX: 0, TranslateY: 0 };
-        const MainScale = MainTransformation.Scale;
-        const MainTransformOriginX_InMain = Main.offsetWidth  / 2;
-        const MainTransformOriginY_InMain = Main.offsetHeight / 2;
-        const MainTranslationX = MainTransformation.TranslateX;
-        const MainTranslationY = MainTransformation.TranslateY;
-        const Item = Doc.documentElement.Item;
-        const ItemScale = Item.Scale;
-        const ItemCoordInMain = O.getElementCoord(Item, Main);
-        if(Item['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
-        Coord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (Coord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
-        Coord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (Coord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
-        //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + Coord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
-        //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (((Coord_in_Main                               - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
-        //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((Coord_in_Viewport_of_Main                                       - MainTransformOrigin_in_Main) * MainScale)))
-        //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (Coord_from_MainTransformOrigin_in_Main                                                          * MainScale)))
-        //                  (MainCoord       + (MainTransformOrigin_in_Translated-Main           + Coord_from_TransformOrigin_in_Scaled-Main                                                                    ))
-        //                  (MainCoord       + Coord_in_Transformed-Main                                                                                                                                         )
-        //                  Coord
-    }
-    return Coord;
-};
-
-
 O.Cookies = {
     Label: 'bibi',
     remember: (Group) => {
@@ -6047,6 +5965,81 @@ E.initialize = () => {
     E.dispatch = function() { return E.CustomEvents.dispatch.apply(E.CustomEvents, arguments); };
     delete E.initialize;
 };
+
+
+E.aBCD = (Eve) => { // add Bibi-Coord/Division
+    if(!Eve) return Eve;
+    const Coord    = E.aBCD.getCoord(Eve);
+    const Division = E.aBCD.getDivision(Coord);
+    return Object.assign(Eve, {
+        Coord: Coord,
+        Division: Division
+    });
+};
+
+    E.aBCD.getCoord = (Eve) => { let Coord = { X: 0, Y: 0 };
+        if(/^touch/.test(Eve.type)) {
+            Coord.X = Eve.changedTouches[0].pageX;
+            Coord.Y = Eve.changedTouches[0].pageY;
+        } else {
+            Coord.X = Eve.pageX;
+            Coord.Y = Eve.pageY;
+        }
+        const Doc = Eve.target.ownerDocument;
+        if(Doc == document) {
+            Coord.X -= O.Body.scrollLeft;
+            Coord.Y -= O.Body.scrollTop;
+        } else {
+            const Main = R.Main;
+            //const MainTransformation = I.Loupe.CurrentTransformation || { Scale: 1, TranslateX: 0, TranslateY: 0 };
+            const MainTransformation = I.Loupe.CurrentTransformation ? I.Loupe.getActualTransformation() : { Scale: 1, TranslateX: 0, TranslateY: 0 };
+            const MainScale = MainTransformation.Scale;
+            const MainTransformOriginX_InMain = Main.offsetWidth  / 2;
+            const MainTransformOriginY_InMain = Main.offsetHeight / 2;
+            const MainTranslationX = MainTransformation.TranslateX;
+            const MainTranslationY = MainTransformation.TranslateY;
+            const Item = Doc.documentElement.Item;
+            const ItemScale = Item.Scale;
+            const ItemCoordInMain = O.getElementCoord(Item, Main);
+            if(Item['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
+            Coord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (Coord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
+            Coord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (Coord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
+            //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + Coord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
+            //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (((Coord_in_Main                               - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
+            //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((Coord_in_Viewport_of_Main                                       - MainTransformOrigin_in_Main) * MainScale)))
+            //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + (Coord_from_MainTransformOrigin_in_Main                                                          * MainScale)))
+            //                  (MainCoord       + (MainTransformOrigin_in_Translated-Main           + Coord_from_TransformOrigin_in_Scaled-Main                                                                    ))
+            //                  (MainCoord       + Coord_in_Transformed-Main                                                                                                                                         )
+            //                  Coord
+        }
+        return Coord;
+    };
+
+    E.aBCD.getDivision = (Coord) => {
+        const FlipperWidth = S['flipper-width'];
+        const Ratio = {
+            X: Coord.X / window.innerWidth,
+            Y: Coord.Y / window.innerHeight
+        };
+        let BorderT, BorderR, BorderB, BorderL;
+        if(FlipperWidth < 1) { // Ratio
+            BorderL = BorderT =     FlipperWidth;
+            BorderR = BorderB = 1 - FlipperWidth;
+        } else { // Pixel to Ratio
+            BorderL = FlipperWidth / window.innerWidth;
+            BorderT = FlipperWidth / window.innerHeight;
+            BorderR = 1 - BorderL;
+            BorderB = 1 - BorderT;
+        }
+        const Division = { /* 9: 5 */ };
+             if(Ratio.X < BorderL          ) Division.X = 'left';//,   Division[9] -= 1;
+        else if(          BorderR < Ratio.X) Division.X = 'right';//,  Division[9] += 1;
+        else                                 Division.X = 'center';
+             if(Ratio.Y < BorderT          ) Division.Y = 'top';//,    Division[9] -= 3;
+        else if(          BorderB < Ratio.Y) Division.Y = 'bottom';//, Division[9] += 3;
+        else                                 Division.Y = 'middle';
+        return Division;
+    };
 
 
 
