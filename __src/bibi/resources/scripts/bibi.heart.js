@@ -888,7 +888,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         B.PPD = _Spine.getAttribute('page-progression-direction');
         if(!B.PPD || !/^(ltr|rtl)$/.test(B.PPD)) B.PPD = S['default-page-progression-direction']; // default;
         // --------------------------------------------------------------------------------
-        const PropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-(.+)$/;
+        const RenditionPropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-([a-z\-]+)$/;
+        const      BibiPropertyRE = /^(bibi:(allow-placeholder|no-padding))$/;
         let SpreadBefore, SpreadAfter;
         if(B.PPD == 'rtl') SpreadBefore = 'right', SpreadAfter = 'left';
         else               SpreadBefore = 'left',  SpreadAfter = 'right';
@@ -910,12 +911,17 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             let Properties = ItemRef.getAttribute('properties');
             if(Properties) {
                 Properties = Properties.trim().replace(/\s+/g, ' ').split(' ');
-                Properties.forEach(Pro => { if(PropertyRE.test(Pro)) ItemRef[Pro.replace(PropertyRE, '$1')] = Pro.replace(PropertyRE, '$4'); });
+                Properties.forEach(Pro => {
+                    if(RenditionPropertyRE.test(Pro)) ItemRef[Pro.replace(RenditionPropertyRE, '$1')] = Pro.replace(RenditionPropertyRE, '$4');
+                    if(     BibiPropertyRE.test(Pro)) ItemRef[Pro.replace(     BibiPropertyRE, '$1')] = true;
+                });
             }
             Item['rendition:layout']      = ItemRef['rendition:layout']      || Metadata['rendition:layout'];
             Item['rendition:orientation'] = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
             Item['rendition:spread']      = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
             Item['rendition:page-spread'] = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
+            if(ItemRef['bibi:allow-placeholder']) Item['bibi:allow-placeholder'] = true;
+            if(ItemRef['bibi:no-padding'])        Item['bibi:no-padding']        = true;
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Item.IndexInSpine = Spine.push(Item) - 1;
             if(ItemRef.getAttribute('linear') == 'no') {
@@ -953,23 +959,23 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 Item.IndexInSpread = Spread.Items.push(Item) - 1;
                 Item.Box = Spread.appendChild(sML.create('div', { className: 'item-box ' + Item['rendition:layout'], Inside: Item, Item: Item }));
                 Item.Pages = [];
+                const Page = sML.create('span', { className: 'page',
+                    Spread: Spread, Item: Item,
+                    IndexInItem: 0
+                });
+                Item.Pages.push(Item.Box.appendChild(Page));
+                I.PageObserver.observePageIntersection(Page);
                 if(Item['rendition:layout'] == 'pre-paginated') {
                     Item.PrePaginated = true;
                     if(Item.IndexInSpread == 0) Spread.PrePaginated = true;
-                    const Page = sML.create('span', { className: 'page',
-                        Spread: Spread, Item: Item,
-                        IndexInItem: 0
-                    });
-                    Item.Pages.push(Item.Box.appendChild(Page));
-                    I.PageObserver.observePageIntersection(Page);
+                    Item.AllowPlaceholder = B.ExtractionPolicy != 'at-once';
                 } else {
                     Item.PrePaginated = Spread.PrePaginated = false;
+                    Item.AllowPlaceholder = B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'] != undefined;
                 }
             }
         });
         R.createSpine(SpreadsDocumentFragment);
-        // --------------------------------------------------------------------------------
-        B.FileDigit = String(Spine.length).length;
         // ================================================================================
         B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
         B.Language  =  Metadata['language'][0].split('-')[0];
@@ -987,7 +993,6 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
             :                                                                                                                                                                       'lr-tb';
-        B.AllowPlaceholderItems = (B.ExtractionPolicy != 'at-once' && Metadata['rendition:layout'] == 'pre-paginated');
         // ================================================================================
         E.dispatch('bibi:processed-package');
     };
@@ -1169,7 +1174,7 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
     Spread.AllowPlaceholderItems = (S['allow-placeholders'] && Opt.AllowPlaceholderItems);
     let LoadedItemsInSpread = 0, SkippedItemsInSpread = 0;
     Spread.Items.forEach(Item => {
-        L.loadItem(Item, { IsPlaceholder: Opt.AllowPlaceholderItems })
+        L.loadItem(Item, { AllowPlaceholder: Opt.AllowPlaceholderItems })
         .then(() =>  LoadedItemsInSpread++) // Loaded
        .catch(() => SkippedItemsInSpread++) // Skipped
         .then(() => {
@@ -1180,7 +1185,7 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
 
 
 L.loadItem = (Item, Opt = {}) => {
-    const IsPlaceholder = (S['allow-placeholders'] && Item['rendition:layout'] == 'pre-paginated' && Opt.IsPlaceholder);
+    const IsPlaceholder = (S['allow-placeholders'] && Item.AllowPlaceholder && Opt.AllowPlaceholder) ? true : false;
     if(IsPlaceholder === Item.IsPlaceholder) return Item.Loading ? Item.Loading : Promise.resolve(Item);
     Item.IsPlaceholder = IsPlaceholder;
     const ItemBox = Item.Box;
@@ -1259,10 +1264,10 @@ L.loadItem = (Item, Opt = {}) => {
         return L.postprocessItem(Item);
     }).then(() => {
         ItemBox.classList.add('loaded');
-        E.dispatch('bibi:loaded-item', Item);
-        // Item.stamp('Loaded');
         Item.Loaded = true;
         Item.Turned = 'Up';
+        // Item.stamp('Loaded');
+        E.dispatch('bibi:loaded-item', Item);
     }).catch(() => { // Placeholder
         if(Item.parentElement) Item.parentElement.removeChild(Item);
         Item.onload = Item.onLoaded = undefined;
@@ -1270,6 +1275,7 @@ L.loadItem = (Item, Opt = {}) => {
         Item.HTML = Item.Head = Item.Body = Item.Pages[0];
         Item.Loaded = false;
         Item.Turned = 'Down';
+        E.dispatch('bibi:prepared-placeholder', Item);
     }).then(() => {
         delete Item.Loading;
         return Promise.resolve(Item);
@@ -1554,12 +1560,13 @@ R.layOutItem = (Item) => new Promise(resolve => {
 
 
 R.renderReflowableItem = (Item) => {
-    const ItemPaddingSE = S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
-    const ItemPaddingBA = S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
+    if(Item.IsPlaceholder) return;
+    const ItemPaddingSE = Item['bibi:no-padding'] ? 0 : S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
+    const ItemPaddingBA = Item['bibi:no-padding'] ? 0 : S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
     const PageCB = R.Stage[C.L_SIZE_B] - ItemPaddingSE; // Page "C"ontent "B"readth
     let   PageCL = R.Stage[C.L_SIZE_L] - ItemPaddingBA; // Page "C"ontent "L"ength
     const PageGap = ItemPaddingBA;
-    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = S['item-padding-' + trbl] + 'px'; });
+    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = Item['bibi:no-padding'] ? 0 : S['item-padding-' + trbl] + 'px'; });
     sML.style(Item.HTML, { 'width': '', 'height': '' });
     if(Item.WithGutters) {
         Item.HTML.classList.remove('bibi-with-gutters');
@@ -2684,7 +2691,7 @@ I.PageObserver = { create: () => {
                 PageObserver.TurningItems_FaceDown.push(Item), PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
                 if(O.RangeLoader) O.cancelExtraction(Item.Source);
             }
-            Item.Timer_Turn = setTimeout(() => L.loadItem(Item, { IsPlaceholder: !(Opt.Up) }).then(() => {
+            Item.Timer_Turn = setTimeout(() => L.loadItem(Item, { AllowPlaceholder: !(Opt.Up) }).then(() => {
                 if(Opt.Up) PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
                 else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
                 R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
@@ -5342,7 +5349,7 @@ S.update = (Settings) => {
     const Prev = {}; for(const Mode in S.Modes) Prev[Mode] = S[Mode];
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
     S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
-    S['allow-placeholders'] = (S['allow-placeholders'] && B.AllowPlaceholderItems);
+    S['allow-placeholders'] = (S['allow-placeholders'] && B.ExtractionPolicy != 'at-once') ? true : false;
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
     S['page-progression-direction'] = B.PPD;
