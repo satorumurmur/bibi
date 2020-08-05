@@ -209,7 +209,8 @@ Bibi.ErrorMessages = {
        Canceled: `Fetch Canceled`,
     CORSBlocked: `Probably CORS Blocked`,
     DataInvalid: `Data Invalid`,
-       NotFound: `404 Not Found`
+       NotFound: `404 Not Found`,
+   Unidentified: `Unidentified`
 };
 
 
@@ -244,7 +245,6 @@ Bibi.hello = () => new Promise(resolve => {
 
 
 Bibi.initialize = () => {
-    //const PromiseTryingRangeRequest = O.tryRangeRequest().then(() => true).catch(() => false).then(TF => O.RangeRequest = TF);
     { // Path / URI
         O.Origin = location.origin || (location.protocol + '//' + (location.host || (location.hostname + (location.port ? ':' + location.port : ''))));
         O.Local = location.protocol == 'file:';
@@ -287,6 +287,7 @@ Bibi.initialize = () => {
         D.initialize();
         S.initialize();
         I.initialize();
+        if(!S['book-data'] && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
     }
     { // Embedding, Window, Fullscreen
         O.Embedded = (() => { // Window Embedded or Not
@@ -309,14 +310,8 @@ Bibi.initialize = () => {
             window.addEventListener('message', M.receive, false);
         }
     }
-    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) { // Say Bye-bye
-        I.note(`Your Browser Is Not Compatible`, 99999999999, 'ErrorOccured');
-        throw I.Veil.byebye({
-            'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
-            'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
-        });
-    } else { // Say Welcome!
-        I.note(`<span class="non-visual">Welcome!</span>`);
+    { // Say Welcome or say Bye-bye
+        if(Bibi.isCompatible()) I.note(`<span class="non-visual">Welcome!</span>`); else throw Bibi.byebye();
     }
     { // Writing Mode, Font Size, Slider Size, Menu Height
         O.WritingModeProperty = (() => {
@@ -348,6 +343,20 @@ Bibi.initialize = () => {
 };
 
 
+Bibi.isCompatible = () => {
+    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) return false;
+    return true;
+};
+
+Bibi.byebye = () => {
+    I.Veil.byebye({
+        'en': `<span>Sorry....</span> <span>Your Browser Is</span> <span>Not Compatible.</span>`,
+        'ja': `<span>大変申し訳ありません。</span> <span>お使いのブラウザでは、</span><span>動作しません。</span>`
+    });
+    return `Your Browser Is Not Compatible`;
+};
+
+
 Bibi.loadExtensions = () => {
     return new Promise((resolve, reject) => {
         const AdditionalExtensions = [];
@@ -360,7 +369,7 @@ Bibi.loadExtensions = () => {
             if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
         }
         if(ReadyForBibiZine) AdditionalExtensions.unshift('zine.js');
-        (ReadyForExtraction ? (S['book'] ? O.tryRangeRequest().then(() => 'on-the-fly') : Promise.reject()).catch(() => 'at-once').then(_ => AdditionalExtensions.unshift('extractor/' + _ + '.js')) : Promise.resolve()).then(() => {
+        (ReadyForExtraction ? (S['book'] ? O.tryRangeRequest(S['book']).then(() => 'on-the-fly') : Promise.reject()).catch(() => 'at-once').then(_ => AdditionalExtensions.unshift('extractor/' + _ + '.js')) : Promise.resolve()).then(() => {
             if(AdditionalExtensions.length) AdditionalExtensions.forEach(AX => S['extensions'].unshift({ 'src': new URL('../../extensions/' + AX, Bibi.Script.src).href }));
             if(S['extensions'].length == 0) return reject();
             O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
@@ -383,6 +392,7 @@ Bibi.loadExtensions = () => {
 
 
 Bibi.ready = () => new Promise(resolve => {
+    if(!Bibi.isCompatible()) throw Bibi.byebye(); // Extensions may update Bibi.isCompatible & Bibi.byebye function.
     O.HTML.classList.add('ready');
     O.ReadiedURL = location.href;
     E.add('bibi:readied', resolve);
@@ -709,7 +719,11 @@ L.initializeBook = (BookInfo = {}) => new Promise((resolve, reject) => {
                 return Promise.reject();
             }),
             or:        function(fun) { return this.Promised.catch(fun); },
-            or_reject: function(fun) { return this.or(() => reject_failedToOpenTheBook(InitErrors.length < 2 || InitErrors[0] == InitErrors[1] ? InitErrors[0] : `as a file: ${ InitErrors[0] } / as a folder: ${ InitErrors[1] }`)); }
+            or_reject: function(fun) { return this.or(() => reject_failedToOpenTheBook(
+                InitErrors.length < 2 || InitErrors[0] == InitErrors[1] ? InitErrors[0] :
+                InitErrors[0] == Bibi.ErrorMessages.Unidentified && InitErrors[1] == Bibi.ErrorMessages.CORSBlocked ? InitErrors[1] :
+                `as a file: ${ InitErrors[0] } / as a folder: ${ InitErrors[1] }`
+            )); }
         });
         O.isToBeExtractedIfNecessary(B.Path) ? initialize_as('file').or(() => initialize_as('folder').or_reject()) : initialize_as('folder').or_reject();
     } else {
@@ -3450,7 +3464,6 @@ I.Veil = { create: () => {
         ['en', 'ja'].forEach(Lang => Veil.ByeBye.innerHTML += `<span lang="${ Lang }">${ Msg[Lang] }</span>`);
         O.HTML.classList.remove('welcome');
         Veil.open();
-        return Msg['en'] ? Msg['en'].replace(/<[^>]*>/g, '') : '';
     };
     Veil.Cover      = Veil.appendChild(      sML.create('div', { id: 'bibi-veil-cover'      }));
     Veil.Cover.Info = Veil.Cover.appendChild(sML.create('p',   { id: 'bibi-veil-cover-info' }));
@@ -5177,7 +5190,6 @@ S.initialize = () => {
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
     S['book'] = (!S['book-data'] && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
-    if(!S['book-data'] && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
     // --------
     if(typeof S['parent-bibi-index'] != 'number') delete S['parent-bibi-index'];
     // --------
@@ -5497,10 +5509,11 @@ O.download = (Source/*, Opt = {}*/) => {
     });
 };
 
-O.tryRangeRequest = (Path = Bibi.Script.src, Bytes = '0-0') => new Promise((resolve, reject) => {
+O.tryRangeRequest = (RemotePath, Bytes = '0-0') => new Promise((resolve, reject) => {
+    if(typeof RemotePath != 'string' || !/^https?:\/\//.test(RemotePath) || !S['trustworthy-origins'].includes(new URL(RemotePath).origin)) return reject();
     const XHR = new XMLHttpRequest();
     XHR.onloadend = () => XHR.status != 206 ? reject() : resolve();
-    XHR.open('GET', Path, true);
+    XHR.open('GET', RemotePath, true);
     XHR.setRequestHeader('Range', 'bytes=' + Bytes);
     XHR.send(null);
 });

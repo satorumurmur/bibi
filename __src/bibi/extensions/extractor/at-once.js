@@ -26,7 +26,7 @@ Bibi.x({
     .then(extract);
 
     const load = (BookData) => new Promise((resolve, reject) => // resolve(ArrayBuffer)
-        typeof BookData == 'string' ? JSZipUtils.getBinaryContent(BookData, (Err, ABuf) => Err ? reject(Bibi.ErrorMessages.NotFound) : resolve(ABuf)) :
+        typeof BookData == 'string' ? JSZipUtils.getBinaryContent(BookData, (Err, ABuf) => Err ? reject(Bibi.ErrorMessages.Unidentified) : resolve(ABuf)) :
         BookData.size && BookData.type ? (() => { const FR = new FileReader(); FR.onerror = () => reject(Bibi.ErrorMessages.DataInvalid); FR.onload = () => resolve(FR.result); FR.readAsArrayBuffer(BookData); })() :
         reject(Bibi.ErrorMessages.DataInvalid)
     ).then(ArrayBuffer => JSZip.loadAsync(ArrayBuffer).catch(Err => Promise.reject(Bibi.ErrorMessages.DataInvalid)));
