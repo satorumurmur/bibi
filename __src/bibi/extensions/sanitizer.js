@@ -21,7 +21,7 @@ Bibi.x({
             }
         }
         const ErrorMessage = `Sanitizer: Invalid Arguments.`;
-        I.note(ErrorMessage, 99999999999, 'ERROR');
+        I.notify(ErrorMessage, { Type: 'Error', Time: 99999999999 });
         O.error(ErrorMessage);
         throw new Error(ErrorMessage);
     };

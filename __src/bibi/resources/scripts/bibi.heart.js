@@ -311,7 +311,7 @@ Bibi.initialize = () => {
         }
     }
     { // Say Welcome or say Bye-bye
-        if(Bibi.isCompatible()) I.note(`<span class="non-visual">Welcome!</span>`); else throw Bibi.byebye();
+        if(Bibi.isCompatible()) I.notify(`<span class="non-visual">Welcome!</span>`); else throw Bibi.byebye();
     }
     { // Writing Mode, Font Size, Slider Size, Menu Height
         O.WritingModeProperty = (() => {
@@ -426,7 +426,7 @@ Bibi.busyHerself = () => new Promise(resolve => {
 
 Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     Bibi.busyHerself();
-    I.note(`Loading...`);
+    I.notify(`Loading...`);
     O.log(`Initializing Book...`, '<g:>');
     return L.initializeBook(BookInfo).then(InitializedAs => {
         O.log(`${ InitializedAs }: %O`, B);
@@ -520,7 +520,7 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     let LoadedItems = 0;
     R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != LayoutOption.TargetSpreadIndex }).then(() => {
         LoadedItems += Spread.Items.length;
-        I.note(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
+        I.notify(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
         !LayoutOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
     }))));
     return Promise.all(Promises).then(() => {
@@ -549,7 +549,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     I.Veil.close();
     L.Opened = true;
     document.body.click(); // To responce for user scrolling/keypressing immediately
-    I.note('');
+    I.notify('');
     O.log(`Enjoy Readings!`, '</b>');
     E.dispatch('bibi:opened', Bibi.Status = Bibi.Opened = 'Opened');
     E.dispatch('bibi:scrolled');
@@ -662,13 +662,13 @@ L.wait = () => {
     O.HTML.classList.add('waiting');
     E.dispatch('bibi:waits');
     O.log(`(Waiting...)`, '<i/>');
-    I.note('');
+    I.notify('');
     return new Promise(resolve => L.wait.resolve = resolve).then(() => {
         L.Waiting = false;
         O.Busy = true;
         O.HTML.classList.add('busy');
         O.HTML.classList.remove('waiting');
-        I.note(`Loading...`);
+        I.notify(`Loading...`);
         return new Promise(resolve => setTimeout(resolve, 99));
     });
 };
@@ -1115,7 +1115,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
                 A.addEventListener('click', Eve => {
                     Eve.preventDefault(); 
                     Eve.stopPropagation();
-                    I.note(O.Language == 'ja' ? '<small>このリンクの利用には EPUBCFI エクステンションが必要です</small>' : '"EPUBCFI" extension is required to use this link.');
+                    I.notify(O.Language == 'ja' ? '<small>このリンクの利用には EPUBCFI エクステンションが必要です</small>' : '"EPUBCFI" extension is required to use this link.');
                     return false;
                 });
             }
@@ -1834,7 +1834,7 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => {
     O.Busy = true;
     O.HTML.classList.add('busy');
     O.HTML.classList.add('laying-out');
-    if(!Opt.NoNotification) I.note(`Laying out...`);
+    if(!Opt.NoNotification) I.notify(`Laying out...`);
     if(!Opt.Destination) Opt.Destination = { IIPP: I.PageObserver.getIIPP() };
     if(Opt.Setting) S.update(Opt.Setting);
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
@@ -1858,7 +1858,7 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => {
     O.Busy = false;
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('laying-out');
-    if(!Opt.NoNotification) I.note('');
+    if(!Opt.NoNotification) I.notify('');
     R.LayingOut = false;
     E.dispatch('bibi:laid-out');
     O.log(`Laid out.`, '</g>');
@@ -1890,7 +1890,7 @@ R.changeView = (Par) => {
         S.RVM == Par.Mode && !Par.Force
     ) return false;
     if(L.Opened) {
-        E.dispatch('bibi:changes-view');
+        E.dispatch('bibi:changes-view', Par.Mode);
         O.Busy = true;
         O.HTML.classList.add('busy');
         O.HTML.classList.add('changing-view');
@@ -2800,7 +2800,7 @@ I.TouchObserver = { create: () => {
             E.add(Ele, 'bibi:tapped', BibiEvent => { if((Ele.isAvailable && !Ele.isAvailable(BibiEvent)) || (Ele.UIState == 'disabled') || (Ele.UIState == 'active' && Ele.Type == 'radio')) return Ele;
                 onTap();
                 if(Ele.hideHelp) Ele.hideHelp();
-                if(Ele.note) setTimeout(Ele.note, 0);
+                if(Ele.notify) setTimeout(Ele.notify, 0);
                 return Ele;
             });
             return Ele;
@@ -3411,33 +3411,33 @@ I.Flipper = { create: () => {
 
 I.Notifier = { create: () => {
     const Notifier = I.Notifier = O.Body.appendChild(sML.create('div', { id: 'bibi-notifier',
-        show: (Msg, Err) => {
+        show: (Msg, Opt = {}) => {
             clearTimeout(Notifier.Timer_hide);
-            Notifier.P.className = Err ? 'error' : '';
+            Notifier.P.className = Opt.Type == 'Error' ? 'error' : '';
             Notifier.P.innerHTML = Msg;
             O.HTML.classList.add('notifier-shown');
-            if(L.Opened && !Err) Notifier.addEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
+            if(L.Opened && Opt.Type != 'Error') Notifier.addEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
         },
-        hide: (Time = 0) => {
+        hide: (Opt = {}) => {
             clearTimeout(Notifier.Timer_hide);
             Notifier.Timer_hide = setTimeout(() => {
                 if(L.Opened) Notifier.removeEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
                 O.HTML.classList.remove('notifier-shown');
-            }, Time);
+            }, typeof Opt.Time == 'number' ? Opt.Time : 0);
         },
-        note: (Msg, Time, Err) => {
+        notify: (Msg, Opt = {}) => {
             if(!Msg) return Notifier.hide();
-            Notifier.show(Msg, Err);
-            if(typeof Time == 'undefined') Time = O.Busy && !L.Opened ? 8888 : 2222;
-            if(typeof Time == 'number') Notifier.hide(Time);
+            Notifier.show(Msg, Opt);
+            if(typeof Opt.Time == 'undefined') Opt.Time = Opt.Type == 'Error' ? undefined : O.Busy && !L.Opened ? 8888 : 2222;
+            if(typeof Opt.Time == 'number') Notifier.hide(Opt);
         }
     }));
     Notifier.P = Notifier.appendChild(document.createElement('p'));
-    I.note = Notifier.note;
+    I.notify = Notifier.notify;
     E.dispatch('bibi:created-notifier');
 }};
 
-    I.note = () => false;
+    I.notify = () => false;
 
 
 I.Veil = { create: () => {
@@ -3633,7 +3633,7 @@ I.Menu = { create: () => {
                         Labels: { default: { default: `<span class="non-visual-in-label">⇅ </span>Vertical Scroll`, ja: `<span class="non-visual-in-label">⇅ </span>縦スクロール` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
                     }].map(Button => sML.edit(Button, {
-                        Notes: true,
+                        Notification: true,
                         action: () => R.changeView({ Mode: Button.Mode, NoNotification: true })
                     }))
                 }, /*{
@@ -3642,7 +3642,7 @@ I.Menu = { create: () => {
                     Buttons: [{
                         Name: 'full-breadth-layout-in-scroll',
                         Type: 'toggle',
-                        Notes: false,
+                        Notification: false,
                         Labels: { default: { default: `Full Width for Each Page <small>(in Scrolling Mode)</small>`, ja: `スクロール表示で各ページを幅一杯に</small>` } },
                         Icon: `<span class="bibi-icon bibi-icon-full-breadth-layout"></span>`,
                         action: function() {
@@ -4907,8 +4907,8 @@ I.setFeedback = (Ele, Opt = {}) => {
                 return Ele;
             };
         }
-        if(Ele.Notes) Ele.note = () => {
-            if(Ele.Labels[Ele.UIState]) setTimeout(() => I.note(Ele.Labels[Ele.UIState][O.Language]), 0);
+        if(Ele.Notification) Ele.notify = () => {
+            if(Ele.Labels[Ele.UIState]) setTimeout(() => I.notify(Ele.Labels[Ele.UIState][O.Language]), 0);
             return Ele;
         }
     }
@@ -5413,7 +5413,7 @@ O.error = (Err) => {
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('loading');
     O.HTML.classList.remove('waiting');
-    I.note(Err, 99999999999, 'ErrorOccured');
+    I.notify(Err, { Type: 'Error', Time: 99999999999 });
     O.log(Err, '<e/>');
     E.dispatch('bibi:x_x', typeof Err == 'string' ? new Error(Err) : Err);
 };
