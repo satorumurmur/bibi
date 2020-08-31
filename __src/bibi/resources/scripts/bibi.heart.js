@@ -24,12 +24,12 @@ Bibi.SettingTypes = {
         'full-breadth-layout-in-scroll',
         'start-embedded-in-new-window',
         'use-arrows',
-        'use-bookmarks',
+        'use-bookmark-ui',
         'use-font-size-changer',
         'use-full-height',
-        'use-history',
+        'use-history-ui',
         'use-keys',
-        'use-loupe',
+        'use-loupe-ui',
         'use-menubar',
         'use-nombre',
         'use-slider',
@@ -73,6 +73,10 @@ Bibi.SettingTypes_PresetOnly = {
         'accept-base64-encoded-data',
         'accept-blob-converted-data',
         'allow-scripts-in-content',
+        'headless',
+        'manualize-adding-histories',
+        'use-bookmarks',
+        'use-histories',
         'remove-bibi-website-link'
     ],
     'yes-no': [
@@ -88,7 +92,7 @@ Bibi.SettingTypes_PresetOnly = {
     ],
     'integer': [
         'max-bookmarks',
-        'max-history'
+        'max-histories'
     ],
     'number': [
     ],
@@ -159,7 +163,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
             switch(_P) {
                 case 'log'           : return Math.min(_V,  9);
                 case 'max-bookmarks' : return Math.min(_V,  9);
-                case 'max-history'   : return Math.min(_V, 19);
+                case 'max-histories' : return Math.min(_V, 19);
             }
             return _V;
         }
@@ -1130,7 +1134,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
             if(L.Opened) {
                 I.History.add();
-                return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => I.History.add({ UI: B, SumUp: false, Destination: Destination }));
+                return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: B, SumUp: false, Destination: Destination }); return Destination; });
             }
             if(!L.Waiting) return false;
             if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
@@ -1528,8 +1532,10 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
             R.Main.Book.style[C.L_SIZE_l] = (parseFloat(getComputedStyle(R.Main.Book)[C.L_SIZE_l]) + ChangedSpreadBoxLength) + 'px';
             if(Correct) {
                 R.Main.scrollLeft += ChangedSpreadBoxLength;
-                I.Slider.resetUISize();
-                I.Slider.progress();
+                if(I.Slider.ownerDocument) {
+                    I.Slider.resetUISize();
+                    I.Slider.progress();
+                }
             }
         }
         delete Spread.OldPages, delete Spread.PreviousSpreadBoxLength;
@@ -3392,7 +3398,7 @@ I.Flipper = { create: () => {
         flip: (Distance, Opt = {}) => {
             if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
             I.ScrollObserver.forceStopScrolling();
-            const SumUpHistory = (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1));
+            const SumUpHistory = !S['manualize-adding-histories'] ? (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1)) : false;
             Flipper.PreviousDistance = Distance;
             if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
                 const CIs = [
@@ -3402,7 +3408,7 @@ I.Flipper = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }));
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }); return Destination; });
         }
     };
     Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
@@ -4005,8 +4011,8 @@ I.Loupe = { create: () => {
         transform: (Tfm, Opt = {}) => new Promise((resolve, reject) => {
             // Tfm: Transformation
             Tfm = Loupe.getNormalizedTransformation(Tfm);
-            const CTfm = Loupe.CurrentTransformation;
-            //if(Tfm.Scale == CTfm.Scale && Tfm.TranslateX == CTfm.TranslateX && Tfm.TranslateY == CTfm.TranslateY) return resolve();
+            const PTfm = Loupe.CurrentTransformation;
+            //if(Tfm.Scale == PTfm.Scale && Tfm.TranslateX == PTfm.TranslateX && Tfm.TranslateY == PTfm.TranslateY) return resolve();
             Loupe.Transforming = true;
             clearTimeout(Loupe.Timer_onTransformEnd);
             O.HTML.classList.add('transforming');
@@ -4037,6 +4043,7 @@ I.Loupe = { create: () => {
                 E.dispatch('bibi:transformed-book', {
                     Transformation: Tfm,
                     ActualTransformation: ATfm,
+                    PreviousTransformation: PTfm,
                     Temporary: Opt.Temporary
                 });
             }, 345);
@@ -4176,7 +4183,7 @@ I.Loupe = { create: () => {
     E.add('bibi:opened', () => Loupe.open());
     E.add('bibi:laid-out', () => Loupe.defineZoomOutPropertiesForUtilities());
     E.add('bibi:changed-view',  () => Loupe.transformToDefault());
-    if(S['use-loupe']) {
+    if(S['use-loupe-ui']) {
         const ButtonGroup = I.Menu.R.addButtonGroup({
             Sticky: true,
             Tiled: true,
@@ -4263,20 +4270,22 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
 I.History = {
     List: [], Updaters: [],
     update: () => I.History.Updaters.forEach(fun => fun()),
-    add: (Opt = {}) => {
+    add: (Opt = {}) => { if(!S['use-histories']) return null;
         if(!Opt.UI) Opt.UI = Bibi;
-        const    LastPage = R.hatchPage(I.History.List.slice(-1)[0]),
-              CurrentPage = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
-        if(CurrentPage != LastPage) {
+        const PageToBeAdded = Opt.Destination ? R.hatchPage(Opt.Destination) : (() => { I.PageObserver.updateCurrent(); return I.PageObserver.Current.List[0].Page; })();
+        let Added = null;
+        if(PageToBeAdded != R.hatchPage(I.History.List.slice(-1)[0])) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
-            I.History.List.push({ UI: Opt.UI, IIPP: I.PageObserver.getIIPP({ Page: CurrentPage }) });
-            if(I.History.List.length - 1 > S['max-history']) { // Not count the first (oldest).
+            Added = { UI: Opt.UI, IIPP: I.PageObserver.getIIPP({ Page: PageToBeAdded }) };
+            I.History.List.push(Added);
+            if(I.History.List.length - 1 > S['max-histories']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
                 I.History.List.shift(); // Remove the second
                 I.History.List.unshift(First); // Restore the first (oldest).
             }
         }
         I.History.update();
+        return Added;
     },
     back: () => {
         if(I.History.List.length <= 1) return Promise.reject();
@@ -4300,10 +4309,9 @@ I.Slider = { create: () => {
             Slider.RailGroove   = Slider.Rail.appendChild(sML.create('div', { id: 'bibi-slider-rail-groove' }));
             Slider.RailProgress = Slider.RailGroove.appendChild(sML.create('div', { id: 'bibi-slider-rail-progress' }));
             Slider.Thumb   = EdgebarBox.appendChild(sML.create('div', { id: 'bibi-slider-thumb', Labels: { default: { default: `Slider Thumb`, ja: `スライダー上の好きな位置からドラッグを始められます` } } })); I.setFeedback(Slider.Thumb);
-            if(S['use-history']) {
+            if(S['use-history-ui']) {
                 Slider.classList.add('bibi-slider-with-history');
                 Slider.History        = Slider.appendChild(sML.create('div', { id: 'bibi-slider-history' }));
-                Slider.History.add    = (Destination) => I.History.add({ UI: Slider, SumUp: false, Destination: Destination })
                 Slider.History.Button = Slider.History.appendChild(I.createButtonGroup()).addButton({ id: 'bibi-slider-history-button',
                     Type: 'normal',
                     Labels: { default: { default: `History Back`, ja: `移動履歴を戻る` } },
@@ -4388,7 +4396,7 @@ I.Slider = { create: () => {
                 sML.style(Slider.Thumb,        { transform: '' });
                 sML.style(Slider.RailProgress, { [C.A_SIZE_l]: '' });
                 Slider.progress();
-                if(Slider.History) Slider.History.add();
+                if(!S['manualize-adding-histories']) I.History.add({ UI: Slider, SumUp: false, Destination: null });
             });
             delete Slider.StartedAt;
             delete Slider.LastEvent;
@@ -4480,30 +4488,32 @@ I.Slider = { create: () => {
 }};
 
 
-I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) return;
+I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
     const BookmarkManager = I.BookmarkManager = {
         Bookmarks: [],
         initialize: () => {
-            BookmarkManager.Subpanel = I.createSubpanel({
-                Opener: I.Menu.L.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_bookmarks' }).addButton({
-                    Type: 'toggle',
-                    Labels: {
-                        default: { default: `Manage Bookmarks`,     ja: `しおりメニューを開く` },
-                        active:  { default: `Close Bookmarks Menu`, ja: `しおりメニューを閉じる` }
-                    },
-                    Icon: `<span class="bibi-icon bibi-icon-manage-bookmarks"></span>`,
-                    Help: true
-                }),
-                Position: 'left',
-                id: 'bibi-subpanel_bookmarks',
-                updateBookmarks: () => BookmarkManager.update(),
-                onopened: () => { E.add(   'bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); BookmarkManager.Subpanel.updateBookmarks (); },
-                onclosed: () => { E.remove('bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); }
-            });
-            BookmarkManager.ButtonGroup = BookmarkManager.Subpanel.addSection({
-                id: 'bibi-subpanel-section_bookmarks',
-                Labels: { default: { default: `Bookmarks`, ja: `しおり` } }
-            }).addButtonGroup();
+            if(S['use-bookmark-ui']) {
+                BookmarkManager.Subpanel = I.createSubpanel({
+                    Opener: I.Menu.L.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_bookmarks' }).addButton({
+                        Type: 'toggle',
+                        Labels: {
+                            default: { default: `Manage Bookmarks`,     ja: `しおりメニューを開く` },
+                            active:  { default: `Close Bookmarks Menu`, ja: `しおりメニューを閉じる` }
+                        },
+                        Icon: `<span class="bibi-icon bibi-icon-manage-bookmarks"></span>`,
+                        Help: true
+                    }),
+                    Position: 'left',
+                    id: 'bibi-subpanel_bookmarks',
+                    updateBookmarks: () => BookmarkManager.update(),
+                    onopened: () => { E.add(   'bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); BookmarkManager.Subpanel.updateBookmarks (); },
+                    onclosed: () => { E.remove('bibi:scrolled', BookmarkManager.Subpanel.updateBookmarks); }
+                });
+                BookmarkManager.ButtonGroup = BookmarkManager.Subpanel.addSection({
+                    id: 'bibi-subpanel-section_bookmarks',
+                    Labels: { default: { default: `Bookmarks`, ja: `しおり` } }
+                }).addButtonGroup();
+            }
             const BookmarkBiscuits = O.Biscuits.remember('Book', 'Bookmarks');
             if(Array.isArray(BookmarkBiscuits) && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
             //E.add(['bibi:opened', 'bibi:resized'], () => BookmarkManager.update());
@@ -4524,10 +4534,12 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
             BookmarkManager.update({ Removed: Bookmark });
         },
         update: (Opt = {}) => {
-            BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
-            if(BookmarkManager.ButtonGroup.Buttons) {
-                BookmarkManager.ButtonGroup.Buttons = [];
-                BookmarkManager.ButtonGroup.innerHTML = '';
+            if(S['use-bookmark-ui']) {
+                BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
+                if(BookmarkManager.ButtonGroup.Buttons) {
+                    BookmarkManager.ButtonGroup.Buttons = [];
+                    BookmarkManager.ButtonGroup.innerHTML = '';
+                }
             }
             //BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => typeof Bmk.IIPP == 'number' && typeof Bmk['%'] == 'number');
             let Bookmarks = [], ExistingBookmarks = [];
@@ -4580,49 +4592,55 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks'] || !O.Biscuits) ret
                         Labels.default.default += ` <span class="${BB}-is-current"></span>`;
                         Labels.default.ja      += ` <span class="${BB}-is-current ${BB}-is-current-ja"></span>`;
                     }
-                    const Button = BookmarkManager.ButtonGroup.addButton({
-                        className: ClassName,
-                        Type: 'normal',
-                        Labels: Labels,
-                        Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
-                        Bookmark: Bmk,
-                        action: () => {
-                            if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }));
-                            if(!L.Waiting) return false;
-                            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(iipp=' + Bmk.IIPP + ')');
-                            R.StartOn = { IIPP: Bmk.IIPP };
-                            L.play();
-                        },
-                        remove: () => BookmarkManager.remove(Bmk)
-                    });
-                    const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
-                    I.setFeedback(Remover, { StopPropagation: true });
-                    E.add(Remover, 'bibi:tapped', () => Button.remove());
-                    Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
-                    if(Bmk.IsHot) {
-                        delete Bmk.IsHot;
-                        I.setUIState(Button, 'active'); setTimeout(() => I.setUIState(Button, ExistingBookmarks.includes(Bmk) ? 'disabled' : 'default'), 234);
+                    if(S['use-bookmark-ui']) {
+                        const Button = BookmarkManager.ButtonGroup.addButton({
+                            className: ClassName,
+                            Type: 'normal',
+                            Labels: Labels,
+                            Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-a-bookmark"></span>`,
+                            Bookmark: Bmk,
+                            action: () => {
+                                if(L.Opened) return R.focusOn({ Destination: Bmk }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: BookmarkManager, SumUp: false/*true*/, Destination: Destination }); return Destination; });
+                                if(!L.Waiting) return false;
+                                if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(iipp=' + Bmk.IIPP + ')');
+                                R.StartOn = { IIPP: Bmk.IIPP };
+                                L.play();
+                            },
+                            remove: () => BookmarkManager.remove(Bmk)
+                        });
+                        const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
+                        I.setFeedback(Remover, { StopPropagation: true });
+                        E.add(Remover, 'bibi:tapped', () => Button.remove());
+                        Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
+                        if(Bmk.IsHot) {
+                            delete Bmk.IsHot;
+                            I.setUIState(Button, 'active'); setTimeout(() => I.setUIState(Button, ExistingBookmarks.includes(Bmk) ? 'disabled' : 'default'), 234);
+                        }
+                        else if(ExistingBookmarks.includes(Bmk)) I.setUIState(Button, 'disabled');
+                        else                                     I.setUIState(Button,  'default');
                     }
-                    else if(ExistingBookmarks.includes(Bmk)) I.setUIState(Button, 'disabled');
-                    else                                     I.setUIState(Button,  'default');
                     const UpdatedBookmark = { IIPP: Bmk.IIPP };
                     if(Bmk['%']) UpdatedBookmark['%'] = Bmk['%'];
                     UpdatedBookmarks.push(UpdatedBookmark);
                 }
                 BookmarkManager.Bookmarks = UpdatedBookmarks;
             } else {
-                if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+                if(S['use-bookmark-ui']) {
+                    if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+                }
             }
-            if(BookmarkManager.Bookmarks.length < S['max-bookmarks']) {
-                BookmarkManager.AddButton = BookmarkManager.ButtonGroup.addButton({
-                    id: 'bibi-button-add-a-bookmark',
-                    Type: 'normal',
-                    Labels: { default: { default: `Add a Bookmark to Current Page`, ja: `現在のページにしおりを挟む` } },
-                    Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
-                    action: () => Bookmarks.length ? BookmarkManager.add(Bookmarks[0]) : false
-                });
-                if(!Bookmarks.length || ExistingBookmarks.length) {
-                    I.setUIState(BookmarkManager.AddButton, 'disabled');
+            if(S['use-bookmark-ui']) {
+                if(BookmarkManager.Bookmarks.length < S['max-bookmarks']) {
+                    BookmarkManager.AddButton = BookmarkManager.ButtonGroup.addButton({
+                        id: 'bibi-button-add-a-bookmark',
+                        Type: 'normal',
+                        Labels: { default: { default: `Add a Bookmark to Current Page`, ja: `現在のページにしおりを挟む` } },
+                        Icon: `<span class="bibi-icon bibi-icon-bookmark bibi-icon-add-a-bookmark"></span>`,
+                        action: () => Bookmarks.length ? BookmarkManager.add(Bookmarks[0]) : false
+                    });
+                    if(!Bookmarks.length || ExistingBookmarks.length) {
+                        I.setUIState(BookmarkManager.AddButton, 'disabled');
+                    }
                 }
             }
             O.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks });
@@ -5187,6 +5205,8 @@ S.initialize = () => {
     sML.applyRtL(S, D, 'ExceptFunctions');
     Bibi.SettingTypes['yes-no'].concat(Bibi.SettingTypes_PresetOnly['yes-no']).concat(Bibi.SettingTypes_UserOnly['yes-no']).forEach(Pro => S[Pro] = (S[Pro] == 'yes' || (S[Pro] == 'mobile' && O.TouchOS) || (S[Pro] == 'desktop' && !O.TouchOS)));
     // --------
+    if(S['headless']) S['use-menubar'] = S['use-arrows'] = S['use-slider'] = S['use-nombre'] = S['use-fontsize-changer'] = S['use-bookmark-ui'] = S['use-history-ui'] = S['use-loupe-ui'] = false;
+    // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
     S['book'] = (!S['book-data'] && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
@@ -5200,11 +5220,12 @@ S.initialize = () => {
     S['start-in-new-window'] = (window.parent != window && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
-    ['history', 'bookmarks'].forEach(_ => {
-        if( S['max-' + _] == 0) S['use-' + _] = false;
-        if(!S['use-' + _]     ) S['max-' + _] = 0;
-    });
     if(!S['use-menubar']) S['use-full-height'] = true;
+    // --------
+    if(S['max-histories'] == 0) S['use-histories'] = false;
+    if(!S['use-histories']) S['max-histories'] = 0, S['use-history-ui'] = false;
+    if(!O.Biscuits || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
+    if(!S['use-bookmarks']) S['max-bookmarks'] = 0, S['use-bookmark-ui'] = false;
     // --------
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
     // --------

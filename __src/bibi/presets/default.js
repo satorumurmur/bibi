@@ -45,16 +45,16 @@ Bibi.preset({
 "base-font-size"             : "auto", // Number of pixel or "auto"
 "font-size-scale-per-step"   : 1.25, // Number of scale
 
-"use-loupe"                  : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"use-loupe-ui"               : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)
 "loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
 "zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"use-history"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-"max-history"                : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history" is treated as "no". 
+"use-bookmark-ui"            : "yes", // "yes" or "no" or "desktop" or "mobile"
+"max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmark-ui" and "use-bookmarks" are treated as "no" (but old data is kept in localStorage). 
 
-"use-bookmarks"              : "yes", // "yes" or "no" or "desktop" or "mobile"
-"max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmarks" is treated as "no" (but old data is kept in localStorage). 
+"use-history-ui"             : "yes", // "yes" or "no" or "desktop" or "mobile". (history-button requires the slider.)
+"max-histories"              : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history-ui" and "use-histories" are treated as "no".
 
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
@@ -125,6 +125,11 @@ Bibi.preset({
 "pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
 "allow-placeholders"                 : true, // true or false. (true is highly recommended.)
 "prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.)
+
+"headless"                           : false,
+"use-bookmarks"                      : true,
+"use-histories"                      : true,
+"manualize-adding-histories"         : false,
 
 
 //==============================================================================================================================================
