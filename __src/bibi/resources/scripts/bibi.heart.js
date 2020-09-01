@@ -1067,7 +1067,7 @@ L.loadNavigation = () => O.openDocument(B.Nav.Source).then(Doc => {
 L.coordinateLinkages = (BasePath, RootElement, InNav) => {
     const As = RootElement.getElementsByTagName('a'); if(!As) return;
     for(let l = As.length, i = 0; i < l; i++) { const A = As[i];
-        if(InNav) {
+        if(A.InNav = InNav) {
             A.NavANumber = i + 1;
             A.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
             A.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
@@ -1086,70 +1086,54 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
             }
         }
         if(/^[a-zA-Z]+:/.test(HRefPathInSource)) {
-            if(HRefPathInSource.split('#')[0] == location.href.split('#')[0]) {
-                const HRefHashInSource = HRefPathInSource.split('#')[1];
-                HRefPathInSource = (HRefHashInSource ? '#' + HRefHashInSource : R.Items[0].AnchorPath)
-            } else {
-                A.addEventListener('click', Eve => {
-                    Eve.preventDefault(); 
-                    Eve.stopPropagation();
-                    window.open(A.href);
-                    return false;
-                });
-                continue;
-            }
-        }
-        const HRefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HRefPathInSource) ? './' : '') + (/^#/.test(HRefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HRefPathInSource);
-        const HRefFnH = HRefPath.split('#');
-        const HRefFile = HRefFnH[0] ? HRefFnH[0] : BasePath;
-        const HRefHash = HRefFnH[1] ? HRefFnH[1] : '';
-        sML.forEach(R.Items)(Item => {
-            if(HRefFile == Item.AnchorPath) {
+            A.Destination = { External: A.href };
+            A.jumpWithBibi = () => new Promise(resolve => { window.open(A.href); resolve(); });
+        } else {
+            const HRefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HRefPathInSource) ? './' : '') + (/^#/.test(HRefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HRefPathInSource);
+            const HRefFnH = HRefPath.split('#');
+            const HRefFile = HRefFnH[0] ? HRefFnH[0] : BasePath;
+            const HRefHash = HRefFnH[1] ? HRefFnH[1] : '';
+            if(HRefHash && /^epubcfi\(.+?\)$/.test(HRefHash)) {
+                A.Destination = R.getCFIDestination(HRefHash);
+            } else sML.forEach(R.Items)(Item => {
+                if(HRefFile == Item.AnchorPath) {
+                    A.Destination = { ItemIndex: Item.Index }; // not IIPP. ElementSelector may be added.
+                         if(Item['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
+                    else if(HRefHash)                                    A.Destination.ElementSelector = '#' + HRefHash;
+                    return 'break'; //// break sML.forEach()
+                }
+            });
+            if(A.Destination) {
                 A.setAttribute('data-bibi-original-href', HRefPathInSource);
                 A.setAttribute(HRefAttribute, B.Path + '/' + HRefPath);
-                A.InNav = InNav;
-                A.Destination = { ItemIndex: Item.Index }; // not IIPP. ElementSelector may be added.
-                     if(Item['rendition:layout'] == 'pre-paginated') A.Destination.PageIndexInItem = 0;
-                else if(HRefHash)                                    A.Destination.ElementSelector = '#' + HRefHash;
-                L.coordinateLinkages.setJump(A);
-                return 'break'; //// break sML.forEach()
-            }
-        });
-        if(HRefHash && /^epubcfi\(.+?\)$/.test(HRefHash)) {
-            A.setAttribute('data-bibi-original-href', HRefPathInSource);
-            A.setAttribute(HRefAttribute, B.Path + '/#' + HRefHash);
-            if(X['EPUBCFI']) {
-                A.InNav = InNav;
-                A.Destination = X['EPUBCFI'].getDestination(HRefHash);
-                L.coordinateLinkages.setJump(A);
-            } else {
-                A.addEventListener('click', Eve => {
-                    Eve.preventDefault(); 
-                    Eve.stopPropagation();
-                    I.notify(O.Language == 'ja' ? '<small>このリンクの利用には EPUBCFI エクステンションが必要です</small>' : '"EPUBCFI" extension is required to use this link.');
-                    return false;
-                });
+                A.jumpWithBibi = L.coordinateLinkages.getJumper(A);
             }
         }
-        if(InNav && R.StartOn && R.StartOn.Nav == (i + 1) && A.Destination) R.StartOn = A.Destination;
+        if(A.jumpWithBibi) A.addEventListener('click', Eve => {
+            Eve.AnchorElement = A;
+            E.dispatch('bibi:jumps-a-link', Eve);
+            Eve.preventDefault(); 
+            Eve.stopPropagation();
+            A.jumpWithBibi().then(() => E.dispatch('bibi:jumped-a-link', Eve));
+            return false;
+        });
+        if(InNav && R.StartOn && R.StartOn.Nav == (i + 1) && A.Destination && !A.Destination.External) R.StartOn = A.Destination;
     }
 };
 
-    L.coordinateLinkages.setJump = (A) => A.addEventListener('click', Eve => {
-        Eve.preventDefault(); 
-        Eve.stopPropagation();
-        if(A.Destination) new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
-            if(L.Opened) {
-                I.History.add();
-                return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: B, SumUp: false, Destination: Destination }); return Destination; });
+    L.coordinateLinkages.getJumper = (A) => () => A.Destination ? new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
+        if(L.Opened) {
+            if(!S['manualize-adding-histories']) I.History.add();
+            return R.focusOn({ Destination: A.Destination, Duration: 0 }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: B, SumUp: false, Destination: Destination }); return Destination; });
+        } else if(L.Waiting) {
+            if(S['start-in-new-window']) {
+                L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
+            } else {
+                R.StartOn = A.Destination;
+                L.play();
             }
-            if(!L.Waiting) return false;
-            if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
-            R.StartOn = A.Destination;
-            L.play();
-        });
-        return false;
-    });
+        }
+    }) : Promise.reject();
 
 
 L.preprocessResources = () => {
@@ -2007,8 +1991,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
         if(typeof _ == 'number' || (typeof _ == 'string' && /^\d+$/.test(_))) {
             return { Page: R.Items[_].Pages[0] };
         } else if(typeof _ == 'string') {
-                 if(_ == 'head' || _ == 'foot') _ = { Edge: _ };
-            else if(X['EPUBCFI'])               _ = X['EPUBCFI'].getDestination(_);
+            _ = (_ == 'head' || _ == 'foot') ? { Edge: _ } : R.getCFIDestination(_);
         } else if(typeof _.IndexInItem == 'number') {
             if(R.Pages[_.Index] == _) return { Page: _ }; // Page (If Pages of the Item have not been replaced)
         } else if(typeof _.Index == 'number') {
@@ -2134,6 +2117,40 @@ R.getPDestination = (PString) => {
         }
     }
     return { Page: Item.Pages[0] };
+};
+
+
+R.getCFIDestination = (CFIString) => {
+    const CFI = O.CFIManager.parse(CFIString);
+    if(!CFI || CFI.Path.Steps.length < 2 || !CFI.Path.Steps[1].Index || CFI.Path.Steps[1].Index % 2 == 1) return null;
+    const ItemIndexInSpine = CFI.Path.Steps[1].Index / 2 - 1;
+    let ElementSelector = null, TextNodeIndex = null, TermStep = null, IndirectPath = null;
+    if(CFI.Path.Steps[2] && CFI.Path.Steps[2].Steps) {
+        ElementSelector = '';
+        CFI.Path.Steps[2].Steps.forEach((Step, i) => {
+            if(Step.Type == 'IndirectPath') { IndirectPath = Step; return false; }
+            if(Step.Type == 'TermStep')     { TermStep     = Step; return false; }
+            if(Step.Index % 2 == 1) {
+                TextNodeIndex = Step.Index - 1;
+                if(i != CFI.Path.Steps[2].Steps.length - 2) return false;
+            }
+            if(TextNodeIndex === null) ElementSelector = Step.ID ? '#' + Step.ID : ElementSelector + '>*:nth-child(' + (Step.Index / 2) + ')';
+        });
+        if(ElementSelector) {
+            if(/^>/.test(ElementSelector)) ElementSelector = 'html' + ElementSelector;
+            ElementSelector = ElementSelector.trim().replace(/^html>\*:nth-child\(2\)/, 'body');
+        }
+        if(!ElementSelector) ElementSelector = null;
+    }
+    return {
+        CFI: CFI,
+        CFIString: CFIString,
+        ItemIndexInSpine: ItemIndexInSpine,
+        ElementSelector: ElementSelector,
+        TextNodeIndex: TextNodeIndex,
+        TermStep: TermStep,
+        IndirectPath: IndirectPath
+    };
 };
 
 
@@ -5138,7 +5155,7 @@ U.initialize = () => {
     else if(typeof U['p']    == 'string')                                  R.StartOn = { P:    U['p']    };
     else if(typeof U['iipp'] == 'number')                                  R.StartOn = { IIPP: U['iipp'] };
     else if(typeof U['edge'] == 'string')                                  R.StartOn = { Edge: U['edge'] };
-    else if(typeof U['EPUBCFI'] == 'string') E.add('bibi:readied', () => { if(X['EPUBCFI']) R.StartOn = X['EPUBCFI'].getDestination(U['EPUBCFI']); });
+    else if(typeof U['EPUBCFI'] == 'string')                               R.StartOn = R.getCFIDestination(U['EPUBCFI']);
 };
 
     U.initialize.parseDataString = (DataString) => {
@@ -5953,6 +5970,190 @@ O.Biscuits = {
         }
         return O.Biscuits.Memories;
     }
+};
+
+
+O.CFIManager = { // Utilities for EPUBCFI (An Example Is at the Bottom of This Object)
+    CFIString: '',
+    Current: 0,
+    Log: false,
+    LogCorrection: false,
+    LogCancelation: false,
+    parse: function(CFIString, Scope) {
+        if(!CFIString || typeof CFIString != 'string') return null;
+        try { CFIString = decodeURIComponent(CFIString); } catch(Err) { this.log(0, `Unregulated URIEncoding.`); return null; }
+        if(!Scope || typeof Scope != 'string' || typeof this['parse' + Scope] != 'function') Scope = 'Fragment';
+        if(Scope == 'Fragment') CFIString = CFIString.replace(/^(epubcfi\()?/, 'epubcfi(').replace(/(\))?$/, ')');
+        this.CFIString = CFIString, this.Current = 0;
+        if(this.Log) {
+            this.log(1, `Bibi EPUB-CFI`);
+            this.log(2, `parse`);
+            this.log(3, `CFIString: ${ this.CFIString }`);
+        }
+        return this['parse' + Scope]();
+    },
+    parseFragment: function() {
+        const Foothold = this.Current;
+        if(!this.parseString('epubcfi(')) return this.cancel(Foothold, `Fragment`);
+        const CFI = this.parseCFI();
+        if(CFI === null) return this.cancel(Foothold);
+        if(!this.parseString(')')) return this.cancel(Foothold, `Fragment`);
+        return CFI;
+    },
+    parseCFI: function() {
+        const Foothold = this.Current, CFI = { Type: 'CFI', Path: this.parsePath() };
+        if(!CFI.Path) return this.cancel(Foothold, `CFI`);
+        if(this.parseString(',')) {
+            CFI.Start = this.parseLocalPath();
+            if(!CFI.Start.Steps.length && !CFI.Start.TermStep) return this.cancel(Foothold, `CFI > Range`);
+            if(!this.parseString(',')) return this.cancel(Foothold, 'CFI > Range');
+            CFI.End   = this.parseLocalPath();
+            if(  !CFI.End.Steps.length &&   !CFI.End.TermStep) return this.cancel(Foothold, `CFI > Range`);
+        }
+        return CFI;
+    },
+    parsePath: function() {
+        const Foothold = this.Current, Path = { Type: 'Path', Steps: [this.parseStep()] }, LocalPath = this.parseLocalPath();
+        if(!Path.Steps[0]) return this.cancel(Foothold, `Path`);
+        if(LocalPath) Path.Steps = Path.Steps.concat(LocalPath.Steps);
+        else return this.cancel(Foothold, `Path`);
+        return Path;
+    },
+    parseLocalPath: function() {
+        const Foothold = this.Current, LocalPath = { Type: 'LocalPath', Steps: [] };
+        let StepRoot = LocalPath, Step = this.parseStep('Local'), TermStep = null;
+        while(Step !== null) {
+            StepRoot.Steps.push(Step);
+            Step = this.parseStep('Local');
+            if(!Step) break;
+            if(Step.Type == 'IndirectStep') {
+                const IndirectPath = { Type: 'IndirectPath', Steps: [] };
+                StepRoot.Steps.push(IndirectPath);
+                StepRoot = IndirectPath;
+            } else if(Step.Type == 'TermStep') {
+                TermStep = Step;
+                break;
+            }
+        }
+        if(TermStep) StepRoot.Steps.push(TermStep);
+        return (LocalPath.Steps.length ? LocalPath : null);
+    },
+    parseStep: function(Local) {
+        const Foothold = this.Current, Step = {};
+             if(         this.parseString( '/')) Step.Type =         'Step';
+        else if(Local && this.parseString('!/')) Step.Type = 'IndirectStep';
+        else if(Local && this.parseString( ':')) Step.Type =     'TermStep';
+        else                                     return this.cancel(Foothold, `Step`);
+        Step.Index = this.parseString(/^(0|[1-9][0-9]*)/);
+        if(Step.Index === null) return this.cancel(Foothold, `Step`);
+        Step.Index = parseInt(Step.Index);
+        if(this.parseString('[')) {
+            if(Step.Type != 'TermStep') {
+                Step.ID = this.parseString(/^[a-zA-Z_:][a-zA-Z0-9_:\-\.]+/);
+                if(!Step.ID) return this.cancel(Foothold, `Step > Assertion > ID`);
+            } else {
+                const CSV = [], ValueRegExp = /^((\^[\^\[\]\(\)\,\;\=])|[_a-zA-Z0-9%\- ])*/;
+                CSV.push(this.parseString(ValueRegExp));
+                if(this.parseString(',')) CSV.push(this.parseString(ValueRegExp));
+                if(CSV[0]) Step.Preceding = CSV[0];
+                if(CSV[1]) Step.Following = CSV[1];
+                const Side = this.parseString(/^;s=/) ? this.parseString(/^[ab]/) : null;
+                if(Side) Step.Side = Side;
+                if(!Step.Preceding && !Step.Following && !Step.Side) return this.cancel(Foothold, `Step > Assertion > TextLocation`);
+            }
+            if(!this.parseString(']')) return this.cancel(Foothold, `Step > Assertion`);
+        }
+        return Step;
+    },
+    parseString: function(S) {
+        let Correction = null, Matched = false;
+        if(S instanceof RegExp) {
+            const CFIString = this.CFIString.substr(this.Current, this.CFIString.length - this.Current);
+            if(S.test(CFIString)) {
+                Matched = true;
+                S = CFIString.match(S)[0];
+            }
+        } else if(this.CFIString.substr(this.Current, S.length) === S) {
+            Matched = true;
+        }
+        if(Matched) {
+            this.Current += S.length;
+            Correction = S;
+        }
+        return this.correct(Correction);
+    },
+    correct: function(Correction) {
+        if(this.Log && this.LogCorrection && Correction) this.log(3, Correction);
+        return Correction;
+    },
+    cancel: function(Foothold, Parser) {
+        if(this.Log && this.LogCancelation) this.log(4, `cancel: parse ${ Parser } (${ Foothold }-${ this.Current }/${ this.CFIString.length })`);
+        if(typeof Foothold == 'number') this.Current = Foothold;
+        return null;
+    },
+    log: function(Lv, Message) {
+        if(!this.Log) return;
+             if(Lv == 0) Message = `[ERROR] ${ Message }`;
+        else if(Lv == 1) Message = `---------------- ${ Message } ----------------`;
+        else if(Lv == 2) Message = Message;
+        else if(Lv == 3) Message = ` - ${ Message }`;
+        else if(Lv == 4) Message = `   . ${ Message }`;
+        O.log(`EPUBCFI: ${ Message }`);
+    }
+    /* -----------------------------------------------------------------------------------------------------------------
+    // EXAMPLE:
+    O.CFIManager.parse('epubcfi(/6/4!/4/10!/4/2:32[All%20You%20Need%20Is,%20Love;s=a])'); // returns following object.
+    --------------------------------------------------------------------------------------------------------------------
+    {
+        Type: 'CFI',
+        Path: {
+            Type: 'Path',
+            Steps: [
+                {
+                    Type: 'Step',
+                    Index: '6'
+                },
+                {
+                    Type: 'Step',
+                    Index: '4'
+                },
+                {
+                    Type: 'IndirectPath',
+                    Steps: [
+                        {
+                            Type: 'IndirectStep',
+                            Index: '4'
+                        },
+                        {
+                            Type: 'Step',
+                            Index: '10'
+                        },
+                        {
+                            Type: 'IndirectPath',
+                            Steps: [
+                                {
+                                    Type: 'IndirectStep',
+                                    Index: '4'
+                                },
+                                {
+                                    Type: 'Step',
+                                    Index: '2'
+                                }
+                            ],
+                            TermStep: {
+                                Type: 'TermStep',
+                                Index: '32',
+                                Preceding: 'All You Need Is',
+                                Following: ' Love',
+                                Side: 'a'
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    ----------------------------------------------------------------------------------------------------------------- */
 };
 
 

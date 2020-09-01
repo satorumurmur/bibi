@@ -92,8 +92,6 @@ Bibi.Banners = Object.assign({
 
 'bibi/extensions/analytics.js': _banner({ Name: `Bibi Extension: Analytics`, Credit: Bibi, Mark: true }),
 
-'bibi/extensions/epubcfi.js': _banner({ Name: `Bibi Extension: EPUBCFI`, Credit: Bibi, Mark: true }),
-
 'bibi/extensions/extractor/on-the-fly.js': _banner({ Name: 'Bibi Extension: Extractor (on the fly)', Credit: Bibi, Extra: `
  *  * Depends on:
  *      - Bibi Zip Loader : © Lunascape - https://github.com/lunascape/bibi-zip-loader / Licensed under the MIT License - https://github.com/lunascape/bibi-zip-loader/blob/master/LICENSE
