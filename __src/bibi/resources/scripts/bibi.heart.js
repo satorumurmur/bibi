@@ -64,10 +64,10 @@ Bibi.SettingTypes = {
     ],
     'array': [
         'content-draggable',
-        'orthogonal-edge-tappings',
-        'orthogonal-arrow-keys',
-        'orthogonal-touch-moves',
-        'orthogonal-wheelings'
+        'on-orthogonal-edgetap',
+        'on-orthogonal-arrowkey',
+        'on-orthogonal-touchmove',
+        'on-orthogonal-wheel'
     ]
 };
 
@@ -183,14 +183,14 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'array': (_P, _V, Fill) => {
         if(Array.isArray(_V)) {
             switch(_P) {
-                case 'content-draggable'        : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
-                case 'extensions'               : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
-                case 'extract-if-necessary'     : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
-                case 'orthogonal-arrow-keys'    :
-                case 'orthogonal-edge-tappings' :
-                case 'orthogonal-touch-moves'   :
-                case 'orthogonal-wheelings'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' ? _V[i] : ''; return _V;
-                case 'trustworthy-origins'      : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
+                case 'content-draggable'       : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
+                case 'extensions'              : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
+                case 'extract-if-necessary'    : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
+                case 'on-orthogonal-arrowkey'  :
+                case 'on-orthogonal-edgetap'   :
+                case 'on-orthogonal-touchmove' :
+                case 'on-orthogonal-wheel'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' ? _V[i] : ''; return _V;
+                case 'trustworthy-origins'     : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
             }
             return _V.filter(_I => typeof _I != 'function');
         }
@@ -2951,7 +2951,7 @@ I.FlickObserver = { create: () => {
                         ( 60 <= Deg && Deg <= 120) ? 'bottom' /* to top */ :
                         (150 <= Deg && Deg <= 210) ? 'right' /* to left */ :
                         (240 <= Deg && Deg <= 300) ? 'top' /* to bottom */ : '';
-            const Dist = C.d2d(Dir, I.orthogonal('touch-moves') == 'move');
+            const Dist = C.d2d(Dir, I.orthogonal('touchmove') == 'move');
             if(!Dist) {
                 // Orthogonal (not for "move")
                 return new Promise(resolve => {
@@ -2988,7 +2988,7 @@ I.FlickObserver = { create: () => {
                 Duration: !I.isScrollable() ? 0 : S['content-draggable'][0] ? 123 : 0
             });
         },
-        getOrthogonalTouchMoveFunction: () => { switch(I.orthogonal('touch-moves')) {
+        getOrthogonalTouchMoveFunction: () => { switch(I.orthogonal('touchmove')) {
             case 'switch': if(I.AxisSwitcher) return I.AxisSwitcher.switchAxis; break;
             case 'utilities': return I.Utilities.toggleGracefuly; break;
         } },
@@ -3055,7 +3055,7 @@ I.WheelObserver = { create: () => {
                 Ws.push(CW); if(Wl > 3) Ws.shift();
                 WheelObserver.Progress = (WheelObserver.TotalDelta += Eve['delta' + WA]) / 3 / 100;
             });
-            const ToDo = WA != C.A_AXIS_L ? I.orthogonal('wheelings') : S.RVM == 'paged' ? 'move' : WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length ? 'simulate' : '';
+            const ToDo = WA != C.A_AXIS_L ? I.orthogonal('wheel') : S.RVM == 'paged' ? 'move' : WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length ? 'simulate' : '';
             if(!ToDo) return;
             //Eve.preventDefault(); // Must not prevent.
             //Eve.stopPropagation(); // No need to stop.
@@ -3189,7 +3189,7 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             KeyObserver.KeyParameters = _;
         },
         updateKeyParameters: () => {
-            const _O = I.orthogonal('arrow-keys');
+            const _O = I.orthogonal('arrowkey');
             const _ = (() => { switch(S.ARA) {
                 case 'horizontal': return Object.assign({ 'Left Arrow': C.d2d('left'), 'Right Arrow': C.d2d('right' ) }, _O == 'move' ? {   'Up Arrow': C.d2d('top' , 9),  'Down Arrow': C.d2d('bottom', 9) } : {   'Up Arrow': _O,  'Down Arrow': _O });
                 case   'vertical': return Object.assign({   'Up Arrow': C.d2d('top' ),  'Down Arrow': C.d2d('bottom') }, _O == 'move' ? { 'Left Arrow': C.d2d('left', 9), 'Right Arrow': C.d2d('right' , 9) } : { 'Left Arrow': _O, 'Right Arrow': _O });
@@ -3329,7 +3329,7 @@ I.Matrix = { create: () => {
                 if(I.isPointerStealth()) return false;
                 if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
                 if(Matrix.checkFlipperAvailability(BibiEvent)) {
-                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
+                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
                             I.Flipper.flip(Dist);
@@ -3348,7 +3348,7 @@ I.Matrix = { create: () => {
             E.add('bibi:moved-pointer', BibiEvent => {
                 if(I.isPointerStealth()) return false;
                 if(Matrix.checkFlipperAvailability(BibiEvent)) {
-                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edge-tappings'), Dist = C.d2d(Dir, Ortho == 'move');
+                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
                             Matrix.Hovering = true;
@@ -5005,7 +5005,7 @@ I.distillLabels = (Labels) => {
     };
 
 
-I.orthogonal = (InputType) => S['orthogonal-' + InputType][S.RVM == 'paged' ? 0 : 1];
+I.orthogonal = (InputType) => S['on-orthogonal-' + InputType][S.RVM == 'paged' ? 0 : 1];
 
 I.isScrollable = () => (S.ARA == S.SLA && I.Loupe.CurrentTransformation.Scale == 1) ? true : false;
 
