@@ -39,7 +39,10 @@ Bibi.SettingTypes = {
         'book',
         'default-page-progression-direction',
         'on-doubletap',
+        'on-doubletap-with-altkey',
+        'on-tap-with-altkey',
         'on-tripletap',
+        'on-tripletap-with-altkey',
         'pagination-method',
         'reader-view-mode'
     ],
@@ -148,7 +151,11 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
-                case 'on-doubletap': case 'on-tripletap'  : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-doubletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-doubletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-tap-with-altkey'                 : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-tripletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-tripletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
                 case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
@@ -2743,47 +2750,49 @@ I.TouchObserver = { create: () => {
                     onPointerDown: function(BibiEvent) {
                         if((typeof BibiEvent.buttons == 'number' && BibiEvent.buttons !== 1) || BibiEvent.ctrlKey) return true;
                         this.care(BibiEvent);
-                        clearTimeout(this.Timer_forgetFloating);
                         clearTimeout(this.Timer_fireTap);
-                        this.Touching = BibiEvent;
-                        if(!this.Floating) return;
-                        if((BibiEvent.timeStamp - this.Floating.timeStamp) < TimeLimit.U2D) {
-                            this.Floating.PreviousTouching.preventDefault();
-                            this.Floating.preventDefault();
+                        this.TapLandingBibiEvent = Object.assign(BibiEvent, { IsTapLandingBibiEvent: true });
+                        if(!this.TapFloatingBibiEvent) return;
+                        if((BibiEvent.timeStamp - this.TapFloatingBibiEvent.timeStamp) < TimeLimit.U2D) {
+                            this.TapFloatingBibiEvent.TapLandingBibiEvent.preventDefault();
+                            this.TapFloatingBibiEvent.preventDefault();
                             BibiEvent.preventDefault();
                         } else {
-                            delete this.Floating;
+                            delete this.TapFloatingBibiEvent;
                         }
                     },
                     onPointerUp: function(BibiEvent) {
                         this.care(BibiEvent);
-                        if(!this.Touching) return;
-                        if((BibiEvent.timeStamp - this.Touching.timeStamp) < TimeLimit.D2U) {
-                            if(Math.abs(BibiEvent.Coord.X - this.Touching.Coord.X) < 3 && Math.abs(BibiEvent.Coord.Y - this.Touching.Coord.Y) < 3) {
-                                let SDT = 0;
-                                const Floating = Object.assign(BibiEvent, { PreviousTouching: this.Touching });
-                                if(!this.Floating) {
-                                    SDT = 1;
-                                    this.Floating = Object.assign(Floating, { WaitingFor: 2 });
-                                } else {
-                                    SDT = this.Floating.WaitingFor;
-                                    this.Floating = Object.assign(Floating, { WaitingFor: ++this.Floating.WaitingFor });
-                                }
-                                this.Timer_forgetFloating = setTimeout(() => { delete this.Floating; }, TimeLimit.U2D);
-                                this.Timer_fireTap = setTimeout(() => { switch(SDT) {
-                                    case 1: return Ele.BibiTapObserver.onTap(      BibiEvent);
-                                    case 2: return Ele.BibiTapObserver.onDoubleTap(BibiEvent);
-                                    case 3: return Ele.BibiTapObserver.onTripleTap(BibiEvent);
-                                }}, TimeLimit.U2D);
+                        if(!this.TapLandingBibiEvent) return;
+                        if((BibiEvent.timeStamp - this.TapLandingBibiEvent.timeStamp) < TimeLimit.D2U) {
+                            if(Math.abs(BibiEvent.Coord.X - this.TapLandingBibiEvent.Coord.X) < 3 && Math.abs(BibiEvent.Coord.Y - this.TapLandingBibiEvent.Coord.Y) < 3) {
+                                const TapAccumulation = !this.TapFloatingBibiEvent ? [] : [...this.TapFloatingBibiEvent.TapAccumulation];
+                                TapAccumulation.push(this.TapFloatingBibiEvent = this.TapLandingBibiEvent.TapFloatingBibiEvent = Object.assign(BibiEvent, {
+                                    IsTapFloatingBibiEvent: true,
+                                    TapLandingBibiEvent: this.TapLandingBibiEvent,
+                                    TapAccumulation: TapAccumulation
+                                }));
+                                this.Timer_fireTap = setTimeout(() => {
+                                    if(this.TapFloatingBibiEvent) this.onTap(this.TapFloatingBibiEvent);
+                                    delete this.TapFloatingBibiEvent;
+                                }, TimeLimit.U2D);
                             } else {
-                                delete this.Floating;
+                                delete this.TapFloatingBibiEvent;
                             }
                         }
-                        delete this.Touching;
+                        delete this.TapLandingBibiEvent;
                     },
-                    onTap:       (BibiEvent) => E.dispatch(Ele, 'bibi:tapped'      , BibiEvent),
-                    onDoubleTap: (BibiEvent) => E.dispatch(Ele, 'bibi:doubletapped', BibiEvent),
-                    onTripleTap: (BibiEvent) => E.dispatch(Ele, 'bibi:tripletapped', BibiEvent)
+                    onTap: (BibiEvent) => {
+                        if(!BibiEvent || !Array.isArray(BibiEvent.TapAccumulation) || BibiEvent.TapAccumulation.length == 0 || BibiEvent.TapAccumulation.length > 3) return;
+                        let EventName = '';
+                        switch(BibiEvent.TapAccumulation.length) {
+                            case 1: EventName =       'bibi:tapped'; BibiEvent.IsSingleTapBibiEvent = true; break;
+                            case 2: EventName = 'bibi:doubletapped'; BibiEvent.IsDoubleTapBibiEvent = true; break;
+                            case 3: EventName = 'bibi:tripletapped'; BibiEvent.IsTripleTapBibiEvent = true; break;
+                        }
+                        if(BibiEvent.altKey) EventName += '-with-altkey'; // 'bibi:tapped-with-altkey', 'bibi:doubletapped-with-altkey', 'bibi:tripletapped-with-altkey'
+                        E.dispatch(Ele, EventName, BibiEvent);
+                    }
                 };
             }
             return Ele;
@@ -2815,12 +2824,12 @@ I.TouchObserver = { create: () => {
         PreviousPointerCoord: { X: 0, Y: 0 },
         activateHTML: (HTML) => {
             TouchObserver.observeElementTap(HTML);
-            E.add(HTML, 'bibi:tapped',       BibiEvent => E.dispatch('bibi:tapped',       BibiEvent));
-            E.add(HTML, 'bibi:doubletapped', BibiEvent => E.dispatch('bibi:doubletapped', BibiEvent)); //HTML.ownerDocument.addEventListener('dblclick', Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; });
-            E.add(HTML, 'bibi:tripletapped', BibiEvent => E.dispatch('bibi:tripletapped', BibiEvent));
+            [      'bibi:tapped',       'bibi:tapped-with-altkey',
+             'bibi:doubletapped', 'bibi:doubletapped-with-altkey',
+             'bibi:tripletapped', 'bibi:tripletapped-with-altkey'].forEach(TapEventName => E.add(HTML, TapEventName, BibiEvent => E.dispatch(TapEventName, BibiEvent)));
             const TOPENs = TouchObserver.PointerEventNames;
             E.add(HTML, TOPENs[0], Eve => E.dispatch('bibi:downed-pointer', E.aBCD(Eve)), E.Cpt1Psv0);
-            E.add(HTML, TOPENs[1], Eve => E.dispatch('bibi:upped-pointer',  E.aBCD(Eve)), E.Cpt1Psv0);
+            E.add(HTML, TOPENs[1], Eve => E.dispatch( 'bibi:upped-pointer', E.aBCD(Eve)), E.Cpt1Psv0);
             E.add(HTML, TOPENs[2], Eve => {
                 const BibiEvent = E.aBCD(Eve);
                 const CC = BibiEvent.Coord, PC = TouchObserver.PreviousPointerCoord;
@@ -3176,7 +3185,7 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
         initializeKeyParameters: () => {
             let _ = { 'End': 'foot', 'Home': 'head' };
             for(const p in _) _[p.toUpperCase()] = _[p] == 'head' ? 'foot' : _[p] == 'foot' ? 'head' : _[p];
-            //Object.assign(_, { 'Space': 1, 'SPACE': -1 }); // Space key is reserved for Loupe.
+            Object.assign(_, { 'Space': 1, 'SPACE': -1 });
             KeyObserver.KeyParameters = _;
         },
         updateKeyParameters: () => {
@@ -3777,8 +3786,11 @@ I.Panel = { create: () => {
     E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
     E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
     E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
-    if(S['on-doubletap'] == 'panel') E.add('bibi:doubletapped',   () => Panel.toggle());
-    if(S['on-tripletap'] == 'panel') E.add('bibi:tripletapped',   () => Panel.toggle());
+    if(S['on-doubletap'            ] == 'panel') E.add('bibi:doubletapped',             () => Panel.toggle());
+    if(S['on-tripletap'            ] == 'panel') E.add('bibi:tripletapped',             () => Panel.toggle());
+    if(S[      'on-tap-with-altkey'] == 'panel') E.add(      'bibi:tapped-with-altkey', () => Panel.toggle());
+    if(S['on-doubletap-with-altkey'] == 'panel') E.add('bibi:doubletapped-with-altkey', () => Panel.toggle());
+    if(S['on-tripletap-with-altkey'] == 'panel') E.add('bibi:tripletapped-with-altkey', () => Panel.toggle());
     //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
     E.dispatch('bibi:created-panel');
 }};
@@ -4111,10 +4123,8 @@ I.Loupe = { create: () => {
             }
             return true;
         },
-        onTap: (BibiEvent, HowManyTaps) => {
-            if(HowManyTaps == 1 && (!I.KeyObserver.ActiveKeys || !I.KeyObserver.ActiveKeys['Space'])) return Promise.resolve(); // Requires pressing space-key on single-tap.
+        onTap: (BibiEvent) => {
             if(!Loupe.checkBibiEventForTaps(BibiEvent)) return Promise.resolve();
-            //if(HowManyTaps > 1 && (BibiEvent.Division.X != 'center' || BibiEvent.Division.Y != 'middle')) return Promise.resolve();
             BibiEvent.preventDefault();
             try { BibiEvent.target.ownerDocument.body.Item.contentWindow.getSelection().empty(); } catch(Err) {}
             if(Loupe.CurrentTransformation.Scale >= S['loupe-max-scale'] && !BibiEvent.shiftKey) return Loupe.scale(1);
@@ -4170,12 +4180,14 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:deactivate-loupe', (   ) => Loupe.close());
     E.add('bibi:commands:toggle-loupe',     (   ) => Loupe.toggle());
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
-    E.add('bibi:tapped',                                       BibiEvent => Loupe.onTap(BibiEvent, 1));
-    if(S['on-doubletap'] == 'zoom') E.add('bibi:doubletapped', BibiEvent => Loupe.onTap(BibiEvent, 2));
-    if(S['on-tripletap'] == 'zoom') E.add('bibi:tripletapped', BibiEvent => Loupe.onTap(BibiEvent, 3));
-    E.add('bibi:downed-pointer',                               BibiEvent => Loupe.onPointerDown(BibiEvent));
-    E.add('bibi:upped-pointer',                                BibiEvent => Loupe.onPointerUp(BibiEvent));
-    E.add('bibi:moved-pointer',                                BibiEvent => Loupe.onPointerMove(BibiEvent));
+    if(S['on-doubletap'            ] == 'zoom') E.add('bibi:doubletapped',             BibiEvent => Loupe.onTap(BibiEvent));
+    if(S['on-tripletap'            ] == 'zoom') E.add('bibi:tripletapped',             BibiEvent => Loupe.onTap(BibiEvent));
+    if(S[      'on-tap-with-altkey'] == 'zoom') E.add(      'bibi:tapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
+    if(S['on-doubletap-with-altkey'] == 'zoom') E.add('bibi:doubletapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
+    if(S['on-tripletap-with-altkey'] == 'zoom') E.add('bibi:tripletapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
+    E.add('bibi:downed-pointer', BibiEvent => Loupe.onPointerDown(BibiEvent));
+    E.add('bibi:upped-pointer',  BibiEvent => Loupe.onPointerUp(  BibiEvent));
+    E.add('bibi:moved-pointer',  BibiEvent => Loupe.onPointerMove(BibiEvent));
     if(S['zoom-out-for-utilities']) {
         E.add('bibi:opens-utilities',  () => Loupe.transformForUtilities(true ));
         E.add('bibi:closes-utilities', () => Loupe.transformForUtilities(false));
@@ -4673,7 +4685,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     Arrows[ 1] = Arrows.Back.Pair    = I.Flipper.Forward.Arrow = Arrows.Forward;
     [Arrows.Back, Arrows.Forward].forEach(Arrow => {
         I.setFeedback(Arrow);
-        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap, Arrow.BibiTapObserver.onDoubleTap, Arrow.BibiTapObserver.onTripleTap];
+        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap];
         if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.BibiHoverObserver.onHover, Arrow.BibiHoverObserver.onUnHover);
         FunctionsToBeCanceled.forEach(f2BC => f2BC = () => {});
     });

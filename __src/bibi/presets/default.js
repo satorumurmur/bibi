@@ -70,22 +70,31 @@ Bibi.preset({
 
 "fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
 
-"on-doubletap"               : "",
-"on-tripletap"               : "",
 
-"content-draggable"          : [true, true], // [<TF>, <TF>]
-"orthogonal-arrow-keys"      : ["move", "switch"], // [<S1>, <S2>]
-"orthogonal-edge-tappings"   : ["utilities", "utilities"], // [<S1>, <S2>]
-"orthogonal-touch-moves"     : ["move", "switch"], // [<S1>, <S2>]
-"orthogonal-wheelings"       : ["move", "across"], // [<S1>, <S3>]
-//                             ^ Each item of the arrays corresponds to the view mode:
-//                                 * the first is for the "paged" view mode, and
-//                                 * the second is for the "horizontal"/"vertical" scroll view modes.
-//                             ^ Types of the values:
-//                                 * <TF>: true or false
-//                                 * <S1>: "" (ignore) or "utilities" or "move"
-//                                 * <S2>: "" (ignore) or "utilities" or "move" or "switch"
-//                                 * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
+//==============================================================================================================================================
+//-- Input
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+"on-doubletap"             : "",
+"on-tripletap"             : "",
+
+"on-tap-with-altkey"       : "",
+"on-doubletap-with-altkey" : "",
+"on-tripletap-with-altkey" : "",
+
+"content-draggable"        : [true, true], // [<TF>, <TF>]
+"on-orthogonal-arrowkey"   : ["move", "switch"], // [<S1>, <S2>]
+"on-orthogonal-edgetap"    : ["utilities", "utilities"], // [<S1>, <S2>]
+"on-orthogonal-touchmove"  : ["move", "switch"], // [<S1>, <S2>]
+"on-orthogonal-wheel"      : ["move", "across"], // [<S1>, <S3>]
+//                           ^ Each item of the arrays corresponds to the view mode:
+//                               * the first is for the "paged" view mode, and
+//                               * the second is for the "horizontal"/"vertical" scroll view modes.
+//                           ^ Types of the values:
+//                               * <TF>: true or false
+//                               * <S1>: "" (ignore) or "utilities" or "move"
+//                               * <S2>: "" (ignore) or "utilities" or "move" or "switch"
+//                               * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
 
 
 //==============================================================================================================================================
