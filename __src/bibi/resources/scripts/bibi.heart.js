@@ -1881,12 +1881,24 @@ R.updateOrientation = () => {
 
 
 R.changeView = (Par) => {
-    if(
-        S['fix-reader-view-mode'] ||
-        !Par || typeof Par.Mode != 'string' || !/^(paged|horizontal|vertical)$/.test(Par.Mode) ||
-        S.RVM == Par.Mode && !Par.Force
-    ) return false;
-    if(L.Opened) {
+    if(S['fix-reader-view-mode']) return false;
+    if(!Par || typeof Par != 'object') return false;
+    if(!/^(paged|horizontal|vertical)$/.test(Par.Mode)) Par.Mode = S.RVM;
+    if(typeof Par.FullBreadthLayoutInScroll != 'boolean') Par.FullBreadthLayoutInScroll = S['full-breadth-layout-in-scroll'];
+    if(S.RVM == Par.Mode && Par.FullBreadthLayoutInScroll == S['full-breadth-layout-in-scroll']) return false;
+    let ToLayOut = false;
+    if(S.RVM != Par.Mode) ToLayOut = true;
+    if(Par.FullBreadthLayoutInScroll != S['full-breadth-layout-in-scroll']) {
+        S.update({ 'full-breadth-layout-in-scroll': Par.FullBreadthLayoutInScroll });
+        if(Par.FullBreadthLayoutInScroll) O.HTML.classList.add(   'book-full-breadth');
+        else                              O.HTML.classList.remove('book-full-breadth');
+        if(Par.Mode != 'paged') ToLayOut = true;
+    }
+    const Setting = {
+        'reader-view-mode': Par.Mode,
+        'full-breadth-layout-in-scroll': Par.FullBreadthLayoutInScroll
+    };
+    if(L.Opened && ToLayOut) {
         E.dispatch('bibi:changes-view', Par.Mode);
         O.Busy = true;
         O.HTML.classList.add('busy');
@@ -1902,9 +1914,7 @@ R.changeView = (Par) => {
             R.layOutBook({
                 Reset: true,
                 NoNotification: Par.NoNotification,
-                Setting: {
-                    'reader-view-mode': Par.Mode
-                }
+                Setting: Setting
             }).then(() => {
                 O.HTML.classList.remove('changing-view');
                 O.HTML.classList.remove('busy');
@@ -1913,12 +1923,10 @@ R.changeView = (Par) => {
             });
         }, Delay[0] + Delay[1]);
     } else {
-        S.update({
-            'reader-view-mode': Par.Mode
-        });
-        L.play();
+        S.update(Setting);
+        if(!L.Opened) L.play();
     }
-    if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { RVM: Par.Mode });
+    if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { RVM: Par.Mode, FBL: Par.FullBreadthLayoutInScroll });
 };
 
 
@@ -3668,38 +3676,21 @@ I.Menu = { create: () => {
                         Notification: true,
                         action: () => R.changeView({ Mode: Button.Mode, NoNotification: true })
                     }))
-                }, /*{
-                    Buttons: []
-                }, */{
+                }, {
                     Buttons: [{
                         Name: 'full-breadth-layout-in-scroll',
                         Type: 'toggle',
                         Notification: false,
                         Labels: { default: { default: `Full Width for Each Page <small>(in Scrolling Mode)</small>`, ja: `スクロール表示で各ページを幅一杯に</small>` } },
                         Icon: `<span class="bibi-icon bibi-icon-full-breadth-layout"></span>`,
-                        action: function() {
-                            const IsActive = (this.UIState == 'active');
-                            S.update({ 'full-breadth-layout-in-scroll': IsActive });
-                            if(IsActive) O.HTML.classList.add(   'book-full-breadth');
-                            else         O.HTML.classList.remove('book-full-breadth');
-                            if(S.RVM == 'horizontal' || S.RVM == 'vertical') R.changeView({ Mode: S.RVM, Force: true });
-                            if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { FBL: S['full-breadth-layout-in-scroll'] });
-                        }
+                        action: function() { R.changeView({ FullBreadthLayoutInScroll: (this.UIState == 'active'), NoNotification: true }); }
                     }]
                 }]
             });
             E.add('bibi:updated-settings', () => {
                 Section.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? 'active' : 'default')));
-            });/*
-            E.add('bibi:updated-settings', () => {
-                const ButtonGroup = Section.ButtonGroups[1];
-                ButtonGroup.style.display = S.BRL == 'reflowable' ? '' : 'none';
-                ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, S[Button.Name] ? 'active' : 'default'));
-            });*/
-            E.add('bibi:updated-settings', () => {
-                const ButtonGroup = Section.ButtonGroups[Section.ButtonGroups.length - 1];
-                ButtonGroup.style.display = S.BRL == 'pre-paginated' ? '' : 'none';
-                ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, S[Button.Name] ? 'active' : 'default'));
+                if(S.BRL == 'pre-paginated') I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
+                else Section.ButtonGroups[1].style.display = 'none';
             });
         }};
 
@@ -4729,9 +4720,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
 I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSwitcher = null;
     const AxisSwitcher = I.AxisSwitcher = {
         switchAxis: () => new Promise(resolve => {
-            if(S.RVM == 'paged') return resolve();
-            const ViewMode = S.RVM == 'horizontal' ? 'vertical' : 'horizontal';
-            I.Menu.Config.ViewModeSection.ButtonGroups[0].Buttons.filter(Button => Button.Mode == ViewMode)[0].BibiTapObserver.onTap();
+            if(S.RVM != 'paged') R.changeView({ Mode: S.RVM == 'horizontal' ? 'vertical' : 'horizontal', NoNotification: true });
             resolve();
         })
     };
