@@ -63,7 +63,7 @@ $Spinner_Size: 56px;
 			@for $i from 1 through $SCOPED__Spinner_HowManyBits {
 				&:nth-child(#{$i}) {
 					transform: rotate(#{360deg / $SCOPED__Spinner_HowManyBits * $i});
-					&:before { background: darken(rgb(255,255,255), (72% / $SCOPED__Spinner_HowManyBits * $i)); }
+					&:before { background: darken(rgb(255,255,255), (54% / $SCOPED__Spinner_HowManyBits * $i)); }
 				}
 			}
 			@if $SCOPED__Spinner_HowManyBits < 12 { @for $i from $SCOPED__Spinner_HowManyBits + 1 through 12 { &:nth-child(#{$i}) { display: none; } } }

@@ -7,7 +7,7 @@ div#bibi-spinner {
 	position: fixed;
 	z-index: $INVARIABLE__Spinner_ZIndex;
 	box-sizing: border-box;
-	@include offset(48%, -100%, auto);
+	@include offset(-100%);
 	margin: auto;
 	// @____Bibi:Dress__('-') @include size($Spinner_Size);
 	// @____Bibi:Dress__('-') @include Spiner-Content();

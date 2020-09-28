@@ -118,3 +118,74 @@ html.appearance-rtl div#bibi-arrow-back    { /* → */ @include Arrow-Base(right
 html.appearance-ttb div#bibi-arrow-back    { /* ↑ */ @include Arrow-Base(top,  50%   0%); }
 
 html.appearance-ttb div#bibi-arrow-forward { /* ↓ */ @include Arrow-Base(bottom,  50% 100%); }
+
+
+// - . Axis Switcher
+// --------------------------------------------------------------------------------
+
+div#bibi-axis-switcher {
+	html:not(.view-paged) & {
+		$_RingSize: 180px;
+		$_RingWidth: 40px;
+		$_BitSize: 40px;
+		box-sizing: border-box;
+		position: fixed;
+		z-index: 99999999999;
+		@include offset(-100%);
+		margin: auto;
+		padding: 0;
+		border-radius: 50%;
+		@include size($_RingSize);
+		opacity: 0;
+		transform: scale(.5);
+		> span {
+			box-sizing: border-box;
+			position: absolute;
+			@include offset(-100%);
+			margin: auto;
+			border-radius: 50%;
+			@include size(100%);
+			opacity: 0;
+		}
+		> span:first-child {
+			border: solid $_RingWidth rgba(123,123,123,.54);
+			box-sizing: content-box;
+			@include size(calc(100% - #{$_RingWidth * 2}));
+		}
+		> span:last-child {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			transform: rotate(0);
+			&:before,
+			&:after {
+				@include GLOBAL__FontIcon_BaseStyles("Material Icons", $_BitSize, $_BitSize);
+				content: "chevron_right";
+				@include size($_BitSize);
+				text-align: center;
+				color: white;
+				//border-radius: 50%;
+			}
+		}
+	}
+	html.view-horizontal & {
+		> span:last-child {
+			flex-direction: row;
+			&:before { transform: rotate(180deg); }
+			&:after  { transform: rotate(  0   ); }
+		}
+	}
+	html.view-vertical & {
+		> span:last-child {
+			flex-direction: column;
+			&:before { transform: rotate(-90deg); }
+			&:after  { transform: rotate( 90deg); }
+		}
+	}
+	html.view-paged & {
+		display: none !important;
+	}
+	& {
+		pointer-events: none !important;
+	}
+}

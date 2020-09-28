@@ -2919,6 +2919,7 @@ I.FlickObserver = { create: () => {
                 }
                 if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
                     // Orthogonal
+                    if(S.RVM != 'paged' && I.orthogonal('touchmove') == 'switch' && I.Loupe.CurrentTransformation.Scale == 1 && I.AxisSwitcher) I.AxisSwitcher.progress(Passage[C.L_AXIS_B] / 100);
                 } else {
                     // Natural
                     if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return FlickObserver.cancel();
@@ -2943,9 +2944,9 @@ I.FlickObserver = { create: () => {
                 const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
                 if(FlickObserver.StartedAt.Item) FlickObserver.StartedAt.Item.HTML.classList.remove('bibi-flick-hot');
                 if(!I.Loupe.Transforming) {
-                    if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B && Math.abs(Passage[C.A_AXIS_B] / 100) >= 1) {
+                    if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
                         // Orthogonal Pan/Releace
-                        cb = FlickObserver.getOrthogonalTouchMoveFunction();
+                        cb = Math.abs(Passage[C.A_AXIS_B] / 100) >= 1 ? FlickObserver.getOrthogonalTouchMoveFunction() : I.AxisSwitcher && I.AxisSwitcher.reset;
                     }
                     if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
                         // Moved (== not Tap)
@@ -3047,6 +3048,7 @@ I.WheelObserver = { create: () => {
             WheelObserver.Progress = 0;
             WheelObserver.Turned = false;
             WheelObserver.Wheels = [];
+            if(I.AxisSwitcher) I.AxisSwitcher.reset();
         },
         reserveResetWith: (fn) => {
             clearTimeout(WheelObserver.Timer_resetWheeling);
@@ -3091,6 +3093,8 @@ I.WheelObserver = { create: () => {
                 case 'move':      return WheelObserver.move(CW);
                 case 'utilities': return WheelObserver.toggleUtilities(CW);
                 case 'switch':    return WheelObserver.switchAxis(CW);
+                                  // clearTimeout(WheelObserver.Timer_switchAxis);
+                                  // return WheelObserver.Timer_switchAxis = setTimeout(() => WheelObserver.switchAxis(CW), 99);
             }
         },
         scrollNatural: (Eve, Axis) => { switch(Axis) {
@@ -3112,7 +3116,9 @@ I.WheelObserver = { create: () => {
             I.Utilities.toggleGracefuly();
         },
         switchAxis: () => {
-            if(!I.AxisSwitcher || Math.abs(WheelObserver.Progress) < 1) return;
+            if(!I.AxisSwitcher) return;
+            // I.AxisSwitcher.progress(WheelObserver.Progress);
+            if(Math.abs(WheelObserver.Progress) < 1) return;
             WheelObserver.heat();
             I.AxisSwitcher.switchAxis();
         },
@@ -4718,12 +4724,38 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
 
 
 I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSwitcher = null;
-    const AxisSwitcher = I.AxisSwitcher = {
+    const AxisSwitcher = O.Body.appendChild(sML.create('div', { id: 'bibi-axis-switcher' }));
+    const Circle = AxisSwitcher.appendChild(sML.create('span')), CW = parseFloat(getComputedStyle(Circle).borderWidth); sML.CSS.appendRule('div#bibi-axis-switcher > span:first-child', 'border-width: 0;');
+    const Arrows = AxisSwitcher.appendChild(sML.create('span'));
+    const _t = (_P, _VR, _RR, _ep) => _P < _RR[0] ? _VR[0] : _P > _RR[1] ? _VR[1] : _VR[0] + (_VR[1] - _VR[0]) * Math.pow(_ep[0]((_P - _RR[0]) / (_RR[1] - _RR[0])), _ep[1]);
+    I.AxisSwitcher = Object.assign(AxisSwitcher, {
+        progress: (_R) => {
+            AxisSwitcher.InProgress = true;
+            const _P = sML.limitMinMax(Math.abs(_R), 0, 1);
+            E.dispatch('bibi:progresses-axis-switcher', _P);
+            AxisSwitcher.style.transform   =  'scale(' + _t(_P, [    .4,  1                    ], [.4,  1], [sML.Easing.easeOutBack,   4])    + ')';
+            AxisSwitcher.style.opacity     =             _t(_P, [     0,  1                    ], [.4,  1], [sML.Easing.easeOutCirc,   1])         ;
+                  Circle.style.borderWidth =             _t(_P, [CW / 4, CW                    ], [.4, .8], [sML.Easing.easeOutBack,   4])   + 'px';
+                  Circle.style.opacity     =             _t(_P, [     0,  1                    ], [.2, .8], [sML.Easing.easeOutBack,   1])         ;
+                  Arrows.style.transform   = 'rotate(' + _t(_P, [     0, 90 * (_R < 0 ? -1 : 1)], [.6,  1], [sML.Easing.easeInOutExpo, 1]) + 'deg)';
+                  Arrows.style.opacity     =             _t(_P, [     0,  1                    ], [.4, .8], [sML.Easing.easeInOutExpo, 1])         ;
+        },
+        reset: () => {
+            if(AxisSwitcher.InProgress) {
+                AxisSwitcher.InProgress = false;
+                E.dispatch('bibi:cancelled-axis-switcher');
+            }
+            AxisSwitcher.style.transition = '.1s ease-out';
+            setTimeout(() => AxisSwitcher.style.opacity = AxisSwitcher.style.transform = '', 0);
+            setTimeout(() => AxisSwitcher.style.transition = Circle.style.borderWidth = Circle.style.opacity = Arrows.style.transform = Arrows.style.opacity = '', 111);
+        },
         switchAxis: () => new Promise(resolve => {
+            AxisSwitcher.InProgress = false;
+            AxisSwitcher.reset();
             if(S.RVM != 'paged') R.changeView({ Mode: S.RVM == 'horizontal' ? 'vertical' : 'horizontal', NoNotification: true });
             resolve();
         })
-    };
+    });
     E.dispatch('bibi:created-axis-switcher');
 }};
 
