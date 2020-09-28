@@ -39,9 +39,9 @@ Bibi.SettingTypes = {
         'book',
         'default-page-progression-direction',
         'on-doubletap',
-        'on-doubletap-with-altkey',
-        'on-tap-with-altkey',
         'on-tripletap',
+        'on-singletap-with-altkey',
+        'on-doubletap-with-altkey',
         'on-tripletap-with-altkey',
         'pagination-method',
         'reader-view-mode'
@@ -152,9 +152,9 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
                 case 'on-doubletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
-                case 'on-doubletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
-                case 'on-tap-with-altkey'                 : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'on-tripletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-singletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
+                case 'on-doubletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'on-tripletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
@@ -1969,7 +1969,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     ScrollTarget[C.L_AXIS_L] = Par.FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     return sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
-        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 222 : 0,
+        Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 39 : 0,
         ease: typeof Par.ease == 'function' ? Par.ease : (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
         resolve(_);
@@ -2325,9 +2325,9 @@ I.initialize = () => {
 
 I.Utilities = { create: () => {
     const Utilities = I.Utilities = I.setToggleAction({
-        openGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'active' ? false : Utilities.open(),
-        closeGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'default' ? false : Utilities.close(),
-        toggleGracefuly: () => R.Moving || R.Breaking ? false : Utilities.toggle()
+          openGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'active'  ? false : Utilities.open(),
+         closeGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'default' ? false : Utilities.close(),
+        toggleGracefuly: () => R.Moving || R.Breaking                                   ? false : Utilities.toggle()
     }, {
         onopened: () => E.dispatch('bibi:opens-utilities'),
         onclosed: () => E.dispatch('bibi:closes-utilities')
@@ -2738,6 +2738,7 @@ I.ResizeObserver = { create: () => {
 
 
 I.TouchObserver = { create: () => {
+    const TimeLimit = { D2U: 300, U2D: 300 };
     const TouchObserver = I.TouchObserver = {
         observeElementHover: (Ele) => {
             if(!Ele.BibiHoverObserver) {
@@ -2767,10 +2768,15 @@ I.TouchObserver = { create: () => {
         },
         observeElementTap: (Ele, Opt = {}) => {
             if(!Ele.BibiTapObserver) {
-                const TimeLimit = { D2U: 300, U2D: 300 };
                 Ele.addEventListener(E['pointerdown'], Eve => Ele.BibiTapObserver.onPointerDown(E.aBCD(Eve)));
                 Ele.addEventListener(E['pointerup'],   Eve => Ele.BibiTapObserver.onPointerUp(  E.aBCD(Eve)));
                 Ele.BibiTapObserver = {
+                    Staccato: 0,
+                    staccato: function(fn) {
+                        clearTimeout(this.Timer_Staccato);
+                        fn(++this.Staccato);
+                        this.Timer_Staccato = setTimeout(() => this.Staccato = 0, TimeLimit.U2D);
+                    },
                     care: Opt.PreventDefault ? (Opt.StopPropagation ? _ => _.preventDefault() || _.stopPropagation() : _ => _.preventDefault()) : (Opt.StopPropagation ? _ => _.stopPropagation() : () => {}),
                     onPointerDown: function(BibiEvent) {
                         if((typeof BibiEvent.buttons == 'number' && BibiEvent.buttons !== 1) || BibiEvent.ctrlKey) return true;
@@ -2791,6 +2797,7 @@ I.TouchObserver = { create: () => {
                         if(!this.TapLandingBibiEvent) return;
                         if((BibiEvent.timeStamp - this.TapLandingBibiEvent.timeStamp) < TimeLimit.D2U) {
                             if(Math.abs(BibiEvent.Coord.X - this.TapLandingBibiEvent.Coord.X) < 3 && Math.abs(BibiEvent.Coord.Y - this.TapLandingBibiEvent.Coord.Y) < 3) {
+                                this.staccato(Sta => this.onTap(Object.assign(BibiEvent, { Staccato: Sta }), { IsStaccato: true }));
                                 const TapAccumulation = !this.TapFloatingBibiEvent ? [] : [...this.TapFloatingBibiEvent.TapAccumulation];
                                 TapAccumulation.push(this.TapFloatingBibiEvent = this.TapLandingBibiEvent.TapFloatingBibiEvent = Object.assign(BibiEvent, {
                                     IsTapFloatingBibiEvent: true,
@@ -2807,15 +2814,16 @@ I.TouchObserver = { create: () => {
                         }
                         delete this.TapLandingBibiEvent;
                     },
-                    onTap: (BibiEvent) => {
+                    onTap: (BibiEvent, Opt = {}) => {
+                        if(Opt.IsStaccato) return E.dispatch(Ele, !BibiEvent.altKey ? 'bibi:tapped' : 'bibi:tapped-with-altkey', BibiEvent);
                         if(!BibiEvent || !Array.isArray(BibiEvent.TapAccumulation) || BibiEvent.TapAccumulation.length == 0 || BibiEvent.TapAccumulation.length > 3) return;
                         let EventName = '';
                         switch(BibiEvent.TapAccumulation.length) {
-                            case 1: EventName =       'bibi:tapped'; BibiEvent.IsSingleTapBibiEvent = true; break;
+                            case 1: EventName = 'bibi:singletapped'; BibiEvent.IsSingleTapBibiEvent = true; break;
                             case 2: EventName = 'bibi:doubletapped'; BibiEvent.IsDoubleTapBibiEvent = true; break;
                             case 3: EventName = 'bibi:tripletapped'; BibiEvent.IsTripleTapBibiEvent = true; break;
                         }
-                        if(BibiEvent.altKey) EventName += '-with-altkey'; // 'bibi:tapped-with-altkey', 'bibi:doubletapped-with-altkey', 'bibi:tripletapped-with-altkey'
+                        if(BibiEvent.altKey) EventName += '-with-altkey'; // 'bibi:singletapped-with-altkey', 'bibi:doubletapped-with-altkey', 'bibi:tripletapped-with-altkey'
                         E.dispatch(Ele, EventName, BibiEvent);
                     }
                 };
@@ -2837,7 +2845,7 @@ I.TouchObserver = { create: () => {
                     Ele.Timer_deactivate = setTimeout(() => I.setUIState(Ele, Ele.UIState == 'disabled' ? 'disabled' : ''), 200);
                 };
             } })();
-            E.add(Ele, 'bibi:tapped', BibiEvent => { if((Ele.isAvailable && !Ele.isAvailable(BibiEvent)) || (Ele.UIState == 'disabled') || (Ele.UIState == 'active' && Ele.Type == 'radio')) return Ele;
+            E.add(Ele, 'bibi:singletapped', BibiEvent => { if((Ele.isAvailable && !Ele.isAvailable(BibiEvent)) || (Ele.UIState == 'disabled') || (Ele.UIState == 'active' && Ele.Type == 'radio')) return Ele;
                 onTap();
                 if(Ele.hideHelp) Ele.hideHelp();
                 if(Ele.notify) setTimeout(Ele.notify, 0);
@@ -2850,6 +2858,7 @@ I.TouchObserver = { create: () => {
         activateHTML: (HTML) => {
             TouchObserver.observeElementTap(HTML);
             [      'bibi:tapped',       'bibi:tapped-with-altkey',
+             'bibi:singletapped', 'bibi:singletapped-with-altkey',
              'bibi:doubletapped', 'bibi:doubletapped-with-altkey',
              'bibi:tripletapped', 'bibi:tripletapped-with-altkey'].forEach(TapEventName => E.add(HTML, TapEventName, BibiEvent => E.dispatch(TapEventName, BibiEvent)));
             const TOPENs = TouchObserver.PointerEventNames;
@@ -3204,7 +3213,14 @@ I.PinchObserver = { create: () => {
 
 
 I.KeyObserver = { create: () => { if(!S['use-keys']) return;
+    const TimeLimit = { D2U: 300, U2D: 300 };
     const KeyObserver = I.KeyObserver = {
+        Staccato: 0,
+        staccato: function(fn) {
+            clearTimeout(this.Timer_Staccato);
+            fn(++this.Staccato);
+            this.Timer_Staccato = setTimeout(() => this.Staccato = 0, TimeLimit.U2D);
+        },
         ActiveKeys: {},
         KeyCodes: { 'keydown': {}, 'keyup': {}, 'keypress': {} },
         updateKeyCodes: (EventTypes, KeyCodesToUpdate) => {
@@ -3250,15 +3266,15 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
                 if(!KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
                     KeyObserver.ActiveKeys[Eve.BibiKeyName] = Date.now();
                 } else {
-                    E.dispatch('bibi:is-holding-key', Eve);
+                    KeyObserver.staccato(Sta =>  E.dispatch('bibi:is-holding-key', Object.assign(Eve, { Staccato: Sta })));
                 }
             }
             E.dispatch('bibi:downed-key', Eve);
         },
         onKeyUp: (Eve) => {
             if(!KeyObserver.onEvent(Eve)) return false;
-            if(KeyObserver.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyObserver.ActiveKeys[Eve.BibiKeyName] < 300) {
-                E.dispatch('bibi:touched-key', Eve);
+            if(KeyObserver.ActiveKeys[Eve.BibiKeyName] && Date.now() - KeyObserver.ActiveKeys[Eve.BibiKeyName] < TimeLimit.D2U) {
+                KeyObserver.staccato(Sta =>  E.dispatch('bibi:touched-key', Object.assign(Eve, { Staccato: Sta })));
             }
             if(Eve.BibiKeyName) {
                 if(KeyObserver.ActiveKeys[Eve.BibiKeyName]) {
@@ -3275,21 +3291,23 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             ['keydown', 'keyup', 'keypress'].forEach(EventName => Doc.addEventListener(EventName, KeyObserver['onKey' + sML.capitalise(EventName.replace('key', ''))], false));
         },
         onKeyTouch: (Eve) => {
+            if(KeyObserver.Hot) return;
             if(!Eve.BibiKeyName) return false;
             const KeyParameter = KeyObserver.KeyParameters[!Eve.shiftKey ? Eve.BibiKeyName : Eve.BibiKeyName.toUpperCase()];
             if(!KeyParameter) return false;
-            Eve.preventDefault();
-            switch(typeof KeyParameter) {
+            //Eve.preventDefault();
+            KeyObserver.Hot = true;
+            new Promise((resolve, reject) => { switch(typeof KeyParameter) {
                 case 'number': if(I.Flipper.isAbleToFlip(KeyParameter)) {
-                    if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:tapped');
-                    I.Flipper.flip(KeyParameter);
+                    if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:singletapped');
+                    return I.Flipper.flip(KeyParameter, { Duration: Eve.Staccato > 1 ? 0 : null }).then(resolve);
                 } break;
                 case 'string': switch(KeyParameter) {
-                    case 'head': case 'foot': return R.focusOn({ Destination: KeyParameter, Duration: 0 });
-                    case 'utilities': return I.Utilities.toggleGracefuly();
-                    case 'switch': return I.AxisSwitcher ? I.AxisSwitcher.switchAxis() : false;
+                    case 'head': case 'foot': return R.focusOn({ Destination: KeyParameter, Duration: 0 }).then(resolve);
+                    case 'utilities': return I.Utilities.toggleGracefuly(), resolve();
+                    case 'switch': if(I.AxisSwitcher) return I.AxisSwitcher.switchAxis().then(resolve);
                 } break;
-            }
+            } reject(); }).catch(() => 0).then(() => KeyObserver.Hot = false);
         }
     };
     KeyObserver.updateKeyCodes(['keydown', 'keyup', 'keypress'], {
@@ -3346,32 +3364,31 @@ I.Matrix = { create: () => {
             case 'vertical'  : return BibiEvent.Division.Y != 'middle' ? BibiEvent.Division.Y : BibiEvent.Division.X;
         } },
     };
-    ['bibi:tapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, BibiEvent => {
+    ['bibi:tapped', 'bibi:singletapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, BibiEvent => {
         if(I.isPointerStealth()) return false;
-        if(I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
+        if(EN != 'bibi:tapped' && I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
         if(!L.Opened) return false;
         if(!Matrix.checkTapAvailability(BibiEvent)) return false;
-        E.dispatch(EN + '-book', BibiEvent);
-        // ^ 'bibi:tapped-division' || 'bibi:doubletapped-division' || 'bibi:tripletapped-division'
+        E.dispatch(EN + '-book', BibiEvent); // 'bibi:tapped-book', 'bibi:singletapped-book', 'bibi:doubletapped-book', 'bibi:tripletapped-book'
     }));
     { // Both (O.TouchOS || !O.TouchOS)
         E.add('bibi:opened', () => {
-            E.add('bibi:tapped-book', BibiEvent => {
+            ['bibi:tapped-book', 'bibi:singletapped-book'].forEach(EN => E.add(EN, BibiEvent => {
                 if(I.isPointerStealth()) return false;
-                if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
+                if(EN != 'bibi:tapped-book' && BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
                 if(Matrix.checkFlipperAvailability(BibiEvent)) {
                     const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
-                        if(I.Flipper.isAbleToFlip(Dist)) {
-                            I.Flipper.flip(Dist);
-                            if(I.Arrows) E.dispatch(I.Arrows[Dist], 'bibi:tapped');
+                        if(EN == 'bibi:tapped-book' && I.Flipper.isAbleToFlip(Dist)) {
+                            I.Flipper.flip(Dist, { Duration: BibiEvent.Staccato > 1 ? 0 : null });
+                            if(I.Arrows) E.dispatch(I.Arrows[Dist], 'bibi:singletapped');
                         }
-                    } else if(typeof C.DDD[Dir] == 'string') switch(Ortho) {
+                    } else if(EN != 'bibi:tapped-book' && typeof C.DDD[Dir] == 'string') switch(Ortho) {
                         case 'utilities': I.Utilities.toggleGracefuly(); break;
                         case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
                     }
                 }
-            });
+            }));
         });
     }
     if(!O.TouchOS) {
@@ -3448,7 +3465,9 @@ I.Flipper = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => { if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }); return Destination; });
+            return R.moveBy({ Distance: Distance, Duration: Opt.Duration }).then(Destination => {
+                if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination }); return Destination;
+            });
         }
     };
     Flipper[-1] = Flipper.Back, Flipper[1] = Flipper.Forward;
@@ -3783,7 +3802,7 @@ I.Panel = { create: () => {
     E.add('bibi:commands:toggle-panel', Panel.toggle);
     E.add('bibi:closes-utilities',      Panel.close);
     I.setFeedback(Panel, { StopPropagation: true });
-    E.add(Panel, 'bibi:tapped', () => E.dispatch('bibi:commands:toggle-panel'));
+    E.add(Panel, 'bibi:singletapped', () => E.dispatch('bibi:commands:toggle-panel'));
     Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
     Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
     Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
@@ -3802,7 +3821,7 @@ I.Panel = { create: () => {
     E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
     if(S['on-doubletap'            ] == 'panel') E.add('bibi:doubletapped',             () => Panel.toggle());
     if(S['on-tripletap'            ] == 'panel') E.add('bibi:tripletapped',             () => Panel.toggle());
-    if(S[      'on-tap-with-altkey'] == 'panel') E.add(      'bibi:tapped-with-altkey', () => Panel.toggle());
+    if(S['on-singletap-with-altkey'] == 'panel') E.add('bibi:singletapped-with-altkey', () => Panel.toggle());
     if(S['on-doubletap-with-altkey'] == 'panel') E.add('bibi:doubletapped-with-altkey', () => Panel.toggle());
     if(S['on-tripletap-with-altkey'] == 'panel') E.add('bibi:tripletapped-with-altkey', () => Panel.toggle());
     //sML.appendCSSRule('div#bibi-panel-bookinfo', 'height: calc(100% - ' + (O.Scrollbars.Height) + 'px);'); // Optimize to Scrollbar Size
@@ -4196,7 +4215,7 @@ I.Loupe = { create: () => {
     E.add('bibi:commands:scale',            Scale => Loupe.scale(Scale));
     if(S['on-doubletap'            ] == 'zoom') E.add('bibi:doubletapped',             BibiEvent => Loupe.onTap(BibiEvent));
     if(S['on-tripletap'            ] == 'zoom') E.add('bibi:tripletapped',             BibiEvent => Loupe.onTap(BibiEvent));
-    if(S[      'on-tap-with-altkey'] == 'zoom') E.add(      'bibi:tapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
+    if(S['on-singletap-with-altkey'] == 'zoom') E.add('bibi:singletapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
     if(S['on-doubletap-with-altkey'] == 'zoom') E.add('bibi:doubletapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
     if(S['on-tripletap-with-altkey'] == 'zoom') E.add('bibi:tripletapped-with-altkey', BibiEvent => Loupe.onTap(BibiEvent));
     E.add('bibi:downed-pointer', BibiEvent => Loupe.onPointerDown(BibiEvent));
@@ -4636,7 +4655,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         });
                         const Remover = Button.appendChild(sML.create('span', { className: 'bibi-remove-bookmark', title: 'しおりを削除' }));
                         I.setFeedback(Remover, { StopPropagation: true });
-                        E.add(Remover, 'bibi:tapped', () => Button.remove());
+                        E.add(Remover, 'bibi:singletapped', () => Button.remove());
                         Remover.addEventListener(E['pointer-over'], Eve => Eve.stopPropagation());
                         if(Bmk.IsHot) {
                             delete Bmk.IsHot;
@@ -4705,7 +4724,7 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     });
     E.add('bibi:commands:move-by', Distance => { // indicate direction
         if(!L.Opened || typeof (Distance *= 1) != 'number' || !isFinite(Distance) || !(Distance = Math.round(Distance))) return false;
-        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:tapped');
+        return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:singletapped');
     });
     E.add('bibi:opened',       () => setTimeout(() => { Arrows.toggleState(); Arrows.navigate(); }, 123));
     E.add('bibi:scrolled',     () => Arrows.toggleState());
@@ -4840,7 +4859,7 @@ I.createButton = (Par = {}) => {
         if(Button.ButtonGroup && Button.ButtonGroup.Busy) return false;
         return (Button.UIState != 'disabled');
     };
-    if(typeof Button.action == 'function') E.add(Button, 'bibi:tapped', () => Button.isAvailable() ? Button.action.apply(Button, arguments) : null);
+    if(typeof Button.action == 'function') E.add(Button, 'bibi:singletapped', () => Button.isAvailable() ? Button.action.apply(Button, arguments) : null);
     Button.Busy = false;
     return Button;
 };
@@ -4881,7 +4900,7 @@ I.createSubpanel = (Par = {}) => {
         }
     });
     Subpanel.bindOpener = (Opener) => {
-        E.add(Opener, 'bibi:tapped', () => Subpanel.toggle());
+        E.add(Opener, 'bibi:singletapped', () => Subpanel.toggle());
         Subpanel.Opener = Opener;
         return Subpanel.Opener;
     }

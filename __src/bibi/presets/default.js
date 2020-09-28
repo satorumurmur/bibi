@@ -78,7 +78,7 @@ Bibi.preset({
 "on-doubletap"             : "",
 "on-tripletap"             : "",
 
-"on-tap-with-altkey"       : "",
+"on-singletap-with-altkey" : "",
 "on-doubletap-with-altkey" : "",
 "on-tripletap-with-altkey" : "",
 
