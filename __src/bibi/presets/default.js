@@ -160,6 +160,8 @@ Bibi.preset({
 // But note that not to set an origin where someone else also can publish files.
 // If you do so, someone else can publish one's EPUB as it is on your website, and it may also allow XSS of malicious EPUB in some cases.
 
+/* !!!! BE CAREFUL !!!! */ // "allow-external-item-href" : false,
+
 
 /*
 

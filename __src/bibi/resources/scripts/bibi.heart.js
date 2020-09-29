@@ -75,6 +75,7 @@ Bibi.SettingTypes_PresetOnly = {
     'boolean': [
         'accept-base64-encoded-data',
         'accept-blob-converted-data',
+        'allow-external-item-href',
         'allow-scripts-in-content',
         'headless',
         'manualize-adding-histories',
@@ -846,15 +847,19 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         // ================================================================================
         // MANIFEST
         // --------------------------------------------------------------------------------
-        const PackageDir  = B.Package.Source.Path.replace(/\/?[^\/]+$/, '');
+        const PackageDir = B.Package.Source.Path.replace(/\/?[^\/]+$/, '');
         sML.forEach(_Manifest.getElementsByTagName('item'))(_Item => {
             let Source = {
                 'id': _Item.getAttribute('id'),
                 'href': _Item.getAttribute('href'),
                 'media-type': _Item.getAttribute('media-type')
             };
+            if(/^https?:\/\//i.test(Source['href'])) {
+                if(S['allow-external-item-href'] && S['trustworthy-origins'].includes(new URL(Source['href']).origin)) Source.IsExternal = true;
+                else Source['href'] = '';
+            }
             if(!Source['id'] || !Source['href'] || (!Source['media-type'] && B.Type == 'EPUB')) return false;
-            Source.Path = O.getPath(PackageDir, Source['href']);
+            Source.Path = Source.IsExternal ? Source['href'] : O.rrr(PackageDir + '/' + Source['href']);
             if(Manifest[Source.Path]) Source = Object.assign(Manifest[Source.Path], Source);
             if(!Source.Content) Source.Content = '';
             Source.Of = [];
@@ -1066,6 +1071,7 @@ L.loadNavigation = () => O.openDocument(B.Nav.Source).then(Doc => {
 
 L.coordinateLinkages = (BasePath, RootElement, InNav) => {
     const As = RootElement.getElementsByTagName('a'); if(!As) return;
+    const BaseDir = BasePath.replace(/\/?([^\/]+)$/, '');
     for(let l = As.length, i = 0; i < l; i++) { const A = As[i];
         if(A.InNav = InNav) {
             A.NavANumber = i + 1;
@@ -1089,7 +1095,7 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
             A.Destination = { External: A.href };
             A.jumpWithBibi = () => new Promise(resolve => { window.open(A.href); resolve(); });
         } else {
-            const HRefPath = O.getPath(BasePath.replace(/\/?([^\/]+)$/, ''), (!/^\.*\/+/.test(HRefPathInSource) ? './' : '') + (/^#/.test(HRefPathInSource) ? BasePath.replace(/^.+?([^\/]+)$/, '$1') : '') + HRefPathInSource);
+            const HRefPath = /^#/.test(HRefPathInSource) ? BasePath + HRefPathInSource : O.rrr(BaseDir + '/' + HRefPathInSource);
             const HRefFnH = HRefPath.split('#');
             const HRefFile = HRefFnH[0] ? HRefFnH[0] : BasePath;
             const HRefHash = HRefFnH[1] ? HRefFnH[1] : '';
@@ -1183,6 +1189,8 @@ L.loadItem = (Item, Opt = {}) => {
     return Item.Loading = ( // Promise
         Item.IsPlaceholder ? Promise.reject()
         : Item.ContentURL ? Promise.resolve()
+        : S['allow-external-item-href'] && Item.Source.IsExternal ? // Online Resource
+            Promise.resolve(Object.assign(Item, { ContentURL: Item.Source.Path }).ContentURL)
         : /\.(html?|xht(ml)?|xml)$/i.test(Item.Source.Path) ? // (X)HTML
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
@@ -5683,7 +5691,7 @@ O.preprocess = (Source) => {
             const ExtRE = new RegExp('\\.(' + Pattern.Extensions + ')$', 'i');
             Reses.forEach(Res => {
                 const ResPathInSource = Res.replace(ResRE, ResolveRule.PathRef);
-                const ResPaths = O.getPath(FileDir, (!/^(\.*\/+|#)/.test(ResPathInSource) ? './' : '') + ResPathInSource).split('#');
+                const ResPaths = O.rrr(FileDir + '/' + ResPathInSource).split('#');
                 if(!ExtRE.test(ResPaths[0])) return;
                 const Resource = O.src({ Path: ResPaths[0] });
                 Resources.push(Resource);
@@ -5852,16 +5860,11 @@ O.getElementCoord = (Ele, OPa) => {
 O.getViewportZooming = () => document.body.clientWidth / window.innerWidth;
 
 
-O.getPath = function() {
-    let Origin = '', Path = arguments[0];
-    if(arguments.length == 2 && /^[\w\d]+:\/\//.test(arguments[1])) Path  =       arguments[1];
-    else for(let l = arguments.length, i = 1; i < l; i++)           Path += '/' + arguments[i];
-    Path.replace(/^([a-zA-Z]+:\/\/[^\/]+)?\/*(.*)$/, (M, P1, P2) => { Origin = P1, Path = P2; });
+O.rrr = (Path) => { // resolve relative reference
     while(/([^:\/])\/{2,}/.test(Path)) Path = Path.replace(/([^:\/])\/{2,}/g, '$1/');
     while(        /\/\.\//.test(Path)) Path = Path.replace(        /\/\.\//g,   '/');
     while(/[^\/]+\/\.\.\//.test(Path)) Path = Path.replace(/[^\/]+\/\.\.\//g,    '');
     /**/                               Path = Path.replace(      /^(\.\/)+/g,    '');
-    if(Origin) Path = Origin + '/' + Path;
     return Path;
 };
 
