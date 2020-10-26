@@ -1970,7 +1970,7 @@ R.focusOn = (Par) => new Promise((resolve, reject) => {
     return sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
         Duration: typeof Par.Duration == 'number' ? Par.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 222 : 0,
-        Easing: (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
+        ease: typeof Par.ease == 'function' ? Par.ease : (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
         resolve(_);
         E.dispatch('bibi:focused-on', Par);
