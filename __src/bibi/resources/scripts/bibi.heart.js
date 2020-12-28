@@ -254,6 +254,7 @@ Bibi.hello = () => new Promise(resolve => {
 .then(Bibi.loadBook)
 .then(Bibi.bindBook)
 .then(Bibi.openBook)
+.then(Bibi.start)
 .catch(O.error);
 
 
@@ -479,12 +480,12 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     // Load & Layout Items in Spreads and Pages
     O.log(`Loading Items in Spreads...`, '<g:>');
     const Promises = [];
-    const LayoutOption = {
+    Bibi.StartOption = {
         TargetSpreadIndex: 0,
         Destination: { Edge: 'head' },
-        resetter:       () => { LayoutOption.Reset = true; LayoutOption.removeResetter(); },
-        addResetter:    () => { window   .addEventListener('resize', LayoutOption.resetter); },
-        removeResetter: () => { window.removeEventListener('resize', LayoutOption.resetter); }
+        resetter:       () => { Bibi.StartOption.Reset = true; Bibi.StartOption.removeResetter(); },
+        addResetter:    () => { window   .addEventListener('resize', Bibi.StartOption.resetter); },
+        removeResetter: () => { window.removeEventListener('resize', Bibi.StartOption.resetter); }
     };
     if(typeof R.StartOn == 'object') {
         const Item = typeof R.StartOn.Item == 'object' ? R.StartOn.Item : (() => {
@@ -526,37 +527,35 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
                 }
             }
         })();
-        LayoutOption.TargetSpreadIndex = Item && Item.Spread ? Item.Spread.Index : 0;
-        LayoutOption.Destination = R.StartOn;
+        Bibi.StartOption.TargetSpreadIndex = Item && Item.Spread ? Item.Spread.Index : 0;
+        Bibi.StartOption.Destination = R.StartOn;
     }
-    LayoutOption.addResetter();
+    Bibi.StartOption.addResetter();
     let LoadedItems = 0;
-    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != LayoutOption.TargetSpreadIndex }).then(() => {
+    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != Bibi.StartOption.TargetSpreadIndex }).then(() => {
         LoadedItems += Spread.Items.length;
         I.notify(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
-        !LayoutOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
+        !Bibi.StartOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
     }))));
     return Promise.all(Promises).then(() => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
-        return LayoutOption;
     });
 });
 
 
-Bibi.bindBook = (LayoutOption) => {
-    if(!LayoutOption.Reset) {
+Bibi.bindBook = () => {
+    if(!Bibi.StartOption.Reset) {
         R.organizePages();
         R.layOutStage();
     }
-    return R.layOutBook(LayoutOption).then(() => {
-        LayoutOption.removeResetter();
-        E.dispatch('bibi:laid-out-for-the-first-time', LayoutOption);
-        return LayoutOption
+    return R.layOutBook(Bibi.StartOption).then(() => {
+        Bibi.StartOption.removeResetter();
+        E.dispatch('bibi:laid-out-for-the-first-time', Bibi.StartOption);
     });
 };
 
 
-Bibi.openBook = (LayoutOption) => new Promise(resolve => {
+Bibi.openBook = () => {
     // Open
     Bibi.busyHerself.resolve();
     I.Veil.close();
@@ -566,9 +565,11 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
     O.log(`Enjoy Readings!`, '</b>');
     E.dispatch('bibi:opened', Bibi.Status = Bibi.Opened = 'Opened');
     E.dispatch('bibi:scrolled');
-    resolve();
-}).then(() => {
-    const LandingPage = R.hatchPage(LayoutOption.Destination) || R.Pages[0];
+};
+
+
+Bibi.start = () => {
+    const LandingPage = R.hatchPage(Bibi.StartOption.Destination) || R.Pages[0];
     if(!I.History.List.length) {
         I.History.List = [{ UI: Bibi, Item: LandingPage.Item, PageProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
         I.History.update();
@@ -594,7 +595,7 @@ Bibi.openBook = (LayoutOption) => new Promise(resolve => {
         return Alert.join('\n\n');
     })([]));
     //*/
-});
+};
 
 
 Bibi.createDevNote = () => {
@@ -2995,7 +2996,7 @@ I.FlickObserver = { create: () => {
             return (cb ? cb(BibiEvent, Par) : Promise.resolve());
         },
         onFlick: (BibiEvent, Par) => {
-            if(S.RVM != 'paged' && !S['content-draggable'][S.RVM == 'paged' ? 0 : 1]) return Promise.resolve();
+            if(S.RVM != 'paged' && !S['content-draggable'][1]) return Promise.resolve();
             if(typeof Par.Deg != 'number') return Promise.resolve();
             const Deg = Par.Deg;
             const Dir = (330 <= Deg || Deg <=  30) ? 'left' /* to right */ :
@@ -3834,7 +3835,6 @@ I.Panel = { create: () => {
     });
     E.add('bibi:opened-panel', () => I.setUIState(Opener, 'active'            ));
     E.add('bibi:closed-panel', () => I.setUIState(Opener, ''                  ));
-    E.add('bibi:started',      () =>    sML.style(Opener, { display: 'block' }));
     if(S['on-doubletap'            ] == 'panel') E.add('bibi:doubletapped',             () => Panel.toggle());
     if(S['on-tripletap'            ] == 'panel') E.add('bibi:tripletapped',             () => Panel.toggle());
     if(S['on-singletap-with-altkey'] == 'panel') E.add('bibi:singletapped-with-altkey', () => Panel.toggle());
@@ -5305,6 +5305,9 @@ S.initialize = () => {
     S['start-in-new-window'] = (window.parent != window && !S['autostart']) ? S['start-embedded-in-new-window'] : false;
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
+    // --------
+    if(!S['reader-view-mode']) S['reader-view-mode'] = 'paged';
+    // --------
     if(!S['use-menubar']) S['use-full-height'] = true;
     // --------
     if(S['max-histories'] == 0) S['use-histories'] = false;
@@ -5314,7 +5317,6 @@ S.initialize = () => {
     // --------
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
     // --------
-    if(!S['reader-view-mode']) S['reader-view-mode'] = 'paged';
     if(O.Biscuits) E.bind('bibi:initialized-book', () => {
         const BookBiscuits = O.Biscuits.remember('Book');
         if(S['keep-settings']) {
