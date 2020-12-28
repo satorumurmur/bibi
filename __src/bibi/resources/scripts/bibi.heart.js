@@ -13,7 +13,8 @@ export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.e
 Bibi.SettingTypes = {
     'boolean': [
         'allow-placeholders',
-        'prioritise-fallbacks'
+        'prioritise-fallbacks',
+        'prioritise-viewer-operation-over-text-selection'
     ],
     'yes-no': [
         'autostart',
@@ -2931,8 +2932,8 @@ I.FlickObserver = { create: () => {
             if(FlickObserver.StartedAt) {
                 if(!FlickObserver.Moving) {
                     const TimeFromTouchStarted = BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp;
-                    if(!O.TouchOS && (BibiEvent.type == 'mousemove' || BibiEvent.pointerType == 'mouse')) { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
-                    else                                                                                  { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
+                    if(O.TouchOS || (BibiEvent.type != 'mousemove' && BibiEvent.pointerType != 'mouse') || S['prioritise-viewer-operation-over-text-selection']) { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
+                    else                                                                                                                                         { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
                     FlickObserver.StartedAt.TimeStamp = BibiEvent.timeStamp;
                 }
                 const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
