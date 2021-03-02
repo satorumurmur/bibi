@@ -5,51 +5,64 @@
 div.bibi-arrow {
 	//// Layout
 	& {
-		&:before { @include Arrow-Icon(); }
+		& {
+			&:before { @include Arrow-Icon(); }
+		}
 	}
-	html.appearance-horizontal & {
-		&:after { width: $Arrow-Bar_Width; } // ←→
+	&.bibi-arrow-horizontal { // ←→
+		& {
+			&:after { width: $Arrow-Bar_Width; }
+		}
+		html.slider-opened.book-full-height &,
+		html:not(.book-full-height) & {
+			top: $Menu_Height;
+		}
+		html:not(.slider-opened):not(.book-full-height) & {
+			height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
+		}
+		html.slider-opened.appearance-horizontal & {
+			height: calc(100vh - #{$Menu_Height + $Slider_Size});
+		}
+		html.slider-opened.appearance-vertical & {
+			height: calc(100vh - #{$Menu_Height});
+		}
 	}
-	html.appearance-horizontal.book-full-height.slider-opened &,
-	html.appearance-horizontal:not(.book-full-height) & {
-		top: $Menu_Height;
+	&.bibi-arrow-left  { // ←
+		& {
+			&:before { @include Arrow-Icon-L(); };
+		}
 	}
-	html.appearance-horizontal:not(.book-full-height):not(.slider-opened) & {
-		height: calc(100vh - #{$Menu_Height}); // TO BE OVERWRITTEN
+	&.bibi-arrow-right { // →
+		& {
+			&:before { @include Arrow-Icon-R(); };
+		}
+		html.slider-opened.appearance-vertical & {
+			right: $Slider_Size;
+		}
 	}
-	html.appearance-horizontal.book-full-height.slider-opened &,
-	html.appearance-horizontal:not(.book-full-height).slider-opened & {
-		height: calc(100vh - #{$Menu_Height + $Slider_Size});
+	&.bibi-arrow-vertical { // ↑↓
+		& {
+			&:after { height: $Arrow-Bar_Width; }
+		}
+		html.slider-opened.appearance-vertical & {
+			width: calc(100vw - #{$Slider_Size});
+		}
 	}
-	html.appearance-vertical & {
-		&:after { height: $Arrow-Bar_Width; } // ↑↓
+	&.bibi-arrow-up { // ↑
+		& {
+			&:before { @include Arrow-Icon-U(); };
+		}
+		html.book-full-height.slider-opened &,
+		html:not(.book-full-height) & {
+			top: $Menu_Height;
+		}
 	}
-	html.appearance-vertical.slider-opened & {
-		width: calc(100vw - #{$Slider_Size});
+	&.bibi-arrow-down { // ↓
+		& {
+			&:before { @include Arrow-Icon-D(); };
+		}
+		html.slider-opened.appearance-horizontal & {
+			bottom: $Slider_Size;
+		}
 	}
-}
-
-html.appearance-ttb.book-full-height.slider-opened div#bibi-arrow-back,
-html.appearance-ttb:not(.book-full-height) div#bibi-arrow-back {
-	& {
-		&:before { margin-top: $Menu_Height; }
-	}
-}
-
-html.appearance-ltr div#bibi-arrow-back,
-html.appearance-rtl div#bibi-arrow-forward {
-	&:before { @include Arrow-Icon-L(); }; // ←
-}
-
-html.appearance-ltr div#bibi-arrow-forward,
-html.appearance-rtl div#bibi-arrow-back    {
-	&:before { @include Arrow-Icon-R(); }; // → 
-}
-
-html.appearance-ttb div#bibi-arrow-back    {
-	&:before { @include Arrow-Icon-T(); }; // ↑
-}
-
-html.appearance-ttb div#bibi-arrow-forward {
-	&:before { @include Arrow-Icon-B(); }; // ↓
 }

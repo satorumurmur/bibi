@@ -96,6 +96,8 @@ Bibi.preset({
 //                               * <S2>: "" (ignore) or "utilities" or "move" or "switch"
 //                               * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
 
+"indicate-orthogonal-arrows-if-necessary" : false,
+
 "prioritise-viewer-operation-over-text-selection" : false, // true or false
 // If true:
 //     * When dragging with the mouse or trackpad, priority is given to browsing operations (ex. page-turning, axis-switching) instead of text selection.

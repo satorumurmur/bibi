@@ -13,6 +13,7 @@ export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.e
 Bibi.SettingTypes = {
     'boolean': [
         'allow-placeholders',
+        'indicate-orthogonal-arrows-if-necessary',
         'prioritise-fallbacks',
         'prioritise-viewer-operation-over-text-selection'
     ],
@@ -3419,9 +3420,12 @@ I.Matrix = { create: () => {
                         if(I.Flipper.isAbleToFlip(Dist)) {
                             Matrix.Hovering = true;
                             if(I.Arrows) {
-                                const Arrow = I.Arrows[Dist];
-                                E.dispatch(Arrow,      'bibi:hovered',   BibiEvent);
-                                E.dispatch(Arrow.Pair, 'bibi:unhovered', BibiEvent);
+                                let Arrow = I.Arrows[Dist]; if(S['indicate-orthogonal-arrows-if-necessary'] && (
+                                    (/^(left|right)$/.test(Dir) && S.ARA == 'vertical') ||
+                                    (/^(top|bottom)$/.test(Dir) && S.ARA == 'horizontal')
+                                )) Arrow = Arrow.Alt;
+                                E.dispatch([Arrow.Pair, Arrow.Alt, Arrow.Alt.Pair], 'bibi:unhovered', BibiEvent);
+                                E.dispatch(Arrow,                                   'bibi:hovered',   BibiEvent);
                             }
                             const HoveringHTML = BibiEvent.target.ownerDocument.documentElement;
                             if(Matrix.HoveringHTML != HoveringHTML) {
@@ -3434,7 +3438,7 @@ I.Matrix = { create: () => {
                 }
                 if(Matrix.Hovering) {
                     Matrix.Hovering = false;
-                    if(I.Arrows) E.dispatch([I.Arrows.Back, I.Arrows.Forward], 'bibi:unhovered', BibiEvent);
+                    if(I.Arrows) E.dispatch(I.Arrows.All, 'bibi:unhovered', BibiEvent);
                     if(Matrix.HoveringHTML) Matrix.HoveringHTML.removeAttribute('data-bibi-cursor'), Matrix.HoveringHTML = null;
                 }
             });
@@ -4717,44 +4721,83 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
 
 
 I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
-    const Arrows = I.Arrows = {
-        navigate: () => setTimeout(() => {
-            [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Flipper.isAbleToFlip(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
-            setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
-        }, 400),
-        toggleState: () => [Arrows.Back, Arrows.Forward].forEach(Arrow => {
+    const Arrows = I.Arrows = O.Body.appendChild(sML.create('div', { id: 'bibi-arrows' }));
+    Object.assign(Arrows, {
+        initialize: () => {
+            (Arrows.All = [
+                Arrows.Back     = Arrows[-1] = Arrows.appendChild(sML.create('div', { className: 'bibi-arrow', Labels: { default: { default: `Back`,    ja: `戻る` } }, Distance: -1 })),
+                Arrows.Forward  = Arrows[ 1] = Arrows.appendChild(sML.create('div', { className: 'bibi-arrow', Labels: { default: { default: `Forward`, ja: `進む` } }, Distance:  1 })),
+                Arrows.BackO    =                                 sML.create('div', { className: 'bibi-arrow', Labels: { default: { default: `Back`,    ja: `戻る` } }, Distance: -1 }),
+                Arrows.ForwardO =                                 sML.create('div', { className: 'bibi-arrow', Labels: { default: { default: `Forward`, ja: `進む` } }, Distance:  1 })
+            ]).forEach(Arrow => {
+                I.setFeedback(Arrow);
+                const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap];
+                if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.BibiHoverObserver.onHover, Arrow.BibiHoverObserver.onUnHover);
+                FunctionsToBeCanceled.forEach(f2BC => f2BC = () => {});
+            });
+            if(S['indicate-orthogonal-arrows-if-necessary']) [Arrows.BackO, Arrows.ForwardO].forEach(OArrow => Arrows.appendChild(OArrow));
+            Arrows.Back.Pair = Arrows.Forward,   Arrows.Back.Alt = Arrows.BackO;
+            Arrows.Forward.Pair = Arrows.Back,   Arrows.Forward.Alt = Arrows.ForwardO;
+            Arrows.BackO.Pair = Arrows.ForwardO, Arrows.BackO.Alt = Arrows.Back;
+            Arrows.ForwardO.Pair = Arrows.BackO, Arrows.ForwardO.Alt = Arrows.Forward;
+            delete Arrows.initialize;
+        },
+        update: () => {
+            Arrows.All.forEach(Arrow => {
+                Arrow.classList.add('bibi-arrow-updating');
+                ['horizontal', 'vertical', 'up', 'right', 'down', 'left'].forEach(ClassName => Arrow.classList.remove('bibi-arrow-' + ClassName))
+            });
+            switch(S.ARA) {
+                case 'horizontal': switch(S.PPD) {
+                    case 'ltr': Arrows['left']  = Arrows.Back, Arrows['right'] = Arrows.Forward; break;
+                    case 'rtl': Arrows['right'] = Arrows.Back, Arrows['left']  = Arrows.Forward; break;
+                } Arrows['top'] = Arrows['up'] = Arrows.BackO, Arrows['bottom'] = Arrows['down'] = Arrows.ForwardO; break;
+                case 'vertical': switch(S.PPD) {
+                    case 'ltr': Arrows['left']  = Arrows.BackO, Arrows['right'] = Arrows.ForwardO; break;
+                    case 'rtl': Arrows['right'] = Arrows.BackO, Arrows['left']  = Arrows.ForwardO; break;
+                } Arrows['top'] = Arrows['up'] = Arrows.Back, Arrows['bottom'] = Arrows['down'] = Arrows.Forward; break;
+            }
+            ['horizontal',  'left'].forEach(ClassName =>   Arrows['left'].classList.add('bibi-arrow-' + ClassName));
+            ['horizontal', 'right'].forEach(ClassName =>  Arrows['right'].classList.add('bibi-arrow-' + ClassName));
+            [  'vertical',    'up'].forEach(ClassName =>    Arrows['top'].classList.add('bibi-arrow-' + ClassName));
+            [  'vertical',  'down'].forEach(ClassName => Arrows['bottom'].classList.add('bibi-arrow-' + ClassName));
+            Arrows.All.forEach(Arrow => Arrow.classList.remove('bibi-arrow-updating'));
+        },
+        toggleState: () => Arrows.All.forEach(Arrow => {
             const Availability = I.Flipper.isAbleToFlip(Arrow.Distance);
             Arrow.classList.toggle(  'available',  Availability);
             Arrow.classList.toggle('unavailable', !Availability);
-        })
-    };
-    O.HTML.classList.add('arrows-active');
-    Arrows.Back    = O.Body.appendChild(sML.create('div', { className: 'bibi-arrow', id: 'bibi-arrow-back',    Labels: { default: { default: `Back`,    ja: `戻る` } }, Distance: -1 }));
-    Arrows.Forward = O.Body.appendChild(sML.create('div', { className: 'bibi-arrow', id: 'bibi-arrow-forward', Labels: { default: { default: `Forward`, ja: `進む` } }, Distance:  1 }));
-    Arrows[-1] = Arrows.Forward.Pair = I.Flipper.Back.Arrow    = Arrows.Back;
-    Arrows[ 1] = Arrows.Back.Pair    = I.Flipper.Forward.Arrow = Arrows.Forward;
-    [Arrows.Back, Arrows.Forward].forEach(Arrow => {
-        I.setFeedback(Arrow);
-        const FunctionsToBeCanceled = [Arrow.showHelp, Arrow.hideHelp, Arrow.BibiTapObserver.onTap];
-        if(!O.TouchOS) FunctionsToBeCanceled.push(Arrow.BibiHoverObserver.onHover, Arrow.BibiHoverObserver.onUnHover);
-        FunctionsToBeCanceled.forEach(f2BC => f2BC = () => {});
+        }),
+        navigate: () => setTimeout(() => {
+            [Arrows.Back, Arrows.Forward].forEach(Arrow => I.Flipper.isAbleToFlip(Arrow.Distance) ? Arrow.classList.add('glowing') : false);
+            setTimeout(() => [Arrows.Back, Arrows.Forward].forEach(Arrow => Arrow.classList.remove('glowing')), 1234);
+        }, 400)
     });
+    O.HTML.classList.add('arrows-active');
+    Arrows.initialize();
     E.add('bibi:commands:move-by', Distance => { // indicate direction
         if(!L.Opened || typeof (Distance *= 1) != 'number' || !isFinite(Distance) || !(Distance = Math.round(Distance))) return false;
         return E.dispatch(Distance < 0 ? Arrows.Back : Arrows.Forward, 'bibi:singletapped');
     });
-    E.add('bibi:opened',       () => setTimeout(() => { Arrows.toggleState(); Arrows.navigate(); }, 123));
-    E.add('bibi:scrolled',     () => Arrows.toggleState());
-    E.add('bibi:changed-view', () => Arrows.navigate());
+    E.add('bibi:opened',       () => setTimeout(() => { Arrows.update(); Arrows.toggleState(); Arrows.navigate(); }, 123));
+    E.add('bibi:scrolled',     () => setTimeout(() => {                  Arrows.toggleState();                    },   0));
+    E.add('bibi:changed-view', () => setTimeout(() => { Arrows.update(); Arrows.toggleState(); Arrows.navigate(); },   0));
     E.dispatch('bibi:created-arrows');
      // Optimize to Scrollbar Size
     (_ => {
-        _('html.appearance-horizontal.book-full-height:not(.slider-opened)',       'height', O.Scrollbars.Width);
-        _('html.appearance-horizontal:not(.book-full-height):not(.slider-opened)', 'height', O.Scrollbars.Width + I.Menu.Height);
-        _('html.appearance-vertical:not(.slider-opened)',                          'width',  O.Scrollbars.Width);
-    })((Context, WidthOrHeight, Margin) => sML.appendCSSRule(
-        `${ Context } div#bibi-arrow-back, ${ Context } div#bibi-arrow-forward`,
-        `${ WidthOrHeight }: calc(100% - ${ Margin }px); ${ WidthOrHeight }: calc(100v${ WidthOrHeight.charAt(0) } - ${ Margin }px);`
+        _('html:not(.slider-opened).book-full-height',       'horizontal', 'height', O.Scrollbars.Width);
+        _('html:not(.slider-opened):not(.book-full-height)', 'horizontal', 'height', O.Scrollbars.Width + I.Menu.Height);
+        _('html:not(.slider-opened).appearance-vertical',      'vertical',  'width', O.Scrollbars.Width);
+    })((Context, HorV, WorH, Margin) => sML.appendCSSRule(
+        `${ Context } div.bibi-arrow.bibi-arrow-${ HorV }`,
+        `${ WorH }: calc(100% - ${ Margin }px); ${ WorH }: calc(100v${ WorH.charAt(0) } - ${ Margin }px);`
+    ));
+    (_ => {
+        _('html:not(.slider-opened).appearance-vertical',  'right', 'right');
+        _('html:not(.slider-opened).appearance-horizontal', 'down', 'bottom');
+    })((Context, Dir, Side) => sML.appendCSSRule(
+        `${ Context } div.bibi-arrow.bibi-arrow-${ Dir }`,
+        `${ Side }: ${ O.Scrollbars.Width }px;`
     ));
 }};
 

@@ -31,12 +31,12 @@ $Arrow-Icon_Size: $Arrow-Bar_Width;
 	text-indent:.03em;
 }
 
-@mixin Arrow-Icon-T() { // [NOTE] It extends Arrow-Icon() for the top direction. You can use an image instead of a font using `content` or `background`.
+@mixin Arrow-Icon-U() { // [NOTE] It extends Arrow-Icon() for the top direction. You can use an image instead of a font using `content` or `background`.
 	content: "expand_less";
 	line-height: $Arrow-Icon_Size * .97;
 }
 
-@mixin Arrow-Icon-B() { // [NOTE] It extends Arrow-Icon() for the bottom direction. You can use an image instead of a font using `content` or `background`.
+@mixin Arrow-Icon-D() { // [NOTE] It extends Arrow-Icon() for the bottom direction. You can use an image instead of a font using `content` or `background`.
 	content: "expand_more";
 	line-height: $Arrow-Icon_Size * 1.03;
 }
