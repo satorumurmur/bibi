@@ -168,10 +168,11 @@ div.bibi-arrow {
 // --------------------------------------------------------------------------------
 
 div#bibi-axis-switcher {
-	html:not(.view-paged) & {
+	& {
 		$_RingSize: 180px;
 		$_RingWidth: 40px;
 		$_BitSize: 40px;
+		pointer-events: none !important;
 		box-sizing: border-box;
 		position: fixed;
 		z-index: 99999999999;
@@ -228,8 +229,5 @@ div#bibi-axis-switcher {
 	}
 	html.view-paged & {
 		display: none !important;
-	}
-	& {
-		pointer-events: none !important;
 	}
 }
