@@ -580,6 +580,7 @@ Bibi.start = () => {
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
     E.add('bibi:commands:change-view', R.changeView);
+    E.dispatch('bibi:started');
     (Bibi.Dev && location.hostname != 'localhost') ? Bibi.createDevNote() : delete Bibi.createDevNote;
     /*
     alert((Alert => {
