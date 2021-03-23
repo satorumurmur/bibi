@@ -112,6 +112,7 @@ Bibi.SettingTypes_PresetOnly = {
 Bibi.SettingTypes_UserOnly = {
     'boolean': [
         'debug',
+        'forget-me',
         'wait',
         'zine'
     ],
@@ -296,7 +297,7 @@ Bibi.initialize = () => {
         })([])));
     }
     { // Modules
-        E.initialize(); O.Biscuits.initialize();
+        E.initialize();
         P.initialize();
         U.initialize();
         D.initialize();
@@ -575,8 +576,6 @@ Bibi.start = () => {
         I.History.List = [{ UI: Bibi, Item: LandingPage.Item, PageProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
         I.History.update();
     }
-    if(S['allow-placeholders']) E.add('bibi:scrolled', () => I.PageObserver.turnItems());
-    if(S['resume-from-last-position']) E.add('bibi:changed-intersection', () => { try { if(O.Biscuits) O.Biscuits.memorize('Book', { Position: { IIPP: I.PageObserver.getIIPP() } }); } catch(Err) {} });
     E.add('bibi:commands:move-by',     R.moveBy);
     E.add('bibi:commands:scroll-by',   R.scrollBy);
     E.add('bibi:commands:focus-on',    R.focusOn);
@@ -1945,7 +1944,7 @@ R.changeView = (Par) => {
         S.update(Setting);
         if(!L.Opened) L.play();
     }
-    if(S['keep-settings'] && O.Biscuits) O.Biscuits.memorize('Book', { RVM: Par.Mode, FBL: Par.FullBreadthLayoutInScroll });
+    if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { RVM: Par.Mode, FBL: Par.FullBreadthLayoutInScroll });
 };
 
 
@@ -2307,6 +2306,7 @@ export const I = {}; // Bibi.UserInterfaces
 
 
 I.initialize = () => {
+    I.Oven.create();
     I.Utilities.create();
     I.TouchObserver.create();
     I.Notifier.create();
@@ -2320,10 +2320,10 @@ I.initialize = () => {
         I.Panel.create();
         I.Help.create();
         I.PoweredBy.create();
-        I.FontSizeChanger.create();
         I.Loupe.create();
     });
     E.bind('bibi:initialized-book', () => {
+        I.FontSizeChanger.create();
         I.BookmarkManager.create();
     });
     E.bind('bibi:prepared', () => {
@@ -2340,6 +2340,106 @@ I.initialize = () => {
         I.Spinner.create();
     });
 };
+
+
+I.Oven = { create: () => {
+    const Oven = I.Oven = {
+        Flame: false,
+        realize: () => { if(!localStorage) return Oven.quench();
+            Oven.Flame = true, S['forget-me'] = false;
+            E.dispatch('bibi:realized-oven');
+        },
+        quench: () => {
+            Oven.Flame = false, S['forget-me'] = true;
+            E.dispatch('bibi:quenched-oven');
+        },
+        rememberMe: () => Oven.realize(),
+        forgetMe: (Not) => Not ? Oven.rememberMe() : Oven.quench()
+    };
+    if(localStorage && !S['forget-me']) Oven.realize(); else Oven.quench();
+    const Biscuits = Oven.Biscuits = {
+        Memories: {}, Labels: {}, LabelBase: 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), ''),
+        createLabel: (Tag) => {
+            if(!Tag || typeof Tag != 'string') return null;
+            switch(Tag) {
+                case 'Bibi': break;
+                case 'Book': if(B.ID) break;
+                default: return null;
+            }
+            const Label = Biscuits.Labels[Tag] = Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID : '');
+            const BiscuitsOfTheLabel = localStorage.getItem(Label);
+            Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
+            return Label;
+        },
+        getLabel: (Tag) => {
+            if(!Oven.Flame) return null;
+            if(!Tag || typeof Tag != 'string') return null;
+            return (Biscuits.Labels[Tag] ? Biscuits.Labels[Tag] : Biscuits.createLabel(Tag));
+        },
+        remember: (Tag, Key) => {
+            if(!Oven.Flame) return null;
+            const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
+            return (!Key || typeof Key != 'string') ? Biscuits.Memories[Label] : Biscuits.Memories[Label][Key];
+        },
+        memorize: (Tag, KnV) => {
+            if(!Oven.Flame) return null;
+            const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
+            if(KnV && typeof KnV == 'object') for(const Key in KnV) { const Val = KnV[Key];
+                try {
+                    if(Val && typeof Val != 'function' && typeof JSON.parse(JSON.stringify({ [Key]: Val }))[Key] != 'undefined') Biscuits.Memories[Label][Key] = Val;
+                    //if(Val) Biscuits.Memories[Label][Key] = Val;
+                    else throw '';
+                } catch(Err) {
+                    delete Biscuits.Memories[Label][Key];
+                }
+            }
+            localStorage.setItem(Label, JSON.stringify(Biscuits.Memories[Label]));
+            return Biscuits.Memories[Label];
+        },
+        forget: (Tag, Keys) => {
+            if(!Oven.Flame) return null;
+            if(!Tag) {
+                for(Tag in Biscuits.Labels) if(Biscuits.Labels[Tag]) localStorage.removeItem(Biscuits.Labels[Tag]);
+                Biscuits.Memories = {};
+            } else if(typeof Tag == 'string' && Biscuits.Labels[Tag]) {
+                const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
+                if(!Keys) {
+                    localStorage.removeItem(Label);
+                    delete Biscuits.Memories[Label];
+                } else {
+                    if(typeof Keys == 'string') Keys = [Keys];
+                    if(Array.isArray(Keys)) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete Biscuits.Memories[Label][Key]);
+                    localStorage.setItem(Label, JSON.stringify(Biscuits.Memories[Label]));
+                }
+            }
+            return Biscuits.Memories;
+        }
+    };
+    // const Cookies = Oven.Cookies = {
+    //     Label: 'bibi',
+    //     remember: (Group) => {
+    //         const BCs = JSON.parse(sML.Cookies.read(Cookies.Label) || '{}');
+    //         console.log('Cookies:', BCs);
+    //         if(typeof Group != 'string' || !Group) return BCs;
+    //         return BCs[Group];
+    //     },
+    //     eat: (Group, KeyVal, Opt) => {
+    //         if(typeof Group != 'string' || !Group) return false;
+    //         if(typeof KeyVal != 'object') return false;
+    //         const BCs = Cookies.remember();
+    //         if(typeof BCs[Group] != 'object') BCs[Group] = {};
+    //         for(const Key in KeyVal) {
+    //             const Val = KeyVal[Key];
+    //             if(typeof Val == 'function') continue;
+    //             BCs[Group][Key] = Val;
+    //         }
+    //         if(!Opt) Opt = {};
+    //         Opt.Path = location.pathname.replace(/[^\/]+$/, '');
+    //         if(!Opt.Expires) Opt.Expires = S['cookie-expires'];
+    //         sML.Cookies.write(Cookies.Label, JSON.stringify(BCs), Opt);
+    //     }
+    // };
+}};
 
 
 I.Utilities = { create: () => {
@@ -2700,16 +2800,35 @@ I.PageObserver = { create: () => {
                 else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
                 R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
             }), Opt.Delay || 0);
-        })
-    }
+        }),
+        memorizePosition: () => { try {
+            I.Oven.Biscuits.memorize('Book', { Position: { IIPP: PageObserver.getIIPP() } });
+        } catch(Err) {} }
+    };
     E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
         PageObserver.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
         PageObserver.observeIntersection();
+    });
+    E.bind('bibi:initialized-book', () => {
+        if(S['resume-from-last-position']) {
+            const BookBiscuits = I.Oven.Biscuits.remember('Book');
+            if(!BookBiscuits) return;
+            if(!R.StartOn && BookBiscuits.Position && BookBiscuits.Position.IIPP) R.StartOn = sML.clone(BookBiscuits.Position);
+        }
     });
     E.bind('bibi:opened', () => {
         PageObserver.updateCurrent();
         PageObserver.observeCurrent();
         PageObserver.observePageMove();
+    });
+    E.bind('bibi:started', () => {
+        if(S['allow-placeholders']) {
+            E.add('bibi:scrolled', () => PageObserver.turnItems());
+        }
+        if(S['resume-from-last-position']) {
+            E.bind('bibi:realized-oven',       () => PageObserver.memorizePosition());
+            E.add('bibi:changed-intersection', () => PageObserver.memorizePosition());
+        }
     });
     E.dispatch('bibi:created-page-observer');
 }};
@@ -3888,8 +4007,8 @@ I.PoweredBy = { create: () => {
 I.FontSizeChanger = { create: () => {
     const FontSizeChanger = I.FontSizeChanger = {};
     if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
-    if(S['use-font-size-changer'] && S['keep-settings'] && O.Biscuits) {
-        const BibiBiscuits = O.Biscuits.remember('Bibi');
+    if(S['use-font-size-changer'] && S['keep-settings']) {
+        const BibiBiscuits = I.Oven.Biscuits.remember('Book');
         if(BibiBiscuits && BibiBiscuits.FontSize && BibiBiscuits.FontSize.Step != undefined) FontSizeChanger.Step = BibiBiscuits.FontSize.Step * 1;
     }
     if(typeof FontSizeChanger.Step != 'number' || FontSizeChanger.Step < -2 || 2 < FontSizeChanger.Step) FontSizeChanger.Step = 0;
@@ -3946,8 +4065,8 @@ I.FontSizeChanger = { create: () => {
         E.dispatch('bibi:changes-font-size');
         if(typeof Actions.before == 'function') Actions.before();
         FontSizeChanger.Step = Step;
-        if(S['use-font-size-changer'] && S['keep-settings'] && O.Biscuits) {
-            O.Biscuits.memorize('Book', { FontSize: { Step: Step } });
+        if(S['use-font-size-changer'] && S['keep-settings']) {
+            I.Oven.Biscuits.memorize('Book', { FontSize: { Step: Step } });
         }
         setTimeout(() => {
             R.layOutBook({
@@ -4579,11 +4698,22 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     id: 'bibi-subpanel-section_bookmarks',
                     Labels: { default: { default: `Bookmarks`, ja: `しおり` } }
                 }).addButtonGroup();
+                if(!I.Oven.Flame) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+                E.add('bibi:quenched-oven', () => {
+                    BookmarkManager.Subpanel.close();
+                    BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+                });
+                E.add('bibi:realized-oven', () => {
+                    BookmarkManager.load();
+                    BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
+                });
             }
-            const BookmarkBiscuits = O.Biscuits.remember('Book', 'Bookmarks');
-            if(Array.isArray(BookmarkBiscuits) && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
-            //E.add(['bibi:opened', 'bibi:resized'], () => BookmarkManager.update());
+            BookmarkManager.load();
             delete BookmarkManager.initialize;
+        },
+        load: () => {
+            const BookmarkBiscuits = I.Oven.Biscuits.remember('Book', 'Bookmarks');
+            if(Array.isArray(BookmarkBiscuits) && BookmarkBiscuits.length) BookmarkManager.Bookmarks = BookmarkBiscuits;
         },
         exists: (Bookmark) => {
             for(let l = BookmarkManager.Bookmarks.length, i = 0; i < l; i++) if(BookmarkManager.Bookmarks[i].IIPP == Bookmark.IIPP) return BookmarkManager.Bookmarks[i];
@@ -4693,6 +4823,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             } else {
                 if(S['use-bookmark-ui']) {
                     if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
+                    E.add('bibi:quenched-oven', () => BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none');
+                    E.add('bibi:realized-oven', () => BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '');
                 }
             }
             if(S['use-bookmark-ui']) {
@@ -4709,7 +4841,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     }
                 }
             }
-            O.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks });
+            I.Oven.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks });
             /**/            E.dispatch('bibi:updated-bookmarks', BookmarkManager.Bookmarks);
             if(Opt.Added)   E.dispatch(  'bibi:added-bookmark',  BookmarkManager.Bookmarks);
             if(Opt.Removed) E.dispatch('bibi:removed-bookmark',  BookmarkManager.Bookmarks);
@@ -5356,21 +5488,10 @@ S.initialize = () => {
     // --------
     if(S['max-histories'] == 0) S['use-histories'] = false;
     if(!S['use-histories']) S['max-histories'] = 0, S['use-history-ui'] = false;
-    if(!O.Biscuits || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
+    if(!localStorage || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
     if(!S['use-bookmarks']) S['max-bookmarks'] = 0, S['use-bookmark-ui'] = false;
     // --------
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
-    // --------
-    if(O.Biscuits) E.bind('bibi:initialized-book', () => {
-        const BookBiscuits = O.Biscuits.remember('Book');
-        if(S['keep-settings']) {
-            if(!U['reader-view-mode']              && BookBiscuits.RVM) S['reader-view-mode']              = BookBiscuits.RVM;
-            if(!U['full-breadth-layout-in-scroll'] && BookBiscuits.FBL) S['full-breadth-layout-in-scroll'] = BookBiscuits.FBL;
-        }
-        if(S['resume-from-last-position']) {
-            if(!R.StartOn && BookBiscuits.Position && BookBiscuits.Position.IIPP) R.StartOn = sML.clone(BookBiscuits.Position);
-        }
-    });
     // --------
     S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
           'book-rendition-layout'    : { SH: 'BRL', CNP: 'book' },
@@ -5387,6 +5508,15 @@ S.initialize = () => {
         Object.defineProperty(S, _.SH, { get: () => S[Mode], set: (Val) => S[Mode] = Val });
         delete _.SH;
     }
+    // --------
+    E.bind('bibi:initialized-book', () => {
+        if(S['keep-settings']) {
+            const BookBiscuits = I.Oven.Biscuits.remember('Book');
+            if(!BookBiscuits) return;
+            if(!U['reader-view-mode']              && BookBiscuits.RVM) S['reader-view-mode']              = BookBiscuits.RVM;
+            if(!U['full-breadth-layout-in-scroll'] && BookBiscuits.FBL) S['full-breadth-layout-in-scroll'] = BookBiscuits.FBL;
+        }
+    });
     // --------
     E.dispatch('bibi:initialized-settings');
 };
@@ -5981,93 +6111,6 @@ O.isPointableContent = (Ele) => {
 O.stopPropagation = (Eve) => { Eve.stopPropagation(); return false; };
 
 O.preventDefault  = (Eve) => { Eve.preventDefault();  return false; };
-
-
-O.Cookies = {
-    Label: 'bibi',
-    remember: (Group) => {
-        const BCs = JSON.parse(sML.Cookies.read(O.Cookies.Label) || '{}');
-        console.log('Cookies:', BCs);
-        if(typeof Group != 'string' || !Group) return BCs;
-        return BCs[Group];
-    },
-    eat: (Group, KeyVal, Opt) => {
-        if(typeof Group != 'string' || !Group) return false;
-        if(typeof KeyVal != 'object') return false;
-        const BCs = O.Cookies.remember();
-        if(typeof BCs[Group] != 'object') BCs[Group] = {};
-        for(const Key in KeyVal) {
-            const Val = KeyVal[Key];
-            if(typeof Val == 'function') continue;
-            BCs[Group][Key] = Val;
-        }
-        if(!Opt) Opt = {};
-        Opt.Path = location.pathname.replace(/[^\/]+$/, '');
-        if(!Opt.Expires) Opt.Expires = S['cookie-expires'];
-        sML.Cookies.write(O.Cookies.Label, JSON.stringify(BCs), Opt);
-    }
-};
-
-
-O.Biscuits = {
-    Memories: {}, Labels: {},
-    initialize: (Tag) => {
-        if(!localStorage) return O.Biscuits = null;
-        if(typeof Tag != 'string') {
-            O.Biscuits.LabelBase = 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), '');
-            E.bind('bibi:initialized',      () => O.Biscuits.initialize('Bibi'));
-            E.bind('bibi:initialized-book', () => O.Biscuits.initialize('Book'));
-            return null;
-        }
-        switch(Tag) {
-            case 'Bibi': break;
-            case 'Book': if(B.ID) break;
-            default: return null;
-        }
-        const Label = O.Biscuits.Labels[Tag] = O.Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID : '');
-        const BiscuitsOfTheLabel = localStorage.getItem(Label);
-        O.Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
-        return O.Biscuits.Memories[Label];
-    },
-    remember: (Tag, Key) => {
-        if(!Tag || typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) return O.Biscuits.Memories;
-        const Label = O.Biscuits.Labels[Tag];
-        return (!Key || typeof Key != 'string') ? O.Biscuits.Memories[Label] : O.Biscuits.Memories[Label][Key];
-    },
-    memorize: (Tag, KnV) => {
-        if(!Tag || typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) return false;
-        const Label = O.Biscuits.Labels[Tag];
-        if(KnV && typeof KnV == 'object') for(const Key in KnV) { const Val = KnV[Key];
-            try {
-                if(Val && typeof Val != 'function' && typeof JSON.parse(JSON.stringify({ [Key]: Val }))[Key] != 'undefined') O.Biscuits.Memories[Label][Key] = Val;
-                //if(Val) O.Biscuits.Memories[Label][Key] = Val;
-                else throw '';
-            } catch(Err) {
-                delete O.Biscuits.Memories[Label][Key];
-            }
-        }
-        return localStorage.setItem(Label, JSON.stringify(O.Biscuits.Memories[Label]));
-    },
-    forget: (Tag, Keys) => {
-        if(!Tag) {
-            localStorage.removeItem(O.Biscuits.Labels.Bibi);
-            localStorage.removeItem(O.Biscuits.Labels.Book);
-            O.Biscuits.Memories = {};
-        } else if(typeof Tag != 'string' || !O.Biscuits.Labels[Tag]) {
-        } else {
-            const Label = O.Biscuits.Labels[Tag];
-            if(!Keys) {
-                localStorage.removeItem(Label);
-                delete O.Biscuits.Memories[Label];
-            } else {
-                if(typeof Keys == 'string') Keys = [Keys];
-                if(Array.isArray(Keys)) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete O.Biscuits.Memories[Label][Key]);
-                localStorage.setItem(Label, JSON.stringify(O.Biscuits.Memories[Label]));
-            }
-        }
-        return O.Biscuits.Memories;
-    }
-};
 
 
 O.CFIManager = { // Utilities for EPUBCFI (An Example Is at the Bottom of This Object)

@@ -73,6 +73,7 @@ Jo.callBibi = (Love) => {
             'autostart-embedded', 'autostart',
             'p',
             'fix-reader-view-mode', 'fix-view', 'view-unchangeable',
+            'forget-me',
             'full-breadth-layout-in-scroll',
             'iipp',
             'nav',
