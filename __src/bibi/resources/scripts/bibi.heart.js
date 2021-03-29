@@ -1101,7 +1101,12 @@ L.coordinateLinkages = (BasePath, RootElement, InNav) => {
         }
         if(/^[a-zA-Z]+:/.test(HRefPathInSource)) {
             A.Destination = { External: A.href };
-            A.jumpWithBibi = () => new Promise(resolve => { window.open(A.href); resolve(); });
+            A.jumpWithBibi = () => new Promise(resolve => {
+                const TargetInSource = A.getAttribute('target');
+                if(/^_(parent|self|top)$/.test(TargetInSource)) location.href = A.href;
+                else                                            window.open(A.href);
+                resolve();
+            });
         } else {
             const HRefPath = /^#/.test(HRefPathInSource) ? BasePath + HRefPathInSource : O.rrr(BaseDir + '/' + HRefPathInSource);
             const HRefFnH = HRefPath.split('#');
