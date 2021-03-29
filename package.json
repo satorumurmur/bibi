@@ -74,7 +74,7 @@
     "classlist-polyfill": "^1.2.0",
     "current-script-polyfill": "^1.0.0",
     "custom-event-polyfill": "^1.0.7",
-    "dompurify": "^2.0.12",
+    "dompurify": "^2.0.17",
     "es6-object-assign": "^1.1.0",
     "intersection-observer": "^0.11.0",
     "js-yaml": "^3.14.0",
