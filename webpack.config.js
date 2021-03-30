@@ -12,21 +12,18 @@ const Path = require('path'), resolvePath = (..._) => Path.resolve(__dirname, _.
 const Package = require('./package.json');
 const Bibi = require('./bibi.info.js');
 
-const HardSourcePlugin = require('hard-source-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
+const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 const StringReplacePlugin = require('string-replace-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin')
-const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
-
-const BrowsersList = ['last 1 version', 'ie 11'];
 
 const IsDev = (Bibi.Arguments['mode'] === 'development');
 
 const Config = {
     mode: IsDev ? 'development' : 'production',
-    stats: 'errors-warnings',//IsDev ? 'errors-warnings' : 'normal',
+    stats: 'errors-warnings', // IsDev ? 'errors-warnings' : 'normal',
     performance: { maxEntrypointSize: 1000000, maxAssetSize: 1000000, hints: false  },
     optimization: { minimizer: [] },
     output: { path: resolvePath(Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST), filename: '[name].js' },
@@ -57,8 +54,8 @@ const Config = {
     }),
     plugins: (PathLists => { const Patterns = [];
         for(const SrcDir in PathLists) if(PathLists[SrcDir].length) PathLists[SrcDir].forEach(P => Patterns.push({ context: resolvePath(SrcDir), from: P, to: '.' }));
-        return [new CopyPlugin(Patterns)]; // for CopyWebpackPlugin v5.1.1
-    //  return [new CopyPlugin({ patterns: Patterns })]; // for CopyWebpackPlugin v6.x.x
+        // return [new CopyPlugin(Patterns)]; // for CopyWebpackPlugin v5.1.1
+        return [new CopyPlugin({ patterns: Patterns })]; // for CopyWebpackPlugin v6.x.x
     })({
         [Bibi.SRC]: [
             'bibi/*.html',
@@ -88,7 +85,6 @@ const Config = {
                 babelrc: false,
                 presets: [
                     ['@babel/preset-env', {
-                        targets: BrowsersList,
                         useBuiltIns: false//, corejs: 3
                     }]
                 ]
@@ -109,7 +105,7 @@ const Config = {
 };
 
 {
-    if(Bibi.Arguments['watch']) Config.watch = true;
+    // if(Bibi.Arguments['watch']) Config.watch = true;
     if(IsDev) Config.devtool = 'inline-source-map';
     const getCommonLoadersForCSS = (Opt = {}) => [
         { loader: 'css-loader', options: {
@@ -119,9 +115,11 @@ const Config = {
             importLoaders: 2
         }},
         { loader: 'postcss-loader', options: {
-            config: {
-                ctx: {
-                    'postcss-cssnext': BrowsersList,//'autoprefixer': { grid: true },
+            postcssOptions: {
+                plugins: {
+                    'postcss-preset-env': {
+                        // autoprefixer: { grid: true }
+                    },
                     'cssnano': { zindex: false }
                 }
             },
@@ -157,7 +155,7 @@ const Config = {
     Config.module.rules.push({
         test: /\.(eot|svg|ttf|otf|wof|woff|woff2)$/,
         include: [
-            resolvePath('node_modules/material-icons/iconfont/MaterialIcons-Regular')
+            resolvePath('node_modules/material-icons')
         ],
         use: [
             { loader: 'file-loader', options: {
@@ -190,7 +188,7 @@ if(IsDev) {
 } else {
     for(const B in Bibi.Banners) if(B && Bibi.Banners[B]) Config.plugins.push(new Webpack.BannerPlugin({ test: B, banner: Bibi.Banners[B], raw: true }));
     Config.optimization.minimizer.push(new TerserPlugin({
-        cache: true,
+        // cache: true,
         parallel: true,
         extractComments: false,
         terserOptions: {

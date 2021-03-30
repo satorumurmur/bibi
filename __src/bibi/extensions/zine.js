@@ -1,4 +1,4 @@
-import jsyaml from 'js-yaml/dist/js-yaml.min.js';
+import jsyaml from 'js-yaml';
 
 Bibi.x({
 

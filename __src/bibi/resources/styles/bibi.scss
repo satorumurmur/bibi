@@ -13,5 +13,5 @@ $material-icons-font-path: '~material-icons/iconfont/';
  */
 
 $images-path: './images';
-@import "#globals";
+@import "&globals";
 @import "@parts";

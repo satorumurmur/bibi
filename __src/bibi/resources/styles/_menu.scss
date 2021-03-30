@@ -51,7 +51,7 @@ div#bibi-menu-r {
 	box-sizing: border-box;
 	display: flex;
 	justify-content: flex-start;
-	align-items: start;
+	align-items: flex-start;
 	position: relative;
 	z-index: 1;
 	height: 100%;
@@ -60,7 +60,7 @@ div#bibi-menu-r {
 	ul {
 		display: flex;
 		justify-content: flex-start;
-		align-items: start;
+		align-items: flex-start;
 		position: relative;
 		// @____Bibi:Dress__('-') padding: $Menu-ButtonGroup_Padding;
 		// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
