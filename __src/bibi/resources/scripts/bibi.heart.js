@@ -83,6 +83,7 @@ Bibi.SettingTypes_PresetOnly = {
         'manualize-adding-histories',
         'use-bookmarks',
         'use-histories',
+        'recognize-repeated-taps-separately',
         'remove-bibi-website-link'
     ],
     'yes-no': [
@@ -2940,31 +2941,36 @@ I.TouchObserver = { create: () => {
                         if(!this.TapLandingBibiEvent) return;
                         if((BibiEvent.timeStamp - this.TapLandingBibiEvent.timeStamp) < TimeLimit.D2U) {
                             if(Math.abs(BibiEvent.Coord.X - this.TapLandingBibiEvent.Coord.X) < 3 && Math.abs(BibiEvent.Coord.Y - this.TapLandingBibiEvent.Coord.Y) < 3) {
-                                this.staccato(Sta => this.onTap(Object.assign(BibiEvent, { Staccato: Sta }), { IsStaccato: true }));
                                 const TapAccumulation = !this.TapFloatingBibiEvent ? [] : [...this.TapFloatingBibiEvent.TapAccumulation];
                                 TapAccumulation.push(this.TapFloatingBibiEvent = this.TapLandingBibiEvent.TapFloatingBibiEvent = Object.assign(BibiEvent, {
                                     IsTapFloatingBibiEvent: true,
                                     TapLandingBibiEvent: this.TapLandingBibiEvent,
                                     TapAccumulation: TapAccumulation
                                 }));
-                                this.Timer_fireTap = setTimeout(() => {
+                                this.onTap(this.TapFloatingBibiEvent, 'IsStaccato');
+                                const fire = () => {
                                     if(this.TapFloatingBibiEvent) this.onTap(this.TapFloatingBibiEvent);
                                     delete this.TapFloatingBibiEvent;
-                                }, TimeLimit.U2D);
+                                };
+                                if(S['recognize-repeated-taps-separately']) fire(); else this.Timer_fireTap = setTimeout(fire, TimeLimit.U2D);
                             } else {
                                 delete this.TapFloatingBibiEvent;
                             }
                         }
                         delete this.TapLandingBibiEvent;
                     },
-                    onTap: (BibiEvent, Opt = {}) => {
-                        if(Opt.IsStaccato) return E.dispatch(Ele, !BibiEvent.altKey ? 'bibi:tapped' : 'bibi:tapped-with-altkey', BibiEvent);
+                    onTap: function(BibiEvent, IsStaccato) {
+                        if(IsStaccato) {
+                            this.staccato(Sta => Object.assign(BibiEvent, { IsTapBibiEvent: true, Staccato: Sta }));
+                            E.dispatch(Ele, 'bibi:tapped' + (!BibiEvent.altKey ? '' : '-with-altkey'), BibiEvent); // 'bibi:tapped', 'bibi:tapped-with-altkey'
+                            return;
+                        }
                         if(!BibiEvent || !Array.isArray(BibiEvent.TapAccumulation) || BibiEvent.TapAccumulation.length == 0 || BibiEvent.TapAccumulation.length > 3) return;
                         let EventName = '';
                         switch(BibiEvent.TapAccumulation.length) {
-                            case 1: EventName = 'bibi:singletapped'; BibiEvent.IsSingleTapBibiEvent = true; break;
-                            case 2: EventName = 'bibi:doubletapped'; BibiEvent.IsDoubleTapBibiEvent = true; break;
-                            case 3: EventName = 'bibi:tripletapped'; BibiEvent.IsTripleTapBibiEvent = true; break;
+                            case 1: EventName = 'bibi:singletapped'; BibiEvent.IsSingleTapBibiEvent = true; delete BibiEvent.IsTapBibiEvent; break;
+                            case 2: EventName = 'bibi:doubletapped'; BibiEvent.IsDoubleTapBibiEvent = true;                                  break;
+                            case 3: EventName = 'bibi:tripletapped'; BibiEvent.IsTripleTapBibiEvent = true;                                  break;
                         }
                         if(BibiEvent.altKey) EventName += '-with-altkey'; // 'bibi:singletapped-with-altkey', 'bibi:doubletapped-with-altkey', 'bibi:tripletapped-with-altkey'
                         E.dispatch(Ele, EventName, BibiEvent);
@@ -3507,31 +3513,35 @@ I.Matrix = { create: () => {
             case 'vertical'  : return BibiEvent.Division.Y != 'middle' ? BibiEvent.Division.Y : BibiEvent.Division.X;
         } },
     };
-    ['bibi:tapped', 'bibi:singletapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => E.add(EN, BibiEvent => {
-        if(I.isPointerStealth()) return false;
-        if(EN != 'bibi:tapped' && I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
-        if(!L.Opened) return false;
-        if(!Matrix.checkTapAvailability(BibiEvent)) return false;
-        E.dispatch(EN + '-book', BibiEvent); // 'bibi:tapped-book', 'bibi:singletapped-book', 'bibi:doubletapped-book', 'bibi:tripletapped-book'
-    }));
+    ['bibi:tapped', 'bibi:singletapped', 'bibi:doubletapped', 'bibi:tripletapped'].forEach(EN => {
+        E.add(EN, BibiEvent => {
+            if(I.isPointerStealth()) return false;
+            if(EN != 'bibi:tapped' && I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
+            if(!L.Opened) return false;
+            if(!Matrix.checkTapAvailability(BibiEvent)) return false;
+            E.dispatch(EN + '-book', BibiEvent); // 'bibi:tapped-book', 'bibi:singletapped-book', 'bibi:doubletapped-book', 'bibi:tripletapped-book'
+        })
+    });
     { // Both (O.TouchOS || !O.TouchOS)
         E.add('bibi:opened', () => {
-            ['bibi:tapped-book', 'bibi:singletapped-book'].forEach(EN => E.add(EN, BibiEvent => {
+            E.add('bibi:singletapped-book', BibiEvent => {
                 if(I.isPointerStealth()) return false;
-                if(EN != 'bibi:tapped-book' && BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
+                if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
                 if(Matrix.checkFlipperAvailability(BibiEvent)) {
                     const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
-                        if(EN == 'bibi:tapped-book' && I.Flipper.isAbleToFlip(Dist)) {
+                        if(I.Flipper.isAbleToFlip(Dist)) {
                             I.Flipper.flip(Dist, { Duration: BibiEvent.Staccato > 1 ? 0 : null });
                             if(I.Arrows) E.dispatch(I.Arrows[Dist], 'bibi:singletapped');
                         }
-                    } else if(EN != 'bibi:tapped-book' && typeof C.DDD[Dir] == 'string') switch(Ortho) {
-                        case 'utilities': I.Utilities.toggleGracefuly(); break;
-                        case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
+                    } else {
+                        if(typeof C.DDD[Dir] == 'string') switch(Ortho) {
+                            case 'utilities': I.Utilities.toggleGracefuly(); break;
+                            case 'switch': if(I.AxisSwitcher) I.AxisSwitcher.switchAxis(); break;
+                        }
                     }
                 }
-            }));
+            });
         });
     }
     if(!O.TouchOS) {

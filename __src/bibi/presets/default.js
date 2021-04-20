@@ -98,6 +98,12 @@ Bibi.preset({
 
 "indicate-orthogonal-arrows-if-necessary" : false,
 
+"recognize-repeated-taps-separately": false, // true or false
+// If true:
+//     * Bibi recognizes all the repeated tap/clicks as separate single-tap/clicks.
+//     * It accelerates some UI response, but Bibi no longer recognizes double/triple-tap/click.
+// If you want to customize "on-doubletap(-with-altkey)" or "on-tripletap(-with-altkey)", you have to set "recognize-repeated-taps-separately" to false.
+
 "prioritise-viewer-operation-over-text-selection" : false, // true or false
 // If true:
 //     * When dragging with the mouse or trackpad, priority is given to browsing operations (ex. page-turning, axis-switching) instead of text selection.
