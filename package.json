@@ -83,7 +83,7 @@
     "material-icons": "^0.5.4",
     "native-promise-only": "^0.8.1",
     "polyfill-array-includes": "^2.0.0",
-    "sml.js": "^1.0.28",
+    "sml.js": "^1.0.29",
     "string.padstart": "^0.1.1",
     "text-encoding-utf-8": "^1.0.2",
     "url-polyfill": "^1.1.12"
