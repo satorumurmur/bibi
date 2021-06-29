@@ -82,6 +82,7 @@
     "jszip-utils": "0.1.0",
     "material-icons": "^0.5.4",
     "native-promise-only": "^0.8.1",
+    "nosleep.js": "^0.12.0",
     "polyfill-array-includes": "^2.0.0",
     "sml.js": "^1.0.29",
     "string.padstart": "^0.1.1",

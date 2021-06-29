@@ -103,6 +103,11 @@ Bibi.Banners = Object.assign({
  *      - JSZipUtils : © Stuart Knightley - https://stuk.github.io/jszip-utils / Dual licensed under the MIT License or the GPLv3 - https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown
 `, Mark: true }),
 
+'bibi/extensions/lamp.js': _banner({ Name: 'Bibi Extension: Lamp', Credit: Bibi, Extra: `
+ *  * Depends on:
+ *      - NoSleep.js : © Rich Tibbett - https://github.com/richtr/NoSleep.js / Licensed under the MIT License - https://github.com/richtr/NoSleep.js/blob/master/LICENSE
+`, Mark: true }),
+
 'bibi/extensions/sanitizer.js': _banner({ Name: 'Bibi Extension: Sanitizer', Credit: Bibi, Extra: `
  *  * Depends on:
  *      - DOMPurify : © Mario Heiderich - https://github.com/cure53/DOMPurify / Dual licensed under the Apache License Version 2.0 or the Mozilla Public License Version 2.0 - https://github.com/cure53/DOMPurify/blob/master/LICENSE

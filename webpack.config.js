@@ -36,6 +36,7 @@ const Config = {
             'bibi/extensions/analytics.js',
             'bibi/extensions/extractor/at-once.js',
             'bibi/extensions/extractor/on-the-fly.js',
+            'bibi/extensions/lamp.js',
             'bibi/extensions/sanitizer.js',
             'bibi/extensions/unaccessibilizer.js',
             'bibi/extensions/zine.js',

@@ -2666,6 +2666,9 @@ I.Oven = { create: () => {
 }};
 
 
+I.Desk = {};
+
+
 I.Utilities = { create: () => {
     const Utilities = I.Utilities = I.setToggleAction({
           openGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'active'  ? false : Utilities.open(),

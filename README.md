@@ -213,6 +213,7 @@ License
     - [JSZip](http://stuk.github.io/jszip) : © Stuart Knightley / Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip/blob/HEAD/LICENSE.markdown)
     - [JSZipUtils](http://stuk.github.io/jszip-utils) : © Stuart Knightley / Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown)
     - [JS-YAML](http://nodeca.github.io/js-yaml/) : © Vitaly Puzrin / Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
+ *  - [NoSleep.js](https://github.com/richtr/NoSleep.js) : © Rich Tibbett / Licensed under [the MIT License](https://github.com/richtr/NoSleep.js/blob/master/LICENSE)
 * Polyfills:
     - [classlist-polyfill](https://github.com/yola/classlist-polyfill) : by Yola Inc. / Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE)
     - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) : by Erik Arvidsson / Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md)
