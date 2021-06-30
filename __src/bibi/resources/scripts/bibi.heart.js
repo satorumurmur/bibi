@@ -1,11 +1,10 @@
-/*!
- *                                                                                                                          (℠)
- *  ## Bibi (heart) | Heart of Bibi.
+'use strict';
+
+/*! ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  *
- */
-
-
-
+ *  # Heart of Bibi                                                                                                                                                                         (℠)
+ *
+ */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() };
 
@@ -170,7 +169,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(Fill) return '';
     },
     'integer': (_P, _V, Fill) => {
-        if(typeof (_V *= 1) == 'number' && isFinite(_V)) {
+        if(Number.isFinite(_V *= 1)) {
             _V = Math.max(Math.round(_V), 0);
             switch(_P) {
                 case 'log'           : return Math.min(_V,  9);
@@ -182,7 +181,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(Fill) return 0;
     },
     'number': (_P, _V, Fill) => {
-        if(typeof (_V *= 1) == 'number' && isFinite(_V) && _V >= 0) return _V;
+        if(Number.isFinite(_V *= 1) && _V >= 0) return _V;
         if(Fill) return 0;
     },
     'array': (_P, _V, Fill) => {
@@ -5561,15 +5560,6 @@ export const D = {};
 
 
 D.initialize = () => {
-    const Bookshelf = document.getElementById('bibi-preset').getAttribute('data-bibi-bookshelf');
-    if(Bookshelf) {
-        D['bookshelf'] = new URL(Bookshelf, location.href.split('?')[0]);
-        //delete P['bookshelf'];
-    }
-    const Book = document.body.getAttribute('data-bibi-book');
-    if(Book) {
-        D['book'] = document.body.getAttribute('data-bibi-book');
-    }
     const BookDataElement = document.getElementById('bibi-book-data');
     if(BookDataElement) {
         const BookData = BookDataElement.innerText.trim();
@@ -5583,8 +5573,18 @@ D.initialize = () => {
         BookDataElement.innerHTML = '';
         BookDataElement.parentNode.removeChild(BookDataElement);
     }
-    if(D['book'] || D['book-data']) {
-        //delete U['book'];
+    const PresetElement = document.getElementById('bibi-preset');
+    if(PresetElement) {
+        const Bookshelf = PresetElement.getAttribute('data-bibi-bookshelf');
+        if(Bookshelf) {
+            D['bookshelf'] = new URL(Bookshelf, location.href.split('?')[0]);
+            // delete P['bookshelf'];
+        }
+    }
+    const Book = document.body.getAttribute('data-bibi-book');
+    if(Book) D['book'] = Book;
+    if(D['book-data'] || D['book']) {
+        // delete U['book'];
         let HRef = location.href.replace(/([\?&])book=[^&]*&?/, '$1');
         if(!HRef.split('?')[1]) HRef = HRef.split('?')[0];
         history.replaceState(null, document.title, HRef);

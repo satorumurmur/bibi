@@ -68,7 +68,7 @@ If you already published books on the web with BiB/i which version is older than
 ### Read in browsers on your local machine 
 
 1. Open `bibi/index.html` in your browser, and
-2. Drag an EPUB book and drop it into the window.
+2. Drag and drop an EPUB book into the window.
 3. That's all!
 
 

@@ -1,4 +1,4 @@
-const Bibi = require('./bibi.info.js');
+const Bibi = require('./bibi.recipe.js');
 
 module.exports = {
     port: 61671,
@@ -10,5 +10,9 @@ module.exports = {
         index: 'index.html'
     },
     startPath: 'bibi/?book=',
+    watch: true,
+    ignore: [
+        Bibi.DIST + '/bibi-bookshelf/**'
+    ],
     ghostMode: false
 };
