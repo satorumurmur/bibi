@@ -41,9 +41,12 @@ Bibi.preset({
 
 "use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
 
-"use-font-size-changer"      : "yes", // "yes" or "no" or "desktop" or "mobile"
-"base-font-size"             : "auto", // Number of pixel or "auto"
-"font-size-scale-per-step"   : 1.25, // Number of scale
+"use-fontsize-changer-ui"    : "yes", // "yes" or "no" or "desktop" or "mobile"
+"fontsize-scale-per-step"    : 1.25, // Number of scale
+"base-fontsize"              : "auto", // Number of pixel or "auto"
+
+"use-linespacing-changer-ui" : "yes", // "yes" or "no" or "desktop" or "mobile"
+"linespacing-scale-per-step" : 1.25, // Number of scale
 
 "use-loupe-ui"               : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)

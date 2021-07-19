@@ -232,7 +232,7 @@
 
 // -- In Menu
 .bibi-icon-config,
-.bibi-icon-change-fontsize,
+.bibi-icon-text-setter,
 .bibi-icon-loupe,
 .bibi-icon-manage-bookmarks,
 // -- In Slider
@@ -249,13 +249,13 @@
 // --------------------------------------------------------------------------------
 
 .bibi-icon-config,
-.bibi-icon-change-fontsize,
+.bibi-icon-text-setter,
 .bibi-icon-loupe,
 .bibi-icon-manage-bookmarks { @include GENERALICON__CommonInMenu(); }
 
 .bibi-icon-config { @include GENERALICON__Config(); }
 
-.bibi-icon-change-fontsize { @include GENERALICON__ChangeFontSize(); }
+.bibi-icon-text-setter { @include GENERALICON__TextSetter(); }
 
 .bibi-icon-loupe { @include GENERALICON__LoupeCommon();
 	&-zoomin  { @include GENERALICON__LoupeZoomIn(); }
@@ -289,12 +289,12 @@
 
 .bibi-icon-open-newwindow { @include GENERALICON__OpenNewWindow(); }
 
-.bibi-icon-fontsize { @include GENERALICON__FontSizeCommon();
-	&-exlarge { @include GENERALICON__FontSizeXL(); }
-	&-large   { @include GENERALICON__FontSizeL(); }
-	&-medium  { @include GENERALICON__FontSizeM(); }
-	&-small   { @include GENERALICON__FontSizeS(); }
-	&-exsmall { @include GENERALICON__FontSizeXS(); }
+.bibi-icon-fontsize { @include GENERALICON__FontSize-Common();
+	&-smallest { @include GENERALICON__FontSize-Smallest(); }
+	&-smaller  { @include GENERALICON__FontSize-Smaller(); }
+	&-medium   { @include GENERALICON__FontSize-Medium(); }
+	&-larger   { @include GENERALICON__FontSize-Larger(); }
+	&-largest  { @include GENERALICON__FontSize-Largest(); }
 }
 
 .bibi-icon-bookmark { @include GENERALICON__BookmarkCommon(); }
@@ -327,3 +327,14 @@
 	&-vertical   { @include SPECIALICON__ViewVertical(); }
 }
 
+
+// - "Line Height" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+.bibi-icon-linespacing { @include SPECIALICON__LineSpacing-Common();
+	&-narrowest  { @include SPECIALICON__LineSpacing-Narrowest(); }
+	&-narrower   { @include SPECIALICON__LineSpacing-Narrower(); }
+	&-medium  { @include SPECIALICON__LineSpacing-Medium(); }
+	&-wider  { @include SPECIALICON__LineSpacing-Wider(); }
+	&-widest { @include SPECIALICON__LineSpacing-Widest(); }
+}

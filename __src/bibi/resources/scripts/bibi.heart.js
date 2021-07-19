@@ -26,10 +26,11 @@ Bibi.SettingTypes = {
         'start-embedded-in-new-window',
         'use-arrows',
         'use-bookmark-ui',
-        'use-font-size-changer',
+        'use-fontsize-changer-ui',
         'use-full-height',
         'use-history-ui',
         'use-keys',
+        'use-linespacing-changer-ui',
         'use-loupe-ui',
         'use-menubar',
         'use-nombre',
@@ -56,9 +57,10 @@ Bibi.SettingTypes = {
         'spread-margin'
     ],
     'number': [
-        'base-font-size',
+        'base-fontsize',
         'flipper-width',
-        'font-size-scale-per-step',
+        'fontsize-scale-per-step',
+        'linespacing-scale-per-step',
         'loupe-max-scale',
         'loupe-scale-per-step',
         'orientation-border-ratio'
@@ -2546,7 +2548,7 @@ I.initialize = () => {
         I.Loupe.create();
     });
     E.bind('bibi:initialized-book', () => {
-        I.FontSizeChanger.create();
+        I.TextSetter.create();
         I.BookmarkManager.create();
     });
     E.bind('bibi:prepared', () => {
@@ -4147,134 +4149,191 @@ I.PoweredBy = { create: () => {
     */
 }};
 
-I.FontSizeChanger = { create: () => {
-    const FontSizeChanger = I.FontSizeChanger = {};
-    if(typeof S['font-size-scale-per-step'] != 'number' || S['font-size-scale-per-step'] <= 1) S['font-size-scale-per-step'] = 1.25;
-    if(S['use-font-size-changer'] && S['keep-settings']) {
-        const BibiBiscuits = I.Oven.Biscuits.remember('Book');
-        if(BibiBiscuits && BibiBiscuits.FontSize && BibiBiscuits.FontSize.Step != undefined) FontSizeChanger.Step = BibiBiscuits.FontSize.Step * 1;
-    }
-    if(typeof FontSizeChanger.Step != 'number' || FontSizeChanger.Step < -2 || 2 < FontSizeChanger.Step) FontSizeChanger.Step = 0;
-    E.bind('bibi:postprocessed-item', Item => { if(Item['rendition:layout'] == 'pre-paginated') return false;
-        Item.changeFontSize = (FontSize) => {
-            if(Item.FontSizeStyleRule) sML.deleteCSSRule(Item.contentDocument, Item.FontSizeStyleRule);
-            Item.FontSizeStyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + FontSize + 'px !important;');
-        };
-        Item.changeFontSizeStep = (Step) => Item.changeFontSize(Item.FontSize.Base * Math.pow(S['font-size-scale-per-step'], Step));
-        Item.FontSize = {
-            Default: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1
-        };
-        Item.FontSize.Base = Item.FontSize.Default;
-        if(Item.Source.Preprocessed && (sML.UA.Chrome || sML.UA.Trident)) {
-            sML.forEach(Item.HTML.querySelectorAll('body, body *'))(Ele => Ele.style.fontSize = parseInt(getComputedStyle(Ele).fontSize) / Item.FontSize.Base + 'rem');
-        } else {
-            O.editCSSRules(Item.contentDocument, CSSRule => {
-                if(!CSSRule || !CSSRule.selectorText || /^@/.test(CSSRule.selectorText)) return;
-                try { if(Item.contentDocument.querySelector(CSSRule.selectorText) == Item.HTML) return; } catch(_) {}
-                const REs = {
-                    'pt': / font-size: (\d[\d\.]*)pt; /,
-                    'px': / font-size: (\d[\d\.]*)px; /
-                };
-                if(REs['pt'].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs['pt'])[1] * (96/72) / Item.FontSize.Base + 'rem';
-                if(REs['px'].test(CSSRule.cssText)) CSSRule.style.fontSize = CSSRule.cssText.match(REs['px'])[1]           / Item.FontSize.Base + 'rem';
-            });
-        }
-        if(typeof S['base-font-size'] == 'number' && S['base-font-size'] > 0) {
-            let MostPopularFontSize = 0;
-            const FontSizeCounter = {};
-            sML.forEach(Item.Body.querySelectorAll('p, p *'))(Ele => {
-                if(!Ele.innerText.replace(/\s/g, '')) return;
-                const FontSize = Math.round(getComputedStyle(Ele).fontSize.replace(/[^\d]*$/, '') * 100) / 100;
-                if(!FontSizeCounter[FontSize]) FontSizeCounter[FontSize] = [];
-                FontSizeCounter[FontSize].push(Ele);
-            });
-            let MostPopularFontSizeAmount = 0;
-            for(const FontSize in FontSizeCounter) {
-                if(FontSizeCounter[FontSize].length > MostPopularFontSizeAmount) {
-                    MostPopularFontSizeAmount = FontSizeCounter[FontSize].length;
-                    MostPopularFontSize = FontSize;
+I.TextSetter = { create: () => {
+    const TextSettingProperties = [
+        ['FontSize',   'fontsize'],
+        ['LineSpacing', 'linespacing']
+    ];
+    const TextSetter = I.TextSetter = {
+        change: (Par, Actions) => new Promise(resolve => {
+            if(B.PrePaginated) return resolve();
+            if(!Par) return resolve();
+            if(!TextSettingProperties.filter(Pros => { const ProC = Pros[0], ProH = Pros[1];
+                if(!Par[ProC]) return false;
+                if(Par[ProC].Step !== undefined) {
+                    if(!Number.isInteger(Par[ProC].Step) || (Par[ProC].Step = sML.limitMinMax(Par[ProC].Step, -2, 2)) == TextSetter[ProC].Step ) return false;
+                    Par[ProC] = {  Step: (TextSetter[ProC].Step  = Par[ProC].Step)  }, TextSetter[ProC].Scale = Par[ProC].Step  == 0 ? 1 : NaN;
+                } else {
+                    if(!Number.isFinite(Par[ProC].Scale) || Par[ProC].Scale <= 0 ||           Par[ProC].Scale         == TextSetter[ProC].Scale) return false;
+                    Par[ProC] = { Scale: (TextSetter[ProC].Scale = Par[ProC].Scale) }, TextSetter[ProC].Step  = Par[ProC].Scale == 1 ? 0 : NaN;
                 }
-            }
-            if(MostPopularFontSize) Item.FontSize.Base = Item.FontSize.Base * (S['base-font-size'] / MostPopularFontSize);
-            Item.changeFontSizeStep(FontSizeChanger.Step);
-        } else if(FontSizeChanger.Step != 0) {
-            Item.changeFontSizeStep(FontSizeChanger.Step);
-        }
-    });
-    FontSizeChanger.changeFontSizeStep = (Step, Actions) => {
-        if(S.BRL == 'pre-paginated') return;
-        if(Step == FontSizeChanger.Step) return;
-        if(!Actions) Actions = {};
-        E.dispatch('bibi:changes-font-size');
-        if(typeof Actions.before == 'function') Actions.before();
-        FontSizeChanger.Step = Step;
-        if(S['use-font-size-changer'] && S['keep-settings']) {
-            I.Oven.Biscuits.memorize('Book', { FontSize: { Step: Step } });
-        }
-        setTimeout(() => {
-            R.layOutBook({
-                before: () => R.Items.forEach(Item => { if(Item.changeFontSizeStep) Item.changeFontSizeStep(Step); }),
+                if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { [ProC]: Par[ProC] });
+                E.dispatch('bibi:changes-' + ProH); // --> E.dispatch('bibi:changes-fontsize'), E.dispatch('bibi:changes-linespacing')
+                return true;
+            }).length) return resolve();
+            if(!Actions) Actions = {};
+            if(typeof Actions.before == 'function') Actions.before();
+            setTimeout(() => R.layOutBook({
+                before: () => R.Items.forEach(Item => {
+                    const ItemTextSetter = Item.TextSetter;
+                    if(ItemTextSetter) TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
+                        if(!Par[ProC]) return;
+                        Par[ProC].Step !== undefined ? ItemTextSetter[ProC].changeStep(Par[ProC].Step) : ItemTextSetter[ProC].changeScale(Par[ProC].Scale);
+                        if(TextSetter[ProC].Buttons) TextSetter[ProC].Buttons.forEach(Button => I.setUIState(Button, Button.Step == TextSetter[ProC].Step ? 'active' : 'default'));
+                    });
+                }),
                 Reset: true,
+                ResetOnlyContent: true,
                 DoNotCloseUtilities: true,
                 NoNotification: true
             }).then(() => {
-                E.dispatch('bibi:changed-font-size', { Step: Step });
+                TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
+                    if(Par[ProC]) E.dispatch('bibi:changed-' + ProH, Par[ProC]); // --> E.dispatch('bibi:changed-fontsize', Par.FontSize), E.dispatch('bibi:changed-linespacing', Par.LineSpacing)
+                });
                 if(typeof Actions.after == 'function') Actions.after();
-            });
-        }, 88);
+                resolve();
+            }), 88);
+        }),
+        changeStep:  (Steps,  Actions) => TextSetter.change(Object.keys(Steps ).reduce((Par, Pro) => { Par[Pro] = {  Step:  Steps[Pro] }; return Par; }, {}), Actions),
+        changeScale: (Scales, Actions) => TextSetter.change(Object.keys(Scales).reduce((Par, Pro) => { Par[Pro] = { Scale: Scales[Pro] }; return Par; }, {}), Actions)
     };
-    //E.add('bibi:changes-font-size', () => E.dispatch('bibi:closes-utilities'));
-  //E.add('bibi:changes-view', () => FontSizeChanger.changeFontSizeStep(0)); // unnecessary
-    if(S['use-font-size-changer']) {
-        const changeFontSizeStep = function() {
-            const Button = this;
-            FontSizeChanger.changeFontSizeStep(Button.Step, {
-                before: () => Button.ButtonGroup.Busy = true,
-                after:  () => Button.ButtonGroup.Busy = false
-            });
+    const BookBiscuits = S['keep-settings'] ? I.Oven.Biscuits.remember('Book') : null, ItemInitializers = [];
+    TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
+        const ScalePerStepSetting = S[ProH + '-scale-per-step']; // --> S['fontsize-scale-per-step'], S['linespacing-scale-per-step']
+        TextSetter[ProC] = {
+            Step: 0, Scale: 1, ScalePerStep: Number.isFinite(ScalePerStepSetting) && ScalePerStepSetting > 1 ? ScalePerStepSetting : 1.25,
+            change:      (Par,   Actions) => TextSetter.change({ [ProC]: Par              }, Actions),
+            changeStep:  (Step,  Actions) => TextSetter.change({ [ProC]: {  Step: Step  } }, Actions),
+            changeScale: (Scale, Actions) => TextSetter.change({ [ProC]: { Scale: Scale } }, Actions)
         };
-        I.createSubpanel({
-            Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_font-size' }).addButton({
+        if(!BookBiscuits || !BookBiscuits[ProC]) return;
+        if(BookBiscuits[ProC].Step !== undefined) {
+            let BiscuitStep = BookBiscuits[ProC].Step * 1;
+            if(!Number.isInteger(BiscuitStep) || (BiscuitStep = sML.limitMinMax(BiscuitStep, -2, 2)) == 0) return;
+            TextSetter[ProC].Step = BiscuitStep, TextSetter[ProC].Scale = NaN;
+            ItemInitializers.push(Item => Item.TextSetter[ProC].changeStep(TextSetter[ProC].Step));
+        } else if(BookBiscuits[ProC].Scale !== undefined) {
+            let BiscuitScale = BookBiscuits[ProC].Scale * 1;
+            if(!Number.isFinite(BiscuitScale) || BiscuitScale <= 0 || BiscuitScale == 1) return;
+            TextSetter[ProC].Step = NaN, TextSetter[ProC].Scale = BiscuitScale;
+            ItemInitializers.push(Item => Item.TextSetter[ProC].changeScale(TextSetter[ProC].Scale));
+        }
+    });
+    E.bind('bibi:postprocessed-item', Item => { if(Item.PrePaginated) return false;
+        const ItemHTMLOriginalFontSize = getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1;
+        const ItemTextSetter = Item.TextSetter = {
+            FontSize: {
+                Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : ItemHTMLOriginalFontSize,
+                changeScale: (Scale) => { if(!Number.isFinite(Scale) || Scale <= 0) return;
+                    if(ItemTextSetter.FontSizeStyleRule) sML.deleteCSSRule(Item.contentDocument, ItemTextSetter.FontSizeStyleRule);
+                    ItemTextSetter.FontSizeStyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + (ItemTextSetter.FontSize.Base * Scale) + 'px !important;');
+                }
+            },
+            LineSpacing: {
+                CustomizableElements: [],
+                changeScale: (Scale) => { if(!Number.isFinite(Scale) || Scale <= 0) return;
+                    ItemTextSetter.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSetter.LineHeight.Base * Scale);
+                }
+            }
+        };
+        TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
+            Object.assign(ItemTextSetter[ProC], {
+                changeStep: (Step) => ItemTextSetter[ProC].changeScale(Math.pow(TextSetter[ProC].ScalePerStep, Step)),
+                change:     (Par ) => Par.Step !== undefined ? ItemTextSetter[ProC].changeStep(Par.Step) : ItemTextSetter[ProC].changeScale(Par.Scale)
+            });
+        });
+        sML.forEach(Item.HTML.querySelectorAll('body, body *:not(script):not(style):not(img):not(svg):not(picture):not(iframe):not(audio):not(video):not(source)'))(Ele => {
+            const EleTSr = Ele.BibiTextSetter = {};
+            let ComputedFontSize = getComputedStyle(Ele).fontSize;
+            if(/\.?\d+px$/.test(ComputedFontSize)) ComputedFontSize = parseFloat(ComputedFontSize); else return;
+            Ele.style.fontSize = ComputedFontSize / ItemHTMLOriginalFontSize + 'rem';
+            if(/^(ruby|r[bt]|table|t(body|head|[hd]))$/i.test(Ele.tagName)) return;
+            const ComputedLineHeight = getComputedStyle(Ele).lineHeight;
+            EleTSr.LineHeight = { Base: ComputedLineHeight == 'normal' ? 1.2 : parseFloat(ComputedLineHeight) / ComputedFontSize };
+            ItemTextSetter.LineSpacing.CustomizableElements.push(Ele);
+        });
+        Item.HTML.style.fontSize = ItemTextSetter.FontSize.Base + 'px';
+        ItemTextSetter.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSetter.LineHeight.Base);
+        ItemInitializers.forEach(initializer => initializer(Item));
+    });
+    if(S['use-fontsize-changer-ui'] || S['use-linespacing-changer-ui']) {
+        const Subpanel = I.createSubpanel({
+            Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_text-setter' }).addButton({
                 Type: 'toggle',
                 Labels: {
-                    default: { default: `Change Font Size`,     ja: `文字サイズを変更` },
-                    active:  { default: `Close Font Size Menu`, ja: `文字サイズメニューを閉じる` }
+                    default: { default: `Change Text Setting`,     ja: `テキスト表示を調整` },
+                    active:  { default: `Close Text Setting Menu`, ja: `テキスト表示調整メニューを閉じる` }
                 },
-                //className: 'bibi-button-font-size bibi-button-font-size-change',
-                Icon: `<span class="bibi-icon bibi-icon-change-fontsize"></span>`,
+                Icon: `<span class="bibi-icon bibi-icon-text-setter"></span>`,
                 Help: true
             }),
-            id: 'bibi-subpanel_font-size',
             open: () => {}
-        }).addSection({
-            Labels: { default: { default: `Choose Font Size`, ja: `文字サイズを選択` } }
-        }).addButtonGroup({
-            //Tiled: true,
-            ButtonType: 'radio',
-            Buttons: [{
-                Labels: { default: { default: `<span class="non-visual-in-label">Font Size:</span> Ex-Large`,                        ja: `<span class="non-visual-in-label">文字サイズ：</span>最大` } },
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-exlarge"></span>`,
-                action: changeFontSizeStep, Step:  2
-            }, {
-                Labels: { default: { default: `<span class="non-visual-in-label">Font Size:</span> Large`,                           ja: `<span class="non-visual-in-label">文字サイズ：</span>大` } },
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-large"></span>`,
-                action: changeFontSizeStep, Step:  1
-            }, {
-                Labels: { default: { default: `<span class="non-visual-in-label">Font Size:</span> Medium <small>(default)</small>`, ja: `<span class="non-visual-in-label">文字サイズ：</span>中<small>（初期値）</small>` } },
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`,
-                action: changeFontSizeStep, Step:  0
-            }, {
-                Labels: { default: { default: `<span class="non-visual-in-label">Font Size:</span> Small`,                           ja: `<span class="non-visual-in-label">文字サイズ：</span>小` } },
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-small"></span>`,
-                action: changeFontSizeStep, Step: -1
-            }, {
-                Labels: { default: { default: `<span class="non-visual-in-label">Font Size:</span> Ex-Small`,                        ja: `<span class="non-visual-in-label">文字サイズ：</span>最小` } },
-                Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-exsmall"></span>`,
-                action: changeFontSizeStep, Step: -2
-            }]
-        }).Buttons.forEach(Button => { if(Button.Step == FontSizeChanger.Step) I.setUIState(Button, 'active'); });
+        });
+        const changeStep = function() { const Group = this.ButtonGroup;
+            TextSetter.change({ [Group.Of]: { Step: this.Step } }, {
+                before: () => Group.Busy = true,
+                after:  () => Group.Busy = false
+            });
+        };
+        if(S['use-fontsize-changer-ui']) {
+            (TextSetter.FontSize.Buttons = Subpanel.addSection({
+                Labels: { default: { default: `Font Size`, ja: `文字サイズ` } }
+            }).addButtonGroup({
+                Type: 'Steps', Of: 'FontSize',
+                MinLabels: { default: { default: `Small`, ja: `小` } },
+                MaxLabels: { default: { default: `Large`, ja: `大` } },
+                action: changeStep,
+                Buttons: [{
+                    Step: -2,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smallest"></span>`,
+                    Labels: { default: { default: `Smallest`, ja: `最小` } }
+                }, {
+                    Step: -1,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`,
+                    Labels: { default: { default: `Smaller`,  ja: `小` } }
+                }, {
+                    Step:  0,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`,
+                    Labels: { default: { default: `Default`,  ja: `標準` } }
+                }, {
+                    Step:  1,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`,
+                    Labels: { default: { default: `Larger`,   ja: `大` } }
+                }, {
+                    Step:  2,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-largest"></span>`,
+                    Labels: { default: { default: `Largest`,  ja: `最大` } }
+                }]
+            }).Buttons).forEach(Button => {
+                if(Button.Step == TextSetter.FontSize.Step) I.setUIState(Button, 'active');
+            });
+        }
+        if(S['use-linespacing-changer-ui']) {
+            const /* TextLineShapes */ TLSs = (/* TextLineShape */ TLS => `<span class="bibi-shape bibi-shape-textlines">${ TLS + TLS + TLS + TLS + TLS + TLS + TLS + TLS }</span>`)(`<span class="bibi-shape bibi-shape-textline"></span>`);
+            (TextSetter.LineSpacing.Buttons = Subpanel.addSection({
+                Labels: { default: { default: `Line Spacing`, ja: `行間` } }
+            }).addButtonGroup({
+                Type: 'Steps', Of: 'LineSpacing',
+                MinLabels: { default: { default: `Narrow`, ja: `狭い` } },
+                MaxLabels: { default: { default: `Wide`,   ja: `広い` } },
+                action: changeStep,
+                Buttons: [{
+                    Step: -2,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrowest">${ TLSs }</span>`,
+                    Labels: { default: { default: `Narrowest`, ja: `最小` } }
+                }, {
+                    Step: -1,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrower">${ TLSs }</span>`,
+                    Labels: { default: { default: `Narrower`,  ja: `狭い` } }
+                }, {
+                    Step:  0,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-medium">${ TLSs }</span>`,
+                    Labels: { default: { default: `Default`,   ja: `標準` } }
+                }, {
+                    Step:  1,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-wider">${ TLSs }</span>`,
+                    Labels: { default: { default: `Wider`,     ja: `広い` } }
+                }, {
+                    Step:  2,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-widest">${ TLSs }</span>`,
+                    Labels: { default: { default: `Widest`,    ja: `最大` } }
+                }]
+            }).Buttons).forEach(Button => {
+                if(Button.Step == TextSetter.LineSpacing.Step) I.setUIState(Button, 'active');
+            });
+        }
     }
-    E.dispatch('bibi:created-font-size-changer');
+    E.dispatch('bibi:created-text-setter');
 }};
 
 
@@ -5649,13 +5708,14 @@ S.initialize = () => {
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
     // --------
     S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
-          'book-rendition-layout'    : { SH: 'BRL', CNP: 'book' },
-             'reader-view-mode'      : { SH: 'RVM', CNP: 'view' },
-        'page-progression-direction' : { SH: 'PPD', CNP: 'page' },
-           'spread-layout-axis'      : { SH: 'SLA', CNP: 'spread' },
-           'spread-layout-direction' : { SH: 'SLD', CNP: 'spread' },
-        'apparent-reading-axis'      : { SH: 'ARA', CNP: 'appearance' },
-        'apparent-reading-direction' : { SH: 'ARD', CNP: 'appearance' },
+           'book-rendition-layout'   : { SH: 'BRL', CNP: 'book' },
+             'book-writing-mode'     : { SH: 'BWM', CNP: 'book' },
+              'reader-view-mode'     : { SH: 'RVM', CNP: 'view' },
+         'page-progression-direction': { SH: 'PPD', CNP: 'page' },
+            'spread-layout-axis'     : { SH: 'SLA', CNP: 'spread' },
+            'spread-layout-direction': { SH: 'SLD', CNP: 'spread' },
+         'apparent-reading-axis'     : { SH: 'ARA', CNP: 'appearance' },
+         'apparent-reading-direction': { SH: 'ARD', CNP: 'appearance' },
         'navigation-layout-direction': { SH: 'NLD', CNP: 'nav' }
     };
     for(const Mode in S.Modes) {
@@ -5681,6 +5741,7 @@ S.update = (Settings) => {
     const Prev = {}; for(const Mode in S.Modes) Prev[Mode] = S[Mode];
     if(typeof Settings == 'object') for(const Property in Settings) if(typeof S[Property] != 'function') S[Property] = Settings[Property];
     S['book-rendition-layout'] = B.Package.Metadata['rendition:layout'];
+    S['book-writing-mode'] = B.WritingMode;
     S['allow-placeholders'] = (S['allow-placeholders'] && B.ExtractionPolicy != 'at-once') ? true : false;
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');

@@ -86,6 +86,60 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 }
 
 
+// - "Line Height" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+@mixin DEFAULT__SPECIALICON__LineSpacing-Common() {
+	.bibi-button & {
+		span.bibi-shape-textlines {
+			display: flex;
+			html.book-lr-tb &, html.book-rl-tb & { flex-direction: column; }
+			html.book-tb-rl &                    { flex-direction: row-reverse; }
+			html.book-tb-lr &                    { flex-direction: row; }
+			justify-content: flex-start;
+			align-items: flex-start;
+			@include offset(0);
+			margin: auto;
+			@include size(15px);
+			background: transparent !important;
+			span.bibi-shape-textline {
+				display: block;
+				position: relative;
+				margin: 0;
+				html.book-lr-tb &, html.book-rl-tb & {  width: 100%; }
+				html.book-tb-rl &, html.book-tb-lr & { height: 100%; }
+			}
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__LineSpacing_Variation(
+	$SCOPED__TextLine_HowMany,
+	$SCOPED__TextLine_Breadth,
+	$SCOPED__TextLine_Margin
+) {
+	$SCOPED__TextLines_Breadth:
+		$SCOPED__TextLine_Breadth * $SCOPED__TextLine_HowMany +
+		$SCOPED__TextLine_Margin * ($SCOPED__TextLine_HowMany - 1);
+	span.bibi-shape-textlines {
+		html.book-lr-tb &, html.book-rl-tb & { height: $SCOPED__TextLines_Breadth; }
+		html.book-tb-rl &, html.book-tb-lr & {  width: $SCOPED__TextLines_Breadth; }
+		span.bibi-shape-textline {
+			&:nth-child(n + #{ $SCOPED__TextLine_HowMany + 1 }) { display: none; }
+			html.book-lr-tb &, html.book-rl-tb & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) {  width: 75%; } height: $SCOPED__TextLine_Breadth; }
+			html.book-tb-rl &, html.book-tb-lr & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) { height: 75%; }  width: $SCOPED__TextLine_Breadth; }
+			html.book-lr-tb &, html.book-rl-tb & { &:nth-child(n + 2) { margin-top:   $SCOPED__TextLine_Margin; } }
+			html.book-tb-rl &                    { &:nth-child(n + 2) { margin-right: $SCOPED__TextLine_Margin; } }
+			html.book-tb-lr &                    { &:nth-child(n + 2) { margin-left:  $SCOPED__TextLine_Margin; } }
+		}
+	}
+}
+@mixin DEFAULT__SPECIALICON__LineSpacing-Narrowest() { @include DEFAULT__SPECIALICON__LineSpacing_Variation(8, 1px, 1px); }
+@mixin DEFAULT__SPECIALICON__LineSpacing-Narrower()  { @include DEFAULT__SPECIALICON__LineSpacing_Variation(5, 1px, 2px); }
+@mixin DEFAULT__SPECIALICON__LineSpacing-Medium()    { @include DEFAULT__SPECIALICON__LineSpacing_Variation(4, 1px, 3px); }
+@mixin DEFAULT__SPECIALICON__LineSpacing-Wider()     { @include DEFAULT__SPECIALICON__LineSpacing_Variation(3, 1px, 4px); }
+@mixin DEFAULT__SPECIALICON__LineSpacing-Widest()    { @include DEFAULT__SPECIALICON__LineSpacing_Variation(2, 1px, 7px); }
+
+
 // - Book Icon
 // --------------------------------------------------------------------------------
 

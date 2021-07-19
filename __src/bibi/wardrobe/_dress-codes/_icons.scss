@@ -40,7 +40,7 @@
 	}
 }
 
-@mixin GENERALICON__ChangeFontSize() {
+@mixin GENERALICON__TextSetter() {
 	&:before {
 		content: "format_size";
 		top: 1px;
@@ -150,7 +150,7 @@
 }
 
 // [ja] ５種のフォントサイズ変更アイコンすべてに適用される共通スタイル
-@mixin GENERALICON__FontSizeCommon() {
+@mixin GENERALICON__FontSize-Common() {
 	&:before {
 		content: "title";
 		top: 1px;
@@ -158,42 +158,42 @@
 }
 
 // [ja] ５種のフォントサイズ変更アイコンの font-size 値を同一比率で段階づけするためにここだけで使っている関数。使用しなくても構いません。
-@function LOCAL__GENERALICON__FontSize_FontSizePow($SCOPED__Size) {
+@function LOCAL__GENERALICON__FontSize__pow($SCOPED__Size) {
 	$SCOPED__FontSize: 10px;  @if $SCOPED__Size > 1 { @for $i from 1 through ($SCOPED__Size - 1) { $SCOPED__FontSize: $SCOPED__FontSize * 1.28; } }
 	@return $SCOPED__FontSize;
 }
 
-@mixin GENERALICON__FontSizeXL() {
+@mixin GENERALICON__FontSize-Largest() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(5);
+		font-size: LOCAL__GENERALICON__FontSize__pow(5);
 	}
 }
 
-@mixin GENERALICON__FontSizeL() {
+@mixin GENERALICON__FontSize-Larger() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(4);
+		font-size: LOCAL__GENERALICON__FontSize__pow(4);
 	}
 }
 
-@mixin GENERALICON__FontSizeM() {
+@mixin GENERALICON__FontSize-Medium() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(3);
+		font-size: LOCAL__GENERALICON__FontSize__pow(3);
 	}
 }
 
-@mixin GENERALICON__FontSizeS() {
+@mixin GENERALICON__FontSize-Smaller() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(2);
+		font-size: LOCAL__GENERALICON__FontSize__pow(2);
 	}
 }
 
-@mixin GENERALICON__FontSizeXS() {
+@mixin GENERALICON__FontSize-Smallest() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize_FontSizePow(1);
+		font-size: LOCAL__GENERALICON__FontSize__pow(1);
 	}
 }
 
-@mixin GENERALICON__BookmarkCommon() {
+@mixin GENERALICON__Bookmark-Common() {
 	&:before {
 		font-size: $Subpanel-Icon_Size * .9;
 		top: .05em;
@@ -334,6 +334,52 @@
 			<span class="bibi-shape bibi-shape-item"></span>
 			<span class="bibi-shape bibi-shape-item"></span>
 		</span>
+	</span>
+</span>
+
+*/
+
+
+// - "Line Spacing" (Line Height / Leading) Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+/* [ja]
+ * 行間（行高）変更アイコンのスタイルです。
+ * １つめの @mixin は、５つに共通して適用されるスタイルです。
+ * 以降の @mixin は、５種それぞれアイコンのスタイルとして、共通スタイルに追加・上書きで適用されます。
+ */
+
+@mixin SPECIALICON__LineSpacing-Common() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Common();
+}
+@mixin SPECIALICON__LineSpacing-Narrowest() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Narrowest();
+}
+@mixin SPECIALICON__LineSpacing-Narrower() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Narrower();
+}
+@mixin SPECIALICON__LineSpacing-Medium() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Medium();
+}
+@mixin SPECIALICON__LineSpacing-Wider() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Wider();
+}
+@mixin SPECIALICON__LineSpacing-Widest() {
+	@include DEFAULT__SPECIALICON__LineSpacing-Widest();
+}
+
+/*
+
+// SPECIALICON__LineSpacing-Narrowest
+<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrowest">
+	<span class="bibi-shape bibi-shape-textlines">
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
+		<span class="bibi-shape bibi-shape-textline"></span>
 	</span>
 </span>
 
