@@ -82,7 +82,11 @@ div.bibi-subpanel {
 				font-size: 12px;
 				font-weight: bold;
 				// @____Bibi:Dress__('-') color: $Subpanel-Heading_Color;
-				>small {
+				> small {
+					font-size: 10px;
+					font-weight: normal;
+				}
+				> small.note {
 					display: block;
 					position: relative;
 					overflow: hidden;
@@ -90,7 +94,6 @@ div.bibi-subpanel {
 					text-overflow: ellipsis;
 					word-break: keep-all;
 					white-space: nowrap;
-					font-size: 10px;
 					// @____Bibi:Dress__('-') color: lighten($Subpanel-Heading_Color, 12%);
 					&:before {
 						display: block;
@@ -207,24 +210,24 @@ div.bibi-subpanel {
 			}
 			.bibi-button-toggle {
 				&:after { font-size: 30px; }
-				&.default:after,
-				html:not(.touch) &.active:active:after {
+				&.default:after/*,
+				html:not(.touch) &.active:active:after*/ {
 					content: "toggle_off"; // content: "check_box_outline_blank";
 				}
-				&.active:after,
-				html:not(.touch) &.default:active:after {
+				&.active:after/*,
+				html:not(.touch) &.default:active:after*/ {
 					content: "toggle_on"; // content: "check_box";
 				}
 			}
 			.bibi-button-radio {
 				&.default:after {
 					content: "radio_button_unchecked";
-				}
+				}/*
 				html:not(.touch) &.default:active:after {
 					content: "check_circle";
-				}
-				&.active:after,
-				html:not(.touch) &.active:active:after {
+				}*/
+				&.active:after/*,
+				html:not(.touch) &.active:active:after*/ {
 					content: "radio_button_checked";
 				}
 			}
@@ -253,6 +256,137 @@ div.bibi-subpanel {
 					margin-right: -5px;
 				}
 			}
+		}
+	}
+	.bibi-buttongroup-steps {
+		display: flex;
+		align-items: stretch;
+		align-content: center;
+		flex: auto;
+		// @____Bibi:Dress__('-') width: calc(100% - #{ $Subpanel-Button_HorizontalPadding * 3 + $Subpanel-Icon_Size });
+		// @____Bibi:Dress__('-') padding-left: $Subpanel-Button_HorizontalPadding * 2 + $Subpanel-Icon_Size;
+		// @____Bibi:Dress__('-') padding-right: $Subpanel-Button_HorizontalPadding;
+		// @____Bibi:Dress__('-') background: $Subpanel-Button_BackgroundColor;
+		&:before,
+		&:after,
+		.bibi-buttonbox {
+			flex-basis: 100%;
+			margin: 0;
+		}
+		&:before,
+		&:after {
+			content: '';
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			vertical-align: baseline;
+			html.default-lang-ja & { padding-bottom: .1em; }
+			// @____Bibi:Dress__('-') font-size: $Subpanel-Button-FontSize * .875;
+			// @____Bibi:Dress__('-') color: $Subpanel-Button-Color;
+		}
+		&:before {
+			align-items: flex-end;
+			padding-right: .125em;
+		}
+		&:after {
+			align-items: flex-start;
+			padding-left: .125em;
+		}
+		.bibi-buttonbox {
+			.bibi-button {
+				position: static;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: stretch;
+				margin: 0;
+				border-width: 0;
+				padding: 0;
+				height: 100%;
+				pointer-events: none;
+				.bibi-button-iconbox {
+					position: absolute;
+					// @____Bibi:Dress__('-') left: $Subpanel-Button_HorizontalPadding;
+				}
+				&.active .bibi-button-iconbox { z-index: 9999; }
+				&.hover .bibi-button-iconbox { z-index: 99999; }
+				.bibi-button-label { display: none; }
+				&:before,
+				&:after {
+					position: relative;
+					box-sizing: border-box;
+					display: flex;
+					flex-direction: column;
+					justify-content: center;
+					align-items: center;
+					@include offset(auto);
+					margin: auto;
+					text-align: center;
+					@include size(100%);
+				}
+				&:before {
+					z-index: 1;
+					margin-right: -100%;
+					@include GLOBAL__FontIcon_BaseStyles("Material Icons", 20px, 1);
+					content: "panorama_wide_angle_select";
+					// @____Bibi:Dress__('-') color: $Subpanel-Button_BackgroundColor;
+					background: currentcolor no-repeat center center / 100% 100%;
+					// @____Bibi:Dress__('-') html:not(.Trident) & { background-image: linear-gradient(to bottom,
+					// @____Bibi:Dress__('-') 	transparent calc(50% - .5px),
+					// @____Bibi:Dress__('-') 	rgba($Subpanel-Button-Check_Color, .8) calc(50% - .5px),
+					// @____Bibi:Dress__('-') 	rgba($Subpanel-Button-Check_Color, .4) calc(50% + .5px),
+					// @____Bibi:Dress__('-') 	transparent calc(50% + .5px)
+					// @____Bibi:Dress__('-') ); }
+				}
+				// @____Bibi:Dress__('-') &:not(:active):not(.active).hover:before { color: $Subpanel-Button_BackgroundColor__Hover; }
+				&:after {
+					z-index: 10;
+					pointer-events: auto;
+				}
+			}
+			&:first-child .bibi-button,
+			&:last-child .bibi-button {
+				&:before { background-size: 50% 100%; }
+			}
+			&:first-child .bibi-button {
+				&:before { background-position: right center; }
+			}
+			&:last-child .bibi-button {
+				&:before { background-position: left center; }
+			}
+			.bibi-button,
+			.bibi-button.active {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						// @____Bibi:Dress__('-') border-color: $Subpanel-Icon_BorderColor;
+						// @____Bibi:Dress__('-') background: $Subpanel-Icon_BackgroundColor;
+						// @____Bibi:Dress__('-') .bibi-shape { background: $Subpanel-Icon-Shape_OutlineColor; }
+						// @____Bibi:Dress__('-') &:before { color: $Subpanel-Icon-Font_PaintColor; }
+					}
+				}
+			}
+			.bibi-button.hover/*,
+			.bibi-button.active.hover*/ {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						// @____Bibi:Dress__('-') border-color: $Subpanel-Icon_BorderColor__Active;
+						// @____Bibi:Dress__('-') background: $Subpanel-Icon_BackgroundColor__Active;
+						// @____Bibi:Dress__('-') .bibi-shape { background: $Subpanel-Icon-Shape_PaintColor__Active; }
+						// @____Bibi:Dress__('-') &:before { color: $Subpanel-Icon-Font_PaintColor__Active; }
+						&, & *, &:before, &:after { transition: none; }
+					}
+				}
+			}/*
+			.bibi-button.active.hover {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						// @____Bibi:Dress__('-') border-color: $Subpanel-Icon_BorderColor__Hover;
+						// @____Bibi:Dress__('-') background: $Subpanel-Icon_BackgroundColor__Hover;
+						// @____Bibi:Dress__('-') .bibi-shape { background: $Subpanel-Icon-Font_PaintColor__Hover; }
+						// @____Bibi:Dress__('-') &:before { color: $Subpanel-Icon-Font_PaintColor__Hover; }
+					}
+				}
+			}*/
 		}
 	}
 //	.bibi-pgroup {

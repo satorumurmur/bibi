@@ -118,6 +118,69 @@ div.bibi-subpanel {
 			}
 		}
 	}
+	.bibi-buttongroup-steps {
+		width: calc(100% - #{ $Subpanel-Button_HorizontalPadding * 3 + $Subpanel-Icon_Size });
+		padding-left: $Subpanel-Button_HorizontalPadding * 2 + $Subpanel-Icon_Size;
+		padding-right: $Subpanel-Button_HorizontalPadding;
+		background: $Subpanel-Button_BackgroundColor;
+		&:before,
+		&:after {
+			font-size: $Subpanel-Button-FontSize * .875;
+			color: $Subpanel-Button-Color;
+		}
+		.bibi-buttonbox {
+			.bibi-button {
+				.bibi-button-iconbox {
+					left: $Subpanel-Button_HorizontalPadding;
+				}
+				&:before {
+					color: $Subpanel-Button_BackgroundColor;
+					html:not(.Trident) & { background-image: linear-gradient(to bottom,
+						transparent calc(50% - .5px),
+						rgba($Subpanel-Button-Check_Color, .8) calc(50% - .5px),
+						rgba($Subpanel-Button-Check_Color, .4) calc(50% + .5px),
+						transparent calc(50% + .5px)
+					); }
+				}
+				&:not(:active):not(.active).hover:before { color: $Subpanel-Button_BackgroundColor__Hover; }
+			}
+			.bibi-button,
+			.bibi-button.active {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-color: $Subpanel-Icon_BorderColor;
+						background: $Subpanel-Icon_BackgroundColor;
+						.bibi-shape { background: $Subpanel-Icon-Shape_OutlineColor; }
+						&:before { color: $Subpanel-Icon-Font_PaintColor; }
+					}
+				}
+				.bibi-button-label {
+					color: $Subpanel-Button_Color;
+				}
+			}
+			.bibi-button.hover/*,
+			.bibi-button.active.hover*/ {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-color: $Subpanel-Icon_BorderColor__Active;
+						background: $Subpanel-Icon_BackgroundColor__Active;
+						.bibi-shape { background: $Subpanel-Icon-Shape_PaintColor__Active; }
+						&:before { color: $Subpanel-Icon-Font_PaintColor__Active; }
+					}
+				}
+			}/*
+			.bibi-button.active.hover {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-color: $Subpanel-Icon_BorderColor__Hover;
+						background: $Subpanel-Icon_BackgroundColor__Hover;
+						.bibi-shape { background: $Subpanel-Icon-Font_PaintColor__Hover; }
+						&:before { color: $Subpanel-Icon-Font_PaintColor__Hover; }
+					}
+				}
+			}*/
+		}
+	}
 }
 
 
