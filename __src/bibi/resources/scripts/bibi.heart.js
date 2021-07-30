@@ -937,12 +937,16 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                     if(     BibiPropertyRE.test(Pro)) ItemRef[Pro.replace(     BibiPropertyRE, '$1')] = true;
                 });
             }
-            Item['rendition:layout']      = ItemRef['rendition:layout']      || Metadata['rendition:layout'];
+            Item['rendition:layout']      = ItemRef['rendition:layout']      || Metadata['rendition:layout']; if(Item['rendition:layout'] != 'pre-paginated') Item['rendition:layout'] = 'reflowable';
             Item['rendition:orientation'] = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
             Item['rendition:spread']      = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
             Item['rendition:page-spread'] = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
             if(ItemRef['bibi:allow-placeholder']) Item['bibi:allow-placeholder'] = true;
             if(ItemRef['bibi:no-padding'])        Item['bibi:no-padding']        = true;
+            Object.assign(Item, Item['rendition:layout'] == 'reflowable' ?
+                { Reflowable: true,  PrePaginated: false, NoPadding: Item['bibi:no-padding'], AllowPlaceholder: B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'] } :
+                { Reflowable: false, PrePaginated: true,  NoPadding: true,                    AllowPlaceholder: B.ExtractionPolicy != 'at-once' }
+            );
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Item.IndexInSpine = Spine.push(Item) - 1;
             if(ItemRef.getAttribute('linear') == 'no') {
@@ -952,21 +956,23 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 Item['linear'] = 'yes', Item.IsLinearItem = true,  Item.IsNonLinearItem = false;
                 Item.Index = R.Items.push(Item) - 1;
                 let Spread = null;
-                if(Item['rendition:layout'] == 'pre-paginated' && Item['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
+                if(Item.PrePaginated && Item['rendition:page-spread'] == SpreadAfter && Item.Index > 0) {
                     const PreviousItem = R.Items[Item.Index - 1];
-                    if(Item['rendition:layout'] == 'pre-paginated' && PreviousItem['rendition:page-spread'] == SpreadBefore) {
+                    if(Item.PrePaginated && PreviousItem['rendition:page-spread'] == SpreadBefore) {
                         PreviousItem.SpreadPair = Item;
                         Item.SpreadPair = PreviousItem;
                         Spread = Item.Spread = PreviousItem.Spread;
                         Spread.Box.classList.remove('single-item-spread-before', 'single-item-spread-' + SpreadBefore);
                         Spread.Box.classList.add(Item['rendition:layout']);
+                        Spread.PrePaginated = PreviousItem.PrePaginated && Item.PrePaginated;
                     }
                 }
                 if(!Spread) {
                     Spread = Item.Spread = sML.create('div', { className: 'spread',
                         IsSpread: true,
                         Items: [], Pages: [],
-                        Index: R.Spreads.length
+                        Index: R.Spreads.length,
+                        PrePaginated: Item.PrePaginated
                     });
                     Spread.Box = sML.create('div', { className: 'spread-box ' + Item['rendition:layout'], IsSpreadBox: true, Inside: Spread, Spread: Spread });
                     if(Item['rendition:page-spread']) {
@@ -988,14 +994,6 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 });
                 Item.Pages.push(Item.Box.appendChild(Page));
                 I.PageObserver.observePageIntersection(Page);
-                if(Item['rendition:layout'] == 'pre-paginated') {
-                    Item.PrePaginated = true;
-                    if(Item.IndexInSpread == 0) Spread.PrePaginated = true;
-                    Item.AllowPlaceholder = B.ExtractionPolicy != 'at-once';
-                } else {
-                    Item.PrePaginated = Spread.PrePaginated = false;
-                    Item.AllowPlaceholder = B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'] != undefined;
-                }
             }
         });
         R.createSpine(SpreadsDocumentFragment);
@@ -1012,6 +1010,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         O.Title.innerHTML = '';
         O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
         try { O.Info.querySelector('h1').innerHTML = document.title; } catch(_) {}
+        B.PrePaginated = B.Package.Metadata['rendition:layout'] == 'pre-paginated';
+        B.Reflowable = !B.PrePaginated;
         B.WritingMode =                                                                                   /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == 'rtl' ? 'tb-rl' : 'lr-tb')
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
@@ -1188,7 +1188,7 @@ L.preprocessResources = () => {
         }
     }
     return Promise.all(Promises).then(() => {/*
-        if(B.ExtractionPolicy != 'at-once' && (S.BRL == 'pre-paginated' || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PreprocessedResources);
+        if(B.ExtractionPolicy != 'at-once' && (B.PrePaginated || (sML.UA.Chromium || sML.UA.WebKit || sML.UA.Gecko))) return resolve(PreprocessedResources);
         R.Items.forEach(Item => pushItemPreprocessingPromise(Item, O.isBin(Item))); // Spine Items
         return Promise.all(Promises).then(() => resolve(PreprocessedResources));*/
         if(PreprocessedResources.length) {
@@ -1243,7 +1243,7 @@ L.loadItem = (Item, Opt = {}) => {
             O.file(Item.Source, {
                 URI: true
             }).then(ItemSource => [
-                (Item['rendition:layout'] == 'pre-paginated' && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
+                (Item.PrePaginated && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
                 `<img class="bibi-spine-item-image" alt="" src="${ Item.Source.URI }" />` // URI is BlobURL or URI
             ])
         : /\.(svg)$/i.test(Item.Source.Path) ? // SVG-in-Spine
@@ -1345,7 +1345,7 @@ L.postprocessItem = (Item) => {
         else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
         else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
-    return (Item['rendition:layout'] == 'pre-paginated' ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
+    return (Item.PrePaginated ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
         E.dispatch('bibi:postprocessed-item', Item);
         // Item.stamp('Postprocessed');
         return Item;
@@ -1502,12 +1502,12 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
     if(Spread.Items.length == 1) {
         const Item = Spread.Items[0];
         Spread.Spreaded = Item.Spreaded ? true : false;
-        SpreadSize.Width  = (Spread.Spreaded && Item['rendition:layout'] == 'pre-paginated' && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
+        SpreadSize.Width  = (Spread.Spreaded && Item.PrePaginated && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
         SpreadSize.Height = Item.Box.offsetHeight;
     } else {
         const ItemA = Spread.Items[0], ItemB = Spread.Items[1];
         Spread.Spreaded = (ItemA.Spreaded || ItemB.Spreaded) ? true : false;
-        if(ItemA['rendition:layout'] == 'pre-paginated' && ItemB['rendition:layout'] == 'pre-paginated') {
+        if(ItemA.PrePaginated && ItemB.PrePaginated) {
             // Paired Pre-Paginated Items
             if(Spread.Spreaded || S.RVM != 'vertical') {
                 // Spreaded
@@ -1584,7 +1584,7 @@ R.layOutItem = (Item) => new Promise(resolve => {
     // Item.stamp('Reset...');
     Item.Scale = 1;
     //Item.Box.style.width = Item.Box.style.height = Item.style.width = Item.style.height = '';
-    (Item['rendition:layout'] != 'pre-paginated') ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
+    Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
     // Item.stamp('Reset.');
     resolve(Item);
 });
@@ -1592,12 +1592,12 @@ R.layOutItem = (Item) => new Promise(resolve => {
 
 R.renderReflowableItem = (Item) => {
     if(Item.IsPlaceholder) return;
-    const ItemPaddingSE = Item['bibi:no-padding'] ? 0 : S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
-    const ItemPaddingBA = Item['bibi:no-padding'] ? 0 : S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
+    const ItemPaddingSE = Item.NoPadding ? 0 : S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
+    const ItemPaddingBA = Item.NoPadding ? 0 : S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
     const PageCB = R.Stage[C.L_SIZE_B] - ItemPaddingSE; // Page "C"ontent "B"readth
     let   PageCL = R.Stage[C.L_SIZE_L] - ItemPaddingBA; // Page "C"ontent "L"ength
     const PageGap = ItemPaddingBA;
-    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = Item['bibi:no-padding'] ? 0 : S['item-padding-' + trbl] + 'px'; });
+    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = Item.NoPadding ? 0 : S['item-padding-' + trbl] + 'px'; });
     sML.style(Item.HTML, { 'width': '', 'height': '' });
     if(Item.WithGutters) {
         Item.HTML.classList.remove('bibi-with-gutters');
@@ -1872,7 +1872,7 @@ R.layOutStage = () => {
     //E.dispatch('bibi:is-going-to:lay-out-stage');
     let MainContentLayoutLength = 0;
     R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box['offset' + C.L_SIZE_L]);
-    if(S['book-rendition-layout'] == 'pre-paginated' || S['reader-view-mode'] != 'paged') MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
+    if(B.PrePaginated || S['reader-view-mode'] != 'paged') MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
     R.Main.Book.style[C.L_SIZE_l] = MainContentLayoutLength + 'px';
     //E.dispatch('bibi:laid-out-stage');
 };
@@ -2010,9 +2010,9 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
     R.Moving = true;
     let FocusPoint;
     const Page = _.Page, Item = Page.Item, Side = Opt.Side != 'after' ? 'before' : 'after';
-    if(Item['rendition:layout'] == 'reflowable') {
+    if(Item.Reflowable) {
         if(!R.Columned && _.Element && _.Element.ownerDocument != document) {
-            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item['bibi:no-padding'] ? 0 : S['item-padding-' + C.L_OOBL_l]) + _.Element.getBoundingClientRect()[C.L_BASE_b];
+            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item.NoPadding ? 0 : S['item-padding-' + C.L_OOBL_l]) + _.Element.getBoundingClientRect()[C.L_BASE_b];
         } else {
             FocusPoint = O.getElementCoord(Page)[C.L_AXIS_L];
             if(Side == 'after') FocusPoint += (Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
@@ -2204,9 +2204,9 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
 
 
 R.getPage = (_, Opt) => {
-    if(_ === undefined || _ === null) return ( S.BRL == 'pre-paginated' || R.Columned ? I.PageObserver.Current.Pages : I.PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * I.PageObserver.getIntersectionStatus(ISP).Ratio > 3) )[0] || null;
-    if(!Opt || !Opt.Distilled)        return                          (_ = R.dest(_)) ?                                                                                                                                                        _.Page :  null;
-    /**/                              return                  _.Page && _.Page.IsPage ?                                                                                                                                                        _.Page :  null;
+    if(_ === undefined || _ === null) return ( B.PrePaginated || R.Columned ? I.PageObserver.Current.Pages : I.PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * I.PageObserver.getIntersectionStatus(ISP).Ratio > 3) )[0] || null;
+    if(!Opt || !Opt.Distilled)        return                (_ = R.dest(_)) ?                                                                                                                                                        _.Page :  null;
+    /**/                              return        _.Page && _.Page.IsPage ?                                                                                                                                                        _.Page :  null;
 };
 
 
@@ -2233,18 +2233,20 @@ R.getElement = (_, Opt) => {
         if(!Page || !Page.IsPage) return null;
         if(!Opt || typeof Opt != 'object') Opt = {};
         const Item = Page.Item;
-        if(S.BRL == 'pre-paginated') return Item;
+        if(B.PrePaginated) return Item;
         const PageCoord = O.getElementCoord(Page, R.Main);
         const PageArea = { Left: PageCoord.X, Right: PageCoord.X + Page.offsetWidth, Top: PageCoord.Y, Bottom: PageCoord.Y + Page.offsetHeight };
-        /* -- */          PageArea[C.L_OOBL_B] += S['item-padding-' + C.L_OOBL_b], PageArea[C.L_OEBL_B] -= S['item-padding-' + C.L_OEBL_b];
-        if(Item.Columned) PageArea[C.L_OOBL_L] += S['item-padding-' + C.L_OOBL_l], PageArea[C.L_OEBL_L] -= S['item-padding-' + C.L_OEBL_l];
+        if(!Item.NoPadding) {
+            /* -- */          PageArea[C.L_OOBL_B] += S['item-padding-' + C.L_OOBL_b], PageArea[C.L_OEBL_B] -= S['item-padding-' + C.L_OEBL_b];
+            if(Item.Columned) PageArea[C.L_OOBL_L] += S['item-padding-' + C.L_OOBL_l], PageArea[C.L_OEBL_L] -= S['item-padding-' + C.L_OEBL_l];
+        }
         if(Opt.InCurrentViewport) {
             PageArea.Left = Math.max(PageArea.Left, R.Main.scrollLeft), PageArea.Right  = Math.min(PageArea.Right,  R.Main.scrollLeft + R.Stage.Width ),
             PageArea.Top  = Math.max(PageArea.Top,  R.Main.scrollTop ), PageArea.Bottom = Math.min(PageArea.Bottom, R.Main.scrollTop  + R.Stage.Height);
         }
         const ItemCoord = O.getElementCoord(Item, R.Main);
-        const HTMLAreaX = ItemCoord.X + S['item-padding-left'],
-              HTMLAreaY = ItemCoord.Y + S['item-padding-top' ];
+        const HTMLAreaX = ItemCoord.X + (Item.NoPadding ? 0 : S['item-padding-left']),
+              HTMLAreaY = ItemCoord.Y + (Item.NoPadding ? 0 : S['item-padding-top' ]);
         const TrimmedAreaInHTML = {
             Left: Math.max(PageArea.Left - HTMLAreaX, 0) + 2,  Right: Math.min(PageArea.Right  - HTMLAreaX, Item.HTML.offsetWidth ) - 1 - 2,
              Top: Math.max(PageArea.Top  - HTMLAreaY, 0) + 2, Bottom: Math.min(PageArea.Bottom - HTMLAreaY, Item.HTML.offsetHeight) - 1 - 2
@@ -2504,9 +2506,9 @@ R.moveBy = (Dist, Par) => new Promise((resolve, reject) => {
     if(
         true /*||
         R.Columned ||
-        S.BRL == 'pre-paginated' ||
-        S.BRL == 'reflowable' && S.RVM == 'paged' ||
-        CurrentItem['rendition:layout'] == 'pre-paginated' ||
+        B.PrePaginated ||
+        B.Reflowable && S.RVM == 'paged' ||
+        CurrentItem.PrePaginated ||
         CurrentItem.Outsourcing ||
         CurrentItem.Pages.length == 1 ||
         Dist < 0 && CurrentPage.IndexInItem == 0 ||
@@ -2532,7 +2534,7 @@ R.moveBy = (Dist, Par) => new Promise((resolve, reject) => {
              if(DestinationPageIndex <                  0) DestinationPageIndex = 0,                  Side = 'before';
         else if(DestinationPageIndex > R.Pages.length - 1) DestinationPageIndex = R.Pages.length - 1, Side = 'after';
         let DestinationPage = R.Pages[DestinationPageIndex];
-        if(S.BRL == 'pre-paginated' && DestinationPage.Item.SpreadPair) {
+        if(B.PrePaginated && DestinationPage.Item.SpreadPair) {
             if(S.SLA == 'horizontal' && R.Stage[C.L_SIZE_L] > DestinationPage.Spread['offset' + C.L_SIZE_L]) {
                 if(StrictDist < 0 && DestinationPage.IndexInSpread == 0) DestinationPage = DestinationPage.Spread.Pages[1];
                 if(StrictDist > 0 && DestinationPage.IndexInSpread == 1) DestinationPage = DestinationPage.Spread.Pages[0];
@@ -3774,7 +3776,7 @@ I.Flipper = { create: () => {
             I.ScrollObserver.forceStopScrolling();
             const SumUpHistory = !S['manualize-adding-histories'] ? (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1)) : false;
             Flipper.PreviousDistance = Distance;
-            if(S['book-rendition-layout'] == 'pre-paginated') { // Preventing flicker.
+            if(B.PrePaginated) { // Preventing flicker.
                 const CIs = [
                     I.PageObserver.Current.List[          0].Page.Index,
                     I.PageObserver.Current.List.slice(-1)[0].Page.Index
@@ -4032,7 +4034,7 @@ I.Menu = { create: () => {
             });
             E.add('bibi:updated-settings', () => {
                 Section.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? 'active' : 'default')));
-                if(S.BRL == 'pre-paginated') I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
+                if(B.PrePaginated) I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
                 else Section.ButtonGroups[1].style.display = 'none';
             });
         }};
@@ -4518,7 +4520,7 @@ I.Loupe = { create: () => {
         isAvailable: () => {
             if(!L.Opened) return false;
             if(Loupe.UIState != 'active') return false;
-            //if(S.BRL == 'reflowable') return false;
+            //if(B.Reflowable) return false;
             return true;
         },
         checkBibiEventForTaps: (BibiEvent) => {
@@ -4990,7 +4992,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     else if(!Bmk) continue;
                     else if(typeof Bmk.IIPP != 'number') {
                         if(Bmk.ItemIndex) Bmk.IIPP = Bmk.ItemIndex + (Bmk.ProgressInItem ? Bmk.ProgressInItem : 0);
-                        else if(B.Package.Metadata['rendition:layout'] == 'pre-paginated') {
+                        else if(B.PrePaginated) {
                             if(typeof Bmk.PageNumber == 'number') Bmk.PageIndex = Bmk.PageNumber - 1;
                             if(typeof Bmk.PageIndex  == 'number') Bmk.IIPP      = Bmk.PageIndex;
                         }
@@ -5002,7 +5004,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     const Page = R.getPage(Bmk);
                     let PageNumber = 0;
                          if(Page && typeof Page.Index == 'number')                     PageNumber = Page.Index + 1;
-                    else if(B.Package.Metadata['rendition:layout'] == 'pre-paginated') PageNumber = Math.floor(Bmk.IIPP) + 1;
+                    else if(B.PrePaginated) PageNumber = Math.floor(Bmk.IIPP) + 1;
                     if(PageNumber) {
                         Label += `<span class="${BB}-page"><span class="${BB}-unit">P.</span><span class="${BB}-number">${ PageNumber }</span></span>`;
                         if(R.Pages.length) {
@@ -5778,21 +5780,19 @@ S.update = (Settings) => {
     if(S.FontFamilyStyleIndex) sML.deleteCSSRule(S.FontFamilyStyleIndex);
     if(S['ui-font-family']) S.FontFamilyStyleIndex = sML.appendCSSRule('html', 'font-family: ' + S['ui-font-family'] + ' !important;');
     S['page-progression-direction'] = B.PPD;
-    if(S['pagination-method'] == 'x') {
-        S['spread-layout-axis'] = S['reader-view-mode'] == 'vertical' ? 'vertical' : 'horizontal';
-    } else {
-        S['spread-layout-axis'] = (() => {
-            if(S['reader-view-mode'] != 'paged') return S['reader-view-mode'];
-            if(S['book-rendition-layout'] == 'reflowable') switch(B.WritingMode) {
-                case 'tb-rl': case 'tb-lr': return   'vertical'; ////
-            }                               return 'horizontal';
-        })();
-    }
+    S['spread-layout-axis'] = S['pagination-method'] == 'x' ? (
+        S['reader-view-mode'] == 'vertical' ? 'vertical' : 'horizontal'
+    ) : (() => {
+        if(S['reader-view-mode'] != 'paged') return S['reader-view-mode'];
+        if(B.Reflowable) switch(B.WritingMode) {
+            case 'tb-rl': case 'tb-lr': return   'vertical'; ////
+        }                               return 'horizontal';
+    })();
      S['apparent-reading-axis']      = (S['reader-view-mode']   == 'paged'   ) ? 'horizontal' : S['reader-view-mode'];
      S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
         S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
     S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S['page-progression-direction'] != 'rtl') ? 'ttb' : 'rtl';
-    //S['spread-gap'] = S['book-rendition-layout'] == 'reflowable' ? S['spread-gap_reflowable'] : S['spread-gap_pre-paginated'];
+    //S['spread-gap'] = B.Reflowable ? S['spread-gap_reflowable'] : S['spread-gap_pre-paginated'];
     for(const Mode in S.Modes) {
         const Pfx = S.Modes[Mode].CNP + '-', PC = Pfx + Prev[Mode], CC = Pfx + S[Mode];
         if(PC != CC) O.HTML.classList.remove(PC);
@@ -6636,7 +6636,7 @@ E.aBCD = (Eve) => { // add Bibi-Coord/Division
             const Item = Doc.documentElement.Item;
             const ItemScale = Item.Scale;
             const ItemCoordInMain = O.getElementCoord(Item, Main);
-            if(Item['rendition:layout'] != 'pre-paginated' && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
+            if(!Item.NoPadding && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
             Coord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (Coord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
             Coord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (Coord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
             //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + Coord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
