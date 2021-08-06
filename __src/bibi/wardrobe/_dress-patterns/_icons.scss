@@ -257,10 +257,10 @@
 
 .bibi-icon-text-setter { @include GENERALICON__TextSetter(); }
 
-.bibi-icon-loupe { @include GENERALICON__LoupeCommon();
-	&-zoomin  { @include GENERALICON__LoupeZoomIn(); }
-	&-zoomout { @include GENERALICON__LoupeZoomOut(); }
-	&-reset   { @include GENERALICON__LoupeReset(); }
+.bibi-icon-loupe { @include GENERALICON__Loupe-Common();
+	&-zoomin  { @include GENERALICON__Loupe-ZoomIn(); }
+	&-zoomout { @include GENERALICON__Loupe-ZoomOut(); }
+	&-reset   { @include GENERALICON__Loupe-Reset(); }
 }
 
 .bibi-icon-manage-bookmarks { @include GENERALICON__ManageBookmarks(); }
@@ -297,7 +297,7 @@
 	&-largest  { @include GENERALICON__FontSize-Largest(); }
 }
 
-.bibi-icon-bookmark { @include GENERALICON__BookmarkCommon(); }
+.bibi-icon-bookmark { @include GENERALICON__Bookmark-Common(); }
 	.bibi-icon-add-a-bookmark { @include GENERALICON__AddABookmark(); }
 	.bibi-icon-a-bookmark { @include GENERALICON__ABookmark(); }
 
@@ -321,10 +321,10 @@
 // - "View Xxxx" Icons in Subpanels
 // --------------------------------------------------------------------------------
 
-.bibi-icon-view { @include SPECIALICON__View_Common();
-	&-paged      { @include SPECIALICON__ViewPaged(); }
-	&-horizontal { @include SPECIALICON__ViewHorizontal(); }
-	&-vertical   { @include SPECIALICON__ViewVertical(); }
+.bibi-icon-view { @include SPECIALICON__View-Common();
+	&-paged      { @include SPECIALICON__View-Paged(); }
+	&-horizontal { @include SPECIALICON__View-Horizontal(); }
+	&-vertical   { @include SPECIALICON__View-Vertical(); }
 }
 
 

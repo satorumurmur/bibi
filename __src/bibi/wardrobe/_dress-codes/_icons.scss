@@ -49,27 +49,27 @@
 }
 
 // [ja] ３種の拡大／縮小アイコンすべてに適用される共通スタイル
-@mixin GENERALICON__LoupeCommon() {
+@mixin GENERALICON__Loupe-Common() {
 	&:before {
 		text-indent: 1px;
 	}
 }
 
-@mixin GENERALICON__LoupeZoomIn() {
+@mixin GENERALICON__Loupe-ZoomIn() {
 	&:before {
 		content: "zoom_in";
 		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(1.25) !important; }
 	}
 }
 
-@mixin GENERALICON__LoupeZoomOut() {
+@mixin GENERALICON__Loupe-ZoomOut() {
 	&:before {
 		content: "zoom_out";
 		.bibi-button.active &, .bibi-button.active.hover & { transform: scale(0.80) !important; }
 	}
 }
 
-@mixin GENERALICON__LoupeReset() {
+@mixin GENERALICON__Loupe-Reset() {
 	&:before {
 		content: "search";
 		.bibi-button.active &, .bibi-button.active.hover & { html.zoomed-in & { transform: scale(0.80) !important; } html.zoomed-out & { transform: scale(1.25) !important; } }
@@ -268,22 +268,22 @@
  * 以降３つの @mixin は、順に「ページ単位」「横スクロール」「縦スクロール」アイコンのスタイルとして、共通スタイルに追加・上書きで適用されます。
  */
 
-@mixin SPECIALICON__View_Common() {
-	@include DEFAULT__SPECIALICON__View_Common();
+@mixin SPECIALICON__View-Common() {
+	@include DEFAULT__SPECIALICON__View-Common();
 }
-@mixin SPECIALICON__ViewPaged() {
-	@include DEFAULT__SPECIALICON__ViewPaged();
+@mixin SPECIALICON__View-Paged() {
+	@include DEFAULT__SPECIALICON__View-Paged();
 }
-@mixin SPECIALICON__ViewHorizontal() {
-	@include DEFAULT__SPECIALICON__ViewHorizontal();
+@mixin SPECIALICON__View-Horizontal() {
+	@include DEFAULT__SPECIALICON__View-Horizontal();
 }
-@mixin SPECIALICON__ViewVertical() {
-	@include DEFAULT__SPECIALICON__ViewVertical();
+@mixin SPECIALICON__View-Vertical() {
+	@include DEFAULT__SPECIALICON__View-Vertical();
 }
 
 /*
 
-// SPECIALICON__ViewPaged
+// SPECIALICON__View-Paged
 <span class="bibi-icon bibi-icon-view bibi-icon-view-paged">
 	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-paged">
 		<span class="bibi-shape bibi-shape-spread">
@@ -301,7 +301,7 @@
 	</span>
 </span>
 
-// SPECIALICON__ViewHorizontal
+// SPECIALICON__View-Horizontal
 <span class="bibi-icon bibi-icon-view bibi-icon-view-horizontal">
 	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-horizontal">
 		<span class="bibi-shape bibi-shape-spread">
@@ -319,7 +319,7 @@
 	</span>
 </span>
 
-// SPECIALICON__ViewVertical
+// SPECIALICON__View-Vertical
 <span class="bibi-icon bibi-icon-view bibi-icon-view-vertical">
 	<span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">
 		<span class="bibi-shape bibi-shape-spread">

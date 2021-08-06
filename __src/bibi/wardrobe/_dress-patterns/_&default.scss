@@ -38,7 +38,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 // - Shapes of Items and Spreads
 // --------------------------------------------------------------------------------
 
-@mixin DEFAULT__SPECIALICON__View_Common() {
+@mixin DEFAULT__SPECIALICON__View-Common() {
 	$SCOPED__SpreadShape_Width : 13px;
 	$SCOPED__SpreadShape_Height: 11px;
 	$SCOPED__ItemShape_Width : ($SCOPED__SpreadShape_Width + 1px) / 2;
@@ -60,7 +60,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 		}
 	}
 }
-@mixin DEFAULT__SPECIALICON__ViewPaged() {
+@mixin DEFAULT__SPECIALICON__View-Paged() {
 	span.bibi-shape-spreads-paged {
 		span.bibi-shape-spread {
 			&:first-child { display: none; }
@@ -68,7 +68,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 		}
 	}
 }
-@mixin DEFAULT__SPECIALICON__ViewHorizontal() {
+@mixin DEFAULT__SPECIALICON__View-Horizontal() {
 	span.bibi-shape-spreads-horizontal {
 		span.bibi-shape-spread {
 			&:first-child { transform: translateX(-100%); left: -1px; }
@@ -76,7 +76,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 		}
 	}
 }
-@mixin DEFAULT__SPECIALICON__ViewVertical() {
+@mixin DEFAULT__SPECIALICON__View-Vertical() {
 	span.bibi-shape-spreads-vertical {
 		span.bibi-shape-spread {
 			&:first-child { transform: translateY(-100%); top: -1px; }

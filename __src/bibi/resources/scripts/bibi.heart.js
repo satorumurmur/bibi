@@ -1326,7 +1326,7 @@ L.postprocessItem = (Item) => {
     if(Lv1Eles && Lv1Eles.length == 1) {
         const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
              if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = true;
-        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleIMG = true;
+        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleImg = true;
         else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
         else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
@@ -1809,7 +1809,7 @@ R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
     const ViewportMeta = Item.Head.querySelector('meta[name="viewport"]');
     if(ViewportMeta)       return O.getViewportByMetaContent(           ViewportMeta.getAttribute('content'));
     if(Item.OnlySingleSVG) return O.getViewportByViewBox(Item.Body.firstElementChild.getAttribute('viewBox')); // It's also for Item of SVGs-in-Spine, or Fixed-Layout Item including SVG without Viewport.
-    if(Item.OnlySingleIMG) return O.getViewportByImage(  Item.Body.firstElementChild                        ); // It's also for Item of Bitmaps-in-Spine.
+    if(Item.OnlySingleImg) return O.getViewportByImage(  Item.Body.firstElementChild                        ); // It's also for Item of Bitmaps-in-Spine.
                            return null                                                                       ;
 })();
 
