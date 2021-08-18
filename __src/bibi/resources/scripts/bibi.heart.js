@@ -53,8 +53,7 @@ Bibi.SettingTypes = {
         'item-padding-left',
         'item-padding-right',
         'item-padding-top',
-        'spread-gap',
-        'spread-margin'
+        'content-margin'
     ],
     'number': [
         'base-fontsize',
@@ -66,6 +65,7 @@ Bibi.SettingTypes = {
         'orientation-border-ratio'
     ],
     'array': [
+        'concatenate-spreads',
         'content-draggable',
         'on-orthogonal-edgetap',
         'on-orthogonal-arrowkey',
@@ -164,7 +164,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'on-tripletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
-                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'paged';
+                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'auto';
             }
             return _V;
         }
@@ -189,6 +189,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'array': (_P, _V, Fill) => {
         if(Array.isArray(_V)) {
             switch(_P) {
+                case 'concatenate-spreads'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' && /^(always|never)$/.test(_V[i]) ? _V[i] : 'auto'; return _V;
                 case 'content-draggable'       : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
                 case 'extensions'              : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
                 case 'extract-if-necessary'    : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
@@ -855,14 +856,18 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         if(!Metadata['language'  ]) Metadata['language'  ] = Metadata['dcterms:language'  ] || ['en'];
         if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
         // --------------------------------------------------------------------------------
-        if(!Metadata['rendition:layout'     ]                                               ) Metadata['rendition:layout'     ] = 'reflowable'; if(Metadata['omf:version']) Metadata['rendition:layout'] = 'pre-paginated';
-        if(!Metadata['rendition:orientation'] || Metadata['rendition:orientation'] == 'auto') Metadata['rendition:orientation'] = 'portrait';
-        if(!Metadata['rendition:spread'     ] || Metadata['rendition:spread'     ] == 'auto') Metadata['rendition:spread'     ] = 'landscape';
+        Metadata['rendition:layout'] = Metadata['omf:version'] || Metadata['rendition:layout'] == 'pre-paginated' ? 'pre-paginated' : 'reflowable';
+        Metadata['rendition:orientation'] = Metadata['rendition:orientation'] == 'landscape' ? 'landscape' : 'portrait';
+        Metadata['rendition:spread'] = Metadata['rendition:spread'] == 'none' ? 'none' : Metadata['rendition:spread'] == 'both' || Metadata['rendition:spread'] == 'portrait' ? 'both' : 'landscape';
+        // --------------------------------------------------------------------------------
         if( Metadata[     'original-resolution']) Metadata[     'original-resolution'] = O.getViewportByOriginalResolution(Metadata[     'original-resolution']);
         if( Metadata[      'rendition:viewport']) Metadata[      'rendition:viewport'] = O.getViewportByMetaContent(       Metadata[      'rendition:viewport']);
         if( Metadata['fixed-layout-jp:viewport']) Metadata['fixed-layout-jp:viewport'] = O.getViewportByMetaContent(       Metadata['fixed-layout-jp:viewport']);
         if( Metadata[            'omf:viewport']) Metadata[            'omf:viewport'] = O.getViewportByMetaContent(       Metadata[            'omf:viewport']);
         B.ICBViewport = Metadata['original-resolution'] || Metadata['rendition:viewport'] || Metadata['fixed-layout-jp:viewport'] || Metadata['omf:viewport'] || null;
+        // --------------------------------------------------------------------------------
+        if(!/^(scrolled-(continuous|doc)|paginated)$/.test(Metadata['rendition:flow'])) Metadata['rendition:flow'] = 'auto';
+        if(!/^(ttb|ltr|rtl|vertical|horizontal)$/.test(Metadata['scroll-direction'])) delete Metadata['scroll-direction'];
         // ================================================================================
         // MANIFEST
         // --------------------------------------------------------------------------------
@@ -998,6 +1003,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         });
         R.createSpine(SpreadsDocumentFragment);
         // ================================================================================
+        // BOOK
+        // --------------------------------------------------------------------------------
         B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
         B.Language  =  Metadata['language'][0].split('-')[0];
         B.Title     =  Metadata['title'     ].join(', ');
@@ -1016,6 +1023,19 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
             :                                                                                                                                                                       'lr-tb';
+        // ================================================================================
+        // READER
+        // --------------------------------------------------------------------------------
+        if(S['reader-view-mode'] == 'auto') S['reader-view-mode'] = (() => {
+            switch(Metadata['scroll-direction']) {
+                case 'ttb':             case   'vertical': return   'vertical';
+                case 'ltr': case 'rtl': case 'horizontal': return 'horizontal';
+            }
+            switch(Metadata['rendition:flow']) {
+                case 'scrolled-continuous': case 'scrolled-doc': return /-tb$/.test(B.WritingMode) ? 'vertical' : 'horizontal';
+            }
+            return 'paged';
+        })();
         // ================================================================================
         E.dispatch('bibi:processed-package');
     };
@@ -1467,17 +1487,17 @@ R.resetStage = () => {
     R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = '';
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = '';
-    const BookBreadthIsolationStartEnd = (S['use-slider'] && S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
+    const BookBreadthIsolationStartEnd = (S['use-slider'] && S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['content-margin'] * 2;
     sML.style(R.Main.Book, {
         [C.A_SIZE_b]: (BookBreadthIsolationStartEnd > 0 ? 'calc(100% - ' + BookBreadthIsolationStartEnd + 'px)' : ''),
         [C.A_SIZE_l]: ''
     });
     R.Stage.Width  = O.Body.clientWidth;
     R.Stage.Height = WIH;
-    R.Stage[C.A_SIZE_B] -= (S['use-slider'] || S.RVM != 'paged' ? O.Scrollbars[C.A_SIZE_B] : 0) + S['spread-margin'] * 2;
+    R.Stage[C.A_SIZE_B] -= (S['use-slider'] || S.RVM != 'paged' ? O.Scrollbars[C.A_SIZE_B] : 0) + S['content-margin'] * 2;
     window.scrollTo(0, 0);
     if(!S['use-full-height']) R.Stage.Height -= I.Menu.Height;
-    if(S['spread-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['spread-margin'] + 'px';
+    if(S['content-margin'] > 0) R.Main.Book.style['padding' + C.L_BASE_S] = R.Main.Book.style['padding' + C.L_BASE_E] = S['content-margin'] + 'px';
     //R.Main.style['background'] = S['book-background'] ? S['book-background'] : '';
 };
 
@@ -1872,7 +1892,12 @@ R.layOutStage = () => {
     //E.dispatch('bibi:is-going-to:lay-out-stage');
     let MainContentLayoutLength = 0;
     R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box['offset' + C.L_SIZE_L]);
-    if(B.PrePaginated || S['reader-view-mode'] != 'paged') MainContentLayoutLength += S['spread-gap'] * (R.Spreads.length - 1);
+    const SpreadGap = B.Reflowable || S['reader-view-mode'] == 'paded' || (() => { switch(S['concatenate-spreads'][S['reader-view-mode'] == 'horizontal' ? 0 : 1]) {
+        case 'always': return true;
+        case 'never': return false;
+        default: return (B.Package.Metadata['rendition:flow'] == 'scrolled-continuous' || B.Package.Metadata['scroll-direction']);
+    }})() ? 0 : Math.max(Math.ceil(R.Stage[C.L_SIZE_L] / 8), 40);
+    if(SpreadGap) MainContentLayoutLength += SpreadGap * (R.Spreads.length - 1);
     R.Main.Book.style[C.L_SIZE_l] = MainContentLayoutLength + 'px';
     //E.dispatch('bibi:laid-out-stage');
 };
@@ -5730,7 +5755,7 @@ S.initialize = () => {
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
     // --------
-    if(!S['reader-view-mode']) S['reader-view-mode'] = 'paged';
+    if(!S['reader-view-mode']) S['reader-view-mode'] = 'auto';
     // --------
     if(!S['use-menubar']) S['use-full-height'] = true;
     // --------
@@ -5792,7 +5817,6 @@ S.update = (Settings) => {
      S['apparent-reading-direction'] = (S['reader-view-mode']   == 'vertical') ? 'ttb'        : S['page-progression-direction'];
         S['spread-layout-direction'] = (S['spread-layout-axis'] == 'vertical') ? 'ttb'        : S['page-progression-direction'];
     S['navigation-layout-direction'] = (S['fix-nav-ttb'] || S['page-progression-direction'] != 'rtl') ? 'ttb' : 'rtl';
-    //S['spread-gap'] = B.Reflowable ? S['spread-gap_reflowable'] : S['spread-gap_pre-paginated'];
     for(const Mode in S.Modes) {
         const Pfx = S.Modes[Mode].CNP + '-', PC = Pfx + Prev[Mode], CC = Pfx + S[Mode];
         if(PC != CC) O.HTML.classList.remove(PC);

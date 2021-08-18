@@ -85,7 +85,7 @@ Jo.callBibi = (Love) => {
                 case 'iipp':             return                            /^(\d*\.)?\d+$/;
                 case 'nav':              return                            /^[1-9][0-9]*$/;
                 case 'rvm': case 'view': K = 'reader-view-mode';
-                case 'reader-view-mode': return            /^(paged|horizontal|vertical)$/;
+                case 'reader-view-mode': return       /^(auto|paged|horizontal|vertical)$/;
                 case 'autostart': case 'start-in-new-window': K = K.replace('start', 'start-embedded'); break;
                 case 'view-unchangeable': K = 'fix-reader-view-mode'; break;
             }                            return /^(true|false|1|0|yes|no|mobile|desktop)$/; })().test(V)) Fragments.add(K, V);
