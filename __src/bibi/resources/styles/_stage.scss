@@ -386,6 +386,58 @@ div#bibi-style-checker {
 
 
 // ================================================================================
+// + Item-Copy
+// --------------------------------------------------------------------------------
+
+
+iframe.item-copy,
+span.item-copy-shell,
+span.item-copy-shell > span.item-copy-shell-veil {
+	display: inline-block;
+	margin: 0;
+	border: none 0;
+	padding: 0;
+	transform: none;
+	line-height: 1;
+	text-align: center;
+	vertical-align: top;
+}
+
+iframe.item-copy,
+span.item-copy-shell {
+	@include size(auto); // To Be Overwritten.
+}
+
+iframe.item-copy {
+	transform-origin: 0 0;
+}
+
+span.item-copy-shell {
+	position: relative;
+	z-index: auto;
+	@include offset(auto);
+	background: transparent;
+	iframe.item-copy,
+	span.item-copy-shell-veil {
+		position: absolute;
+	}
+	iframe.item-copy {
+		z-index: 1;
+		@include offset(-100vh, -100vw);
+		margin: auto;
+		transform-origin: 50% 50%;
+	}
+	span.item-copy-shell-veil {
+		z-index: 10;
+		@include offset(0);
+		@include size(100%);
+	}
+}
+
+
+
+
+// ================================================================================
 // + Factory / Dev.
 // --------------------------------------------------------------------------------
 

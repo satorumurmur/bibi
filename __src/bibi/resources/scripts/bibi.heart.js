@@ -2331,6 +2331,77 @@ R.getElement = (_, Opt) => {
     };
 
 
+R.getPageImageURL = (_, Opt) => new Promise((resolve, reject) => {
+    const Page = R.getPage(_, Opt);
+    if(!Page) return reject('');
+    const Item = Page.Item;
+    if(!Item.PrePaginated && !Item.Outsourcing) return reject('');
+    resolve(Item.Loaded ? Item : L.loadItem(Item));
+}).then(Item => {
+    const resolvePath = (Ele, Att) => (SourcePath => B.ExtractionPolicy ? SourcePath : new URL(SourcePath, new URL(Item.Source.Path, B.Path.replace(/\/?$/, '/')).href).href)(Ele.getAttribute(Att));
+    let Ele = null;
+    if(Ele = Item.Body.querySelector('svg')) return new Promise((resolve, reject) => {
+        Ele = sML.create('span', { innerHTML: Ele.outerHTML.replace(/xlink:href/g, 'data-href') }).firstChild;
+        Ele.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        const ImageElements = Ele.querySelectorAll('image');
+        const Promises = [];
+        for(let l = ImageElements.length, i = 0; i < l; i++) { const ImageElement = ImageElements[i];
+            const ImagePath = resolvePath(ImageElement, 'data-href');
+            if(!ImagePath) return reject('');
+            const MediaType = !B.ExtractionPolicy ? O.getContentType(ImagePath) : (() => { const BPM = B.Package.Manifest; for(const _ in BPM) { if(BPM[_].URI == ImagePath) return BPM[_]['media-type']; } return ''; })();
+            if(!MediaType) return reject('');
+            ImageElement.removeAttribute('data-href');
+            Promises.push(O.request({ URI: ImagePath, ResponseType: 'blob' }).then(XHR => O.createDataURL('Blob', XHR.response, MediaType)).then(DataURL => ImageElement.setAttribute('xlink:href', DataURL)));
+        }
+        Promise.all(Promises).then(() => O.createBlobURL('Text', `<?xml version="1.0" encoding="utf-8"?>\n` + Ele.outerHTML, 'image/svg+xml')).then(resolve);
+    });
+    if(Ele = Item.Body.querySelector('img')) return Promise.resolve(resolvePath(Ele, 'src'));
+    return Promise.reject('');
+});
+
+
+R.getItemCopy = (_, Opt) => new Promise((resolve, reject) => {
+    const Page = R.getPage(_, Opt);
+    if(!Page) return reject(null);
+    const Item = Page.Item;
+    if(!Item.PrePaginated) return reject(null);
+    resolve(Item.Loaded ? Item : L.loadItem(Item));
+}).then(Item => {
+    const ItemViewport = Item.Viewport || B.ICBViewport || (SpineItemImage => SpineItemImage ? { Width: SpineItemImage.offsetWidth, Height: SpineItemImage.offsetHeight } : null)(Item.Body.querySelector('.bibi-spine-item-image'));
+    if(!ItemViewport) return Promise.reject(null);
+    const ItemCopy = Object.assign(sML.create('span', { innerHTML: Item.outerHTML }).firstChild, { className: 'item-copy', IsItemCopy: true, Original: Item, Viewport: ItemViewport });
+    ItemCopy.removeAttribute('style');
+    const VWidth = ItemViewport.Width, VHeight = ItemViewport.Height;
+    ItemCopy.FittingIn = { Width: VWidth , Height: VHeight, Scale: 1 };
+    sML.style(ItemCopy, { width: VWidth + 'px', height: VHeight + 'px', transform: 'scale(1)' });
+    ItemCopy.resize = (Size) => { if(!Size || typeof Size != 'object') return false;
+        let Width  = (Size.Width  !== undefined || Size.width  === undefined) ? Size.Width  : Size.width ; if(!Number.isFinite(Width ) || Width  <= 0) Width  = undefined;
+        let Height = (Size.Height !== undefined || Size.height === undefined) ? Size.Height : Size.height; if(!Number.isFinite(Height) || Height <= 0) Height = undefined;
+        if(!Width  && !Height) return false;
+        if( Width  && !Height) Height = Width * VHeight/VWidth;
+        if(!Width  &&  Height) Width = Height * VWidth/VHeight;
+        Object.assign(ItemCopy.FittingIn, { Width: Width , Height: Height, Scale: Math.min(Width/VWidth, Height/VHeight, 1) });
+        sML.style(ItemCopy, { transform: 'scale(' + ItemCopy.FittingIn.Scale + ')' });
+        return ItemCopy;
+    }
+    return ItemCopy;
+});
+
+R.getItemCopyWithShell = (_, Opt) => R.getItemCopy(_, Opt).then(ItemCopy => {
+    if(!ItemCopy) return Promise.reject(null);
+    const ItemCopyShell = ItemCopy.Shell = sML.create('span', { className: 'item-copy-shell', ItemCopy: ItemCopy });
+    ItemCopyShell.appendChild(ItemCopy);
+    const ItemCopyVeil = ItemCopyShell.Veil = ItemCopyShell.appendChild(sML.create('span', { className: 'item-copy-shell-veil' }));
+    sML.style(ItemCopyShell, { width: ItemCopy.Viewport.Width + 'px', height: ItemCopy.Viewport.Height + 'px' });
+    ItemCopyShell.resize = (Size) => {
+        if(!ItemCopy.resize(Size)) return false;
+        sML.style(ItemCopyShell, { width: ItemCopy.FittingIn.Width + 'px', height: ItemCopy.FittingIn.Height + 'px' });
+        return ItemCopyShell;
+    };
+    return ItemCopyShell;
+});
+
+
 R.getCFI = (_) => {
     _ = R.dest(_);
     const IsBody = _.Element && _.Element == _.Element.ownerDocument.body;
