@@ -24,16 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             } else BookStyleElement = BookStyleElement.nextElementSibling;
         }
-        Bibi.BookStyleURL = O.createBlobURL('Text', BookStyleCSS, 'text/css');
-        if(sML.UA.Trident) {
-            document.documentElement.style.display = 'none';
-            const BibiStyles = Array.prototype.map.call(document.head.querySelectorAll('#bibi-style, #bibi-dress'), _ => { _.HREF = _.getAttribute('href'), _.href = ''; return _; });
-            return setTimeout(() => {
-                BibiStyles.forEach(_ => { _.href = _.HREF; delete _.HREF; });
-                document.documentElement.style.display = '';
-                Bibi.hello();
-            }, 0);
-        }
-        Bibi.hello();
+        O.createBlobURL('Text', BookStyleCSS, 'text/css').then(BookStyleURL => {
+            Bibi.BookStyleURL = BookStyleURL;
+            if(sML.UA.Trident) {
+                document.documentElement.style.display = 'none';
+                const BibiStyles = Array.prototype.map.call(document.head.querySelectorAll('#bibi-style, #bibi-dress'), _ => { _.HREF = _.getAttribute('href'), _.href = ''; return _; });
+                return setTimeout(() => {
+                    BibiStyles.forEach(_ => { _.href = _.HREF; delete _.HREF; });
+                    document.documentElement.style.display = '';
+                    Bibi.hello();
+                }, 0);
+            }
+            Bibi.hello();
+        });
     });
 });

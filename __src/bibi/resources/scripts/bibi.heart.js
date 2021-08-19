@@ -1279,38 +1279,39 @@ L.loadItem = (Item, Opt = {}) => {
             )
         : Item.Skipped = true && Promise.resolve([])
     ).then(ItemSourceContent => new Promise(resolve => {
-        const DefaultStyleID = 'bibi-default-style';
-        if(!Item.ContentURL) {
-            let HTML = typeof ItemSourceContent == 'string' ? ItemSourceContent : [`<!DOCTYPE html>`,
-                `<html>`,
-                    `<head>`,
-                        `<meta charset="utf-8" />`,
-                        `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
-                        (ItemSourceContent[0] ? ItemSourceContent[0] + '\n' : '') +
-                    `</head>`,
-                    `<body>`,
-                        (ItemSourceContent[1] ? ItemSourceContent[1] + '\n' : '') +
-                    `</body>`,
-                `</html>`
-            ].join('\n');
-            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
-            if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
-                HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script>\n</head>`);
-                Item.onLoaded = () => {
-                    resolve();
-                    Item.contentDocument.head.removeChild(Item.contentDocument.getElementById('bibi-onload'));
-                    delete Item.onLoaded;
-                };
-                Item.src = '';
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-                Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
-                return;
-            }
-            Item.ContentURL = O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html'), Item.Source.Content = '';
+        const loadItemContent = (ItemContentURL) => {
+            Item.onload = resolve;
+            Item.src = Item.ContentURL = ItemContentURL;
+            Item.Source.Content = '';
+            ItemBox.insertBefore(Item, ItemBox.firstChild);
+        };
+        if(Item.ContentURL) return loadItemContent(Item.ContentURL);
+        let HTML = typeof ItemSourceContent == 'string' ? ItemSourceContent : [`<!DOCTYPE html>`,
+            `<html>`,
+                `<head>`,
+                    `<meta charset="utf-8" />`,
+                    `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
+                    (ItemSourceContent[0] ? ItemSourceContent[0] + '\n' : '') +
+                `</head>`,
+                `<body>`,
+                    (ItemSourceContent[1] ? ItemSourceContent[1] + '\n' : '') +
+                `</body>`,
+            `</html>`
+        ].join('\n');
+        HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="bibi-default-style" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
+        if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
+            HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onContentLoaded(); return false; });</script>\n</head>`);
+            Item.onContentLoaded = () => {
+                resolve();
+                Item.contentDocument.head.removeChild(Item.contentDocument.getElementById('bibi-onload'));
+                delete Item.onContentLoaded;
+            };
+            Item.src = '';
+            ItemBox.insertBefore(Item, ItemBox.firstChild);
+            Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
+            return;
         }
-        Item.onload = resolve;
-        Item.src = Item.ContentURL;
-        ItemBox.insertBefore(Item, ItemBox.firstChild);
+        O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html').then(loadItemContent);
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
@@ -1321,7 +1322,7 @@ L.loadItem = (Item, Opt = {}) => {
         E.dispatch('bibi:loaded-item', Item);
     }).catch(() => { // Placeholder
         if(Item.parentElement) Item.parentElement.removeChild(Item);
-        Item.onload = Item.onLoaded = undefined;
+        Item.onload = Item.onContentLoaded = undefined;
         Item.src = '';
         Item.HTML = Item.Head = Item.Body = Item.Pages[0];
         Item.Loaded = false;
@@ -1336,6 +1337,7 @@ L.loadItem = (Item, Opt = {}) => {
 
 L.postprocessItem = (Item) => {
     // Item.stamp('Postprocess');
+    E.dispatch('bibi:is-going-to:postprocess-item', Item);
     Item.HTML = Item.contentDocument.getElementsByTagName('html')[0]; Item.HTML.classList.add(...sML.Environments);
     Item.Head = Item.contentDocument.getElementsByTagName('head')[0];
     Item.Body = Item.contentDocument.getElementsByTagName('body')[0];
@@ -6036,25 +6038,32 @@ O.extract = (Source) => {
     });
 };
 
-O.download = (Source/*, Opt = {}*/) => {
+O.request = (Opt) => {
+    if(!Opt || typeof Opt != 'object' || !Opt.URI) return Promise.reject();
+    const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
+    return new Promise((resolve, reject) => {
+        XHR.open(Opt.RequestMethod || 'GET', Opt.URI, true);
+        XHR.responseType = Opt.ResponseType || 'text';
+        XHR.onloadend = () => (XHR.status == 200 ? resolve : reject)(XHR);
+        XHR.onerror = () => reject(XHR);
+        XHR.send(null);
+    });
+};
+
+O.download = (Source) => {
     Source = O.src(Source);
     if(Source.Retlieving) return Source.Retlieving;
     if(Source.Content) return Promise.resolve(Source);
     const IsBin = O.isBin(Source);
-    const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
-    const RemotePath = Source.URI ? Source.URI : (/^([a-z]+:\/\/|\/)/.test(Source.Path) ? '' : B.Path + '/') + Source.Path;
-    return Source.Retlieving = new Promise((resolve, reject) => {
-        XHR.open('GET', RemotePath, true);
-        XHR.responseType = IsBin ? 'blob' : 'text';
-        XHR.onloadend = () => XHR.status == 200 ? resolve() : reject();
-        XHR.onerror = () => reject();
-        XHR.send(null);
-    }).then(() => {
+    return Source.Retlieving = O.request({
+        URI: Source.URI ? Source.URI : (/^([a-z]+:\/\/|\/)/.test(Source.Path) ? '' : B.Path + '/') + Source.Path,
+        ResponseType: IsBin ? 'blob' : 'text'
+    }).then(XHR => {
         Source.DataType = IsBin ? 'Blob' : 'Text', Source.Content = XHR.response;
         Source.Retlieved = true;
         delete Source.Retlieving;
         return Source;
-    }).catch(() => {
+    }).catch(XHR => {
         delete Source.Retlieving;
         return Promise.reject(
             XHR.status == 404 ? Bibi.ErrorMessages.NotFound :
@@ -6086,10 +6095,11 @@ O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
         if(typeof Opt.initialize == 'function') Opt.initialize(Source);
         return (Opt.Preprocess && !Source.Preprocessed) ? O.preprocess(Source) : Source;
     }).then(Source => {
-        if(Opt.URI) {
-            if(!Source.URI) Source.URI = O.createBlobURL(Source.DataType, Source.Content, Source['media-type']);
-            Source.Content = '';
-        }
+        if(Opt.URI && !Source.URI) return (!Opt.DataURI ? O.createBlobURL : O.createDataURL)(Source.DataType, Source.Content, Source['media-type']).then(SourceURI => {
+            Source.URI = SourceURI;
+            Source.Content = ''; //////
+            resolve(Source);
+        });
         resolve(Source);
      }).catch(reject);
 });
@@ -6097,7 +6107,8 @@ O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
 
 O.isBin = (Source) => /\.(aac|gif|jpe?g|m4[av]|mp([34]|e?g)|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Source.Path);
 
-O.createBlobURL = (DT, CB, MT) => URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB);
+O.createBlobURL = (DT, CB, MT) => Promise.resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB));
+O.createDataURL = (DT, CB, MT) => new Promise((o, x) => DT == 'Text' ? o(`data:` + MT + `;base64,` + btoa(String.fromCharCode.apply(null, new TextEncoder().encode(CB)))) : (_ => { _.onload = () => o(_.result); _.onerror = x; _.readAsDataURL(CB); })(new FileReader()));
 
 
 O.ContentTypes = {
