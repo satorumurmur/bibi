@@ -5,77 +5,78 @@ Bibi.preset({
 //-- Bookshelf
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"bookshelf" : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. "/" at the end is ignored. (To use a path begins with "http(s)://", read <01> at the bottom of this preset file.)
+"bookshelf" : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. "/" at the end is ignored.
+// To use a path begins with "http(s)://", read <01> at the bottom.
 
 
 //==============================================================================================================================================
 //-- Behavior
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"reader-view-mode"              : "auto", // "auto", "paged", "horizontal" or "vertical" ("paged" is for flipping, "horizontal" and "vertical" are for scrolling.)
-"full-breadth-layout-in-scroll" : "no", // "yes" or "no" or "desktop" or "mobile"
-"fix-reader-view-mode"          : "no", // "yes" or "no" or "desktop" or "mobile"
+"reader-view-mode"              : "auto", // "auto" | "paged" | "horizontal" | "vertical" // "paged" is for flipping, "horizontal" and "vertical" are for scrolling.
+"full-breadth-layout-in-scroll" : "no", // "yes" | "no" | "desktop" | "mobile"
+"fix-reader-view-mode"          : "no", // "yes" | "no" | "desktop" | "mobile"
 
-"keep-settings"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"resume-from-last-position"     : "yes", // "yes" or "no" or "desktop" or "mobile"
+"keep-settings"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
+"resume-from-last-position"     : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"autostart"                     : "yes", // "yes" or "no" or "desktop" or "mobile"
-"autostart-embedded"            : "no", // "yes" or "no" or "desktop" or "mobile" (It takes priority over "autostart" when the book is embedded in a webpage)
-"start-embedded-in-new-window"  : "mobile", // "yes" or "no" or "desktop" or "mobile" (It is used only when "autostart" (or "autostart-embedded") is NOT enabled)
+"autostart"                     : "yes", // "yes" | "no" | "desktop" | "mobile"
+"autostart-embedded"            : "no", // "yes" | "no" | "desktop" | "mobile" // It takes priority over "autostart" when the book is embedded in a webpage.
+"start-embedded-in-new-window"  : "mobile", // "yes" | "no" | "desktop" | "mobile" // It affects only when "autostart" (or "autostart-embedded") is interpreted as "no".
 
 
 //==============================================================================================================================================
 //-- UI / Design
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"use-menubar"                : "yes", // "yes" or "no" or "desktop" or "mobile"
-"use-full-height"            : "yes", // "yes" or "no" or "desktop" or "mobile". If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
+"use-menubar"                : "yes", // "yes" | "no" | "desktop" | "mobile"
+"use-full-height"            : "yes", // "yes" | "no" | "desktop" | "mobile" // If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
-"use-arrows"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"flipper-width"              : 0.25, // Number of ratio (less than 1) or pixel (1 or greater)
+"use-arrows"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
+"flipper-width"              : 0.25, // Number of ratio (less than 1) | Number of pixels (1 or greater)
 
-"use-keys"                   : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-keys"                   : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"use-slider"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
-"flip-pages-during-sliding"  : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-slider"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
+"flip-pages-during-sliding"  : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"use-nombre"                 : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-nombre"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"use-fontsize-changer-ui"    : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-fontsize-changer-ui"    : "yes", // "yes" | "no" | "desktop" | "mobile"
 "fontsize-scale-per-step"    : 1.25, // Number of scale
-"base-fontsize"              : "auto", // Number of pixel or "auto"
+"base-fontsize"              : "auto", // "auto" | Number of pixels
 
-"use-linespacing-changer-ui" : "yes", // "yes" or "no" or "desktop" or "mobile"
+"use-linespacing-changer-ui" : "yes", // "yes" | "no" | "desktop" | "mobile"
 "linespacing-scale-per-step" : 1.25, // Number of scale
 
-"use-loupe-ui"               : "desktop", // "yes" or "no" or "desktop" or "mobile" (Note: Loupe buttons will not appear in touch-devices even if it is set "yes" or "mobile".)
+"use-loupe-ui"               : "desktop", // "yes" | "no" | "desktop" | "mobile" // Loupe UI buttons are hidden and disabled in touch-devices even if it is set "yes" or "mobile".
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)
 "loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
-"zoom-out-for-utilities"     : "yes", // "yes" or "no" or "desktop" or "mobile"
+"zoom-out-for-utilities"     : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"use-bookmark-ui"            : "yes", // "yes" or "no" or "desktop" or "mobile"
-"max-bookmarks"              : 3, // Number (0-9). If larger than 9, treated as 9. If 0, "use-bookmark-ui" and "use-bookmarks" are treated as "no" (but old data is kept in localStorage). 
+"use-bookmark-ui"            : "yes", // "yes" | "no" | "desktop" | "mobile"
+"max-bookmarks"              : 3, // Number (0-9) // If larger than 9, treated as 9. If 0, "use-bookmark-ui" and "use-bookmarks" are treated as "no" (but old data is kept in localStorage). 
 
-"use-history-ui"             : "yes", // "yes" or "no" or "desktop" or "mobile". (history-button requires the slider.)
-"max-histories"              : 19, // Number (0-19). If larger than 19, treated as 19. If 0, "use-history-ui" and "use-histories" are treated as "no".
+"use-history-ui"             : "yes", // "yes" | "no" | "desktop" | "mobile". // History UI button requires the Slider UI. If "use-slider" is interpreted as "no", "use-history-ui" is always treated as "no".
+"max-histories"              : 19, // Number (0-19) // If larger than 19, treated as 19. If 0, "use-history-ui" and "use-histories" are treated as "no".
 
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
-"ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif" or ""
+"ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif"
 
-"item-padding-left"          : 24, // Number of pixel (It affects only for reflowable books.)
-"item-padding-right"         : 24, // Number of pixel (It affects only for reflowable books.)
-"item-padding-top"           : 48, // Number of pixel (It affects only for reflowable books.)
-"item-padding-bottom"        : 24, // Number of pixel (It affects only for reflowable books.)
+"item-padding-left"          : 24, // Number of pixels // It affects only for reflowable books.
+"item-padding-right"         : 24, // Number of pixels // It affects only for reflowable books.
+"item-padding-top"           : 48, // Number of pixels // It affects only for reflowable books.
+"item-padding-bottom"        : 24, // Number of pixels // It affects only for reflowable books.
 
-"concatenate-spreads"        : ["auto", "auto"], // ["auto" or "never" or "always", "auto" or "never" or "always"] // It affects only for fixed-layout books in the "horizontal"/"vertical" scroll view modes.
+"concatenate-spreads"        : ["auto", "auto"], // ["auto" | "never" | "always", "auto" | "never" | "always"] // It affects only for fixed-layout books in the "horizontal"/"vertical" scroll view modes.
 //                             ^ Each item of the arrays corresponds to the view mode:
 //                                 * the first is for the "horizontal" scroll view mode.
 //                                 * the second is for the "vertical" scroll view mode.
 
-"content-margin"             : 0, // Number of pixel
+"content-margin"             : 0, // Number of pixels
 
-"fix-nav-ttb"                : "no", // "yes" or "no" or "desktop" or "mobile"
+"fix-nav-ttb"                : "no", // "yes" | "no" | "desktop" | "mobile"
 
 
 //==============================================================================================================================================
@@ -98,20 +99,20 @@ Bibi.preset({
 //                               * the first is for the "paged" view mode, and
 //                               * the second is for the "horizontal"/"vertical" scroll view modes.
 //                           ^ Types of the values:
-//                               * <TF>: true or false
-//                               * <S1>: "" (ignore) or "utilities" or "move"
-//                               * <S2>: "" (ignore) or "utilities" or "move" or "switch"
-//                               * <S3>: "" (ignore) or "utilities" or "move" or "switch" or "across"
+//                               * <TF>: true | false
+//                               * <S1>: "" (ignore) | "utilities" | "move"
+//                               * <S2>: "" (ignore) | "utilities" | "move" | "switch"
+//                               * <S3>: "" (ignore) | "utilities" | "move" | "switch" | "across"
 
 "indicate-orthogonal-arrows-if-necessary" : false,
 
-"recognize-repeated-taps-separately": false, // true or false
+"recognize-repeated-taps-separately": false, // true | false
 // If true:
 //     * Bibi recognizes all the repeated tap/clicks as separate single-tap/clicks.
 //     * It accelerates some UI response, but Bibi no longer recognizes double/triple-tap/click.
 // If you want to customize "on-doubletap(-with-altkey)" or "on-tripletap(-with-altkey)", you have to set "recognize-repeated-taps-separately" to false.
 
-"prioritise-viewer-operation-over-text-selection" : false, // true or false
+"prioritise-viewer-operation-over-text-selection" : false, // true | false
 // If true:
 //     * When dragging with the mouse or trackpad, priority is given to browsing operations (ex. page-turning, axis-switching) instead of text selection.
 
@@ -131,33 +132,33 @@ Bibi.preset({
 //-- Extra
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"website-name-in-title"    : "", // "" or name of your website replaces string "Bibi" in <title>.
-"website-name-in-menu"     : "", // "" or name of your website appears in setting-menu as a link. (Requires "website-href")
-"website-href"             : "", // "" or URL of your website to be used for the link in setting-menu. (Requires "website-name-in-menu")
-"remove-bibi-website-link" : false, // true or false (if true, the link to Bibi Website is not to be added in setting-menu)
+"website-name-in-title"    : "", // Name of your website which replaces string "Bibi" in <title>
+"website-name-in-menu"     : "", // Name of your website appears in setting-menu as a link // It requires "website-href".
+"website-href"             : "", // URL of your website to be used for the link in setting-menu // It requires "website-name-in-menu".
+"remove-bibi-website-link" : false, // true | false // If true, the link to Bibi Website is not to be added in setting-menu.
 
 
 //==============================================================================================================================================
 //-- System
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"extract-if-necessary"               : [".epub", ".zip"], // File extensions of the book specified in URL, which you want Bibi to try to extract first. (More info is <02> at the bottom of this preset file.)
+"extract-if-necessary"               : [".epub", ".zip"], // File extensions of the book specified in URL, which you want Bibi to try to extract first. // More info is <02> at the bottom.
 
-"default-page-progression-direction" : "ltr", // "ltr" or "rtl". Most of EPUBs have right property in itself, but....
+"default-page-progression-direction" : "ltr", // "ltr" | "rtl" // Most of EPUBs have right property in itself, but....
 
-"accept-local-file"                  : "yes", // "yes" or "no" or "desktop" or "mobile". (If it is enabled, Bibi prepares UI for loading files. Conditions for acceptance are <03> at the bottom of this preset file.)
-"accept-bibizine"                    : true, // true or false (If true, Bibi accepts EPUB-like bibiZine formated book. If you are interested in it, please contact the author)
-"accept-blob-converted-data"         : true, // true or false (If true, Bibi accepts BLOB object converted from a EPUB File. If you are interested in it, please contact the author)
-"accept-base64-encoded-data"         : true, // true or false (If true, Bibi accepts Base64 string encoded from a EPUB File. If you are interested in it, please contact the author)
+"accept-local-file"                  : "yes", // "yes" | "no" | "desktop" | "mobile" // If it is enabled, Bibi prepares UI for loading files. Conditions for acceptance are <03> at the bottom.
+"accept-bibizine"                    : true, // true | false // If true, Bibi accepts EPUB-like BibiZine formated book. (If you are interested in it, please contact the author.)
+"accept-blob-converted-data"         : true, // true | false // If true, Bibi accepts BLOB object converted from a EPUB File. (If you are interested in it, please contact the author.)
+"accept-base64-encoded-data"         : true, // true | false // If true, Bibi accepts Base64 string encoded from a EPUB File. (If you are interested in it, please contact the author.)
 
-"pagination-method"                  : "auto", // "auto" or "x". (It affects only for vertical-text reflowable books. More info is <04> at the bottom of this preset file.)
-"allow-placeholders"                 : true, // true or false. (true is highly recommended.)
-"prioritise-fallbacks"               : false, // true or false (If true, Bibi uses <item> at the end of the fallback-chain.)
+"pagination-method"                  : "auto", // "auto" | "x" // It affects only for vertical-text reflowable books. More info is <04> at the bottom.
+"allow-placeholders"                 : true, // true | false // true is highly recommended.
+"prioritise-fallbacks"               : false, // true | false // If true, Bibi uses <item> at the end of the fallback-chain.
 
-"headless"                           : false,
-"use-bookmarks"                      : true,
-"use-histories"                      : true,
-"manualize-adding-histories"         : false,
+"uiless"                             : false, // true | false
+"use-bookmarks"                      : true, // true | false
+"use-histories"                      : true, // true | false
+"manualize-adding-histories"         : false, // true | false
 
 
 //==============================================================================================================================================
@@ -168,24 +169,26 @@ Bibi.preset({
 // * keep your Bibi and website not to open files which you can not guarantee its security.
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-/* !!!! BE CAREFUL !!!! */ "allow-scripts-in-content" : false, // true or false (false is recommended).
+/* !!!! BE CAREFUL !!!! */ "allow-scripts-in-content" : false, // true | false // <!> false is highly recommended.
 // If you change its value `true`, Bibi does not remove scripts natively-included in EPUB.
 // It makes Bibi to be able to open EPUBs including useful scripts.
 // But on the other hand, it may also allow XSS of malicious EPUB in some cases.
 
-/* !!!! BE CAREFUL !!!! */ "trustworthy-origins" : [], // origins you trust other than where this Bibi is installed. (blank is recommended).
+/* !!!! BE CAREFUL !!!! */ "trustworthy-origins" : [], // Origins you trust other than where this Bibi is installed. <!> blank is highly recommended.
 // If you add origins to it, Bibi is made to open not only EPUBs in the same origin as Bibi itself is installed but also EPUBs in remote origins.
 // It is useful for some cases like that you want to set directory on the other storaging server as "bookshelf".
 // But note that not to set an origin where someone else also can publish files.
 // If you do so, someone else can publish one's EPUB as it is on your website, and it may also allow XSS of malicious EPUB in some cases.
 
-/* !!!! BE CAREFUL !!!! */ // "allow-external-item-href" : false,
+/* !!!! BE CAREFUL !!!! */ "allow-external-item-href" : false, // true | false // <!> false is highly recommended.
 
 
 /*
 
 
 //==============================================================================================================================================
+//-- Footnotes
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ## <01> You can use a path begins with "http(s)://" for "bookshelf" option in cases of the below:
@@ -215,7 +218,7 @@ Bibi.preset({
         - [AND] The extension of the file is ".epub".
         - [AND] The "extract-if-necessary" option includes ".epub" or "*".
         - [AND] The MIME-Type sent from the browser is "application/epub+zip".
-    * [OR] The file is a bibiZine.
+    * [OR] The file is a BibiZine.
         - [AND] The extension of the file is ".zip".
         - [AND] The "extract-if-necessary" includes ".zip" or "*".
         - [AND] The MIME-Type sent from the browser is "application/zip", "application/x-zip", or "application/x-zip-compressed".

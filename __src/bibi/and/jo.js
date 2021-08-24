@@ -77,7 +77,8 @@ Jo.callBibi = (Love) => {
             'iipp',
             'nav',
             'reader-view-mode', 'rvm', 'view',
-            'start-embedded-in-new-window', 'start-in-new-window'
+            'start-embedded-in-new-window', 'start-in-new-window',
+            'uiless'
         ].forEach(K => { let V = '' + (Love.ownerDocument ? Love.getAttribute('data-bibi-' + K) || '' : Love['bibi-' + K]);
             if(V && (() => { switch(K) {
                 case 'p':                return                            /^(\d*\.)?\d+$/;
