@@ -1422,11 +1422,6 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     Item.WritingMode = O.getWritingMode(Item.HTML);
          if(/-rl$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
     else if(/-lr$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
-    /*
-         if(/-rl$/.test(Item.WritingMode)) if(ItemBodyComputedStyle.marginLeft != ItemBodyComputedStyle.marginRight) Item.Body.style.marginLeft = ItemBodyComputedStyle.marginRight;
-    else if(/-lr$/.test(Item.WritingMode)) if(ItemBodyComputedStyle.marginRight != ItemBodyComputedStyle.marginLeft) Item.Body.style.marginRight = ItemBodyComputedStyle.marginLeft;
-    else                                   if(ItemBodyComputedStyle.marginBottom != ItemBodyComputedStyle.marginTop) Item.Body.style.marginBottom = ItemBodyComputedStyle.marginTop;
-    //*/
     [
         [Item.Box, ItemHTMLComputedStyle, Item.HTML],
         [Item,     ItemBodyComputedStyle, Item.Body]
@@ -1669,8 +1664,7 @@ R.renderReflowableItem = (Item) => {
             maxHeight: '100vh'
         });
     });
-    if(sML.UA.Gecko) {
-        // Part 1/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
+    if(sML.UA.Gecko) { // Part 1/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
         if(Item.OFREs === undefined) {
             Item.OFREs = []; // Orthogonal Flow Root Elements
             Item.contentDocument.querySelectorAll('body, body *').forEach(Ele => {
@@ -1754,8 +1748,7 @@ R.renderReflowableItem = (Item) => {
             break;
     }
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
-    if(sML.UA.Gecko) {
-        // Part 2/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
+    if(sML.UA.Gecko) { // Part 2/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
         if(Item.OFREs.length) Item.OFREs.forEach(OFRE => sML.style(OFRE, { width: OFRE.offsetWidth + 'px', height: OFRE.offsetHeight + 'px' }));
     }
     let ItemL = Item.HTML['scroll' + C.L_SIZE_L];

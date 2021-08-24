@@ -46,7 +46,6 @@ Jo.callBibi = (Love) => {
             Receiver = Love;
             let BibiReceive = Receiver.getAttribute('data-bibi-receive');
             if(BibiReceive && (BibiReceive = BibiReceive.replace(/\s+/, ''))) ToReceive = BibiReceive.split(',');
-            
         }
     } catch(Err) { return null; } if(!Anchor || !Frame || !Receiver) return null;
     const Bibi = Anchor.Bibi = Frame.Bibi = { Jo: Jo, Anchor: Anchor, Frame: Frame, Receiver: Receiver, Index: Jo.Bibis.length, Status: '' };
