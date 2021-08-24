@@ -79,14 +79,13 @@ main#bibi-main {
 		transform: translateX(100px);
 		opacity: 0;
 	}*/
-	html.subpanel-opened & {
-		// @____Bibi:Dress__('-') @include Main__SubpanelOpened();
-	}
+	// @____Bibi:Dress__('-') @include Main(); html.subpanel-opened & { @include Main__SubpanelOpened(); }
 }
 
 	div#bibi-main-book {
 		box-sizing: content-box;//box-sizing: border-box;
 		display: flex;
+		position: relative;
 		flex-wrap: nowrap;
 		justify-content: space-between;
 		//align-items: center;
@@ -104,14 +103,24 @@ main#bibi-main {
 		html.changing-view & {
 			visibility: hidden;
 		}
-		html.subpanel-opened & {
-			// @____Bibi:Dress__('-') @include Main-Book__SubpanelOpened();
+		// @____Bibi:Dress__('-') @include Main-Book(); html.subpanel-opened & { @include Main-Book__SubpanelOpened(); }
+		&:after {
+			content: "";
+			display: block;
+			position: absolute;
+			z-index: $INVARIABLE__Main-Book_ZIndex - 1;
+			@include offset(-50vh, -50vw);
+			margin: 0;
+			@include size(calc(100% + 100vw), calc(100% + 100vh));
+			pointer-events: none !important;
+			// @____Bibi:Dress__('-') background: $Book-Background; html.subpanel-opened & { background: $Book-Background__SubpanelOpened; }
 		}
 	}
 		div.spread-box {
 			box-sizing: border-box;
 			flex-shrink: 0;
 			position: relative;
+			z-index: 99;
 			html.spread-horizontal & { height: 100%; }
 			html.spread-vertical & { width: 100%; }
 			html.book-pre-paginated.view-paged.spread-horizontal & { min-width: 100vw; }
@@ -143,7 +152,7 @@ main#bibi-main {
 				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				div.spread-box.single-item-spread-center & { justify-content: center; }
-				div.spread-box.reflowable & { background: white; }
+				//div.spread-box.reflowable & { background: white; }
 			}
 				div.item-box {
 					& {

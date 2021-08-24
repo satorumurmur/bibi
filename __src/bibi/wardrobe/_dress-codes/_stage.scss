@@ -16,13 +16,28 @@ $HTML_FontFamily__Windows: "Helvetica", "Trebuchet MS", "游ゴシック", "Yu G
 // - Background
 // --------------------------------------------------------------------------------
 
-$HTML_Background: white;//linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+$HTML_Background: rgb(224,230,236);//white;//linear-gradient(to top, rgb(48,48,48), rgb(80,80,80));//rgb(96,96,96);
+
+$Body_Background: white;
+
+
+// - Shading Layer
+// --------------------------------------------------------------------------------
+
+@mixin ContentShade() {
+	background: rgb(120,128,136);
+	transition: .125s ease-out;
+	opacity: 0;
+}
+@mixin ContentShade__SubpanelOpened() {
+	opacity: .25;
+}
 
 
 // - Catcher
 // --------------------------------------------------------------------------------
 
-$Catcher_Background: linear-gradient(to bottom, rgb(200,200,200), rgb(240,240,240));
+$Catcher_Background: linear-gradient(to bottom, rgb(192,200,208), rgb(238,240,242));//linear-gradient(to bottom, rgb(200,200,200), rgb(240,240,240));
 
 $Catcher_Border:         dashed  4px white;
 $Catcher_Border__Hover:   solid  8px white;
@@ -33,12 +48,12 @@ $Catcher_Border__TouchDevice__Active: solid 8px white;
 
 $Catcher-Icon_Size: 128px;
 $Catcher-Icon_OuterColor: white;
-$Catcher-Icon_InnerColor: rgb(216,216,216);
+$Catcher-Icon_InnerColor: rgb(212,216,220);//rgb(216,216,216);
 
-$Catcher-Button_Color: rgb(128,128,128);
+$Catcher-Button_Color: rgb(120,128,136);//rgb(128,128,128);
 $Catcher-Button_BackgroundColor: white;
 
-$Catcher-Text_Color: rgb(128,128,128);
+$Catcher-Text_Color: rgb(120,128,136);//rgb(128,128,128);
 
 
 // - PoweredBy

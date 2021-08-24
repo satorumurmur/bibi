@@ -12,13 +12,12 @@ main#bibi-main {
 		padding-top: $Menu_Height;
 		height: calc(100% - #{$Menu_Height});
 	}
-	html.subpanel-opened & {
-		@include Main__SubpanelOpened();
-	}
+	@include Main(); html.subpanel-opened & { @include Main__SubpanelOpened(); }
 }
 	div#bibi-main-book {
-		html.subpanel-opened & {
-			@include Main-Book__SubpanelOpened();
+		@include Main-Book(); html.subpanel-opened & { @include Main-Book__SubpanelOpened(); }
+		&:after {
+			background: $Book-Background; html.subpanel-opened & { background: $Book-Background__SubpanelOpened; }
 		}
 	}
 		div.spread-box {

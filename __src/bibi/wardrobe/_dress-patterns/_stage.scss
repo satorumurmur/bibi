@@ -11,6 +11,13 @@ html {
 	background: $HTML_Background;
 }
 
+body {
+	background: $Body_Background;
+	&:after {
+		@include ContentShade(); html.subpanel-opened & { @include ContentShade__SubpanelOpened(); }
+	}
+}
+
 
 // - Catcher
 // --------------------------------------------------------------------------------

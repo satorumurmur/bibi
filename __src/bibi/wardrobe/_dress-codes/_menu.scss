@@ -26,7 +26,7 @@ $Menu_BoxShadow__NotBFH__Active: $Menu_BoxShadow__Active;
 $Menu-ButtonGroup_Padding: ($Menu_Height - $Menu-Icon_Size) / 2;
 $Menu-ButtonGroup-Button_Margin: ($Menu_Height - $Menu-Icon_Size) / 4;
 $Menu-ButtonGroup-Separator_Width: 1px;
-$Menu-ButtonGroup-Separator_Color: rgba(216,216,216, 0.5);
+$Menu-ButtonGroup-Separator_Color: rgb(232,236,240);//rgba(208,216,224, 0.5);//rgba(216,216,216, 0.5);
 
 
 
@@ -40,21 +40,21 @@ $Menu-ButtonGroup-Separator_Color: rgba(216,216,216, 0.5);
 // --------------------------------------------------------------------------------
 
 // Default
-$Menu-Icon-Font_PaintColor:    rgb(144,144,144);
+$Menu-Icon-Font_PaintColor:    rgb(132,138,144);//rgb(144,144,144);
 $Menu-Icon-Font_OutlineColor:  transparent;
 $Menu-Icon-Shape_PaintColor:   white;
 $Menu-Icon-Shape_OutlineColor: $Menu-Icon-Font_PaintColor;
 $Menu-Icon_BackgroundColor:    rgba(white, 0.9);
-$Menu-Icon_BorderColor:        rgb(236,236,236);
+$Menu-Icon_BorderColor:        rgb(232,236,240);//rgb(236,236,236);
 $Menu-Icon_Transform:          none;
 
 // Default:Hover
-$Menu-Icon-Font_PaintColor__Hover:    rgb(64,64,64);
+$Menu-Icon-Font_PaintColor__Hover:    rgb(64,72,80);//rgb(64,64,64);
 $Menu-Icon-Font_OutlineColor__Hover:  $Menu-Icon-Font_OutlineColor;
 $Menu-Icon-Shape_PaintColor__Hover:   $Menu-Icon-Shape_PaintColor;
 $Menu-Icon-Shape_OutlineColor__Hover: $Menu-Icon-Font_PaintColor__Hover;
-$Menu-Icon_BackgroundColor__Hover:    rgba(248,248,248,0.9);//$Menu-Icon_BackgroundColor;
-$Menu-Icon_BorderColor__Hover:        rgb(192,192,192);
+$Menu-Icon_BackgroundColor__Hover:    rgba(244,246,248,0.9);//rgba(248,248,248,0.9);//$Menu-Icon_BackgroundColor;
+$Menu-Icon_BorderColor__Hover:        rgb(200,208,216);//rgb(192,192,192);
 $Menu-Icon_Transform__Hover:          $Menu-Icon_Transform;
 
 // Active

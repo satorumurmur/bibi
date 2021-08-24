@@ -9,14 +9,18 @@
 	font-family: sans-serif;
 	font-size: 18px;
 	font-weight: bold;
-	color: rgb(192,192,192);
+	color: rgb(184,192,200);//rgb(192,192,192);
 }
 
+@mixin Main() {
+}
 @mixin Main__SubpanelOpened() {
-	background: $HTML_Background;
-	filter: brightness(87.5%);
 }
 
-@mixin Main-Book__SubpanelOpened() {
-	opacity: .75;
+@mixin Main-Book() {
 }
+@mixin Main-Book__SubpanelOpened() {
+}
+
+$Book-Background: white;
+$Book-Background__SubpanelOpened: $Book-Background;

@@ -73,6 +73,18 @@ body {
 	@include size(100%);
 	//max-height: 150vw;
 	transition: opacity .25s ease;
+	// @____Bibi:Dress__('-') background: $Body_Background;
+	&:after {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: $INVARIABLE__Main_ZIndex + 1;
+		@include offset(-50vh, -50vw);
+		margin: 0;
+		@include size(calc(100% + 100vw), calc(100% + 100vh));
+		pointer-events: none !important;
+		// @____Bibi:Dress__('-') @include ContentShade(); html.subpanel-opened & { @include ContentShade__SubpanelOpened(); }
+	}
 }
 
 
