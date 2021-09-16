@@ -12,6 +12,7 @@ export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.e
 Bibi.SettingTypes = {
     'boolean': [
         'allow-placeholders',
+        'background-spreading',
         'indicate-orthogonal-arrows-if-necessary',
         'prioritise-fallbacks',
         'prioritise-viewer-operation-over-text-selection',
@@ -1433,17 +1434,11 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     Item.WritingMode = O.getWritingMode(Item.HTML);
          if(/-rl$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
     else if(/-lr$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
-    [
+    if(S['background-spreading']) [
         [Item.Box, ItemHTMLComputedStyle, Item.HTML],
         [Item,     ItemBodyComputedStyle, Item.Body]
     ].forEach(Par => {
-        [
-            'backgroundColor',
-            'backgroundImage',
-            'backgroundRepeat',
-            'backgroundPosition',
-            'backgroundSize'
-        ].forEach(Pro => Par[0].style[Pro] = Par[1][Pro]);
+        ['Color', 'Image', 'Repeat', 'Position', 'Size'].forEach(Pro => Par[0].style[Pro = 'background' + Pro] = Par[1][Pro]);
         Par[2].style.background = 'transparent';
     });
     sML.forEach(Item.Body.querySelectorAll('svg, img'))(Img => {

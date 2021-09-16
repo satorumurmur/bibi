@@ -76,6 +76,8 @@ Bibi.preset({
 
 "content-margin"             : 0, // Number of pixels
 
+"background-spreading"       : true, // true | false
+
 "fix-nav-ttb"                : "no", // "yes" | "no" | "desktop" | "mobile"
 
 
