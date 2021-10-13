@@ -76,6 +76,7 @@ div#bibi-panel-bookinfo {
 div#bibi-panel-bookinfo-navigation {
 	box-sizing: border-box;
 	html.nav-ttb & {
+		font-feature-settings: "palt" 1;
 		>*:first-child,
 		>*:first-child >*:first-child,
 		>*:first-child >*:first-child >*:first-child {
@@ -83,6 +84,7 @@ div#bibi-panel-bookinfo-navigation {
 		}
 	}
 	html.nav-rtl & {
+		font-feature-settings: "pkna" 1;
 		>*:first-child,
 		>*:first-child >*:first-child,
 		>*:first-child >*:first-child >*:first-child {
@@ -96,7 +98,7 @@ div#bibi-panel-bookinfo-navigation {
 		$SCOPED__MarginBefore: 2em;
 		$SCOPED__MarginAfter: 1em;
 		line-height: 1.2;
-		font-size: 20px;
+		font-size: 18px;
 		html.nav-ttb & { margin: $SCOPED__MarginBefore 0 $SCOPED__MarginAfter 0; }
 		html.nav-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
 		h1, h2, h3, h4, h5, h6 {
@@ -107,12 +109,7 @@ div#bibi-panel-bookinfo-navigation {
 			html.nav-rtl & { margin: 0 $SCOPED__MarginBefore 0 $SCOPED__MarginAfter; }
 		}
 		small {
-			font-size: .8em;
-		}
-		br + small {
-			$SCOPED__MarginStart: 2em;
-			html.nav-ttb & { margin: 0 0 0 $SCOPED__MarginStart; }
-			html.nav-rtl & { margin: $SCOPED__MarginStart 0 0 0; }
+			font-size: .75em;
 		}
 		ul, ol {
 			$SCOPED__MarginBefore: 0;
@@ -135,13 +132,13 @@ div#bibi-panel-bookinfo-navigation {
 						content: "";
 						display: block;
 						position: absolute;
-						$SCOPED__OffsetStart: .175em;
-						$SCOPED__OffsetBefore: 0;
-						$SCOPED__Breadth: 4px;
-						$SCOPED__Length: 100%;
-						background: white;
-						html.nav-ttb & { left: $SCOPED__OffsetStart; top: $SCOPED__OffsetBefore; @include size($SCOPED__Breadth, $SCOPED__Length); }
-						html.nav-rtl & { top: $SCOPED__OffsetStart; right: $SCOPED__OffsetBefore; @include size($SCOPED__Length, $SCOPED__Breadth); }
+						$SCOPED__OffsetStart: .3em;
+						$SCOPED__OffsetBefore: -.2em;
+						html.nav-ttb & { left: $SCOPED__OffsetStart; top: $SCOPED__OffsetBefore; height: calc(100% + #{ $SCOPED__OffsetBefore * -1 }); }
+						html.nav-rtl & { top: $SCOPED__OffsetStart; right: $SCOPED__OffsetBefore; width: calc(100% + #{ $SCOPED__OffsetBefore * -1 }); }
+						// @____Bibi:Dress__('-') html.nav-ttb & { width: $Panel-Nav-ContourLine_Width; }
+						// @____Bibi:Dress__('-') html.nav-rtl & { height: $Panel-Nav-ContourLine_Width; }
+						// @____Bibi:Dress__('-') background: $Panel-Nav-ContourLine_Color;
 					}
 					li {
 						$SCOPED__MarginBefore: .5em;
@@ -161,7 +158,7 @@ div#bibi-panel-bookinfo-navigation {
 			html.nav-rtl & { border-right-width: 1px; padding-right: .1em; }
 			// @____Bibi:Dress__('-') color: $Panel-Nav-A_Color;
 			text-decoration: none;
-			transition: linear .15s;
+			transition: linear .05s;
 			&:hover {
 				// @____Bibi:Dress__('-') border-color: $Panel-Nav-A_TextDecorationColor__Hover;
 				// @____Bibi:Dress__('-') color: $Panel-Nav-A_Color__Hover;

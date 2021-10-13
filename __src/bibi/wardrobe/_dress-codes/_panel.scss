@@ -14,9 +14,12 @@ $Panel_Background: rgb(244,246,248);//rgb(246,246,246);
 // --------------------------------------------------------------------------------
 
 $Panel-Nav-A_Color: rgb(56,60,64);
-$Panel-Nav-A_TextDecorationColor: rgb(208,212,216);
+$Panel-Nav-A_TextDecorationColor: transparent;//rgb(208,212,216);
 $Panel-Nav-A_Color__Hover: steelblue;
-$Panel-Nav-A_TextDecorationColor__Hover: steelblue;
+$Panel-Nav-A_TextDecorationColor__Hover: lighten(steelblue, 25%);
+
+$Panel-Nav-ContourLine_Width: 2px;
+$Panel-Nav-ContourLine_Color: desaturate(lighten(steelblue, 40%), 50%);
 
 
 // . Cover

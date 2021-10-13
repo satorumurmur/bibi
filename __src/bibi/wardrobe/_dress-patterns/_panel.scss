@@ -34,6 +34,17 @@ div#bibi-panel-bookinfo {
 
 div#bibi-panel-bookinfo-navigation {
 	nav {
+		ul, ol {
+			li {
+				ul, ol {
+					&:before {
+						html.nav-ttb & { width: $Panel-Nav-ContourLine_Width; }
+						html.nav-rtl & { height: $Panel-Nav-ContourLine_Width; }
+						background: $Panel-Nav-ContourLine_Color;
+					}
+				}
+			}
+		}
 		a {
 			border-color: $Panel-Nav-A_TextDecorationColor;
 			color: $Panel-Nav-A_Color;
