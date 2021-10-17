@@ -37,6 +37,7 @@ Bibi.SettingTypes = {
         'use-loupe-ui',
         'use-menubar',
         'use-nombre',
+        'use-popup-footnotes',
         'use-search-ui',
         'use-slider',
         'use-textsetter-ui',
@@ -1152,12 +1153,6 @@ L.coordinateLinkages = (Opt) => {
         }
         if(/^[a-zA-Z]+:/.test(HRefPathInSource)) {
             A.Destination = { External: HRefPathInSource };
-            A.jumpWithBibi = () => new Promise(resolve => {
-                const TargetInSource = A.getAttribute('target');
-                if(/^_(parent|self|top)$/.test(TargetInSource)) location.href = HRefPathInSource;
-                else                                                window.open(HRefPathInSource);
-                resolve();
-            });
         } else {
             const HRefPath = /^#/.test(HRefPathInSource) ? Opt.BasePath + HRefPathInSource : O.rrr(BaseDir + '/' + HRefPathInSource);
             const HRefFnH = HRefPath.split('#');
@@ -1175,37 +1170,43 @@ L.coordinateLinkages = (Opt) => {
             if(A.Destination) {
                 A.setAttribute('data-bibi-original-href', HRefPathInSource);
                 A.setAttribute(HRefAttribute, B.Path + '/' + HRefPath);
-                A.jumpWithBibi = L.coordinateLinkages.getJumper(A);
             }
         }
-        if(A.jumpWithBibi) A.addEventListener('click', Eve => {
-            Eve.AnchorElement = A;
-            E.dispatch('bibi:jumps-a-link', Eve);
-            Eve.preventDefault(); 
-            Eve.stopPropagation();
-            A.jumpWithBibi().then(() => E.dispatch('bibi:jumped-a-link', Eve));
-            return false;
-        });
+        if(A.Destination) {
+            A.jump = (Eve, Opt = {}) => {
+                Eve.preventDefault(), Eve.stopPropagation();
+                return (A.InNav ? I.Panel.toggle() : Promise.resolve()).then(() => {
+                    if(A.Destination.External) {
+                        // Go External
+                        const TargetInSource = A.getAttribute('target');
+                        if(/^_(parent|self|top)$/.test(TargetInSource)) location.href = A.Destination.External;
+                        else                                                window.open(A.Destination.External);
+                    } else if(L.Waiting) {
+                        // Open with Links in Nav
+                        if(S['start-in-new-window']) {
+                            L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
+                        } else {
+                            R.StartOn = A.Destination;
+                            return L.play();
+                        }
+                    } else if(L.Opened) {
+                        if(!A.InNav && I.Footnotes && !Opt.PreventFootnote && I.Footnotes.show(A)) return Promise.resolve();
+                        const Dest = R.dest(A.Destination);
+                        if(!Dest) return Promise.reject();
+                        E.dispatch('bibi:jumps-a-link', Eve);
+                        if(!S['manualize-adding-histories']) I.History.add();
+                        return R.focusOn(A.Destination, { Duration: 0 }).then(Destination => {
+                            if(!S['manualize-adding-histories']) I.History.add({ UI: Opt.UI|| B, SumUp: false, Destination: Destination });
+                            E.dispatch('bibi:jumped-a-link', Eve);
+                        });
+                    }
+                });
+            };
+            A.addEventListener('click', Eve => A.jump(Eve));
+        }
         if(A.InNav && R.StartOn && R.StartOn.Nav == (i + 1) && A.Destination && !A.Destination.External) R.StartOn = A.Destination;
     }
 };
-
-    L.coordinateLinkages.getJumper = (A) => () => A.Destination ? new Promise(resolve => A.InNav ? I.Panel.toggle().then(resolve) : resolve()).then(() => {
-        if(L.Opened) {
-            if(!S['manualize-adding-histories']) I.History.add();
-            return R.focusOn(A.Destination, { Duration: 0 }).then(Destination => {
-                if(!S['manualize-adding-histories']) I.History.add({ UI: B, SumUp: false, Destination: Destination });
-                return Destination;
-            });
-        } else if(L.Waiting) {
-            if(S['start-in-new-window']) {
-                L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(nav=' + A.NavANumber + ')');
-            } else {
-                R.StartOn = A.Destination;
-                L.play();
-            }
-        }
-    }) : Promise.reject();
 
 
 L.preprocessResources = () => {
@@ -2712,6 +2713,7 @@ I.initialize = () => {
     E.bind('bibi:initialized-book', () => {
         I.TextSetter.create();
         I.BookmarkManager.create();
+        I.Footnotes.create();
     });
     E.bind('bibi:prepared', () => {
         I.FlickObserver.create();
@@ -5400,6 +5402,174 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
     };
     BookmarkManager.initialize();
     E.dispatch('bibi:created-bookmark-manager');
+}};
+
+
+I.Footnotes = { create: () => { if(!S['use-popup-footnotes']) return I.Footnotes = null;
+    const Footnotes = I.Footnotes = {
+        OpenedFoontnotes: [],
+        _trimBrackets: (Str) => Str.trim().replace(/^[\(\{\[（｛［〔〈《｟【「『]+|[\)\}\]）｝］〕〉》｠】」』]+$/g, '').trim(),
+        _trimMarkers:  (Str) => Str.trim().replace(/^[\*＊※†]+|[\*＊※†]+$/, '').trim(),
+        _trimBracketsAndMarkers: (Str) => Footnotes._trimMarkers(Footnotes._trimBrackets(Str)),
+        _zen2han: (Str) => Str.replace(/[ａ-ｚＡ-Ｚ０-９]/g, (_M) => String.fromCharCode(_M.charCodeAt(0) - 0xFEE0)),
+        initialize: () => {
+            const escapeSC = (Str) => Str.replace(/([\(\{\[\*])/g, '\\$1');
+            const BracketsO = escapeSC('({[（｛［〔〈《｟【「『');
+            const BracketsC = escapeSC(')}]）｝］〕〉》｠】」』');
+            const  Markers  = escapeSC('*＊※†');
+            const BracketsRE = new RegExp('^[' + BracketsO + ']+|[' + BracketsC + ']+$', 'g');
+            const  MarkersRE = new RegExp('^[' +  Markers  + ']+|[' +  Markers  + ']+$', 'g');
+            Footnotes.trimBrackets = (Str) => Str.trim().replace(BracketsRE, '').trim();
+            Footnotes.trimMarkers  = (Str) => Str.trim().replace( MarkersRE, '').trim();
+            Footnotes.trimBracketsAndMarkers = (Str) => Footnotes.trimMarkers(Footnotes.trimBrackets(Str));
+            const hatch = (Dest) => {
+                if(!Dest) return null;
+                if(!Dest.Element && Dest.ElementSelector) {
+                    if(Dest.ItemIndex) Dest.Item = R.Items[Dest.ItemIndex], delete Dest.ItemIndex;
+                    if(Dest.Item) {
+                        Dest.Element = Dest.Item.contentDocument.querySelector(Dest.ElementSelector), delete Dest.ElementSelector;
+                        if(!Dest.Element || Dest.Element.nodeType != 1) delete Dest.Element;
+                    }
+                }
+                return Dest;
+            };
+            const setFootnoteElement = (A, FnEle) => {
+                A.IsNoteRef = true, FnEle.IsFootnote = true;
+                A.FootnoteElement = FnEle;
+                if(!FnEle.NoteRefs) FnEle.NoteRefs = [];
+                FnEle.NoteRef = A;
+            };
+            E.bind('bibi:loaded-book', () => R.Items.forEach(Item => {
+                Item.Body.querySelectorAll('a[href*="#"]').forEach(BaseA => {
+                    const BaseDest = hatch(BaseA.Destination);
+                    if(!BaseDest || !BaseDest.Element || !BaseDest.Element.innerHTML) return;
+                    if(BaseA.getAttribute('epub:type') == 'noteref' || BaseDest.Element.getAttribute('epub:type') == 'footnote') setFootnoteElement(BaseA, BaseDest.Element);
+                    if(BaseA.ReturningTo) return;
+                    const BackACandidates = BaseDest.Element.tagName.toUpperCase() == 'A' ? [BaseDest.Element] : BaseDest.Element.getElementsByTagName('a');
+                    if(!BackACandidates.length) return;
+                    let BackA = null, BackDest = null;
+                    for(let l = BackACandidates.length, i = 0; i < l; i++) { const BackACandidate = BackACandidates[i];
+                        BackDest = hatch(BackACandidate.Destination);
+                        if(!BackDest || !BackDest.Element) continue;
+                        if(BackDest.Element.contains(BaseA)) { BackA = BackACandidate; break; }
+                    }
+                    if(BackA) {
+                        BaseA.ForwardingTo = BackA;
+                        BackA.ReturningTo  = BaseA;
+                        if(BaseA.FootnoteElement) return;
+                        if(Footnotes._trimBracketsAndMarkers(BaseA.textContent) == Footnotes._trimBracketsAndMarkers(BackA.textContent)) {
+                            BaseA.Pair = BackA, BackA.Pair = BaseA;
+                            if(BaseDest.Element.closest('h1,h2,h3,h4,h5,h6')) return;
+                            let FnEle_JIP = BaseDest.Element.closest('p,li,dt,figure');
+                            if(!FnEle_JIP) {
+                                FnEle_JIP = BaseDest.Element.closest('div,section,article,aside,body,html');
+                                if(!FnEle_JIP || FnEle_JIP.textContent.length > 800) return;
+                            }
+                            BaseA.FootnoteElement_JustInPossibility = FnEle_JIP;
+                        }
+                    }
+                });
+            }));
+        },
+        detectFootnoteElement: (BaseA) => {
+            if(BaseA.FootnoteElement) return BaseA.FootnoteElement;
+            if(!BaseA.ForwardingTo || !BaseA.FootnoteElement_JustInPossibility) return null;
+            const FnEle_JIP = BaseA.FootnoteElement_JustInPossibility, Clone = FnEle_JIP.cloneNode('DEEP');
+            const CloneAs = Clone.querySelectorAll('a[href*="#"]');
+            FnEle_JIP.querySelectorAll('a[href*="#"]').forEach((A, i) => A.Pair ? CloneAs[i].remove() : A);
+            return Clone.textContent.trim() ? FnEle_JIP : null;
+        },
+        show: (A) => { // must returns true/false
+            if(A.FootnoteElement === undefined) A.FootnoteElement = Footnotes.detectFootnoteElement(A);
+            if(!A.FootnoteElement) return false;
+            // if(I.PageObserver.Current.Pages.includes(R.dest(A.FootnoteElement).Page)) return false; // return true;
+            for(let i = 0; i < Footnotes.OpenedFoontnotes.length; i++) if(Footnotes.OpenedFoontnotes[i].For == A.FootnoteElement) return true;
+            Footnotes.make(A).open();
+            return true;
+        },
+        make: (A) => {
+            // Layer
+            const Layer  = sML.create('div', { className: 'bibi-footnote', For: A.FootnoteElement,
+                open: () => {
+                    E.dispatch('bibi:is-going-to:opens-footnote', Layer);
+                    Layer.check();
+                    E.add('bibi:changed-intersection', Layer.onIntersectionChange);
+                    Footnotes.hideAll();
+                    Footnotes.OpenedFoontnotes.push(document.body.appendChild(Layer));
+                    O.HTML.classList.add('footnote-opened');
+                    setTimeout(() => {
+                        Layer.classList.add('opened');
+                        E.dispatch('bibi:opened-footnote', Layer);
+                    }, 0);
+                },
+                close: () => {
+                    E.dispatch('bibi:is-going-to:closes-footnote', Layer);
+                    E.remove('bibi:changed-intersection', Layer.check);
+                    Footnotes.OpenedFoontnotes = Footnotes.OpenedFoontnotes.filter(Fn => Fn != Layer);
+                    Layer.ontransitionend = () => {
+                        Layer.ontransitionend = () => undefined;
+                        document.body.removeChild(Layer);
+                        Layer.innerHTML = '';
+                        if(!Footnotes.OpenedFoontnotes.length) O.HTML.classList.remove('footnote-opened');
+                        E.dispatch('bibi:closed-footnote', Layer);
+                    };
+                    setTimeout(() => { Layer.classList.add('closed'); Layer.classList.remove('opened'); }, 0);
+                }
+            });
+            E.add(Layer, ['wheel', 'mousewheel'], Eve => Eve.stopPropagation());
+            // Footnote Head
+            const FnHead = Layer.appendChild(sML.create('div', { className: 'footnote-head' }));
+            FnHead.Heading = FnHead.appendChild(sML.create('div', { className: 'footnote-heading', innerHTML: Footnotes._zen2han(A.innerHTML) }));
+            sML.forEach(FnHead.Heading.getElementsByTagName('*'))(Ele => Ele.removeAttribute('style') || Ele.removeAttribute('class'));
+            // Footnote Body
+            const FnBody = Layer.appendChild(sML.create('div', { className: 'footnote-body', Jumpers: [] }));
+            FnBody.Content = FnBody.appendChild(sML.create('div', { className: 'footnote-content', innerHTML: Footnotes._zen2han(A.FootnoteElement.innerHTML), style: { fontFamily: getComputedStyle(A.FootnoteElement).fontFamily } }));
+            sML.forEach(FnBody.Content.getElementsByTagName('*'))(Ele => Ele.removeAttribute('style') || Ele.removeAttribute('class'));
+            const Imgs = FnBody.Content.querySelectorAll('img');
+            A.FootnoteElement.querySelectorAll('img').forEach((Img, i) => (Imgs[i].style.maxWidth = '100%') && (Imgs[i].src = Img.src));
+            const escapeDoubledDashes = (Ele) => Ele.childNodes.forEach(CN => { switch(CN.nodeType) { case 1: return escapeDoubledDashes(CN); case 3: CN.textContent = CN.textContent.replace(/(^|[^―])――([^―]|$)/g, '$1--DOUBLED-DASH--$2'); } });
+            escapeDoubledDashes(FnBody.Content); FnBody.Content.innerHTML = FnBody.Content.innerHTML.replace(/--DOUBLED-DASH--/g, `<span class="bibi-footnote-content_doubled-dashes"><span>―</span><span>―</span></span>`);
+            const FnBC_As = FnBody.Content.getElementsByTagName('a'), OriginalAs = A.FootnoteElement.getElementsByTagName('a');
+            for(let l = FnBC_As.length, i = 0; i < l; i++) {
+                const FnBC_A = FnBC_As[i], OriginalA = OriginalAs[i];
+                if(!OriginalA.jump) return;
+                Object.assign(FnBC_A, { Original: OriginalA, Destination: OriginalA.Destination }).addEventListener('click', Eve => {
+                    Eve.preventDefault(), Eve.stopPropagation();
+                    return FnBC_A.Disabled ? false : OriginalA.jump(Eve);
+                });
+                FnBody.Jumpers.push(FnBC_A);
+            }
+            // Util
+            const Util = Layer.Util = Layer.appendChild(sML.create('ul', { className: 'footnote-utilities' })); 
+            (Util.UIs = [
+                Util.Jump  = sML.create('span', { action: Eve => A.jump(Eve, { UI: Footnotes, PreventFootnote: true }), Destination: A.Destination }),
+                Util.Close = sML.create('span', { action: Eve => Layer.close() })
+            ]).forEach(UI => {
+                E.add(UI, 'bibi:singletapped', (Eve) => UI.Disabled ? false : UI.action(Eve));
+                I.setFeedback(UI, { StopPropagation: true });
+                Util.appendChild(sML.create('li')).appendChild(UI);
+            });
+            // Checker
+            Layer.check = () => {
+                FnBody.Jumpers.concat(Util.UIs).forEach(UI => UI.Destination ? UI.classList.toggle('disabled', UI.Disabled = I.PageObserver.Current.Pages.includes(R.getPage(UI.Destination))) : false);
+            };
+            Layer.onIntersectionChange = () => {
+                Layer.check();
+                Layer.close();
+            };
+            return Layer;
+        },
+        hideAll: () => Footnotes.OpenedFoontnotes.forEach(Fn => Fn.close())
+    };
+    Footnotes.initialize();
+    // E.add(['bibi:opens-utilities', 'bibi:closes-utilities'], () => Footnotes.hideAll());
+    I.Utilities.Checkers.push(() => {
+        if(Footnotes.OpenedFoontnotes.length) {
+            Footnotes.hideAll();
+            return false;
+        }
+        return true;
+    });
 }};
 
 

@@ -1,0 +1,195 @@
+// ================================================================================
+// + Footnotes
+// --------------------------------------------------------------------------------
+
+div.bibi-footnote {
+	$Rad: 5px;
+	$UtilH: 40px;
+	$MaxH: 48vh;
+	$BodyLineHeight: 1.75;
+	& {
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		position: fixed;
+		z-index: 99999999999;
+		@include offset(auto, $Rad * -1, 0);
+		margin: 0 auto;
+		padding: 0;
+		border-radius: $Rad $Rad 0 0;
+		@include size(100vw, auto);
+		@include max-size(54em, #{$MaxH});
+		@include min-size(0, calc(#{ $UtilH } + #{ 1em * $BodyLineHeight * 4 }));
+		font-size: 16px;
+		color: rgb(40,44,48);
+		background: rgba(white, .96);
+		box-shadow: 0 0 24px rgba(black, .125);
+		transform-origin: 50% 0;
+		transform: translateY(25%);
+		opacity: 0;
+		pointer-events: none;
+		rt {
+			font-size: .5em;
+		}
+	}
+	&.opened {
+		transition: .25s ease-out;
+		transform: none;
+		opacity: 1;
+		pointer-events: auto;
+	}
+	&.closed {
+		transition: .125s ease-in;
+		transform: translateY(25%);
+		opacity: 0;
+		pointer-events: none;
+	}
+	> div.footnote-head { // Heading
+		box-sizing: border-box;
+		position: relative;
+		padding: 0 .5em;
+		@include size(100%, $UtilH);
+		line-height: 1;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		> div.footnote-heading {
+		}
+	}
+	> div.footnote-body { // Content
+		position: relative;
+		box-sizing: border-box;
+		@include size(100%, auto);
+		max-height: calc(#{$MaxH} - #{$UtilH});
+		> div { // Note.Content
+			overflow-x: hidden;
+			overflow-y: auto;
+			scroll-behavior: smooth;
+			box-sizing: border-box;
+			position: relative;
+			z-index: 1;
+			margin: 0;
+			padding: 1em;
+			@include size(100%, auto);
+			max-height: calc(#{$MaxH} - #{$UtilH});
+			line-height: $BodyLineHeight;
+			color: rgb(32,32,32);
+			* {
+				font-style: inherit;
+				font-weight: inherit;
+				text-decoration: none;
+			}
+			strong {
+				font-style: inherit;
+				font-weight: bold;
+			}
+			em {
+				font-style: italic;
+				font-weight: inherit;
+			}
+			ruby {
+				rt {
+					font-weight: normal !important;
+				}
+			}
+			a {
+				color: saturate(steelblue, 20%) !important;
+				text-decoration: none !important;
+				&.disabled {
+					color: rgb(128,128,128) !important;
+					cursor: default !important;
+				}
+			}
+			span.bibi-footnote-content_doubled-dashes {
+				> span { display: inline-block; transform-origin: 0 0; }
+				> span:first-child { transform: scaleX(2); }
+				> span:last-child { transform: scaleX(0); color: transparent; }
+			}
+		}
+		&:before, &:after {
+			content: "";
+			display: block;
+			position: absolute;
+			z-index: 999;
+			left: 0; right: 0;
+			margin: 0;
+			width: 100%;
+			pointer-events: none;
+		}
+		&:before {    top: 0; bottom: auto; height:  .50em; background: transparent linear-gradient(to bottom, rgba(white, 1) 0, rgba(white, 0) 100%) no-repeat center    top; }
+		&:after  { bottom: 0;    top: auto; height: 1.50em; background: transparent linear-gradient(to top,    rgba(white, 1) 0, rgba(white, 0) 100%) no-repeat center bottom; }
+	}
+	> ul.footnote-utilities { // Util
+		box-sizing: border-box;
+		position: absolute;
+		@include offset(0, 0, auto);
+		margin: 0;
+		padding: 0 .5em;
+		@include size(100%, $UtilH);
+		line-height: 1;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+		&:before {
+			content: "";
+			display: block;
+			position: absolute;
+			//@include offset(0, 0, auto);
+			@include offset(auto, 0, 0);
+			margin: 0 auto;
+			@include size(calc(100% - #{ $Rad }), 1px);
+			background: rgb(234,234,234);
+		}
+		li {
+			margin-right: -1px;
+			text-align: left;
+			span {
+				display: block;
+				position: relative;
+				z-index: 1;
+				border: solid 1px rgb(234,234,234);
+				border-radius: 4px;
+				@include size(24px);
+				color: saturate(steelblue, 20%);
+				background: transparent;
+				&:not(.disabled).hover {
+					z-index: 99;
+					border-color: lighten(saturate(steelblue, 20%), 25%);
+					color: saturate(steelblue, 20%);
+					background: lighten(saturate(steelblue, 20%), 45%);
+					cursor: pointer;
+				}
+				&.disabled {
+					color: rgb(192,192,192);
+				}
+				&:before,
+				&:after {
+					display: inline-block;
+					@include GLOBAL__FontIcon_BaseStyles("Material Icons", 24px, 1);
+				}
+			}
+		}
+		li:first-child {
+			span {
+				&:before {
+					content: "undo"; transform: scale(.875);
+				}
+			}
+		}
+		li:last-child {
+			position: absolute;
+			right: .5em;
+			text-align: right;
+			span {
+				color: rgb(96,96,96);
+				&:before {
+					content: "clear";
+				}
+			}
+		}
+	}
+}
