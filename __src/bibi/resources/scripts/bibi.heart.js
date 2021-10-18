@@ -1254,10 +1254,13 @@ L.loadItem = (Item, Opt = {}) => {
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize: () => {
-                    Item.Source.Content = Item.Source.Content.replace(/<a(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '<a$1></a>');
+                    Item.Source.Content = Item.Source.Content.replace(/\s*<\!\s*--(.|\s)+?--\s*>\s*/g, '');
+                    Item.Source.Content = (Item.Source.IsXHTML = /\.(xht(ml)?|xml)?$/i.test(Item.Source.Path)) ?
+                        Item.Source.Content.replace(/\s*<[\?\!](.|\s)+?>\s*/g, '') :
+                        Item.Source.Content.replace(/<a(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '<a$1></a>');
                     if(!S['allow-scripts-in-content']) {
-                        Item.Source.Content = Item.Source.Content.replace(/<script(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '');
-                        O.sanitizeItemSource(Item.Source, { As: 'HTML' });
+                        if(!Item.Source.IsXHTML) Item.Source.Content = Item.Source.Content.replace(/<script(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '');
+                        O.sanitizeItemSource(Item.Source, { As: Item.Source.IsXHTML ? 'XHTML' : 'HTML' });
                     }
                 }
             }).then(ItemSource =>
@@ -1315,7 +1318,7 @@ L.loadItem = (Item, Opt = {}) => {
             Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
             return;
         }
-        O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html').then(loadItemContent);
+        O.createBlobURL('Text', HTML, /*S['allow-scripts-in-content'] &&*/ Item.Source.IsXHTML ? 'application/xhtml+xml' : 'text/html').then(loadItemContent);
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
@@ -1324,7 +1327,8 @@ L.loadItem = (Item, Opt = {}) => {
         Item.Turned = 'Up';
         // Item.stamp('Loaded');
         E.dispatch('bibi:loaded-item', Item);
-    }).catch(() => { // Placeholder
+    }).catch(Msg => { // Placeholder (or Error)
+        // console.log('Caught', Msg);
         if(Item.parentElement) Item.parentElement.removeChild(Item);
         Item.onload = Item.onContentLoaded = undefined;
         Item.src = '';
@@ -4373,7 +4377,11 @@ I.TextSetter = { create: () => {
                 change:     (Par ) => Par.Step !== undefined ? ItemTextSetter[ProC].changeStep(Par.Step) : ItemTextSetter[ProC].changeScale(Par.Scale)
             });
         });
-        sML.forEach(Item.HTML.querySelectorAll('body, body *:not(script):not(style):not(img):not(svg):not(picture):not(iframe):not(audio):not(video):not(source)'))(Ele => {
+        const TagNamesToBeIgnored = [['script', 'style', 'img', 'iframe', 'source'], ['audio', 'video', 'picture', 'svg', 'math']];
+        //const ParentsToBeIgnored = Item.Body.querySelectorAll(TagNamesToBeIgnored[1].join(','));
+        sML.forEach(Item.HTML.querySelectorAll(`body, body *` + TagNamesToBeIgnored.flat().map(TN => ':not(' + TN + ')').join('')))(Ele => {
+            //for(let l = ParentsToBeIgnored.length, i = 0; i < l; i++) if(ParentsToBeIgnored[i].contains(Ele)) return;
+            if(!Ele.style) return;
             const EleTSr = Ele.BibiTextSetter = {};
             let ComputedFontSize = getComputedStyle(Ele).fontSize;
             if(/\.?\d+px$/.test(ComputedFontSize)) ComputedFontSize = parseFloat(ComputedFontSize); else return;
