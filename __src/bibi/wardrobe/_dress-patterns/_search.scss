@@ -1,0 +1,244 @@
+// ================================================================================
+// + Search
+// --------------------------------------------------------------------------------
+
+div#bibi-search {
+	> div#bibi-search-bar {
+		padding: ($Menu_Height - $Menu-Icon_Size) * 0.5;
+		height: $Menu_Height;
+		border-bottom: solid 1px rgba(black, .1);
+		padding-right: $Menu-Icon_Size + $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Button_Margin;
+		background: rgb(240,240,240);
+		> * {
+			height: $Menu-Icon_Size;
+			line-height: $Menu-Icon_Size;
+		}
+		> form#bibi-search-form {
+			border: solid 1px rgb(222,222,222);
+			border-radius: 2px ($Menu-Icon_Size * 0.5) ($Menu-Icon_Size * 0.5) 2px;
+			background: white;
+			> input#bibi-search-form-input {
+				color: rgb(54,54,54);
+			}
+			&.not-found { 
+				> input#bibi-search-form-input {
+					font-weight: bold;
+					color: rgb(160,160,160);
+				}
+			}
+		}
+		> div#bibi-search-progress {
+			width: $Menu-Icon_Size * 2;
+			padding: 0 .75em;
+			font-size: 13px;
+			color: rgb(54,54,54);
+			&.disabled { opacity: .5; }
+			> span#bibi-search-progress-current {
+				font-weight: bold;
+			}
+			> span#bibi-search-progress-delimiter {
+				padding: 0 .125em;
+				font-size: .9em;
+				opacity: .75;
+			}
+			> span#bibi-search-progress-total {
+				font-size: .81em;
+			}
+		}
+		> .bibi-buttongroup {
+			> .bibi-buttonbox {
+				position: relative;
+				z-index: 1; &.hover, &.active { z-index: 9; }
+				text-align: center;
+				//height: 100%;
+				> .bibi-button {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							&:before {
+								position: relative;
+							}
+						}
+					}
+					> .bibi-button-label {
+						overflow: hidden;
+						display: block;
+						position: absolute;
+						@include size(0);
+						color: transparent;
+					}
+				}
+			}
+		}
+		> .bibi-buttongroup-tiled {
+			li { margin-left: -1px !important; }
+			li:first-child:not(:last-child) {
+				.bibi-button {
+					.bibi-button-iconbox {
+						.bibi-icon {
+							border-top-right-radius: 0;
+							border-bottom-right-radius: 0;
+						}
+					}
+				}
+			}
+			li:last-child:not(:first-child) {
+				.bibi-button {
+					.bibi-button-iconbox {
+						.bibi-icon {
+							border-top-left-radius: 0;
+							border-bottom-left-radius: 0;
+						}
+					}
+				}
+			}
+		}
+		> .bibi-buttongroup#bibi-search-listopener {
+			margin-right: $Menu-ButtonGroup_Padding;
+			> .bibi-buttonbox {
+				> .bibi-button#bibi-search-listopener-button {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							&:before {
+								@include GLOBAL__FontIcon_BaseStyles("Material Icons", 24px, $Menu-Icon_Size);
+								content: "format_list_bulleted";
+							}
+						}
+					}
+				}
+			}
+		}
+		> .bibi-buttongroup#bibi-search-move {
+			> .bibi-buttonbox {
+				> .bibi-button {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							&:before {
+								transform: none;
+								@include GLOBAL__FontIcon_BaseStyles("Material Icons", 30px, $Menu-Icon_Size);
+							}
+						}
+					}
+				}
+				> .bibi-button#bibi-search-move-prev {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							&:before {
+								content: "keyboard_arrow_up";
+							}
+						}
+					}
+				}
+				> .bibi-button#bibi-search-move-next {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							&:before {
+								content: "keyboard_arrow_down";
+							}
+						}
+					}
+				}
+			}
+		}
+		> .bibi-buttongroup#bibi-search-closer {
+			> .bibi-buttonbox {
+				> .bibi-button#bibi-search-closer-button {
+					> .bibi-button-iconbox {
+						> .bibi-icon {
+							border: none 0;
+							background: transparent;
+							&:before {
+								@include GLOBAL__FontIcon_BaseStyles("Material Icons", 24px, $Menu-Icon_Size);
+								content: "close";
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+.bibi-subpanel#bibi-search-list {
+	width: calc(100% - 8px);
+	max-width: calc(100% - 8px);
+	@media screen and (min-width: 375px) {
+		width: calc(375px - 8px);
+	}
+	@media screen and (min-width: 750px) {
+		width: calc(50vw - 8px);
+	}
+	> .bibi-subpanel-section {
+		> .bibi-buttongroup {
+			> .bibi-buttonbox {
+				> .bibi-button {
+					font-size: 12px;
+					&.first-in-item:not(.last-in-item) { border-bottom-style: dashed; }
+					&:not(.first-in-item):not(.last-in-item) { border-style: dashed none; }
+					&:not(.first-in-item).last-in-item { border-top-style: dashed; }
+					> .bibi-button-iconbox {
+						border: solid 1px rgb(234,234,234);
+						border-radius: 2px;
+						@include size(1.8em);
+						text-align: center;
+						color: rgb(99,99,99);
+						background: rgb(248,248,248);
+					}
+					> .bibi-button-label {
+						width: calc(100% - 2.25em);
+						font-feature-settings: "palt" 1;
+						> span:first-of-type { margin-right: .125em; opacity: .75; }
+						> em:first-of-type {}
+						> strong { font-weight: bold; }
+						> em:last-of-type {}
+						> span:last-of-type { margin-left: .125em; opacity: .75; }
+						> em,
+						> strong {
+							span.break {
+								display: inline-block;
+								position: relative;
+								box-sizing: border-box;
+								border: solid 1px currentcolor;
+								border-radius: 2px;
+								@include size(1em);
+								font-size: .9em;
+								vertical-align: baseline;
+								transform: translate(1px, 1px);
+								opacity: .25;
+								&:before {
+									content: "⏎";
+									display: flex;
+									flex-direction: row;
+									flex-wrap: nowrap;
+									justify-content: center;
+									align-items: center;
+									position: absolute;
+									@include offset(-100%);
+									margin: auto;
+									@include size(100%);
+									transform: scale(.5) translate(-.125em, .125em);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+.bibi-buttongroup#bibi-search-opener {
+	> .bibi-buttonbox {
+		> .bibi-button {
+			> .bibi-button-iconbox {
+				> .bibi-icon {
+					&:before {
+						position: relative;
+						top: -1px;
+						@include GLOBAL__FontIcon_BaseStyles("Material Icons", 30px, $Menu-Icon_Size);
+						content: "manage_search";
+					}
+				}
+			}
+		}
+	}
+}

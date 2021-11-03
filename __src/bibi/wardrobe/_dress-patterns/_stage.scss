@@ -14,7 +14,9 @@ html {
 body {
 	background: $Body_Background;
 	&:after {
-		@include ContentShade(); html.subpanel-opened & { @include ContentShade__SubpanelOpened(); }
+		@include ContentShade();
+		html.subpanel-opened & { @include ContentShade__SubpanelOpened(); }
+		html.searching-hard  & { @include ContentShade__SearchingHard(); }
 	}
 }
 

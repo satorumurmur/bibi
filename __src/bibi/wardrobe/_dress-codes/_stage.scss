@@ -32,6 +32,9 @@ $Body_Background: white;
 @mixin ContentShade__SubpanelOpened() {
 	opacity: .25;
 }
+@mixin ContentShade__SearchingHard() {
+	opacity: .125;
+}
 
 
 // - Catcher

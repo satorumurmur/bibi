@@ -49,6 +49,8 @@ Bibi.preset({
 "use-linespacing-changer-ui" : "yes", // "yes" | "no" | "desktop" | "mobile"
 "linespacing-scale-per-step" : 1.25, // Number of scale
 
+"use-search-ui"              : "yes", // "yes" | "no" | "desktop" | "mobile"
+
 "use-loupe-ui"               : "yes", // "yes" | "no" | "desktop" | "mobile" // Loupe UI buttons are always hidden and disabled on reflowable books or in touch-devices.
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)
 "loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")

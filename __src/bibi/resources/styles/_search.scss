@@ -1,0 +1,118 @@
+// ================================================================================
+// + Search
+// --------------------------------------------------------------------------------
+
+div#bibi-search {
+	pointer-events: none;
+	font-size: 14px;
+	> div#bibi-search-bar {
+		pointer-events: auto;
+		box-sizing: border-box;
+		position: fixed;
+		z-index: 99999999999;
+		@include offset(0, 0, auto);
+		margin: 0 0 auto;
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-items: center;
+		html:not(.search-active) & {
+			transition: transform .125s ease-in;
+			transform: translateY(-100%);
+		}
+		html.search-active & {
+			transition: transform .25s ease-out;
+			transform: none;
+		}
+		> * {
+			flex-shrink: 0;
+			box-sizing: border-box;
+		}
+		> form#bibi-search-form {
+			display: flex;
+			box-sizing: border-box;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			justify-content: space-between;
+			align-items: center;
+			flex-shrink: 1;
+			width: 100%; max-width: 40em;
+			> input#bibi-search-form-input {
+				appearance: none;
+				outline: none;
+				margin: 0;
+				border: none 0;
+				border-radius: 0;
+				padding: .3em .5em .2em;
+				@include size(100%);
+				text-align: left;
+				line-height: 1.5;
+				background: transparent;
+			}
+		}
+		> div#bibi-search-progress {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			justify-content: center;
+			align-items: baseline;
+		}
+		> .bibi-buttongroup {
+			> .bibi-buttonbox {
+				> .bibi-button {
+					&.disabled { pointer-events: none; }
+				}
+			}
+		}
+		> .bibi-buttongroup#bibi-search-listopener,
+		> .bibi-buttongroup#bibi-search-move {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			justify-content: center;
+			align-items: center;
+			line-height: 1;
+		}
+		> .bibi-buttongroup#bibi-search-closer {
+			position: absolute;
+			right: 4px;
+		}
+	}
+}
+
+.bibi-subpanel#bibi-search-list {
+	> .bibi-subpanel-section {
+		> .bibi-buttongroup {
+			> .bibi-buttonbox {
+				> .bibi-button {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: space-between;
+					align-items: center;
+					line-height: 1;
+					> .bibi-button-iconbox,
+					> .bibi-button-label {
+						box-sizing: border-box;
+						margin: 0;
+					}
+					> .bibi-button-iconbox {
+						display: flex;
+						flex-direction: row;
+						flex-wrap: nowrap;
+						justify-content: center;
+						align-items: center;
+					}
+					> .bibi-button-label {
+						overflow: hidden;
+						white-space: nowrap;
+						word-break: keep-all;
+						text-overflow: ellipsis;
+					}
+				}
+			}
+		}
+	}
+}

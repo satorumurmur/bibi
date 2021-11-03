@@ -63,3 +63,28 @@ html.bibi-with-gutters {
 		}
 	}
 }
+
+html > foot > bibi-paints {
+	> bibi-paint {
+		> bibi-paint-fragment {
+			display: block;
+			position: absolute;
+			background: yellow;
+			mix-blend-mode: multiply;
+			pointer-events: none !important;
+			$Rad: 2px;
+			&.horizontal {
+				&:first-child {  border-top-left-radius: $Rad;  border-bottom-left-radius: $Rad; }
+				 &:last-child { border-top-right-radius: $Rad; border-bottom-right-radius: $Rad; }
+			}
+			&.vertical {
+				&:first-child {    border-top-left-radius: $Rad;    border-top-right-radius: $Rad; }
+				 &:last-child { border-bottom-left-radius: $Rad; border-bottom-right-radius: $Rad; }
+			}
+		}
+		&.destined > bibi-paint-fragment,
+		&.emphasized > bibi-paint-fragment {
+			background: orange;
+		}
+	}
+}

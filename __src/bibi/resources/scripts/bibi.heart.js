@@ -36,6 +36,7 @@ Bibi.SettingTypes = {
         'use-loupe-ui',
         'use-menubar',
         'use-nombre',
+        'use-search-ui',
         'use-slider',
         'zoom-out-for-utilities'
     ],
@@ -950,8 +951,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             if(ItemRef['bibi:allow-placeholder']) Item['bibi:allow-placeholder'] = true;
             if(ItemRef['bibi:no-padding'])        Item['bibi:no-padding']        = true;
             Object.assign(Item, Item['rendition:layout'] == 'reflowable' ?
-                { Reflowable: true,  PrePaginated: false, NoPadding: Item['bibi:no-padding'], AllowPlaceholder: B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'] } :
-                { Reflowable: false, PrePaginated: true,  NoPadding: true,                    AllowPlaceholder: B.ExtractionPolicy != 'at-once' }
+                { Reflowable: true,  PrePaginated: false, NoPadding: Item['bibi:no-padding'], AllowPlaceholder: B.ExtractionPolicy != 'at-once' &&  Item['bibi:allow-placeholder'] } :
+                { Reflowable: false, PrePaginated: true,  NoPadding: true,                    AllowPlaceholder: B.ExtractionPolicy != 'at-once' && (Item['bibi:allow-placeholder'] || Metadata['rendition:layout'] == 'pre-paginated') }
             );
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Item.IndexInSpine = Spine.push(Item) - 1;
@@ -1332,7 +1333,7 @@ L.loadItem = (Item, Opt = {}) => {
         if(Item.parentElement) Item.parentElement.removeChild(Item);
         Item.onload = Item.onContentLoaded = undefined;
         Item.src = '';
-        Item.HTML = Item.Head = Item.Body = Item.Pages[0];
+        Item.HTML = Item.Head = Item.Body = Item.Foot = Item.Pages[0];
         Item.Loaded = false;
         Item.Turned = 'Down';
         E.dispatch('bibi:prepared-placeholder', Item);
@@ -1349,6 +1350,7 @@ L.postprocessItem = (Item) => {
     Item.HTML = Item.contentDocument.documentElement; Item.HTML.classList.add(...sML.Environments);
     Item.Head = Item.contentDocument.head;
     Item.Body = Item.contentDocument.body;
+    Item.Foot = Item.HTML.appendChild(Item.contentDocument.createElement('foot'));
     Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
     const XMLLang = Item.HTML.getAttribute('xml:lang'), Lang = Item.HTML.getAttribute('lang');
          if(!XMLLang && !Lang) Item.HTML.setAttribute('xml:lang', B.Language), Item.HTML.setAttribute('lang', B.Language);
@@ -2059,7 +2061,7 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
             else if(Side == 'after') FocusPoint += (Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
         }
     }
-    if(Number.isInteger(_.TextNodeIndex)) R.selectTextLocation(_); // Colorize Destination with Selection
+    // if(Number.isInteger(_.TextNodeIndex)) R.selectTextLocation(_); // Colorize Destination with Selection
     const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     ScrollTarget[C.L_AXIS_L] = FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     sML.scrollTo(ScrollTarget, {
@@ -2077,6 +2079,7 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
 
 R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
     /* _ = { // Destination Format (Immutable)
+        Range: RANGE,
         Element: ELEMENT,
         CFI: STRING,
         P: STRING,
@@ -2104,7 +2107,8 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
     const DD = { /* // Distilled Destination (New Object)
         Page: ELEMENT, (with/out)
                  Item: ELEMENT, (with/out)
-                         Element: ELEMENT, (with/out)
+                         Range: RANGE,
+                    (or) Element: ELEMENT, (with/out)
                                      TextNodeIndex: INTEGER,
                             (and/or) CharacterOffset: OBJECT,
                     (or) ProgressInItem: NUMBER, 
@@ -2117,11 +2121,21 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
         delete DD.Page;
     } else {
         switch(typeof _) {
-            case 'object': _ = _.nodeType == 1 ? { Element: _ } : Object.assign({}, _); break; // Immutable
+            case 'object': _ = _.startContainer ? { Range: _ } : _.nodeType == 1 ? { Element: _ } : Object.assign({}, _); break; // Immutable
             case 'number': _ = Number.isFinite(_) ? { IIPP: _ } : {}; break;
             case 'string': _ = R.getCFIDestination(_) || R.getPDestination(_) || {};
         }
-        if(_.Element !== undefined) {
+        if(_.Range !== undefined) {
+            if(_.Range && _.Range.startContainer) {
+                if(_.Range.startContainer.ownerDocument.body.Item) {
+                    const Item = _.Range.startContainer.ownerDocument.body.Item;
+                    if(Item && Item.IsLinearItem) {
+                        DD.Item = Item;
+                        DD.Range = _.Range;
+                    }
+                }
+            }
+        } else if(_.Element !== undefined) {
             if(_.Element && _.Element.ownerDocument) {
                 if(_.Element.ownerDocument == document) {
                     DD.Element = _.Element;
@@ -2206,6 +2220,7 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
         }
     }
     const Page = !Object.keys(DD).length ? _.Page :
+        DD.Range   ? R.getPageOfRangeHead(DD.Range) :
         DD.Element ? R.getPageOfElementHead(DD.Element) :
         DD.Item    ? (DD.ProgressInItem   !== undefined ? R.getPageOfProgressIn(DD.Item,   DD.ProgressInItem  ) : DD.PageIndexInItem   !== undefined ? R.getPageOfIndexIn(DD.Item,   DD.PageIndexInItem  ) :   DD.Item.Pages[0]) :
         DD.Spread  ? (DD.ProgressInSpread !== undefined ? R.getPageOfProgressIn(DD.Spread, DD.ProgressInSpread) : DD.PageIndexInSpread !== undefined ? R.getPageOfIndexIn(DD.Spread, DD.PageIndexInSpread) : DD.Spread.Pages[0]) :
@@ -2217,16 +2232,21 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
     return null;
 };
 
+    R.getPageOfRangeHead = (Ran) => {
+        if(!Ran || !Ran.startContainer) return null;
+        if(Ran.startContainer.ownerDocument == document) return R.Pages[0];
+        return R.getPageOfRectHeadInItem(Ran.getBoundingClientRect(), Ran.startContainer.ownerDocument.documentElement.Item);
+    };
+
     R.getPageOfElementHead = (Ele) => {
         if(!Ele || Ele.nodeType !== 1) return null;
-        if(Ele.ownerDocument == document) {
-            if(Ele.IsPage) return Ele;
-            if(Ele.IsLinearItem || Ele.IsSpread) return Ele.Pages[0];
-            try { return I.PageObserver.Current.Pages[0]; } catch(Err) {}
-            return R.Pages[0];
-        }
-        const Item = Ele.ownerDocument.documentElement.Item, ElementCoordInItem = Ele.getBoundingClientRect()[C.L_BASE_b];
-        return Item.Pages[Math.floor((S.SLD == 'rtl' ? Item.HTML.getBoundingClientRect()[C.L_SIZE_l] - ElementCoordInItem : ElementCoordInItem) / R.Stage[C.L_SIZE_L])];
+        if(Ele.ownerDocument == document) return Ele.IsPage ? Ele : (Ele.IsLinearItem || Ele.IsSpread) ? Ele.Pages[0] : R.Pages[0];
+        return R.getPageOfRectHeadInItem(Ele.getBoundingClientRect(), Ele.ownerDocument.documentElement.Item);
+    };
+
+    R.getPageOfRectHeadInItem = (Rect, Item) => {
+        const CoordInItem = Rect[C.L_BASE_b];
+        return Item.Pages[Math.floor((S.SLD == 'rtl' ? Item.HTML.getBoundingClientRect()[C.L_SIZE_l] - CoordInItem : CoordInItem) / R.Stage[C.L_SIZE_L])];
     };
 
     R.getPageOfProgressIn = (In, Progress) => In.Pages[ Progress > 0 ? Math.min(Math.floor(In.Pages.length * Progress), In.Pages.length - 1) : 0 ];
@@ -2536,29 +2556,29 @@ R.getNearestNavItem = (_) => {
 };
 
 
-R.selectTextLocation = (_) => {
-    if(!_ || !Number.isInteger(_.TextNodeIndex) || !_.Element) return false;
-    const _Node = _.Element.childNodes[_.TextNodeIndex];
-    if(!_Node || !_Node.textContent) return;
-    const Sides = { Start: { Node: _Node, Index: 0 }, End: { Node: _Node, Index: _Node.textContent.length } };
-    if(_.CharacterOffset) {
-        if(_.CharacterOffset.Preceding || _.CharacterOffset.Following) {
-            Sides.Start.Index = _.CharacterOffset.Index, Sides.End.Index = _.CharacterOffset.Index;
-            if(_.CharacterOffset.Preceding) Sides.Start.Index -= _.CharacterOffset.Preceding.length;
-            if(_.CharacterOffset.Following)   Sides.End.Index += _.CharacterOffset.Following.length;
-            if(Sides.Start.Index < 0 || _Node.textContent.length < Sides.End.Index) return;
-            if(_Node.textContent.substr(Sides.Start.Index, Sides.End.Index - Sides.Start.Index) != _.CharacterOffset.Preceding + _.CharacterOffset.Following) return;
-        } else if(_.CharacterOffset.Side && _.CharacterOffset.Side == 'a') {
-            Sides.Start.Node = _Node.parentNode.firstChild; while(Sides.Start.Node.childNodes.length) Sides.Start.Node = Sides.Start.Node.firstChild;
-            Sides.End.Index = _.CharacterOffset.Index - 1;
-        } else {
-            Sides.Start.Index = _.CharacterOffset.Index;
-            Sides.End.Node = _Node.parentNode.lastChild; while(Sides.End.Node.childNodes.length) Sides.End.Node = Sides.End.Node.lastChild;
-            Sides.End.Index = Sides.End.Node.textContent.length;
-        }
-    }
-    return sML.Ranges.selectRange(sML.Ranges.getRange(Sides));
-};
+// R.selectTextLocation = (_) => {
+//     if(!_ || !Number.isInteger(_.TextNodeIndex) || !_.Element) return false;
+//     const _Node = _.Element.childNodes[_.TextNodeIndex];
+//     if(!_Node || !_Node.textContent) return;
+//     const Sides = { Start: { Node: _Node, Index: 0 }, End: { Node: _Node, Index: _Node.textContent.length } };
+//     if(_.CharacterOffset) {
+//         if(_.CharacterOffset.Preceding || _.CharacterOffset.Following) {
+//             Sides.Start.Index = _.CharacterOffset.Index, Sides.End.Index = _.CharacterOffset.Index;
+//             if(_.CharacterOffset.Preceding) Sides.Start.Index -= _.CharacterOffset.Preceding.length;
+//             if(_.CharacterOffset.Following)   Sides.End.Index += _.CharacterOffset.Following.length;
+//             if(Sides.Start.Index < 0 || _Node.textContent.length < Sides.End.Index) return;
+//             if(_Node.textContent.substr(Sides.Start.Index, Sides.End.Index - Sides.Start.Index) != _.CharacterOffset.Preceding + _.CharacterOffset.Following) return;
+//         } else if(_.CharacterOffset.Side && _.CharacterOffset.Side == 'a') {
+//             Sides.Start.Node = _Node.parentNode.firstChild; while(Sides.Start.Node.childNodes.length) Sides.Start.Node = Sides.Start.Node.firstChild;
+//             Sides.End.Index = _.CharacterOffset.Index - 1;
+//         } else {
+//             Sides.Start.Index = _.CharacterOffset.Index;
+//             Sides.End.Node = _Node.parentNode.lastChild; while(Sides.End.Node.childNodes.length) Sides.End.Node = Sides.End.Node.lastChild;
+//             Sides.End.Index = Sides.End.Node.textContent.length;
+//         }
+//     }
+//     return sML.Ranges.selectRange(sML.Ranges.getRange(Sides));
+// };
 
 
 R.scrollBy = (Dist, Par) => new Promise((resolve, reject) => {
@@ -2668,6 +2688,7 @@ export const I = {}; // Bibi.UserInterfaces
 I.initialize = () => {
     I.Oven.create();
     I.Utilities.create();
+    I.RangeFinder.create();
     I.TouchObserver.create();
     I.Notifier.create();
     I.Veil.create();
@@ -3247,7 +3268,7 @@ I.TouchObserver = { create: () => {
                             case 3: EventName = 'bibi:tripletapped'; BibiEvent.IsTripleTapBibiEvent = true;                                  break;
                         }
                         if(BibiEvent.altKey) EventName += '-with-altkey'; // 'bibi:singletapped-with-altkey', 'bibi:doubletapped-with-altkey', 'bibi:tripletapped-with-altkey'
-                        E.dispatch(Ele, EventName, BibiEvent);
+                        E.dispatch(Ele, EventName, Object.assign(BibiEvent, { RangeOfSelection: BibiEvent.TapAccumulation[0].TapLandingBibiEvent.RangeOfSelection }));
                     }
                 };
             }
@@ -3743,6 +3764,14 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
 
 I.Matrix = { create: () => {
     const Matrix = I.Matrix = {
+        checkSelectionStatus: (BibiEvent) => {
+            if(I.RangeFinder.Selecting) return false;
+            if(BibiEvent.RangeOfSelection) {
+                const PageOfRangeHeadOfSelection = R.getPageOfRangeHead(BibiEvent.RangeOfSelection);
+                if(PageOfRangeHeadOfSelection && I.PageObserver.Current.Pages.includes(PageOfRangeHeadOfSelection)) return false;
+            }
+            return true;
+        },
         checkTapAvailability: (BibiEvent) => {
             switch(S.RVM) {
                 case 'horizontal': if(BibiEvent.Coord.Y > window.innerHeight - O.Scrollbars.Height) return false; else break;
@@ -3790,6 +3819,7 @@ I.Matrix = { create: () => {
         E.add('bibi:opened', () => {
             E.add('bibi:singletapped-book', BibiEvent => {
                 if(I.isPointerStealth()) return;
+                if(!Matrix.checkSelectionStatus(BibiEvent)) return;
                 if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
                 if(Matrix.checkFlipperAvailability(BibiEvent)) {
                     const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
@@ -3812,7 +3842,7 @@ I.Matrix = { create: () => {
         E.add('bibi:opened', () => {
             E.add('bibi:moved-pointer', BibiEvent => {
                 if(I.isPointerStealth()) return;
-                if(Matrix.checkFlipperAvailability(BibiEvent)) {
+                if(Matrix.checkSelectionStatus(BibiEvent) && Matrix.checkFlipperAvailability(BibiEvent)) {
                     const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
@@ -5198,6 +5228,560 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
 }};
 
 
+I.RangeFinder = { create: () => {
+    const RangeFinder = I.RangeFinder = {
+        _str: (Str) => typeof Str == 'string' ? Str : Number.isFinite(Str) ? String(Str) : '',
+        _opt: (Opt) => {
+            if(!Opt || Opt.Flexible) return {};
+            const Options = {
+                CaseSensitive: true,
+                WidthSensitive: true,
+                ConvertBreaksTo: ' '
+            };
+            if(!Opt.Strict) for(const k in Options) if(!Opt[k]) delete Options[k];
+            if(typeof Opt.ConvertBreaksTo == 'string' && Opt.ConvertBreaksTo.length == 1) Options.ConvertBreaksTo = Opt.ConvertBreaksTo;
+            return Options;
+        },
+        _flatten: function(Str, Opt = {}) {
+            Str = (typeof Opt.ConvertBreaksTo != 'string' || Opt.ConvertBreaksTo.length != 1 || Opt.ConvertBreaksTo == ' ') ?
+                Str.replace(/[\r\n\t ]/g, ' ') :
+                Str.replace(/[\r\n]/g, Opt.ConvertBreaksTo).replace(/[\t ]/g, ' ');
+            if(!Opt.WidthSensitive) Str = Str.replace(/[！＂＃＄％＆＇（）＊＋，－．／０-９：；＜＝＞？＠Ａ-Ｚ［＼］＾＿｀ａ-ｚ｛｜｝～]/g, (Cha) => String.fromCharCode(Cha.charCodeAt(0) - 0xFEE0)).replace(/・/g, '.');
+            if(! Opt.CaseSensitive) Str = Str.toLowerCase();
+            return Str;
+        },
+        _compress: function(Str, Opt) { return this._flatten(Str, this._opt({ Strict: true, ConvertBreaksTo: Opt?.ConvertBreaksTo })).trim().replace(/ +/, ' '); },
+        _find: function(TargetNode, Str, Opt, Reversing) {
+            Str = this._flatten(Str, Opt); if(!Str) return null;
+            let TNode = TargetNode ? TargetNode : document.body; while(TNode.childNodes.length == 1) TNode = TNode.firstChild;
+            const TText = this._flatten(TNode.textContent, Opt); if(TText.indexOf(Str) < 0) return null;
+            const StrL = Str.length;
+            let Edges = [{}, {}];
+            if(TNode.nodeType == 3) {
+                const StartOffset = !Reversing ? TText.indexOf(Str) : TText.lastIndexOf(Str);
+                const EdgePrototype = { Container: TNode, Content: Str, Offsets: [StartOffset, StartOffset + StrL] };
+                return Edges.map(Edge => Object.assign(Edge, EdgePrototype));
+            } else {
+                const CTexts = [];
+                for(let CNs = TNode.childNodes, l = CNs.length - 1, i = 0; i <= l; i++) { const CN_i = !Reversing ? i : l - i;
+                    const CText = this._flatten(CNs[CN_i].textContent, Opt);
+                    if(CText.indexOf(Str) >= 0) return this._find(CNs[CN_i], Str, Opt, Reversing);
+                    !Reversing ? CTexts.push(CText) : CTexts.unshift(CText);
+                }
+                return Edges.map((Edge, Edge_i) => {
+                    let Container; switch(Edge_i) {
+                        case 0: Container = TNode.firstChild; while(CTexts.slice(1                   ).join('').indexOf(Str) >= 0) CTexts.shift(), Container =     Container.nextSibling; break;
+                        case 1: Container =  TNode.lastChild; while(CTexts.slice(0, CTexts.length - 1).join('').indexOf(Str) >= 0) CTexts.pop(),   Container = Container.previousSibling; break;
+                    }
+                    const CText = this._flatten(Container.textContent, Opt), CTextL = CText.length;
+                    let Content = Str; switch(Edge_i) {
+                        case 0: if(CTextL < StrL) Content = Content.substring(0,     CTextL); while(CText.lastIndexOf(Content) != CTextL - Content.length) Content = Content.substring(0, Content.length - 1); break;
+                        case 1: if(CTextL < StrL) Content = Content.substring(StrL - CTextL); while(    CText.indexOf(Content) != 0                      ) Content = Content.substring(1                    ); break;
+                    }
+                    while(!Edge.Offsets) Edge = this._find(Container, Content, Opt, !Edge_i)[Edge_i];
+                    return Edge;
+                });
+            }
+        },
+        searchFromDocument: function(Doc, SearchStrings, SearchOptions) { if(!Doc) Doc = document;
+            SearchOptions = this._opt(SearchOptions);
+            const SearchResults = [];
+            return Promise.all([SearchStrings].flat().map(SStr => new Promise(resolve => {
+                SStr = this._str(SStr); if(!SStr) return resolve();
+                const MDocF = Doc.createDocumentFragment(), // "M"irror
+                      MHTML = MDocF.appendChild(Doc.createElement('html')),
+                      MBody = MHTML.appendChild(Doc.importNode(Doc.body, true));
+                // const Imgs = MBody.querySelectorAll('img'), ImgsL = Imgs.length, RTPs = MBody.querySelectorAll('rp, rt'), RTPsL = RTPs.length;
+                // if(ImgsL) for(let i = 0; i < ImgsL; i++) { const Img = Imgs[i], PN = Img.parentNode; PN.insertBefore(Doc.createElement('ALT'), Img).innerHTML = Img.alt; PN.removeChild(Img); } // for Images: 1/2
+                // if(RTPsL) for(let i = 0; i < RTPsL; i++) { const RTP = RTPs[i]; RTP.IsRTP = RTP.tagName.toLowerCase(); RTP.TCL = RTP.textContent.length; RTP.innerHTML = ''; } // - for Rubies: 1/2
+                const Imgs = MBody.querySelectorAll('img'   ), ImgsL = Imgs.length;  if(ImgsL) for(let i = 0; i < ImgsL; i++) { const Img = Imgs[i], PN = Img.parentNode; PN.insertBefore(Doc.createElement('ALT'), Img).appendChild(Doc.createTextNode(Img.alt || '')); PN.removeChild(Img); }
+                const RTCs = MBody.querySelectorAll('rtc'   ), RTCsL = RTCs.length;  if(RTCsL) for(let i = 0; i < RTCsL; i++) { RTCs[i].innerHTML = ''; } // - for Rubies: 1/2 // ^ for Images: 1/2
+                const RTPs = MBody.querySelectorAll('rt, rp'), RTPsL = RTPs.length;  if(RTPsL) for(let i = 0; i < RTPsL; i++) { RTPs[i].innerHTML = ''; } // - for Rubies: 2/2
+                const DistilledDocText = this._compress(MBody.textContent, { ConvertBreaksTo: '⏎' }), DistilledSStrL = this._compress(SStr).length;
+                let Edges; while(Edges = this._find(MBody, SStr, SearchOptions)) {
+                    const Range = Doc.createRange();
+                    let Replaced = null;
+                    Edges.forEach((Edge, Edge_i) => {
+                        let MContainer = Edge.Container, Offsets = Edge.Offsets, CText = MContainer.textContent;
+                        if(MContainer != Replaced) (Replaced = MContainer).textContent = CText.substring(0, Offsets[0]) + Edge.Content.replace(/(.|\s)/g, '􏿿') + CText.substring(Offsets[1]); // to: U+10FFFF (PRIVATE USE AREA)
+                        // if(RTPsL && Edge_i && CText && Offsets[1] == CText.length) { // for Rubies: 2/2 (RTC not supported)
+                        //     let _Node = MContainer; while(_Node != MBody) {
+                        //         if(_Node.parentElement.tagName.toLowerCase() != 'ruby') { _Node = _Node.parentElement; continue; }
+                        //         let PEle = null, NES = _Node.nextElementSibling;
+                        //         if(NES && NES.nodeType == 1 && NES.IsRTP == 'rp')                              NES = NES.nextElementSibling;
+                        //         if(NES && NES.nodeType == 1 && NES.IsRTP == 'rt') PEle = NES.TCL ? NES : null, NES = NES.nextElementSibling;
+                        //         if(NES && NES.nodeType == 1 && NES.IsRTP == 'rp') PEle = NES.TCL ? NES : null;
+                        //         if(PEle) MContainer = PEle.appendChild(Doc.createTextNode('')), Offsets = [0, PEle.TCL];
+                        //         break;
+                        //     }
+                        // }
+                        if(ImgsL && MContainer.parentElement.tagName == 'ALT') { // for Images: 2/2
+                            const ALT = MContainer.parentElement;
+                            MContainer = ALT.parentElement;
+                            let ALT_i = 0; while(MContainer.childNodes[ALT_i] != ALT) ALT_i++;
+                            Offsets = [ALT_i, ALT_i + 1];
+                        }
+                        const NodeSteps = []; let _Node = MContainer; while(_Node != MBody) {
+                            const PEle = _Node.parentElement;
+                            let _Node_i = 0; while(PEle.childNodes[_Node_i] != _Node) _Node_i++;
+                            NodeSteps.unshift(_Node_i);
+                            _Node = PEle;
+                        }
+                        let Container = Doc.body; NodeSteps.forEach(NStep => Container = Container.childNodes[NStep]);
+                        switch(Edge_i) {
+                            case 0: Range.setStart(Container, Offsets[0]); break;
+                            case 1:   Range.setEnd(Container, Offsets[1]); break;
+                        }
+                    });
+                    const ResultText_Start = this._compress(MBody.textContent, { ConvertBreaksTo: '⏎' }).indexOf('􏿿');
+                    let   TextAround_Start = Math.max(ResultText_Start -  9, 0);
+                    const TextAround_End   = Math.min(TextAround_Start + 69, DistilledDocText.length);
+                          TextAround_Start = Math.max(TextAround_End   - 69, 0);
+                    const ResultText_End   = Math.min(ResultText_Start + DistilledSStrL, TextAround_End);
+                    const Break = `<span class="break"> </span>`;
+                    SearchResults.push({
+                        Index: SearchResults.length, // IndexInDocument
+                        Document: Doc,
+                        Range: Range,
+                        TextAround: [
+                            TextAround_Start > 0 ? '...' : '',
+                            DistilledDocText.substring(TextAround_Start, ResultText_Start).replace(/^⏎+/g, '').replace(/⏎+/g, Break),
+                            DistilledDocText.substring(ResultText_Start, ResultText_End  ).replace(                    /⏎+/g, Break),
+                            DistilledDocText.substring(ResultText_End,   TextAround_End  ).replace(/⏎+$/g, '').replace(/⏎+/g, Break),
+                            TextAround_End < DistilledDocText.length ? '...' : ''
+                        ],
+                        focus: () => this.Search.Results
+                    });
+                    Edges.forEach(Edge => Edge.Container.textContent = Edge.Container.textContent.replace(/􏿿/g, '​')); // from: U+10FFFF (PRIVATE USE AREA) / to: U+200B (ZERO WIDTH SPACE)
+                }
+                resolve();
+            }))).then(() => SearchResults.sort((_A, _B) => _A.Range.compareBoundaryPoints(Range.START_TO_START, _B.Range) || _A.Range.compareBoundaryPoints(Range.END_TO_END, _B.Range)));
+        },
+        searchFromBook: function(SearchStrings, SearchOptions) {
+            SearchStrings = SearchStrings.Formatted || SearchStrings;
+            const SearchResults = [];
+            return Promise.all(
+                R.Items.map((Item, i) => Item.Loaded ? this.searchFromDocument(Item.contentDocument, SearchStrings, SearchOptions).then(ItemSearchResults => SearchResults[i] = ItemSearchResults) : null)
+            )   .then(() => SearchResults.flat().map((SRes, i) => (SRes.Item = SRes.Document.body.Item, SRes.IndexInItem = SRes.Index, SRes.Index = i, SRes)));
+        },
+        search: function(SearchStrings, SearchOptions_BehaviorOptions) {
+            this.searching(false);
+            const NewSearch = this.newSearch(SearchStrings, SearchOptions_BehaviorOptions), SearchStringsF = NewSearch.Strings.Formatted;
+            const BehaviorOptions = { Focus: true }; for(const k in BehaviorOptions) if(SearchOptions_BehaviorOptions[k] !== undefined) BehaviorOptions[k] = SearchOptions_BehaviorOptions[k];
+            return new Promise((resolve, reject) => {
+                if(!SearchStringsF.length) return this.resetSearch() && reject();
+                E.dispatch('bibi:is-going-to:search', NewSearch);
+                if(this.isSameSearch(NewSearch, this.Search)) return this.updateSearch({ Strings: NewSearch.Strings, Options: NewSearch.Options }) && resolve();
+                this.updateSearch({ Strings: NewSearch.Strings, Options: NewSearch.Options, Results: [] });
+                const Times = SearchStringsF[0].length == 1 ? [0, 99] : [99, 0];
+                this.searching(true, Times[0]);
+                setTimeout(() => this.searchFromBook(NewSearch.Strings, NewSearch.Options).then(SearchResults => {
+                    this.updateSearch({ Results: SearchResults });
+                    resolve();
+                }), Times[1]);
+            })  .then(() => {
+                    const SearchResults = this.Search.Results;
+                    if(SearchResults.length) switch(BehaviorOptions.Focus) {
+                        case true: case 'auto'        : return this.autofocusOnTheSearchResult();
+                                   case 'auto-reverse': return this.autofocusOnTheSearchResult({ Reverse: true });
+                                   case 'first'       : return this.setSearchResultFocusTo(0);
+                                   case  'last'       : return this.setSearchResultFocusTo(SearchResults.length - 1);
+                    }
+                    const SearchResultF = SearchResults.Focused;
+                    if(SearchResultF) {
+                        this.paint(SearchResultF.Range, { Emphasized: false });
+                        SearchResults.Focused = null;
+                        this.updateSearch();
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => E.dispatch('bibi:searched', this.Search))
+                .catch(() => Promise.resolve())
+                .then(() => this.searching(false) || this.Search);
+        },
+        initializeSearch: function() {
+            if(!this.Search) this.Search = {};
+            Object.assign(this.Search, { Strings: [], Options: {}, Results: [] });
+        },
+        resetSearch: function(Updates) {
+            this.initializeSearch();
+            this.removeAllPaints();
+            return this.updateSearch(Updates);
+        },
+        updateSearch: function(Updates) {
+            const _S = this.Search;
+            if(Updates) Object.keys(_S).forEach(k => {
+                const _SData = _S[k], UdData = Updates[k];
+                if(UdData === undefined || UdData === _SData) return;
+                _S[k] = UdData;
+                if(k == 'Results') {
+                    this.removeAllPaints();
+                    const SearchResults = this.Search.Results;
+                    if(SearchResults.length) SearchResults.forEach(SearchResult => this.paint(SearchResult.Range));
+                    SearchResults.Focused       = null;
+                }
+            });
+            E.dispatch('bibi:updated-search-status', _S);
+            return _S;
+        },
+        searching: function(TF, Time) {
+            clearTimeout(this.Timer_searchingHard);
+            if(TF) { this.Timer_searchingHard = setTimeout(() => {
+                O.Busy = true;
+                O.HTML.classList.add('searching-hard');
+                O.HTML.classList.add('busy');
+            }, Time); } else {
+                O.HTML.classList.remove('busy');
+                O.HTML.classList.remove('searching-hard');
+                O.Busy = false;
+            }
+        },
+        isSameSearch: function(Search_A, Search_B) {
+            try {
+                const SOpts_A = Search_A.Options, SOpts_B = Search_B.Options; for(const k in Object.assign({}, SOpts_A, SOpts_B)) if(SOpts_A[k] !== SOpts_B[k]) return false;
+                return (Search_A.Strings.Formatted.join('<OR>') == Search_B.Strings.Formatted.join('<OR>'));
+            } catch(Err) { return false; }
+        },
+        newSearch: function(SearchStrings, SearchOptions) {
+            SearchOptions = this._opt(SearchOptions);
+            SearchStrings = [...new Set([SearchStrings].flat().reduce((SStrs, SStr) => (SStr = this._str(SStr).replace(/<OR>/g, '').replace(/^\s+$/g, '')) ? (SStrs.push(SStr), SStrs) : SStrs, []))];
+            SearchStrings.Formatted = [...new Set(SearchStrings.map(SStr => this._flatten(SStr, SearchOptions)))].sort((_A, _B) => _A.length - _B.length || (_A <= _B ? -1 : 1));
+            return { Strings: SearchStrings, Options: SearchOptions, Results: [] };
+        },
+        focusOn: function(Ran) {
+            const FocusedRange = this.FocusedRange;
+            if(Ran != FocusedRange) {
+                if(FocusedRange) this.paint(FocusedRange, { Emphasized: false });
+                this.paint(Ran, { Emphasized: true });
+                this.FocusedRange = Ran;
+            }
+            const Page = R.dest(Ran).Page;
+            return I.PageObserver.Current.Pages.includes(Page) ? Promise.resolve() : R.focusOn(Page).then(() => this.reserveRepainting(999));
+        },
+        setSearchResultFocusTo: function(SRoI /* SearchResult-or-Index: Index is better than SearchResult. */) {
+            const SearchResults = this.Search.Results; /**/ if(!SearchResults.length) return Promise.resolve();
+            const SearchResult  = Number.isInteger(SRoI) ? SearchResults[SRoI] : SearchResults.includes(SRoI) ? SRoI : null; /**/ if(!SearchResult) return Promise.resolve();
+            if(SearchResult != SearchResults.Focused) {
+                SearchResults.Focused = SearchResult;
+                this.updateSearch();
+            }
+            return this.focusOn(SearchResult.Range);
+        },
+        changeSearchResultFocusBy: function(Dist) {      /**/ if(!Number.isInteger(Dist) || !Dist) return Promise.resolve();
+            const SearchResults = this.Search.Results;   /**/ if(!SearchResults.length)            return Promise.resolve();
+            const SearchResultF = SearchResults.Focused; /**/ if(!SearchResultF)                   return Promise.resolve();
+            const Index = (SearchResultF.Index + Dist) % SearchResults.length;
+            return this.setSearchResultFocusTo(Index < 0 ? SearchResults.length + Index : Index);
+        },
+        autofocusOnTheSearchResult: function(Opt) {
+            const SearchResults = this.Search.Results; /**/ if(!SearchResults.length) return Promise.resolve();
+            const SearchResultF = SearchResults.Focused;
+            if(!Opt) Opt = {};
+            if(SearchResultF && I.PageObserver.Current.Pages.includes(R.dest(SearchResultF.Range).Page)) return this.changeSearchResultFocusBy(Opt.Reverse ? -1 : 1);
+            const NextResultIndex = this.getNearestSearchResultIndex();
+            return this.setSearchResultFocusTo(!Opt.Reverse || I.PageObserver.Current.Pages.includes(R.dest(SearchResults[NextResultIndex].Range).Page) ? NextResultIndex : this.getNearestSearchResultIndex({ Reverse: true }));
+        },
+        getNearestSearchResultIndex: function(Opt) {
+            const SearchResults = this.Search.Results; /**/ if(!SearchResults.length) return NaN;
+            if(SearchResults.length == 1) return 0;
+            if(!Opt) Opt = {};
+            let Dir, iStart, CP;
+            if(!Opt.Reverse) Dir =  1, iStart = 0,                        CP = I.PageObserver.Current.Pages[0];
+            else             Dir = -1, iStart = SearchResults.length - 1, CP = I.PageObserver.Current.Pages.slice(-1)[0];
+            const CII = CP.Item.Index, CPI = CP.Index;
+            for(let i = iStart; SearchResults[i]; i += Dir) { const Ran = SearchResults[i].Range;
+                if(Ran.startContainer.ownerDocument.body.Item.Index * Dir < CII * Dir || R.dest(Ran).Page.Index * Dir < CPI * Dir) continue;
+                return i;
+            } return iStart;
+        },
+        paint: function(RoP /* Range-or-Paint */, Spec) {
+            let IsNew, Paint, Ran, Doc, Item;
+            if(RoP.nodeType === 1) {
+                Paint = RoP;
+            } else if(RoP.startContainer) {
+                Ran = RoP, Doc = Ran.startContainer.ownerDocument, Item = Doc.body.Item;
+                if(Item.Paints) for(let _Paints = Item.Paints.children, l = _Paints.length, i = 0; i < l; i++) { const _Paint = _Paints[i];
+                    if(_Paint.Range != Ran) continue;
+                    Paint = _Paint;
+                    break;
+                }
+                if(!Paint) { IsNew = true;
+                    if(!this.Paints) this.Paints = [];
+                    if(!Item.Paints) Item.Paints = Item.Foot.appendChild(sML.create('bibi-paints'));
+                    this.Paints.push(Item.Paints.appendChild(Paint = sML.create('bibi-paint', { Range: Ran, Spec: {} })));
+                }
+            }
+            if(Spec) Object.keys(Spec).forEach(Sp => Paint.classList.toggle(Sp.toLowerCase(), Paint.Spec[Sp] = Spec[Sp] ? true : false));
+            else {
+                Paint.Spec = {};
+                Paint.removeAttribute('class');
+            }
+            if(!IsNew) return Paint;
+            const RangeFragments = [];
+            const CAC = Ran.commonAncestorContainer;
+            if(CAC.nodeType == 3) {
+                RangeFragments.push(Ran);
+            } else {
+                const SC = Ran.startContainer, EC = Ran.endContainer, SO = Ran.startOffset, EO = Ran.endOffset;
+                let Started = false, Ended = false;
+                const _parse = (Ele) => { for(let _CNs = Ele.childNodes, l = _CNs.length, i = 0; i < l; i++) { const CN = _CNs[i];
+                    if(Ended) break; // both required
+                    switch(CN.nodeType) {
+                        case 1: switch(CN.tagName.toLowerCase()) {
+                            case 'img':
+                                const PEle = CN.parentElement;
+                                let CN_i = 0; while(PEle.childNodes[CN_i] != CN) CN_i++;
+                                if(PEle == SC && CN_i     == SO) Started = true;
+                                if(Started) _push(PEle, CN_i, CN_i + 1);
+                                if(PEle == EC && CN_i + 1 == EO) Ended   = true;
+                                break;
+                            default: _parse(CN);
+                        } break;
+                        case 3: switch(CN) {
+                            case SC: Started = true; _push(SC, SO, SC.textContent.length);               break;
+                            case EC:                 _push(EC,  0, EO                   ); Ended = true; break;
+                            default:     if(Started) _push(CN,  0, CN.textContent.length);
+                        } break;
+                    }
+                    if(Ended) break; // both required
+                }};
+                const _push = (Container, StartOffset, EndOffset) => {
+                    if(/^r[tp]$/i.test(Container.parentElement.tagName)) return;
+                    const RF = Doc.createRange();
+                    RF.setStart(Container, StartOffset), RF.setEnd(Container, EndOffset);
+                    RangeFragments.push(RF);
+                };
+                _parse(CAC.nodeType == 1 ? CAC : CAC.parentElement);
+            }
+            const Rects = [];
+            let LastRect = null; RangeFragments.forEach(RF => {
+                const RFC = RF.startContainer;
+                const Dir = getComputedStyle(RFC.nodeType == 1 ? RFC : RFC.parentElement).writingMode.split('-')[0];
+                __: for(let RFRects = RF.getClientRects(), l = RFRects.length, i = 0; i < l; i++) { const RFRect = RFRects[i];
+                    const Rect = { Dir: Dir, L: RFRect.left, T: RFRect.top, W: RFRect.width, H: RFRect.height };
+                    if(LastRect && Dir == LastRect.Dir) switch(Dir) {
+                        case 'horizontal': if(Rect.T === LastRect.T && Rect.H === LastRect.H) { Object.assign(LastRect, { W: (Rect.L - LastRect.L) + Rect.W }); continue __; } break;
+                        case   'vertical': if(Rect.L === LastRect.L && Rect.W === LastRect.W) { Object.assign(LastRect, { H: (Rect.T - LastRect.T) + Rect.H }); continue __; } break;
+                    }
+                    Rects.push(LastRect = Rect);
+                }
+            });
+            const _PS = 2; // Paint Spreading
+            Rects.forEach(Rect => Paint.appendChild(sML.create('bibi-paint-fragment', { className: Rect.Dir, style: { left: (Rect.L - _PS) + 'px', top: (Rect.T - _PS) + 'px', width: (Rect.W + _PS * 2) + 'px', height: (Rect.H + _PS * 2) + 'px' } })));
+            return Paint;
+        },
+        removeAllPaints: function() {
+            if(this.Paints) this.Paints.forEach(Paint => Paint.parentElement.removeChild(Paint));
+            if(this.FocusedRange) this.FocusedRange = null;
+            return this.Paints = [];
+        },
+        prepareRepainting: function() {
+            if(!this.Paints || !this.Paints.length) return;
+            const FocusedRange = this.FocusedRange;
+            const Repaints = this.Paints.map(Paint => [Paint.Range, Paint.Spec]);
+            this.removeAllPaints();
+            this.FocusedRange = FocusedRange;
+            return () => Repaints.forEach(Repaint => this.paint(...Repaint));
+        },
+        repaint: function() {
+            const repaint = this.prepareRepainting();
+            if(repaint) repaint();
+        },
+        reserveRepainting: function(Time) {
+            clearTimeout(this.Timer_reserveRepainting);
+            this.Timer_reserveRepainting = setTimeout(() => this.repaint(), Time);
+        },
+        createSearchUI: function() { if(!S['use-search-ui'] || !S['use-menubar'] || !I.Menu) return null;
+            const UIID = 'bibi-search', IconHTML = `<span class="bibi-icon"></span>`;
+            const UI = RangeFinder.UI = I.setToggleAction(sML.create('div', { id: UIID }), { onopened: () => UI.start(), onclosed: () => UI.end() });
+            const Bar                 = UI.appendChild(sML.create('div', { id: UIID + '-bar', addButtonGroup: (BG) => Bar.appendChild(I.createButtonGroup(BG)) }));
+            const Form                =     Bar.appendChild(sML.create('form', { id: UIID + '-form', action: location.href }));
+            const FormInput           =         Form.appendChild(sML.create('input', { type: 'search', id: Form.id + '-input', placeholder: I.distillLabels.distillLanguage({ default: 'Search', ja: '検索' })[O.Language] }));
+            const Progress            =     Bar.appendChild(sML.create('div', { id: UIID + '-progress' }));
+            const ProgressCurrent     =         Progress.appendChild(sML.create('span', { id: Progress.id + '-current',   innerHTML: `-` }));
+            const ProgressDelimiter   =         Progress.appendChild(sML.create('span', { id: Progress.id + '-delimiter', innerHTML: `/` }));
+            const ProgressTotal       =         Progress.appendChild(sML.create('span', { id: Progress.id + '-total',     innerHTML: `-` }));
+            const ListOpener          =     Bar.addButtonGroup({ id: UIID + '-listopener' });
+            const ListOpenerButton    =         ListOpener.addButton({ id: ListOpener.id + '-button', Type: 'toggle', Icon: IconHTML, Labels: { default: { default: `List of the Results`, ja: `検索結果一覧` }, active: { default: `Close`, ja: `閉じる` } } });
+            const Move                =     Bar.addButtonGroup({ id: UIID + '-move', Type: 'Tiled' });
+            const MovePrev            =         Move.addButton({ id: Move.id + '-prev', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Previous`, ja: `前` } }, action: () => List.close() && this.autofocusOnTheSearchResult({ Reverse: true }) });
+            const MoveNext            =         Move.addButton({ id: Move.id + '-next', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Next`,     ja: `次` } }, action: () => List.close() && this.autofocusOnTheSearchResult(                 ) });
+            const UICloser            =     Bar.addButtonGroup({ id: UIID + '-closer' });
+            const UICloserButton      =         UICloser.addButton({ id: UICloser.id + '-button', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Close`, ja: `閉じる` } }, action: () => UI.close() });
+            const UIOpener            = I.createButtonGroup({ id: UIID + '-opener' });
+            const UIOpenerButton      =     UIOpener.addButton({ id: UIOpener.id + '-button', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Search`, ja: `検索` } }, action: () => UI.open() });
+            const List                = I.createSubpanel({ id: UIID + '-list', Opener: ListOpenerButton });
+            const ListButtonGroup     =     List.addSection().addButtonGroup();
+            Object.assign(UI, {
+                start: () => {
+                    I.Subpanels.forEach(Sp => Sp.close());
+                    this.resetSearch();
+                    FormInput.focus();
+                    O.HTML.classList.add('search-active');
+                },
+                end: () => {
+                    I.Subpanels.forEach(Sp => Sp.close());
+                    O.HTML.classList.remove('search-active');
+                    FormInput.blur(), O.Body.focus();
+                    this.resetSearch();
+                },
+                updateBar: () => {
+                    const SearchResults = this.Search.Results, SearchResultF = SearchResults.Focused;
+                    const Current = SearchResultF ? SearchResultF.Index + 1 : 0;
+                    const Total = SearchResults.length;
+                    const JoinedSStrs = this.Search.Strings.join('<OR>');
+                    if(FormInput.value != JoinedSStrs) FormInput.value = JoinedSStrs;
+                    Progress.classList.toggle('disabled', !Total);
+                    if(ProgressCurrent.textContent != Current) ProgressCurrent.innerHTML = Current;
+                    if(  ProgressTotal.textContent != Total  )   ProgressTotal.innerHTML = Total;
+                    [MovePrev, MoveNext].forEach(Button => I.setUIState(Button, Total > 1 ? 'default' : 'disabled'));
+                    I.setUIState(ListOpenerButton, Total ? 'default' : 'disabled');
+                    if(!Total) List.close();
+                    return Bar;
+                },
+                updateList: () => {
+                    const SearchResults = this.Search.Results;
+                    if(List.Results == SearchResults) return List;
+                    List.Results = SearchResults;
+                    if(ListButtonGroup.Buttons.length) {
+                        ListButtonGroup.innerHTML = '';
+                        ListButtonGroup.Buttons = [];
+                    }
+                    if(SearchResults) SearchResults.forEach((SearchResult, i) => {
+                        const Button = ListButtonGroup.addButton({
+                            Icon: `<span>` + (SearchResult.Index + 1) + `</span>`,
+                            Labels: { default: { default: SearchResult.TextAround.map((Txt, i) => sML.create(i == 2 ? 'strong' : i % 2 == 1 ? 'em' : 'span', { innerHTML: Txt.replace(/(<span class="break"> <\/span>)/g, '$1\n') }).outerHTML).join('') } },
+                            action: () => List.close() && this.setSearchResultFocusTo(SearchResult.Index)
+                        });
+                        if(SearchResult.IndexInItem == 0)                                           Button.classList.add('first-in-item');
+                        if(!SearchResults[i + 1] || SearchResults[i + 1].Item != SearchResult.Item) Button.classList.add( 'last-in-item');
+                    });
+                    return List;
+                },
+                update: (NotFound) => {
+                    clearTimeout(UI.Timer_update);
+                    UI.Timer_update = setTimeout(() => UI.updateBar() && UI.updateList() && NotFound && UI.notFound(), 33);
+                },
+                notFound: () => new Promise(resolve => {
+                    FormInput.blur();
+                    FormInput.setAttribute('disabled', 'disabled');
+                    const FormInputValue = FormInput.value;
+                    Form.classList.add('not-found');
+                    FormInput.value = I.distillLabels.distillLanguage({ default: 'Not Found', ja: 'みつかりませんでした' })[O.Language];
+                    setTimeout(() => {
+                        FormInput.value = '';
+                        Form.classList.remove('not-found');
+                        FormInput.value = FormInputValue;
+                        FormInput.removeAttribute('disabled');
+                        FormInput.focus();
+                        resolve();
+                    }, 777);
+                }),
+                submit: (Alt) => this.search(FormInput.value.split('<OR>'), { Focus: Alt ? 'auto-reverse' : 'auto' })
+            });
+            ['click', 'touchstart', 'touchmove', 'touchend', 'pointerdown', 'pointermove', 'pointerup', 'mousedown', 'mousemove', 'mouseup', 'keydown', 'keypress', 'keyup', 'wheel', 'mousewheel'].forEach(_ => UI.addEventListener(_, E.stopPropagation));
+            ['autocapitalize', 'autocomplete', 'autocorrect'].forEach(_ => FormInput.setAttribute(_, 'off'));
+            E.bind('bibi:updated-search-status', () => UI.update());
+            E.bind('bibi:searched', () => this.Search.Results.length || UI.update('NotFound'));
+            Form.addEventListener('submit', () => UI.submit());
+            FormInput.addEventListener('keypress', Eve => {
+                if(Eve.key != 'Enter' && Eve.keyCode != 13) return;
+                Eve.preventDefault();
+                UI.submit(Eve.shiftKey);
+            });
+            FormInput.addEventListener('keyup', Eve => {
+                if(FormInput.value) return;
+                Eve.preventDefault();
+                UI.submit();
+            });
+            const addShortcutKey = (Target) => Target.addEventListener('keydown', Eve => {
+                if((Eve.key != 'f' && Eve.keyCode != 70) || (!Eve.metaKey && !Eve.ctrlKey)) return;
+                Eve.preventDefault();
+                if(UI.UIState == 'default') return UI.open();
+                if(!FormInput.value) return UI.close();
+                FormInput.value = '';
+                UI.submit();
+            }, E.CPO_000);
+            [FormInput, window].concat(R.Items.map(Item => Item.contentWindow || null)).forEach(Target => Target ? addShortcutKey(Target) : undefined); E.add('bibi:loaded-item', Item => addShortcutKey(Item.contentWindow));
+            I.Menu.appendChild(UI);
+            I.Menu.R.appendChild(UIOpener);
+            return UI;
+        },
+        selectRange: function(Ran) {
+            if(!Ran || typeof Ran != 'object' || !Ran.commonAncestorContainer) return null;
+            const Sel = Ran.commonAncestorContainer.ownerDocument.defaultView.getSelection();
+            Sel.removeAllRanges();
+            Sel.addRange(Ran);
+            return Sel;
+        },
+        getSelection: function(Doc) {
+            if(Doc) {
+                const Sel = Doc.getSelection();
+                if(Sel.type == 'Range') return Sel;
+            } else for(let l = R.Items.length, i = 0; i < l; i++) {
+                const Sel = this.getSelection(R.Items[i].contentDocument);
+                if(Sel) return Sel;
+            }
+            return null;
+        },
+        getSelectedText: function(Opt) {
+            const Sel = this.Selection || this.getSelection();
+            if(!Sel || Sel.type != 'Range' || !Sel.anchorNode) return '';
+            if(!Opt || typeof Opt != 'object') Opt = {};
+            const IncludeImgAlt      = Opt.IncludeImgAlt      !== false;
+            const IgnoreRubies       = Opt.IgnoreRubies       !== false;
+            const OptimizeLineBreaks = Opt.OptimizeLineBreaks !== false;
+            let SelectedText = '';
+            if(!IncludeImgAlt && !IgnoreRubies) SelectedText = Sel.toString();
+            else {
+                const DF = Sel.getRangeAt(0).cloneContents();
+                if(IncludeImgAlt) sML.forEach(DF.querySelectorAll(    'img'))(Ele => Ele.parentNode.insertBefore(document.createTextNode(Ele.alt), Ele).parentNode.removeChild(Ele));
+                if(IgnoreRubies)  sML.forEach(DF.querySelectorAll( 'rt, rp'))(Ele =>                                                                Ele.parentNode.removeChild(Ele));
+                SelectedText = DF.textContent;
+            }
+            if(OptimizeLineBreaks) {
+                SelectedText = SelectedText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n{2}/g, '\n').replace(/\n{2,}/g, '\n\n');
+                if(sML.OS.Windows) SelectedText = SelectedText.replace(/\n/g, '\r\n');
+            }
+            return SelectedText;
+        },
+        initialize: function() {
+            this.initializeSearch();
+            E.add('bibi:loaded-item', Item => {
+                Item.RangeFinder = {};
+                Item.contentDocument.addEventListener('selectstart', (Eve) => {
+                    const Sel = this.Selection;
+                    if(Sel && Sel.anchorNode.ownerDocument != Eve.target) Sel.removeAllRanges();
+                    this.Selection = this.RangeOfSelection = null;
+                }, E.CPO_110);
+                Item.contentDocument.addEventListener('selectionchange', (Eve) => {
+                    clearTimeout(Item.RangeFinder.Timer_SelectionChanged);
+                    Item.RangeFinder.Timer_SelectionChanged = setTimeout(() => this.RangeOfSelection = (this.Selection = this.getSelection(Eve.target))?.getRangeAt(0), 0);
+                }, E.CPO_110);
+                Item.contentDocument.addEventListener('copy', (Eve) => {
+                    Eve.preventDefault();
+                    const SelectedText = this.getSelectedText({ IncludeImgAlt: true, IgnoreRubies: true, OptimizeLineBreaks: true });
+                    if(SelectedText) Eve.clipboardData.setData('text/plain', SelectedText);
+                }, E.CPO_100);
+            });
+            E.add('bibi:opened', () => {
+                if(S['use-search-ui'] && B.Package.Metadata['rendition:layout'] == 'reflowable') this.createSearchUI();
+                E.add('bibi:changed-intersection', () => {
+                    this.reserveRepainting(999);
+                });
+                E.bind('bibi:is-going-to:lay-out', () => {
+                    const repaint = this.prepareRepainting();
+                    if(!repaint) return;
+                    let repaintAfterLayingOut;
+                    E.add('bibi:laid-out', repaintAfterLayingOut = () => setTimeout(() => repaint(), 333) && E.remove('bibi:laid-out', repaintAfterLayingOut));
+                });
+            });
+        }
+    };
+    RangeFinder.initialize();
+}};
+
+
 I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
     const Arrows = I.Arrows = O.Body.appendChild(sML.create('div', { id: 'bibi-arrows' }));
     Object.assign(Arrows, {
@@ -5824,7 +6408,7 @@ S.initialize = () => {
     // --------
     if(S['uiless']) {
         S['use-menubar'] = S['use-arrows'] = S['use-slider'] = S['use-nombre'] = false;
-        S['use-bookmark-ui'] = S['use-fontsize-changer'] = S['use-history-ui'] = S['use-loupe-ui'] = false;
+        S['use-bookmark-ui'] = S['use-fontsize-changer'] = S['use-history-ui'] = S['use-loupe-ui'] = S['use-search-ui'] = false;
     }
     // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
@@ -6723,14 +7307,13 @@ E.initialize = () => {
 };
 
 
-E.aBCD = (Eve) => { // add Bibi-Coord/Division
+E.aBCD = (Eve) => { // add Bibi's Collections of Data (formerly: add Bibi-Coord/Division)
     if(!Eve) return Eve;
-    const Coord    = E.aBCD.getCoord(Eve);
-    const Division = E.aBCD.getDivision(Coord);
-    return Object.assign(Eve, {
-        Coord: Coord,
-        Division: Division
-    });
+    const BCD = {};
+    BCD.Coord = E.aBCD.getCoord(Eve);
+    BCD.Division = E.aBCD.getDivision(BCD.Coord);
+    BCD.RangeOfSelection = I.RangeFinder.RangeOfSelection;
+    return Object.assign(Eve, BCD);
 };
 
     E.aBCD.getCoord = (Eve) => { let Coord = { X: 0, Y: 0 };
