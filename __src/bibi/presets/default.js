@@ -42,11 +42,13 @@ Bibi.preset({
 
 "use-nombre"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
 
-"use-fontsize-changer-ui"    : "yes", // "yes" | "no" | "desktop" | "mobile"
+"use-textsetter-ui"          : "yes", // "yes" | "no" | "desktop" | "mobile"
+
+"use-fontsize-setter"        : "yes", // "yes" | "no" | "desktop" | "mobile"
 "fontsize-scale-per-step"    : 1.25, // Number of scale
 "base-fontsize"              : "auto", // "auto" | Number of pixels
 
-"use-linespacing-changer-ui" : "yes", // "yes" | "no" | "desktop" | "mobile"
+"use-linespacing-setter"     : "yes", // "yes" | "no" | "desktop" | "mobile"
 "linespacing-scale-per-step" : 1.25, // Number of scale
 
 "use-search-ui"              : "yes", // "yes" | "no" | "desktop" | "mobile"
@@ -160,6 +162,7 @@ Bibi.preset({
 "prioritise-fallbacks"               : false, // true | false // If true, Bibi uses <item> at the end of the fallback-chain.
 
 "uiless"                             : false, // true | false
+"use-textsetter"                     : true, // true | false
 "use-bookmarks"                      : true, // true | false
 "use-histories"                      : true, // true | false
 "manualize-adding-histories"         : false, // true | false

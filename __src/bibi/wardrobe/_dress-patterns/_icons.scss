@@ -237,7 +237,7 @@
 
 // -- In Menu
 .bibi-icon-config,
-.bibi-icon-text-setter,
+.bibi-icon-textsetter,
 .bibi-icon-loupe,
 .bibi-icon-manage-bookmarks,
 // -- In Slider
@@ -254,13 +254,13 @@
 // --------------------------------------------------------------------------------
 
 .bibi-icon-config,
-.bibi-icon-text-setter,
+.bibi-icon-textsetter,
 .bibi-icon-loupe,
 .bibi-icon-manage-bookmarks { @include GENERALICON__CommonInMenu(); }
 
 .bibi-icon-config { @include GENERALICON__Config(); }
 
-.bibi-icon-text-setter { @include GENERALICON__TextSetter(); }
+.bibi-icon-textsetter { @include GENERALICON__TextSetter(); }
 
 .bibi-icon-loupe { @include GENERALICON__Loupe-Common();
 	&-zoomin  { @include GENERALICON__Loupe-ZoomIn(); }

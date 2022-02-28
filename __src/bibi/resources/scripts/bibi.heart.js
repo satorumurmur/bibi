@@ -28,16 +28,17 @@ Bibi.SettingTypes = {
         'start-embedded-in-new-window',
         'use-arrows',
         'use-bookmark-ui',
-        'use-fontsize-changer-ui',
+        'use-fontsize-setter',
         'use-full-height',
         'use-history-ui',
         'use-keys',
-        'use-linespacing-changer-ui',
+        'use-linespacing-setter',
         'use-loupe-ui',
         'use-menubar',
         'use-nombre',
         'use-search-ui',
         'use-slider',
+        'use-textsetter-ui',
         'zoom-out-for-utilities'
     ],
     'string': [
@@ -86,6 +87,7 @@ Bibi.SettingTypes_PresetOnly = {
         'manualize-adding-histories',
         'use-bookmarks',
         'use-histories',
+        'use-textsetter',
         'recognize-repeated-taps-separately',
         'remove-bibi-website-link'
     ],
@@ -4326,195 +4328,247 @@ I.PoweredBy = { create: () => {
     */
 }};
 
-I.TextSetter = { create: () => {
-    const TextSettingProperties = [
-        ['FontSize',   'fontsize'],
-        ['LineSpacing', 'linespacing']
-    ];
+
+I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
+    // =========================================================================================================================
     const TextSetter = I.TextSetter = {
-        change: (Par, Actions) => new Promise(resolve => {
-            if(B.PrePaginated) return resolve();
-            if(!Par) return resolve();
-            if(!TextSettingProperties.filter(Pros => { const ProC = Pros[0], ProH = Pros[1];
-                if(!Par[ProC]) return false;
-                if(Par[ProC].Step !== undefined) {
-                    if(!Number.isInteger(Par[ProC].Step) || (Par[ProC].Step = sML.limitMinMax(Par[ProC].Step, -2, 2)) == TextSetter[ProC].Step ) return false;
-                    Par[ProC] = {  Step: (TextSetter[ProC].Step  = Par[ProC].Step)  }, TextSetter[ProC].Scale = Par[ProC].Step  == 0 ? 1 : NaN;
-                } else {
-                    if(!Number.isFinite(Par[ProC].Scale) || Par[ProC].Scale <= 0 ||           Par[ProC].Scale         == TextSetter[ProC].Scale) return false;
-                    Par[ProC] = { Scale: (TextSetter[ProC].Scale = Par[ProC].Scale) }, TextSetter[ProC].Step  = Par[ProC].Scale == 1 ? 0 : NaN;
-                }
-                if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { [ProC]: Par[ProC] });
-                E.dispatch('bibi:changes-' + ProH); // --> E.dispatch('bibi:changes-fontsize'), E.dispatch('bibi:changes-linespacing')
-                return true;
-            }).length) return resolve();
-            if(!Actions) Actions = {};
-            if(typeof Actions.before == 'function') Actions.before();
+        distillSettings: (Settings, Opt) => { if(!Settings || typeof Settings != 'object') return null;
+            const DistilledSettings = {};
+            return Object.keys(Settings).filter(SetterName => {
+                const Setter = TextSetter.X[SetterName]; if(!Setter) return false;
+                const Setting = Setter.distillSetting(Settings[SetterName], Opt); if(!Setting) return false;
+                DistilledSettings[SetterName] = Setting; return true;
+            }).length ? DistilledSettings : null;
+        },
+        prepareItem: (Item) => { if(Item.PrePaginated) return;
+            Item.TextSettings = { HTMLOriginalFontSize: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1 }
+            TextSetter.X.forEach(Setter => Setter.prepareItemBeforeElements(Item));
+            sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
+                if(!Ele.style) return;
+                Ele.BibiTextSettings = {};
+                TextSetter.X.forEach(Setter => Setter.prepareElement(Ele, getComputedStyle(Ele), Item));
+            });
+            TextSetter.X.forEach(Setter => Setter.prepareItemAfterElements(Item));
+        },
+        change: (Settings, ActionsBeforeAfter) => new Promise(resolve => { if(B.PrePaginated) return resolve();
+            Settings = TextSetter.distillSettings(Settings, { Changeable: true });
+            if(!Settings) return resolve();
+            if(TextSetter.Changing) return resolve();
+            TextSetter.Changing = 'Changing';
+            const SetterNames = Object.keys(Settings);
+            SetterNames.forEach(SetterName => E.dispatch('bibi:changes-' + SetterName.toLowerCase(), Settings[SetterName]));
+            // ^-- E.dispatch('bibi:changes-fontsize', Settings.FontSize), E.dispatch('bibi:changes-linespacing', Settings.LineSpacing)
+            if(TextSetter.Subpanel) TextSetter.Subpanel.busy(true);
+            if(typeof ActionsBeforeAfter?.before == 'function') ActionsBeforeAfter.before();
             setTimeout(() => R.layOutBook({
-                before: () => R.Items.forEach(Item => {
-                    const ItemTextSetter = Item.TextSetter;
-                    if(ItemTextSetter) TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
-                        if(!Par[ProC]) return;
-                        Par[ProC].Step !== undefined ? ItemTextSetter[ProC].changeStep(Par[ProC].Step) : ItemTextSetter[ProC].changeScale(Par[ProC].Scale);
-                        if(TextSetter[ProC].Buttons) TextSetter[ProC].Buttons.forEach(Button => I.setUIState(Button, Button.Step == TextSetter[ProC].Step ? 'active' : 'default'));
-                    });
-                }),
+                before: () => TextSetter.rebind(Settings, { SettingsAreDistilled: true, Async: true }),
                 Reset: true,
-                ResetOnlyContent: true,
+                ResetOnlyContent: !Settings.FlowDirection,
                 DoNotCloseUtilities: true,
                 NoNotification: true
             }).then(() => {
-                TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
-                    if(Par[ProC]) E.dispatch('bibi:changed-' + ProH, Par[ProC]); // --> E.dispatch('bibi:changed-fontsize', Par.FontSize), E.dispatch('bibi:changed-linespacing', Par.LineSpacing)
-                });
-                if(typeof Actions.after == 'function') Actions.after();
-                resolve();
+                SetterNames.forEach(SetterName => E.dispatch('bibi:changed-' + SetterName.toLowerCase(), Settings[SetterName]));
+                // ^-- E.dispatch('bibi:changed-fontsize', Settings.FontSize), E.dispatch('bibi:changed-linespacing', Settings.LineSpacing)
+                if(typeof ActionsBeforeAfter?.after == 'function') ActionsBeforeAfter.after();
+                if(TextSetter.Subpanel) TextSetter.Subpanel.busy(false);
+                delete TextSetter.Changing;
+                resolve(Settings);
             }), 88);
         }),
-        changeStep:  (Steps,  Actions) => TextSetter.change(Object.keys(Steps ).reduce((Par, Pro) => { Par[Pro] = {  Step:  Steps[Pro] }; return Par; }, {}), Actions),
-        changeScale: (Scales, Actions) => TextSetter.change(Object.keys(Scales).reduce((Par, Pro) => { Par[Pro] = { Scale: Scales[Pro] }; return Par; }, {}), Actions)
-    };
-    const BookBiscuits = S['keep-settings'] ? I.Oven.Biscuits.remember('Book') : null, ItemInitializers = [];
-    TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
-        const ScalePerStepSetting = S[ProH + '-scale-per-step']; // --> S['fontsize-scale-per-step'], S['linespacing-scale-per-step']
-        TextSetter[ProC] = {
-            Step: 0, Scale: 1, ScalePerStep: Number.isFinite(ScalePerStepSetting) && ScalePerStepSetting > 1 ? ScalePerStepSetting : 1.25,
-            change:      (Par,   Actions) => TextSetter.change({ [ProC]: Par              }, Actions),
-            changeStep:  (Step,  Actions) => TextSetter.change({ [ProC]: {  Step: Step  } }, Actions),
-            changeScale: (Scale, Actions) => TextSetter.change({ [ProC]: { Scale: Scale } }, Actions)
-        };
-        if(!BookBiscuits || !BookBiscuits[ProC]) return;
-        if(BookBiscuits[ProC].Step !== undefined) {
-            let BiscuitStep = BookBiscuits[ProC].Step * 1;
-            if(!Number.isInteger(BiscuitStep) || (BiscuitStep = sML.limitMinMax(BiscuitStep, -2, 2)) == 0) return;
-            TextSetter[ProC].Step = BiscuitStep, TextSetter[ProC].Scale = NaN;
-            ItemInitializers.push(Item => Item.TextSetter[ProC].changeStep(TextSetter[ProC].Step));
-        } else if(BookBiscuits[ProC].Scale !== undefined) {
-            let BiscuitScale = BookBiscuits[ProC].Scale * 1;
-            if(!Number.isFinite(BiscuitScale) || BiscuitScale <= 0 || BiscuitScale == 1) return;
-            TextSetter[ProC].Step = NaN, TextSetter[ProC].Scale = BiscuitScale;
-            ItemInitializers.push(Item => Item.TextSetter[ProC].changeScale(TextSetter[ProC].Scale));
-        }
-    });
-    E.bind('bibi:postprocessed-item', Item => { if(Item.PrePaginated) return false;
-        const ItemHTMLOriginalFontSize = getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1;
-        const ItemTextSetter = Item.TextSetter = {
-            FontSize: {
-                Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : ItemHTMLOriginalFontSize,
-                changeScale: (Scale) => { if(!Number.isFinite(Scale) || Scale <= 0) return;
-                    if(ItemTextSetter.FontSizeStyleRule) sML.deleteCSSRule(Item.contentDocument, ItemTextSetter.FontSizeStyleRule);
-                    ItemTextSetter.FontSizeStyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + (ItemTextSetter.FontSize.Base * Scale) + 'px !important;');
-                }
-            },
-            LineSpacing: {
-                CustomizableElements: [],
-                changeScale: (Scale) => { if(!Number.isFinite(Scale) || Scale <= 0) return;
-                    ItemTextSetter.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSetter.LineHeight.Base * Scale);
-                }
-            }
-        };
-        TextSettingProperties.forEach(Pros => { const ProC = Pros[0], ProH = Pros[1];
-            Object.assign(ItemTextSetter[ProC], {
-                changeStep: (Step) => ItemTextSetter[ProC].changeScale(Math.pow(TextSetter[ProC].ScalePerStep, Step)),
-                change:     (Par ) => Par.Step !== undefined ? ItemTextSetter[ProC].changeStep(Par.Step) : ItemTextSetter[ProC].changeScale(Par.Scale)
+        rebind: (Settings, Opt) => {
+            if(B.PrePaginated) return Promise.resolve();
+            if(!Opt?.SettingsAreDistilled) Settings = TextSetter.distillSettings(Settings, { Changeable: true });
+            if(!Settings) return Promise.resolve();
+            const Setters = Object.keys(Settings).map(SetterName => TextSetter.X[SetterName]);
+            Setters.forEach(Setter => { const Setting = Settings[Setter.Name];
+                Setter.changeAtFirst(Setting);
+                if(Setter.UI?.care) Setter.UI.care(Setting);
+                if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { [Setter.Name]: Setting });
+                Object.assign(Setter.Setting, Setting);
             });
-        });
-        const TagNamesToBeIgnored = [['script', 'style', 'img', 'iframe', 'source'], ['audio', 'video', 'picture', 'svg', 'math']];
-        //const ParentsToBeIgnored = Item.Body.querySelectorAll(TagNamesToBeIgnored[1].join(','));
-        sML.forEach(Item.HTML.querySelectorAll(`body, body *` + TagNamesToBeIgnored.flat().map(TN => ':not(' + TN + ')').join('')))(Ele => {
-            //for(let l = ParentsToBeIgnored.length, i = 0; i < l; i++) if(ParentsToBeIgnored[i].contains(Ele)) return;
-            if(!Ele.style) return;
-            const EleTSr = Ele.BibiTextSetter = {};
-            let ComputedFontSize = getComputedStyle(Ele).fontSize;
-            if(/\.?\d+px$/.test(ComputedFontSize)) ComputedFontSize = parseFloat(ComputedFontSize); else return;
-            Ele.style.fontSize = ComputedFontSize / ItemHTMLOriginalFontSize + 'rem';
-            if(/^(ruby|r[bt]|table|t(body|head|[hd]))$/i.test(Ele.tagName)) return;
-            const ComputedLineHeight = getComputedStyle(Ele).lineHeight;
-            EleTSr.LineHeight = { Base: ComputedLineHeight == 'normal' ? 1.2 : parseFloat(ComputedLineHeight) / ComputedFontSize };
-            ItemTextSetter.LineSpacing.CustomizableElements.push(Ele);
-        });
-        Item.HTML.style.fontSize = ItemTextSetter.FontSize.Base + 'px';
-        ItemTextSetter.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSetter.LineHeight.Base);
-        ItemInitializers.forEach(initializer => initializer(Item));
-    });
-    if(S['use-fontsize-changer-ui'] || S['use-linespacing-changer-ui']) {
-        const Subpanel = I.createSubpanel({
-            Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_text-setter' }).addButton({
+            if(Opt?.Async) return Promise.resolve() // -------------------------------------------------------------------------------------------------------------------------
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeBeforeItems(Settings[Setter.Name]))))  ))
+                .then(() => Promise.all(R.Items.map    (Item => Promise.all(Setters.map    (Setter => new Promise(r => r(Setter.changeItem(Item,  Settings[Setter.Name]))))))))
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeAfterItems( Settings[Setter.Name]))))  ));
+            else { // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                                                                            Setters.forEach(Setter =>                    Setter.changeBeforeItems(Settings[Setter.Name])  )    ;
+                                        R.Items.forEach(Item =>             Setters.forEach(Setter =>                    Setter.changeItem(Item,  Settings[Setter.Name])  ) )  ;
+                                                                            Setters.forEach(Setter =>                    Setter.changeAfterItems( Settings[Setter.Name])  )    ;
+            } // ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+        },
+        createSubpanel: () => TextSetter.Subpanel = I.createSubpanel({ id: 'bibi-subpanel_textsetter',
+            Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_textsetter' }).addButton({
                 Type: 'toggle',
                 Labels: {
                     default: { default: `Change Text Setting`,     ja: `テキスト表示を調整` },
                     active:  { default: `Close Text Setting Menu`, ja: `テキスト表示調整メニューを閉じる` }
                 },
-                Icon: `<span class="bibi-icon bibi-icon-text-setter"></span>`,
+                Icon: `<span class="bibi-icon bibi-icon-textsetter"></span>`,
                 Help: true
             }),
-            open: () => {}
-        });
-        const changeStep = function() { const Group = this.ButtonGroup;
-            TextSetter.change({ [Group.Of]: { Step: this.Step } }, {
-                before: () => Group.Busy = true,
-                after:  () => Group.Busy = false
+            open: () => {},
+            busy: (Busy) => TextSetter.Subpanel.Sections?.forEach(Section => Section.ButtonGroups?.forEach(ButtonGroup => ButtonGroup.Busy = Busy))
+        }),
+        discardSubpanel: () => {
+            const Subpanel = TextSetter.Subpanel;
+            O.Body.removeChild(Subpanel);
+            I.Subpanels = I.Subpanels.filter(Sp => Sp != Subpanel);
+            const OpenerButtonGroup = I.Menu.R.removeChild(Subpanel.Opener.ButtonGroup);
+            I.Menu.R.ButtonGroups = I.Menu.R.ButtonGroups.filter(BG => BG != OpenerButtonGroup);
+            delete TextSetter.Subpanel;
+        },
+        initialize: () => {
+            E.bind('bibi:postprocessed-item', Item => TextSetter.prepareItem(Item));
+            if(S['keep-settings']) E.bind('bibi:loaded-book', () => {
+                const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
+                const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
+                TextSetter.rebind(Settings, { SettingsAreDistilled: true, Async: false });
+                Bibi.StartOption.resetter();
             });
-        };
-        if(S['use-fontsize-changer-ui']) {
-            (TextSetter.FontSize.Buttons = Subpanel.addSection({
-                Labels: { default: { default: `Font Size`, ja: `文字サイズ` } }
-            }).addButtonGroup({
-                Type: 'Steps', Of: 'FontSize',
-                MinLabels: { default: { default: `Small`, ja: `小` } },
-                MaxLabels: { default: { default: `Large`, ja: `大` } },
-                action: changeStep,
-                Buttons: [{
-                    Step: -2,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smallest"></span>`,
-                    Labels: { default: { default: `Smallest`, ja: `最小` } }
-                }, {
-                    Step: -1,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`,
-                    Labels: { default: { default: `Smaller`,  ja: `小` } }
-                }, {
-                    Step:  0,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`,
-                    Labels: { default: { default: `Default`,  ja: `標準` } }
-                }, {
-                    Step:  1,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`,
-                    Labels: { default: { default: `Larger`,   ja: `大` } }
-                }, {
-                    Step:  2,  Icon: `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-largest"></span>`,
-                    Labels: { default: { default: `Largest`,  ja: `最大` } }
-                }]
-            }).Buttons).forEach(Button => {
-                if(Button.Step == TextSetter.FontSize.Step) I.setUIState(Button, 'active');
+            if(S['use-textsetter-ui']) E.bind('bibi:loaded-book', () => {
+                TextSetter.createSubpanel();
+                TextSetter.X.forEach(Setter => Setter.createUI());
+                if(!TextSetter.Subpanel.Sections?.length) TextSetter.discardSubpanel();
             });
+        },
+        PrototypeOfSetter: {
+            Setting: {},
+            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null,
+            changeAtFirst: (Setting) => undefined,
+            changeBeforeItems: (Setting) => undefined,
+            changeItem: (Item, Setting) => undefined,
+            changeAfterItems: (Setting) => undefined,
+            prepareItemBeforeElements: (Item) => undefined,
+            prepareElement: (Ele, ComStyle, Item) => undefined,
+            prepareItemAfterElements: (Item) => undefined,
+            createUI: () => null
+        },
+        PrototypeOfResizer: {
+            Setting: { Step: 0, Scale: 1, ScalePerStep: 1.25 },
+            setScalePerStep: function(ScalePerStep) { if(Number.isFinite(ScalePerStep) && ScalePerStep > 1) this.Setting.ScalePerStep = ScalePerStep; },
+            convertStepToScale: function(Step) { return Math.pow(this.Setting.ScalePerStep, Step); },
+            convertScaleToStep: function(Scale) {
+                if(Scale == 1) return 0;
+                let Step = 0; const SPS = this.Setting.ScalePerStep;
+                if(Scale < 1) while(--Step >= -2 && (Scale *= SPS) < 1); // if(Scale < 1) while(Step > -2 && Scale < 1) Step--, Scale *= SPS;
+                else          while(++Step <=  2 && (Scale /= SPS) > 1); // else          while(Step <  2 && Scale > 1) Step++, Scale /= SPS;
+                return Scale == 1 ? Step : undefined;
+            },
+            distillSetting: function(Setting, Opt) {
+                if(typeof Setting == 'string') switch(Setting) {
+                    case 'default': Setting = { Step: 0, Scale: 1 }; break;
+                    default: return null;
+                }
+                else if(Number.isFinite(Setting)) Setting = { Scale: Setting };
+                else if(typeof Setting != 'object' || !Setting) return null;
+                let Step  = Number.isInteger(Setting.Step *= 1)                      ? sML.limitMinMax(Setting.Step, -2, 2) : undefined;
+                let Scale = Number.isFinite(Setting.Scale *= 1) && Setting.Scale > 0 ?                 Setting.Scale        : undefined;
+                if(Step === undefined) { if(Scale === undefined) return null;
+                    Step = this.convertScaleToStep(Scale);
+                } else if(Scale === undefined)
+                    Scale = this.convertStepToScale(Step);
+                return !Opt?.Changeable || Scale != this.Setting.Scale ? { Step: Step, Scale: Scale } : null;
+            },
+            createStepsUI: function(SectionLabels, MinMaxLabels, ButtonLabelsIcons) {
+                const Setter = this;
+                const UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: SectionLabels[0], ja: SectionLabels[1] } } });
+                UI.addButtonGroup({ Type: 'Steps',
+                    MinLabels: { default: { default: MinMaxLabels[0][0], ja: MinMaxLabels[0][1] } },
+                    MaxLabels: { default: { default: MinMaxLabels[1][0], ja: MinMaxLabels[1][1] } },
+                    Buttons: (action => {
+                        const Buttons = [];
+                        for(let i = 0; i < 5; i++) Buttons.push({ Setting: { Step: i - 2 }, Labels: { default: { default: ButtonLabelsIcons[i][0], ja: ButtonLabelsIcons[i][1] } }, Icon: ButtonLabelsIcons[i][2], action: action });
+                        return Buttons;
+                    })(function() { TextSetter.change({ [Setter.Name]: this.Setting }) })
+                });
+                UI.care = (Setting) => UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Button.Setting.Step != Setting.Step ? 'default' : 'active'));
+                UI.care(this.Setting);
+                return UI;
+            }
+        },
+        X: [], x: (Setter) => {
+            if(typeof Setter.Name != 'string' || !Setter.Name || TextSetter.X[Setter.Name]) return null;
+            const Prototype = Object.assign({}, TextSetter.PrototypeOfSetter, { Setting: Object.assign({}, TextSetter.PrototypeOfSetter.Setting) });
+            if(Setter.IsResizer) Object.assign(Prototype, TextSetter.PrototypeOfResizer, { Setting: Object.assign({}, TextSetter.PrototypeOfResizer.Setting) });
+            TextSetter.X.push(Setter = TextSetter.X[Setter.Name] = Object.assign(Prototype, Setter));
+            return Setter;
         }
-        if(S['use-linespacing-changer-ui']) {
-            const /* TextLineShapes */ TLSs = (/* TextLineShape */ TLS => `<span class="bibi-shape bibi-shape-textlines">${ TLS + TLS + TLS + TLS + TLS + TLS + TLS + TLS }</span>`)(`<span class="bibi-shape bibi-shape-textline"></span>`);
-            (TextSetter.LineSpacing.Buttons = Subpanel.addSection({
-                Labels: { default: { default: `Line Spacing`, ja: `行間` } }
-            }).addButtonGroup({
-                Type: 'Steps', Of: 'LineSpacing',
-                MinLabels: { default: { default: `Narrow`, ja: `狭い` } },
-                MaxLabels: { default: { default: `Wide`,   ja: `広い` } },
-                action: changeStep,
-                Buttons: [{
-                    Step: -2,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrowest">${ TLSs }</span>`,
-                    Labels: { default: { default: `Narrowest`, ja: `最小` } }
-                }, {
-                    Step: -1,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrower">${ TLSs }</span>`,
-                    Labels: { default: { default: `Narrower`,  ja: `狭い` } }
-                }, {
-                    Step:  0,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-medium">${ TLSs }</span>`,
-                    Labels: { default: { default: `Default`,   ja: `標準` } }
-                }, {
-                    Step:  1,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-wider">${ TLSs }</span>`,
-                    Labels: { default: { default: `Wider`,     ja: `広い` } }
-                }, {
-                    Step:  2,  Icon: `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-widest">${ TLSs }</span>`,
-                    Labels: { default: { default: `Widest`,    ja: `最大` } }
-                }]
-            }).Buttons).forEach(Button => {
-                if(Button.Step == TextSetter.LineSpacing.Step) I.setUIState(Button, 'active');
-            });
-        }
+    };
+    // =========================================================================================================================
+    if(S['use-fontsize-setter']) {
+        TextSetter.x({
+            Name: 'FontSize', IsResizer: true,
+            TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math)$/,
+            prepareItemBeforeElements: (Item) => {
+                Item.TextSettings.FontSize = { Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : Item.TextSettings.HTMLOriginalFontSize };
+            },
+            prepareElement: function(Ele, ComStyle, Item) {
+                if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
+                let ComFontSize = ComStyle.fontSize;
+                if(!/\.?\d+px$/.test(ComFontSize)) return;
+                Ele.style.fontSize = (ComFontSize = parseFloat(ComFontSize)) / Item.TextSettings.HTMLOriginalFontSize + 'rem';
+            },
+            prepareItemAfterElements: (Item) => {
+                Item.HTML.style.fontSize = Item.TextSettings.FontSize.Base + 'px';
+            },
+            changeItem: (Item, Setting) => { const Scale = Setting.Scale;
+                const ItemSettings = Item.TextSettings?.FontSize; if(!ItemSettings) return;
+                if(ItemSettings.StyleRule) sML.deleteCSSRule(Item.contentDocument, ItemSettings.StyleRule);
+                ItemSettings.StyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + (ItemSettings.Base * Scale) + 'px !important;');
+            },
+            createUI: function() {
+                this.UI = this.createStepsUI([`Font Size`, `文字の大きさ`], [
+                    [`Small`, `小`], [`Large`, `大`]
+                ], [
+                    [`Smallest`, `最小`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smallest"></span>`],
+                    [`Smaller`,  `小`,   `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`],
+                    [`Default`,  `標準`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`],
+                    [`Larger`,   `大`,   `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`],
+                    [`Largest`,  `最大`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-largest"></span>`]
+                ]);
+            }
+        }).setScalePerStep(S['fontsize-scale-per-step']);
     }
-    E.dispatch('bibi:created-text-setter');
+    if(S['use-linespacing-setter']) {
+        TextSetter.x({
+            Name: 'LineSpacing', IsResizer: true,
+            TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math|ruby|rb|rp|rt|rtc|table|thead|tbody|th|td)$/,
+            prepareItemBeforeElements: (Item) => {
+                Item.TextSettings.LineSpacing = { CustomizableElements: [] };
+            },
+            prepareElement: function(Ele, ComStyle, Item) {
+                if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
+                let ComFontSize = ComStyle.fontSize;
+                if(!/\.?\d+px$/.test(ComFontSize)) return;
+                const ComLineHeight = ComStyle.lineHeight;
+                Ele.BibiTextSettings.LineHeight = { Base: /\.?\d+px$/.test(ComLineHeight) ? parseFloat(ComLineHeight) / parseFloat(ComFontSize) : 1.2 };
+                Item.TextSettings.LineSpacing.CustomizableElements.push(Ele);
+            },
+            prepareItemAfterElements: (Item) => {
+                Item.TextSettings.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base);
+            },
+            changeItem: (Item, Setting) => { const Scale = Setting.Scale;
+                const ItemSettings = Item.TextSettings?.LineSpacing; if(!ItemSettings) return;
+                ItemSettings.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base * Scale);
+            },
+            createUI: function() {
+                const TextLineShapes = (TLS => `<span class="bibi-shape bibi-shape-textlines">${ TLS + TLS + TLS + TLS + TLS + TLS + TLS + TLS }</span>`)(`<span class="bibi-shape bibi-shape-textline"></span>`);
+                this.UI = this.createStepsUI([`Line Spacing`, `行間`], [
+                    [`Narrow`, `狭い`], [`Wide`, `広い`]
+                ], [
+                    [`Narrowest`, `最小`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrowest">${ TextLineShapes }</span>`],
+                    [`Narrower`,  `狭い`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrower">${ TextLineShapes }</span>`],
+                    [`Default`,   `標準`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-medium">${ TextLineShapes }</span>`],
+                    [`Wider`,     `広い`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-wider">${ TextLineShapes }</span>`],
+                    [`Widest`,    `最大`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-widest">${ TextLineShapes }</span>`]
+                ]);
+            }
+        }).setScalePerStep(S['linespacing-scale-per-step']);
+    }
+    // =========================================================================================================================
+    E.dispatch('bibi:prepared-textsetter');
+    TextSetter.initialize();
+    E.dispatch('bibi:created-textsetter');
 }};
 
 
@@ -5946,18 +6000,16 @@ I.createButtonGroup = (Par = {}) => {
     const ButtonGroup = sML.create('ul', Par);
     ButtonGroup.Buttons = [];
     ButtonGroup.addButton = function(Par) {
-        const Button = I.createButton(Par);
-        if(!Button) return null;
-        Button.ButtonGroup = this;
-        Button.ButtonBox = Button.ButtonGroup.appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type }));
+        const Button = I.createButton(Par); if(!Button) return null;
+        (Button.ButtonBox = (Button.ButtonGroup = this).appendChild(sML.create('li', { className: 'bibi-buttonbox bibi-buttonbox-' + Button.Type }))).appendChild(Button);
         if(!O.TouchOS) {
             I.TouchObserver.observeElementHover(Button.ButtonBox)
             I.TouchObserver.setElementHoverActions(Button.ButtonBox);
         }
-        Button.ButtonBox.appendChild(Button)
-        Button.ButtonGroup.Buttons.push(Button);
+        this.Buttons.push(Button);
         return Button;
     };
+    ButtonGroup.addButtons = function(Pars) { Pars.forEach(Par => this.addButton(Par)); return this.Buttons; };
     ButtonsToBeAdded.forEach(Button => {
         if(!Button.Type && Par.ButtonType) Button.Type = Par.ButtonType;
         if(!Button.action && Par.action) Button.action = Par.action;
@@ -6422,7 +6474,7 @@ S.initialize = () => {
     // --------
     if(S['uiless']) {
         S['use-menubar'] = S['use-arrows'] = S['use-slider'] = S['use-nombre'] = false;
-        S['use-bookmark-ui'] = S['use-fontsize-changer'] = S['use-history-ui'] = S['use-loupe-ui'] = S['use-search-ui'] = false;
+        S['use-bookmark-ui'] = S['use-history-ui'] = S['use-loupe-ui'] = S['use-search-ui'] = S['use-textsetter-ui'] = false;
     }
     // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
