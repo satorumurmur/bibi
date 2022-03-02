@@ -1447,14 +1447,6 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
         ['Color', 'Image', 'Repeat', 'Position', 'Size'].forEach(Pro => Par[0].style[Pro = 'background' + Pro] = Par[1][Pro]);
         Par[2].style.background = 'transparent';
     });
-    sML.forEach(Item.Body.querySelectorAll('svg, img'))(Img => {
-        Img.BibiDefaultStyle = {
-               width:  (Img.style.width     ? Img.style.width     : ''),
-               height: (Img.style.height    ? Img.style.height    : ''),
-            maxWidth:  (Img.style.maxWidth  ? Img.style.maxWidth  : ''),
-            maxHeight: (Img.style.maxHeight ? Img.style.maxHeight : '')
-        };
-    });
 });
 
 
@@ -1662,20 +1654,28 @@ R.renderReflowableItem = (Item) => {
         [C.L_SIZE_l]: PageCL + 'px'
     });
     const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, '*', 'word-wrap: break-word;'); ////
-    sML.forEach(Item.Body.querySelectorAll('img, svg'))(Img => {
-        // Fit Image Size
-        if(!Img.BibiDefaultStyle) return;
-        ['width', 'height', 'maxWidth', 'maxHeight'].forEach(Pro => Img.style[Pro] = Img.BibiDefaultStyle[Pro]);
-        if(S.RVM == 'horizontal' && /-(rl|lr)$/.test(Item.WritingMode) || S.RVM == 'vertical' && /-tb$/.test(Item.WritingMode)) return;
-        const NaturalB = parseFloat(getComputedStyle(Img)[C.L_SIZE_b]), MaxB = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_b]), PageCB));
-        const NaturalL = parseFloat(getComputedStyle(Img)[C.L_SIZE_l]), MaxL = Math.floor(Math.min(parseFloat(getComputedStyle(Item.Body)[C.L_SIZE_l]), PageCL));
-        if(NaturalB > MaxB || NaturalL > MaxL) sML.style(Img, {
-            [C.L_SIZE_b]: Math.floor(parseFloat(getComputedStyle(Img)[C.L_SIZE_b]) * Math.min(MaxB / NaturalB, MaxL / NaturalL)) + 'px',
-            [C.L_SIZE_l]: 'auto',
-            maxWidth: '100vw',
-            maxHeight: '100vh'
+    { // Fit Image and Embeded Content
+        const [ItemBDir, ItemLDir] = Item.WritingMode.split('-'), ItemLineAxis = ItemLDir == 'tb' ? 'horizontal' : 'vertical';
+        const TRBL = ['Top', 'Right', 'Bottom', 'Left'];
+        sML.forEach(Item.Body.querySelectorAll('img, picture, svg, video, iframe'))(Ele => {
+            if(!Ele.BibiDefaultStyle) { Ele.BibiDefaultStyle = {}; ['width', 'height', 'maxWidth', 'maxHeight'].forEach(Pro => Ele.BibiDefaultStyle[Pro] = Ele.style[Pro] || ''); }
+            else Object.keys(Ele.BibiDefaultStyle).forEach(Pro => Ele.style[Pro] = Ele.BibiDefaultStyle[Pro]);
+            const EComStyle = getComputedStyle(Ele),               EMarTRBL = TRBL.map(TRBL => parseFloat(EComStyle[ 'margin' + TRBL]) || 0);
+            const PComStyle = getComputedStyle(Ele.parentElement), PPadTRBL = TRBL.map(TRBL => parseFloat(PComStyle['padding' + TRBL]) || 0);
+            const ESpacing = ItemLineAxis == 'horizontal' ? O.getElementCoord(Ele).X + (ItemBDir == 'lr' ? EMarTRBL[1] + PPadTRBL[1] : EMarTRBL[3] + PPadTRBL[3] - Ele.offsetWidth)
+                                                          : O.getElementCoord(Ele).Y + (ItemBDir == 'tb' ? EMarTRBL[2] + PPadTRBL[2] : EMarTRBL[0] + PPadTRBL[0] - Ele.offsetHeight);
+            let EMaxB = PageCB, EMaxL = PageCL;
+            if(S.SLA != ItemLineAxis) EMaxB -= ESpacing, EMaxL -= PPadTRBL[0] + PPadTRBL[2];
+            else                      EMaxL -= ESpacing, EMaxB -= PPadTRBL[1] + PPadTRBL[3];
+            const ENatB = Ele['offset' + C.L_SIZE_B];
+            const ENatL = Ele['offset' + C.L_SIZE_L];
+            const EFitRatio = Math.min(EMaxB / ENatB, EMaxL / ENatL);
+            if(EFitRatio < 1) sML.style(Ele, { width: 'auto', height: 'auto',
+                ['max' + C.L_SIZE_B]: Math.floor(ENatB * EFitRatio) + 'px',
+                ['max' + C.L_SIZE_L]: Math.floor(ENatL * EFitRatio) + 'px'
+            });
         });
-    });
+    }
     if(sML.UA.Gecko) { // Part 1/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
         if(Item.OFREs === undefined) {
             Item.OFREs = []; // Orthogonal Flow Root Elements
