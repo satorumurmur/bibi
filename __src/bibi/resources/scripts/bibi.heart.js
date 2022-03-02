@@ -546,6 +546,7 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     }))));
     return Promise.all(Promises).then(() => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
+        E.dispatch('bibi:loaded-book');
     });
 });
 
@@ -558,6 +559,7 @@ Bibi.bindBook = () => {
     return R.layOutBook(Bibi.StartOption).then(() => {
         Bibi.StartOption.removeResetter();
         E.dispatch('bibi:laid-out-for-the-first-time', Bibi.StartOption);
+        E.dispatch('bibi:binded-book');
     });
 };
 
@@ -810,6 +812,7 @@ L.loadContainer = () => O.openDocument(B.Container.Source).then(L.loadContainer.
 L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.process);
 
     L.loadPackage.process = (Doc) => { // This is Used also from the Zine Extention.
+        E.dispatch('bibi:is-going-to:process-package', Doc);
         // ================================================================================
         // NAMESPACES
         // --------------------------------------------------------------------------------
@@ -6026,6 +6029,7 @@ I.createSubpanel = (Par = {}) => {
             O.HTML.classList.add('subpanel-opened');
             if(Subpanel.Opener) I.setUIState(Subpanel.Opener, 'active');
             if(Par.onopened) Par.onopened.apply(Subpanel, arguments);
+            E.dispatch(Subpanel, 'bibi:opened-subpanel', Subpanel), E.dispatch('bibi:opened-subpanel', Subpanel);
         },
         onclosed: function(Opt) {
             this.classList.remove('opened');
@@ -6037,6 +6041,7 @@ I.createSubpanel = (Par = {}) => {
                 I.setUIState(Subpanel.Opener, 'default');
             }
             if(Par.onclosed) Par.onclosed.apply(Subpanel, arguments);
+            E.dispatch(Subpanel, 'bibi:closed-subpanel', Subpanel), E.dispatch('bibi:closed-subpanel', Subpanel);
         }
     });
     Subpanel.bindOpener = (Opener) => {
