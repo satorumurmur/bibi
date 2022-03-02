@@ -1441,8 +1441,8 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
     const ItemBodyComputedStyle = getComputedStyle(Item.Body);
     if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
     Item.WritingMode = O.getWritingMode(Item.HTML);
-         if(/-rl$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
-    else if(/-lr$/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
+         if(/^(tb|bt)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
+    else if(/^(lr|rl)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
     if(S['background-spreading']) [
         [Item.Box, ItemHTMLComputedStyle, Item.HTML],
         [Item,     ItemBodyComputedStyle, Item.Body]
@@ -6974,11 +6974,14 @@ O.editCSSRules = function() {
 
 
 O.getWritingMode = (Ele) => {
-    const CS = getComputedStyle(Ele);
-         if(!O.WritingModeProperty)                            return (CS['direction'] == 'rtl' ? 'rl-tb' : 'lr-tb');
-    else if(     /^vertical-/.test(CS[O.WritingModeProperty])) return (CS['direction'] == 'rtl' ? 'bt' : 'tb') + '-' + (/-lr$/.test(CS[O.WritingModeProperty]) ? 'lr' : 'rl');
-    else if(   /^horizontal-/.test(CS[O.WritingModeProperty])) return (CS['direction'] == 'rtl' ? 'rl' : 'lr') + '-' + (/-bt$/.test(CS[O.WritingModeProperty]) ? 'bt' : 'tb');
-    else if(/^(lr|rl|tb|bt)-/.test(CS[O.WritingModeProperty])) return CS[O.WritingModeProperty];
+    const WMP = O.WritingModeProperty, CS = getComputedStyle(Ele);
+    if(!WMP)                                return (CS['direction'] == 'rtl' ? 'rl' : 'lr') + '-tb';
+    switch(CS[WMP]) { case 'horizontal-tb': return (CS['direction'] == 'rtl' ? 'rl' : 'lr') + '-tb';
+                      case   'vertical-rl': return (CS['direction'] == 'rtl' ? 'bt' : 'tb') + '-rl';
+                      case   'sideways-rl': return (CS['direction'] == 'rtl' ? 'bt' : 'tb') + '-rl';
+                      case   'vertical-lr': return (CS['direction'] == 'rtl' ? 'bt' : 'tb') + '-lr';
+                      case   'sideways-lr': return (CS['direction'] == 'rtl' ? 'tb' : 'bt') + '-lr';
+    }                                       return  CS[WMP];
 };
 
 
