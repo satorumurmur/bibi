@@ -2844,26 +2844,28 @@ I.Utilities = { create: () => {
 I.ScrollObserver = { create: () => {
     const ScrollObserver = I.ScrollObserver = {
         History: [],
-        Count: 0,
+        Scrolling: 0,
         onScroll: (Eve) => { if(R.LayingOut || !L.Opened) return;
+            clearTimeout(R.Timer_onScrollEnd);
             if(!ScrollObserver.Scrolling) {
-                ScrollObserver.Scrolling = true;
                 O.HTML.classList.add('scrolling');
+                E.dispatch('bibi:started-scrolling');
+            } else {
+                E.dispatch('bibi:keeps-scrolling');
             }
             E.dispatch('bibi:is-scrolling');
-            ScrollObserver.History.unshift(Math.ceil(R.Main['scroll' + C.L_OOBL_L])); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
-            if(ScrollObserver.History.length > 2) ScrollObserver.History.pop();
-            if(++ScrollObserver.Count == 8) {
-                ScrollObserver.Count = 0;
+            if(++ScrollObserver.Scrolling == 9) {
+                ScrollObserver.Scrolling = 1;
                 E.dispatch('bibi:scrolled');
             }
-            clearTimeout(R.Timer_onScrollEnd);
             R.Timer_onScrollEnd = setTimeout(() => {
-                ScrollObserver.Scrolling = false;
-                ScrollObserver.Count = 0;
+                ScrollObserver.Scrolling = 0;
                 O.HTML.classList.remove('scrolling');
                 E.dispatch('bibi:scrolled');
+                E.dispatch('bibi:stopped-scrolling');
             }, 123);
+            ScrollObserver.History.unshift(Math.ceil(R.Main['scroll' + C.L_OOBL_L])); // Android Chrome returns scrollLeft/Top value of an element with slightly less float than actual.
+            if(ScrollObserver.History.length > 2) ScrollObserver.History.length = 2;
         },
         observe: () => {
             R.Main.addEventListener('scroll', ScrollObserver.onScroll);
@@ -3141,37 +3143,44 @@ I.ResizeObserver = { create: () => {
         TargetPageAfterResizing: null,
         onResize: (Eve) => { if(R.LayingOut || !L.Opened) return;
             if(!ResizeObserver.Resizing) {
-                ResizeObserver.Resizing = true;
-                //ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List && I.PageObserver.Current.List[0] && I.PageObserver.Current.List[0].Page ? I.PageObserver.Current.List[0].Page : I.PageObserver.IntersectingPages[0];
-                ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null;
-                ////////R.Main.removeEventListener('scroll', I.ScrollObserver.onScroll);
-                O.Busy = true;
-                O.HTML.classList.add('busy');
-                O.HTML.classList.add('resizing');
+                // ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List && I.PageObserver.Current.List[0] && I.PageObserver.Current.List[0].Page ? I.PageObserver.Current.List[0].Page : I.PageObserver.IntersectingPages[0];
+                // ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null;
+                ResizeObserver.TargetAfterResizing = R.getElement();
+                ResizeObserver.onResizeStart(Eve);
             };
             clearTimeout(ResizeObserver.Timer_onResizeEnd);
             ResizeObserver.Timer_onResizeEnd = setTimeout(() => {
                 R.updateOrientation();
-                const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
+                // const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
                 R.layOutBook({
                     Reset: true,
-                    Destination: Page ? { ItemIndex: Page.Item.Index, ProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
+                    // Destination: Page ? { ItemIndex: Page.Item.Index, ProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
+                    Destination: ResizeObserver.TargetAfterResizing
                 }).then(() => {
-                    E.dispatch('bibi:resized', Eve);
-                    O.HTML.classList.remove('resizing');
-                    O.HTML.classList.remove('busy');
-                    O.Busy = false;
-                    ////////R.Main.addEventListener('scroll', I.ScrollObserver.onScroll);
-                    //I.ScrollObserver.onScroll();
+                    ResizeObserver.onResizeEnd(Eve);
                     ResizeObserver.Resizing = false;
+                    ResizeObserver.TargetAfterResizing = null;
                 });
             }, sML.UA.Trident ? 1200 : O.TouchOS ? 600 : 300);
         },
-        observe: () => {
-            window.addEventListener(E['resize'], ResizeObserver.onResize);
+        onResizeStart: (Eve) => {
+            E.dispatch('bibi:is-going-to:resize', Eve);
+            ResizeObserver.Resizing = true;
+            //////// R.Main.removeEventListener('scroll', I.ScrollObserver.onScroll);
+            O.Busy = true;
+            O.HTML.classList.add('busy');
+            O.HTML.classList.add('resizing');
+        },
+        onResizeEnd: (Eve) => {
+            E.dispatch('bibi:resized', Eve);
+            O.HTML.classList.remove('resizing');
+            O.HTML.classList.remove('busy');
+            O.Busy = false;
+            //////// R.Main.addEventListener('scroll', I.ScrollObserver.onScroll);
+            // I.ScrollObserver.onScroll();
         }
     };
-    E.bind('bibi:opened', ResizeObserver.observe);
+    E.bind('bibi:opened', () => window.addEventListener(E['resize'], ResizeObserver.onResize));
     E.dispatch('bibi:created-resize-observer');
 }};
 
@@ -4813,7 +4822,7 @@ I.Nombre = { create: () => { if(!S['use-nombre']) return;
     Nombre.Percent   = Nombre.appendChild(sML.create('span', { className: 'bibi-nombre-percent'   }));
     E.add('bibi:opened' , () => setTimeout(() => {
         Nombre.progress();
-        E.add(['bibi:is-scrolling', 'bibi:scrolled', 'bibi:opened-slider'], () => Nombre.progress());
+        E.add(['bibi:keeps-scrolling', 'bibi:scrolled', 'bibi:opened-slider'], () => Nombre.progress());
         E.add('bibi:closed-slider', Nombre.hide);
     }, 321));
     sML.appendCSSRule('html.view-paged div#bibi-nombre',      'bottom: ' + (O.Scrollbars.Height + 2) + 'px;');
@@ -5025,7 +5034,7 @@ I.Slider = { create: () => {
         E.add('bibi:upped-pointer', BibiEvent => Slider.onTouchEnd(BibiEvent));
         //O.HTML.addEventListener(E['pointerup'], Slider.onTouchEnd);
         //if(Slider.History) Slider.History.Button.addEventListener(E['pointerup'], Slider.onTouchEnd);
-        E.add(['bibi:is-scrolling', 'bibi:scrolled'], Slider.progress);
+        E.add(['bibi:keeps-scrolling', 'bibi:scrolled'], Slider.progress);
         Slider.progress();
     });
     E.add(['bibi:opened-slider', 'bibi:closed-slider', 'bibi:laid-out'], () => {
