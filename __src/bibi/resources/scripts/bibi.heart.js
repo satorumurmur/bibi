@@ -28,6 +28,7 @@ Bibi.SettingTypes = {
         'start-embedded-in-new-window',
         'use-arrows',
         'use-bookmark-ui',
+        'use-flowdirection-setter',
         'use-fontsize-setter',
         'use-full-height',
         'use-history-ui',
@@ -4357,7 +4358,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             TextSetter.Changing = 'Changing';
             const SetterNames = Object.keys(Settings);
             SetterNames.forEach(SetterName => E.dispatch('bibi:changes-' + SetterName.toLowerCase(), Settings[SetterName]));
-            // ^-- E.dispatch('bibi:changes-fontsize', Settings.FontSize), E.dispatch('bibi:changes-linespacing', Settings.LineSpacing)
+            // ^-- E.dispatch('bibi:changes-fontsize', Settings.FontSize), E.dispatch('bibi:changes-linespacing', Settings.LineSpacing), E.dispatch('bibi:changes-flowdirection', Settings.FlowDirection)
             if(TextSetter.Subpanel) TextSetter.Subpanel.busy(true);
             if(typeof ActionsBeforeAfter?.before == 'function') ActionsBeforeAfter.before();
             setTimeout(() => R.layOutBook({
@@ -4368,7 +4369,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 NoNotification: true
             }).then(() => {
                 SetterNames.forEach(SetterName => E.dispatch('bibi:changed-' + SetterName.toLowerCase(), Settings[SetterName]));
-                // ^-- E.dispatch('bibi:changed-fontsize', Settings.FontSize), E.dispatch('bibi:changed-linespacing', Settings.LineSpacing)
+                // ^-- E.dispatch('bibi:changed-fontsize', Settings.FontSize), E.dispatch('bibi:changed-linespacing', Settings.LineSpacing), E.dispatch('bibi:changed-flowdirection', Settings.FlowDirection)
                 if(typeof ActionsBeforeAfter?.after == 'function') ActionsBeforeAfter.after();
                 if(TextSetter.Subpanel) TextSetter.Subpanel.busy(false);
                 delete TextSetter.Changing;
@@ -4564,6 +4565,112 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 ]);
             }
         }).setScalePerStep(S['linespacing-scale-per-step']);
+    }
+    if(S['use-flowdirection-setter']) {
+        TextSetter.x({
+            Name: 'FlowDirection', IsResizer: false,
+            Setting: { Default: true, DefaultWritingMode: B.WritingMode, DefaultPageProgressionDirection: B.PPD },
+            DirectionalStylePropertyTrees: [[['margin@', 'padding@', 'inset@', 'border@Style', 'border@Width', 'border@Color'], ['Block@', 'Inline@'], ['Start', 'End']]/*, [['blockSize', 'inlineSize']]*/].map(TreeSet => JSON.parse(JSON.stringify(TreeSet.reduce((Tree, Branches) => {
+                const appendTo = (Base, AppendingNames, BaseName = '') => {
+                    const ChildNames = Object.keys(Base);
+                    ChildNames.length ? ChildNames.forEach(ChildName => appendTo(Base[ChildName], AppendingNames, ChildName)) : AppendingNames.forEach(AppendingName => Base[BaseName.replace(/(@|$)/, AppendingName)] = {});
+                    return Base;
+                }; return appendTo(Tree, Branches);
+            }, {})).replace(/@/g, ''))),
+            prepareItemBeforeElements: function(Item) {
+                Item.TextSettings.FlowDirection = { DefaultWritingMode: Item.WritingMode, FlowRootElements: [] };
+            },
+            prepareElement: function(Ele, ComStyle, Item) {
+                const PEle = Ele.parentElement, ParentWritingMode = PEle ? getComputedStyle(PEle).writingMode : undefined, ComWritingMode = ComStyle.writingMode;
+                if(PEle && ComWritingMode == ParentWritingMode) Ele.style.writingMode = 'inherit'; else {
+                    Ele.BibiTextSettings.FlowDirection = { DefaultWritingMode: (Ele.style.writingMode = ComWritingMode), ParentDefault: ParentWritingMode };
+                    Item.TextSettings.FlowDirection.FlowRootElements.push(Ele);
+                }
+                this.overrideDirectionalStyles(Ele, ComStyle, Item.TextSettings.HTMLOriginalFontSize);
+            },
+            overrideDirectionalStyles: function(Ele, ComStyle, ItemHTMLOriginalFontSize) {
+                JSON.parse(JSON.stringify(this.DirectionalStylePropertyTrees)).forEach((StyleTree, i) => {
+                    StyleTree = this.buildStyleTree(StyleTree, ComStyle);
+                    const PropertiesToBeIgnored = !i ? Object.keys(StyleTree) : [];
+                    this.setStyles(Ele, StyleTree, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
+                });
+            },
+            buildStyleTree: function(Parent, ComStyle, SelfName) {
+                if(!SelfName) {
+                    Object.keys(Parent).forEach(SelfName => Parent[SelfName] = this.buildStyleTree(Parent, ComStyle, SelfName));
+                    return Parent;
+                }
+                const Self = Parent[SelfName], Children = Object.keys(Self);
+                if(Children.length) {
+                    const Vals = Children.map(Pro => Self[Pro] = (Object.keys(Self[Pro]).length) ? this.buildStyleTree(Self, ComStyle, Pro) : ComStyle[Pro]);
+                    if(new Set(Vals).size == 1) Parent[SelfName] = Vals[0];
+                } else Parent[SelfName] = ComStyle[SelfName];
+                return Parent[SelfName];
+            },
+            setStyles: function(Ele, StyleTree, ItemHTMLOriginalFontSize, PropertiesToBeIgnored) {
+                Object.keys(StyleTree).forEach(Pro => {
+                    let Val = StyleTree[Pro];
+                    if(typeof Val == 'object') return this.setStyles(Ele, Val, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
+                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : Val / ItemHTMLOriginalFontSize + 'rem';
+                });
+            },
+            getLineAxis: (WM) => WM.split('-')[1] == 'tb' ? 'horizontal' : 'vertical',
+            distillSetting: function(Setting, Opt) {
+                if(typeof Setting == 'string') switch(Setting) {
+                    case 'default':    Setting = { Default: true  }; break;
+                    case 'alt':        Setting = { Default: false }; break;
+                    case 'toggle':     Setting = { Default: !this.Setting.Default }; break;
+                    case 'horizontal':
+                    case 'vertical':   Setting = { Default: this.getLineAxis(this.Setting.DefaultWritingMode) == Setting }; break;
+                    default: return null;
+                }
+                else if(typeof Setting != 'object' || !Setting) return null;
+                const Default = Setting.Default !== undefined ? !!Setting.Default : Setting.Alt !== undefined ? !Setting.Alt : Setting.Toggle !== undefined ? !this.Setting.Default : undefined;
+                if(Default === undefined) return null;
+                return !Opt?.Changeable || Default != this.Setting.Default ? { Default: Default } : null;
+            },
+            changeBeforeItems: function(Setting) {
+                if(Setting.Default) {
+                    B.WritingMode = this.Setting.DefaultWritingMode;
+                    B.PPD         = this.Setting.DefaultPageProgressionDirection;
+                } else switch(this.Setting.DefaultWritingMode) {
+                    case 'lr-tb': B.WritingMode = 'tb-rl', B.PPD = 'rtl'; break;
+                    case 'rl-tb': B.WritingMode = 'bt-rl', B.PPD = 'rtl'; break;
+                    case 'tb-rl': B.WritingMode = 'lr-tb', B.PPD = 'ltr'; break;
+                }
+            },
+            changeItem: function(Item, Setting) {
+                const ItemSettings = Item.TextSettings?.FlowDirection; if(!ItemSettings) return;
+                const BookDefaultLineAxis = this.getLineAxis(this.Setting.DefaultWritingMode);
+                if(Setting.Default) {
+                    ItemSettings.FlowRootElements.forEach(Ele => Ele.style.writingMode = Ele.BibiTextSettings.FlowDirection.DefaultWritingMode);
+                    Item.WritingMode = ItemSettings.DefaultWritingMode;
+                    Item.HTML.classList.remove('bibi-textsetter-writingmode-alternated');
+                } else if(this.getLineAxis(ItemSettings.DefaultWritingMode) == BookDefaultLineAxis) {
+                    ItemSettings.FlowRootElements.forEach(Ele => {
+                        if(this.getLineAxis(Ele.BibiTextSettings.FlowDirection.DefaultWritingMode) != BookDefaultLineAxis) return;
+                        Ele.style.writingMode = BookDefaultLineAxis == 'horizontal' ? 'vertical-rl' : 'horizontal-tb';
+                    });
+                    Item.WritingMode = O.getWritingMode(Item.HTML);
+                    Item.HTML.classList.add('bibi-textsetter-writingmode-alternated');
+                }
+                if(this.getLineAxis(Item.WritingMode) == 'horizontal') Item.HTML.classList.remove(  'bibi-vertical-text'), Item.HTML.classList.add('bibi-horizontal-text');
+                else                                                   Item.HTML.classList.remove('bibi-horizontal-text'), Item.HTML.classList.add(  'bibi-vertical-text');
+            },
+            changeAfterItems: (Setting) => {
+                S.update();
+                E.dispatch('bibi:changed-view', S.RVM);
+            },
+            createUI: function() { //// TEMPORARY
+                const Setter = this;
+                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: `Direction of Text/Line`, ja: `縦書き・横書き` } } });
+                this.UI.addButtonGroup({
+                    Buttons: [{ Setting: { Toggle: true }, Type: 'toggle', Icon: `<span class="bibi-icon bibi-icon-flowdirection"></span>`, Labels: { default: { default: `Alternate`, ja: `切り替え` } }, action: function() { TextSetter.change({ [Setter.Name]: this.Setting }); } }]
+                });
+                this.UI.care = (Setting) => this.UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Setting.Default ? 'default' : 'active'));
+                this.UI.care(this.Setting);
+            }
+        });
     }
     // =========================================================================================================================
     E.dispatch('bibi:prepared-textsetter');

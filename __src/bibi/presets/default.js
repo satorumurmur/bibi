@@ -51,6 +51,8 @@ Bibi.preset({
 "use-linespacing-setter"     : "yes", // "yes" | "no" | "desktop" | "mobile"
 "linespacing-scale-per-step" : 1.25, // Number of scale
 
+"use-flowdirection-setter"   : "yes", // "yes" | "no" | "desktop" | "mobile"
+
 "use-search-ui"              : "yes", // "yes" | "no" | "desktop" | "mobile"
 
 "use-loupe-ui"               : "yes", // "yes" | "no" | "desktop" | "mobile" // Loupe UI buttons are always hidden and disabled on reflowable books or in touch-devices.
