@@ -51,7 +51,8 @@
 	.bibi-button.disabled & {
 		&:before, &:after { opacity: 0.33 !important; }
 	}
-	#bibi-menu & {
+	#bibi-menu &,
+	.bibi-extramenu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor,
 			$Menu-Icon-Font_OutlineColor,
@@ -94,7 +95,8 @@
 // --------------------------------------------------------------------------------
 
 .bibi-button.default { &.hover/*, &:hover*/ { .bibi-icon {
-	#bibi-menu & {
+	#bibi-menu &,
+	.bibi-extramenu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor__Hover,
 			$Menu-Icon-Font_OutlineColor__Hover,
@@ -134,7 +136,8 @@
 // --------------------------------------------------------------------------------
 
 .bibi-button.active { .bibi-icon {
-	#bibi-menu & {
+	#bibi-menu &,
+	.bibi-extramenu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor__Active,
 			$Menu-Icon-Font_OutlineColor__Active,
@@ -174,7 +177,8 @@
 // --------------------------------------------------------------------------------
 
 .bibi-button-normal, .bibi-button-toggle { &.active { &.hover/*, &:hover*/ { .bibi-icon {
-	#bibi-menu & {
+	#bibi-menu &,
+	.bibi-extramenu & {
 		@include Icon-Colouring(
 			$Menu-Icon-Font_PaintColor__Active-Hover,
 			$Menu-Icon-Font_OutlineColor__Active-Hover,
@@ -214,9 +218,10 @@
 // --------------------------------------------------------------------------------
 
 .bibi-button.disabled .bibi-icon {
-	#bibi-menu     & { &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
-	#bibi-slider   & { &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
-	.bibi-subpanel & { &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
+	#bibi-menu      &,
+	.bibi-extramenu & { &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
+	#bibi-slider    & { &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
+	.bibi-subpanel  & { &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
 }
 
 

@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------
 
 
-div#bibi-menu {
+div#bibi-menu, .bibi-extramenu {
 	height: $Menu_Height;
 	.bibi-icon { @include size($Menu-Icon_Size); }
 	html.appearance-vertical.slider-opened & { width: calc(100% - #{$Slider_Size}); }
@@ -29,8 +29,8 @@ html:not(.book-full-height) {
 // - Menu-L & Menu-R
 // --------------------------------------------------------------------------------
 
-div#bibi-menu-l,
-div#bibi-menu-r {
+div#bibi-menu-l, .bibi-extramenu-l,
+div#bibi-menu-r, .bibi-extramenu-r {
 	ul {
 		padding: $Menu-ButtonGroup_Padding;
 		height: $Menu-Icon_Size;
@@ -46,7 +46,7 @@ div#bibi-menu-r {
 	}
 }
 
-div#bibi-menu-l {
+div#bibi-menu-l, .bibi-extramenu-l {
 	ul {
 		&:first-child       { padding-left: $Menu-ButtonGroup_Padding; }
 		&:not(:first-child) { padding-left: $Menu-ButtonGroup_Padding$Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }
@@ -56,7 +56,7 @@ div#bibi-menu-l {
 	}
 }
 
-div#bibi-menu-r {
+div#bibi-menu-r, .bibi-extramenu-r {
 	ul {
 		&:first-child       { padding-right: $Menu-ButtonGroup_Padding; }
 		&:not(:first-child) { padding-right: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }

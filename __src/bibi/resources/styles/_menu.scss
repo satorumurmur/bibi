@@ -3,10 +3,9 @@
 // --------------------------------------------------------------------------------
 
 
-div#bibi-menu {
+div#bibi-menu, .bibi-extramenu {
 	//box-sizing: border-box;
 	position: absolute;
-	z-index: $INVARIABLE__Menu_ZIndex;
 	@include offset(0, 0, auto);
 	left: 0;
 	right: auto;
@@ -20,6 +19,12 @@ div#bibi-menu {
 		transition: .125s linear;
 	}
 	// @____Bibi:Dress__('-') .bibi-icon { @include size($Menu-Icon_Size); }
+}
+div#bibi-menu {
+	z-index: $INVARIABLE__Menu_ZIndex;
+}
+.bibi-extramenu {
+	z-index: $INVARIABLE__Menu_ZIndex + 1;
 }
 html.without-menubar,
 html.waiting-file {
@@ -46,8 +51,8 @@ html:not(.book-full-height) {
 // - Menu-L & Menu-R
 // --------------------------------------------------------------------------------
 
-div#bibi-menu-l,
-div#bibi-menu-r {
+div#bibi-menu-l, .bibi-extramenu-l,
+div#bibi-menu-r, .bibi-extramenu-r {
 	box-sizing: border-box;
 	display: flex;
 	justify-content: flex-start;
@@ -59,12 +64,12 @@ div#bibi-menu-r {
 	transition: opacity 0.75s linear;
 	ul {
 		display: flex;
+		flex-direction: row;
 		justify-content: flex-start;
 		align-items: flex-start;
 		position: relative;
 		// @____Bibi:Dress__('-') padding: $Menu-ButtonGroup_Padding;
 		// @____Bibi:Dress__('-') height: $Menu-Icon_Size;
-		&, &.sticky { opacity: 0; }
 		&:before {
 			content: "";
 			display: block;
@@ -85,6 +90,75 @@ div#bibi-menu-r {
 				}
 			}
 		}
+	}
+	ul.bibi-buttongroup-tiled:not(.auto-reverse),
+	html.page-ltr & ul.bibi-buttongroup-tiled.auto-reverse {
+		li { margin-left: -1px !important; }
+		li:first-child:not(:last-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-right-radius: 0;
+						border-bottom-right-radius: 0;
+					}
+				}
+			}
+		}
+		li:not(:first-child):not(:last-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon { border-radius: 0; }
+				}
+			}
+		}
+		li:last-child:not(:first-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-left-radius: 0;
+						border-bottom-left-radius: 0;
+					}
+				}
+			}
+		}
+	}
+	html.page-rtl & ul.bibi-buttongroup-tiled.auto-reverse {
+		flex-direction: row-reverse;
+		li { margin-right: -1px !important; }
+		li:first-child:not(:last-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-left-radius: 0;
+						border-bottom-left-radius: 0;
+					}
+				}
+			}
+		}
+		li:not(:first-child):not(:last-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon { border-radius: 0; }
+				}
+			}
+		}
+		li:last-child:not(:first-child) {
+			.bibi-button {
+				.bibi-button-iconbox {
+					.bibi-icon {
+						border-top-right-radius: 0;
+						border-bottom-right-radius: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+div#bibi-menu-l,
+div#bibi-menu-r {
+	ul {
+		&, &.sticky { opacity: 0; }
 		html.waiting & {
 			&, &.sticky { opacity: 1; }
 		}
@@ -97,22 +171,12 @@ div#bibi-menu-r {
 			&, &.sticky { opacity: 1; }
 		}
 	}
-	ul.bibi-buttongroup-tiled {
-		li:not(:first-child):not(:last-child) {
-			.bibi-button {
-				.bibi-button-iconbox {
-					.bibi-icon { border-radius: 0; }
-				}
-			}
-		}
-	}
 }
 
-div#bibi-menu-l {
+div#bibi-menu-l, .bibi-extramenu-l {
 	float: left;
 	flex-direction: row;
 	ul {
-		flex-direction: row;
 		&:first-child {
 			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Padding;
 			&:before { display: none; }
@@ -126,36 +190,12 @@ div#bibi-menu-l {
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
 		}
 	}
-	ul.bibi-buttongroup-tiled {
-		li { margin-left: -1px !important; }
-		li:first-child:not(:last-child) {
-			.bibi-button {
-				.bibi-button-iconbox {
-					.bibi-icon {
-						border-top-right-radius: 0;
-						border-bottom-right-radius: 0;
-					}
-				}
-			}
-		}
-		li:last-child:not(:first-child) {
-			.bibi-button {
-				.bibi-button-iconbox {
-					.bibi-icon {
-						border-top-left-radius: 0;
-						border-bottom-left-radius: 0;
-					}
-				}
-			}
-		}
-	}
 }
 
-div#bibi-menu-r {
+div#bibi-menu-r, .bibi-extramenu-r {
 	float: right;
 	flex-direction: row-reverse;
 	ul {
-		flex-direction: row-reverse;
 		&:first-child {
 			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Padding;
 			&:before { display: none; }
@@ -167,29 +207,6 @@ div#bibi-menu-r {
 		li {
 			&:first-child { margin-right: 0; }
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
-		}
-	}
-	ul.bibi-buttongroup-tiled {
-		li { margin-right: -1px !important; }
-		li:first-child:not(:last-child) {
-			.bibi-button {
-				.bibi-button-iconbox {
-					.bibi-icon {
-						border-top-left-radius: 0;
-						border-bottom-left-radius: 0;
-					}
-				}
-			}
-		}
-		li:last-child:not(:first-child) {
-			.bibi-button {
-				.bibi-button-iconbox {
-					.bibi-icon {
-						border-top-right-radius: 0;
-						border-bottom-right-radius: 0;
-					}
-				}
-			}
 		}
 	}
 }
