@@ -7,28 +7,17 @@
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const Bibi = {
-    'version': '1.2.0',
-    'author': {
-        'name': 'Satoru Matsushima'
-    },
-    'description': 'Bibi | EPUB Reader on your website.',
+    'package': require('./package.json'),
     'homepage': 'https://bibi.epub.link or https://github.com/satorumurmur/bibi'
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Bibi.ARCHIVES = '__archives';
+Bibi.ARCHIVES = '__archives', Bibi.ARCHIVETMP = Bibi.ARCHIVES + '/.tmp';
 Bibi.DIST     = '__dist';
-Bibi.SRC      = '__src';
+Bibi.SRC      = '__src', Bibi.SRCBC = Bibi.SRC + '__back-compat';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Bibi.Dresses = (Dresses => {
-    const check = (Ds) => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : [];
-    Dresses[ 'ready-made'] = check(Dresses[ 'ready-made']);
-    Dresses['custom-made'] = check(Dresses['custom-made']).filter(D => !Dresses['ready-made'].includes(D));
-    return Dresses;
-})(require('./' + Bibi.SRC + '/bibi/wardrobe/_dresses.js') || {});
 
 Bibi.Arguments = (() => {
     const KRE = /^\-+([\w\d_\-]+)$/;
@@ -43,8 +32,14 @@ Bibi.Arguments = (() => {
 Bibi.ForPack = Bibi.Arguments['pack'];
 Bibi.WithBCK = Bibi.Arguments['wbck'];
 
-Bibi.ARCHIVETMP = Bibi.ARCHIVES + '/.tmp';
-Bibi.SRCBC = Bibi.SRC + '__back-compat';
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Bibi.Dresses = (Dresses => {
+    const check = (Ds) => Ds instanceof Array ? Ds.filter(D => typeof D == 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_\-]*$/.test(D)) : [];
+    Dresses[ 'ready-made'] = check(Dresses[ 'ready-made']);
+    Dresses['custom-made'] = check(Dresses['custom-made']).filter(D => !Dresses['ready-made'].includes(D));
+    return Dresses;
+})(require('./' + Bibi.SRC + '/bibi/wardrobe/_dresses.js') || {});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,7 +139,7 @@ Bibi.Banners = {  // ===========================================================
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 'bibi/extensions/unaccessibilizer.js': { Name: `# Bibi Extension: Unaccessibilizer ("What a...")`, Credit: `
- *  * Reluctantly coded by ${ Bibi.author.name } - ${ Bibi.homepage }
+ *  * Reluctantly coded by ${ Bibi.package.author.name } - ${ Bibi.homepage }
  *  * Released into the public domain under the Unlicense - http://unlicense.org/UNLICENSE
 ` },
 
@@ -168,7 +163,7 @@ Bibi.Banners = {  // ===========================================================
  *  * © The Creator(s) of This Dress
 `, Extra: `
  *  * Based on:
- *      - The Bibi Dress Design System : © ${ Bibi.author.name } - ${ Bibi.homepage } / Licensed under the MIT License - https://github.com/satorumurmur/bibi/blob/master/LICENSE
+ *      - The Bibi Dress Design System : © ${ Bibi.package.author.name } - ${ Bibi.homepage } / Licensed under the MIT License - https://github.com/satorumurmur/bibi/blob/master/LICENSE
 `, Mark: true }
 
 }));  // =======================================================================================================================
@@ -180,7 +175,7 @@ for(const Key in Bibi.Banners) {
  *
  *  # ${ BannerRecipe.Name }` + (!BannerRecipe.Mark ? '' : (s => { for(let l = Math.max((192 - 1 - 3) - (6 + BannerRecipe.Name.length), 2), i = 0; i < l; i++) s = ' ' + s; return s; })(`(℠)`)) + `
  *` + (!BannerRecipe.Credit ? '' : (BannerRecipe.Credit == Bibi ? `
- *  * © ${ Bibi.author.name } - ${ Bibi.homepage }
+ *  * © ${ Bibi.package.author.name } - ${ Bibi.homepage }
  *  * Open source under the MIT License - https://github.com/satorumurmur/bibi/blob/master/LICENSE` : '\n' + BannerRecipe.Credit.replace(/^\n|\n$/g, '')) + `
  *`) + (!BannerRecipe.Extra ? '' : '\n' + BannerRecipe.Extra.replace(/^\n|\n$/g, '') + `
  *`) + `

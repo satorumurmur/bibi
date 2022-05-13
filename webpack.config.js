@@ -6,7 +6,6 @@
  *
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Package = require('./package.json');
 const Bibi = require('./bibi.recipe.js');
 
 const Webpack = require('webpack');
@@ -18,7 +17,7 @@ const StringReplacePlugin = require('string-replace-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const Path = require('path'), resolvePath = (...Ps) => Path.resolve(__dirname, Ps.join('/'));
-const _ = require('lodash');
+const Lodash = { cloneDeep: require('lodash.clonedeep') };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -91,7 +90,9 @@ const CommonConfig = {
                 '__samples/**/*.epub',
             'bibi-demo':
                 '**/*.html'
-        },
+        }
+    },
+    infoTree: {
         '.': [
             'LICENSE',
             'README.md'
@@ -99,17 +100,17 @@ const CommonConfig = {
     }
 };
 
-Object.keys(Configs).forEach(Name => Object.assign(Configs[Name], _.cloneDeep(CommonConfig)));
+Object.keys(Configs).forEach(Name => Object.assign(Configs[Name], Lodash.cloneDeep(CommonConfig)));
 
 // =============================================================================================================================
 
 const addRule      = (...ToBeAdded) => ({ ________to: (Name) => (Configs[Name] ? [Name] : Object.keys(Configs)).forEach(Name => Configs[Name].module.rules           .push(...ToBeAdded)) });
 const addMinimizer = (...ToBeAdded) => ({ ________to: (Name) => (Configs[Name] ? [Name] : Object.keys(Configs)).forEach(Name => Configs[Name].optimization.minimizer .push(...ToBeAdded)) });
-const addPlugin    = (...ToBeAdded) => ({ ________to: (Name) => (Configs[Name] ? [Name] : Object.keys(Configs)).forEach(Name => Configs[Name].plugins                .push(...ToBeAdded)) });
+const addPlugIn    = (...ToBeAdded) => ({ ________to: (Name) => (Configs[Name] ? [Name] : Object.keys(Configs)).forEach(Name => Configs[Name].plugins                .push(...ToBeAdded)) });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-addPlugin(
+addPlugIn(
     new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true }),
     new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
     new MiniCSSExtractPlugin({ filename: '[name]' }),
@@ -139,7 +140,7 @@ addRule({
     ],
     use: [
         StringReplacePlugin.replace({ replacements: [
-            { pattern: /____Bibi-Version____/ig, replacement: () => Bibi.version }
+            { pattern: /____Bibi-Version____/ig, replacement: () => Bibi.package.version }
         ] })
     ]
 }).________to('all');
@@ -165,14 +166,7 @@ const getCommonLoadersForCSS = (Opt = {}) => [
         import: Opt.import ? true : false,
         importLoaders: 2
     } },
-    { loader: 'postcss-loader', options: {
-        postcssOptions: {
-            plugins: {
-                'postcss-preset-env': { /* autoprefixer: { grid: true } */ },
-                'cssnano': { zindex: false }
-            }
-        }
-    } },
+    { loader: 'postcss-loader', options: {} },
     { loader: 'sass-loader', options: {} }
 ];
 
@@ -211,22 +205,17 @@ addRule({
     include: [
         resolvePath('node_modules/material-icons')
     ],
-    use: [
-        { loader: 'file-loader', options: {
-            outputPath: 'bibi/resources/styles/fonts',
-            publicPath:                     './fonts',
-            name: '[name].[ext]'
-        } }
-    ]
+    type: "asset/resource",
+    generator: {
+        filename: 'bibi/resources/styles/fonts/[name][ext]'
+    }
 }).________to('all');
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 addRule({
     test: /\.(gif|png|jpg|svg)$/,
-    use: [
-        { loader: 'url-loader' }
-    ]
+    type: 'asset/inline'
 }).________to('all');
 
 // =============================================================================================================================
@@ -250,18 +239,18 @@ addMinimizer(
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-addPlugin(...Object.keys(Bibi.Banners).map(Name =>
+addPlugIn(...Object.keys(Bibi.Banners).map(Name =>
     new Webpack.BannerPlugin({ test: Name, banner: Bibi.Banners[Name], raw: true })
 )).________to('production');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-(Configs['pack'] = _.cloneDeep(Configs['production'])).output.path = resolvePath(Bibi.ARCHIVETMP);
+(Configs['pack'] = Lodash.cloneDeep(Configs['production'])).output.path = resolvePath(Bibi.ARCHIVETMP);
 
 // =============================================================================================================================
 
 Object.keys(Configs).forEach(Name => {
-    const BCConfig = Configs[Name + '@wbck'] = _.cloneDeep(Configs[Name]);
+    const BCConfig = Configs[Name + '@wbck'] = Lodash.cloneDeep(Configs[Name]);
     Object.assign(BCConfig.entryTree, {
         [Bibi.SRCBC]:
             'bib/i.js'
@@ -281,8 +270,10 @@ module.exports = Object.keys(Configs).map(Name => {
     Config.name = Name;
     if(Config.entryTree) Config.entry = Bibi.arrangePathTree({}, (Entries, SrcDir, FilePath) => Entries[FilePath.replace(/\.js$/, '')] = resolvePath(SrcDir, FilePath.replace(/\.css$/, '.scss')), Config.entryTree);
     if(Config.copyTree) Config.plugins.push(new CopyPlugin({ patterns: Bibi.arrangePathTree([], (Patterns, SrcDir, FilePath) => Patterns.push({ context: resolvePath(SrcDir), from: FilePath, to: '.' }), Config.copyTree) }));
+    if(Config.infoTree) Config.plugins.push(new CopyPlugin({ patterns: Bibi.arrangePathTree([], (Patterns, SrcDir, FilePath) => Patterns.push({ context: resolvePath(SrcDir), from: FilePath, to: 'bibi/info' }), Config.infoTree) }));
     delete Config.entryTree;
     delete Config.copyTree;
+    delete Config.infoTree;
     return Config;
 });
 

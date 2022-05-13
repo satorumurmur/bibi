@@ -1,12 +1,14 @@
 const Config = {
     parser: false,
     plugins: {
+        'postcss-preset-env': { /* autoprefixer: { grid: true } */ },
+        'cssnano': { zindex: false }
     }
 };
 
 module.exports = ({ file, options, env }) => {
-    if(options['postcss-cssnext']) Config.plugins['postcss-cssnext'] = options['postcss-cssnext'];
-    if(options['autoprefixer'])    Config.plugins['autoprefixer']    = options['autoprefixer'];
-    if(options['cssnano'])         Config.plugins['cssnano']         = options['cssnano'];
+    // console.log('file:', file);
+    // console.log('options:', options);
+    // console.log('env:', env);
     return Config;
 };

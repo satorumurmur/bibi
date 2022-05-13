@@ -6,7 +6,6 @@
  *
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Package = require('./package.json');
 const Bibi = require('./bibi.recipe.js');
 
 const gulp = require('gulp');
@@ -21,11 +20,10 @@ gulp.task('clean', done => {
         del.sync([
             '**/.DS_Store',
             '**/Thumbs.db',
-            'LICENSE',
-            '*.md',
             'bibi/*.html',
             'bibi/and',
             'bibi/extensions',
+            'bibi/info',
             'bibi/presets',
             'bibi/resources',
             'bibi/wardrobe',
@@ -43,36 +41,11 @@ gulp.task('clean', done => {
             'bib/bookshelf',
             'bib/i',
             'bib'
-        ].forEach(Dir => {
-            try { Dir = Bibi.DIST + '/' + Dir ; if(!fs.readdirSync(Dir).length) del.sync(Dir); } catch(E) {}
-        });
+        ].forEach(Dir => fs.existsSync(Dir = Bibi.DIST + '/' + Dir) && fs.statSync(Dir).isDirectory() && !fs.readdirSync(Dir).length && fs.rmdirSync(Dir));
     }
     del.sync(Bibi.ARCHIVETMP);
     done();
 });
-
-// -----------------------------------------------------------------------------------------------------------------------------
-
-gulp.task('initialize', done => {
-    [
-      //'bibi',
-      //'bibi-bookshelf'
-    ].concat(!Bibi.WithBCK ? [] : [
-      //'bib',
-      //'bib/i',
-        'bib/bookshelf'
-    ]).forEach(Dir => {
-        fs.mkdirSync((Bibi.ForPack ? Bibi.ARCHIVETMP : Bibi.DIST) + '/' + Dir, { recursive: true });
-    });
-    done();
-});
-
-// =============================================================================================================================
-
-gulp.task('reset', gulp.series(
-    'clean',
-    'initialize'
-));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,19 +59,18 @@ gulp.task('make:dress-template', () => {
     ));
 });
 
-// =============================================================================================================================
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gulp.task('make:package', () => {
-    const PackageName = (Package.name == 'bibi' ? 'Bibi' : Package.name) + '-v' + Package.version + (Bibi.WithBCK ? '_with_BackCompatKit' : '') + '.zip';
+    const PackageName = (Bibi.package.name == 'bibi' ? 'Bibi' : Bibi.package.name) + '-v' + Bibi.package.version + (Bibi.WithBCK ? '_with_BackCompatKit' : '') + '.zip';
     del.sync([
         Bibi.ARCHIVES + '/' + PackageName
     ]);
     return gulp.src([
-        'LICENSE',
-        'README.md',
         'bibi/*.html',
         'bibi/and/**',
         'bibi/extensions/**',
+        'bibi/info/**',
         'bibi/presets/**',
         'bibi/resources/**',
         'bibi/wardrobe/**',
@@ -107,8 +79,7 @@ gulp.task('make:package', () => {
         'README.BackCompatKit.md',
         'bib/i/*.html',
         'bib/i.js',
-        'bib/i/presets/**',
-      //'bib/bookshelf'
+        'bib/i/presets/**'
     ]).map(
         X => Bibi.ARCHIVETMP + '/' + X
     ), {
