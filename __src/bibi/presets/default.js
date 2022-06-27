@@ -171,6 +171,8 @@ Bibi.preset({
 "use-histories"                      : true, // true | false
 "manualize-adding-histories"         : false, // true | false
 
+"inhibit"                            : [], // You may add "selecting", "saving-images", "contextual-menu", and/or "printing" (or "*" instead of each).
+
 
 //==============================================================================================================================================
 //-- DANGER ZONE

@@ -138,13 +138,6 @@ Bibi.Banners = {  // ===========================================================
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-'bibi/extensions/unaccessibilizer.js': { Name: `# Bibi Extension: Unaccessibilizer ("What a...")`, Credit: `
- *  * Reluctantly coded by ${ Bibi.package.author.name } - ${ Bibi.homepage }
- *  * Released into the public domain under the Unlicense - http://unlicense.org/UNLICENSE
-` },
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 'bibi/extensions/zine.js': { Name: 'Bibi Extension: Zine', Credit: Bibi, Extra: `
  *  * Depends on:
  *      - JS-YAML : © Vitaly Puzrin - https://nodeca.github.io/js-yaml / Licensed under the MIT License - https://github.com/nodeca/js-yaml/blob/master/LICENSE

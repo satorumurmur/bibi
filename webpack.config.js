@@ -52,7 +52,6 @@ const CommonConfig = {
                     ] },
                     'lamp.js',
                     'sanitizer.js',
-                    'unaccessibilizer.js',
                     'zine.js'
                 ],
                 'resources': {

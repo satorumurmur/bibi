@@ -113,6 +113,7 @@ Bibi.SettingTypes_PresetOnly = {
     'array': [
         'extensions',
         'extract-if-necessary',
+        'inhibit',
         'trustworthy-origins'
     ]
 };
@@ -199,6 +200,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'content-draggable'       : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
                 case 'extensions'              : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
                 case 'extract-if-necessary'    : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
+                case 'inhibit'                 : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim() : '')).includes('*') ? ['*'] : _V.filter(_I => _I);
                 case 'on-orthogonal-arrowkey'  :
                 case 'on-orthogonal-edgetap'   :
                 case 'on-orthogonal-touchmove' :
@@ -360,6 +362,9 @@ Bibi.initialize = () => {
         O.Body.style.width = '101vw', O.Body.style.height = '101vh';
         O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
         O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
+    }
+    { // Inhibition...
+        O.inhibit();
     }
     O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
@@ -7590,6 +7595,64 @@ O.CFIManager = { // Utilities for EPUBCFI (An Example Is at the Bottom of This O
         }
     }
     ----------------------------------------------------------------------------------------------------------------- */
+};
+
+
+O.inhibit = () => { // What a...
+    if(!Array.isArray(S['inhibit']) || !S['inhibit'].length) return;
+    const InhibitAll = S['inhibit'].includes('*');
+    const VPs = ['-webkit-', '-moz-', '-ms-', ''];
+    const ActionsOnPostprocessedItem = [];
+    if(InhibitAll || S['inhibit'].includes('selecting')) {
+        ActionsOnPostprocessedItem.push(Item => VPs.forEach(Prefix => ['user-select', 'user-drag'].forEach(Property => Item.Body.style[Prefix + Property] = 'none')));
+    }
+    if(InhibitAll || S['inhibit'].includes('saving-images')) {
+        ActionsOnPostprocessedItem.push(Item => sML.forEach(Item.Body.querySelectorAll('img, image, svg'))(Img => {
+            VPs.forEach(Prefix => {
+                ['user-select', 'user-drag'].forEach(Property => Img.style[Prefix + Property] = 'none');
+                if(O.Touch) Img.style[Prefix + 'pointer-events'] = 'none';
+            });
+            Img.draggable = false;
+            Img.addEventListener('contextmenu', O.preventDefault);
+        }));
+    }
+    if(InhibitAll || S['inhibit'].includes('contextual-menu')) {
+        ActionsOnPostprocessedItem.push(Item => Item.contentDocument.addEventListener('contextmenu', O.preventDefault));
+    }
+    if(InhibitAll || S['inhibit'].includes('printing')) {
+        window.addEventListener('beforeprint', () => (O.HTML.style.background = 'transparent') && (O.Body.style.visibility = 'hidden'));
+        window.addEventListener( 'afterprint', () => (O.HTML.style.background =            '') || (O.Body.style.visibility =       ''));
+        const CSSURLs = ((CSSs, Zero) => CSSs.map(CSS => URL.createObjectURL(new Blob([`@charset "utf-8";`, '\n', Object.keys(CSS).map(Sel => [Sel, '{', (CSS[Sel] || Zero), '}'].join(' ')).join('\n').replace(/;/g, ' !important;')], { type: 'text/css' }))))([{
+            'html, html:before': [
+                `display: block; visibility: visible; box-sizing: border-box; overflow: hidden;`,
+                `top: 0; right: 0; bottom: 0; left: 0; inset: 0; margin: 0; border: none 0;`,
+                `width: 100%; height: 100%; inline-size: 100%; block-size: 100%; min-width: 100%; min-height: 100%; min-inline-size: 100%; min-block-size: 100%; max-width: 100%; max-height: 100%; max-inline-size: 100%; max-block-size: 100%;`,
+                `background: transparent; opacity: 1;`,
+            ].join(' '),
+            'html': `position: static; z-index: auto; padding: 0; font: normal 0/0 sans-serif; color: transparent;`,
+            'html:before': `content: "(non-printable)"; position: fixed; z-index: 88; padding: 44% 0 0; text-align: center; font: normal 8vw/2 HelveticaNeue, Helvetica, Arial, sans-serif; color: rgb(234,234,234);`,
+            'html:after, html *': null
+        }, {
+            'html, html:before, html:after, html *' : null
+        }], [
+            `content: none; display: none; visibility: hidden; box-sizing: border-box; overflow: hidden;`,
+            `position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; left: 0; inset: 0; margin: 0; border: none 0; padding: 0;`,
+            `width: 0; height: 0; inline-size: 0; block-size: 0; min-width: 0; min-height: 0; min-inline-size: 0; min-block-size: 0; max-width: 0; max-height: 0; max-inline-size: 0; max-block-size: 0;`,
+            `font: normal 0/0 sans-serif; color: transparent; background: transparent; opacity: 0;`
+        ].join(' '));
+        const appendLink = (Doc, i) => Doc.head.appendChild(sML.create('link', { rel: 'stylesheet', media: 'print', href: CSSURLs[i] }));
+        const repairLink = (Doc, i) => Doc.querySelector('link[media~="print"][href^="' + CSSURLs[i] + '"]') || appendLink(Doc, i);
+        const manageLink = (Win, i) => {
+            const Doc = Win.document, Windows = [window]; if(Win != window) Windows.push(Win);
+            Windows.forEach(Window => {
+                Window.addEventListener('beforeprint', () => repairLink(Doc, i));
+                Window.addEventListener( 'afterprint', () => repairLink(Doc, i));
+            });
+            appendLink(Doc, i);
+        };
+        manageLink(window, 0), ActionsOnPostprocessedItem.push(Item => manageLink(Item.contentWindow, 1));
+    }
+    if(ActionsOnPostprocessedItem.length) E.bind('bibi:postprocessed-item', (Item) => ActionsOnPostprocessedItem.forEach(action => action(Item)));
 };
 
 
