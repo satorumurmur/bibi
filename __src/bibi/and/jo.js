@@ -67,28 +67,33 @@ Jo.callBibi = (Love) => {
     if(!Jo.TrustworthyOrigins.includes(Anchor.origin)) Jo.TrustworthyOrigins.push(Anchor.origin); // It is NOT reflected to S['trustworthy-origins'].
     Anchor.href += (/#/.test(Anchor.href) ? '&' : '#') + (() => {
         const Fragments = new Jo.Fragments();
-        Fragments.add('parent-bibi-index',  Bibi.Index);
+        Fragments.add('parent-bibi-index', Bibi.Index);
         [
             'autostart-embedded', 'autostart',
-            'p',
-            'fix-reader-view-mode', 'fix-view', 'view-unchangeable',
+            'dress',
+            'fix-reader-view-mode', 'fix-rvm', 'fix-view', 'fix-view-mode',
             'forget-me',
             'full-breadth-layout-in-scroll',
             'iipp',
             'nav',
-            'reader-view-mode', 'rvm', 'view',
+            'p',
+            'preset',
+            'reader-view-mode', 'rvm', 'view', 'view-mode',
             'start-embedded-in-new-window', 'start-in-new-window',
             'uiless'
-        ].forEach(K => { let V = '' + (Love.ownerDocument ? Love.getAttribute('data-bibi-' + K) || '' : Love['bibi-' + K]);
-            if(V && (() => { switch(K) {
-                case 'p':                return                            /^(\d*\.)?\d+$/;
-                case 'iipp':             return                            /^(\d*\.)?\d+$/;
-                case 'nav':              return                            /^[1-9][0-9]*$/;
-                case 'rvm': case 'view': K = 'reader-view-mode';
-                case 'reader-view-mode': return       /^(auto|paged|horizontal|vertical)$/;
-                case 'autostart': case 'start-in-new-window': K = K.replace('start', 'start-embedded'); break;
-                case 'view-unchangeable': K = 'fix-reader-view-mode'; break;
-            }                            return /^(true|false|1|0|yes|no|mobile|desktop)$/; })().test(V)) Fragments.add(K, V);
+        ].forEach(K => { let V;
+            if(Love.ownerDocument) V = Love.getAttribute('data-bibi-' + K);
+            else switch(typeof (V = Love['bibi-' + K])) { case 'number': if(V != V) return; case 'boolean': V = String(V); }
+            switch(typeof V) { case 'string': if(V = V.trim()) break; default: return; }
+            /**/     switch(K) { case 'autostart':
+                                 case     'start-in-new-window':                        K = K.replace('start', 'start-embedded'); break;
+                                 case     'rvm': case     'view': case     'view-mode':
+                                 case 'fix-rvm': case 'fix-view': case 'fix-view-mode': K = K.replace(/^(fix-)?.+$/, '$0reader-view-mode'); break; }
+            (() => { switch(K) { case 'preset': case 'dress': return              /^[_\-\w\d]+(\.[_\-\w\d]+)*$/;
+                                 case 'iipp': case 'p':       return                            /^(\d*\.)?\d+$/;
+                                 case 'nav':                  return                            /^[1-9][0-9]*$/;
+                                 case 'reader-view-mode':     return       /^(auto|paged|horizontal|vertical)$/;
+                                 default:                     return /^(true|false|1|0|yes|no|mobile|desktop)$/; } })().test(V) && Fragments.add(K, V);
         });
         return Fragments.make();
     })();
@@ -151,17 +156,12 @@ Jo.create = (TagName, Properties) => {
 Jo.encode = (Str) => encodeURIComponent(Str).replace('(', '_BibiKakkoOpen_').replace(')', '_BibiKakkoClose_');
 
 Jo.Fragments = function() { // constructor
-    this.FragmentKeys = [];
-    this.FragmentKeysAndValues = {};
-    this.add = function(Key, Value) {
-        if(!this.FragmentKeys.includes(Key)) this.FragmentKeys.push(Key);
-        this.FragmentKeysAndValues[Key] = Value;
-    };
+    this.Cupboard = {};
+    this.add = function(Key, Value) { this.Cupboard[Key] = Value; };
     this.make = function() {
-        if(!this.FragmentKeys.length) return '';
-        const Fragments = [];
-        for(let l = this.FragmentKeys.length, i = 0; i < l; i++) Fragments.push(`${ this.FragmentKeys[i] }=${ Jo.encode(this.FragmentKeysAndValues[this.FragmentKeys[i]]) }`);
-        return `jo(${ Fragments.join('&') })`;
+        const Keys = Object.keys(this.Cupboard);
+        if(!Keys.length) return '';
+        return `jo(` + Keys.reduce((Arr, Key) => Arr.push(Key + `=` + Jo.encode(this.Cupboard[Key])) && Arr, []).join('&') + `)`;
     };
     return this;
 };

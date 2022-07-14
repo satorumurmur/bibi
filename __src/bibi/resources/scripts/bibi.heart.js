@@ -128,9 +128,11 @@ Bibi.SettingTypes_UserOnly = {
     'yes-no': [
     ],
     'string': [
+        'dress',
         'edge',
         'epubcfi',
         'p',
+        'preset'
     ],
     'integer': [
         'log',
@@ -163,6 +165,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
             switch(_P) {
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'dress'                              : return /^[_\-\w\d]+(\.[_\-\w\d]+)*$/.test(_V)                ? _V : undefined;
                 case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
                 case 'on-doubletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'on-tripletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
@@ -170,6 +173,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'on-doubletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'on-tripletap-with-altkey'           : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
+                case 'preset'                             : return /^[_\-\w\d]+(\.[_\-\w\d]+)*$/.test(_V)                ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
                 case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'auto';
             }
@@ -215,17 +219,15 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
 
 Bibi.applyFilteredSettingsTo = (To, From, ListOfSettingTypes, Fill) => {
     ListOfSettingTypes.forEach(STs => {
-        for(const ST in STs) {
-            STs[ST].forEach(_P => {
-                const VSV = Bibi.verifySettingValue[ST](_P, From[_P]);
-                if(Fill) {
-                    To[_P] = Bibi.verifySettingValue[ST](_P, To[_P]);
-                    if(typeof VSV != 'undefined' || typeof To[_P] == 'undefined') To[_P] = Bibi.verifySettingValue[ST](_P, From[_P], true);
-                } else if(From.hasOwnProperty(_P)) {
-                    if(typeof VSV != 'undefined') To[_P] = VSV;
-                }
-            });
-        }
+        for(const ST in STs) STs[ST].forEach(_P => {
+            const VSV = Bibi.verifySettingValue[ST](_P, From[_P]);
+            if(Fill) {
+                To[_P] = Bibi.verifySettingValue[ST](_P, To[_P]);
+                if(typeof VSV != 'undefined' || typeof To[_P] == 'undefined') To[_P] = Bibi.verifySettingValue[ST](_P, From[_P], true);
+            } else if(From.hasOwnProperty(_P)) {
+                if(typeof VSV != 'undefined') To[_P] = VSV;
+            }
+        });
     });
     return To;
 };
@@ -250,16 +252,7 @@ Bibi.ErrorMessages = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Bibi.at1st = () => Bibi.at1st.List.forEach(fn => typeof fn == 'function' ? fn() : true), Bibi.at1st.List = [];
-
-Bibi.hello = () => new Promise(resolve => {
-    Bibi.at1st();
-    O.log.initialize();
-    O.log(`Hello!`, '<b:>');
-    O.log(`[ja] ${ Bibi['href'] }`);
-    O.log(`[en] https://github.com/satorumurmur/bibi`);
-    resolve();
-})
+Bibi.ring = () => Bibi.hello()
 .then(Bibi.initialize)
 .then(Bibi.loadExtensions)
 .then(Bibi.ready)
@@ -269,6 +262,58 @@ Bibi.hello = () => new Promise(resolve => {
 .then(Bibi.openBook)
 .then(Bibi.start)
 .catch(O.error);
+
+
+Bibi.hello = () => {
+    D.at1st();
+    U.at1st();
+    const Promises = [];
+    if(!document.getElementById('bibi-preset')) {
+        const PresetName = D['preset'] || U['preset'] || 'default';
+        // if(PresetName === '~') Promises.push(new Promise(resolve => P.preset.resolve = resolve)); else { // DO NOT ALLOW EXTERNAL OBJECT
+            const Preset = sML.create('script', { id: 'bibi-preset', src: 'presets/' + PresetName + '.js' });
+            Promises.push(new Promise(resolve => Preset.addEventListener('load', resolve)));
+            document.head.insertBefore(Preset, Bibi.Script.nextSibling);
+        // }
+    }
+    if(!document.getElementById('bibi-dress')) {
+        const DressName = D['dress'] || U['dress'] || 'everyday';
+        // if(DressName === '~') Promises.push(new Promise(resolve => P.dress.resolve = resolve)); else { // DO NOT ALLOW EXTERNAL TEXT
+            const Dress = sML.create('link', { id: 'bibi-dress', rel: 'stylesheet', href: 'wardrobe/' + DressName + '/bibi.dress.css' });
+            Promises.push(new Promise(resolve => Dress.addEventListener('load', resolve)));
+            document.head.insertBefore(Dress, Bibi.Style.nextSibling);
+        // }
+    }
+    Promises.push(new Promise(resolve => {
+        let BookStyleCSS = '', Ele = Bibi.Script;
+        while(Ele = Ele.nextElementSibling) if(/^style$/i.test(Ele.tagName) && /^\/\*! Bibi Book Style \*\//.test(Ele.textContent)) {
+            const BookStyleElement = Ele;
+            BookStyleCSS = BookStyleElement.textContent.replace(/\/*.*?\*\//g, '').trim();
+            BookStyleElement.innerHTML = '';
+            document.head.removeChild(BookStyleElement);
+            break;
+        }
+        O.createBlobURL('Text', BookStyleCSS, 'text/css').then(BookStyleURL => {
+            Bibi.BookStyleURL = BookStyleURL;
+            if(sML.UA.Trident) {
+                document.documentElement.style.display = 'none';
+                const BibiStyles = Array.prototype.map.call(document.head.querySelectorAll('#bibi-style, #bibi-dress'), _ => { _.HREF = _.getAttribute('href'), _.href = ''; return _; });
+                return setTimeout(() => {
+                    BibiStyles.forEach(_ => { _.href = _.HREF; delete _.HREF; });
+                    document.documentElement.style.display = '';
+                    resolve();
+                }, 0);
+            }
+            resolve();
+        });
+    }));
+    return Promise.all(Promises).then(() => {
+        O.log.initialize();
+        O.log(`Hello!`, '<b:>');
+        O.log(`[ja] ${ Bibi['href'] }`);
+        O.log(`[en] https://github.com/satorumurmur/bibi`);
+    });
+};
 
 
 Bibi.initialize = () => {
@@ -6564,26 +6609,36 @@ I.getBookIcon = () => sML.create('div', { className: 'book-icon', innerHTML: `<s
 export const P = {}; // Bibi.Preset
 
 
-Bibi.preset = (Preset) => Bibi.at1st.List.push(() => {
-    Bibi.applyFilteredSettingsTo(P, Preset, [Bibi.SettingTypes, Bibi.SettingTypes_PresetOnly], 'Fill');
-    delete P['book'];
-    P.Script = document.getElementById('bibi-preset');
-});
+P.preset = (PresetData) => { // DO NOT ALLOW EXTERNAL OBJECT
+    Bibi.applyFilteredSettingsTo(P, PresetData, [Bibi.SettingTypes, Bibi.SettingTypes_PresetOnly], 'Fill'); /**/ delete P['book']; /**/
+    delete P.preset; delete Bibi.preset;
+    P.Script = document.currentScript;
+    // if(P.preset.resolve) P.preset.resolve();
+};
+Bibi.preset = P.preset;
+
+
+// P.dress = (Dress) => { // DO NOT ALLOW EXTERNAL TEXT
+//     document.documentElement.insertBefore(document.createElement('style')).textContent = DressData;
+//     delete P.dress; delete Bibi.dress;
+//     if(P.dress.resolve) P.dress.resolve();
+// };
+// Bibi.dress = P.dress;
 
 
 P.initialize = () => {
-    const DocHRef = location.href.split('?')[0];
-    P['bookshelf'] = new URL(P['bookshelf'] || '../../bibi-bookshelf', P.Script.src).href.replace(/\/$/, '');
+    P['bookshelf'] = (P['bookshelf'] ? new URL(P['bookshelf'], P.Script.src) : new URL('../../../bibi-bookshelf', Bibi.Script.src)).href.replace(/\/$/, '');
     P['extensions'] = (() => {
-        let Extensions_HTML = document.getElementById('bibi-preset').getAttribute('data-bibi-extensions');
+        let Extensions_HTML = Bibi.Script.getAttribute('data-bibi-extensions');
         if(Extensions_HTML) {
+            const DocHRef = location.href.split('?')[0];
             Extensions_HTML = Extensions_HTML.trim().replace(/\s+/, ' ').split(' ').map(EPath => ({ src: new URL(EPath, DocHRef).href }));
             if(Extensions_HTML.length) P['extensions'] = Extensions_HTML;
         }
         return !Array.isArray(P['extensions']) ? [] : P['extensions'].filter(Xtn => {
             if(Xtn.hasOwnProperty('-spell-of-activation-')) {
                 const SoA = Xtn['-spell-of-activation-'];
-                if(!SoA || !/^[a-zA-Z0-9_\-]+$/.test(SoA) || !U.hasOwnProperty(SoA)) return false;
+                if(!SoA || !/^[a-zA-Z0-9_\-]+$/.test(SoA) || !U.Query.hasOwnProperty(SoA)) return false;
             }
             if(!Xtn || !Xtn['src'] || typeof Xtn['src'] != 'string') return false;
             return (Xtn['src'] = new URL(Xtn['src'], P.Script.src).href);
@@ -6617,77 +6672,81 @@ U.translateData = (PnV) => {
 };
 
 
-Bibi.at1st.List.unshift(() => {
+U.parseQuery = () => {
     const LS = location.search; if(typeof LS != 'string') return;
-    const Q = LS.replace(/^\?/, '').split('&').reduce((Q, PnV) => {
+    let Query = LS.replace(/^\?/, '').split('&').reduce((Query, PnV) => {
         let [_P, _V] = PnV.split('=');
         if(!_V) _V = undefined;
         switch(_P) {
             case 'log': if(!_V) _V = '1'; break;
-            case 'book': if(!_V) return Q; break;
+            case 'book': if(!_V) return Query; break;
             case 'zine': case 'wait': case 'debug': if(!_V) _V = 'true'; break;
             default: [_P, _V] = U.translateData([_P, _V]);
         }
-        Q[_P] = _V;
-        return Q;
+        Query[_P] = _V;
+        return Query;
     }, {});
-    Object.assign(U, Bibi.applyFilteredSettingsTo(Q, Q, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]));
+    const DistilledQuery = Bibi.applyFilteredSettingsTo({}, Query, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
+    Object.assign(U, DistilledQuery);
+    U['Query'] = Object.assign(Query, DistilledQuery);
+    delete U.parseQuery;
+};
+
+
+U.parseHash = () => {
+    const HashData = {};
+    let LocHash = location.hash;
+    const CatGroupREStr = '([&#])([a-zA-Z_]+)\\(([^\\(\\)]+)\\)', CatGroups = LocHash.match(new RegExp(CatGroupREStr, 'g'));
+    if(CatGroups?.length) CatGroups.forEach(CatGroup => {
+        const CatGroupParts = CatGroup.match(new RegExp(CatGroupREStr));
+        let Cat = CatGroupParts[2].toLowerCase(), Dat = CatGroupParts[3];
+        if(/^(bibi|jo|epubcfi)$/.test(Cat) && Dat) HashData[Cat] = Dat;
+        LocHash = LocHash.replace(CatGroup, CatGroupParts[1]);
+    });
+    HashData['#'] = LocHash.replace(/^#|&$/, '');
+    for(const Cat in HashData) {
+        if(Cat == 'epubcfi') continue;
+        const DataString = HashData[Cat];
+        if(typeof DataString == 'string' && DataString) {
+            let ParsedData = {}, HasValue = false;
+            DataString.split('&').forEach(PnV => {
+                const DD = U.translateData(PnV.split('='));
+                if(DD && DD[1] != undefined) ParsedData[DD[0]] = DD[1], HasValue = true;
+            });
+            if(!HasValue) {
+                delete HashData[Cat];
+                continue;
+            }
+            HashData[Cat] = Bibi.applyFilteredSettingsTo({}, ParsedData, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
+            delete HashData[Cat]['book'];
+        }
+    }
+    if(HashData['#']      )   Object.assign(U, U['#']       = HashData['#']);
+    if(HashData['bibi']   )   Object.assign(U, U['bibi']    = HashData['bibi']);
+    if(HashData['jo']     ) { Object.assign(U, U['jo']      = HashData['jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[&#]jo\([^\)]*\)$/g, '')); }
+    if(HashData['epubcfi'])                    U['epubcfi'] = HashData['epubcfi'];
+    delete U.parseHash;
+};
+
+
+U.at1st = () => {
+    U.parseQuery();
+    U.parseHash();
     if(!U['book']) delete U['zine'];
     if(U['debug']) Bibi.Debug = true, U['log'] = 9;
-});
+    delete U.translateData;
+    delete U.at1st;
+};
 
 
 U.initialize = () => {
-    const _U = Bibi.applyFilteredSettingsTo({}, U, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-    const HashData = (() => {
-        let Hash = location.hash;
-        if(typeof Hash != 'string') return {};
-        const Data = {};
-        const CatGroupREStr = '([&#])([a-zA-Z_]+)\\(([^\\(\\)]+)\\)', CatGroups = Hash.match(new RegExp(CatGroupREStr, 'g'));
-        if(CatGroups && CatGroups.length) CatGroups.forEach(CatGroup => {
-            const CatGroupParts = CatGroup.match(new RegExp(CatGroupREStr));
-            let Cat = CatGroupParts[2].toLowerCase(), Dat = CatGroupParts[3];
-            if(Dat) {
-                Cat = Cat == 'bibi' ? 'Bibi' : Cat == 'jo' ? 'Jo' : Cat == 'epubcfi' ? 'EPUBCFI' : undefined;
-                if(Cat) Data[Cat] = Dat;
-            }
-            Hash = Hash.replace(CatGroup, CatGroupParts[1]);
-        });
-        Data['#'] = Hash.replace(/^#|&$/, '');
-        for(const Cat in Data) {
-            if(Cat == 'EPUBCFI') continue;
-            const ParsedData = U.initialize.parseDataString(Data[Cat]);
-            if(!ParsedData) continue;
-            Data[Cat] = Bibi.applyFilteredSettingsTo({}, ParsedData, [Bibi.SettingTypes, Bibi.SettingTypes_UserOnly]);
-            delete Data[Cat]['book'];
-        }
-        return Data;
-    })();
-    if(HashData['#']      ) { Object.assign(_U, _U['#']       = HashData['#']   ); }
-    if(HashData['Bibi']   ) { Object.assign(_U, _U['Bibi']    = HashData['Bibi']); }
-    if(HashData['Jo']     ) { Object.assign(_U, _U['Jo']      = HashData['Jo']  ); if(history.replaceState) history.replaceState(null, null, location.href.replace(/[&#]jo\([^\)]*\)$/g, '')); }
-    if(HashData['EPUBCFI']) {                   _U['EPUBCFI'] = HashData['EPUBCFI']; }
-    _U['Query'] = {}; for(const Pro in U) {
-        if(typeof U[Pro] != 'function') _U['Query'][Pro] = U[Pro];
-        U[Pro] = undefined; delete U[Pro];
-    }
-    Object.assign(U, _U);
          if(typeof U['nav']  == 'number') U['nav'] < 1 ? delete U['nav'] : R.StartOn = { Nav:  U['nav']  }; // to be converted in L.coordinateLinkages
     else if(typeof U['p']    == 'string')                                  R.StartOn = { P:    U['p']    };
     else if(typeof U['iipp'] == 'number')                                  R.StartOn = { IIPP: U['iipp'] };
     else if(typeof U['edge'] == 'string')                                  R.StartOn = { Edge: U['edge'] };
-    else if(typeof U['EPUBCFI'] == 'string')                               R.StartOn = R.getCFIDestination(U['EPUBCFI']);
+    else if(typeof U['epubcfi'] == 'string')                               R.StartOn = R.getCFIDestination(U['epubcfi']);
+    delete U.initialize;
 };
-
-    U.initialize.parseDataString = (DataString) => {
-        if(typeof DataString != 'string' || !DataString) return null;
-        const ParsedData = {}; let HasData = false;
-        DataString.split('&').forEach(PnV => {
-            const DD = U.translateData(PnV.split('='));
-            if(DD && DD[1] != undefined) ParsedData[DD[0]] = DD[1], HasData = true;
-        });
-        return HasData ? ParsedData : null;
-    };
 
 
 
@@ -6702,7 +6761,16 @@ U.initialize = () => {
 export const D = {};
 
 
-D.initialize = () => {
+D.at1st = () => {
+    const RE = /^[_\-\w\d]+(\.[_\-\w\d]+)*$/;
+    const PresetValue = Bibi.Script.getAttribute('data-bibi-preset');
+    if(PresetValue && RE.test(PresetValue)) D['preset'] = PresetValue;
+    const DressValue  = Bibi.Style.getAttribute('data-bibi-dress');
+    if( DressValue && RE.test(DressValue) ) D['dress']  = DressValue;
+    const BookshelfValue = document.body.getAttribute('data-bibi-bookshelf');
+    if(BookshelfValue) D['bookshelf'] = new URL(BookshelfValue, location.href.split('?')[0]);
+    const BookValue = document.body.getAttribute('data-bibi-book');
+    if(BookValue) D['book'] = BookValue;
     const BookDataElement = document.getElementById('bibi-book-data');
     if(BookDataElement) {
         const BookData = BookDataElement.innerText.trim();
@@ -6716,16 +6784,11 @@ D.initialize = () => {
         BookDataElement.innerHTML = '';
         BookDataElement.parentNode.removeChild(BookDataElement);
     }
-    const PresetElement = document.getElementById('bibi-preset');
-    if(PresetElement) {
-        const Bookshelf = PresetElement.getAttribute('data-bibi-bookshelf');
-        if(Bookshelf) {
-            D['bookshelf'] = new URL(Bookshelf, location.href.split('?')[0]);
-            // delete P['bookshelf'];
-        }
-    }
-    const Book = document.body.getAttribute('data-bibi-book');
-    if(Book) D['book'] = Book;
+    delete D.at1st;
+};
+
+
+D.initialize = () => {
     if(D['book-data'] || D['book']) {
         // delete U['book'];
         let HRef = location.href.replace(/([\?&])book=[^&]*&?/, '$1');
