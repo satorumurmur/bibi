@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Bibi.Script = document.getElementById('bibi-script');
     Bibi.Style  = document.getElementById('bibi-style');
     (_ => {
-        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: Bibi.Script.src.replace(/\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), Bibi.Script);
+        if(!window.Promise) return document.head.insertBefore(sML.create('script', { className: 'bibi-polyfill', src: Bibi.Script.src.split('?')[0].replace(/\/bibi\.js$/, '/polyfills/bundle.js'), onload: _ }), Bibi.Script);
         const Polyfills = [], PolyfillsPath = new URL('./polyfills', Bibi.Script.src).href;
         if(!window.TextDecoder)          Polyfills.push(PolyfillsPath + '/encoding.js');
         if(!window.IntersectionObserver) Polyfills.push(PolyfillsPath + '/intersection-observer.js');

@@ -13,9 +13,14 @@ Bibi.preset({
 //-- Behavior
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"reader-view-mode"              : "auto", // "auto" | "paged" | "horizontal" | "vertical" // "paged" is for flipping, "horizontal" and "vertical" are for scrolling.
+"available-reader-view-modes"   : ["paged", "horizontal", "vertical"],
+// Set one or two or all of the three: "paged", "horizontal", and "vertical".
+// "paged" is for page flipping, "horizontal" and "vertical" are for scrolling in each direction.
+// If none of the three is set, treated as setting all of them.
+
+"default-reader-view-mode"      : "auto", // "auto" | "paged" | "horizontal" | "vertical" // If the value is not "auto" and it isn't included in "available-reader-view-modes", treated as "auto".
 "full-breadth-layout-in-scroll" : "no", // "yes" | "no" | "desktop" | "mobile"
-"fix-reader-view-mode"          : "no", // "yes" | "no" | "desktop" | "mobile"
+"fix-reader-view-mode"          : "no", // "yes" | "no" | "desktop" | "mobile" // If "available-reader-view-modes" has only one view mode, "fix-reader-view-mode" is treated as "yes".
 
 "keep-settings"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
 "resume-from-last-position"     : "yes", // "yes" | "no" | "desktop" | "mobile"
@@ -101,20 +106,34 @@ Bibi.preset({
 "on-tripletap-with-altkey" : "",
 
 "content-draggable"        : [true, true], // [<TF>, <TF>]
-"on-orthogonal-arrowkey"   : ["move", "switch"], // [<S1>, <S2>]
-"on-orthogonal-edgetap"    : ["utilities", "utilities"], // [<S1>, <S2>]
-"on-orthogonal-touchmove"  : ["move", "switch"], // [<S1>, <S2>]
-"on-orthogonal-wheel"      : ["move", "across"], // [<S1>, <S3>]
+"on-orthogonal-arrowkey"   : ["move", "switch"], // [<S1>, <S1>]
+"on-orthogonal-edgetap"    : ["utilities", "utilities"], // [<S1>, <S1>]
+"on-orthogonal-touchmove"  : ["move", "switch"], // [<S1>, <S1>]
+"on-orthogonal-wheel"      : ["move", "across"], // [<S2>, <S2>]
 //                           ^ Each item of the arrays corresponds to the view mode:
-//                               * the first is for the "paged" view mode, and
-//                               * the second is for the "horizontal"/"vertical" scroll view modes.
-//                           ^ Types of the values:
+//                               * the 1st value is for the "paged" view mode, and
+//                               * the 2nd value is for the "horizontal" and "vertical" scroll view modes.
+//                           ^ Sets of the values:
 //                               * <TF>: true | false
-//                               * <S1>: "" (ignore) | "utilities" | "move"
-//                               * <S2>: "" (ignore) | "utilities" | "move" | "switch"
-//                               * <S3>: "" (ignore) | "utilities" | "move" | "switch" | "across"
+//                               * <S1>: "" (ignore) | "utilities" | "move" | "switch"
+//                               * <S2>: "" (ignore) | "utilities" | "move" | "switch" | "across"
+//                           ^ Values:
+//                               * "utilities":
+//                                   - Toggling utilities (the menu bar at the top and the slider at the bottom).
+//                               * "move":
+//                                   - Turning or scrolling page-by-page.
+//                               * "switch":
+//                                   - Switching between two view modes.
+//                                   - If "available-reader-view-modes" has all three view modes:
+//                                       - It is effective only in the 2nd value and treated as switching between "horizontal" and "vertical" scroll view modes.
+//                                       - Even if setting it in the 1st value for "paged" view mode, it is treated as "" (ignoring).
+//                                   - If "available-reader-view-modes" has only one view mode:
+//                                       - It is always treated as "" (ignoring).
+//                               * "across":
+//                                   - Scrolling in the orthogonal direction of wheeling (= natural scrolling direction of the book content).
+//                                   - Setting "across" for the "paged" view mode (= the 1st value) is treated as "move".
 
-"indicate-orthogonal-arrows-if-necessary" : false,
+"indicate-orthogonal-arrows-if-necessary" : false, // true | false
 
 "recognize-repeated-taps-separately": true, // true | false
 // If true:

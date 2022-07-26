@@ -213,6 +213,7 @@ div#bibi-axis-switcher {
 			}
 		}
 	}
+	html.view-paged &,
 	html.view-horizontal & {
 		> span:last-child {
 			flex-direction: row;
@@ -227,7 +228,13 @@ div#bibi-axis-switcher {
 			&:after  { transform: rotate( 90deg); }
 		}
 	}
-	html.view-paged & {
+	html.available-paged-horizontal & {
+		> span:last-child {
+			display: none !important;
+			&:before, &:after  { content: none; }
+		}
+	}
+	html.view-paged.available-paged-horizontal-vertical & {
 		display: none !important;
 	}
 }

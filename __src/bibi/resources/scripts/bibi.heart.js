@@ -100,6 +100,7 @@ Bibi.SettingTypes_PresetOnly = {
     ],
     'string': [
         'bookshelf',
+        'default-reader-view-mode',
         'website-name-in-title',
         'website-name-in-menu',
         'website-href'
@@ -111,6 +112,7 @@ Bibi.SettingTypes_PresetOnly = {
     'number': [
     ],
     'array': [
+        'available-reader-view-modes',
         'extensions',
         'extract-if-necessary',
         'inhibit',
@@ -165,6 +167,8 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
             switch(_P) {
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
+                case 'default-reader-view-mode'           :
+                case         'reader-view-mode'           : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'auto';
                 case 'dress'                              : return /^[_\-\w\d]+(\.[_\-\w\d]+)*$/.test(_V)                ? _V : undefined;
                 case 'edge'                               : return /^(head|foot)$/.test(_V)                              ? _V : undefined;
                 case 'on-doubletap'                       : return /^(panel|zoom)$/.test(_V)                             ? _V : undefined;
@@ -175,7 +179,6 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'preset'                             : return /^[_\-\w\d]+(\.[_\-\w\d]+)*$/.test(_V)                ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
-                case 'reader-view-mode'                   : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'auto';
             }
             return _V;
         }
@@ -200,16 +203,17 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
     'array': (_P, _V, Fill) => {
         if(Array.isArray(_V)) {
             switch(_P) {
-                case 'concatenate-spreads'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' && /^(always|never)$/.test(_V[i]) ? _V[i] : 'auto'; return _V;
-                case 'content-draggable'       : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === false || _V[i] === 'false' || _V[i] === '0' || _V[i] === 0 ? false : true; return _V;
-                case 'extensions'              : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
-                case 'extract-if-necessary'    : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
-                case 'inhibit'                 : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim() : '')).includes('*') ? ['*'] : _V.filter(_I => _I);
-                case 'on-orthogonal-arrowkey'  :
-                case 'on-orthogonal-edgetap'   :
-                case 'on-orthogonal-touchmove' :
-                case 'on-orthogonal-wheel'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' ? _V[i] : ''; return _V;
-                case 'trustworthy-origins'     : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
+                case 'available-reader-view-modes' : _V = Array.from(new Set(_V.filter(_I => typeof _I == 'string' && /^(paged|horizontal|vertical)$/.test(_I)))); return _V.length ? _V : ['paged', 'horizontal', 'vertical'];
+                case 'concatenate-spreads'         : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' && /^(always|never)$/.test(_V[i]) ? _V[i] : 'auto'; return _V;
+                case 'content-draggable'           : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = _V[i] === true || _V[i] === 'true' || _V[i] === '1' || _V[i] === 1 ? true : false; return _V;
+                case 'extensions'                  : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
+                case 'extract-if-necessary'        : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
+                case 'inhibit'                     : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim()               : '')).includes('*') ? ['*'] : _V.filter(_I => _I);
+                case 'on-orthogonal-arrowkey'      :
+                case 'on-orthogonal-edgetap'       :
+                case 'on-orthogonal-touchmove'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' &&        /^(move|switch|utilities)$/.test(_V[i]) ? _V[i] : ''; return _V;
+                case 'on-orthogonal-wheel'         : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' && /^(across|move|switch|utilities)$/.test(_V[i]) ? _V[i] : ''; return _V;
+                case 'trustworthy-origins'         : return _V.reduce((_VN, _I) => typeof _I == 'string' && /^https?:\/\/[^\/]+$/.test(_I = _I.trim().replace(/\/$/, '')) && !_VN.includes(_I) ? _VN.push(_I) && _VN : false, []);
             }
             return _V.filter(_I => typeof _I != 'function');
         }
@@ -1085,16 +1089,25 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         // ================================================================================
         // READER
         // --------------------------------------------------------------------------------
-        if(S['reader-view-mode'] == 'auto') S['reader-view-mode'] = (() => {
-            switch(Metadata['scroll-direction']) {
-                case 'ttb':             case   'vertical': return   'vertical';
-                case 'ltr': case 'rtl': case 'horizontal': return 'horizontal';
+        if(S['reader-view-mode'] == 'auto') {
+            const RVMPriority = (() => {
+                const Default    = ['paged', 'horizontal', 'vertical'];
+                const Scrolled_H = ['horizontal', 'paged', 'vertical'];
+                const Scrolled_V = ['vertical', 'horizontal', 'paged'];
+                switch(Metadata['scroll-direction']) {
+                    case 'ttb':             case   'vertical': return Scrolled_V;
+                    case 'ltr': case 'rtl': case 'horizontal': return Scrolled_H;
+                }
+                switch(Metadata['rendition:flow']) {
+                    case 'scrolled-continuous': case 'scrolled-doc': return /-tb$/.test(B.WritingMode) ? Scrolled_V : Scrolled_H;
+                }
+                return Default;
+            })();
+            for(let i = 0; i < 3; i++) if(S['available-reader-view-modes'].includes(RVMPriority[i])) {
+                S['reader-view-mode'] = RVMPriority[i];
+                break;
             }
-            switch(Metadata['rendition:flow']) {
-                case 'scrolled-continuous': case 'scrolled-doc': return /-tb$/.test(B.WritingMode) ? 'vertical' : 'horizontal';
-            }
-            return 'paged';
-        })();
+        };
         // ================================================================================
         E.dispatch('bibi:processed-package');
     };
@@ -1956,7 +1969,7 @@ R.layOutStage = () => {
     //E.dispatch('bibi:is-going-to:lay-out-stage');
     let MainContentLayoutLength = 0;
     R.Spreads.forEach(Spread => MainContentLayoutLength += Spread.Box['offset' + C.L_SIZE_L]);
-    const SpreadGap = B.Reflowable || S['reader-view-mode'] == 'paded' || (() => { switch(S['concatenate-spreads'][S['reader-view-mode'] == 'horizontal' ? 0 : 1]) {
+    const SpreadGap = B.Reflowable || S.RVM == 'paded' || (() => { switch(S['concatenate-spreads'][S.RVM == 'horizontal' ? 0 : 1]) {
         case 'always': return true;
         case 'never': return false;
         default: return (B.Package.Metadata['rendition:flow'] == 'scrolled-continuous' || B.Package.Metadata['scroll-direction']);
@@ -2033,12 +2046,16 @@ R.updateOrientation = () => {
 };
 
 
-R.changeView = (Par) => {
-    if(S['fix-reader-view-mode']) return false;
-    if(!Par || typeof Par != 'object') return false;
-    if(!/^(paged|horizontal|vertical)$/.test(Par.Mode)) Par.Mode = S.RVM;
-    if(typeof Par.FullBreadthLayoutInScroll != 'boolean') Par.FullBreadthLayoutInScroll = S['full-breadth-layout-in-scroll'];
-    if(S.RVM == Par.Mode && Par.FullBreadthLayoutInScroll == S['full-breadth-layout-in-scroll']) return false;
+R.changeView = (Par) => { if(!Par) return false;
+    switch(typeof Par) {
+        case 'string': Par = { Mode: Par };
+        case 'object':
+           if(S['fix-reader-view-mode'] || typeof Par.Mode != 'string' || !S['available-reader-view-modes'].includes(Par.Mode)) Par.Mode = S.RVM;
+            Par.FullBreadthLayoutInScroll = (Par.FullBreadthLayoutInScroll === undefined || S.AVM == 'paged') ? S['full-breadth-layout-in-scroll'] : !!(Par.FullBreadthLayoutInScroll);
+            if(S.RVM == Par.Mode && Par.FullBreadthLayoutInScroll == S['full-breadth-layout-in-scroll']) return false;
+            break;
+        default: return false;
+    }
     let ToLayOut = false;
     if(S.RVM != Par.Mode) ToLayOut = true;
     if(Par.FullBreadthLayoutInScroll != S['full-breadth-layout-in-scroll']) {
@@ -3441,11 +3458,11 @@ I.FlickObserver = { create: () => {
                 }
                 if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
                     // Orthogonal
-                    if(S.RVM != 'paged' && I.orthogonal('touchmove') == 'switch' && I.Loupe.CurrentTransformation.Scale == 1 && I.AxisSwitcher) I.AxisSwitcher.progress(Passage[C.L_AXIS_B] / 100);
+                    if(/*S.RVM != 'paged' &&*/ I.orthogonal('touchmove') == 'switch' && I.Loupe.CurrentTransformation.Scale == 1 && I.AxisSwitcher) I.AxisSwitcher.progress(Passage[C.A_AXIS_B] / 100);
                 } else {
                     // Natural
                     if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return FlickObserver.cancel();
-                    if(S['content-draggable'][S.RVM == 'paged' ? 0 : 1] && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
+                    if(I.draggable() && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
                 }
                 BibiEvent.preventDefault();
                 if(FlickObserver.StartedAt.Item) {
@@ -3491,8 +3508,8 @@ I.FlickObserver = { create: () => {
             delete FlickObserver.LastEvent;
             return (cb ? cb(BibiEvent, Par) : Promise.resolve());
         },
-        onFlick: (BibiEvent, Par) => {
-            if(S.RVM != 'paged' && !S['content-draggable'][1]) return Promise.resolve();
+        onFlick: (BibiEvent, Par) => { // Only for Paged View or Draggable Scrolling Views ====
+            if(S.RVM != 'paged' && !I.draggable()) return Promise.resolve();
             if(typeof Par.Deg != 'number') return Promise.resolve();
             const Deg = Par.Deg;
             const Dir = (330 <= Deg || Deg <=  30) ? 'left' /* to right */ :
@@ -3506,22 +3523,22 @@ I.FlickObserver = { create: () => {
             } else if(S.RVM == 'paged' || S.RVM != (/^[lr]/.test(Dir) ? 'horizontal' : /^[tb]/.test(Dir) ? 'vertical' : '')) {
                 // Paged || Scrolling && Orthogonal
                 const PageIndex = (Dist > 0 ? Par.OriginList.slice(-1)[0].Page.Index : Par.OriginList[0].Page.Index);
-                return R.focusOn({ Page: R.Pages[PageIndex + Dist] || R.Pages[PageIndex] }, { Duration: !I.isScrollable() ? 0 : S.RVM != 'paged' || S['content-draggable'][0] ? 123 : 0 });
+                return R.focusOn({ Page: R.Pages[PageIndex + Dist] || R.Pages[PageIndex] }, { Duration: !I.isScrollable() ? 0 : I.draggable() || S.RVM != 'paged' ? 123 : 0 });
             } else {
                 // Scrolling && Natural
                 return R.scrollBy(Dist * (Par.Speed ? sML.limitMinMax(Math.round(Par.Speed * 100) * 0.08, 0.33, 10) * 333 / (S.SLD == 'ttb' ? R.Stage.Height : R.Stage.Width) : 1), { Duration: 1234, Cancelable: true, ease: (_) => (Math.pow(--_, 4) - 1) * -1 });
             }
         },
         onSwipe: (BibiEvent, Par) => FlickObserver.onFlick(BibiEvent, Par),
-        onPanRelease: (BibiEvent, Par) => {
-            if(S.RVM != 'paged' || !S['content-draggable'][0]) return Promise.resolve(); // Only for Paged View ====
+        onPanRelease: (BibiEvent, Par) => { // Only for Paged View ====
+            if(!I.draggable() || S.RVM != 'paged') return Promise.resolve();
             const Deg = Par.Deg;
             const Dir = (270 <  Deg || Deg <   90) ? 'left'  /* to right */ :
                         ( 90 <  Deg && Deg <  270) ? 'right' /* to left  */ : '';
             const Dist = C.d2d(Dir);
             const CurrentList = I.PageObserver.updateCurrent().List;
             return R.focusOn({ Page: (Dist >= 0 ? CurrentList.slice(-1)[0].Page : CurrentList[0].Page) }, {
-                Duration: !I.isScrollable() ? 0 : S['content-draggable'][0] ? 123 : 0
+                Duration: !I.isScrollable() ? 0 : I.draggable() ? 123 : 0
             });
         },
         getOrthogonalTouchMoveFunction: () => { switch(I.orthogonal('touchmove')) {
@@ -3615,11 +3632,11 @@ I.WheelObserver = { create: () => {
             case 'X': R.Main.scrollTop  += Eve.deltaX; break;
             case 'Y': R.Main.scrollLeft += Eve.deltaY * (S.ARD == 'rtl' ? -1 : 1); break;
         } },
-        move: (CW) => {
+        move: (CW) => { // Only for Paged View ====
             if(!CW.Wheeled) return;
             WheelObserver.heat();
             R.moveBy(CW.Distance, {
-                Duration: I.isScrollable() && S['content-draggable'][0] ? 123 : 0
+                Duration: I.isScrollable() && I.draggable() ? 123 : 0
             });
         },
         toggleUtilities: (CW) => {
@@ -4173,7 +4190,7 @@ I.Menu = { create: () => {
     I.Menu.Config = { create: () => {
         const Menu = I.Menu;
         const Components = [];
-        if(!S['fix-reader-view-mode'])                                                                     Components.push('ViewModeSection');
+        if(!S['fix-reader-view-mode'] && S['available-reader-view-modes'].length > 1)                                Components.push('ViewModeSection');
         if(O.Embedded)                                                                                     Components.push('NewWindowButton');
         if(O.FullscreenTarget && !O.TouchOS && !sML.UA.Trident)                                            Components.push('FullscreenButton');
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
@@ -4217,11 +4234,11 @@ I.Menu = { create: () => {
                         Mode: 'vertical',
                         Labels: { default: { default: `<span class="non-visual-in-label">⇅ </span>Vertical Scroll`, ja: `<span class="non-visual-in-label">⇅ </span>縦スクロール` } },
                         Icon: `<span class="bibi-icon bibi-icon-view bibi-icon-view-vertical"><span class="bibi-shape bibi-shape-spreads bibi-shape-spreads-vertical">${ SSs }</span></span>`
-                    }].map(Button => sML.edit(Button, {
+                    }].filter(Button => S['available-reader-view-modes'].includes(Button.Mode)).map(Button => sML.edit(Button, {
                         Notification: true,
                         action: () => R.changeView({ Mode: Button.Mode, NoNotification: true })
                     }))
-                }, {
+                }].concat(S['available-reader-view-modes'].includes('horizontal') || S['available-reader-view-modes'].includes('vertical') ? {
                     Buttons: [{
                         Name: 'full-breadth-layout-in-scroll',
                         Type: 'toggle',
@@ -4230,12 +4247,14 @@ I.Menu = { create: () => {
                         Icon: `<span class="bibi-icon bibi-icon-full-breadth-layout"></span>`,
                         action: function() { R.changeView({ FullBreadthLayoutInScroll: (this.UIState == 'active'), NoNotification: true }); }
                     }]
-                }]
+                } : [])
             });
             E.add('bibi:updated-settings', () => {
                 Section.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? 'active' : 'default')));
-                if(B.PrePaginated) I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
-                else Section.ButtonGroups[1].style.display = 'none';
+                if(Section.ButtonGroups[1]) {
+                    if(B.PrePaginated) I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
+                    else Section.ButtonGroups[1].style.display = 'none';
+                }
             });
         }};
 
@@ -6288,7 +6307,14 @@ I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSw
         switchAxis: () => new Promise(resolve => {
             AxisSwitcher.InProgress = false;
             AxisSwitcher.reset();
-            if(S.RVM != 'paged') R.changeView({ Mode: S.RVM == 'horizontal' ? 'vertical' : 'horizontal', NoNotification: true });
+            let RVM = ''; switch(S['available-reader-view-modes'].length) {
+                case 2: RVM = S['available-reader-view-modes'][S['available-reader-view-modes'][0] != S.RVM ? 0 : 1]; break;
+                case 3: switch(S.RVM) {
+                    case 'horizontal': RVM =   'vertical'; break;
+                    case   'vertical': RVM = 'horizontal'; break;
+                } break;
+            }
+            if(RVM) R.changeView({ Mode: RVM, NoNotification: true });
             resolve();
         })
     });
@@ -6588,7 +6614,25 @@ I.distillLabels = (Labels) => {
     };
 
 
-I.orthogonal = (InputType) => S['on-orthogonal-' + InputType][S.RVM == 'paged' ? 0 : 1];
+I.orthogonal = (InputType, RVM = S.RVM) => {
+    if(S['available-reader-view-modes'].includes(RVM)) {
+        switch(RVM) {
+            case 'paged':                       return S['on-orthogonal-' + InputType][0];
+            case 'horizontal': case 'vertical': return S['on-orthogonal-' + InputType][1];
+        }
+    }
+    return '';
+};
+
+I.draggable = (RVM = S.RVM) => {
+    if(S['available-reader-view-modes'].includes(RVM)) {
+        switch(RVM) {
+            case 'paged':                       return S['content-draggable'][0] === true;
+            case 'horizontal': case 'vertical': return S['content-draggable'][1] === true;
+        }
+    }
+    return false;
+};
 
 I.isScrollable = () => (S.ARA == S.SLA && I.Loupe.CurrentTransformation.Scale == 1) ? true : false;
 
@@ -6663,10 +6707,10 @@ export const U = {};
 U.translateData = (PnV) => {
     let [_P, _V] = PnV;
     switch(_P) {
-        case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
-        case 'view': case 'rvm': _P = 'reader-view-mode'; break;
         case 'dppd': case 'default-ppd': _P = 'default-page-progression-direction'; break;
         case 'pagination': _P = 'pagination-method'; break;
+        case 'view-mode': case 'view': case 'rvm': _P = 'reader-view-mode'; break;
+        case 'paged': case 'horizontal': case 'vertical': _V = _P, _P = 'reader-view-mode'; break;
     }
     return [_P, _V];
 };
@@ -6838,7 +6882,16 @@ S.initialize = () => {
     // --------
     S['default-page-progression-direction'] = S['default-page-progression-direction'] == 'rtl' ? 'rtl' : 'ltr';
     // --------
-    if(!S['reader-view-mode']) S['reader-view-mode'] = 'auto';
+    if(!S['available-reader-view-modes'] || !S['available-reader-view-modes'].length || S['available-reader-view-modes'].length > 3) S['available-reader-view-modes'] = ['paged', 'horizontal', 'vertical'];
+    S['available-reader-view-modes_string'] = (ARVMs => {
+        if(S['available-reader-view-modes'].includes('paged'     )) ARVMs.push('paged');
+        if(S['available-reader-view-modes'].includes('horizontal')) ARVMs.push('horizontal');
+        if(S['available-reader-view-modes'].includes('vertical'  )) ARVMs.push('vertical');
+        return ARVMs.join('-');
+    })([]);
+    if(!S['default-reader-view-mode'] || (S['default-reader-view-mode'] != 'auto' && !S['available-reader-view-modes'].includes(S['default-reader-view-mode']))) S['default-reader-view-mode'] = 'auto';
+    if(!S['reader-view-mode'] || !S['available-reader-view-modes'].includes(S['reader-view-mode'])) S['reader-view-mode'] = S['default-reader-view-mode'];
+    if(S['available-reader-view-modes'].length == 1) S['fix-reader-view-mode'] = true;
     // --------
     if(!S['use-menubar']) S['use-full-height'] = true;
     // --------
@@ -6847,18 +6900,28 @@ S.initialize = () => {
     if(!localStorage || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
     if(!S['use-bookmarks']) S['max-bookmarks'] = 0, S['use-bookmark-ui'] = false;
     // --------
+    if(S['on-orthogonal-wheel'][0] == 'across') S['on-orthogonal-wheel'][0] = 'move';
+    if(S['available-reader-view-modes'].length != 2) {
+        const EventNames = ['on-orthogonal-arrowkey', 'on-orthogonal-edgetap', 'on-orthogonal-touchmove', 'on-orthogonal-wheel'];
+        switch(S['available-reader-view-modes'].length) {
+            case 1: EventNames.forEach(EN => S[EN].forEach((Val, i) => { if(     Val == 'switch') S[EN][i] = ''; })); break;
+            case 3: EventNames.forEach(EN =>                           { if(S[EN][0] == 'switch') S[EN][0] = ''; } ); break;
+        }
+    }
+    // --------
     if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
     // --------
     S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
-           'book-rendition-layout'   : { SH: 'BRL', CNP: 'book' },
-             'book-writing-mode'     : { SH: 'BWM', CNP: 'book' },
-              'reader-view-mode'     : { SH: 'RVM', CNP: 'view' },
-         'page-progression-direction': { SH: 'PPD', CNP: 'page' },
-            'spread-layout-axis'     : { SH: 'SLA', CNP: 'spread' },
-            'spread-layout-direction': { SH: 'SLD', CNP: 'spread' },
-         'apparent-reading-axis'     : { SH: 'ARA', CNP: 'appearance' },
-         'apparent-reading-direction': { SH: 'ARD', CNP: 'appearance' },
-        'navigation-layout-direction': { SH: 'NLD', CNP: 'nav' }
+               'book-rendition-layout'       : { SH: 'BRL', CNP: 'book' },
+                 'book-writing-mode'         : { SH: 'BWM', CNP: 'book' },
+             'page-progression-direction'    : { SH: 'PPD', CNP: 'page' },
+            'navigation-layout-direction'    : { SH: 'NLD', CNP: 'nav' },
+                  'reader-view-mode'         : { SH: 'RVM', CNP: 'view' },
+        'available-reader-view-modes_string' : { SH: 'AVM', CNP: 'available' },
+                'spread-layout-axis'         : { SH: 'SLA', CNP: 'spread' },
+                'spread-layout-direction'    : { SH: 'SLD', CNP: 'spread' },
+             'apparent-reading-axis'         : { SH: 'ARA', CNP: 'appearance' },
+             'apparent-reading-direction'    : { SH: 'ARD', CNP: 'appearance' }
     };
     for(const Mode in S.Modes) {
         const _ = S.Modes[Mode];
@@ -6870,8 +6933,8 @@ S.initialize = () => {
         if(S['keep-settings']) {
             const BookBiscuits = I.Oven.Biscuits.remember('Book');
             if(!BookBiscuits) return;
-            if(!U['reader-view-mode']              && BookBiscuits.RVM) S['reader-view-mode']              = BookBiscuits.RVM;
-            if(!U['full-breadth-layout-in-scroll'] && BookBiscuits.FBL) S['full-breadth-layout-in-scroll'] = BookBiscuits.FBL;
+            if(!U['reader-view-mode']              && BookBiscuits.RVM && S['available-reader-view-modes'].includes(BookBiscuits.RVM)) S['reader-view-mode']              = BookBiscuits.RVM;
+            if(!U['full-breadth-layout-in-scroll'] && BookBiscuits.FBL                                                               ) S['full-breadth-layout-in-scroll'] = BookBiscuits.FBL;
         }
     });
     // --------

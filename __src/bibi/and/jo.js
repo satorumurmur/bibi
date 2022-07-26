@@ -71,24 +71,24 @@ Jo.callBibi = (Love) => {
         [
             'autostart-embedded', 'autostart',
             'dress',
-            'fix-reader-view-mode', 'fix-rvm', 'fix-view', 'fix-view-mode',
+            'fix-reader-view-mode', 'fix-view-mode', 'fix-view', 'fix-rvm',
             'forget-me',
             'full-breadth-layout-in-scroll',
             'iipp',
             'nav',
             'p',
             'preset',
-            'reader-view-mode', 'rvm', 'view', 'view-mode',
+            'reader-view-mode', 'view-mode', 'view', 'rvm',
             'start-embedded-in-new-window', 'start-in-new-window',
             'uiless'
         ].forEach(K => { let V;
             if(Love.ownerDocument) V = Love.getAttribute('data-bibi-' + K);
             else switch(typeof (V = Love['bibi-' + K])) { case 'number': if(V != V) return; case 'boolean': V = String(V); }
             switch(typeof V) { case 'string': if(V = V.trim()) break; default: return; }
-            /**/     switch(K) { case 'autostart':
-                                 case     'start-in-new-window':                        K = K.replace('start', 'start-embedded'); break;
-                                 case     'rvm': case     'view': case     'view-mode':
-                                 case 'fix-rvm': case 'fix-view': case 'fix-view-mode': K = K.replace(/^(fix-)?.+$/, '$0reader-view-mode'); break; }
+            /**/     switch(K) { case 'autostart':                                      K = 'autostart-embedded'; break;
+                                 case     'view-mode': case     'view': case     'rvm': K = 'reader-view-mode'; break;
+                                 case 'fix-view-mode': case 'fix-view': case 'fix-rvm': K = 'fix-reader-view-mode'; break;
+                                 case 'start-in-new-window':                            K = 'start-embedded-in-new-window'; break;}
             (() => { switch(K) { case 'preset': case 'dress': return              /^[_\-\w\d]+(\.[_\-\w\d]+)*$/;
                                  case 'iipp': case 'p':       return                            /^(\d*\.)?\d+$/;
                                  case 'nav':                  return                            /^[1-9][0-9]*$/;
