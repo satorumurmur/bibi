@@ -3,8 +3,8 @@
 // --------------------------------------------------------------------------------
 
 div.bibi-subpanel {
-	&.bibi-subpanel-right, &:not(.bibi-subpanel-left) { right: $Subpanel_Margin; }
-	&.bibi-subpanel-left { left: $Subpanel_Margin; }
+	&.bibi-subpanel-right, &:not(.bibi-subpanel-left):not(.bibi-subpanel-center) { right: $Subpanel_Margin; right: calc(env(safe-area-inset-right, 0) + #{ $Subpanel_Margin }); }
+	&.bibi-subpanel-left, &:not(.bibi-subpanel-right):not(.bibi-subpanel-center) {  left: $Subpanel_Margin;  left: calc(env(safe-area-inset-left,  0) + #{ $Subpanel_Margin }); }
 	top: $Menu_Height + $Subpanel_Margin;
 	width: calc(100% - #{$Subpanel_Margin * 2});
 	max-width: 320px - $Subpanel_Margin * 2;
@@ -40,6 +40,7 @@ div.bibi-subpanel {
 		&:hover  { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Hover; }
 		&:active { background: $Subpanel-Scrollbar-Thumb_BackgroundColor__Active; }
 	}
+	scrollbar-color: $Subpanel-Scrollbar-Thumb_BackgroundColor $Subpanel-Scrollbar-Track_BackgroundColor;
 }
 
 

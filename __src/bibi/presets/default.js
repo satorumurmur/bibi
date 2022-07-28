@@ -38,7 +38,7 @@ Bibi.preset({
 "use-full-height"            : "yes", // "yes" | "no" | "desktop" | "mobile" // If "use-menubar" is interpreted as "no", "use-full-height" is always treated as "yes".
 
 "use-arrows"                 : "yes", // "yes" | "no" | "desktop" | "mobile"
-"flipper-width"              : 0.25, // Number of ratio (less than 1) | Number of pixels (1 or greater)
+"flipper-width"              : 0.25, // Number of ratio to the viewport (less than 1) | pixels (1 or greater) // Less than 0 is treated as 0.
 
 "use-keys"                   : "yes", // "yes" | "no" | "desktop" | "mobile"
 
@@ -65,7 +65,7 @@ Bibi.preset({
 "use-loupe-ui"               : "yes", // "yes" | "no" | "desktop" | "mobile" // Loupe UI buttons are always hidden and disabled on reflowable books or in touch-devices.
 "loupe-max-scale"            : 4, // Number of scale (greater than 1)
 "loupe-scale-per-step"       : 1.6, // Number of scale (greater than 1, less than or equal to "loupe-max-scale")
-"zoom-out-for-utilities"     : "yes", // "yes" | "no" | "desktop" | "mobile"
+"zoom-out-for-utilities"     : "yes", // "yes" | "no" | "desktop" | "mobile" // If "use-slider" is interpreted as "no", "zoom-out-for-utilities" is always treated as "no".
 
 "use-bookmark-ui"            : "yes", // "yes" | "no" | "desktop" | "mobile"
 "max-bookmarks"              : 3, // Number (0-9) // If larger than 9, treated as 9. If 0, "use-bookmark-ui" and "use-bookmarks" are treated as "no" (but old data is kept in localStorage). 
@@ -132,6 +132,12 @@ Bibi.preset({
 //                               * "across":
 //                                   - Scrolling in the orthogonal direction of wheeling (= natural scrolling direction of the book content).
 //                                   - Setting "across" for the "paged" view mode (= the 1st value) is treated as "move".
+
+"touchmove-ignoring-area": [0, 0, 0, 0], // Four numbers of ratio to the viewport (less than 1) | pixels (1 or greater) // Less than 0 is treated as 0.
+// Each item of the array corresponds to the distance from the edge of the top, right, bottom, and left.
+// Flick or swipe started from within the range is ignored.
+
+// Each item of the array corresponds to the top, right, bottom, and left. Every item is: Number of ratio (less than 1) | Number of pixels (1 or greater)
 
 "indicate-orthogonal-arrows-if-necessary" : false, // true | false
 

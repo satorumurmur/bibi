@@ -73,6 +73,7 @@ Bibi.SettingTypes = {
     'array': [
         'concatenate-spreads',
         'content-draggable',
+        'touchmove-ignoring-area',
         'on-orthogonal-edgetap',
         'on-orthogonal-arrowkey',
         'on-orthogonal-touchmove',
@@ -210,6 +211,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'extensions'                  : return _V.filter(_I => typeof _I['src'] == 'string' && (_I['src'] = _I['src'].trim()));
                 case 'extract-if-necessary'        : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim().toLowerCase() : '')).includes('*') ? ['*'] : _V.filter(_I => /^(\.[\w\d]+)*$/.test(_I));
                 case 'inhibit'                     : return (_V = _V.map(_I => typeof _I == 'string' ? _I.trim()               : '')).includes('*') ? ['*'] : _V.filter(_I => _I);
+                case 'touchmove-ignoring-area'     : _V.length = 4; for(let i = 0; i < 4; i++) _V[i] = Number.isFinite(_V[i] *= 1) && _V[i] >= 0 ? _V[i] : 0; return _V;
                 case 'on-orthogonal-arrowkey'      :
                 case 'on-orthogonal-edgetap'       :
                 case 'on-orthogonal-touchmove'     : _V.length = 2; for(let i = 0; i < 2; i++) _V[i] = typeof _V[i] == 'string' &&        /^(move|switch|utilities)$/.test(_V[i]) ? _V[i] : ''; return _V;
@@ -390,7 +392,7 @@ Bibi.initialize = () => {
     { // Say Welcome or say Bye-bye
         if(Bibi.isCompatible()) I.notify(`<span class="non-visual">Welcome!</span>`); else throw Bibi.byebye();
     }
-    { // Writing Mode, Font Size, Slider Size, Menu Height
+    { // Writing Mode, Font Size, Safe Area Size, Slider Size, Menu Height
         O.WritingModeProperty = (() => {
             const HTMLComputedStyle = getComputedStyle(O.HTML);
             if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.Trident) return         'writing-mode';
@@ -398,20 +400,21 @@ Bibi.initialize = () => {
             if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                  ) return   '-epub-writing-mode';
             return undefined;
         })();
-        const StyleChecker = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker', innerHTML: ' aAａＡあ亜　', style: { width: 'auto', height: 'auto', left: '-1em', top: '-1em' } }));
-        O.VerticalTextEnabled = (StyleChecker.offsetWidth < StyleChecker.offsetHeight);
-        O.DefaultFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
-        StyleChecker.style.fontSize = '0.01px';
-        O.MinimumFontSize = Math.min(StyleChecker.offsetWidth, StyleChecker.offsetHeight);
-        StyleChecker.setAttribute('style', ''), StyleChecker.innerHTML = '';
-        I.Slider.Size = S['use-slider' ] ? StyleChecker.offsetWidth  : 0;
-        I.Menu.Height = S['use-menubar'] ? StyleChecker.offsetHeight : 0;
-        delete document.body.removeChild(StyleChecker);
+        const SC = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker' })), SCCS = getComputedStyle(SC);
+        O.FontSize = { Default: parseFloat(SCCS.fontSize) };
+        SC.style.fontSize = '0.01px';
+        O.FontSize.Minimum = Math.ceil(parseFloat(SCCS.fontSize) * 100) / 100;
+        SC.removeAttribute('style');
+        I.Slider.Size = S['use-slider' ] ? parseFloat(SCCS.width)  : 0;
+        I.Menu.Height = S['use-menubar'] ? parseFloat(SCCS.height) : 0;
+        O.getSafeArea = () => O.Embedded ? { Top: 0, Right: 0, Bottom: 0, Left: 0 } : { Top: parseFloat(SCCS.paddingTop), Right: parseFloat(SCCS.paddingRight), Bottom: parseFloat(SCCS.paddingBottom), Left: parseFloat(SCCS.paddingLeft) };
+        Object.defineProperty(O, 'SafeArea', { get: O.getSafeArea });
+        // delete document.body.removeChild(SC);
     }
     { // Scrollbars
-        O.Body.style.width = '101vw', O.Body.style.height = '101vh';
+        O.Body.style.width = O.Body.style.height = '111%';
         O.Scrollbars = { Width: window.innerWidth - O.HTML.offsetWidth, Height: window.innerHeight - O.HTML.offsetHeight };
-        O.HTML.style.width = O.Body.style.width = '100%', O.Body.style.height = '';
+        /*O.HTML.style.width = O.HTML.style.height =*/ O.Body.style.width = O.Body.style.height = '';
     }
     { // Inhibition...
         O.inhibit();
@@ -494,10 +497,10 @@ Bibi.busyHerself = () => new Promise(resolve => {
     O.Busy = true;
     O.HTML.classList.add('busy');
     O.HTML.classList.add('loading');
-    window.addEventListener(E['resize'], R.resetBibiHeight);
+    I.ResizeObserver.addEventListener(R.resetBibiHeight);
     Bibi.busyHerself.resolve = () => { resolve(); delete Bibi.busyHerself; };
 }).then(() => {
-    window.removeEventListener(E['resize'], R.resetBibiHeight);
+    I.ResizeObserver.addEventListener(R.resetBibiHeight);
     O.Busy = false;
     O.HTML.classList.remove('busy');
     O.HTML.classList.remove('loading');
@@ -943,11 +946,11 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 'media-type': _Item.getAttribute('media-type')
             };
             if(/^https?:\/\//i.test(Source['href'])) {
-                if(S['allow-external-item-href'] && S['trustworthy-origins'].includes(new URL(Source['href']).origin)) Source.IsExternal = true;
+                if(S['allow-external-item-href'] && S['trustworthy-origins'].includes(new URL(Source['href']).origin)) Source.External = true;
                 else Source['href'] = '';
             }
             if(!Source['id'] || !Source['href'] || (!Source['media-type'] && B.Type == 'EPUB')) return false;
-            Source.Path = Source.IsExternal ? Source['href'] : O.rrr(PackageDir + '/' + Source['href']);
+            Source.Path = Source.External ? Source['href'] : O.rrr(PackageDir + '/' + Source['href']);
             if(Manifest[Source.Path]) Source = Object.assign(Manifest[Source.Path], Source);
             if(!Source.Content) Source.Content = '';
             Source.Of = [];
@@ -977,7 +980,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         if(!B.PPD || !/^(ltr|rtl)$/.test(B.PPD)) B.PPD = S['default-page-progression-direction']; // default;
         // --------------------------------------------------------------------------------
         const RenditionPropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-([a-z\-]+)$/;
-        const      BibiPropertyRE = /^(bibi:(allow-placeholder|no-padding))$/;
+        const      BibiPropertyRE = /^(bibi:(allow-placeholder|no-adjustment|no-padding))$/;
         let SpreadBefore, SpreadAfter;
         if(B.PPD == 'rtl') SpreadBefore = 'right', SpreadAfter = 'left';
         else               SpreadBefore = 'left',  SpreadAfter = 'right';
@@ -1006,16 +1009,24 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                     if(     BibiPropertyRE.test(Pro)) ItemRef[Pro.replace(     BibiPropertyRE, '$1')] = true;
                 });
             }
-            Item['rendition:layout']      = ItemRef['rendition:layout']      || Metadata['rendition:layout']; if(Item['rendition:layout'] != 'pre-paginated') Item['rendition:layout'] = 'reflowable';
-            Item['rendition:orientation'] = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
-            Item['rendition:spread']      = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
-            Item['rendition:page-spread'] = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
-            if(ItemRef['bibi:allow-placeholder']) Item['bibi:allow-placeholder'] = true;
-            if(ItemRef['bibi:no-padding'])        Item['bibi:no-padding']        = true;
-            Object.assign(Item, Item['rendition:layout'] == 'reflowable' ?
-                { Reflowable: true,  PrePaginated: false, NoPadding: Item['bibi:no-padding'], AllowPlaceholder: B.ExtractionPolicy != 'at-once' &&  Item['bibi:allow-placeholder'] } :
-                { Reflowable: false, PrePaginated: true,  NoPadding: true,                    AllowPlaceholder: B.ExtractionPolicy != 'at-once' && (Item['bibi:allow-placeholder'] || Metadata['rendition:layout'] == 'pre-paginated') }
-            );
+            Item['rendition:layout']       = ItemRef['rendition:layout']      || Metadata['rendition:layout']; if(Item['rendition:layout'] != 'pre-paginated') Item['rendition:layout'] = 'reflowable';
+            Item['rendition:orientation']  = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
+            Item['rendition:spread']       = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
+            Item['rendition:page-spread']  = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
+            Item['bibi:allow-placeholder'] = ItemRef['bibi:allow-placeholder'] || undefined;
+            Item['bibi:no-adjustment']     = ItemRef['bibi:no-adjustment']     || undefined;
+            Item['bibi:no-padding']        = ItemRef['bibi:no-padding']        || undefined;
+            Object.assign(Item, Item['rendition:layout'] == 'reflowable' ? {
+                Reflowable: true, PrePaginated: false,
+                AllowPlaceholder: B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'],
+                NoAdjustment: Item['bibi:no-adjustment'] ? true : false,
+                NoPadding: Item['bibi:no-padding'] || ItemRef['bibi:no-adjustment'] ? true : false
+            } : {
+                Reflowable: false, PrePaginated: true,
+                AllowPlaceholder: B.ExtractionPolicy != 'at-once' && (Item['bibi:allow-placeholder'] || Metadata['rendition:layout'] == 'pre-paginated'),
+                NoAdjustment: true,
+                NoPadding: true
+            });
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Item.IndexInSpine = Spine.push(Item) - 1;
             if(ItemRef.getAttribute('linear') == 'no') {
@@ -1084,8 +1095,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         B.PrePaginated = B.Package.Metadata['rendition:layout'] == 'pre-paginated';
         B.Reflowable = !B.PrePaginated;
         B.WritingMode =                                                                                   /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == 'rtl' ? 'tb-rl' : 'lr-tb')
-            : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
+            : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                                                                                       'lr-tb';
         // ================================================================================
         // READER
@@ -1320,7 +1331,7 @@ L.loadItem = (Item, Opt = {}) => {
     return Item.Loading = ( // Promise
         Item.IsPlaceholder ? Promise.reject()
         : Item.ContentURL ? Promise.resolve()
-        : S['allow-external-item-href'] && Item.Source.IsExternal ? // Online Resource
+        : S['allow-external-item-href'] && Item.Source.External ? // Online Resource
             Promise.resolve(Object.assign(Item, { ContentURL: Item.Source.Path }).ContentURL)
         : /\.(html?|xht(ml)?|xml)$/i.test(Item.Source.Path) ? // (X)HTML
             O.file(Item.Source, {
@@ -1332,7 +1343,9 @@ L.loadItem = (Item, Opt = {}) => {
                         Item.Source.Content.replace(/<a(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '<a$1></a>');
                     if(!S['allow-scripts-in-content']) {
                         if(!Item.Source.IsXHTML) Item.Source.Content = Item.Source.Content.replace(/<script(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '');
+                        Item.Source.Content = Item.Source.Content.replace(/\s+viewBox\s*=\s*/ig, ' data-bibi-viewbox=');
                         O.sanitizeItemSource(Item.Source, { As: Item.Source.IsXHTML ? 'XHTML' : 'HTML' });
+                        Item.Source.Content = Item.Source.Content.replace(/ data-bibi-viewbox=/ig, ' viewBox=');
                     }
                 }
             }).then(ItemSource =>
@@ -1428,6 +1441,7 @@ L.postprocessItem = (Item) => {
     else if(!XMLLang         ) Item.HTML.setAttribute('xml:lang', Lang);
     else if(            !Lang)                                                 Item.HTML.setAttribute('lang', XMLLang);
     sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
+    if(Item.Reflowable && !Item.NoAdjustment) Item.contentDocument.querySelectorAll('html, body, body>*:not(script):not(style)').forEach(Ele => Ele.style.direction = Ele.BibiDefaultDirection = getComputedStyle(Ele).direction);
     sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
     if(sML.UA.Trident) sML.forEach(Item.Body.getElementsByTagName('svg'))(SVG => {
         const ChildImages = SVG.getElementsByTagName('image');
@@ -1448,9 +1462,9 @@ L.postprocessItem = (Item) => {
         else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
         else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
     }
-    sML.forEach(Item.Body.querySelectorAll('svg'))(SVG => {
-        if(SVG.getAttribute('viewBox') || SVG.children.length != 1 || SVG.firstElementChild.tagName.toLowerCase() != 'image') return;
-        const Image = SVG.firstElementChild;
+    sML.forEach(Item.Body.querySelectorAll('svg'))(SVG => { if(SVG.getAttribute('viewBox')) return;
+        const Images = SVG.getElementsByTagName('image'); if(Images.length != 1) return;
+        const Image = Images[0];
         const ImageW = Image.getAttribute('width' ); if(!/^\d+$/.test(ImageW)) return;
         const ImageH = Image.getAttribute('height'); if(!/^\d+$/.test(ImageH)) return;
         SVG.setAttribute('viewBox', [0, 0, ImageW, ImageH].join(' '));
@@ -1547,16 +1561,16 @@ R.createSpine = (SpreadsDocumentFragment) => {
 
 
 R.resetBibiHeight = () => {
-    const WIH = window.innerHeight;
-    if(O.TouchOS) O.HTML.style.height = O.Body.style.height = WIH + 'px'; // for In-App Browsers
-    return WIH;
+    if(O.TouchOS) O.HTML.style.height = O.Body.style.height = '';
+    const SafeHeight = O.HTML.offsetHeight - O.SafeArea.Bottom;
+    if(O.TouchOS) O.HTML.style.height = O.Body.style.height = SafeHeight + 'px'; // for In-App Browsers
+    return SafeHeight;
 };
 
 
 R.resetStage = () => {
-    const WIH = R.resetBibiHeight();
+    const SafeHeight = R.resetBibiHeight();
     R.Stage = {};
-    R.Columned = false;
     R.Main.style.padding = R.Main.style.width = R.Main.style.height = '';
     R.Main.Book.style.padding = R.Main.Book.style.width = R.Main.Book.style.height = '';
     const BookBreadthIsolationStartEnd = (S['use-slider'] && S.RVM == 'paged' && O.Scrollbars[C.A_SIZE_B] ? O.Scrollbars[C.A_SIZE_B] : 0) + S['content-margin'] * 2;
@@ -1565,7 +1579,7 @@ R.resetStage = () => {
         [C.A_SIZE_l]: ''
     });
     R.Stage.Width  = O.Body.clientWidth;
-    R.Stage.Height = WIH;
+    R.Stage.Height = SafeHeight;
     R.Stage[C.A_SIZE_B] -= (S['use-slider'] || S.RVM != 'paged' ? O.Scrollbars[C.A_SIZE_B] : 0) + S['content-margin'] * 2;
     window.scrollTo(0, 0);
     if(!S['use-full-height']) R.Stage.Height -= I.Menu.Height;
@@ -1594,14 +1608,14 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
     if(Spread.Items.length == 1) {
         const Item = Spread.Items[0];
         Spread.Spreaded = Item.Spreaded ? true : false;
-        SpreadSize.Width  = (Spread.Spreaded && Item.PrePaginated && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : R.Stage.Width) : Item.Box.offsetWidth;
+        SpreadSize.Width  = (Spread.Spreaded && Item.PrePaginated && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : B.PrePaginated ? Item.Box.offsetWidth * 2 : R.Stage.Width) : Item.Box.offsetWidth;
         SpreadSize.Height = Item.Box.offsetHeight;
     } else {
         const ItemA = Spread.Items[0], ItemB = Spread.Items[1];
         Spread.Spreaded = (ItemA.Spreaded || ItemB.Spreaded) ? true : false;
         if(ItemA.PrePaginated && ItemB.PrePaginated) {
             // Paired Pre-Paginated Items
-            if(Spread.Spreaded || S.RVM != 'vertical') {
+            if(Spread.Spreaded || S.SLA == 'horizontal') {
                 // Spreaded
                 SpreadSize.Width  =          ItemA.Box.offsetWidth  + ItemB.Box.offsetWidth;
                 SpreadSize.Height = Math.max(ItemA.Box.offsetHeight,  ItemB.Box.offsetHeight);
@@ -1635,13 +1649,24 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
             }
         }
     }
-    const MinSpaceOfEdge = (S.RVM != 'paged' && (Spread.Index == 0 || Spread.Index == R.Spreads.length - 1)) ? Math.floor((R.Stage[C.L_SIZE_L] - SpreadSize[C.L_SIZE_L]) / 2) : 0;
-    if(MinSpaceOfEdge > 0) {
-        if(Spread.Index == 0                   ) Spread.style['padding' + C.L_BASE_B] = MinSpaceOfEdge + 'px', SpreadSize[C.L_SIZE_L] += MinSpaceOfEdge;
-        if(Spread.Index == R.Spreads.length - 1) Spread.style['padding' + C.L_BASE_A] = MinSpaceOfEdge + 'px', SpreadSize[C.L_SIZE_L] += MinSpaceOfEdge;
-    } else {
-        Spread.style.padding = '';
+    const IsHead = Spread.Index == 0, IsFoot = Spread.Index == R.Spreads.length - 1;
+    let PaddingBefore = 0, PaddingAfter = 0;
+    if(IsHead || IsFoot) {
+        const StageLength = R.Stage[C.L_SIZE_L], SpreadLength = SpreadSize[C.L_SIZE_L];
+        let PaddingLength = 0;
+        if(StageLength > SpreadLength) {
+            PaddingLength = Math.floor((StageLength - SpreadLength) / 2);
+            if(S.RVM == 'paged' || IsHead) PaddingBefore = PaddingLength;
+            if(S.RVM == 'paged' || IsFoot) PaddingAfter  = PaddingLength;
+        } else if(StageLength < SpreadLength) {
+            let EdgeItemLength = 0;
+            if(IsHead && StageLength > (EdgeItemLength = Spread.Items[                      0].Box['offset' + C.L_SIZE_L])) PaddingBefore = Math.floor((StageLength - EdgeItemLength) / 2);
+            if(IsFoot && StageLength > (EdgeItemLength = Spread.Items[Spread.Items.length - 1].Box['offset' + C.L_SIZE_L])) PaddingAfter  = Math.floor((StageLength - EdgeItemLength) / 2);
+        }
     }
+    if(PaddingBefore) SpreadSize[C.L_SIZE_L] += PaddingBefore, Spread.style['padding' + C.L_BASE_B] = PaddingBefore + 'px'; else Spread.style['padding' + C.L_BASE_B] = '';
+    if(PaddingAfter ) SpreadSize[C.L_SIZE_L] += PaddingAfter,  Spread.style['padding' + C.L_BASE_A] = PaddingAfter  + 'px'; else Spread.style['padding' + C.L_BASE_A] = '';
+    Spread.style['padding' + C.L_BASE_S] = Spread.style['padding' + C.L_BASE_E] = '';
     if(O.Scrollbars.Height && S.SLA == 'vertical' && S.ARA != 'vertical') {
         SpreadBox.style.minHeight    = S.RVM == 'paged' ?   'calc(100vh - ' + O.Scrollbars.Height + 'px)' : '';
         SpreadBox.style.marginBottom = Spread.Index == R.Spreads.length - 1 ? O.Scrollbars.Height + 'px'  : '';
@@ -1649,7 +1674,7 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
         SpreadBox.style.minHeight = SpreadBox.style.marginBottom = ''
     }
     SpreadBox.classList.toggle('spreaded', Spread.Spreaded);
-    SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
+    SpreadBox.style[C.L_SIZE_b] = '', Spread.style[C.L_SIZE_b] = ''; // Math.ceil(SpreadSize[C.L_SIZE_B]) + 'px';
     SpreadBox.style[C.L_SIZE_l] =     Spread.style[C.L_SIZE_l] = Math.ceil(SpreadSize[C.L_SIZE_L]) + 'px';
     //sML.style(Spread, { 'border-radius': S['spread-border-radius'], 'box-shadow': S['spread-box-shadow'] });
     if(Opt.Makeover) {
@@ -1684,12 +1709,17 @@ R.layOutItem = (Item) => new Promise(resolve => {
 
 R.renderReflowableItem = (Item) => {
     if(Item.IsPlaceholder) return;
-    const ItemPaddingSE = Item.NoPadding ? 0 : S['item-padding-' + C.L_BASE_s] + S['item-padding-' + C.L_BASE_e];
-    const ItemPaddingBA = Item.NoPadding ? 0 : S['item-padding-' + C.L_BASE_b] + S['item-padding-' + C.L_BASE_a];
+    const SafeArea = O.SafeArea;
+    Item.Padding = {
+           Top: S['item-padding-top'],     Left: S['item-padding-left']  + SafeArea.Left,
+        Bottom: S['item-padding-bottom'], Right: S['item-padding-right'] + SafeArea.Right
+    };
+    const ItemPaddingSE = Item.NoPadding ? 0 : Item.Padding[C.L_BASE_S] + Item.Padding[C.L_BASE_E];
+    const ItemPaddingBA = Item.NoPadding ? 0 : Item.Padding[C.L_BASE_B] + Item.Padding[C.L_BASE_A];
     const PageCB = R.Stage[C.L_SIZE_B] - ItemPaddingSE; // Page "C"ontent "B"readth
     let   PageCL = R.Stage[C.L_SIZE_L] - ItemPaddingBA; // Page "C"ontent "L"ength
     const PageGap = ItemPaddingBA;
-    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base]; Item.style['padding-' + trbl] = Item.NoPadding ? 0 : S['item-padding-' + trbl] + 'px'; });
+    ['b','a','s','e'].forEach(base => { const trbl = C['L_BASE_' + base], TRBL = C['L_BASE_' + base.toUpperCase()]; Item.style['padding-' + trbl] = Item.NoPadding ? 0 : Item.Padding[TRBL] + 'px'; });
     sML.style(Item.HTML, { 'width': '', 'height': '' });
     if(Item.WithGutters) {
         Item.HTML.classList.remove('bibi-with-gutters');
@@ -1697,14 +1727,11 @@ R.renderReflowableItem = (Item) => {
         Item.Neck.innerHTML = '';
         delete Item.Neck;
     }
-    const ReverseItemPaginationDirectionIfNecessary = (sML.UA.Trident || sML.UA.EdgeHTML) ? false : true;
+    const ReverseItemPaginationDirectionIfNecessary = !Item.NoAdjustment && !sML.UA.Trident && !sML.UA.EdgeHTML ? true : false;
     if(Item.Columned) {
-        sML.style(Item.HTML, { 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+        sML.style(Item.HTML, { 'column-width': '', 'column-gap': '', 'column-fill': '', 'column-rule': '' });
         Item.HTML.classList.remove('bibi-columned');
-        if(ReverseItemPaginationDirectionIfNecessary && Item.ReversedColumned) {
-            Item.HTML.style.direction = '';
-            sML.forEach(Item.contentDocument.querySelectorAll('body > *'))(Ele => Ele.style.direction = '');
-        }
+        if(ReverseItemPaginationDirectionIfNecessary && Item.ReversedColumned) Item.HTML.style.direction = Item.HTML.BibiDefaultDirection;
     }
     Item.WithGutters = false;
     Item.Columned = false, Item.ColumnBreadth = 0, Item.ColumnLength = 0;
@@ -1715,7 +1742,7 @@ R.renderReflowableItem = (Item) => {
             &&
         (Item['rendition:spread'] == 'both' || R.Orientation == Item['rendition:spread'] || R.Orientation == 'landscape')
     );
-    if(Item.Spreaded) {
+    if(Item.Spreaded && Item['rendition:page-spread'] != 'center') {
         const HalfL = Math.floor((PageCL - PageGap) / 2);
         if(HalfL >= Math.floor(PageCB * S['orientation-border-ratio'] / 2)) PageCL = HalfL;
         else Item.Spreaded = false;
@@ -1759,42 +1786,26 @@ R.renderReflowableItem = (Item) => {
         }
         if(Item.OFREs.length) Item.OFREs.forEach(OFRE => sML.style(OFRE, OFRE.BibiOFREOriginalStyleWidthHeight));
     }
-    let PaginateWith = '';
     if(!Item.Outsourcing) {
-        if(S['pagination-method'] == 'x') {
-                 if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL) PaginateWith = 'S'; // VM:Paged            WM:Vertical   LA:Horizontal
-            else if(                    Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:      Vertical WM:Vertical LA:Vertical
-        } else   if(S.RVM == 'paged' || Item.HTML['offset'+ C.L_SIZE_B] > PageCB) PaginateWith = 'C'; // VM:Paged/Horizontal WM:Horizontal LA:Horizontal // VM:Paged/Vertical WM:Vertical LA:Vertical
-    }
-    switch(PaginateWith) {
-        case 'S':
+        if(S.RVM == 'paged' && Item.HTML['offset'+ C.L_SIZE_L] > PageCL && (Item.WritingMode.split('-')[1] == 'tb' || S['pagination-method'] == 'x')) {
+            // reader-view-mode: paged, spread-layout-axis: vertical,   Item.WritingMode: **-tb                       ... horizontal-text item in vertical-text book
+            // reader-view-mode: paged, spread-layout-axis: horizontal, Item.WritingMode: tb-**, pagination-method: x ... extra layout method for vertical-text book
             Item.HTML.classList.add('bibi-columned');
-            sML.style(Item.HTML, {
-                [C.L_SIZE_b]: 'auto',
-                [C.L_SIZE_l]: PageCL + 'px',
-                'column-fill': 'auto',
-                'column-width': PageCB + 'px',
-                'column-gap': 0,
-                'column-rule': ''
-            });
-            const HowManyPages = Math.ceil((sML.UA.Trident ? Item.Body.clientHeight : Item.HTML.scrollHeight) / PageCB);
-            sML.style(Item.HTML, { 'width': '', 'height': '', 'column-fill': '', 'column-width': '', 'column-gap': '', 'column-rule': '' });
+            sML.style(Item.HTML, { [C.L_SIZE_b]: 'auto', [C.L_SIZE_l]: PageCL + 'px', 'column-width': PageCB + 'px', 'column-gap': 0, 'column-fill': 'auto', 'column-rule': '' });
+            const HowManyPages = Math.ceil(Item.HTML['scroll' + C.L_SIZE_B] / PageCB);
+            sML.style(Item.HTML, { 'width': '', 'height': '', 'column-width': '', 'column-gap': '', 'column-fill': '', 'column-rule': '' });
             Item.HTML.classList.remove('bibi-columned');
             Item.HTML.classList.add('bibi-with-gutters');
             const ItemLength = (PageCL + PageGap) * HowManyPages - PageGap;
             Item.HTML.style[C.L_SIZE_L] = ItemLength + 'px';
-            const Points = [];//[0, 0];
-            for(let i = 1; i < HowManyPages; i++) {
-                const Start = 0, End = PageCB, After = (PageCL + PageGap) * i, Before = After - PageGap;
-                Points.push(Start), Points.push(Before);
-                Points.push(  End), Points.push(Before);
-                Points.push(  End), Points.push(After );
-                Points.push(Start), Points.push(After );
-            }
-            if(/^tb-/.test(Item.WritingMode)) Points.reverse();
-            const Polygon = [];
-            for(let Pt = '', l = Points.length, i = 0; i < l; i++) {
-                const Px = Points[i] + (Points[i] ? 'px' : '');
+            const Points = []; for(let i = 1; i < HowManyPages; i++) { const After = (PageCL + PageGap) * i, Before = After - PageGap;
+                Points.push(     0), Points.push(Before);
+                Points.push(PageCB), Points.push(Before);
+                Points.push(PageCB), Points.push(After );
+                Points.push(     0), Points.push(After );
+            } if(/^tb-/.test(Item.WritingMode)) Points.reverse();
+            const Polygon = []; for(let Pt = '', l = Points.length, i = 0; i < l; i++) {
+                const Px = Points[i] + 'px';
                 if(i % 2 == 0) Pt = Px;
                 else Polygon.push(Pt + ' ' + Px);
             }
@@ -1802,18 +1813,11 @@ R.renderReflowableItem = (Item) => {
             ShadowOrThroat.appendChild(document.createElement('style')).textContent = (ShadowOrThroat != Throat ? ':host' : 'bibi-throat') + ` { ${C.L_SIZE_b}: ${PageCB}px; ${C.L_SIZE_l}: ${ItemLength}px; shape-outside: polygon(${ Polygon.join(', ') }); }`;
             Item.Neck = Item.Head.appendChild(Neck);
             Item.WithGutters = true;
-            break;
-        case 'C':
+        } else if(Item.HTML['offset'+ C.L_SIZE_B] > PageCB) {
+            // reader-view-mode: paged | vertical,   spread-layout-axis: vertical,   Item.WritingMode: tb-** ... normal layout method for vertical-text book
+            // reader-view-mode: paged | horizontal, spread-layout-axis: horizontal, Item.WritingMode: **-tb ... normal layout method for horizontal-text book
             Item.HTML.classList.add('bibi-columned');
-            sML.style(Item.HTML, {
-                [C.L_SIZE_b]: PageCB + 'px',
-                //[C.L_SIZE_l]: PageCL + 'px',
-                'column-fill': 'auto',
-                'column-width': PageCL + 'px',
-                'column-gap': PageGap + 'px',
-                'column-rule': ''
-            });
-            R.Columned = true;
+            sML.style(Item.HTML, { [C.L_SIZE_l]: 'auto', [C.L_SIZE_b]: PageCB + 'px', 'column-width': PageCL + 'px', 'column-gap': PageGap + 'px', 'column-fill': 'auto', 'column-rule': '' });
             Item.Columned = true, Item.ColumnBreadth = PageCB, Item.ColumnLength = PageCL;
             if(ReverseItemPaginationDirectionIfNecessary) {
                 let ToBeReversedColumnAxis = false;
@@ -1823,19 +1827,19 @@ R.renderReflowableItem = (Item) => {
                 }
                 if(ToBeReversedColumnAxis) {
                     Item.ReversedColumned = true;
-                    sML.forEach(Item.contentDocument.querySelectorAll('body > *'))(Ele => Ele.style.direction = getComputedStyle(Ele).direction);
                     Item.HTML.style.direction = S['page-progression-direction'];
                     //if(sML.UA.Chromium) Item.HTML.style.transform = 'translateX(' + (Item.HTML['scroll'+ C.L_SIZE_L] - Item.HTML['offset'+ C.L_SIZE_L]) * (S['page-progression-direction'] == 'rtl' ? 1 : -1) + 'px)';
                 }
             }
-            break;
+        }
     }
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
     if(sML.UA.Gecko) { // Part 2/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
         if(Item.OFREs.length) Item.OFREs.forEach(OFRE => sML.style(OFRE, { width: OFRE.offsetWidth + 'px', height: OFRE.offsetHeight + 'px' }));
     }
     let ItemL = Item.HTML['scroll' + C.L_SIZE_L];
-    const HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
+    let HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
+    if(ItemL - ((PageCL + PageGap) * (HowManyPages - 1) - PageGap) < 5) HowManyPages--;
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
     Item.style[C.L_SIZE_l] = Item.HTML.style[C.L_SIZE_l] = ItemL + 'px';
     if(sML.UA.Trident) Item.HTML.style[C.L_SIZE_l] = '100%';
@@ -1867,6 +1871,15 @@ R.renderReflowableItem = (Item) => {
     return Item;
 };
 
+/* R.Paginated */ Object.defineProperty(R, 'Paginated', { get: () => {
+    if(B.PrePaginated) return true;
+    switch(S.RVM) {
+        case      'paged': return true;
+        case 'horizontal': return B.WritingMode.split('-')[1] == 'tb';
+        case   'vertical': return B.WritingMode.split('-')[0] == 'tb';
+    }
+} });
+
 
 R.renderPrePaginatedItem = (Item) => {
     sML.style(Item, { width: '', height: '', transform: '' });
@@ -1896,7 +1909,7 @@ R.renderPrePaginatedItem = (Item) => {
                 Width:  LoBaseItemLoVp.Width + LoPairItemLoVp.Width * LoPairItem.Scale,
                 Height: LoBaseItemLoVp.Height
             };
-            LoBaseItem.Scale = Math.min(
+            LoBaseItem.Scale = Math.min( // 1,
                 StageB / SpreadViewPort[C.L_SIZE_B],
                 StageL / SpreadViewPort[C.L_SIZE_L]
             );
@@ -1906,7 +1919,7 @@ R.renderPrePaginatedItem = (Item) => {
                 Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1),
                 Height: ItemLoVp.Height
             };
-            Item.Scale = Math.min(
+            Item.Scale = Math.min( // 1,
                 StageB / SpreadViewPort[C.L_SIZE_B],
                 StageL / SpreadViewPort[C.L_SIZE_L]
             );
@@ -1914,12 +1927,14 @@ R.renderPrePaginatedItem = (Item) => {
     } else {
         ItemLoVp = R.getItemLayoutViewport(Item);
         if(S.RVM == 'paged' || !S['full-breadth-layout-in-scroll']) {
-            Item.Scale = Math.min(
+            Item.Scale = Math.min( // 1,
                 StageB / ItemLoVp[C.L_SIZE_B],
                 StageL / ItemLoVp[C.L_SIZE_L]
             );
         } else {
-            Item.Scale = StageB / ItemLoVp[C.L_SIZE_B];
+            Item.Scale = Math.min( 1,
+                StageB / ItemLoVp[C.L_SIZE_B]
+            );
         }
     }
     let PageL = Math.floor(ItemLoVp[C.L_SIZE_L] * Item.Scale);
@@ -1981,14 +1996,16 @@ R.layOutStage = () => {
 };
 
 
-R.layOutBook = (Opt) => new Promise((resolve, reject) => {
+R.layOutBook = (Opt) => new Promise((resolve, reject) => setTimeout(() => {
     // Opt: {
+    //     DoNotCloseUtilities: Boolean,
+    //     NoNotification: Boolean,
     //     Destination: BibiDestination,
-    //     Reset: Boolean, (default: false)
-    //     ResetOnlyContent: Boolean, (default: false)
-    //     DoNotCloseUtilities: Boolean, (default: false)
     //     Setting: BibiSetting,
-    //     before: Function
+    //     before: Function,
+    //     Reset: Boolean,
+    //     ResetOnlyContent: Boolean,
+    //     Delay: Integer
     // }
     if(R.LayingOut) return reject();
     I.ScrollObserver.History = [];
@@ -2005,7 +2022,7 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => {
     if(Opt.Setting) S.update(Opt.Setting);
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
     O.log(`Layout: %O`, Layout);
-    Promise.resolve().then(() => typeof Opt.before == 'function' ? Opt.before() : true).then(() => {
+    setTimeout(() => Promise.resolve().then(() => typeof Opt.before == 'function' ? Opt.before() : true).then(() => {
         if(!Opt.Reset) return resolve();
         if(!Opt.ResetOnlyContent) R.resetStage();
         const Promises = [];
@@ -2015,8 +2032,8 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => {
             R.layOutStage();
             resolve();
         });
-    });
-}).then(() => {
+    }), Number.isFinite(Opt.Delay) ? Opt.Delay : 33);
+}, Number.isFinite(Opt?.DelayBefore) ? Opt.DelayBefore : 0)).then(() => {
     return R.focusOn(Opt.Destination, { Duration: 0 });
 }).then(() => {
     O.Busy = false;
@@ -2074,25 +2091,18 @@ R.changeView = (Par) => { if(!Par) return false;
         O.Busy = true;
         O.HTML.classList.add('busy');
         O.HTML.classList.add('changing-view');
-        const Delay = [
-            O.TouchOS ? 99 : 3,
-            O.TouchOS ? 99 : 33
-        ];
-        setTimeout(() => {
-            E.dispatch('bibi:closes-utilities');
-        }, Delay[0]);
-        setTimeout(() => {
-            R.layOutBook({
-                Reset: true,
-                NoNotification: Par.NoNotification,
-                Setting: Setting
-            }).then(() => {
-                O.HTML.classList.remove('changing-view');
-                O.HTML.classList.remove('busy');
-                O.Busy = false;
-                setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
-            });
-        }, Delay[0] + Delay[1]);
+        R.layOutBook({
+            before: () => new Promise(resolve => setTimeout(() => resolve(E.dispatch('bibi:closes-utilities')), 0)),
+            Reset: true,
+            NoNotification: Par.NoNotification,
+            Setting: Setting,
+            DelayBefore: 33
+        }).then(() => {
+            O.HTML.classList.remove('changing-view');
+            O.HTML.classList.remove('busy');
+            O.Busy = false;
+            setTimeout(() => E.dispatch('bibi:changed-view', Par.Mode), 0);
+        });
     } else {
         S.update(Setting);
         if(!L.Opened) L.play();
@@ -2118,8 +2128,8 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
     let FocusPoint;
     const Page = _.Page, Item = Page.Item, Side = Opt.Side != 'after' ? 'before' : 'after';
     if(Item.Reflowable) {
-        if(!R.Columned && _.Element && _.Element.ownerDocument != document) {
-            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item.NoPadding ? 0 : S['item-padding-' + C.L_OOBL_l]) + _.Element.getBoundingClientRect()[C.L_BASE_b];
+        if(!R.Paginated && B.WritingMode.split('-')[1] == Item.WritingMode.split('-')[1] && _.Element && _.Element.ownerDocument != document) {
+            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item.NoPadding ? 0 : Item.Padding[C.L_OOBL_L]) + _.Element.getBoundingClientRect()[C.L_BASE_b];
         } else {
             FocusPoint = O.getElementCoord(Page)[C.L_AXIS_L];
             if(Side == 'after') FocusPoint += (Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
@@ -2329,7 +2339,7 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
 
 
 R.getPage = (_, Opt) => {
-    if(_ === undefined || _ === null) return ( B.PrePaginated || R.Columned ? I.PageObserver.Current.Pages : I.PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * I.PageObserver.getIntersectionStatus(ISP).Ratio > 3) )[0] || null;
+    if(_ === undefined || _ === null) return ( R.Paginated ? I.PageObserver.Current.Pages : I.PageObserver.IntersectingPages.filter(ISP => R.Stage[C.L_SIZE_L] * I.PageObserver.getIntersectionStatus(ISP).Ratio > 3) )[0] || null;
     if(!Opt || !Opt.Distilled)        return                (_ = R.dest(_)) ?                                                                                                                                                        _.Page :  null;
     /**/                              return        _.Page && _.Page.IsPage ?                                                                                                                                                        _.Page :  null;
 };
@@ -2642,7 +2652,7 @@ R.getNearestNavItem = (_) => {
 //             if(_.CharacterOffset.Preceding) Sides.Start.Index -= _.CharacterOffset.Preceding.length;
 //             if(_.CharacterOffset.Following)   Sides.End.Index += _.CharacterOffset.Following.length;
 //             if(Sides.Start.Index < 0 || _Node.textContent.length < Sides.End.Index) return;
-//             if(_Node.textContent.substr(Sides.Start.Index, Sides.End.Index - Sides.Start.Index) != _.CharacterOffset.Preceding + _.CharacterOffset.Following) return;
+//             if(_Node.textContent.substring(Sides.Start.Index, Sides.End.Index) != _.CharacterOffset.Preceding + _.CharacterOffset.Following) return;
 //         } else if(_.CharacterOffset.Side && _.CharacterOffset.Side == 'a') {
 //             Sides.Start.Node = _Node.parentNode.firstChild; while(Sides.Start.Node.childNodes.length) Sides.Start.Node = Sides.Start.Node.firstChild;
 //             Sides.End.Index = _.CharacterOffset.Index - 1;
@@ -2701,9 +2711,7 @@ R.moveBy = (Dist, Par) => new Promise((resolve, reject) => {
     let Promised = null;
     if(
         true /*||
-        R.Columned ||
-        B.PrePaginated ||
-        B.Reflowable && S.RVM == 'paged' ||
+        R.Paginated ||
         CurrentItem.PrePaginated ||
         CurrentItem.Outsourcing ||
         CurrentItem.Pages.length == 1 ||
@@ -3257,9 +3265,13 @@ I.ResizeObserver = { create: () => {
             O.Busy = false;
             //////// R.Main.addEventListener('scroll', I.ScrollObserver.onScroll);
             // I.ScrollObserver.onScroll();
+        },
+        addEventListener: (fn) => {
+            // if(O.TouchOS) window.addEventListener('orientationchange', fn);
+            window.addEventListener('resize', fn);
         }
     };
-    E.bind('bibi:opened', () => window.addEventListener(E['resize'], ResizeObserver.onResize));
+    E.bind('bibi:opened', () => ResizeObserver.addEventListener(ResizeObserver.onResize));
     E.dispatch('bibi:created-resize-observer');
 }};
 
@@ -3421,6 +3433,12 @@ I.FlickObserver = { create: () => {
             //if(S.RVM != 'paged' && O.TouchOS) return;
             if(FlickObserver.LastEvent) return FlickObserver.onTouchEnd();
             if(I.Loupe.Transforming) return;
+            for(let i = 0; i < 4; i++) { const SafeArea = S['touchmove-ignoring-area'][i]; if(!SafeArea) continue; switch(i) {
+                case 0: if(BibiEvent.Coord.Y <                  (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return; break;
+                case 1: if(BibiEvent.Coord.X > R.Stage.Width  - (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return; break;
+                case 2: if(BibiEvent.Coord.Y > R.Stage.Height - (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return; break;
+                case 3: if(BibiEvent.Coord.X <                  (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return; break;
+            }}
             FlickObserver.LastEvent = BibiEvent;
             FlickObserver.StartedAt = {
                 X: BibiEvent.Coord.X,
@@ -3549,13 +3567,15 @@ I.FlickObserver = { create: () => {
         } },
         getCNPf: (Ele) => Ele.ownerDocument == document ? '' : 'bibi-',
         activateElement: (Ele) => { if(!Ele) return false;
-            Ele.addEventListener(E['pointerdown'], Eve => FlickObserver.onTouchStart(E.aBCD(Eve)), E.CPO_100);
+            if(!Ele.FlickObserver) Ele.FlickObserver = {};
+            if(!Ele.FlickObserver.onPointerDown) Ele.FlickObserver.onPointerDown = Eve => FlickObserver.onTouchStart(E.aBCD(Eve));
+            Ele.addEventListener(E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
             const CNPf = FlickObserver.getCNPf(Ele);
             /**/                 Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-active');
             if(I.isScrollable()) Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-scrollable');
         },
         deactivateElement: (Ele) => { if(!Ele) return false;
-            Ele.removeEventListener(E['pointerdown'], Eve => FlickObserver.onTouchStart(E.aBCD(Eve)), E.CPO_100);
+            if(Ele.FlickObserver?.onPointerDown) Ele.removeEventListener(E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
             const CNPf = FlickObserver.getCNPf(Ele);
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-active');
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-scrollable');
@@ -3572,6 +3592,7 @@ I.WheelObserver = { create: () => {
         TotalDelta: 0,
         Turned: false,
         Wheels: [],
+        // OverlaidUIs: [],
         reset: () => {
             WheelObserver.TotalDelta = 0;
             WheelObserver.Progress = 0;
@@ -3611,13 +3632,13 @@ I.WheelObserver = { create: () => {
                 Ws.push(CW); if(Wl > 3) Ws.shift();
                 WheelObserver.Progress = (WheelObserver.TotalDelta += Eve['delta' + WA]) / 3 / 100;
             });
-            const ToDo = WA != C.A_AXIS_L ? I.orthogonal('wheel') : S.RVM == 'paged' ? 'move' : WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length ? 'simulate' : '';
+            const ToDo = WA != C.A_AXIS_L ? I.orthogonal('wheel') : S.RVM == 'paged' ? 'move' : /*WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length ? 'simulate' :*/ '';
             if(!ToDo) return;
             //Eve.preventDefault(); // Must not prevent.
             //Eve.stopPropagation(); // No need to stop.
             if(WheelObserver.Hot) return;
             switch(ToDo) {
-                case 'simulate':  return WheelObserver.scrollNatural(Eve, WA);
+                // case 'simulate':  return WheelObserver.scrollNatural(Eve, WA);
                 case 'across'  :  return WheelObserver.scrollAcross(Eve, WA);
                 case 'move':      return WheelObserver.move(CW);
                 case 'utilities': return WheelObserver.toggleUtilities(CW);
@@ -3652,17 +3673,16 @@ I.WheelObserver = { create: () => {
             if(Math.abs(WheelObserver.Progress) < 1) return;
             WheelObserver.heat();
             I.AxisSwitcher.switchAxis();
-        },
-        OverlaidUIs: []
+        }
     };
     document.addEventListener('wheel', Eve => E.dispatch('bibi:is-wheeling', Eve), E.CPO_000);
     E.add('bibi:loaded-item', Item => Item.contentDocument.addEventListener('wheel', Eve => E.dispatch('bibi:is-wheeling', Eve), E.CPO_100));
     E.add('bibi:opened', () => {
-        [I.Menu, I.Slider].forEach(UI => {
-            if(!UI.ownerDocument) return;
-            UI.addEventListener('wheel', Eve => { Eve.preventDefault(); Eve.stopPropagation(); }, E.CPO_000);
-            WheelObserver.OverlaidUIs.push(UI);
-        });
+        // [I.Menu, I.Slider].forEach(UI => {
+        //     if(!UI.ownerDocument) return;
+        //     UI.addEventListener('wheel', Eve => { Eve.preventDefault(); Eve.stopPropagation(); }, E.CPO_000);
+        //     WheelObserver.OverlaidUIs.push(UI);
+        // });
         E.add('bibi:is-wheeling', WheelObserver.onWheel);
         O.HTML.classList.add('wheel-active');
     });
@@ -4017,15 +4037,19 @@ I.Notifier = { create: () => {
     const Notifier = I.Notifier = O.Body.appendChild(sML.create('div', { id: 'bibi-notifier',
         show: (Msg, Opt = {}) => {
             clearTimeout(Notifier.Timer_hide);
-            Notifier.P.className = Opt.Type == 'Error' ? 'error' : '';
+            const ClassNames = [];
+            if(Opt.Type == 'Error') ClassNames.push('error');
+            if(typeof Opt.className == 'string' && (Opt.className = Opt.className.trim())) ClassNames.push(Opt.className);
+            ClassNames.length ? (Notifier.P.className = ClassNames.join(' ')) : Notifier.P.removeAttribute('class');
+            (typeof Opt.id == 'string' && (Opt.id = Opt.id.trim())) ? (Notifier.P.id = Opt.id) : Notifier.P.removeAttribute('id');
             Notifier.P.innerHTML = Msg;
             O.HTML.classList.add('notifier-shown');
-            if(L.Opened && Opt.Type != 'Error') Notifier.addEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
+            if(L.Opened && Opt.Type != 'Error') Notifier.addEventListener(O.TouchOS || Opt.Hoverable ? E['pointerdown'] : E['pointerover'], Notifier.hide);
         },
         hide: (Opt = {}) => {
             clearTimeout(Notifier.Timer_hide);
             Notifier.Timer_hide = setTimeout(() => {
-                if(L.Opened) Notifier.removeEventListener(O.TouchOS ? E['pointerdown'] : E['pointerover'], Notifier.hide);
+                if(L.Opened) Notifier.removeEventListener(O.TouchOS || Opt.Hoverable ? E['pointerdown'] : E['pointerover'], Notifier.hide);
                 O.HTML.classList.remove('notifier-shown');
             }, typeof Opt.Time == 'number' ? Opt.Time : 0);
         },
@@ -4192,11 +4216,11 @@ I.Menu = { create: () => {
     I.Menu.Config = { create: () => {
         const Menu = I.Menu;
         const Components = [];
-        if(!S['fix-reader-view-mode'] && S['available-reader-view-modes'].length > 1)                                Components.push('ViewModeSection');
-        if(O.Embedded)                                                                                     Components.push('NewWindowButton');
-        if(O.FullscreenTarget && !O.TouchOS && !sML.UA.Trident)                                            Components.push('FullscreenButton');
-        if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('WebsiteLink');
-        if(!S['remove-bibi-website-link'])                                                                 Components.push('BibiWebsiteLink');
+        if(!S['fix-reader-view-mode'] && S['available-reader-view-modes'].length > 1)                      Components.push('ViewModeSection');
+        if(O.Embedded)                                                                                     Components.push('WindowSection'), Components.push('WindowSection_NewWindowButton');
+        if(O.FullscreenTarget && !O.TouchOS && !sML.UA.Trident)                                            Components.push('WindowSection'), Components.push('WindowSection_FullscreenButton');
+        if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('LinkageSection'), Components.push('LinkageSection_WebsiteLink');
+        if(!S['remove-bibi-website-link'])                                                                 Components.push('LinkageSection'), Components.push('LinkageSection_BibiWebsiteLink');
         if(!Components.length) {
             delete I.Menu.Config;
             return;
@@ -4211,9 +4235,9 @@ I.Menu = { create: () => {
             Help: true,
             Icon: `<span class="bibi-icon bibi-icon-config"></span>`
         }));
-        if(Components.includes('ViewModeSection')                                           ) Config.ViewModeSection.create(          ); else delete Config.ViewModeSection;
-        if(Components.includes('NewWindowButton') || Components.includes('FullscreenButton'))   Config.WindowSection.create(Components); else delete   Config.WindowSection;
-        if(Components.includes('WebsiteLink')     || Components.includes('BibiWebsiteLink') )  Config.LinkageSection.create(Components); else delete  Config.LinkageSection;
+        if(Components.includes('ViewModeSection')) Config.ViewModeSection.create(          ); else delete Config.ViewModeSection;
+        if(Components.includes('WindowSection'))     Config.WindowSection.create(Components); else delete Config.WindowSection;
+        if(Components.includes('LinkageSection'))   Config.LinkageSection.create(Components); else delete Config.LinkageSection;
         E.dispatch('bibi:created-config');
     }};
 
@@ -4263,7 +4287,7 @@ I.Menu = { create: () => {
         I.Menu.Config.WindowSection = { create: (Components) => {
             const Config = I.Menu.Config;
             const Buttons = [];
-            if(Components.includes('NewWindowButton')) {
+            if(Components.includes('WindowSection_NewWindowButton')) {
                 Buttons.push({
                     Type: 'link',
                     Labels: {
@@ -4275,7 +4299,7 @@ I.Menu = { create: () => {
                     target: '_blank'
                 });
             }
-            if(Components.includes('FullscreenButton')) {
+            if(Components.includes('WindowSection_FullscreenButton')) {
                 Buttons.push({
                     Type: 'toggle',
                     Labels: {
@@ -4311,14 +4335,14 @@ I.Menu = { create: () => {
         I.Menu.Config.LinkageSection = { create: (Components) => {
             const Config = I.Menu.Config;
             const Buttons = [];
-            if(Components.includes('WebsiteLink')) Buttons.push({
+            if(Components.includes('LinkageSection_WebsiteLink')) Buttons.push({
                 Type: 'link',
                 Labels: { default: { default: S['website-name-in-menu'].replace(/&/gi, '&amp;').replace(/</gi, '&lt;').replace(/>/gi, '&gt;') } },
                 Icon: `<span class="bibi-icon bibi-icon-open-newwindow"></span>`,
                 href: S['website-href'],
                 target: '_blank'
             });
-            if(Components.includes('BibiWebsiteLink')) Buttons.push({
+            if(Components.includes('LinkageSection_BibiWebsiteLink')) Buttons.push({
                 Type: 'link',
                 Labels: { default: { default: `Bibi | Official Website` } },
                 Icon: `<span class="bibi-icon bibi-icon-open-newwindow"></span>`,
@@ -4416,15 +4440,34 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 DistilledSettings[SetterName] = Setting; return true;
             }).length ? DistilledSettings : null;
         },
-        prepareItem: (Item) => { if(Item.PrePaginated) return;
-            Item.TextSettings = { HTMLOriginalFontSize: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1 }
-            TextSetter.X.forEach(Setter => Setter.prepareItemBeforeElements(Item));
-            sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
+        postprocessItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
+            Item.TextSettings = { HTMLOriginalFontSize: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1 };
+            const SettersToPostprocess = {
+                ItemBeforeElements: TextSetter.X.filter(Setter => !!Setter.postprocessItemBeforeElements),
+                          Element : TextSetter.X.filter(Setter => !!Setter.postprocessElement),
+                 ItemAfterElements: TextSetter.X.filter(Setter => !!Setter.postprocessItemAfterElements)
+            };
+            SettersToPostprocess.ItemBeforeElements.forEach(Setter => Setter.postprocessItemBeforeElements(Item));
+            if(SettersToPostprocess.Element.length) sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
                 if(!Ele.style) return;
-                Ele.BibiTextSettings = {};
-                TextSetter.X.forEach(Setter => Setter.prepareElement(Ele, getComputedStyle(Ele), Item));
+                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
+                SettersToPostprocess.Element.forEach(Setter => Setter.postprocessElement(Ele, getComputedStyle(Ele), Item));
             });
-            TextSetter.X.forEach(Setter => Setter.prepareItemAfterElements(Item));
+            SettersToPostprocess.ItemAfterElements.forEach(Setter => Setter.postprocessItemAfterElements(Item));
+        },
+        readyItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
+            const SettersToReady = {
+                ItemBeforeElements: TextSetter.X.filter(Setter => !!Setter.readyItemBeforeElements),
+                          Element : TextSetter.X.filter(Setter => !!Setter.readyElement),
+                 ItemAfterElements: TextSetter.X.filter(Setter => !!Setter.readyItemAfterElements)
+            };
+            SettersToReady.ItemBeforeElements.forEach(Setter => Setter.readyItemBeforeElements(Item));
+            if(SettersToReady.Element.length) sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
+                if(!Ele.style) return;
+                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
+                SettersToReady.Element.forEach(Setter => Setter.readyElement(Ele, getComputedStyle(Ele), Item));
+            });
+            SettersToReady.ItemAfterElements.forEach(Setter => Setter.readyItemAfterElements(Item));
         },
         change: (Settings, ActionsBeforeAfter) => new Promise(resolve => { if(B.PrePaginated) return resolve();
             Settings = TextSetter.distillSettings(Settings, { Changeable: true });
@@ -4441,7 +4484,8 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 Reset: true,
                 ResetOnlyContent: !Settings.FlowDirection,
                 DoNotCloseUtilities: true,
-                NoNotification: true
+                NoNotification: true,
+                Delay: 33
             }).then(() => {
                 SetterNames.forEach(SetterName => E.dispatch('bibi:changed-' + SetterName.toLowerCase(), Settings[SetterName]));
                 // ^-- E.dispatch('bibi:changed-fontsize', Settings.FontSize), E.dispatch('bibi:changed-linespacing', Settings.LineSpacing), E.dispatch('bibi:changed-flowdirection', Settings.FlowDirection)
@@ -4457,20 +4501,20 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             if(!Settings) return Promise.resolve();
             const Setters = Object.keys(Settings).map(SetterName => TextSetter.X[SetterName]);
             Setters.forEach(Setter => { const Setting = Settings[Setter.Name];
-                Setter.changeAtFirst(Setting);
+                if(Setter.changeAtFirst) Setter.changeAtFirst(Setting);
                 if(Setter.UI?.care) Setter.UI.care(Setting);
                 if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { [Setter.Name]: Setting });
                 Object.assign(Setter.Setting, Setting);
             });
-            if(Opt?.Async) return Promise.resolve() // -------------------------------------------------------------------------------------------------------------------------
-                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeBeforeItems(Settings[Setter.Name]))))  ))
-                .then(() => Promise.all(R.Items.map    (Item => Promise.all(Setters.map    (Setter => new Promise(r => r(Setter.changeItem(Item,  Settings[Setter.Name]))))))))
-                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeAfterItems( Settings[Setter.Name]))))  ));
-            else { // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                                                                            Setters.forEach(Setter =>                    Setter.changeBeforeItems(Settings[Setter.Name])  )    ;
-                                        R.Items.forEach(Item =>             Setters.forEach(Setter =>                    Setter.changeItem(Item,  Settings[Setter.Name])  ) )  ;
-                                                                            Setters.forEach(Setter =>                    Setter.changeAfterItems( Settings[Setter.Name])  )    ;
-            } // ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+            if(Opt?.Async) return Promise.resolve() // ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeBeforeItems ? Setter.changeBeforeItems(Settings[Setter.Name]) : undefined)))  ))
+                .then(() => Promise.all(R.Items.map    (Item => Promise.all(Setters.map    (Setter => new Promise(r => r(Setter.changeItem        ? Setter.changeItem(Item,  Settings[Setter.Name]) : undefined)))))))
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeAfterItems  ? Setter.changeAfterItems( Settings[Setter.Name]) : undefined)))  ));
+            else { // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                                                                            Setters.forEach(Setter =>                    Setter.changeBeforeItems ? Setter.changeBeforeItems(Settings[Setter.Name]) : undefined  )    ;
+                                        R.Items.forEach(Item =>             Setters.forEach(Setter =>                    Setter.changeItem        ? Setter.changeItem(Item,  Settings[Setter.Name]) : undefined  ) )  ;
+                                                                            Setters.forEach(Setter =>                    Setter.changeAfterItems  ? Setter.changeAfterItems( Settings[Setter.Name]) : undefined  )    ;
+            } // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         },
         createSubpanel: () => TextSetter.Subpanel = I.createSubpanel({ id: 'bibi-subpanel_textsetter',
             Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_textsetter' }).addButton({
@@ -4494,7 +4538,8 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             delete TextSetter.Subpanel;
         },
         initialize: () => {
-            E.bind('bibi:postprocessed-item', Item => TextSetter.prepareItem(Item));
+            E.bind('bibi:postprocessed-item', Item => TextSetter.postprocessItem(Item));
+            E.bind('bibi:loaded-book', () => R.Items.forEach(Item => TextSetter.readyItem(Item)));
             if(S['keep-settings']) E.bind('bibi:loaded-book', () => {
                 const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
                 const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
@@ -4503,21 +4548,13 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             });
             if(S['use-textsetter-ui']) E.bind('bibi:loaded-book', () => {
                 TextSetter.createSubpanel();
-                TextSetter.X.forEach(Setter => Setter.createUI());
+                TextSetter.X.forEach(Setter => Setter.createUI ? Setter.createUI() : false);
                 if(!TextSetter.Subpanel.Sections?.length) TextSetter.discardSubpanel();
             });
         },
         PrototypeOfSetter: {
             Setting: {},
-            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null,
-            changeAtFirst: (Setting) => undefined,
-            changeBeforeItems: (Setting) => undefined,
-            changeItem: (Item, Setting) => undefined,
-            changeAfterItems: (Setting) => undefined,
-            prepareItemBeforeElements: (Item) => undefined,
-            prepareElement: (Ele, ComStyle, Item) => undefined,
-            prepareItemAfterElements: (Item) => undefined,
-            createUI: () => null
+            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null
         },
         PrototypeOfResizer: {
             Setting: { Step: 0, Scale: 1, ScalePerStep: 1.25 },
@@ -4575,16 +4612,16 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         TextSetter.x({
             Name: 'FontSize', IsResizer: true,
             TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math)$/,
-            prepareItemBeforeElements: (Item) => {
+            postprocessItemBeforeElements: (Item) => {
                 Item.TextSettings.FontSize = { Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : Item.TextSettings.HTMLOriginalFontSize };
             },
-            prepareElement: function(Ele, ComStyle, Item) {
+            postprocessElement: function(Ele, ComStyle, Item) {
                 if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
                 let ComFontSize = ComStyle.fontSize;
                 if(!/\.?\d+px$/.test(ComFontSize)) return;
                 Ele.style.fontSize = (ComFontSize = parseFloat(ComFontSize)) / Item.TextSettings.HTMLOriginalFontSize + 'rem';
             },
-            prepareItemAfterElements: (Item) => {
+            postprocessItemAfterElements: (Item) => {
                 Item.HTML.style.fontSize = Item.TextSettings.FontSize.Base + 'px';
             },
             changeItem: (Item, Setting) => { const Scale = Setting.Scale;
@@ -4609,10 +4646,10 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         TextSetter.x({
             Name: 'LineSpacing', IsResizer: true,
             TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math|ruby|rb|rp|rt|rtc|table|thead|tbody|th|td)$/,
-            prepareItemBeforeElements: (Item) => {
+            postprocessItemBeforeElements: (Item) => {
                 Item.TextSettings.LineSpacing = { CustomizableElements: [] };
             },
-            prepareElement: function(Ele, ComStyle, Item) {
+            postprocessElement: function(Ele, ComStyle, Item) {
                 if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
                 let ComFontSize = ComStyle.fontSize;
                 if(!/\.?\d+px$/.test(ComFontSize)) return;
@@ -4620,7 +4657,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 Ele.BibiTextSettings.LineHeight = { Base: /\.?\d+px$/.test(ComLineHeight) ? parseFloat(ComLineHeight) / parseFloat(ComFontSize) : 1.2 };
                 Item.TextSettings.LineSpacing.CustomizableElements.push(Ele);
             },
-            prepareItemAfterElements: (Item) => {
+            postprocessItemAfterElements: (Item) => {
                 Item.TextSettings.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base);
             },
             changeItem: (Item, Setting) => { const Scale = Setting.Scale;
@@ -4652,13 +4689,14 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                     return Base;
                 }; return appendTo(Tree, Branches);
             }, {})).replace(/@/g, ''))),
-            prepareItemBeforeElements: function(Item) {
-                Item.TextSettings.FlowDirection = { DefaultWritingMode: Item.WritingMode, FlowRootElements: [] };
+            readyItemBeforeElements: function(Item) {
+                Item.TextSettings.FlowDirection = { DefaultWritingMode: Item.WritingMode, FlowRootElements: [], OverlinedElements: [] };
             },
-            prepareElement: function(Ele, ComStyle, Item) {
+            readyElement: function(Ele, ComStyle, Item) {
                 const PEle = Ele.parentElement, ParentWritingMode = PEle ? getComputedStyle(PEle).writingMode : undefined, ComWritingMode = ComStyle.writingMode;
+                if(B.WritingMode == 'tb-rl' && ComWritingMode == 'vertical-rl' && ComStyle.textDecorationLine == 'overline') Item.TextSettings.FlowDirection.OverlinedElements.push(Ele);
                 if(PEle && ComWritingMode == ParentWritingMode) Ele.style.writingMode = 'inherit'; else {
-                    Ele.BibiTextSettings.FlowDirection = { DefaultWritingMode: (Ele.style.writingMode = ComWritingMode), ParentDefault: ParentWritingMode };
+                    Ele.BibiTextSettings.FlowDirection = { DefaultWritingMode: (Ele.style.writingMode = ComWritingMode) };
                     Item.TextSettings.FlowDirection.FlowRootElements.push(Ele);
                 }
                 this.overrideDirectionalStyles(Ele, ComStyle, Item.TextSettings.HTMLOriginalFontSize);
@@ -4686,7 +4724,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 Object.keys(StyleTree).forEach(Pro => {
                     let Val = StyleTree[Pro];
                     if(typeof Val == 'object') return this.setStyles(Ele, Val, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
-                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : Val / ItemHTMLOriginalFontSize + 'rem';
+                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : /^marginInline$/.test(Pro) && Val >= 0 ? 'auto' : Val / ItemHTMLOriginalFontSize + 'rem';
                 });
             },
             getLineAxis: (WM) => WM.split('-')[1] == 'tb' ? 'horizontal' : 'vertical',
@@ -4718,10 +4756,12 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 const ItemSettings = Item.TextSettings?.FlowDirection; if(!ItemSettings) return;
                 const BookDefaultLineAxis = this.getLineAxis(this.Setting.DefaultWritingMode);
                 if(Setting.Default) {
+                    ItemSettings.OverlinedElements.forEach(Ele => Ele.style.textDecorationLine = '');
                     ItemSettings.FlowRootElements.forEach(Ele => Ele.style.writingMode = Ele.BibiTextSettings.FlowDirection.DefaultWritingMode);
                     Item.WritingMode = ItemSettings.DefaultWritingMode;
                     Item.HTML.classList.remove('bibi-textsetter-writingmode-alternated');
                 } else if(this.getLineAxis(ItemSettings.DefaultWritingMode) == BookDefaultLineAxis) {
+                    ItemSettings.OverlinedElements.forEach(Ele => Ele.style.textDecorationLine = 'underline');
                     ItemSettings.FlowRootElements.forEach(Ele => {
                         if(this.getLineAxis(Ele.BibiTextSettings.FlowDirection.DefaultWritingMode) != BookDefaultLineAxis) return;
                         Ele.style.writingMode = BookDefaultLineAxis == 'horizontal' ? 'vertical-rl' : 'horizontal-tb';
@@ -4761,37 +4801,32 @@ I.Loupe = { create: () => {
     const Loupe = I.Loupe = {
         CurrentTransformation: { Scale: 1, TranslateX: 0, TranslateY: 0 },
         defineZoomOutPropertiesForUtilities: () => {
-            const BookMargin = {
-                   Top: S['use-menubar'] && S['use-full-height'] ? I.Menu.Height : 0,
-                 Right: S.ARA == 'vertical'   ? I.Slider.Size : 0,
-                Bottom: S.ARA == 'horizontal' ? I.Slider.Size : 0,
-                  Left: 0
-            };
-            const Tfm = {};
+            const Tfm = {}, ReservedSpaceTop = S['use-menubar'] && S['use-full-height'] ? I.Menu.Height : 0;
             if(S.ARA == 'horizontal') {
-                Tfm.Scale = (R.Main.offsetHeight - (BookMargin.Top + BookMargin.Bottom)) / (R.Main.offsetHeight - (S.ARA == S.SLA && (S.RVM != 'paged' || I.Slider.ownerDocument) ? O.Scrollbars.Height : 0));
+                const ReservedSpaceBottom = I.Slider.Size;
+                if(S.ARA == S.SLA) {
+                    const HighestSpreadHeight = Math.max(...R.Spreads.map(Spr => Spr.offsetHeight));
+                    if(HighestSpreadHeight < R.Main.offsetHeight - Math.max(ReservedSpaceTop, ReservedSpaceBottom) * 2) return Loupe.ZoomOutPropertiesForUtilities = null;
+                    Tfm.Scale = Math.min(1, (R.Main.offsetHeight - (ReservedSpaceTop + ReservedSpaceBottom)) / HighestSpreadHeight);
+                    Tfm.TranslateY = (ReservedSpaceTop - ReservedSpaceBottom + O.Scrollbars.Height) / 2;
+                } else {
+                    Tfm.Scale = (R.Main.offsetHeight - (ReservedSpaceTop + ReservedSpaceBottom)) / R.Main.offsetHeight;
+                    Tfm.TranslateY = ReservedSpaceTop - (R.Main.offsetHeight) * (1 - Tfm.Scale) / 2;
+                }
                 Tfm.TranslateX = 0;
             } else {
-                Tfm.Scale = Math.min(
-                    (R.Main.offsetWidth  - BookMargin.Right) / (R.Main.offsetWidth - O.Scrollbars.Width),
-                    (R.Main.offsetHeight - BookMargin.Top  ) /  R.Main.offsetHeight
-                );
-                Tfm.TranslateX = R.Main.offsetWidth * (1 - Tfm.Scale) / -2;
-                //OP.Left = Tfm.TranslateX * -1;
+                const ReservedSpaceRight = I.Slider.Size;
+                if(Math.max(...R.Spreads.map(Spr => Spr.offsetWidth)) + ReservedSpaceRight * 2 < R.Main.offsetWidth) return Loupe.ZoomOutPropertiesForUtilities = null;
+                const ScaleW = (R.Main.offsetWidth  - ReservedSpaceRight) / (R.Main.offsetWidth - O.Scrollbars.Width);
+                const ScaleH = (R.Main.offsetHeight - ReservedSpaceTop  ) /  R.Main.offsetHeight;
+                Tfm.Scale = Math.min(ScaleW, ScaleH);
+                Tfm.TranslateX = (Tfm.Scale == ScaleW ? R.Main.offsetWidth * (1 - Tfm.Scale) : (ReservedSpaceRight - O.Scrollbars.Width)) / -2;
+                Tfm.TranslateY = ReservedSpaceTop - R.Main.offsetHeight * (1 - Tfm.Scale) / 2;
             }
-            Tfm.TranslateY = BookMargin.Top - (R.Main.offsetHeight) * (1 - Tfm.Scale) / 2;
-            const St = (O.Body['offset' + C.A_SIZE_L] / Tfm.Scale - R.Main['offset' + C.A_SIZE_L]);
-            const OP = {};
-            OP[C.A_BASE_B] = St / 2 + (!S['use-full-height'] && S.ARA == 'vertical' ? I.Menu.Height : 0);
-            OP[C.A_BASE_A] = St / 2;
-            const IP = {};
-            if(S.ARA == S.SLA) IP[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = St / 2;
-            Loupe.ZoomOutPropertiesForUtilities = {
-                Transformation: Tfm,
-                Stretch: St,
-                OuterPadding: OP,
-                InnerPadding: IP
-            };
+            const Stc = (O.Body['offset' + C.A_SIZE_L] / Tfm.Scale - R.Main['offset' + C.A_SIZE_L]), OPd = {}, IPd = {};
+            OPd[C.A_BASE_B] = OPd[C.A_BASE_A] = Stc / 2; if(!S['use-full-height'] && S.ARA == 'vertical') OPd.Top += I.Menu.Height;
+            // if(S.ARA == S.SLA) IPd[S.ARA == 'horizontal' ? 'Right' : 'Bottom'] = Stc / 2;
+            return Loupe.ZoomOutPropertiesForUtilities = { Transformation: Tfm, Stretch: Stc, OuterPadding: OPd, /*InnerPadding: IPd*/ };
         },
         getNormalizedTransformation: (Tfm) => {
             const NTfm = Object.assign({}, Loupe.CurrentTransformation);
@@ -4840,7 +4875,7 @@ I.Loupe = { create: () => {
             Loupe.Timer_onTransformEnd = setTimeout(() => {
                      if(Loupe.CurrentTransformation.Scale == 1) O.HTML.classList.remove('zoomed-in'), O.HTML.classList.remove('zoomed-out');
                 else if(Loupe.CurrentTransformation.Scale <  1) O.HTML.classList.remove('zoomed-in'), O.HTML.classList.add(   'zoomed-out');
-                else                                      O.HTML.classList.add(   'zoomed-in'), O.HTML.classList.remove('zoomed-out');
+                else                                            O.HTML.classList.add(   'zoomed-in'), O.HTML.classList.remove('zoomed-out');
                 O.HTML.classList.remove('transforming');
                 Loupe.Transforming = false;
                 resolve();
@@ -4881,21 +4916,31 @@ I.Loupe = { create: () => {
         BookStretchingEach: 0,
         transformToDefault: () => Loupe.transform({ Scale: 1, TranslateX: 0, TranslateY: 0 }),
         transformForUtilities: (IO) => {
-            if(!Loupe.isAvailable()) return Promise.resolve();
+            if(!Loupe.isAvailable() || !Loupe.ZoomOutPropertiesForUtilities) return Promise.resolve();
+            const before = () => O.HTML.classList.add(   'transforming-for-utilities');
+            const  after = () => O.HTML.classList.remove('transforming-for-utilities');
             let cb = () => {};
             if(IO) {
                 if(Loupe.IsZoomedOutForUtilities) return Promise.resolve();
+                before();
                 Loupe.IsZoomedOutForUtilities = true;
-                const OP4U = Loupe.ZoomOutPropertiesForUtilities.OuterPadding, IP4U = Loupe.ZoomOutPropertiesForUtilities.InnerPadding;
+                const OP4U = Loupe.ZoomOutPropertiesForUtilities.OuterPadding/*, IP4U = Loupe.ZoomOutPropertiesForUtilities.InnerPadding*/;
                 for(const Dir in OP4U) R.Main.style[     'padding' + Dir] = OP4U[Dir] + 'px';
-                for(const Dir in IP4U) R.Main.Book.style['padding' + Dir] = IP4U[Dir] + 'px';
+                // for(const Dir in IP4U) R.Main.Book.style['padding' + Dir] = IP4U[Dir] + 'px';
                 Loupe.BookStretchingEach = Loupe.ZoomOutPropertiesForUtilities.Stretch / 2;
+                cb = () => {
+                    O.HTML.classList.add('zoomed-out-for-utilities');
+                    after();
+                };
             } else {
                 if(!Loupe.IsZoomedOutForUtilities) return Promise.resolve();
+                before();
+                O.HTML.classList.remove('zoomed-out-for-utilities');
                 Loupe.IsZoomedOutForUtilities = false;
                 cb = () => {
                     R.Main.style.padding = R.Main.Book.style.padding = '';
                     Loupe.BookStretchingEach = 0;
+                    after();
                 };
             }
             return Loupe.transform(null, { Temporary: true }).then(cb).then(() => I.Slider.ownerDocument ? I.Slider.progress() : undefined);
@@ -5103,6 +5148,7 @@ I.History = {
 
 I.Slider = { create: () => {
     if(!S['use-slider']) return false;
+    O.HTML.classList.add('slider-active');
     const Slider = I.Slider = O.Body.appendChild(sML.create('div', { id: 'bibi-slider',
         RailProgressMode: 'end', // or 'center'
         Size: I.Slider.Size,
@@ -6026,7 +6072,7 @@ I.RangeFinder = { create: () => {
             const UICloserButton      =         UICloser.addButton({ id: UICloser.id + '-button', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Close`, ja: `閉じる` } }, action: () => UI.close() });
             const UIOpener            = I.createButtonGroup({ id: UIID + '-opener' });
             const UIOpenerButton      =     UIOpener.addButton({ id: UIOpener.id + '-button', Type: 'normal', Icon: IconHTML, Labels: { default: { default: `Search`, ja: `検索` } }, action: () => UI.open() });
-            const List                = I.createSubpanel({ id: UIID + '-list', Opener: ListOpenerButton });
+            const List                = I.createSubpanel({ id: UIID + '-list', Opener: ListOpenerButton, Position: 'center' });
             const ListButtonGroup     =     List.addSection().addButtonGroup();
             Object.assign(UI, {
                 start: () => {
@@ -6419,7 +6465,7 @@ I.createButton = (Par = {}) => {
 I.createSubpanel = (Par = {}) => {
     if(typeof Par.className != 'string' || !Par.className) delete Par.className;
     if(typeof Par.id        != 'string' || !Par.id       ) delete Par.id;
-    const ClassNames = ['bibi-subpanel', 'bibi-subpanel-' + (Par.Position == 'left' ? 'left' : 'right')];
+    const ClassNames = ['bibi-subpanel', 'bibi-subpanel-' + (/^(left|center|right)$/.test(Par.Position) ? Par.Position : 'right')];
     if(Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
     const SectionsToAdd = Array.isArray(Par.Sections) ? Par.Sections : Par.Section ? [Par.Section] : [];
@@ -6629,7 +6675,7 @@ I.orthogonal = (InputType, RVM = S.RVM) => {
 I.draggable = (RVM = S.RVM) => {
     if(S['available-reader-view-modes'].includes(RVM)) {
         switch(RVM) {
-            case 'paged':                       return S['content-draggable'][0] === true;
+            case 'paged':                       return S['content-draggable'][0] === true && S.ARA === S.SLA;
             case 'horizontal': case 'vertical': return S['content-draggable'][1] === true;
         }
     }
@@ -6865,10 +6911,9 @@ S.initialize = () => {
     sML.applyRtL(S, D, 'ExceptFunctions');
     Bibi.SettingTypes['yes-no'].concat(Bibi.SettingTypes_PresetOnly['yes-no']).concat(Bibi.SettingTypes_UserOnly['yes-no']).forEach(Pro => S[Pro] = (S[Pro] == 'yes' || (S[Pro] == 'mobile' && O.TouchOS) || (S[Pro] == 'desktop' && !O.TouchOS)));
     // --------
-    if(S['uiless']) {
-        S['use-menubar'] = S['use-arrows'] = S['use-slider'] = S['use-nombre'] = false;
-        S['use-bookmark-ui'] = S['use-history-ui'] = S['use-loupe-ui'] = S['use-search-ui'] = S['use-textsetter-ui'] = false;
-    }
+    if( S['uiless'])      S['use-menubar'] = S['use-slider'] = S['use-arrows'] = S['use-nombre'] = false;
+    if(!S['use-menubar']) S['use-bookmark-ui'] = S['use-loupe-ui'] = S['use-search-ui'] = S['use-textsetter-ui'] = false, S['use-full-height'] = true;
+    if(!S['use-slider'])  S['use-history-ui'] = S['zoom-out-for-utilities'] = false;
     // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
     // --------
@@ -6895,12 +6940,11 @@ S.initialize = () => {
     if(!S['reader-view-mode'] || !S['available-reader-view-modes'].includes(S['reader-view-mode'])) S['reader-view-mode'] = S['default-reader-view-mode'];
     if(S['available-reader-view-modes'].length == 1) S['fix-reader-view-mode'] = true;
     // --------
-    if(!S['use-menubar']) S['use-full-height'] = true;
-    // --------
-    if(S['max-histories'] == 0) S['use-histories'] = false;
-    if(!S['use-histories']) S['max-histories'] = 0, S['use-history-ui'] = false;
+    if(O.TouchOS) S['use-loupe-ui'] = false;
     if(!localStorage || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
     if(!S['use-bookmarks']) S['max-bookmarks'] = 0, S['use-bookmark-ui'] = false;
+    if(S['max-histories'] == 0) S['use-histories'] = false;
+    if(!S['use-histories']) S['max-histories'] = 0, S['use-history-ui'] = false;
     // --------
     if(S['on-orthogonal-wheel'][0] == 'across') S['on-orthogonal-wheel'][0] = 'move';
     if(S['available-reader-view-modes'].length != 2) {
@@ -7479,11 +7523,11 @@ O.getViewportZooming = () => document.body.clientWidth / window.innerWidth;
 
 
 O.rrr = (Path) => { // resolve relative reference
-    [ [/([^:\/])\/{2,}/, '$1/'],
-      [/\/\.\//,           '/'],
-      [/[^\/]+\/\.\.\//,    ''],
-      [/^(\.\/)+/,          ''] ].forEach(RR => { while(RR[0].test(Path)) Path = Path.replace(RR[0], RR[1]); });
-    return Path;
+    // return new URL(Path.replace(/(^|[^:\/])\/{2,}/g, '$1/'), 'https://bibi/').href.replace(/^https:\/\/bibi\//, '');
+    const VirtualLoc = new URL(Path.replace(/(^|[^:\/])\/{2,}/g, '$1/'), 'https://bibi/');
+    const RelativePath = VirtualLoc.pathname.replace(/^\/+/, '');
+    const HashString = VirtualLoc.hash ? VirtualLoc.hash.replace(/^#/, '') : '';
+    return RelativePath + (HashString ? '#' + HashString : '');
 };
 
 
@@ -7639,12 +7683,12 @@ O.CFIManager = { // Utilities for EPUBCFI (An Example Is at the Bottom of This O
     parseString: function(TheString) {
         let Correction = null, Matched = false;
         if(TheString instanceof RegExp) {
-            const CFI = this.CFI.substr(this.Current, this.CFI.length - this.Current);
+            const CFI = this.CFI.substring(this.Current, this.CFI.length);
             if(TheString.test(CFI)) {
                 Matched = true;
                 TheString = CFI.match(TheString)[0];
             }
-        } else if(this.CFI.substr(this.Current, TheString.length) === TheString) {
+        } else if(this.CFI.substring(this.Current, this.Current + TheString.length) === TheString) {
             Matched = true;
         }
         if(Matched) {
@@ -7817,7 +7861,6 @@ E.initialize = () => {
         E['pointerover'] = 'mouseover';
         E['pointerout']  = 'mouseout';
     }
-    E['resize'] = O.TouchOS ? 'orientationchange' : 'resize';
     E.CPO_000 = { capture: false, passive: false, once: false };
     E.CPO_010 = { capture: false, passive:  true, once: false };
     E.CPO_100 = { capture:  true, passive: false, once: false };

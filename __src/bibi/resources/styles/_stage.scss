@@ -15,6 +15,10 @@
 	font-style: inherit;
 }
 
+rt {
+	font-size: 50%;
+}
+
 li {
 	list-style: none outside;
 }
@@ -56,7 +60,7 @@ html {
 	&[data-bibi-cursor="top"],
 	&[data-bibi-cursor="bottom"] { cursor: pointer; }
 	user-select: none;
-	&.Blink { touch-action: none; }
+	touch-action: none;
 	// @____Bibi:Dress__('-') background: $HTML_Background;
 	overscroll-behavior-x: none;
 	overscroll-behavior-y: none;
@@ -71,7 +75,6 @@ body {
 	&.InternetExplorer { position: static; }
 	overflow: hidden;
 	@include size(100%);
-	//max-height: 150vw;
 	transition: opacity .25s ease;
 	// @____Bibi:Dress__('-') background: $Body_Background;
 	&:after {
@@ -288,6 +291,7 @@ div#bibi-poweredby {
 				right: auto;
 				bottom: 0;
 				left: $SCOPED__PoweredBy-Logo-Box_Left;
+				left: unquote('max(#{ $SCOPED__PoweredBy-Logo-Box_Left }, env(safe-area-inset-left, 0))');
 				margin: auto 0;
 				border-radius: 2px;
 				@include size($SCOPED__PoweredBy-Logo-Box_Width, $SCOPED__PoweredBy-Logo-Box_Height);
@@ -369,6 +373,13 @@ div#bibi-poweredby {
 	// @____Bibi:Dress__('-') }
 }
 
+html {
+	&                 div#bibi-poweredby { pointer-events: none; }
+	&.waiting         div#bibi-poweredby *,
+	&.waiting-file    div#bibi-poweredby *,
+	&.panel-opened    div#bibi-poweredby { pointer-events: auto; }
+}
+
 
 // - BiB/i Info
 // --------------------------------------------------------------------------------
@@ -383,15 +394,16 @@ div#bibi-info {
 // --------------------------------------------------------------------------------
 
 div#bibi-style-checker {
-	@include writing-mode(vertical-rl);
+	box-sizing: content-box;
 	position: absolute;
+	visibility: hidden;
 	z-index: 0;
-	// @____Bibi:Dress__('-') left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
+	@include offset(auto, 0, 111vh);
+	padding: 0; padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 	// @____Bibi:Dress__('-') @include size($Slider_Size, $Menu_Height);
 	font-size: 1rem;
-	line-height: 1em;
-	white-space: nowrap;
 	opacity: 0;
+	pointer-events: none;
 }
 
 

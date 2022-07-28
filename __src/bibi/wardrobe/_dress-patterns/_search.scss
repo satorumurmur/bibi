@@ -4,10 +4,13 @@
 
 div#bibi-search {
 	> div#bibi-search-bar {
-		padding: ($Menu_Height - $Menu-Icon_Size) * 0.5;
+		$SCOPED_Padding: ($Menu_Height - $Menu-Icon_Size) * 0.5;
+		padding: $SCOPED_Padding;
+		padding-left: unquote('max(#{ $SCOPED_Padding }, env(safe-area-inset-left,  0))');
+		padding-right: $Menu-Icon_Size + $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Button_Margin;
+		padding-right: calc(env(safe-area-inset-right, 0) + #{ $Menu-Icon_Size + $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Button_Margin });
 		height: $Menu_Height;
 		border-bottom: solid 1px rgba(black, .1);
-		padding-right: $Menu-Icon_Size + $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Button_Margin;
 		background: rgb(240,240,240);
 		> * {
 			height: $Menu-Icon_Size;
@@ -159,14 +162,8 @@ div#bibi-search {
 }
 
 .bibi-subpanel#bibi-search-list {
-	width: calc(100% - 8px);
+	width: 840px;
 	max-width: calc(100% - 8px);
-	@media screen and (min-width: 375px) {
-		width: calc(375px - 8px);
-	}
-	@media screen and (min-width: 750px) {
-		width: calc(50vw - 8px);
-	}
 	> .bibi-subpanel-section {
 		> .bibi-buttongroup {
 			> .bibi-buttonbox {

@@ -134,6 +134,5 @@ div#bibi-poweredby {
 // --------------------------------------------------------------------------------
 
 div#bibi-style-checker {
-	left: $Slider_Size * -1; top: $Menu_Height * -1; // left: 0; top: 0;
 	@include size($Slider_Size, $Menu_Height);
 }

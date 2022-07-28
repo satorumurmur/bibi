@@ -19,6 +19,7 @@ html {
 }*/
 
 html {
+	touch-action: manipulation;
 	img.bibi-spine-item-image {
 		display: block;
 		margin: 0;
@@ -55,7 +56,7 @@ html.bibi-with-gutters {
 			padding: 0;
 			> bibi-throat {
 				display: block;
-				float: left;
+				float: right;
 				margin: 0;
 				border: none 0;
 				padding: 0;

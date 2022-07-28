@@ -4,15 +4,31 @@
 
 
 div#bibi-menu, .bibi-extramenu {
-	//box-sizing: border-box;
+	// box-sizing: border-box;
 	position: absolute;
 	@include offset(0, 0, auto);
 	left: 0;
 	right: auto;
 	margin: 0;
 	width: 100%; // TO BE OVERWRITTEN ... html.appearance-vertical:not(.veil-opened):not(.slider-opened)
-	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened & { width: calc(100% - #{$Slider_Size}); }
-	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened.subpanel-opened & { padding-right: $Slider_Size; }
+	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened & {
+	// @____Bibi:Dress__('-') 	width: calc(100% - #{$Slider_Size});
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.orientation-landscape & {
+	// @____Bibi:Dress__('-') 	padding-left: env(safe-area-inset-left, 0);
+	// @____Bibi:Dress__('-') 	padding-right: env(safe-area-inset-right, 0);
+	// @____Bibi:Dress__('-') 	width: calc(100% - env(safe-area-inset-left, 0) - env(safe-area-inset-right, 0));
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.orientation-landscape.appearance-vertical.slider-opened & {
+	// @____Bibi:Dress__('-') 	padding-right: 0;
+	// @____Bibi:Dress__('-') 	width: calc(100% - env(safe-area-inset-left, 0) - #{$Slider_Size});
+	// @____Bibi:Dress__('-') }
+	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened.panel-opened &,
+	// @____Bibi:Dress__('-') html.appearance-vertical.slider-opened.subpanel-opened &,
+	// @____Bibi:Dress__('-') html.orientation-landscape.appearance-vertical.slider-opened.panel-opened &,
+	// @____Bibi:Dress__('-') html.orientation-landscape.appearance-vertical.slider-opened.subpanel-opened & {
+	// @____Bibi:Dress__('-') 	padding-right: $Slider_Size;
+	// @____Bibi:Dress__('-') }
 	// @____Bibi:Dress__('-') height: $Menu_Height;
 	background: transparent;
 	&, & ul {
@@ -29,6 +45,14 @@ div#bibi-menu {
 html.without-menubar,
 html.waiting-file {
 	div#bibi-menu { display: none !important; }
+}
+html {
+	&                 div#bibi-menu { pointer-events: none; }
+	&                 div#bibi-menu.hover,
+	&.waiting         div#bibi-menu *,
+	&.panel-opened    div#bibi-menu,
+	&.subpanel-opened div#bibi-menu,
+	&.menu-opened     div#bibi-menu { pointer-events: auto; }
 }
 /* @____Bibi:Dress__('-') {
 html.book-full-height {

@@ -21,9 +21,9 @@ div#bibi-nombre {
 		opacity: 0;
 		transition: .125s ease-out;
 	}
-	html.busy & { display: none !important; }
-	&.active    { display: block; }
-	&.hot       { opacity: 1; }
+	html.busy &, html.panel-opened & { display: none !important; }
+	&.active { display: block; }
+	&.hot { opacity: 1; }
 	html.view-paged &,
 	html.view-horizontal & {
 		top: auto;

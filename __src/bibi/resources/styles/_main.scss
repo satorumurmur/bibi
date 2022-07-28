@@ -80,6 +80,20 @@ main#bibi-main {
 		opacity: 0;
 	}*/
 	// @____Bibi:Dress__('-') @include Main(); html.subpanel-opened & { @include Main__SubpanelOpened(); }
+	/*html.transforming-for-utilities &,
+	html.zoomed-out-for-utilities &*/ html.slider-active & {
+		&::-webkit-scrollbar {
+			@include size(auto);
+		}
+		&::-webkit-scrollbar-track,
+		&::-webkit-scrollbar-thumb,
+		&::-webkit-scrollbar-corner {
+			border-color: transparent;
+			background: transparent;
+		}
+		scrollbar-width: auto;
+		scrollbar-color: transparent transparent;
+	}
 }
 
 	div#bibi-main-book {
@@ -108,10 +122,10 @@ main#bibi-main {
 			content: "";
 			display: block;
 			position: absolute;
-			z-index: $INVARIABLE__Main-Book_ZIndex - 1;
-			@include offset(-50vh, -50vw);
+			z-index: 0;
+			@include offset(0);
 			margin: 0;
-			@include size(calc(100% + 100vw), calc(100% + 100vh));
+			@include size(100%);
 			pointer-events: none !important;
 			// @____Bibi:Dress__('-') background: $Book-Background; html.subpanel-opened & { background: $Book-Background__SubpanelOpened; }
 		}
@@ -125,15 +139,12 @@ main#bibi-main {
 			html.spread-vertical & { width: 100%; }
 			html.book-pre-paginated.view-paged.spread-horizontal & { min-width: 100vw; }
 			html.view-paged.spread-vertical & { min-height: 100vh; } // TO BE OVERWRITTEN (if Scrollbars have height)
-			//html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
-			//html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
-			html.view-paged.book-pre-paginated:not(.slider-sliding):not(.slider-opened) &:not(.current) {
-				//opacity: 0; transition: opacity .1s linear; will-change: opacity; // <- too heavy
-				//visibility: hidden;
-			}
-			html.view-paged.book-pre-paginated:not(.slider-sliding).slider-opened &:not(.current) {
-				//opacity: .33;
-			}
+			// html.spread-horizontal &:not(.reflowable).spreaded { min-width: 100vw; }
+			// html.spread-horizontal &:not(.reflowable):not(.spreaded) { min-width: 144vw; }
+			// html.view-paged.book-pre-paginated:not(.slider-sliding):not(.slider-opened) &:not(.current) { // too heavy
+			// 	opacity: 0; transition: opacity .1s linear; will-change: opacity;
+			// 	visibility: hidden;
+			// }
 		}
 			div.spread {
 				& {
@@ -144,12 +155,13 @@ main#bibi-main {
 					margin: auto;
 					display: flex;
 					flex-wrap: nowrap;
-					justify-content: flex-start;
+					justify-content: center;
 					align-items: center;
 				}
-				html.page-ltr &                                    { flex-direction: row; }
-				html.page-rtl &                                    { flex-direction: row-reverse; }
-				html.view-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
+				html.page-ltr &                                      { flex-direction: row; }
+				html.page-rtl &                                      { flex-direction: row-reverse; }
+				html.spread-vertical div.spread-box:not(.spreaded) & { flex-direction: column; }
+				div.spread-box.single-item-spread-before & { justify-content: flex-start; }
 				div.spread-box.single-item-spread-after  & { justify-content: flex-end; }
 				div.spread-box.single-item-spread-center & { justify-content: center; }
 				//div.spread-box.reflowable & { background: white; }
@@ -185,6 +197,13 @@ main#bibi-main {
 						&:not(.placeholder):not(.loaded):after {
 							opacity: 1;
 						}
+					}
+					html.view-paged.spread-vertical div.spread-box:not(.spreaded) &.pre-paginated {
+						&:first-child:not(:last-child) { margin-right: auto; }
+						&:last-child:not(:first-child) { margin-left:  auto; }
+					}
+					html.view-paged.book-reflowable &:not(.current) {
+						visibility: hidden;
 					}
 				}
 					iframe.item,
@@ -225,7 +244,9 @@ main#bibi-main {
 						}
 						div.item-box.reflowable & {
 							position: relative;
-							//flex-shrink: 0;
+							flex-grow: 1;
+							flex-shrink: 1;
+							flex-basis: 0;
 						}
 						div.item-box.pre-paginated & {
 							position: absolute;

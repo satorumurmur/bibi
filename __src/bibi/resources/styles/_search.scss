@@ -78,6 +78,7 @@ div#bibi-search {
 		> .bibi-buttongroup#bibi-search-closer {
 			position: absolute;
 			right: 4px;
+			right: calc(env(safe-area-inset-right, 0) + 4px);
 		}
 	}
 }

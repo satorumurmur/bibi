@@ -24,8 +24,22 @@ div#bibi-panel-bookinfo {
 	margin-top: $Menu_Height;
 	margin-bottom: $PoweredBy_Height;
 	height: calc(100% - #{$Menu_Height + $PoweredBy_Height});
-	html.nav-ttb & { padding: $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter $Panel_PaddingStart; }
-	html.nav-rtl & { padding: $Panel_PaddingStart $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter; }
+	html.nav-ttb & {
+		padding: $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter $Panel_PaddingStart;
+		padding:
+			$Panel_PaddingBefore
+			unquote('max(#{ $Panel_PaddingEnd   }, env(safe-area-inset-right, 0) + #{ $Menu-ButtonGroup_Padding })')
+			$Panel_PaddingAfter
+			unquote('max(#{ $Panel_PaddingStart }, env(safe-area-inset-right, 0) + #{ $Menu-ButtonGroup_Padding })');
+	}
+	html.nav-rtl & {
+		padding: $Panel_PaddingStart $Panel_PaddingBefore $Panel_PaddingEnd $Panel_PaddingAfter;
+		padding:
+			$Panel_PaddingStart
+			unquote('max(#{ $Panel_PaddingBefore }, env(safe-area-inset-right, 0) + #{ $Menu-ButtonGroup_Padding })')
+			$Panel_PaddingEnd
+			unquote('max(#{ $Panel_PaddingAfter  }, env(safe-area-inset-right, 0) + #{ $Menu-ButtonGroup_Padding })');
+	}
 }
 
 
@@ -64,7 +78,8 @@ div#bibi-panel-bookinfo-cover {
 	& {
 		border-color: $Panel-Cover_BorderColor;
 		img {
-			max-height: calc(#{ 100vh * 0.6 } - #{ ($Menu_Height + $Panel_PaddingBefore + $Panel_PaddingAfter + $PoweredBy_Height) * 0.6 });
+			max-height: calc((100vh - #{ ($Menu_Height + $Panel_PaddingBefore + $Panel_PaddingAfter + $PoweredBy_Height) }) * 0.4);
+			max-height: calc((100vh - #{ ($Menu_Height + $Panel_PaddingBefore + $Panel_PaddingAfter + $PoweredBy_Height) } - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0)) * 0.4);
 		}
 		p#bibi-panel-bookinfo-cover-info {
 			color: $Panel-Cover-Info_Color;
