@@ -1,22 +1,24 @@
-(() => { 'use strict'; if(window['bibi:jo']) return;
+(() => { 'use strict';
 
 
 
 
-const Jo = window['bibi:jo'] = { 'version': '____Bibi-Version____',
-    CSS: require('./jo.scss'),
-    Status: '',
-    Bibis: [],
-    TrustworthyOrigins: [location.origin],
-    Loaded: 0,
-};
+const World = typeof window     !== 'undefined' ? window     :
+              typeof self       !== 'undefined' ? self       :
+              typeof globalThis !== 'undefined' ? globalThis :
+              typeof global     !== 'undefined' ? global     : undefined;
 
-const BibiEventRE = /^bibi:[a-z][a-z0-9:_\-]*$/;
+if(!World || World['bibi:jo']) return;
 
 
 
 
-Jo.Bibi = function() { return Jo.callBibi.apply(Jo, arguments); };
+const Jo = World['bibi:jo'] = { 'version': '____Bibi-Version____', Bibis: [] }, BibiEventRE = /^bibi:[a-z][a-z0-9:_\-]*$/;
+
+
+
+
+Jo.Bibi = function() { return Jo.callBibi.apply(Jo, arguments); }; // Constructor
 
 Jo.callBibi = (Love) => {
     let Anchor = null, Frame = null, Receiver = null, ToReceive = [];
@@ -64,7 +66,7 @@ Jo.callBibi = (Love) => {
         Bibi.togglePanel = ()   => Bibi.post('bibi:commands:toggle-panel', '');
     });
     Anchor.style.display = 'none';
-    if(!Jo.TrustworthyOrigins.includes(Anchor.origin)) Jo.TrustworthyOrigins.push(Anchor.origin); // It is NOT reflected to S['trustworthy-origins'].
+    if(Jo.TrustworthyOrigins && !Jo.TrustworthyOrigins.includes(Anchor.origin)) Jo.TrustworthyOrigins.push(Anchor.origin); // It is NOT reflected to S['trustworthy-origins'].
     Anchor.href += (/#/.test(Anchor.href) ? '&' : '#') + (() => {
         const Fragments = new Jo.Fragments();
         Fragments.add('parent-bibi-index', Bibi.Index);
@@ -106,47 +108,6 @@ Jo.callBibi = (Love) => {
     return Bibi;
 };
 
-
-
-
-Jo.embed = () => {
-    const BibisToBeLoaded = [], BibisLoaded = [];
-    Array.prototype.forEach.call(document.body.querySelectorAll('*[data-bibi]'), Bed => {
-        if(Bed.getAttribute('data-bibi-processed')) return;
-        Bed.setAttribute('data-bibi-processed', 'true');
-        const Bibi = new Jo.Bibi(Bed);
-        if(Bibi) BibisToBeLoaded.push(Bibi);
-    });
-    if(!BibisToBeLoaded.length) return;
-    //Jo.listen('bibi:jo:embedded', Bibis => console.log(`[Bibi:Jo] Embedded. - ${ Bibis.length } of ${ Jo.Bibis.length }`));
-    BibisToBeLoaded.forEach(Bibi => {
-        const Anchor = Bibi.Anchor, Frame = Bibi.Frame;
-        Bibi.listen('bibi:initialized', () => (BibisLoaded.push(Bibi) < BibisToBeLoaded.length) ? false : Jo.dispatch('bibi:jo:embedded', BibisLoaded));
-        Anchor.parentNode.insertBefore(Frame, Anchor);
-    });
-};
-
-
-
-
-document.addEventListener('DOMContentLoaded', Jo.embed), window.addEventListener('load', Jo.embed);
-
-
-
-
-window.addEventListener('message', Eve => {
-    if(!Eve || !Jo.judge(Eve.data, Eve.origin)) return false; try {
-    Data = JSON.parse(Data);
-    if(typeof Data != 'object' || !Data) return false;
-    for(let EN in Data) Jo.dispatch(EN, Data[EN]);
-    return true; } catch(Err) {} return false;
-}, false);
-
-
-
-
-// Utility
-
 Jo.create = (TagName, Properties) => {
     const Ele = document.createElement(TagName);
     for(let Attribute in Properties) Ele[Attribute] = Properties[Attribute];
@@ -166,26 +127,64 @@ Jo.Fragments = function() { // constructor
     return this;
 };
 
-Jo.judge = (Msg, Origin) => (Msg && typeof Msg == 'string' && Origin && typeof Origin == 'string' && Jo.TrustworthyOrigins.includes(Origin));
-
-Jo.listen   = (EN, fun)      => !BibiEventRE.test(EN) ? false : document.addEventListener(EN, Eve => fun.call(document, Eve.detail));
-Jo.dispatch = (EN, Det = Jo) => !BibiEventRE.test(EN) ? false : document.dispatchEvent(new CustomEvent(EN, { detail: Det }));
 
 
 
+if(typeof window !== 'undefined') {
 
-// Polyfill
+    Jo.StyleModule = require('./jo.scss');
 
-if(!Array.prototype.includes) Array.prototype.includes = function(I) { for(let l = this.length, i = 0; i < l; i++) if(this[i] == I) return true; return false; };
+    Jo.TrustworthyOrigins = [location.origin];
 
-if(!window.CustomEvent || (typeof window.CustomEvent !== 'function') && (window.CustomEvent.toString().indexOf('CustomEventConstructor') === -1)) {
-    window.CustomEvent = function(EventName, Arguments) { // constructor
-        Arguments = Arguments || { bubbles: false, cancelable: false, detail: undefined };
-        const Eve = document.createEvent('CustomEvent');
-        Eve.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
-        return Eve;
+    Jo.listen   = (EN, fun)      => !BibiEventRE.test(EN) ? false : document.addEventListener(EN, Eve => fun.call(document, Eve.detail));
+    Jo.dispatch = (EN, Det = Jo) => !BibiEventRE.test(EN) ? false : document.dispatchEvent(new CustomEvent(EN, { detail: Det }));
+    Jo.judge    = (Msg, Origin)  => (Msg && typeof Msg == 'string' && Origin && typeof Origin == 'string' && Jo.TrustworthyOrigins.includes(Origin));
+
+    Jo.embed = () => {
+        const BibisToBeLoaded = [], BibisLoaded = [];
+        Array.prototype.forEach.call(document.body.querySelectorAll('*[data-bibi]'), Bed => {
+            if(Bed.getAttribute('data-bibi-processed')) return;
+            Bed.setAttribute('data-bibi-processed', 'true');
+            const Bibi = new Jo.Bibi(Bed);
+            if(Bibi) BibisToBeLoaded.push(Bibi);
+        });
+        if(!BibisToBeLoaded.length) return;
+        // Jo.listen('bibi:jo:embedded', Bibis => console.log(`[Bibi:Jo] Embedded. - ${ Bibis.length } of ${ Jo.Bibis.length }`));
+        BibisToBeLoaded.forEach(Bibi => {
+            const Anchor = Bibi.Anchor, Frame = Bibi.Frame;
+            Bibi.listen('bibi:initialized', () => (BibisLoaded.push(Bibi) < BibisToBeLoaded.length) ? false : Jo.dispatch('bibi:jo:embedded', BibisLoaded));
+            Anchor.parentNode.insertBefore(Frame, Anchor);
+        });
     };
-    window.CustomEvent.prototype = window.Event.prototype;
+
+    Jo.message = (Eve) => {
+        if(!Eve || !Jo.judge(Eve.data, Eve.origin)) return false;
+        try {
+            Data = JSON.parse(Data);
+            if(typeof Data != 'object' || !Data) return false;
+            for(let EN in Data) Jo.dispatch(EN, Data[EN]);
+            return true;
+        } catch(Err) {} return false;
+    };
+
+    document.addEventListener('DOMContentLoaded', Jo.embed);
+    window.addEventListener('load', Jo.embed);
+    window.addEventListener('message', Jo.message);
+
+    // Polyfill: Array.prototype.includes
+    if(!Array.prototype.includes) Array.prototype.includes = function(I) { for(let l = this.length, i = 0; i < l; i++) if(this[i] == I) return true; return false; };
+
+    // Polyfill: CustomEvent Constructor
+    if(!window.CustomEvent || typeof window.CustomEvent !== 'function' && window.CustomEvent.toString().indexOf('CustomEventConstructor') === -1) {
+        window.CustomEvent = function(EventName, Arguments) {
+            Arguments = Arguments || { bubbles: false, cancelable: false, detail: undefined };
+            const Eve = document.createEvent('CustomEvent');
+            Eve.initCustomEvent(EventName, Arguments.bubbles, Arguments.cancelable, Arguments.detail);
+            return Eve;
+        };
+        window.CustomEvent.prototype = window.Event.prototype;
+    }
+
 }
 
 
