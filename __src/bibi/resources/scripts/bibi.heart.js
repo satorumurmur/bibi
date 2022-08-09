@@ -3203,11 +3203,12 @@ I.PageObserver = { create: () => {
     });
     E.bind('bibi:started', () => {
         if(S['allow-placeholders']) {
+            PageObserver.turnItems();
             E.add('bibi:scrolled', () => PageObserver.turnItems());
         }
         if(S['resume-from-last-position']) {
-            E.bind('bibi:realized-oven',       () => PageObserver.memorizePosition());
-            E.add('bibi:changed-intersection', () => PageObserver.memorizePosition());
+            E.bind('bibi:realized-oven', () => PageObserver.memorizePosition());
+            E.add('bibi:scrolled',       () => PageObserver.memorizePosition());
         }
     });
     E.dispatch('bibi:created-page-observer');
