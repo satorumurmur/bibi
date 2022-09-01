@@ -4,6 +4,7 @@
 
 
 div#bibi-veil {
+	html.searching-page & { pointer-events: none !important; }
 	box-sizing: border-box;
 	overflow: hidden;
 	display: block;

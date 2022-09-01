@@ -215,6 +215,7 @@ main#bibi-main {
 					}
 					iframe.item {
 						& {
+							html.searching-page & { pointer-events: none !important; }
 							//overflow: hidden;
 							position: absolute;
 							z-index: 10;

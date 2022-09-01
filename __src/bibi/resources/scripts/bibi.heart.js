@@ -550,6 +550,7 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     O.log(`Loading Items in Spreads...`, '<g:>');
     const Promises = [];
     Bibi.StartOption = {
+        TargetItemIndex: 0,
         TargetSpreadIndex: 0,
         Destination: { Edge: 'head' },
         resetter:       () => { Bibi.StartOption.Reset = true; Bibi.StartOption.removeResetter(); },
@@ -596,7 +597,10 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
                 }
             }
         })();
-        Bibi.StartOption.TargetSpreadIndex = Item && Item.Spread ? Item.Spread.Index : 0;
+        if(Item) {
+            Bibi.StartOption.TargetItemIndex = Item.Index;
+            Bibi.StartOption.TargetSpreadIndex = Item.Spread.Index;
+        }
         Bibi.StartOption.Destination = R.StartOn;
     }
     Bibi.StartOption.addResetter();
@@ -640,7 +644,7 @@ Bibi.openBook = () => {
 
 
 Bibi.start = () => {
-    const LandingPage = R.getPage(Bibi.StartOption.Destination) || R.Pages[0];
+    const LandingPage = R.getPage(Bibi.StartOption.Destination);
     if(!I.History.List.length) {
         I.History.List = [{ UI: Bibi, Item: LandingPage.Item, ProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
         I.History.update();
@@ -1831,6 +1835,8 @@ R.renderReflowableItem = (Item) => {
                     //if(sML.UA.Chromium) Item.HTML.style.transform = 'translateX(' + (Item.HTML['scroll'+ C.L_SIZE_L] - Item.HTML['offset'+ C.L_SIZE_L]) * (S['page-progression-direction'] == 'rtl' ? 1 : -1) + 'px)';
                 }
             }
+        } else if(Item.HTML['offset'+ C.L_SIZE_B] < PageCB) {
+            Item.HTML.style[C.L_SIZE_b] = Math.floor(parseFloat(getComputedStyle(Item.HTML)[C.L_SIZE_b]) + (PageCB - Item.HTML['offset'+ C.L_SIZE_B])) + 'px';
         }
     }
     sML.deleteCSSRule(Item.contentDocument, WordWrappingStyleSheetIndex); ////
@@ -1862,6 +1868,22 @@ R.renderReflowableItem = (Item) => {
         Item.Pages.push(Page);
         I.PageObserver.observePageIntersection(Page);
     }
+    const ItemContentCoordInItemBox = !Item.NoPadding ? { Left: Item.Padding.Left, Top: Item.Padding.Top } : { Left: 0, Top: 0 };
+    Item.PagedContentAreas = Item.Pages.map(Page => {
+        const PageContentAreaInItemBox = {
+            Left: Page.offsetLeft, Right: Page.offsetLeft + Page.offsetWidth,
+             Top: Page.offsetTop, Bottom: Page.offsetTop  + Page.offsetHeight
+        };
+        if(!Item.NoPadding) {
+            const PagePadding = {        [C.L_OOBL_B]:  Item.Padding[C.L_OOBL_B],            [C.L_OEBL_B]:  Item.Padding[C.L_OEBL_B] * -1 };
+            if(Item.Columned) PagePadding[C.L_OOBL_L] = Item.Padding[C.L_OOBL_L], PagePadding[C.L_OEBL_L] = Item.Padding[C.L_OEBL_L] * -1;
+            Object.keys(PagePadding).forEach(Key => PageContentAreaInItemBox[Key] += PagePadding[Key]);
+        }
+        return Page.ContentAreaInItem = {
+            Left: Math.max(PageContentAreaInItemBox.Left - ItemContentCoordInItemBox.Left, 0),  Right: Math.min(PageContentAreaInItemBox.Right  - ItemContentCoordInItemBox.Left, Item.HTML.offsetWidth ),
+             Top: Math.max(PageContentAreaInItemBox.Top  - ItemContentCoordInItemBox.Top,  0), Bottom: Math.min(PageContentAreaInItemBox.Bottom - ItemContentCoordInItemBox.Top,  Item.HTML.offsetHeight)
+        };
+    }); // console.log(Item.Index, Item.PagedContentAreas);
     /*
     if(Item.Index == 2) { //setTimeout(() => {
         console.log(`R.Items[${ Item.Index }]:`, Item);
@@ -2168,6 +2190,8 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
         Element: ELEMENT,
         CFI: STRING,
         P: STRING,
+            (IsAutomark: BOOLEAN,
+            (IsBookmark: BOOLEAN,
         IIPP: NUMBER,
         Item: ELEMENT,
         ItemIndex: INTEGER,
@@ -2201,7 +2225,10 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
                      ProgressInSpread: NUMBER, 
             (or) Progress: NUMBER
     */ };
-    if(Opt && Opt.Distilled) {
+    if(_.IsAutomark || _.IsBookmark) {
+        if(_.P === undefined) return null;
+        if(!_.Page) _.Page = R.getPageStartsWithP(_.P);
+    } else if(Opt && Opt.Distilled) {
         Object.assign(DD, _);
         delete DD.Page;
     } else {
@@ -2312,6 +2339,8 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
                       DD.Progress         !== undefined ? R.getPageOfProgressIn(   R,      DD.Progress        ) : DD.PageIndex         !== undefined ? R.getPageOfIndexIn(   R,      DD.PageIndex        ) :         R.Pages[0]  ;
     if(Page && Page.IsPage) {
         DD.Page = Page;
+        if(_.IsAutomark) DD.IsAutomark = true, DD.P = _.P;
+        if(_.IsBookmark) DD.IsBookmark = true, DD.P = _.P;
         return DD;
     }
     return null;
@@ -2326,7 +2355,8 @@ R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
     R.getPageOfElementHead = (Ele) => {
         if(!Ele || Ele.nodeType !== 1) return null;
         if(Ele.ownerDocument == document) return Ele.IsPage ? Ele : (Ele.IsLinearItem || Ele.IsSpread) ? Ele.Pages[0] : R.Pages[0];
-        return R.getPageOfRectHeadInItem(Ele.getBoundingClientRect(), Ele.ownerDocument.documentElement.Item);
+        const ClientRects = Ele.getClientRects(), First = ClientRects[0];
+        return First ? R.getPageOfRectHeadInItem(ClientRects.length == 1 ? First : First[C.L_SIZE_b] > parseFloat(getComputedStyle(Ele).fontSize) * 0.5 ? First : ClientRects[1], Ele.ownerDocument.documentElement.Item) : null;
     };
 
     R.getPageOfRectHeadInItem = (Rect, Item) => {
@@ -2348,95 +2378,115 @@ R.getPage = (_, Opt) => {
 R.getElement = (_, Opt) => {
     let Page = null;
     if(!Opt || typeof Opt != 'object') Opt = {};
-    if(_ !== undefined && _ !== null) {
+    if(_ === undefined || _ === null) {
+        Page = R.getPage();
+        Opt.InCurrentViewport = S.RVM == 'paged' ? false : true;
+    } else {
         if(!Opt.Distilled) _ = R.dest(_);
         if(_) {
             if(_.Element                                   ) return _.Element;
             if(_.Item   && _.ProgressInItem   === undefined) return _.Item;
             if(_.Spread && _.ProgressInSpread === undefined) return _.Spread;
-            Opt.InCurrentViewport = false;
             Page = _.Page;
+            Opt.InCurrentViewport = false;
         }
-    } else {
-        Opt.InCurrentViewport = true;
-        Page = R.getPage();
     }
-    return Page ? R.getElementInPage(Page, Opt) : null;
+    return R.getFirstElementOfPage(Page, Opt);
 };
 
-    R.getElementInPage = (Page, Opt) => {
-        if(!Page || !Page.IsPage) return null;
-        if(!Opt || typeof Opt != 'object') Opt = {};
-        const Item = Page.Item;
-        if(B.PrePaginated) return Item;
-        const PageCoord = O.getElementCoord(Page, R.Main);
-        const PageArea = { Left: PageCoord.X, Right: PageCoord.X + Page.offsetWidth, Top: PageCoord.Y, Bottom: PageCoord.Y + Page.offsetHeight };
-        if(!Item.NoPadding) {
-            /* -- */          PageArea[C.L_OOBL_B] += S['item-padding-' + C.L_OOBL_b], PageArea[C.L_OEBL_B] -= S['item-padding-' + C.L_OEBL_b];
-            if(Item.Columned) PageArea[C.L_OOBL_L] += S['item-padding-' + C.L_OOBL_l], PageArea[C.L_OEBL_L] -= S['item-padding-' + C.L_OEBL_l];
-        }
-        if(Opt.InCurrentViewport) {
-            PageArea.Left = Math.max(PageArea.Left, R.Main.scrollLeft), PageArea.Right  = Math.min(PageArea.Right,  R.Main.scrollLeft + R.Stage.Width ),
-            PageArea.Top  = Math.max(PageArea.Top,  R.Main.scrollTop ), PageArea.Bottom = Math.min(PageArea.Bottom, R.Main.scrollTop  + R.Stage.Height);
-        }
-        const ItemCoord = O.getElementCoord(Item, R.Main);
-        const HTMLAreaX = ItemCoord.X + (Item.NoPadding ? 0 : S['item-padding-left']),
-              HTMLAreaY = ItemCoord.Y + (Item.NoPadding ? 0 : S['item-padding-top' ]);
-        const TrimmedAreaInHTML = {
-            Left: Math.max(PageArea.Left - HTMLAreaX, 0) + 2,  Right: Math.min(PageArea.Right  - HTMLAreaX, Item.HTML.offsetWidth ) - 1 - 2,
-             Top: Math.max(PageArea.Top  - HTMLAreaY, 0) + 2, Bottom: Math.min(PageArea.Bottom - HTMLAreaY, Item.HTML.offsetHeight) - 1 - 2
+R.getFirstElementOfPage = (Page, Opt) => {
+    if(!Page || !Page.IsPage) return null;
+    if(Page.Item.PrePaginated) return Page.Item;
+    const InCurrentViewport = S.RVM != 'paged' && Opt?.InCurrentViewport ? true : false;
+    if(!InCurrentViewport && Page.FirstElement) return /*console.log('Without SCANNING:', `<${ Page.FirstElement.tagName }>${ Page.FirstElement.innerText.substring(0,8) }...`) ||*/ Page.FirstElement;
+    const Item = Page.Item;
+    const Ele = R.getFirstElementOfAreaInItem(Item, !InCurrentViewport ? Object.assign({}, Page.ContentAreaInItem) : (ItemCoord => {
+        if(!Item.NoPadding) ItemCoord.X += Item.Padding.Left, ItemCoord.Y += Item.Padding.Top;
+        return {
+            Left: Math.max(Page.ContentAreaInItem.Left, R.Main.scrollLeft - ItemCoord.X, 0),  Right: Math.min(Page.ContentAreaInItem.Right,  R.Main.scrollLeft + R.Stage.Width  - ItemCoord.X, Item.HTML.offsetWidth ),
+             Top: Math.max(Page.ContentAreaInItem.Top,  R.Main.scrollTop  - ItemCoord.Y, 0), Bottom: Math.min(Page.ContentAreaInItem.Bottom, R.Main.scrollTop  + R.Stage.Height - ItemCoord.Y, Item.HTML.offsetHeight)
         };
-        const Ele = R.getElementInPage.scanElement(Item, TrimmedAreaInHTML, 88, 8);
-        if(Ele == Item.Body) return Item;
-        const REs = R.getElementInPage.Testers.REs, Selectors = R.getElementInPage.Testers.Selectors;
-        if(REs.Suitable.test(Ele.tagName)) return Ele;
-        if(REs.Block.test(Ele.tagName)) return Ele.querySelector(Selectors.Suitable) || Ele.querySelector(Selectors.Div) || Ele;
-        let _Ele = null;
-        if(REs.A_Small.test(Ele.tagName)) {
-            _Ele = Ele.querySelector(Selectors.Suitable);
-            if(_Ele) return _Ele;
-            _Ele = Ele.parentNode;
-        } else if(REs.Inline.test(Ele.tagName)) _Ele = Ele.parentNode;
-          else if(REs.RB_RT.test(Ele.tagName)) _Ele = Ele.parentNode.parentNode;
-        while(_Ele && _Ele != Item.Body) if(REs.Suitable_Div.test(_Ele.tagName)) return _Ele; else _Ele = _Ele.parentNode;
-        return Ele == Item.Body ? Item : Ele;
-    };
+    })(O.getElementCoord(Item, R.Main)));
+    if(!InCurrentViewport) Page.FirstElement = Ele;
+    return Ele;
+};
 
-    R.getElementInPage.scanElement = (Item, Area, LgP, BdP) => {
-        const AreaB = Area[C.A_BASE_B], AreaA = Area[C.A_BASE_A], AreaS = Area[C.A_BASE_S], AreaE = Area[C.A_BASE_E];
-        const getElementFromPoint = S.ARD != 'ttb' ?
-            (X, Y) => Item.contentDocument.elementFromPoint(X, Y) :
-            (Y, X) => Item.contentDocument.elementFromPoint(X, Y);
-        const BdPM = S.ARD != 'ttb' || S.PPD != 'rtl' ? 1 : -1, BdD = Math.max(5 * BdPM, Math.round((AreaE - AreaS) / BdP) * BdPM) / BdPM, // devided in BdP parts = BdP + 1 points.
-              LgPM = S.ARD != 'rtl'                   ? 1 : -1, LgD = Math.max(5 * LgPM, Math.round((AreaA - AreaB) / LgP) * LgPM) / LgPM; // devided in LgP parts = LgP + 1 points.
-        let Ele = Item.Body; // let i = 0, j = 0;
-        __: for(let Bd = AreaS; Bd * BdPM < AreaE * BdPM; Bd += BdD) { // i++;
-            for(let Lg = AreaB; Lg * LgPM < AreaA * LgPM; Lg += LgD) { // j++; console.log('[' + (BdP * (i - 1) + j) + ']: ', Lg, '/', AreaA, ' - ', Bd, '/', AreaE);
-                const _Ele = getElementFromPoint(Lg, Bd);
-                if(_Ele == Item.HTML || _Ele == Item.Body) continue;
-                if(_Ele && _Ele != Ele) {
-                    if(!Ele.contains(_Ele)) break __;
-                    Ele = _Ele;
-                }
-            }
-        }
-        return Ele;
-    };
+// R.getFirstElementOfViewport = (Vp, Opt) => { // useless...
+//     const Page = R.getPage();
+//     if(!Page || !Page.IsPage) return null;
+//     if(B.PrePaginated) return Page.Item;
+//     const Item = Page.Item;
+//     const Ele = R.getFirstElementOfAreaInItem(Item, (ItemCoord => {
+//         if(!Item.NoPadding) ItemCoord.X += Item.Padding.Left, ItemCoord.Y += Item.Padding.Top;
+//         if(!Vp) Vp = {
+//             Left: R.Main.scrollLeft, Right: R.Main.scrollLeft + R.Stage.Width,
+//              Top: R.Main.scrollTop, Bottom: R.Main.scrollTop  + R.Stage.Height
+//         };
+//         return {
+//             Left: Math.max(Vp.Left - ItemCoord.X, 0),  Right: Math.min(Vp.Right  - ItemCoord.X, Item.HTML.offsetWidth ),
+//              Top: Math.max(Vp.Top  - ItemCoord.Y, 0), Bottom: Math.min(Vp.Bottom - ItemCoord.Y, Item.HTML.offsetHeight)
+//         };
+//     })(O.getElementCoord(Item, R.Main)));
+//     return Ele;
+// };
 
-    R.getElementInPage.Testers = {
-        Selectors: {
-            Suitable: 'h1,h2,h3,h4,h5,h6,p,address,blockquote,li,dt,dd,th,td,picture,img',
-            Div:      'div'
-        },
-        REs: {
-            Suitable:     /^(h[1-6]|p|address|li|d[td]|t[hd]|picture|img)$/i,
-            Suitable_Div: /^(h[1-6]|p|address|li|d[td]|t[hd]|picture|img|div)$/i,
-            Block:        /^(article|section|nav|aside|hgroup|header|footer|figure|[uod]l|menu|table|div)$/i,
-            A_Small:      /^(a|small)$/i,
-            Inline:       /^(span|em|strong|ruby|b|i)$/i,
-            RB_RT:        /^(r[bt])$/i
+R.getFirstElementOfAreaInItem = (Item, TargetAreaInItem) => {
+    if(Item.PrePaginated) return Item;
+    // console.log('SCANNING...');
+    TargetAreaInItem.Left += 2, TargetAreaInItem.Right  -= (1 + 2);
+    TargetAreaInItem.Top  += 2, TargetAreaInItem.Bottom -= (1 + 2);
+    const Vs = R.getFirstElementOfAreaInItem.Vars[Item.WritingMode], BD = Vs.BD, LD = Vs.LD, g = Vs.gEfPiI; // [D]irection, [F]rom, [T]o, [S]tep, [P]oint/[P]rogress
+    const BF = TargetAreaInItem[Vs.BASE_S], BT = TargetAreaInItem[Vs.BASE_E];
+    const BS = Math.abs(BT - BF) / 4, LS = parseFloat(getComputedStyle(Item.HTML).fontSize);
+    const LF = TargetAreaInItem[Vs.BASE_B], LT = LF + Math.min(Math.abs(TargetAreaInItem[Vs.BASE_A] - LF), LS * 9) * LD;
+    const Body = Item.Body;
+    let Ele = Body, Found = false, SameElementCount = 0;
+    const REs = R.getFirstElementOfAreaInItem.Testers.RegExps;
+    // let Ct = 0; const z = (Dig, Num) => String(Num).padStart(Dig, '0');
+    _L: for(let l = 0, LP = LF; LP * LD <= LT * LD; LP += LS * LD * (l < 2 ? 0.5 : 1), l++)
+    _B: for(let b = 0, BP = BF; BP * BD <= BT * BD; BP += BS * BD * (l < 2 ? 0.5 : 1), b++) { let _Ele = g(Item, BP, LP);
+        // console.log([
+        //     `[${ z(3, ++Ct) }]`,
+        //     `L[${ z(2, l) }]${ Vs.AXIS_L }:${ z(5, LP) }/${ z(5, LF) }-${ z(5, LT) }`,
+        //     `B[${ z(2, b) }]${ Vs.AXIS_B }:${ z(5, BP) }/${ z(5, BF) }-${ z(5, BT) }`,
+        //     `I[${ z(3, Item.Index) }] <${ _Ele.tagName }>${ _Ele.innerText.substring(0, 8) }...`
+        // ].join(' - '));
+        if(!Body.contains(_Ele) || _Ele == Body) continue; // break _B;
+        if(l < 2) {                  Ele = _Ele;
+                 if(         REs.RBTC.test(_Ele.tagName)) { Found = true; while((_Ele = _Ele.parentNode) != Body) if(REs.Ruby.test(_Ele.tagName)) { Ele = _Ele; break; } }
+            else if(REs.GOOD_Rep_In_A.test(_Ele.tagName)) { Found = true; }
+        } else if(_Ele != Ele) {     Ele = _Ele, SameElementCount = 0;
+                 if(         REs.GOOD.test(_Ele.tagName)) { Found = true; }
+            else if(         REs.RBTC.test(_Ele.tagName)) { Found = true; while((_Ele = _Ele.parentNode) != Body) if(REs.GOOD.test(_Ele.tagName)) { Ele = _Ele; break; } else if(REs.Ruby.test(_Ele.tagName)) Ele = _Ele; }
+            else if(     REs.Rep_In_A.test(_Ele.tagName)) { Found = true; while((_Ele = _Ele.parentNode) != Body) if(REs.GOOD.test(_Ele.tagName)) { Ele = _Ele; break; } }
+        } else if(++SameElementCount == 8) break _L;
+        if(Found) break _L;
+    }
+    if(!Found) {
+        // console.log('...(NOT FOUND)...', `<${ Ele.tagName }>${ Ele.innerText.substring(0,8) }...`);
+        if(Ele == Body) Ele = Item;
+        else {        let _Ele = Ele;
+                   while((_Ele = _Ele.parentNode) != Body) if(REs.GOOD.test(_Ele.tagName)) { Found = true; Ele = _Ele; break; }
+            if(!Found && (_Ele = Ele.querySelector(R.getFirstElementOfAreaInItem.Testers.Selectors.GOOD))) Ele = _Ele;
         }
-    };
+    }
+    // console.log('...SCANNED', (!Found ? 'Not ' : '') + 'Found', `<${ Ele.tagName }>${ Ele.innerText.substring(0,8) }...`);
+    return Ele;
+};
+
+R.getFirstElementOfAreaInItem.Vars = { // gEfPiI: getElementFromPointInItem
+    'lr-tb': { BASE_B: 'Top',   BASE_A: 'Bottom', BASE_S: 'Left',  BASE_E: 'Right',  AXIS_B: 'X', AXIS_L: 'Y', BD:  1, LD:  1, gEfPiI: (Item, BP, LP) => Item.contentDocument.elementFromPoint(BP, LP) },
+    'rl-tb': { BASE_B: 'Top',   BASE_A: 'Bottom', BASE_S: 'Right', BASE_E: 'Left',   AXIS_B: 'X', AXIS_L: 'Y', BD: -1, LD:  1, gEfPiI: (Item, BP, LP) => Item.contentDocument.elementFromPoint(BP, LP) },
+    'tb-rl': { BASE_B: 'Right', BASE_A: 'Left',   BASE_S: 'Top',   BASE_E: 'Bottom', AXIS_B: 'Y', AXIS_L: 'X', BD:  1, LD: -1, gEfPiI: (Item, BP, LP) => Item.contentDocument.elementFromPoint(LP, BP) },
+    'tb-lr': { BASE_B: 'Left',  BASE_A: 'Right',  BASE_S: 'Top',   BASE_E: 'Bottom', AXIS_B: 'Y', AXIS_L: 'X', BD:  1, LD:  1, gEfPiI: (Item, BP, LP) => Item.contentDocument.elementFromPoint(LP, BP) }
+};
+
+R.getFirstElementOfAreaInItem.Testers = {
+    Selectors: { GOOD: 'h1,h2,h3,h4,h5,h6,p,address,blockquote,li,dt,dd,th,td,figure' },
+      RegExps: { GOOD:          /^(h[1-6]|p|address|blockquote|li|d[td]|t[hd]|figure)$/i,                RBTC: /^r[bt]c?$/i, Ruby: /^ruby$/i,
+                 GOOD_Rep_In_A: /^(h[1-6]|p|address|blockquote|li|d[td]|t[hd]|figure|picture|img|svg|iframe|span|em|strong|small|b|i|ruby|a)$/i,
+                      Rep_In_A:                                                   /^(picture|img|svg|iframe|span|em|strong|small|b|i|ruby|a)$/i }
+};
 
 
 R.getPageImageURL = (_, Opt) => new Promise((resolve, reject) => {
@@ -2581,6 +2631,15 @@ R.getPDestination = (TheP) => {
         Steps.forEach(Step => Dest.ElementSelector += `>*:nth-child(` + Step + `)`);
     }
     return Dest;
+};
+
+R.getPageStartsWithP = (TheP) => {
+    TheP = Bibi.verifySettingValue('string', 'p', TheP);
+    if(!TheP) return null;
+    const Page = R.getPage({ P: TheP });
+    if(!Page || typeof Page.Index != 'number') return null;
+    if(R.getP({ Page: Page }) != TheP && R.getP({ Page: R.Pages[Page.Index + 1] }) == TheP) return R.Pages[Page.Index + 1];
+    return Page;
 };
 
 
@@ -2940,7 +2999,7 @@ I.ScrollObserver = { create: () => {
                 E.dispatch('bibi:keeps-scrolling');
             }
             E.dispatch('bibi:is-scrolling');
-            if(++ScrollObserver.Scrolling == 9) {
+            if(++ScrollObserver.Scrolling == 33) {
                 ScrollObserver.Scrolling = 1;
                 E.dispatch('bibi:scrolled');
             }
@@ -3033,24 +3092,35 @@ I.PageObserver = { create: () => {
             //if(PageObserver.Current.List.length && Frame[C.L_BASE_B] == PageObserver.Current.Frame.Before && Frame[C.L_BASE_A] == PageObserver.Current.Frame.After) return false;
             return { Before: Frame[C.L_BASE_B], After: Frame[C.L_BASE_A], Length: Frame.Length };
         },
-        getCandidatePageList: () => {
+        getCandidatePages: () => {
             const QSW = Math.ceil((R.Stage.Width - 1) / 4), QSH = Math.ceil((R.Stage.Height - 1) / 4), CheckRoute = [5, 6, 4, 2, 8]; // 4x4 matrix
-            for(let l = CheckRoute.length, i = 0; i < l; i++) { const CheckPoint = CheckRoute[i];
-                const Ele = document.elementFromPoint(QSW * (CheckPoint % 3 || 3), QSH * Math.ceil(CheckPoint / 3));
-                if(Ele) {
-                         if(Ele.IndexInItem) return [Ele]; // Page
-                    else if(Ele.Pages)       return Ele.Pages; // Item or Spread
-                    else if(Ele.Inside)      return Ele.Inside.Pages; // ItemBox or SpreadBox
-                }
+            const CandidateParents = new Set();
+            for(let l = CheckRoute.length, i = 0; i < l; i++) {
+                const CheckPoint = CheckRoute[i], CPX = QSW * (CheckPoint % 3 || 3), CPY = QSH * Math.ceil(CheckPoint / 3); // console.log(CPX, CPY); ////////
+                O.HTML.classList.add('searching-page');
+                const Ele = document.elementFromPoint(CPX, CPY);
+                O.HTML.classList.remove('searching-page');
+                if(!Ele) continue;
+                if(Ele.IsPage) return [Ele];
+                CandidateParents.add(Ele);
+            }
+            if(CandidateParents.size) {
+                const CandidateItems = new Set();
+                CandidateParents.forEach(CandidateParent => {
+                    if(CandidateParent.IndexInSpine) return CandidateItems.add(CandidateParent); // Item
+                    if(CandidateParent.Items)        return CandidateParent.Items.forEach(Item => CandidateItems.add(Item)); // Spread
+                    if(CandidateParent.Inside)       return CandidateParents.add(CandidateParent.Inside); // ItemBox or SpreadBox
+                });
+                if(CandidateItems.size) return [...CandidateItems].sort((_A, _B) => _A.Index - _B.Index).flatMap(Item => Item.Pages);
             }
             return PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : [];
         },
         getList: () => {
             let List = [], List_SpreadContained = [];
-            const PageList = PageObserver.getCandidatePageList();
-            if(!PageList.length || typeof PageList[0].Index != 'number') return null;
-            const FirstIndex = sML.limitMin(PageList[                  0].Index - 2,                  0);
-            const  LastIndex = sML.limitMax(PageList[PageList.length - 1].Index + 2, R.Pages.length - 1);
+            const CandidatePages = PageObserver.getCandidatePages(); // console.log('a', CandidatePages.map(Page => Page.Index)); ////////
+            if(!CandidatePages.length || typeof CandidatePages[0].Index != 'number') return null;
+            const FirstIndex = sML.limitMin(CandidatePages[                        0].Index - 2,                  0);
+            const  LastIndex = sML.limitMax(CandidatePages[CandidatePages.length - 1].Index + 2, R.Pages.length - 1);
             for(let BiggestPageIntersectionRatio = 0, i = FirstIndex; i <= LastIndex; i++) { const Page = R.Pages[i];
                 const PageIntersectionStatus = PageObserver.getIntersectionStatus(Page, 'WithDetail');
                 if(PageIntersectionStatus.Ratio < BiggestPageIntersectionRatio) {
@@ -3065,10 +3135,10 @@ I.PageObserver = { create: () => {
                     if(  !CurrentEntry.ItemIntersectionStatus)   CurrentEntry.ItemIntersectionStatus = PageObserver.getIntersectionStatus(Page.Item.Box); // Item is scaled.
                     if(!CurrentEntry.SpreadIntersectionStatus) CurrentEntry.SpreadIntersectionStatus = PageObserver.getIntersectionStatus(Page.Spread);   // SpreadBox has margin.
                     if(CurrentEntry.SpreadIntersectionStatus.Ratio == 1) List_SpreadContained.push(CurrentEntry);
-                    if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [CurrentEntry], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
-                    else                                                            List.push(CurrentEntry);
+                         if(PageIntersectionStatus.Ratio > BiggestPageIntersectionRatio) List   = [CurrentEntry], BiggestPageIntersectionRatio = PageIntersectionStatus.Ratio;
+                    else if(PageIntersectionStatus.Ratio)                                List.push(CurrentEntry);
                 }
-            }
+            } // console.log('b', List.map(Entry => Object.assign({}, Entry))); ////////
             return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
         },
         getIntersectionStatus: (Ele, WithDetail) => {
@@ -3190,20 +3260,18 @@ I.PageObserver = { create: () => {
                 R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
             }), Opt.Delay || 0);
         }),
-        memorizePosition: () => { try {
-            I.Oven.Biscuits.memorize('Book', { Position: { IIPP: R.getIIPP() } });
+        automark: () => { try {
+            I.Oven.Biscuits.memorize('Book', { Automarks: [{ IsAutomark: true, P: R.getP() }] });
         } catch(Err) {} }
     };
     E.bind('bibi:laid-out-for-the-first-time', LayoutOption => {
-        PageObserver.IntersectingPages = [R.Spreads[LayoutOption.TargetSpreadIndex].Pages[0]];
+        PageObserver.IntersectingPages = R.Items[LayoutOption.TargetItemIndex].Pages.concat(); // copy
         PageObserver.observeIntersection();
     });
     E.bind('bibi:initialized-book', () => {
-        if(S['resume-from-last-position']) {
-            const BookBiscuits = I.Oven.Biscuits.remember('Book');
-            if(!BookBiscuits) return;
-            if(!R.StartOn && BookBiscuits.Position && BookBiscuits.Position.IIPP) R.StartOn = Object.assign({}, BookBiscuits.Position);
-        }
+        if(R.StartOn || !S['resume-from-last-position']) return;
+        const Automarks = I.Oven.Biscuits.remember('Book')?.Automarks;
+        if(Array.isArray(Automarks) && Automarks[0]?.P) R.StartOn = Object.assign({}, I.Oven.Biscuits.remember('Book').Automarks[0]);
     });
     E.bind('bibi:opened', () => {
         PageObserver.updateCurrent();
@@ -3216,8 +3284,12 @@ I.PageObserver = { create: () => {
             E.add('bibi:scrolled', () => PageObserver.turnItems());
         }
         if(S['resume-from-last-position']) {
-            E.bind('bibi:realized-oven', () => PageObserver.memorizePosition());
-            E.add('bibi:scrolled',       () => PageObserver.memorizePosition());
+            E.bind('bibi:realized-oven', () => PageObserver.automark());
+            E.add('bibi:stopped-scrolling', () => {
+                // clearTimeout(PageObserver.Timer_automarkOnScrolled);
+                // PageObserver.Timer_automarkOnScrolled = setTimeout(() => PageObserver.automark(), 99);
+                PageObserver.automark();
+            });
         }
     });
     E.dispatch('bibi:created-page-observer');
@@ -5383,7 +5455,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             else if(S['use-bookmark-ui']) if(!L.Opened) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = 'none';
         },
         exists: (Bookmark) => {
-            for(let l = BookmarkManager.Bookmarks.length, i = 0; i < l; i++) if(BookmarkManager.Bookmarks[i].IIPP == Bookmark.IIPP) return BookmarkManager.Bookmarks[i];
+            const BookmarkPage = R.getPageStartsWithP(Bookmark.P);
+            if(BookmarkPage) for(let l = BookmarkManager.Bookmarks.length, i = 0; i < l; i++) if(R.getPageStartsWithP(BookmarkManager.Bookmarks[i].P) == BookmarkPage) return BookmarkManager.Bookmarks[i];
             return null;
         },
         add: (Bookmark) => {
@@ -5393,7 +5466,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             BookmarkManager.update({ Added: Bookmark });
         },
         remove: (Bookmark) => {
-            BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk.IIPP != Bookmark.IIPP);
+            BookmarkManager.Bookmarks = BookmarkManager.Bookmarks.filter(Bmk => Bmk.P != Bookmark.P);
             BookmarkManager.update({ Removed: Bookmark });
         },
         update: (Opt = {}) => {
@@ -5411,7 +5484,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
             else if(L.Opened) {
                 I.PageObserver.updateCurrent();
                 Bookmarks = I.PageObserver.Current.Pages.map(Page => ({
-                    IIPP: R.getIIPP({ Page: Page }),
+                    P: R.getP({ Page: Page }),
                     '%': Math.floor((Page.Index + 1) / R.Pages.length * 100) // only for showing percentage in waiting status
                 }));
             }
@@ -5419,23 +5492,12 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                 const UpdatedBookmarks = []
                 for(let l = BookmarkManager.Bookmarks.length, i = 0; i < l; i++) {
                     let Bmk = BookmarkManager.Bookmarks[i];
-                         if(typeof Bmk == 'number') Bmk = { IIPP: Bmk };
-                    else if(!Bmk) continue;
-                    else if(typeof Bmk.IIPP != 'number') {
-                        if(Bmk.ItemIndex) Bmk.IIPP = Bmk.ItemIndex + (Bmk.ProgressInItem ? Bmk.ProgressInItem : 0);
-                        else if(B.PrePaginated) {
-                            if(typeof Bmk.PageNumber == 'number') Bmk.PageIndex = Bmk.PageNumber - 1;
-                            if(typeof Bmk.PageIndex  == 'number') Bmk.IIPP      = Bmk.PageIndex;
-                        }
-                    }
-                    if(typeof Bmk.IIPP != 'number') continue;
+                    if(typeof Bmk != 'object' || !Bmk || typeof Bmk.P != 'string') continue;
                     if(/^(\d*\.)?\d+?$/.test(Bmk['%'])) Bmk['%'] *= 1; else delete Bmk['%'];
                     let Label = '', ClassName = '';
                     const BB = 'bibi-bookmark';
-                    const Page = R.getPage(Bmk);
-                    let PageNumber = 0;
-                         if(Page && typeof Page.Index == 'number')                     PageNumber = Page.Index + 1;
-                    else if(B.PrePaginated) PageNumber = Math.floor(Bmk.IIPP) + 1;
+                    let Page = L.Opened ? R.getPageStartsWithP(Bmk.P) : null;
+                    const PageNumber = Page?.IsPage ? Page.Index + 1 : Bmk.P.split('.')[0] * 1;
                     if(PageNumber) {
                         Label += `<span class="${BB}-page"><span class="${BB}-unit">P.</span><span class="${BB}-number">${ PageNumber }</span></span>`;
                         if(R.Pages.length) {
@@ -5449,7 +5511,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         else      Label +=  `<span class="${BB}-percent">` +                                    `<span class="${BB}-number">${ Bmk['%'] }</span><span class="${BB}-unit">%</span>`                                    + `</span>`;
                     }
                     const Labels = Label ? { default: { default: Label, ja: Label } } : { default: { default: `Bookmark #${ UpdatedBookmarks.length + 1 }`, ja: `しおり #${ UpdatedBookmarks.length + 1 }` } };
-                    if(Bookmarks.reduce((Exists, Bookmark) => Exists = Bmk.IIPP == Bookmark.IIPP ? true : Exists, false)) {
+                    if(L.Opened && Bookmarks.reduce((Exists, Bookmark) => Exists = R.getPageStartsWithP(Bmk.P) == R.getPageStartsWithP(Bookmark.P) ? true : Exists, false)) {
                         ExistingBookmarks.push(Bmk);
                         ClassName = `bibi-button-bookmark-is-current`;
                         Labels.default.default += ` <span class="${BB}-is-current"></span>`;
@@ -5468,8 +5530,8 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                                     return Destination;
                                 });
                                 if(!L.Waiting) return false;
-                                if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(iipp=' + Bmk.IIPP + ')');
-                                R.StartOn = { IIPP: Bmk.IIPP };
+                                if(S['start-in-new-window']) return L.openNewWindow(location.href + (location.hash ? '&' : '#') + 'jo(p=' + Bmk.P + ')');
+                                R.StartOn = Bmk;
                                 L.play();
                             },
                             remove: () => BookmarkManager.remove(Bmk)
@@ -5485,7 +5547,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                         else if(ExistingBookmarks.includes(Bmk)) I.setUIState(Button, 'disabled');
                         else                                     I.setUIState(Button,  'default');
                     }
-                    const UpdatedBookmark = { IIPP: Bmk.IIPP };
+                    const UpdatedBookmark = { IsBookmark: true, P: Bmk.P };
                     if(Bmk['%']) UpdatedBookmark['%'] = Bmk['%'];
                     UpdatedBookmarks.push(UpdatedBookmark);
                 }
@@ -7924,7 +7986,7 @@ E.aBCD = (Eve) => { // add Bibi's Collections of Data (formerly: add Bibi-Coord/
             const Item = Doc.documentElement.Item;
             const ItemScale = Item.Scale;
             const ItemCoordInMain = O.getElementCoord(Item, Main);
-            if(!Item.NoPadding && !Item.Outsourcing) ItemCoordInMain.X += S['item-padding-left'], ItemCoordInMain.Y += S['item-padding-top'];
+            if(!Item.NoPadding && !Item.Outsourcing) ItemCoordInMain.X += Item.Padding.Left, ItemCoordInMain.Y += Item.Padding.Top;
             Coord.X = Math.floor(Main.offsetLeft + ((MainTransformOriginX_InMain + MainTranslationX) + ((((ItemCoordInMain.X + (Coord.X * ItemScale)) - Main.scrollLeft) - MainTransformOriginX_InMain) * MainScale)));
             Coord.Y = Math.floor(Main.offsetTop  + ((MainTransformOriginY_InMain + MainTranslationY) + ((((ItemCoordInMain.Y + (Coord.Y * ItemScale)) - Main.scrollTop ) - MainTransformOriginY_InMain) * MainScale)));
             //                  (MainCoord       + ((MainTransformOrigin_in_Main + MainTranslation ) + ((((ItemCoord_in_Main + Coord_in_Item        ) - ScrolledLength ) - MainTransformOrigin_in_Main) * MainScale)))
