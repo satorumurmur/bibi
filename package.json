@@ -78,7 +78,7 @@
     "es6-object-assign": "^1.1.0",
     "intersection-observer": "^0.11.0",
     "js-yaml": "^3.14.0",
-    "jszip": "^3.5.0",
+    "jszip": "^3.7.0",
     "jszip-utils": "0.1.0",
     "material-icons": "^0.3.1",
     "native-promise-only": "^0.8.1",
