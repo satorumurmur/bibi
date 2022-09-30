@@ -214,6 +214,8 @@ Bibi.preset({
 
 /* !!!! BE CAREFUL !!!! */ "allow-external-item-href" : false, // true | false // <!> false is highly recommended.
 
+/* !!!! BE CAREFUL !!!! */ "request-with-credentials" : false,
+
 
 /*
 

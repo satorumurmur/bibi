@@ -91,7 +91,8 @@ Bibi.SettingTypes_PresetOnly = {
         'use-histories',
         'use-textsetter',
         'recognize-repeated-taps-separately',
-        'remove-bibi-website-link'
+        'remove-bibi-website-link',
+        'request-with-credentials'
     ],
     'yes-no': [
         'accept-local-file',
@@ -7188,6 +7189,7 @@ O.request = (Opt) => {
     const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
     return new Promise((resolve, reject) => {
         XHR.open(Opt.RequestMethod || 'GET', Opt.URI, true);
+        if(S['request-with-credentials']) XHR.withCredentials = true;
         XHR.responseType = Opt.ResponseType || 'text';
         XHR.onloadend = () => (XHR.status == 200 ? resolve : reject)(XHR);
         XHR.onerror = () => reject(XHR);
@@ -7222,6 +7224,7 @@ O.tryRangeRequest = (RemotePath, Bytes = '0-0') => new Promise((resolve, reject)
     const XHR = new XMLHttpRequest();
     XHR.onloadend = () => XHR.status != 206 ? reject() : resolve();
     XHR.open('GET', RemotePath, true);
+    if(S['request-with-credentials']) XHR.withCredentials = true;
     XHR.setRequestHeader('Range', 'bytes=' + Bytes);
     XHR.send(null);
 });
