@@ -2834,9 +2834,11 @@ I.Desk = {};
 
 I.Utilities = { create: () => {
     const Utilities = I.Utilities = I.setToggleAction({
-          openGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'active'  ? false : Utilities.open(),
-         closeGracefuly: () => R.Moving || R.Breaking || Utilities.UIState == 'default' ? false : Utilities.close(),
-        toggleGracefuly: () => R.Moving || R.Breaking                                   ? false : Utilities.toggle()
+        Checkers: [],
+        isAbleToBeToggled: () => !R.Moving && !R.Breaking && Utilities.Checkers.filter(checker => !(typeof checker == 'function' ? checker() : checker)).length == 0,
+          openGracefuly: () => Utilities.isAbleToBeToggled() && Utilities.UIState != 'active'  && Utilities.open(),
+         closeGracefuly: () => Utilities.isAbleToBeToggled() && Utilities.UIState != 'default' && Utilities.close(),
+        toggleGracefuly: () => Utilities.isAbleToBeToggled()                                   && Utilities.toggle()
     }, {
         onopened: () => E.dispatch('bibi:opens-utilities'),
         onclosed: () => E.dispatch('bibi:closes-utilities')
