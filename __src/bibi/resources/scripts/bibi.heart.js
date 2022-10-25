@@ -926,19 +926,30 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         if(!Metadata['identifier']) Metadata['identifier'] = Metadata['dcterms:identifier'] || [];
         if(!Metadata['language'  ]) Metadata['language'  ] = Metadata['dcterms:language'  ] || ['en'];
         if(!Metadata['title'     ]) Metadata['title'     ] = Metadata['dcterms:title'     ] || Metadata['identifier'];
-        // --------------------------------------------------------------------------------
         Metadata['rendition:layout'] = Metadata['omf:version'] || Metadata['rendition:layout'] == 'pre-paginated' ? 'pre-paginated' : 'reflowable';
         Metadata['rendition:orientation'] = Metadata['rendition:orientation'] == 'landscape' ? 'landscape' : 'portrait';
         Metadata['rendition:spread'] = Metadata['rendition:spread'] == 'none' ? 'none' : Metadata['rendition:spread'] == 'both' || Metadata['rendition:spread'] == 'portrait' ? 'both' : 'landscape';
-        // --------------------------------------------------------------------------------
+        if(!/^(scrolled-(continuous|doc)|paginated)$/.test(Metadata['rendition:flow'])) Metadata['rendition:flow'] = 'auto';
+        if(!/^(ttb|ltr|rtl|vertical|horizontal)$/.test(Metadata['scroll-direction'])) delete Metadata['scroll-direction'];
         if( Metadata[     'original-resolution']) Metadata[     'original-resolution'] = O.getViewportByOriginalResolution(Metadata[     'original-resolution']);
         if( Metadata[      'rendition:viewport']) Metadata[      'rendition:viewport'] = O.getViewportByMetaContent(       Metadata[      'rendition:viewport']);
         if( Metadata['fixed-layout-jp:viewport']) Metadata['fixed-layout-jp:viewport'] = O.getViewportByMetaContent(       Metadata['fixed-layout-jp:viewport']);
         if( Metadata[            'omf:viewport']) Metadata[            'omf:viewport'] = O.getViewportByMetaContent(       Metadata[            'omf:viewport']);
-        B.ICBViewport = Metadata['original-resolution'] || Metadata['rendition:viewport'] || Metadata['fixed-layout-jp:viewport'] || Metadata['omf:viewport'] || null;
         // --------------------------------------------------------------------------------
-        if(!/^(scrolled-(continuous|doc)|paginated)$/.test(Metadata['rendition:flow'])) Metadata['rendition:flow'] = 'auto';
-        if(!/^(ttb|ltr|rtl|vertical|horizontal)$/.test(Metadata['scroll-direction'])) delete Metadata['scroll-direction'];
+        B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
+        B.Language  =  Metadata['language'][0].split('-')[0];
+        B.Title     =  Metadata['title'     ].join(', ');
+        B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
+        B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
+        const FullTitleFragments = [B.Title];
+        if(B.Creator)   FullTitleFragments.push(B.Creator);
+        if(B.Publisher) FullTitleFragments.push(B.Publisher);
+        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>');
+        O.Title.innerHTML = ''; O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
+        try { O.Info.querySelector('h1').innerHTML = document.title; } catch(Err) {}
+        B.PrePaginated = Metadata['rendition:layout'] == 'pre-paginated';
+        B.Reflowable = !B.PrePaginated;
+        B.ICBViewport = Metadata['original-resolution'] || Metadata['rendition:viewport'] || Metadata['fixed-layout-jp:viewport'] || Metadata['omf:viewport'] || null;
         // ================================================================================
         // MANIFEST
         // --------------------------------------------------------------------------------
@@ -980,7 +991,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         if(       B.Nav.Source)        B.Nav.Source.Of.push(       B.Nav);
         if(B.CoverImage.Source) B.CoverImage.Source.Of.push(B.CoverImage);
         // --------------------------------------------------------------------------------
-        B.PPD = _Spine.getAttribute('page-progression-direction');
+        B.PPD = Spine['page-progression-direction'] = _Spine.getAttribute('page-progression-direction');
         if(!B.PPD || !/^(ltr|rtl)$/.test(B.PPD)) B.PPD = S['default-page-progression-direction']; // default;
         // --------------------------------------------------------------------------------
         const RenditionPropertyRE = /^((rendition:)?(layout|orientation|spread|page-spread))-([a-z\-]+)$/;
@@ -1013,10 +1024,10 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                     if(     BibiPropertyRE.test(Pro)) ItemRef[Pro.replace(     BibiPropertyRE, '$1')] = true;
                 });
             }
-            Item['rendition:layout']       = ItemRef['rendition:layout']      || Metadata['rendition:layout']; if(Item['rendition:layout'] != 'pre-paginated') Item['rendition:layout'] = 'reflowable';
-            Item['rendition:orientation']  = ItemRef['rendition:orientation'] || Metadata['rendition:orientation'];
-            Item['rendition:spread']       = ItemRef['rendition:spread']      || Metadata['rendition:spread'];
-            Item['rendition:page-spread']  = ItemRef['rendition:page-spread'] || ItemRef['page-spread'] || undefined;
+            Item['rendition:layout']       = ItemRef['rendition:layout']       || Metadata['rendition:layout']; if(Item['rendition:layout'] != 'pre-paginated') Item['rendition:layout'] = 'reflowable';
+            Item['rendition:orientation']  = ItemRef['rendition:orientation']  || Metadata['rendition:orientation'];
+            Item['rendition:spread']       = ItemRef['rendition:spread']       || Metadata['rendition:spread'];
+            Item['rendition:page-spread']  = ItemRef['rendition:page-spread']  || ItemRef['page-spread'] || undefined;
             Item['bibi:allow-placeholder'] = ItemRef['bibi:allow-placeholder'] || undefined;
             Item['bibi:no-adjustment']     = ItemRef['bibi:no-adjustment']     || undefined;
             Item['bibi:no-padding']        = ItemRef['bibi:no-padding']        || undefined;
@@ -1024,7 +1035,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 Reflowable: true, PrePaginated: false,
                 AllowPlaceholder: B.ExtractionPolicy != 'at-once' && Item['bibi:allow-placeholder'],
                 NoAdjustment: Item['bibi:no-adjustment'] ? true : false,
-                NoPadding: Item['bibi:no-padding'] || ItemRef['bibi:no-adjustment'] ? true : false
+                NoPadding: Item['bibi:no-padding'] ? true : false
             } : {
                 Reflowable: false, PrePaginated: true,
                 AllowPlaceholder: B.ExtractionPolicy != 'at-once' && (Item['bibi:allow-placeholder'] || Metadata['rendition:layout'] == 'pre-paginated'),
@@ -1081,30 +1092,11 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             }
         });
         R.createSpine(SpreadsDocumentFragment);
-        // ================================================================================
-        // BOOK
         // --------------------------------------------------------------------------------
-        B.ID        =  Metadata['unique-identifier'] || Metadata['identifier'][0] || '';
-        B.Language  =  Metadata['language'][0].split('-')[0];
-        B.Title     =  Metadata['title'     ].join(', ');
-        B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
-        B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
-        const FullTitleFragments = [B.Title];
-        if(B.Creator)   FullTitleFragments.push(B.Creator);
-        if(B.Publisher) FullTitleFragments.push(B.Publisher);
-        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>');
-        O.Title.innerHTML = '';
-        O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
-        try { O.Info.querySelector('h1').innerHTML = document.title; } catch(_) {}
-        B.PrePaginated = B.Package.Metadata['rendition:layout'] == 'pre-paginated';
-        B.Reflowable = !B.PrePaginated;
         B.WritingMode =                                                                                   /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language) ? (B.PPD == 'rtl' ? 'tb-rl' : 'lr-tb')
             :                                                                                                             /^(mo?n)$/.test(B.Language) ?                   'tb-lr'
             : /^(aze?|ara?|ui?g|urd?|kk|kaz|ka?s|ky|kir|kur?|sn?d|ta?t|pu?s|bal|pan?|fas?|per|ber|msa?|may|yid?|heb?|arc|syr|di?v)$/.test(B.Language) ?                             'rl-tb'
             :                                                                                                                                                                       'lr-tb';
-        // ================================================================================
-        // READER
-        // --------------------------------------------------------------------------------
         if(S['reader-view-mode'] == 'auto') {
             const RVMPriority = (() => {
                 const Default    = ['paged', 'horizontal', 'vertical'];
