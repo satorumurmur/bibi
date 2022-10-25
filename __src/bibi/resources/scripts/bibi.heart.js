@@ -878,7 +878,7 @@ L.loadContainer = () => O.openDocument(B.Container.Source).then(L.loadContainer.
 L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.process);
 
     L.loadPackage.process = (Doc) => { // This is Used also from the Zine Extention.
-        E.dispatch('bibi:is-going-to:process-package', Doc);
+        Doc.Promises = []; E.dispatch('bibi:is-going-to:process-package', Doc);
         // ================================================================================
         // NAMESPACES
         // --------------------------------------------------------------------------------
@@ -901,6 +901,8 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         const SourcePaths = {};
         // ================================================================================
         // METADATA
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:is-going-to:process-package-metadata', _Metadata);
         // --------------------------------------------------------------------------------
         const UIDID = _Package.getAttribute('unique-identifier'), UIDE = UIDID ? Doc.getElementById(UIDID) : null, UIDTC = UIDE ? UIDE.textContent : '';
         Metadata['unique-identifier'] = UIDTC ? UIDTC.trim() : '';
@@ -941,17 +943,16 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         B.Title     =  Metadata['title'     ].join(', ');
         B.Creator   = !Metadata['creator'   ] ? '' : Metadata['creator'  ].join(', ');
         B.Publisher = !Metadata['publisher' ] ? '' : Metadata['publisher'].join(', ');
-        const FullTitleFragments = [B.Title];
-        if(B.Creator)   FullTitleFragments.push(B.Creator);
-        if(B.Publisher) FullTitleFragments.push(B.Publisher);
-        B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>');
-        O.Title.innerHTML = ''; O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
-        try { O.Info.querySelector('h1').innerHTML = document.title; } catch(Err) {}
+        R.title();
         B.PrePaginated = Metadata['rendition:layout'] == 'pre-paginated';
         B.Reflowable = !B.PrePaginated;
         B.ICBViewport = Metadata['original-resolution'] || Metadata['rendition:viewport'] || Metadata['fixed-layout-jp:viewport'] || Metadata['omf:viewport'] || null;
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:processed-package-metadata', _Metadata);
         // ================================================================================
         // MANIFEST
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:is-going-to:process-package-manifest', _Manifest);
         // --------------------------------------------------------------------------------
         const PackageDir = B.Package.Source.Path.replace(/\/?[^\/]+$/, '');
         sML.forEach(getOPFElementsByTagNameIn(_Manifest, 'item'))(_Item => {
@@ -981,8 +982,12 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             SourcePaths[Source['id']] = Source.Path;
         });
         [B.Container, B.Package].forEach(Meta => { if(Meta && Meta.Source) Meta.Source.Content = ''; });
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:processed-package-manifest', _Manifest);
         // ================================================================================
         // SPINE
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:is-going-to:process-package-spine', _Spine);
         // --------------------------------------------------------------------------------
         if(!B.Nav.Source) {
             const Source = Manifest[SourcePaths[_Spine.getAttribute('toc')]];
@@ -1116,8 +1121,10 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 break;
             }
         };
+        // --------------------------------------------------------------------------------
+        E.dispatch('bibi:processed-package-spine', _Spine);
         // ================================================================================
-        E.dispatch('bibi:processed-package');
+        E.dispatch('bibi:processed-package', Doc); return Promise.all(Doc.Promises);
     };
 
 
@@ -1545,6 +1552,16 @@ export const R = { // Bibi.Reader
     Spreads: [], Items: [], Pages: [],
     NonLinearItems: [],
     IntersectingPages: [], Current: {}
+};
+
+
+R.title = () => {
+    const FullTitleFragments = [B.Title];
+    if(B.Creator)   FullTitleFragments.push(B.Creator);
+    if(B.Publisher) FullTitleFragments.push(B.Publisher);
+    B.FullTitle = FullTitleFragments.join(' - ').replace(/&amp;?/gi, '&').replace(/&lt;?/gi, '<').replace(/&gt;?/gi, '>');
+    O.Title.innerHTML = ''; O.Title.appendChild(document.createTextNode(B.FullTitle + ' | ' + (S['website-name-in-title'] ? S['website-name-in-title'] : 'Published with Bibi')));
+    try { O.Info.querySelector('h1').innerHTML = document.title; } catch(Err) {}
 };
 
 
@@ -2860,101 +2877,89 @@ I.initialize = () => {
 
 I.Oven = { create: () => {
     const Oven = I.Oven = {
+        Spirit: S['forget-me'] || !localStorage ? null : {
+            getItem: (Key) => localStorage.getItem(Key),
+            setItem: (Key, Value) => localStorage.setItem(Key, Value),
+            removeItem: (Key) => localStorage.removeItem(Key)
+        },
         Flame: false,
-        realize: () => { if(!localStorage) return Oven.quench();
-            Oven.Flame = true, S['forget-me'] = false;
+        realize: () => { if(S['forget-me'] || !Oven.Spirit) return;
+            Oven.Flame = true;
             E.dispatch('bibi:realized-oven');
         },
         quench: () => {
-            Oven.Flame = false, S['forget-me'] = true;
+            Oven.Flame = false;
             E.dispatch('bibi:quenched-oven');
         },
-        rememberMe: () => Oven.realize(),
-        forgetMe: (Not) => Not ? Oven.rememberMe() : Oven.quench()
+        // rememberMe: () => Oven.realize(),
+        // forgetMeNot: () => Oven.rememberMe(),
+        // forgetMe: () => Oven.quench(),
     };
-    if(localStorage && !S['forget-me']) Oven.realize(); else Oven.quench();
+    Oven.realize();
     const Biscuits = Oven.Biscuits = {
-        Memories: {}, Labels: {}, LabelBase: 'BibiBiscuits:' + P.Script.src.replace(new RegExp('^' + O.Origin.replace(/([\/\.])/g, '\\$1')), ''),
-        createLabel: (Tag) => {
-            if(!Tag || typeof Tag != 'string') return null;
-            switch(Tag) {
-                case 'Bibi': break;
-                case 'Book': if(B.ID) break;
-                default: return null;
-            }
-            const Label = Biscuits.Labels[Tag] = Biscuits.LabelBase + (Tag == 'Book' ? '#' + B.ID : '');
-            const BiscuitsOfTheLabel = localStorage.getItem(Label);
-            Biscuits.Memories[Label] = BiscuitsOfTheLabel ? JSON.parse(BiscuitsOfTheLabel) : {};
-            return Label;
+        Tags: ['****', 'Bibi', 'Book'],
+        initialize: () => {
+            delete Biscuits.initialize;
+            // if(S['forget-me']) return;
+            const LabelDelimiter = ' ', BibiAndPresetPaths = [Bibi.Script.src, P.Script.src].map(Src => (Loc => Loc.origin == O.Origin ? Loc.pathname : Loc.href.replace(/^[^:]+:\/\//, ''))(new URL(Src))).join(LabelDelimiter);
+            E.bind('bibi:processed-package-metadata', () => {
+                Biscuits.Tin = Biscuits.Tags.reduce((Tin, Tag) => {
+                    const LabelParts = []; switch(Tag) {
+                        case 'Book': LabelParts.unshift(B.ID);
+                        case 'Bibi': LabelParts.unshift(BibiAndPresetPaths);
+                        default    : LabelParts.unshift('Bibi:Biscuit');
+                    }
+                    const Label = LabelParts.join(LabelDelimiter), Portion = Biscuits.parsePortion(Oven.Spirit?.getItem(Label));
+                    Tin[Tag] = { Label: Label, Portion: Portion };
+                    return Tin;
+                }, {});
+                E.dispatch('bibi:initialized-biscuits', Biscuits);
+            });
         },
-        getLabel: (Tag) => {
-            if(!Oven.Flame) return null;
-            if(!Tag || typeof Tag != 'string') return null;
-            return (Biscuits.Labels[Tag] ? Biscuits.Labels[Tag] : Biscuits.createLabel(Tag));
+        parsePortion: (PortionJSON) => {
+            let Portion = null; try { Portion = JSON.parse(PortionJSON); } catch(Err) {}
+            if(!Portion || !Portion.Biscuit || !Portion.Stamp) Portion = { Biscuit: {}, Stamp: 0 };
+            return Portion;
+        },
+        update: (Tag, Biscuit) => {
+            if(!Oven.Flame || !Biscuits.Tags.includes(Tag)) return;
+            Biscuits.Tin[Tag].Portion.Stamp = Date.now();
+            return Biscuit && Object.keys(Biscuit).length ?
+                (Biscuits.Tin[Tag].Portion.Biscuit = Biscuit) && Oven.Spirit.setItem(   Biscuits.Tin[Tag].Label, JSON.stringify(Biscuits.Tin[Tag].Portion)) :
+                (Biscuits.Tin[Tag].Portion.Biscuit =      {}) && Oven.Spirit.removeItem(Biscuits.Tin[Tag].Label);
         },
         remember: (Tag, Key) => {
-            if(!Oven.Flame) return null;
-            const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
-            return (!Key || typeof Key != 'string') ? Biscuits.Memories[Label] : Biscuits.Memories[Label][Key];
+            if(!Oven.Flame || !Biscuits.Tags.includes(Tag)) return null;
+            const Biscuit = Biscuits.Tin[Tag].Portion.Biscuit;
+            return Key !== undefined ? Biscuit[Key] : Biscuit;
         },
         memorize: (Tag, KnV) => {
-            if(!Oven.Flame) return null;
-            const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
-            if(KnV && typeof KnV == 'object') for(const Key in KnV) { const Val = KnV[Key];
-                try {
-                    if(Val && typeof Val != 'function' && typeof JSON.parse(JSON.stringify({ [Key]: Val }))[Key] != 'undefined') Biscuits.Memories[Label][Key] = Val;
-                    //if(Val) Biscuits.Memories[Label][Key] = Val;
-                    else throw '';
-                } catch(Err) {
-                    delete Biscuits.Memories[Label][Key];
-                }
-            }
-            localStorage.setItem(Label, JSON.stringify(Biscuits.Memories[Label]));
-            return Biscuits.Memories[Label];
+            if(!Oven.Flame || !Biscuits.Tags.includes(Tag)) return null;
+            const Biscuit = Biscuits.Tin[Tag].Portion.Biscuit;
+            if(KnV !== undefined) Object.keys(KnV).forEach(Key => { const Val = KnV[Key];
+                try        { if(Val && typeof Val != 'function' && JSON.parse(JSON.stringify({ [Key]: Val }))[Key] !== undefined) Biscuit[Key] = Val; else throw ''; }
+                catch(Err) { delete Biscuit[Key]; }
+            });
+            Biscuits.update(Tag, Biscuit);
+            return Biscuit;
         },
-        forget: (Tag, Keys) => {
+        forget: (Tags, Keys) => {
             if(!Oven.Flame) return null;
-            if(!Tag) {
-                for(Tag in Biscuits.Labels) if(Biscuits.Labels[Tag]) localStorage.removeItem(Biscuits.Labels[Tag]);
-                Biscuits.Memories = {};
-            } else if(typeof Tag == 'string' && Biscuits.Labels[Tag]) {
-                const Label = Biscuits.getLabel(Tag);  if(!Label) return null;
-                if(!Keys) {
-                    localStorage.removeItem(Label);
-                    delete Biscuits.Memories[Label];
-                } else {
-                    if(typeof Keys == 'string') Keys = [Keys];
-                    if(Array.isArray(Keys)) Keys.forEach(Key => (typeof Key != 'string' || !Key) ? false : delete Biscuits.Memories[Label][Key]);
-                    localStorage.setItem(Label, JSON.stringify(Biscuits.Memories[Label]));
+            if(Tags === undefined) Biscuits.Tags.forEach(Tag => Biscuits.update(Tag));
+            else (Array.isArray(Tags) ? Tags : [Tags]).forEach(Tag => {
+                if(!Biscuits.Tags.includes(Tag)) return;
+                if(Keys === undefined) Biscuits.update(Tag);
+                else {
+                    const Biscuit = Biscuits.Tin[Tag].Portion.Biscuit;
+                    (Array.isArray(Keys) ? Keys : [Keys]).forEach(Key => delete Biscuit[Key]);
+                    Biscuits.update(Tag, Biscuit);
                 }
-            }
-            return Biscuits.Memories;
+            });
+            return Biscuits.Tin;
         }
     };
-    // const Cookies = Oven.Cookies = {
-    //     Label: 'bibi',
-    //     remember: (Group) => {
-    //         const BCs = JSON.parse(sML.Cookies.read(Cookies.Label) || '{}');
-    //         console.log('Cookies:', BCs);
-    //         if(typeof Group != 'string' || !Group) return BCs;
-    //         return BCs[Group];
-    //     },
-    //     eat: (Group, KeyVal, Opt) => {
-    //         if(typeof Group != 'string' || !Group) return false;
-    //         if(typeof KeyVal != 'object') return false;
-    //         const BCs = Cookies.remember();
-    //         if(typeof BCs[Group] != 'object') BCs[Group] = {};
-    //         for(const Key in KeyVal) {
-    //             const Val = KeyVal[Key];
-    //             if(typeof Val == 'function') continue;
-    //             BCs[Group][Key] = Val;
-    //         }
-    //         if(!Opt) Opt = {};
-    //         Opt.Path = location.pathname.replace(/[^\/]+$/, '');
-    //         if(!Opt.Expires) Opt.Expires = S['cookie-expires'];
-    //         sML.Cookies.write(Cookies.Label, JSON.stringify(BCs), Opt);
-    //     }
-    // };
+    Biscuits.initialize();
+    E.dispatch('bibi:created-oven');
 }};
 
 
@@ -3260,9 +3265,9 @@ I.PageObserver = { create: () => {
         PageObserver.IntersectingPages = R.Items[LayoutOption.TargetItemIndex].Pages.concat(); // copy
         PageObserver.observeIntersection();
     });
-    E.bind('bibi:initialized-book', () => {
+    E.bind('bibi:initialized-biscuits', () => {
         if(R.StartOn || !S['resume-from-last-position']) return;
-        const Automarks = I.Oven.Biscuits.remember('Book')?.Automarks;
+        const Automarks = I.Oven.Biscuits.remember('Book', 'Automarks');
         if(Array.isArray(Automarks) && Automarks[0]?.P) R.StartOn = Object.assign({}, I.Oven.Biscuits.remember('Book').Automarks[0]);
     });
     E.bind('bibi:opened', () => {
@@ -5463,7 +5468,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
         },
         update: (Opt = {}) => {
             if(S['use-bookmark-ui']) {
-                BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
+                if(I.Oven.Flame) BookmarkManager.Subpanel.Opener.ButtonGroup.style.display = '';
                 if(BookmarkManager.ButtonGroup.Buttons) {
                     BookmarkManager.ButtonGroup.Buttons = [];
                     BookmarkManager.ButtonGroup.innerHTML = '';
@@ -5565,7 +5570,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
                     }
                 }
             }
-            I.Oven.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks });
+            BookmarkManager.Bookmarks.length ? I.Oven.Biscuits.memorize('Book', { Bookmarks: BookmarkManager.Bookmarks }) : I.Oven.Biscuits.forget('Book', 'Bookmarks');
             /**/            E.dispatch('bibi:updated-bookmarks', BookmarkManager.Bookmarks);
             if(Opt.Added)   E.dispatch(  'bibi:added-bookmark',  BookmarkManager.Bookmarks);
             if(Opt.Removed) E.dispatch('bibi:removed-bookmark',  BookmarkManager.Bookmarks);
@@ -5706,7 +5711,7 @@ I.Footnotes = { create: () => { if(!S['use-popup-footnotes']) return I.Footnotes
                 if(!OriginalA.jump) return;
                 Object.assign(FnBC_A, { Original: OriginalA, Destination: OriginalA.Destination }).addEventListener('click', Eve => {
                     Eve.preventDefault(), Eve.stopPropagation();
-                    return FnBC_A.Disabled ? false : OriginalA.jump(Eve);
+                    return FnBC_A.Disabled ? false : OriginalA.jump(Eve, { UI: Footnotes, PreventFootnote: false });
                 });
                 FnBody.Jumpers.push(FnBC_A);
             }
@@ -6995,7 +7000,7 @@ S.initialize = () => {
     if(S['available-reader-view-modes'].length == 1) S['fix-reader-view-mode'] = true;
     // --------
     if(O.TouchOS) S['use-loupe-ui'] = false;
-    if(!localStorage || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
+    if(S['forget-me'] || !localStorage || S['max-bookmarks'] == 0) S['use-bookmarks'] = false;
     if(!S['use-bookmarks']) S['max-bookmarks'] = 0, S['use-bookmark-ui'] = false;
     if(S['max-histories'] == 0) S['use-histories'] = false;
     if(!S['use-histories']) S['max-histories'] = 0, S['use-history-ui'] = false;
@@ -8068,18 +8073,18 @@ X.load = (Xtn) => new Promise((resolve, reject) => {
     Xtn.Script = document.head.appendChild(sML.create('script', { className: 'bibi-extension-script', src: Xtn['src'], Extension: Xtn, resolve: resolve, reject: function() { reject(); document.head.removeChild(this); } }));
 });
 
-X.add = (XMeta) => {
+X.add = (XMeta, InitialX) => {
     const XScript = document.currentScript;
     if(typeof XMeta['id'] == 'undefined') return XScript.reject(`"id" of the extension is undefined.`);
     if(typeof XMeta['id'] != 'string')    return XScript.reject(`"id" of the extension is invalid.`);
     if(!XMeta['id'])                      return XScript.reject(`"id" of the extension is blank.`);
     if(X[XMeta['id']])                    return XScript.reject(`"id" of the extension is reserved or already used by another. ("${ XMeta['id'] }")`);
     XScript.setAttribute('data-bibi-extension-id', XMeta['id']);
-    X[XMeta['id']] = XScript.Extension = sML.applyRtL(XMeta, XScript.Extension);
-    X[XMeta['id']].Index = X.Extensions.length;
-    X.Extensions.push(X[XMeta['id']]);
-    XScript.resolve(X[XMeta['id']]);
-    const Xtn = X[XMeta['id']];
+    const Xtn = X[XMeta['id']] = XScript.Extension = sML.applyRtL(XMeta, XScript.Extension);
+    Xtn.Index = X.Extensions.length;
+    X.Extensions.push(Xtn);
+    const PromiseX = typeof InitialX == 'function' ? InitialX(Xtn) : InitialX;
+    (PromiseX instanceof Promise ? PromiseX : Promise.resolve()).then(() => XScript.resolve(Xtn));
     return function(onR) {         if(Xtn && typeof onR == 'function') E.bind('bibi:readied',  () => onR.call(Xtn, Xtn));
         return function(onP) {     if(Xtn && typeof onP == 'function') E.bind('bibi:prepared', () => onP.call(Xtn, Xtn));
             return function(onO) { if(Xtn && typeof onO == 'function') E.bind('bibi:opened',   () => onO.call(Xtn, Xtn)); }; }; };
