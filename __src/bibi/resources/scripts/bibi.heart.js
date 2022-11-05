@@ -1012,7 +1012,9 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
                 IsItem: true,
                 Source: Source,
                 AnchorPath: Source.Path,
-                FallbackChain: []
+                FallbackChain: [],
+                Scale: 1,
+                Viewport: B.ICBViewport
             });
             Item['idref'] = IDRef;
             if(S['prioritise-fallbacks']) while(Item.Source['fallback']) {
@@ -1331,6 +1333,8 @@ L.loadItem = (Item, Opt = {}) => {
     const ItemBox = Item.Box;
     ItemBox.classList.remove('loaded');
     ItemBox.classList.toggle('placeholder', Item.IsPlaceholder);
+    const initHead = ItemSource => E.dispatch('bibi:is-going-to:initialize-item-source', ItemSource);
+    const initFoot = ItemSource => ItemSource.InitializingPromise || undefined;
     return Item.Loading = ( // Promise
         Item.IsPlaceholder ? Promise.reject()
         : Item.ContentURL ? Promise.resolve()
@@ -1340,6 +1344,7 @@ L.loadItem = (Item, Opt = {}) => {
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize: () => {
+                    initHead(Item.Source);
                     Item.Source.Content = Item.Source.Content.replace(/\s*<\!\s*--(.|\s)+?--\s*>\s*/g, '');
                     Item.Source.Content = (Item.Source.IsXHTML = /\.(xht(ml)?|xml)?$/i.test(Item.Source.Path)) ?
                         Item.Source.Content.replace(/\s*<[\?\!](.|\s)+?>\s*/g, '') :
@@ -1350,37 +1355,48 @@ L.loadItem = (Item, Opt = {}) => {
                         O.sanitizeItemSource(Item.Source, { As: Item.Source.IsXHTML ? 'XHTML' : 'HTML' });
                         Item.Source.Content = Item.Source.Content.replace(/ data-bibi-viewbox=/ig, ' viewBox=');
                     }
+                    return initFoot(Item.Source);
                 }
-            }).then(ItemSource =>
-                ItemSource.Content
-            )
-        : /\.(gif|jpe?g|png|webp)$/i.test(Item.Source.Path) ? // Bitmap-in-Spine
-            O.file(Item.Source, {
-                URI: true
-            }).then(ItemSource => [
-                (Item.PrePaginated && B.ICBViewport) ? `<meta name="viewport" content="width=${ B.ICBViewport.Width }, height=${ B.ICBViewport.Height }" />` : '',
-                `<img class="bibi-spine-item-image" alt="" src="${ Item.Source.URI }" />` // URI is BlobURL or URI
-            ])
+            }).then(ItemSource => {
+                if(Item.PrePaginated && !Item.Viewport) Item.Viewport = O.getViewportByMetaContent(new DOMParser().parseFromString(ItemSource.Content.replace(/<body(>|\s)(.|\s)*?<\/body>/, '<body></body>'), ItemSource['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content'));
+                return ItemSource.Content;
+            })
         : /\.(svg)$/i.test(Item.Source.Path) ? // SVG-in-Spine
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy ? true : false),
                 initialize: () => {
+                    initHead(Item.Source);
                     const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Source.Content.match(StyleSheetRE);
                     if(!S['allow-scripts-in-content']) O.sanitizeItemSource(Item.Source, { As: 'SVG' });
-                    Item.Source.Content = (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('') : '') + '<bibi:boundary/>' + Item.Source.Content; // Join for preprocessing.
+                    Item.Source.Content = (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('\n').trim() : '') + '<bibi:boundary/>' + Item.Source.Content.trim(); // Join for preprocessing.
+                    return initFoot(Item.Source);
                 }
-            }).then(ItemSource =>
-                ItemSource.Content.split('<bibi:boundary/>')
-            )
+            }).then(ItemSource => {
+                const [Links, BodyContent] = ItemSource.Content.split('<bibi:boundary/>');
+                const Headers = Links ? [Links] : [];
+                if(!Item.Viewport) Item.Viewport = O.getViewportByViewBox(new DOMParser().parseFromString(BodyContent, ItemSource['media-type'])?.documentElement?.getAttribute('viewBox'));
+                if(Item.Viewport) Headers.unshift(`<meta name="viewport" content="width=${ Item.Viewport.Width }, height=${ Item.Viewport.Height }" />`);
+                return [Headers.join('\n'), BodyContent];
+            })
+        : /\.(gif|jpe?g|png|webp)$/i.test(Item.Source.Path) ? // Bitmap-in-Spine
+            O.file(Item.Source, {
+                URI: true,
+                initialize: () => {
+                    initHead(Item.Source);
+                    return initFoot(Item.Source);
+                }
+            }).then(ItemSource => new Promise(resolve => {
+                if(Item.Viewport) return resolve(Item.Viewport);
+                sML.create('img', { onload: function() { resolve(this.naturalWidth && this.naturalHeight ? (Item.Viewport = { Width: this.naturalWidth, Height: this.naturalHeight }) : null); } }).src = Item.Source.URI;
+            })).then(Viewport => [
+                Viewport ? `<meta name="viewport" content="width=${ Viewport.Width }, height=${ Viewport.Height }" />` : '',
+                `<img class="bibi-spine-item-image" alt="" src="${ Item.Source.URI }" />` // URI is BlobURL or URI
+            ])
         : Item.Skipped = true && Promise.resolve([])
     ).then(ItemSourceContent => new Promise(resolve => {
-        const loadItemContent = (ItemContentURL) => {
-            Item.onload = resolve;
-            Item.src = Item.ContentURL = ItemContentURL;
-            Item.Source.Content = '';
-            ItemBox.insertBefore(Item, ItemBox.firstChild);
-        };
-        if(Item.ContentURL) return loadItemContent(Item.ContentURL);
+        const putItemIntoTheBox = () => ItemBox.insertBefore(Item, ItemBox.firstChild);
+        const loadItemContent = () => (Item.onload = resolve, Item.Source.Content = '', Item.src = Item.ContentURL, putItemIntoTheBox());
+        if(Item.ContentURL) return loadItemContent();
         let HTML = typeof ItemSourceContent == 'string' ? ItemSourceContent : [`<!DOCTYPE html>`,
             `<html>`,
                 `<head>`,
@@ -1402,11 +1418,11 @@ L.loadItem = (Item, Opt = {}) => {
                 delete Item.onContentLoaded;
             };
             Item.src = '';
-            ItemBox.insertBefore(Item, ItemBox.firstChild);
+            putItemIntoTheBox();
             Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
             return;
         }
-        O.createBlobURL('Text', HTML, /*S['allow-scripts-in-content'] &&*/ Item.Source.IsXHTML ? 'application/xhtml+xml' : 'text/html').then(loadItemContent);
+        O.createBlobURL('Text', HTML, Item.Source.IsXHTML ? 'application/xhtml+xml' : 'text/html').then(ItemContentURL => (Item.ContentURL = ItemContentURL, loadItemContent()));
     })).then(() => {
         return L.postprocessItem(Item);
     }).then(() => {
@@ -1426,6 +1442,7 @@ L.loadItem = (Item, Opt = {}) => {
         E.dispatch('bibi:prepared-placeholder', Item);
     }).then(() => {
         delete Item.Loading;
+        delete Item.Source.InitializingPromise;
         return Promise.resolve(Item);
     });
 };
@@ -1621,7 +1638,7 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
     if(Spread.Items.length == 1) {
         const Item = Spread.Items[0];
         Spread.Spreaded = Item.Spreaded ? true : false;
-        SpreadSize.Width  = (Spread.Spreaded && Item.PrePaginated && Item['rendition:page-spread']) ? (B.ICBViewport ? Item.Box.offsetHeight * B.ICBViewport.Width * 2 / B.ICBViewport.Height : B.PrePaginated ? Item.Box.offsetWidth * 2 : R.Stage.Width) : Item.Box.offsetWidth;
+        SpreadSize.Width  = (Spread.Spreaded && Item.PrePaginated && Item['rendition:page-spread']) ? (Item.Viewport ? Item.Box.offsetHeight * Item.Viewport.Width * 2 / Item.Viewport.Height : B.PrePaginated ? Item.Box.offsetWidth * 2 : R.Stage.Width) : Item.Box.offsetWidth;
         SpreadSize.Height = Item.Box.offsetHeight;
     } else {
         const ItemA = Spread.Items[0], ItemB = Spread.Items[1];
@@ -1711,17 +1728,16 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
 
 
 R.layOutItem = (Item) => new Promise(resolve => {
-    // Item.stamp('Reset...');
-    Item.Scale = 1;
-    //Item.Box.style.width = Item.Box.style.height = Item.style.width = Item.style.height = '';
-    Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item);
-    // Item.stamp('Reset.');
-    resolve(Item);
+    E.dispatch('bibi:is-going-to:lay-out-item', Item);
+    (Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item)).then(Item => {
+        E.dispatch('bibi:laid-out-item', Item);
+        resolve(Item);
+    });
 });
 
 
-R.renderReflowableItem = (Item) => {
-    if(Item.IsPlaceholder) return;
+R.renderReflowableItem = (Item) => new Promise(resolve => {
+    if(Item.IsPlaceholder) return resolve();
     const SafeArea = O.SafeArea;
     Item.Padding = {
            Top: S['item-padding-top'],     Left: S['item-padding-left']  + SafeArea.Left,
@@ -1899,8 +1915,8 @@ R.renderReflowableItem = (Item) => {
         O.logSets(`R.Items[${ Item.Index }]`, '.', ['HTML', 'Body'], '.', ['offset', 'client', 'scroll'], ['Width', 'Height', 'Left', 'Top']); //}, 100);
     }
     //*/
-    return Item;
-};
+    resolve();
+}).then(() => Item);
 
 /* R.Paginated */ Object.defineProperty(R, 'Paginated', { get: () => {
     if(B.PrePaginated) return true;
@@ -1912,88 +1928,45 @@ R.renderReflowableItem = (Item) => {
 } });
 
 
-R.renderPrePaginatedItem = (Item) => {
+R.renderPrePaginatedItem = (Item) => new Promise(resolve => {
     sML.style(Item, { width: '', height: '', transform: '' });
-    let StageB = R.Stage[C.L_SIZE_B];
-    let StageL = R.Stage[C.L_SIZE_L];
     Item.Spreaded = (
         (S.RVM == 'paged' || !S['full-breadth-layout-in-scroll'])
             &&
         (Item['rendition:spread'] == 'both' || R.Orientation == Item['rendition:spread'] || R.Orientation == 'landscape')
     );
-    if(!Item.Viewport) Item.Viewport = R.getItemViewport(Item);
-  //if( Item.Viewport && !B.ICBViewport) B.ICBViewport = Item.Viewport;
-    let ItemLoVp = null; // ItemLayoutViewport
-    if(Item.Spreaded) {
-        ItemLoVp = R.getItemLayoutViewport(Item);
-        if(Item.SpreadPair) {
-            const PairItem = Item.SpreadPair;
-            PairItem.Spreaded = true;
-            if(!PairItem.Viewport) PairItem.Viewport = R.getItemViewport(PairItem);
-            const PairItemLoVp = R.getItemLayoutViewport(PairItem);
-            let LoBaseItem = null, LoBaseItemLoVp = null; // LayoutBaseItem, LayoutBaseItemLayoutViewport
-            let LoPairItem = null, LoPairItemLoVp = null; // LayoutPairItem, LayoutPairItemLayoutViewport
-            if(PairItem.Index > Item.Index) LoBaseItem =     Item, LoBaseItemLoVp =     ItemLoVp, LoPairItem = PairItem, LoPairItemLoVp = PairItemLoVp;
-            else                            LoBaseItem = PairItem, LoBaseItemLoVp = PairItemLoVp, LoPairItem =     Item, LoPairItemLoVp =     ItemLoVp;
-            LoPairItem.Scale = LoBaseItemLoVp.Height / LoPairItemLoVp.Height;
-            const SpreadViewPort = {
-                Width:  LoBaseItemLoVp.Width + LoPairItemLoVp.Width * LoPairItem.Scale,
-                Height: LoBaseItemLoVp.Height
-            };
-            LoBaseItem.Scale = Math.min( // 1,
-                StageB / SpreadViewPort[C.L_SIZE_B],
-                StageL / SpreadViewPort[C.L_SIZE_L]
-            );
-            LoPairItem.Scale *= LoBaseItem.Scale;
-        } else {
-            const SpreadViewPort = {
-                Width:  ItemLoVp.Width * (/^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1),
-                Height: ItemLoVp.Height
-            };
-            Item.Scale = Math.min( // 1,
-                StageB / SpreadViewPort[C.L_SIZE_B],
-                StageL / SpreadViewPort[C.L_SIZE_L]
-            );
-        }
-    } else {
-        ItemLoVp = R.getItemLayoutViewport(Item);
-        if(S.RVM == 'paged' || !S['full-breadth-layout-in-scroll']) {
-            Item.Scale = Math.min( // 1,
-                StageB / ItemLoVp[C.L_SIZE_B],
-                StageL / ItemLoVp[C.L_SIZE_L]
-            );
-        } else {
-            Item.Scale = Math.min( 1,
-                StageB / ItemLoVp[C.L_SIZE_B]
-            );
-        }
-    }
-    let PageL = Math.floor(ItemLoVp[C.L_SIZE_L] * Item.Scale);
-    let PageB = Math.floor(ItemLoVp[C.L_SIZE_B] * (PageL / ItemLoVp[C.L_SIZE_L]));
-    Item.Box.style[C.L_SIZE_l] = PageL + 'px';
-    Item.Box.style[C.L_SIZE_b] = PageB + 'px';
-    sML.style(Item, {
-        width:  ItemLoVp.Width + 'px',
-        height: ItemLoVp.Height + 'px',
-        transform: 'scale(' + Item.Scale + ')'
+    const Vp = R.renderPrePaginatedItem.getViewport(Item);
+    const Sc = R.renderPrePaginatedItem.getScale(Item, Vp); Item.Scale = Sc;
+    sML.style(Item.Box, {
+        width:  Math.floor(Vp.Width  * Sc) + 'px',
+        height: Math.floor(Vp.Height * Sc) + 'px'
+    })
+    if(Item.parentElement) sML.style(Item, {
+        width:  Vp.Width  + 'px',
+        height: Vp.Height + 'px',
+        transform: 'scale(' + Sc + ')'
     });
-    return Item;
-};
+    resolve();
+}).then(() => Item);
 
+    R.renderPrePaginatedItem.getViewport = (Item) => (
+            Item.Viewport                      ? Item.Viewport
+        :   Item.SpreadPair?.Viewport          ? Item.SpreadPair.Viewport
+        :   Item.IsPlaceholder || !Item.Loaded ? null
+        :   Item.OnlySingleSVG                 ? Item.Viewport = O.getViewportByViewBox(Item.Body.firstElementChild.getAttribute('viewBox'))
+        :   Item.OnlySingleImg                 ? Item.Viewport = O.getViewportByImage(  Item.Body.firstElementChild                        )
+        :                                        null
+    ) || {
+        Width:  Math.floor(Math.min(R.Stage.Width, R.Stage.Height * S['orientation-border-ratio']) / (/^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1)),
+        Height: R.Stage.Height,
+        IsSubstitute: true
+    };
 
-R.getItemViewport = (Item) => Item.IsPlaceholder ? null : (() => {
-    const ViewportMeta = Item.Head.querySelector('meta[name="viewport"]');
-    if(ViewportMeta)       return O.getViewportByMetaContent(           ViewportMeta.getAttribute('content'));
-    if(Item.OnlySingleSVG) return O.getViewportByViewBox(Item.Body.firstElementChild.getAttribute('viewBox')); // It's also for Item of SVGs-in-Spine, or Fixed-Layout Item including SVG without Viewport.
-    if(Item.OnlySingleImg) return O.getViewportByImage(  Item.Body.firstElementChild                        ); // It's also for Item of Bitmaps-in-Spine.
-                           return null                                                                       ;
-})();
-
-
-R.getItemLayoutViewport = (Item) => Item.Viewport ? Item.Viewport : B.ICBViewport ? B.ICBViewport : {
-    Width:  R.Stage.Height * S['orientation-border-ratio'] / (/*Item.Spreaded &&*/ /^(left|right)$/.test(Item['rendition:page-spread']) ? 2 : 1),
-    Height: R.Stage.Height
-};
+    R.renderPrePaginatedItem.getScale = (Item, ItemVp = Item.Viewport) =>
+            !ItemVp || ItemVp.IsSubstitute                          ? 1
+        :   Item.Spreaded                                           ? Math.min(R.Stage.Height / ItemVp.Height, R.Stage.Width / (ItemVp.Width + (Item.SpreadPair ? R.renderPrePaginatedItem.getViewport(Item.SpreadPair).Width : /^(left|right)$/.test(Item['rendition:page-spread']) ? ItemVp.Width : 0)))
+        :   S.RVM == 'paged' || !S['full-breadth-layout-in-scroll'] ? Math.min(R.Stage.Height / ItemVp.Height, R.Stage.Width /  ItemVp.Width)
+        :                                                             Math.min(1, R.Stage[C.L_SIZE_B] / ItemVp[C.L_SIZE_B]);
 
 
 R.organizePages = () => R.Pages = R.Spreads.reduce((NewPages, Spread) => Spread.Pages.reduce((NewPages, Page) => { Page.Index = NewPages.push(Page) - 1; return NewPages; }, NewPages), []);
@@ -2534,7 +2507,7 @@ R.getItemCopy = (_, Opt) => new Promise((resolve, reject) => {
     if(!Item.PrePaginated) return reject(null);
     resolve(Item.Loaded ? Item : L.loadItem(Item));
 }).then(Item => {
-    const ItemViewport = Item.Viewport || B.ICBViewport || (SpineItemImage => SpineItemImage ? { Width: SpineItemImage.offsetWidth, Height: SpineItemImage.offsetHeight } : null)(Item.Body.querySelector('.bibi-spine-item-image'));
+    const ItemViewport = Item.Viewport || (SpineItemImage => SpineItemImage ? { Width: SpineItemImage.offsetWidth, Height: SpineItemImage.offsetHeight } : null)(Item.Body.querySelector('.bibi-spine-item-image'));
     if(!ItemViewport) return Promise.reject(null);
     const ItemCopy = Object.assign(sML.create('span', { innerHTML: Item.outerHTML }).firstChild, { className: 'item-copy', IsItemCopy: true, Original: Item, Viewport: ItemViewport });
     ItemCopy.removeAttribute('style');
@@ -3159,18 +3132,15 @@ I.PageObserver = { create: () => {
             return IntersectionStatus;
         },
         classify: () => {
-            const CurrentElements = [], PastCurrentElements = R.Main.Book.querySelectorAll('.current');
+            const [Curr, Prev, Next] = ['current', 'prev-of-current', 'next-of-current'].map(CN => ({ ClassName: CN, PastElements: R.Main.Book.querySelectorAll('.' + CN), Elements: [] }));
             PageObserver.Current.List.forEach(CurrentEntry => {
                 const Page = CurrentEntry.Page, ItemBox = Page.Item.Box, SpreadBox = Page.Spread.Box;
-                if(!CurrentElements.includes(SpreadBox)) SpreadBox.classList.add('current'), CurrentElements.push(SpreadBox);
-                if(!CurrentElements.includes(  ItemBox))   ItemBox.classList.add('current'), CurrentElements.push(  ItemBox);
-                Page.classList.add('current'), CurrentElements.push(Page);
+                if(!Curr.Elements.includes(SpreadBox)) Curr.Elements.push(SpreadBox), Prev.Elements.push(R.Spreads[SpreadBox.Inside.Index - 1]?.Box), Next.Elements.push(R.Spreads[SpreadBox.Inside.Index + 1]?.Box);
+                if(!Curr.Elements.includes(  ItemBox)) Curr.Elements.push(  ItemBox), Prev.Elements.push(  R.Items[  ItemBox.Inside.Index - 1]?.Box), Next.Elements.push(  R.Items[  ItemBox.Inside.Index + 1]?.Box);
+                /**/                                   Curr.Elements.push(     Page), Prev.Elements.push(  R.Pages[            Page.Index - 1]     ), Next.Elements.push(  R.Pages[            Page.Index + 1]     );
+                [Curr, Prev, Next].forEach(CPN => CPN.Elements.forEach(Ele => Ele && Ele.classList.add(CPN.ClassName)));
             });
-            sML.forEach(PastCurrentElements)(PastCurrentElement => {
-                if(!CurrentElements.includes(PastCurrentElement)) {
-                    PastCurrentElement.classList.remove('current');
-                }
-            });
+            [Curr, Prev, Next].forEach(CPN => CPN.PastElements.forEach(Ele => CPN.Elements.includes(Ele) || Ele.classList.remove(CPN.ClassName)));
         },
         observeCurrent: () => {
             E.bind(['bibi:changed-intersection', 'bibi:scrolled'], PageObserver.updateCurrent);
@@ -7343,8 +7313,8 @@ O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
             case 'at-once':    return Promise.reject(`File Not Included: "${ Source.Path }"`);
         }
     })().then(Source => {
-        if(typeof Opt.initialize == 'function') Opt.initialize(Source);
-        return (Opt.Preprocess && !Source.Preprocessed) ? O.preprocess(Source) : Source;
+        const InitializingPromise = typeof Opt.initialize == 'function' ? Opt.initialize(Source) : Opt.initialize;
+        return (InitializingPromise instanceof Promise ? InitializingPromise : Promise.resolve()).then(() => (Opt.Preprocess && !Source.Preprocessed) ? O.preprocess(Source) : Source);
     }).then(Source => {
         if(Opt.URI && !Source.URI) return (!Opt.DataURI ? O.createBlobURL : O.createDataURL)(Source.DataType, Source.Content, Source['media-type']).then(SourceURI => {
             Source.URI = SourceURI;

@@ -145,6 +145,8 @@ main#bibi-main {
 			// 	opacity: 0; transition: opacity .1s linear; will-change: opacity;
 			// 	visibility: hidden;
 			// }
+			html.book-reflowable &:not(.current):not(.prev-of-current):not(.next-of-current) { visibility: hidden; }
+			// html.book-reflowable &:not(.current) { visibility: hidden; }
 		}
 			div.spread {
 				& {
