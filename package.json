@@ -80,7 +80,7 @@
     "native-promise-only": "^0.8.1",
     "nosleep.js": "^0.12.0",
     "polyfill-array-includes": "^2.0.0",
-    "sml.js": "^1.0.31",
+    "sml.js": "^1.0.34",
     "string.padstart": "^0.1.1",
     "text-encoding-utf-8": "^1.0.2",
     "url-polyfill": "^1.1.12"
