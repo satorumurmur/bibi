@@ -390,7 +390,7 @@ Bibi.initialize = () => {
         }
     }
     { // Say Welcome or say Bye-bye
-        if(Bibi.isCompatible()) I.notify(`<span class="non-visual">Welcome!</span>`); else throw Bibi.byebye();
+        if(Bibi.isCompatible()) I.notify(`Welcome!`); else throw Bibi.byebye();
     }
     { // Writing Mode, Font Size, Safe Area Size, Slider Size, Menu Height
         O.WritingModeProperty = (() => {
@@ -553,9 +553,11 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
         TargetItemIndex: 0,
         TargetSpreadIndex: 0,
         Destination: { Edge: 'head' },
-        resetter:       () => { Bibi.StartOption.Reset = true; Bibi.StartOption.removeResetter(); },
-        addResetter:    () => { window   .addEventListener('resize', Bibi.StartOption.resetter); },
-        removeResetter: () => { window.removeEventListener('resize', Bibi.StartOption.resetter); }
+        NoNotification: true,
+        Reset: true, ////////
+        // resetter:       () => { Bibi.StartOption.Reset = true; Bibi.StartOption.removeResetter(); },
+        // addResetter:    () => { window   .addEventListener('resize', Bibi.StartOption.resetter); },
+        // removeResetter: () => { window.removeEventListener('resize', Bibi.StartOption.resetter); }
     };
     if(typeof R.StartOn == 'object') {
         const Item = typeof R.StartOn.Item == 'object' ? R.StartOn.Item : (() => {
@@ -603,30 +605,33 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
         }
         Bibi.StartOption.Destination = R.StartOn;
     }
-    Bibi.StartOption.addResetter();
+    // Bibi.StartOption.addResetter();
     let LoadedItems = 0;
     R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != Bibi.StartOption.TargetSpreadIndex }).then(() => {
         LoadedItems += Spread.Items.length;
-        I.notify(`Loading... (${ LoadedItems }/${ R.Items.length } Items Loaded.)`);
-        !Bibi.StartOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
+        I.notify(`Loading... <span style="opacity: .75;">(${ LoadedItems }/${ R.Items.length })</span>`);
+        setTimeout(() => resolve());
+        // !Bibi.StartOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
     }))));
     return Promise.all(Promises).then(() => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
-        E.dispatch('bibi:loaded-book');
+        E.dispatch('bibi:loaded-book', Bibi.Status = Bibi.Loaded = 'Loaded');
     });
 });
 
 
 Bibi.bindBook = () => {
-    if(!Bibi.StartOption.Reset) {
-        R.organizePages();
-        R.layOutStage();
-    }
-    return R.layOutBook(Bibi.StartOption).then(() => {
-        Bibi.StartOption.removeResetter();
+    // if(!Bibi.StartOption.Reset) {
+    //     R.organizePages();
+    //     R.layOutStage();
+    // }
+    I.notify(`Binding...`);
+    return new Promise(resolve => setTimeout(() => R.layOutBook(Bibi.StartOption).then(() => {
+        // Bibi.StartOption.removeResetter();
         E.dispatch('bibi:laid-out-for-the-first-time', Bibi.StartOption);
-        E.dispatch('bibi:binded-book');
-    });
+        E.dispatch('bibi:binded-book', Bibi.Status = Bibi.Binded = 'Binded');
+        resolve();
+    })));
 };
 
 
@@ -636,7 +641,7 @@ Bibi.openBook = () => {
     I.Veil.close();
     L.Opened = true;
     document.body.click(); // To responce for user scrolling/keypressing immediately
-    I.notify('');
+    I.notify('Enjoy Readings!', { Time: 999 });
     O.log(`Enjoy Readings!`, '</b>');
     E.dispatch('bibi:opened', Bibi.Status = Bibi.Opened = 'Opened');
     E.dispatch('bibi:scrolled');
@@ -4583,7 +4588,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
                 const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
                 TextSetter.rebind(Settings, { SettingsAreDistilled: true, Async: false });
-                Bibi.StartOption.resetter();
+                // Bibi.StartOption.resetter();
             });
             if(S['use-textsetter-ui']) E.bind('bibi:loaded-book', () => {
                 TextSetter.createSubpanel();

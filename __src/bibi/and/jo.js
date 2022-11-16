@@ -58,6 +58,8 @@ Jo.callBibi = (Love) => {
     Bibi.listen('bibi:initialized', (Status) => Bibi.Status = Bibi.Initialized = Status); if(ToReceive.length) Bibi.listen('bibi:initialized', () => ToReceive.forEach(EN => Bibi.receive('' + EN.trim())));
     Bibi.listen('bibi:readied',     (Status) => Bibi.Status = Bibi.Readied     = Status);
     Bibi.listen('bibi:prepared',    (Status) => Bibi.Status = Bibi.Prepared    = Status);
+    Bibi.listen('bibi:loaded',      (Status) => Bibi.Status = Bibi.Loaded      = Status);
+    Bibi.listen('bibi:binded',      (Status) => Bibi.Status = Bibi.Binded      = Status);
     Bibi.listen('bibi:opened',      (Status) => Bibi.Status = Bibi.Opened      = Status);
     Bibi.listen('bibi:opened',      () => {
         Bibi.move = (Distance)  => Bibi.post('bibi:commands:move', Distance);
