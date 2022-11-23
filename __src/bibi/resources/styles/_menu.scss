@@ -46,14 +46,14 @@ html.without-menubar,
 html.waiting-file {
 	div#bibi-menu { display: none !important; }
 }
-html {
-	&                 div#bibi-menu { pointer-events: none; }
-	&                 div#bibi-menu.hover,
-	&.waiting         div#bibi-menu *,
-	&.panel-opened    div#bibi-menu,
-	&.subpanel-opened div#bibi-menu,
-	&.menu-opened     div#bibi-menu { pointer-events: auto; }
-}
+// html { /* Activate here to avoid using menu buttons without opening utilities in touch devices. */
+// 	&                 div#bibi-menu { pointer-events: none; }
+// 	&                 div#bibi-menu.hover,
+// 	&.waiting         div#bibi-menu *,
+// 	&.panel-opened    div#bibi-menu,
+// 	&.subpanel-opened div#bibi-menu,
+// 	&.menu-opened     div#bibi-menu { pointer-events: auto; }
+// }
 /* @____Bibi:Dress__('-') {
 html.book-full-height {
 	&                 div#bibi-menu { background-color: $Menu_BackgroundColor; }
