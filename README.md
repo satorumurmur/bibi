@@ -213,17 +213,6 @@ License
     - [JSZipUtils](http://stuk.github.io/jszip-utils) : © Stuart Knightley / Dual licensed under [the MIT License or the GPLv3](https://github.com/Stuk/jszip-utils/blob/master/LICENSE.markdown)
     - [JS-YAML](http://nodeca.github.io/js-yaml/) : © Vitaly Puzrin / Licensed under [the MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
  *  - [NoSleep.js](https://github.com/richtr/NoSleep.js) : © Rich Tibbett / Licensed under [the MIT License](https://github.com/richtr/NoSleep.js/blob/master/LICENSE)
-* Polyfills:
-    - [classlist-polyfill](https://github.com/yola/classlist-polyfill) : by Yola Inc. / Released into the public domain under [the Unlicense](https://github.com/yola/classlist-polyfill/blob/master/LICENSE)
-    - [text-encoding-utf-8](https://github.com/arv/text-encoding-utf-8) : by Erik Arvidsson / Released into the public domain under [the Unlicense](https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md)
-    - [IntersectionObserver polyfill](https://github.com/w3c/IntersectionObserver) : © W3C / Licensed under [the W3C Software and Document License](https://github.com/w3c/IntersectionObserver/blob/master/LICENSE.md)
-    - [custom-event-polyfill](https://github.com/kumarharsh/custom-event-polyfill) : © Evan Krambuhl / Licensed under [the MIT License](https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE)
-    - [document.currentScript Polyfill](https://github.com/amiller-gh/currentScript-polyfill) : © Adam Miller / Licensed under [the MIT License](https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE)
-    - [ES6 Object.assign()](https://github.com/rubennorte/es6-object-assign) : © Rubén Norte / Licensed under [the MIT License](https://github.com/rubennorte/es6-object-assign/blob/master/LICENSE)
-    - [Native Promise Only (NPO)](https://github.com/getify/native-promise-only) : © Kyle Simpson / Licensed under [the MIT License](http://getify.mit-license.org/)
-    - [Polyfill Array.prototype.includes](https://github.com/latusinski/polyfill-array-includes) : © Kevin Latusinski / Licensed under [the MIT License](https://www.npmjs.com/package/polyfill-array-includes)
-    - [String.prototype.padStart](https://github.com/KhaledElAnsari/String.prototype.padStart) : © Khaled Al-Ansari / Licensed under [the MIT License](https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE)
-    - [url-polyfill](https://github.com/lifaon74/url-polyfill) : © Valentin Richard / Licensed under [the MIT License](https://github.com/lifaon74/url-polyfill/blob/master/LICENSE)
 
 
 

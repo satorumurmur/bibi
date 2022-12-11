@@ -54,12 +54,7 @@ const CommonConfig = {
                 ],
                 'resources': {
                     'scripts': [
-                        'bibi.js',
-                        { 'polyfills': [
-                            'bundle.js',
-                            'encoding.js',
-                            'intersection-observer.js'
-                        ] }
+                        'bibi.js'
                     ],
                     'styles':
                         'bibi.css'
@@ -108,20 +103,6 @@ addPlugIn(
     new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
     new MiniCSSExtractPlugin({ filename: '[name]' })
 ).________to('all');
-
-// =============================================================================================================================
-
-addRule({
-    test: /\.m?js$/,
-    use: [
-        { loader: 'babel-loader', options: {
-            babelrc: false,
-            presets: [
-                ['@babel/preset-env', { useBuiltIns: false }]
-            ]
-        } }
-    ]
-}).________to('all');
 
 // =============================================================================================================================
 
@@ -192,7 +173,7 @@ addMinimizer(
         parallel: true,
         extractComments: false,
         terserOptions: {
-            ecma: 5,
+            ecma: 6,
             compress: true,
             output: {
                 comments: /^\! \/+\n/,

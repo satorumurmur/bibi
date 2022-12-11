@@ -93,38 +93,6 @@ Object.assign(Composer.Banners, {  // ==========================================
         'Bibi Extension: Debugging & Development': BibiC, sM: true
     },
 
-// -----------------------------------------------------------------------------------------------------------------------------
-
-    [`bibi/resources/scripts/polyfills/bundle.js`]: {
-        'Polyfill Bundle for Bibi': '',
-        'Consists of': {
-            'classlist-polyfill':                { 'by Yola Inc.':       'https://github.com/yola/classlist-polyfill',   'Released into the public domain under the Unlicense': 'https://github.com/yola/classlist-polyfill/blob/master/LICENSE'                  },
-            'text-encoding-utf-8':               { 'by Erik Arvidsson':  'https://github.com/arv/text-encoding-utf-8',   'Released into the public domain under the Unlicense': 'https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md'               },
-            'IntersectionObserver polyfill':     { '© W3C':              'https://github.com/w3c/IntersectionObserver', 'Licensed under the W3C Software and Document License': 'https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document'        },
-            'custom-event-polyfill':             { '© Evan Krambuhl':    'https://github.com/kumarharsh/custom-event-polyfill',               'Licensed under the MIT License': 'https://github.com/kumarharsh/custom-event-polyfill/blob/master/LICENSE'         },
-            'document.currentScript Polyfill':   { '© Adam Miller':      'https://github.com/amiller-gh/currentScript-polyfill',              'Licensed under the MIT License': 'https://github.com/amiller-gh/currentScript-polyfill/blob/master/LICENSE'        },
-            'ES6 Object.assign()':               { '© Rubén Norte':      'https://github.com/rubennorte/es6-object-assign',                   'Licensed under the MIT License': 'https://github.com/rubennorte/es6-object-assign/blob/master/LICENSE'             },
-            'Native Promise Only (NPO)':         { '© Kyle Simpson':     'https://github.com/getify/native-promise-only',                     'Licensed under the MIT License': 'https://getify.mit-license.org/'                                                 },
-            'Polyfill Array.prototype.includes': { '© Kevin Latusinski': 'https://github.com/latusinski/polyfill-array-includes',             'Licensed under the MIT License': 'https://github.com/kevlatus/polyfill-array-includes/blob/master/LICENSE'         },
-            'String.prototype.padStart':         { '© Khaled Al-Ansari': 'https://github.com/KhaledElAnsari/String.prototype.padStart',       'Licensed under the MIT License': 'https://github.com/KhaledElAnsari/String.prototype.padStart/blob/master/LICENSE' },
-            'url-polyfill':                      { '© Valentin Richard': 'https://github.com/lifaon74/url-polyfill',                          'Licensed under the MIT License': 'https://github.com/lifaon74/url-polyfill/blob/master/LICENSE'                    }
-        }
-    },
-
-    [`bibi/resources/scripts/polyfills/encoding.js`]: {
-        'Polyfill for Bibi: text-encoding-utf-8': '',
-        'Consists of': {
-            'text-encoding-utf-8':               { 'by Erik Arvidsson':  'https://github.com/arv/text-encoding-utf-8',   'Released into the public domain under the Unlicense': 'https://github.com/arv/text-encoding-utf-8/blob/master/LICENSE.md'               }
-        }
-    },
-
-    [`bibi/resources/scripts/polyfills/intersection-observer.js`]: {
-        'Polyfill for Bibi: IntersectionObserver polyfill': '',
-        'Consists of': {
-            'IntersectionObserver polyfill':     { '© W3C':              'https://github.com/w3c/IntersectionObserver', 'Licensed under the W3C Software and Document License': 'https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document'        }
-        }
-    },
-
 // =============================================================================================================================
 
     [`bibi/resources/styles/bibi.css`]: {

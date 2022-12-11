@@ -260,7 +260,14 @@ Bibi.ErrorMessages = {
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-Bibi.ring = () => Bibi.hello()
+Bibi.ring = () => Promise.resolve().then(() => {
+    Bibi.Script = document.getElementById('bibi-script');
+    Bibi.Style  = document.getElementById('bibi-style');
+    // const Pfs = [];
+    // if(!window.IntersectionObserver) Pfs.push('intersection-observer');
+    // if(Pfs.length) return Promise.all(Pfs.map(PfN => new Promise(resolve => document.head.insertBefore(sML.create('script', { src: new URL(`./polyfills/${ PfN }.js`, Bibi.Script.src).href, onload: resolve }), Bibi.Script))));
+})
+.then(Bibi.hello)
 .then(Bibi.initialize)
 .then(Bibi.loadExtensions)
 .then(Bibi.ready)
@@ -303,15 +310,6 @@ Bibi.hello = () => {
         }
         O.createBlobURL('Text', BookStyleCSS, 'text/css').then(BookStyleURL => {
             Bibi.BookStyleURL = BookStyleURL;
-            if(sML.UA.Trident) {
-                document.documentElement.style.display = 'none';
-                const BibiStyles = Array.prototype.map.call(document.head.querySelectorAll('#bibi-style, #bibi-dress'), _ => { _.HREF = _.getAttribute('href'), _.href = ''; return _; });
-                return setTimeout(() => {
-                    BibiStyles.forEach(_ => { _.href = _.HREF; delete _.HREF; });
-                    document.documentElement.style.display = '';
-                    resolve();
-                }, 0);
-            }
             resolve();
         });
     }));
@@ -396,9 +394,9 @@ Bibi.initialize = () => {
     { // Writing Mode, Font Size, Safe Area Size, Slider Size, Menu Height
         O.WritingModeProperty = (() => {
             const HTMLComputedStyle = getComputedStyle(O.HTML);
-            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode']) || sML.UA.Trident) return         'writing-mode';
-            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])                  ) return '-webkit-writing-mode';
-            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])                  ) return   '-epub-writing-mode';
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[        'writing-mode'])) return         'writing-mode';
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle['-webkit-writing-mode'])) return '-webkit-writing-mode';
+            if(/^(vertical|horizontal)-/.test(HTMLComputedStyle[  '-epub-writing-mode'])) return   '-epub-writing-mode';
             return undefined;
         })();
         const SC = O.Body.appendChild(sML.create('div', { id: 'bibi-style-checker' })), SCCS = getComputedStyle(SC);
@@ -428,7 +426,7 @@ Bibi.initialize = () => {
 
 
 Bibi.isCompatible = () => {
-    if(sML.UA.Trident && !(sML.UA.Trident[0] >= 7)) return false;
+    if(sML.UA.Trident || sML.UA.EdgeHTML) return false;
     return true;
 };
 
@@ -1430,7 +1428,7 @@ L.loadItem = (Item, Opt = {}) => {
             `</html>`
         ].join('\n');
         HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="bibi-default-style" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ B.Path + '/' + Item.Source.Path }" />` : ''));
-        if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
+        if(O.Local || sML.UA.LINE) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
             HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onContentLoaded(); return false; });</script>\n</head>`);
             Item.onContentLoaded = () => {
                 resolve();
@@ -1483,16 +1481,6 @@ L.postprocessItem = (Item) => {
     sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
     if(Item.Reflowable && !Item.NoAdjustment) Item.contentDocument.querySelectorAll('html, body, body>*:not(script):not(style)').forEach(Ele => Ele.style.direction = Ele.BibiDefaultDirection = getComputedStyle(Ele).direction);
     sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
-    if(sML.UA.Trident) sML.forEach(Item.Body.getElementsByTagName('svg'))(SVG => {
-        const ChildImages = SVG.getElementsByTagName('image');
-        if(ChildImages.length == 1) {
-            const ChildImage = ChildImages[0];
-            if(ChildImage.getAttribute('width') && ChildImage.getAttribute('height')) {
-                SVG.setAttribute('width',  ChildImage.getAttribute('width'));
-                SVG.setAttribute('height', ChildImage.getAttribute('height'));
-            }
-        }
-    });
     L.coordinateLinkages({ RootElement: Item.Body, BasePath: Item.Source.Path });
     const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
     if(Lv1Eles && Lv1Eles.length == 1) {
@@ -1542,22 +1530,9 @@ L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
             if(Vers[0] == 1 && Vers[1] == 1 && Vers[2] <= 3) Item.Body.style.textUnderlinePosition = 'under left';
         }
         const isStyled = RE => RE.test(CSSRule.cssText);
-        if(sML.UA.Trident) {
-            //if(B.ExtractionPolicy == 'at-once') return false;
-            const IsCJK = /^(zho?|chi|kor?|ja|jpn)$/.test(B.Language);
-            O.editCSSRules(Item.contentDocument, CSSRule => {
-                if(isStyled(/(-(epub|webkit)-)?column-count: 1; /))                        CSSRule.style.columnCount = CSSRule.style.msColumnCount = 'auto';
-                if(isStyled(/(-(epub|webkit)-)?writing-mode: vertical-rl; /))              CSSRule.style.writingMode = 'tb-rl';
-                if(isStyled(/(-(epub|webkit)-)?writing-mode: vertical-lr; /))              CSSRule.style.writingMode = 'tb-lr';
-                if(isStyled(/(-(epub|webkit)-)?writing-mode: horizontal-tb; /))            CSSRule.style.writingMode = 'lr-tb';
-                if(isStyled(/(-(epub|webkit)-)?text-combine-(upright|horizontal): all; /)) CSSRule.style.msTextCombineHorizontal = 'all';
-                if(IsCJK && isStyled(        / text-align: justify; /))                    CSSRule.style.textJustify = 'inter-ideograph';
-            });
-        } else {
-            O.editCSSRules(Item.contentDocument, CSSRule => {
-                if(isStyled(/(-(epub|webkit)-)?column-count: 1; /))                        CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = 'auto';
-            });
-        }
+        O.editCSSRules(Item.contentDocument, CSSRule => {
+            if(isStyled(/(-(epub|webkit)-)?column-count: 1; /)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = 'auto';
+        });
     }
     const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
     const ItemBodyComputedStyle = getComputedStyle(Item.Body);
@@ -1776,7 +1751,7 @@ R.renderReflowableItem = (Item) => new Promise(resolve => {
         Item.Neck.innerHTML = '';
         delete Item.Neck;
     }
-    const ReverseItemPaginationDirectionIfNecessary = !Item.NoAdjustment && !sML.UA.Trident && !sML.UA.EdgeHTML ? true : false;
+    const ReverseItemPaginationDirectionIfNecessary = !Item.NoAdjustment ? true : false;
     if(Item.Columned) {
         sML.style(Item.HTML, { 'column-width': '', 'column-gap': '', 'column-fill': '', 'column-rule': '' });
         Item.HTML.classList.remove('bibi-columned');
@@ -1893,7 +1868,6 @@ R.renderReflowableItem = (Item) => new Promise(resolve => {
     if(ItemL - ((PageCL + PageGap) * (HowManyPages - 1) - PageGap) < 5) HowManyPages--;
     ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
     Item.style[C.L_SIZE_l] = Item.HTML.style[C.L_SIZE_l] = ItemL + 'px';
-    if(sML.UA.Trident) Item.HTML.style[C.L_SIZE_l] = '100%';
     let ItemBoxB = PageCB + ItemPaddingSE;
     let ItemBoxL = ItemL  + ItemPaddingBA;// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
     Item.Box.style[C.L_SIZE_b] = ItemBoxB + 'px';
@@ -3313,7 +3287,7 @@ I.ResizeObserver = { create: () => {
                     ResizeObserver.Resizing = false;
                     ResizeObserver.TargetAfterResizing = null;
                 });
-            }, sML.UA.Trident ? 1200 : O.TouchOS ? 600 : 300);
+            }, O.TouchOS ? 600 : 300);
         },
         onResizeStart: (Eve) => {
             E.dispatch('bibi:is-going-to:resize', Eve);
@@ -4293,7 +4267,7 @@ I.Menu = { create: () => {
         const Components = [];
         if(!S['fix-reader-view-mode'] && S['available-reader-view-modes'].length > 1)                      Components.push('ViewModeSection');
         if(O.Embedded)                                                                                     Components.push('WindowSection'), Components.push('WindowSection_NewWindowButton');
-        if(O.FullscreenTarget && !O.TouchOS && !sML.UA.Trident)                                            Components.push('WindowSection'), Components.push('WindowSection_FullscreenButton');
+        if(O.FullscreenTarget && !O.TouchOS)                                                               Components.push('WindowSection'), Components.push('WindowSection_FullscreenButton');
         if(S['website-href'] && /^https?:\/\/[^\/]+/.test(S['website-href']) && S['website-name-in-menu']) Components.push('LinkageSection'), Components.push('LinkageSection_WebsiteLink');
         if(!S['remove-bibi-website-link'])                                                                 Components.push('LinkageSection'), Components.push('LinkageSection_BibiWebsiteLink');
         if(!Components.length) {
@@ -7032,8 +7006,6 @@ S.initialize = () => {
         }
     }
     // --------
-    if(sML.UA.Trident || sML.UA.EdgeHTML) S['pagination-method'] = 'auto';
-    // --------
     S.Modes = { // 'Mode': { SH: 'ShortHand', CNP: 'ClassNamePrefix' }
                'book-rendition-layout'       : { SH: 'BRL', CNP: 'book' },
                  'book-writing-mode'         : { SH: 'BWM', CNP: 'book' },
@@ -7200,9 +7172,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
         O.log.Depth = 1;
         O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
         O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
-        O.log.distill = (sML.UA.Trident || sML.UA.EdgeHTML) ?
-            (Logs, Styles) => [Logs.join(' ').replace(/%c/g, '')]               : // Ignore Styles
-            (Logs, Styles) => [Logs.join(' ')                   ].concat(Styles);
+        O.log.distill = (Logs, Styles) => [Logs.join(' ')].concat(Styles);
         O.log.log = (Method, Logs, Styles, Obj) => {
             const Args = O.log.distill(Logs, Styles);
             if(Obj) Args.push(Obj);
@@ -7495,17 +7465,6 @@ O.preprocess = (Source) => {
                     RRs.push([/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2']);
                     RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
                     return this;
-                }
-                if(sML.UA.EdgeHTML) {
-                    RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, 'text-combine-horizontal: $2; text-combine-upright: $2$3']);
-                    RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-horizontal: all; text-combine-upright: all$1']);
-                }
-                if(sML.UA.Trident) {
-                    RRs.push([/writing-mode\s*:\s*vertical-rl\s*([;\}])/gm,   'writing-mode: tb-rl$1']);
-                    RRs.push([/writing-mode\s*:\s*vertical-lr\s*([;\}])/gm,   'writing-mode: tb-lr$1']);
-                    RRs.push([/writing-mode\s*:\s*horizontal-tb\s*([;\}])/gm, 'writing-mode: lr-tb$1']);
-                    RRs.push([/text-combine-(upright|horizontal)\s*:\s*([^;\}\s]+)\s*([;\}])/gm, '-ms-text-combine-horizontal: $2$3']);
-                    RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, '-ms-text-combine-horizontal: all$1']);
                 }
                 if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
                     RRs.push([/text-align\s*:\s*justify\s*([;\}])/gm, 'text-align: justify; text-justify: inter-ideograph$1']);
@@ -7957,7 +7916,6 @@ E.initialize = () => {
     E.CPO_010 = { capture: false, passive:  true, once: false };
     E.CPO_100 = { capture:  true, passive: false, once: false };
     E.CPO_110 = { capture:  true, passive:  true, once: false };
-    if(sML.UA.Trident) E.CPO_000 = E.CPO_010 = false, E.CPO_100 = E.CPO_110 = true;
     E.stopPropagation = (Eve) => Eve.stopPropagation();
     E.preventDefault  = (Eve) => Eve.preventDefault();
     //sML.applyRtL(E, new sML.CustomEvents('bibi'));

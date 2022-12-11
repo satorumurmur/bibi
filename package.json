@@ -38,9 +38,6 @@
     "start": "npm run develop+watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.2",
-    "@babel/preset-env": "^7.18.2",
-    "babel-loader": "^8.2.5",
     "bibi.plays": "file:bibi.plays",
     "browser-sync": "^2.27.10",
     "browser-sync-webpack-plugin": "^2.3.0",
@@ -63,27 +60,17 @@
   },
   "dependencies": {
     "bibi-zip-loader": "^0.9.0",
-    "classlist-polyfill": "^1.2.0",
-    "current-script-polyfill": "^1.0.0",
-    "custom-event-polyfill": "^1.0.7",
     "dompurify": "^2.3.8",
-    "es6-object-assign": "^1.1.0",
-    "intersection-observer": "^0.12.0",
     "js-yaml": "^4.1.0",
     "jszip": "^3.10.0",
     "jszip-utils": "^0.1.0",
     "material-icons": "^1.11.1",
-    "native-promise-only": "^0.8.1",
     "nosleep.js": "^0.12.0",
-    "polyfill-array-includes": "^2.0.0",
-    "sml.js": "^1.0.34",
-    "string.padstart": "^0.1.1",
-    "text-encoding-utf-8": "^1.0.2",
-    "url-polyfill": "^1.1.12"
+    "sml.js": "^1.0.34"
   },
   "browserslist": [
-    "defaults",
-    "ie 11"
+    "last 3 major versions",
+    "not dead"
   ],
   "volta": {
     "node": "18.1.0"
