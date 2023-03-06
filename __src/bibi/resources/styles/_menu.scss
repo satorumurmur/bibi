@@ -182,17 +182,17 @@ div#bibi-menu-r, .bibi-extramenu-r {
 div#bibi-menu-l,
 div#bibi-menu-r {
 	ul {
-		&, &.sticky { opacity: 0; }
-		html.waiting & {
-			&, &.sticky { opacity: 1; }
-		}
+		opacity: 0;
+		html.waiting &,
 		div#bibi-menu.hover &,
-		//div#bibi-menu.hot &,
+		// div#bibi-menu.hot &,
 		html.menu-opened &,
 		html.panel-opened &,
 		html.subpanel-opened &,
-		html:not(.book-full-height) & {
-			&, &.sticky { opacity: 1; }
+		html:not(.book-full-height) &,
+		html[data-intro-within~="6"] &.lively,
+		html:not([data-keeping-calm~="3"]) &.lively {
+			opacity: 1;
 		}
 	}
 }

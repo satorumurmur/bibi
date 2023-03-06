@@ -4293,7 +4293,7 @@ I.Menu = { create: () => {
             return;
         }
         const Config = Menu.Config = sML.applyRtL(I.createSubpanel({ id: 'bibi-subpanel_config' }), Menu.Config); delete Config.create;
-        const Opener = Config.bindOpener(Menu.R.addButtonGroup({ Sticky: true }).addButton({
+        const Opener = Config.bindOpener(Menu.R.addButtonGroup(/* { Lively: true } */).addButton({
             Type: 'toggle',
             Labels: {
                 default: { default: `Configure Setting`,            ja: `設定を変更` },
@@ -4438,7 +4438,7 @@ I.Panel = { create: () => {
     Panel.BookInfo            = Panel.appendChild(               sML.create('div', { id: 'bibi-panel-bookinfo'            }));
     Panel.BookInfo.Cover      = Panel.BookInfo.appendChild(      sML.create('div', { id: 'bibi-panel-bookinfo-cover'      }));
     Panel.BookInfo.Cover.Info = Panel.BookInfo.Cover.appendChild(sML.create('p',   { id: 'bibi-panel-bookinfo-cover-info' }));
-    const Opener = Panel.Opener = I.Menu.L.addButtonGroup({ Sticky: true }).addButton({
+    const Opener = Panel.Opener = I.Menu.L.addButtonGroup(/* { Lively: true } */).addButton({
         Type: 'toggle',
         Labels: {
             default: { default: `Open Index`,  ja: `目次を開く`   },
@@ -4584,7 +4584,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             } // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         },
         createSubpanel: () => TextSetter.Subpanel = I.createSubpanel({ id: 'bibi-subpanel_textsetter',
-            Opener: I.Menu.R.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_textsetter' }).addButton({
+            Opener: I.Menu.R.addButtonGroup({/* Lively: true, */ id: 'bibi-buttongroup_textsetter' }).addButton({
                 Type: 'toggle',
                 Labels: {
                     default: { default: `Change Text Setting`,     ja: `テキスト表示を調整` },
@@ -5101,7 +5101,7 @@ I.Loupe = { create: () => {
     E.add('bibi:changed-view',  () => Loupe.transformToDefault());
     if(S['use-loupe-ui']) E.bind('bibi:loaded-book', () => {
         const ButtonGroup = I.Menu.R.addButtonGroup({
-            Sticky: true,
+            // Lively: true,
             Type: 'Tiled',
             id: 'bibi-buttongroup_loupe',
             Buttons: [{
@@ -5411,7 +5411,7 @@ I.BookmarkManager = { create: () => { if(!S['use-bookmarks']) return;
         initialize: () => {
             if(S['use-bookmark-ui']) {
                 BookmarkManager.Subpanel = I.createSubpanel({
-                    Opener: I.Menu.L.addButtonGroup({ Sticky: true, id: 'bibi-buttongroup_bookmarks' }).addButton({
+                    Opener: I.Menu.L.addButtonGroup({/* Lively: true, */ id: 'bibi-buttongroup_bookmarks' }).addButton({
                         Type: 'toggle',
                         Labels: {
                             default: { default: `Manage Bookmarks`,     ja: `しおりメニューを開く` },
@@ -6453,7 +6453,7 @@ I.createButtonGroup = (Par = {}) => {
     } else if(Par.Type == 'Tiled' || Par.Tiled) {
         ClassNames.push(CommonClassName + '-tiled');
     }
-    if(Par.Sticky) ClassNames.push('sticky');
+    if(Par.Lively) ClassNames.push('lively');
     if(typeof Par.className == 'string' && Par.className) ClassNames.push(Par.className);
     Par.className = ClassNames.join(' ');
     if(typeof Par.id != 'string' || !Par.id) delete Par.id;
