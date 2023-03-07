@@ -52,7 +52,7 @@ Bibi.x({
             const Item = Manifest.appendChild(document.createElementNS(NS.OPF, 'item'));
             Item.setAttribute('id', Pro + '-item');
             Item.setAttribute('properties', Pro);
-            Item.setAttribute('media-type', O.getContentType(YAML[Pro]));
+            Item.setAttribute('media-type', O.getMediaType(YAML[Pro]));
             Item.setAttribute('href', YAML[Pro]);
         });
         const Spine = Package.appendChild(document.createElementNS(NS.OPF, 'spine'));
@@ -63,7 +63,7 @@ Bibi.x({
             const [Href, PageSpread] = ItemRefData.trim().replace(/\s+/, ' ').split(' ');
             const Item = Manifest.appendChild(document.createElementNS(NS.OPF, 'item'));
             Item.setAttribute('id', ID);
-            Item.setAttribute('media-type', O.getContentType(Href));
+            Item.setAttribute('media-type', O.getMediaType(Href));
             Item.setAttribute('href', Href);
             const ItemRef = Spine.appendChild(document.createElementNS(NS.OPF, 'itemref'));
             ItemRef.setAttribute('idref', ID);

@@ -2493,7 +2493,7 @@ R.getPageImageURL = (_, Opt) => new Promise((resolve, reject) => {
         for(let l = ImageElements.length, i = 0; i < l; i++) { const ImageElement = ImageElements[i];
             const ImagePath = resolvePath(ImageElement, 'data-href');
             if(!ImagePath) return reject('');
-            const MediaType = !B.ExtractionPolicy ? O.getContentType(ImagePath) : (() => { const BPM = B.Package.Manifest; for(const _ in BPM) { if(BPM[_].URI == ImagePath) return BPM[_]['media-type']; } return ''; })();
+            const MediaType = !B.ExtractionPolicy ? O.getMediaType(ImagePath) : (() => { const BPM = B.Package.Manifest; for(const _ in BPM) { if(BPM[_].URI == ImagePath) return BPM[_]['media-type']; } return ''; })();
             if(!MediaType) return reject('');
             ImageElement.removeAttribute('data-href');
             Promises.push(O.request({ URI: ImagePath, ResponseType: 'blob' }).then(XHR => O.createDataURL('Blob', XHR.response, MediaType)).then(DataURL => ImageElement.setAttribute('xlink:href', DataURL)));
@@ -7227,7 +7227,7 @@ O.isToBeExtractedIfNecessary = (Path) => {
 
 O.src = (Source) => {
     if(!B.Package.Manifest[Source.Path]) B.Package.Manifest[Source.Path] = Source;
-    if(!Source['media-type']) Source['media-type'] = O.getContentType(Source.Path);
+    if(!Source['media-type']) Source['media-type'] = O.getMediaType(Source.Path);
     return B.Package.Manifest[Source.Path];
 };
 
@@ -7337,7 +7337,7 @@ O.createBlobURL = (DT, CB, MT) => Promise.resolve(URL.createObjectURL(DT == 'Tex
 O.createDataURL = (DT, CB, MT) => new Promise((o, x) => DT == 'Text' ? o(`data:` + MT + `;base64,` + btoa(String.fromCharCode.apply(null, new TextEncoder().encode(CB)))) : (_ => { _.onload = () => o(_.result); _.onerror = x; _.readAsDataURL(CB); })(new FileReader()));
 
 
-O.ContentTypes = {
+O.MediaTypes = {
     'pdf'     : 'application/pdf',
     'ya?ml'   : 'application/x-yaml',
     'xht(ml)?': 'application/xhtml+xml',
@@ -7360,8 +7360,8 @@ O.ContentTypes = {
     'webm'    :       'video/webm'
 };
 
-O.getContentType = (FileName) => {
-    for(const Ext in O.ContentTypes) if(new RegExp('\\.' + Ext + '$').test(FileName)) return O.ContentTypes[Ext];
+O.getMediaType = (FileName) => {
+    for(const Ext in O.MediaTypes) if(new RegExp('\\.' + Ext + '$').test(FileName)) return O.MediaTypes[Ext];
     return null;
 };
 
