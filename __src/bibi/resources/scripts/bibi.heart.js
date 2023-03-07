@@ -1016,6 +1016,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
             const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true', /*TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },*/
                 IsItem: true,
                 Source: Source,
+                Type: O.getItemType(Source['media-type']),
                 AnchorPath: Source.Path,
                 FallbackChain: [],
                 Scale: 1,
@@ -1345,7 +1346,7 @@ L.loadItem = (Item, Opt = {}) => {
         : Item.ContentURL ? Promise.resolve()
         : S['allow-external-item-href'] && Item.Source.External ? // Online Resource
             Promise.resolve(Object.assign(Item, { ContentURL: Item.Source.Path }).ContentURL)
-        : /\.(html?|xht(ml)?|xml)$/i.test(Item.Source.Path) ? // (X)HTML
+        : Item.Type == 'MarkupDocument' ?
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize: () => {
@@ -1366,7 +1367,7 @@ L.loadItem = (Item, Opt = {}) => {
                 if(Item.PrePaginated && !Item.Viewport) Item.Viewport = O.getViewportByMetaContent(new DOMParser().parseFromString(ItemSource.Content.replace(/<body(>|\s)(.|\s)*?<\/body>/, '<body></body>'), ItemSource['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content'));
                 return ItemSource.Content;
             })
-        : /\.(svg)$/i.test(Item.Source.Path) ? // SVG-in-Spine
+        : Item.Type == 'SVG' ?
             O.file(Item.Source, {
                 Preprocess: (B.ExtractionPolicy ? true : false),
                 initialize: () => {
@@ -1383,7 +1384,7 @@ L.loadItem = (Item, Opt = {}) => {
                 if(Item.Viewport) Headers.unshift(`<meta name="viewport" content="width=${ Item.Viewport.Width }, height=${ Item.Viewport.Height }" />`);
                 return [Headers.join('\n'), BodyContent];
             })
-        : /\.(gif|jpe?g|png|webp)$/i.test(Item.Source.Path) ? // Bitmap-in-Spine
+        : Item.Type == 'BitmapImage' ?
             O.file(Item.Source, {
                 URI: true,
                 initialize: () => {
@@ -7364,6 +7365,12 @@ O.getMediaType = (FileName) => {
     for(const Ext in O.MediaTypes) if(new RegExp('\\.' + Ext + '$').test(FileName)) return O.MediaTypes[Ext];
     return null;
 };
+
+O.getItemType = (MediaType) => { switch(MediaType?.replace?.(/^([^\/]+\/)?([^\+]*)(\+.+)?$/, '$2')) {
+    case 'html': case 'xhtml': case 'xml':            return 'MarkupDocument';
+    case 'svg':                                       return 'SVG';
+    case 'gif': case 'jpeg': case 'png': case 'webp': return 'BitmapImage';
+} return ''; };
 
 
 O.preprocess = (Source) => {
