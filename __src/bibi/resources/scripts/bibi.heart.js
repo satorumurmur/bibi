@@ -2855,7 +2855,7 @@ I.initialize = () => {
         I.WheelObserver.create();
         I.PinchObserver.create();
         I.KeyObserver.create();
-        I.Matrix.create();
+        I.Tracer.create();
         I.Nombre.create();
         I.Slider.create();
         I.Flipper.create();
@@ -3927,8 +3927,8 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
 }};
 
 
-I.Matrix = { create: () => {
-    const Matrix = I.Matrix = {
+I.Tracer = { create: () => {
+    const Tracer = I.Tracer = {
         checkSelectionStatus: (BibiEvent) => {
             if(I.RangeFinder.Selecting) return false;
             if(BibiEvent.RangeOfSelection) {
@@ -3976,7 +3976,7 @@ I.Matrix = { create: () => {
             if(I.isPointerStealth()) return false;
             if(EN != 'bibi:tapped' && I.OpenedSubpanel) return I.OpenedSubpanel.close() && false;
             if(!L.Opened) return false;
-            if(!Matrix.checkTapAvailability(BibiEvent)) return false;
+            if(!Tracer.checkTapAvailability(BibiEvent)) return false;
             E.dispatch(EN + '-book', BibiEvent); // 'bibi:tapped-book', 'bibi:singletapped-book', 'bibi:doubletapped-book', 'bibi:tripletapped-book'
         })
     });
@@ -3984,10 +3984,10 @@ I.Matrix = { create: () => {
         E.add('bibi:opened', () => {
             E.add('bibi:singletapped-book', BibiEvent => {
                 if(I.isPointerStealth()) return;
-                if(!Matrix.checkSelectionStatus(BibiEvent)) return;
+                if(!Tracer.checkSelectionStatus(BibiEvent)) return;
                 if(BibiEvent.Division.X == 'center' && BibiEvent.Division.Y == 'middle') return I.Utilities.toggleGracefuly();
-                if(Matrix.checkFlipperAvailability(BibiEvent)) {
-                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
+                if(Tracer.checkFlipperAvailability(BibiEvent)) {
+                    const Dir = Tracer.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
                             I.Flipper.flip(Dist, { Duration: BibiEvent.Staccato > 1 ? 0 : null });
@@ -4007,11 +4007,11 @@ I.Matrix = { create: () => {
         E.add('bibi:opened', () => {
             E.add('bibi:moved-pointer', BibiEvent => {
                 if(I.isPointerStealth()) return;
-                if(Matrix.checkSelectionStatus(BibiEvent) && Matrix.checkFlipperAvailability(BibiEvent)) {
-                    const Dir = Matrix.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
+                if(Tracer.checkSelectionStatus(BibiEvent) && Tracer.checkFlipperAvailability(BibiEvent)) {
+                    const Dir = Tracer.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
-                            Matrix.Hovering = true;
+                            Tracer.Hovering = true;
                             if(I.Arrows) {
                                 let Arrow = I.Arrows[Dist]; if(S['indicate-orthogonal-arrows-if-necessary'] && (
                                     (/^(left|right)$/.test(Dir) && S.ARA == 'vertical') ||
@@ -4021,18 +4021,18 @@ I.Matrix = { create: () => {
                                 E.dispatch(Arrow,                                   'bibi:hovered',   BibiEvent);
                             }
                             const HoveringHTML = BibiEvent.target.ownerDocument.documentElement;
-                            if(Matrix.HoveringHTML != HoveringHTML) {
-                                if(Matrix.HoveringHTML) Matrix.HoveringHTML.removeAttribute('data-bibi-cursor');
-                                (Matrix.HoveringHTML = HoveringHTML).setAttribute('data-bibi-cursor', Dir);
+                            if(Tracer.HoveringHTML != HoveringHTML) {
+                                if(Tracer.HoveringHTML) Tracer.HoveringHTML.removeAttribute('data-bibi-cursor');
+                                (Tracer.HoveringHTML = HoveringHTML).setAttribute('data-bibi-cursor', Dir);
                             }
                             return;
                         }
                     }
                 }
-                if(Matrix.Hovering) {
-                    Matrix.Hovering = false;
+                if(Tracer.Hovering) {
+                    Tracer.Hovering = false;
                     if(I.Arrows) E.dispatch(I.Arrows.All, 'bibi:unhovered', BibiEvent);
-                    if(Matrix.HoveringHTML) Matrix.HoveringHTML.removeAttribute('data-bibi-cursor'), Matrix.HoveringHTML = null;
+                    if(Tracer.HoveringHTML) Tracer.HoveringHTML.removeAttribute('data-bibi-cursor'), Tracer.HoveringHTML = null;
                 }
             });
             sML.forEach(O.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault));
@@ -4046,7 +4046,7 @@ I.Matrix = { create: () => {
             sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault))
         });
     }
-    E.dispatch('bibi:created-boundary-observer');
+    E.dispatch('bibi:created-tracer');
 }};
 
 
