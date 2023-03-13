@@ -4046,6 +4046,16 @@ I.Tracer = { create: () => {
             sML.forEach(Item.Body.querySelectorAll('img'))(Img => Img.addEventListener(E['pointerdown'], O.preventDefault))
         });
     }
+    const Seconds = [0,1,2,3,4,5,6,7,8,9];
+    E.add('bibi:opened', () => {
+        Seconds.forEach(Sec => setTimeout(() => O.HTML.setAttribute('data-intro-within', Seconds.slice(Sec + 1, Seconds.length).reverse().join(' ')), Sec * 1000));
+        (Tracer.gaze = () => Seconds.forEach(Sec => {
+            const TimerName = 'Timer_gaze_' + Sec;
+            clearTimeout(Tracer[TimerName]);
+            Tracer[TimerName] = setTimeout(() => O.HTML.setAttribute('data-keeping-calm', Seconds.slice(1, Sec + 1).join(' ')), Sec * 1000);
+        }))();
+        E.add(['bibi:moved-pointer', 'bibi:downed-pointer', 'bibi:touched-key'], Tracer.gaze);
+    });
     E.dispatch('bibi:created-tracer');
 }};
 
