@@ -7285,14 +7285,15 @@ O.extract = (Source) => {
     }).catch(Err => {
         delete Source.Retlieving;
         return Promise.reject(
-                  /404/.test(Err) ? Bibi.ErrorMessages.NotFound :
-              /aborted/.test(Err) ? Bibi.ErrorMessages.Canceled :
+            O.extract.UseErrorAsIsOnRejection ?                Err :
+                  /404/.test(Err) ? Bibi.ErrorMessages.NotFound    :
+              /aborted/.test(Err) ? Bibi.ErrorMessages.Canceled    :
                 /fetch/.test(Err) ? Bibi.ErrorMessages.CORSBlocked :
             /not found/.test(Err) ? Bibi.ErrorMessages.DataInvalid :
-              /invalid/.test(Err) ? Bibi.ErrorMessages.DataInvalid :
-        Err);
+              /invalid/.test(Err) ? Bibi.ErrorMessages.DataInvalid : Err
+        );
     });
-};
+};          O.extract.UseErrorAsIsOnRejection = false;
 
 O.request = (Opt) => {
     if(!Opt || typeof Opt != 'object' || !Opt.URI) return Promise.reject();
