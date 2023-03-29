@@ -73,6 +73,8 @@ Bibi.preset({
 "use-history-ui"             : "yes", // "yes" | "no" | "desktop" | "mobile". // History UI button requires the Slider UI. If "use-slider" is interpreted as "no", "use-history-ui" is always treated as "no".
 "max-histories"              : 19, // Number (0-19) // If larger than 19, treated as 19. If 0, "use-history-ui" and "use-histories" are treated as "no".
 
+"use-axis-switcher-ui"       : "yes", // "yes" | "no" | "desktop" | "mobile"
+
 "orientation-border-ratio"   : 1 * 2 / 1.5, // Number (Width per Height)
 
 "ui-font-family"             : "", // CSS font-family value as "'Helvetica', sans-serif"

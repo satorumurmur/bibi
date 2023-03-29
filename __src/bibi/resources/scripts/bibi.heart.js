@@ -27,6 +27,7 @@ Bibi.SettingTypes = {
         'full-breadth-layout-in-scroll',
         'start-embedded-in-new-window',
         'use-arrows',
+        'use-axis-switcher-ui',
         'use-bookmark-ui',
         'use-flowdirection-setter',
         'use-fontsize-setter',
@@ -6384,15 +6385,22 @@ I.Arrows = { create: () => { if(!S['use-arrows']) return I.Arrows = null;
 
 
 I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSwitcher = null;
-    const AxisSwitcher = O.Body.appendChild(sML.create('div', { id: 'bibi-axis-switcher' }));
-    const Circle = AxisSwitcher.appendChild(sML.create('span')), CW = parseFloat(getComputedStyle(Circle).borderWidth); sML.CSS.appendRule('div#bibi-axis-switcher > span:first-child', 'border-width: 0;');
-    const Arrows = AxisSwitcher.appendChild(sML.create('span'));
-    const _t = (_P, _VR, _RR, _ep) => _P < _RR[0] ? _VR[0] : _P > _RR[1] ? _VR[1] : _VR[0] + (_VR[1] - _VR[0]) * Math.pow(_ep[0]((_P - _RR[0]) / (_RR[1] - _RR[0])), _ep[1]);
+    const UseUI = S['use-axis-switcher-ui'];
+    let AxisSwitcher, Circle, Arrows, CW, _t;
+    if(UseUI) {
+        AxisSwitcher = O.Body.appendChild(sML.create('div', { id: 'bibi-axis-switcher' }));
+        Circle = AxisSwitcher.appendChild(sML.create('span')), CW = parseFloat(getComputedStyle(Circle).borderWidth); sML.CSS.appendRule('div#bibi-axis-switcher > span:first-child', 'border-width: 0;');
+        Arrows = AxisSwitcher.appendChild(sML.create('span'));
+        _t = (_P, _VR, _RR, _ep) => _P < _RR[0] ? _VR[0] : _P > _RR[1] ? _VR[1] : _VR[0] + (_VR[1] - _VR[0]) * Math.pow(_ep[0]((_P - _RR[0]) / (_RR[1] - _RR[0])), _ep[1]);
+    } else {
+        AxisSwitcher = {};
+    }
     I.AxisSwitcher = Object.assign(AxisSwitcher, {
         progress: (_R) => {
             AxisSwitcher.InProgress = true;
             const _P = sML.limitMinMax(Math.abs(_R), 0, 1);
             E.dispatch('bibi:progresses-axis-switcher', _P);
+            if(!UseUI) return;
             AxisSwitcher.style.transform   =  'scale(' + _t(_P, [    .4,  1                    ], [.4,  1], [sML.Easing.easeOutBack,   4])    + ')';
             AxisSwitcher.style.opacity     =             _t(_P, [     0,  1                    ], [.4,  1], [sML.Easing.easeOutCirc,   1])         ;
                   Circle.style.borderWidth =             _t(_P, [CW / 4, CW                    ], [.4, .8], [sML.Easing.easeOutBack,   4])   + 'px';
@@ -6405,6 +6413,7 @@ I.AxisSwitcher = { create: () => { if(S['fix-reader-view-mode']) return I.AxisSw
                 AxisSwitcher.InProgress = false;
                 E.dispatch('bibi:cancelled-axis-switcher');
             }
+            if(!UseUI) return;
             AxisSwitcher.style.transition = '.1s ease-out';
             setTimeout(() => AxisSwitcher.style.opacity = AxisSwitcher.style.transform = '', 0);
             setTimeout(() => AxisSwitcher.style.transition = Circle.style.borderWidth = Circle.style.opacity = Arrows.style.transform = Arrows.style.opacity = '', 111);
