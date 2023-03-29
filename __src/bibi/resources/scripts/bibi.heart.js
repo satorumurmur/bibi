@@ -7268,7 +7268,9 @@ O.RangeLoader = null;
 
 O.cancelExtraction = (Source) => {
     if(Source.Resources) Source.Resources.forEach(Res => Res.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Res.Path));
-    return Source.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Source.Path);
+    const Result = Source.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Source.Path);
+    E.dispatch('bibi:canceled-extraction', Source);
+    return Result;
 };
 
 O.extract = (Source) => { 
