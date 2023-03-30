@@ -442,33 +442,35 @@ Bibi.byebye = () => {
 
 
 Bibi.loadExtensions = () => {
-    return new Promise((resolve, reject) => {
-        const AdditionalExtensions = [];
-        if(!S['allow-scripts-in-content']) AdditionalExtensions.push('sanitizer.js');
-        let ReadyForExtraction = false, ReadyForBibiZine = false;
-        if(S['book']) {
-            if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
-            if(S['zine'])                               ReadyForBibiZine   = true;
-        } else {
-            if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
-        }
-        if(ReadyForBibiZine) AdditionalExtensions.unshift('zine.js');
-        (ReadyForExtraction ? (S['book'] ? O.tryRangeRequest(S['book']).then(() => 'on-the-fly') : Promise.reject()).catch(() => 'at-once').then(_ => AdditionalExtensions.unshift('extractor/' + _ + '.js')) : Promise.resolve()).then(() => {
-            if(AdditionalExtensions.length) AdditionalExtensions.forEach(AX => S['extensions'].unshift({ 'src': new URL('../../extensions/' + AX, Bibi.Script.src).href }));
-            if(S['extensions'].length == 0) return reject();
-            O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
-            const loadExtensionInPreset = (i) => {
-                X.load(S['extensions'][i]).then(Msg => {
-                    //O.log(Msg);
-                }).catch(Msg => {
-                    O.log(Msg);
-                }).then(() => {
-                    S['extensions'][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
-                });
-            };
-            loadExtensionInPreset(0);
-        });
-    }).then(() => {
+    const SystemExtensions = [];
+    const extension = XP => ({ 'src': new URL('../../extensions/' + XP, Bibi.Script.src).href });
+    let ReadyForExtraction = false, ReadyForBibiZine = false;
+    if(S['book']) {
+        if(O.isToBeExtractedIfNecessary(S['book'])) ReadyForExtraction = true;
+        if(S['zine'])                               ReadyForBibiZine   = true;
+    } else {
+        if(S['accept-local-file'] || S['accept-blob-converted-data']) ReadyForExtraction = ReadyForBibiZine = true;
+    }
+    return Promise.resolve().then(() => {
+        if(!ReadyForExtraction) return X.Extractor = null;
+        if(!X.Extractor) return (S['book'] ? O.tryRangeRequest(S['book']).then(() => 'on-the-fly') : Promise.reject()).catch(() => 'at-once').then(_ => SystemExtensions.push(X.Extractor = extension('extractor/' + _ + '.js')))
+    }).then(() => new Promise((resolve, reject) => {
+        if(ReadyForBibiZine) SystemExtensions.push(extension('zine.js'));
+        if(!S['allow-scripts-in-content']) SystemExtensions.push(extension('sanitizer.js'));
+        if(SystemExtensions.length) SystemExtensions.reverse().forEach(SX => S['extensions'].unshift(SX));
+        if(S['extensions'].length == 0) return reject();
+        O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
+        const loadExtensionInPreset = (i) => {
+            X.load(S['extensions'][i]).then(Msg => {
+                //O.log(Msg);
+            }).catch(Msg => {
+                O.log(Msg);
+            }).then(() => {
+                S['extensions'][i + 1] ? loadExtensionInPreset(i + 1) : resolve();
+            });
+        };
+        loadExtensionInPreset(0);
+    })).then(() => {
         O.log(`Extensions: %O`, X.Extensions);
         O.log(X.Extensions.length ? `Loaded. (${ X.Extensions.length } Extension${ X.Extensions.length > 1 ? 's' : '' })` : `No Extension.`, '</g>')
     }).catch(() => false);
@@ -6798,6 +6800,10 @@ P.initialize = () => {
                 const SoA = Xtn['-spell-of-activation-'];
                 if(!SoA || !/^[a-zA-Z0-9_\-]+$/.test(SoA) || !U.Query.hasOwnProperty(SoA)) return false;
             }
+            if(Xtn.hasOwnProperty('-extract-')) {
+                const Extract = Xtn['-extract-'] = Bibi.verifySettingValue('array', 'extract-if-necessary', Xtn['-extract-']);
+                if(Extract) X.Extractor = Xtn, P['extract-if-necessary'] = Extract;
+            }
             if(!Xtn || !Xtn['src'] || typeof Xtn['src'] != 'string') return false;
             return (Xtn['src'] = new URL(Xtn['src'], P.Script.src).href);
         });
@@ -8092,7 +8098,11 @@ X.load = (Xtn) => new Promise((resolve, reject) => {
     if(!Xtn['src'] || typeof Xtn['src'] != 'string') return reject(`"path" of the Extension Seems to Be Invalid. ("${ Xtn['src'] }")`);
     const XO = new URL(Xtn['src']).origin;
     if(!S['trustworthy-origins'].includes(XO)) return reject(`The Origin Is Not Allowed. ("${ Xtn['src'] }")`);
-    Xtn.Script = document.head.appendChild(sML.create('script', { className: 'bibi-extension-script', src: Xtn['src'], Extension: Xtn, resolve: resolve, reject: function() { reject(); document.head.removeChild(this); } }));
+    Xtn.Script = document.head.appendChild(sML.create('script', { className: 'bibi-extension-script', src: Xtn['src'],
+        Extension: Xtn,
+        resolve: function() { resolve(Xtn); },
+        reject: function() { reject(); document.head.removeChild(this); }
+    }));
 });
 
 X.add = (XMeta, InitialX) => {
@@ -8102,11 +8112,11 @@ X.add = (XMeta, InitialX) => {
     if(!XMeta['id'])                      return XScript.reject(`"id" of the extension is blank.`);
     if(X[XMeta['id']])                    return XScript.reject(`"id" of the extension is reserved or already used by another. ("${ XMeta['id'] }")`);
     XScript.setAttribute('data-bibi-extension-id', XMeta['id']);
-    const Xtn = X[XMeta['id']] = XScript.Extension = sML.applyRtL(XMeta, XScript.Extension);
+    const Xtn = X[XMeta['id']] = Object.assign(XScript.Extension, XMeta);
     Xtn.Index = X.Extensions.length;
     X.Extensions.push(Xtn);
-    const PromiseX = typeof InitialX == 'function' ? InitialX(Xtn) : InitialX;
-    (PromiseX instanceof Promise ? PromiseX : Promise.resolve()).then(() => XScript.resolve(Xtn));
+    const PromiseX = typeof InitialX == 'function' ? InitialX.call(Xtn, Xtn) : InitialX;
+    (PromiseX instanceof Promise ? PromiseX : Promise.resolve()).then(() => XScript.resolve());
     return function(onR) {         if(Xtn && typeof onR == 'function') E.bind('bibi:readied',  () => onR.call(Xtn, Xtn));
         return function(onP) {     if(Xtn && typeof onP == 'function') E.bind('bibi:prepared', () => onP.call(Xtn, Xtn));
             return function(onO) { if(Xtn && typeof onO == 'function') E.bind('bibi:opened',   () => onO.call(Xtn, Xtn)); }; }; };
