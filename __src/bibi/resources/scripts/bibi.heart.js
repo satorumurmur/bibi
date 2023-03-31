@@ -531,7 +531,7 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     } else {
         O.log(`Will Be Created. (w/o Image)`, '</g>');
     }
-    return L.createCover(); // ← loading is async
+    /*return*/ L.createCover(); // ← loading is async
 }).then(() => {
     // Load Navigation
     if(!B.Nav.Source) return O.log(`No Navigation.`)
@@ -1140,36 +1140,41 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
 
 
 L.createCover = () => {
+    if(L.createCover.Not) return Promise.resolve();
     const VCover = I.Veil.Cover, PCover = I.Panel.BookInfo.Cover;
-    VCover.Info.innerHTML = PCover.Info.innerHTML = (() => {
-        const BookID = [];
-        if(B.Title)     BookID.push(`<strong>${ L.createCover.optimizeString(B.Title)     }</strong>`);
-        if(B.Creator)   BookID.push(    `<em>${ L.createCover.optimizeString(B.Creator)   }</em>`    );
-        if(B.Publisher) BookID.push(  `<span>${ L.createCover.optimizeString(B.Publisher) }</span>`  );
-        return BookID.join(' ');
-    })();
-    return Promise.resolve(new Promise((resolve, reject) => {
-        if(!B.CoverImage.Source || !B.CoverImage.Source.Path) return reject();
-        let TimedOut = false;
-        const TimerID = setTimeout(() => { TimedOut = true; reject(); }, 5000);
-        O.file(B.CoverImage.Source, { URI: true }).then(Item => {
-            if(!TimedOut) resolve(Item.URI);
-        }).catch(() => {
-            if(!TimedOut) reject();
-        }).then(() => clearTimeout(TimerID));
-    }).then(ImageURI => {
-        VCover.className = PCover.className = 'with-cover-image';
-        sML.style(VCover, { 'background-image': 'url(' + ImageURI + ')' });
-        PCover.insertBefore(sML.create('img', { src: ImageURI }), PCover.Info);
-    }).catch(() => {
+    VCover.Info.innerHTML = PCover.Info.innerHTML = [
+        [B.Title,   'strong'],
+        [B.Creator,     'em'],
+        [B.Publisher, 'span']
+    ].map(BookMetaAndTagName => {
+        const [BookMeta, TagName] = BookMetaAndTagName;
+        return BookMeta ? `<` + TagName + `><span>` + BookMeta.replace(/([ 　・／]+)/g, '</span><span>$1') + `</span></` + TagName + `>` : '';
+    }).filter(TaggedBookMeta => TaggedBookMeta).join(' ');
+    let VCoverIcon = null, PCoverIcon = null, AltShown = false;
+    const TimerID_showAlt = setTimeout(() => {
+        VCoverIcon = VCover.insertBefore(I.getBookIcon(), VCover.Info);
+        PCoverIcon = PCover.insertBefore(I.getBookIcon(), PCover.Info);
         VCover.className = PCover.className = 'without-cover-image';
-        VCover.insertBefore(I.getBookIcon(), VCover.Info);
-        PCover.insertBefore(I.getBookIcon(), PCover.Info);
-    }));
+        AltShown = true;
+    }, 999);
+    return new Promise((resolve, reject) => {
+        if(!B.CoverImage.Source || !B.CoverImage.Source.Path) return reject();
+        O.file(B.CoverImage.Source, { URI: true }).then(resolve).catch(reject);
+    }).then(CoverImageSource => {
+        clearTimeout(TimerID_showAlt);
+        if(AltShown) {
+            VCover.className = PCover.className = '';
+            VCoverIcon.remove(), PCoverIcon.remove();
+        }
+        const CoverImageURI = CoverImageSource.URI;
+        sML.style(VCover, { 'background-image': 'url(' + CoverImageURI + ')' });
+        PCover.insertBefore(sML.create('img', { src: CoverImageURI }), PCover.Info);
+        VCover.className = PCover.className = 'with-cover-image';
+    }).catch(() => {
+        // (do nothing)
+    });
 };
-    L.createCover.optimizeString = (Str) => `<span>` + Str.replace(
-        /([ 　・／]+)/g, '</span><span>$1'
-    ) + `</span>`;
+    L.createCover.Not = false;
 
 
 L.loadNavigation = () => O.openDocument(B.Nav.Source).then(Doc => {
