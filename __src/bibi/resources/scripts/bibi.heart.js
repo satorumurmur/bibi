@@ -322,7 +322,7 @@ Bibi.hello = () => {
 };
 
 
-Bibi.initialize = () => {
+Bibi.initialize = async () => {
     { // Path / URI
         O.Origin = location.origin || (location.protocol + '//' + (location.host || (location.hostname + (location.port ? ':' + location.port : ''))));
         O.Local = location.protocol == 'file:';
@@ -386,6 +386,12 @@ Bibi.initialize = () => {
             window.addEventListener('message', M.receive, false);
         }
     }
+    { // IFrame with BlobURL
+        O.EnabledIFramesWithBlobURL = await new Promise(resolve => O.createBlobURL('Text', '<!DOCTYPE html><meta charset=l1><title></title>', 'text/html').then(SourceURL => {
+            const IFrame = document.body.appendChild(sML.create('iframe', { on: { load: () => resolve(IFrame.contentDocument?.documentElement?.outerHTML?.length ? true : false) || IFrame.remove() }, src: SourceURL }));
+            setTimeout(() => resolve(false) || IFrame.remove(), 999);
+        }).catch(() => resolve(false)));
+    }
     { // Say Welcome or say Bye-bye
         if(Bibi.isCompatible()) I.notify(`Welcome!`); else throw Bibi.byebye();
     }
@@ -422,8 +428,7 @@ Bibi.initialize = () => {
     }
     O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
-    E.dispatch('bibi:initialized', Bibi.Status = Bibi.Initialized = 'Initialized');
-    //return PromiseTryingRangeRequest;
+    return E.dispatch('bibi:initialized', Bibi.Status = Bibi.Initialized = 'Initialized');
 };
 
 
@@ -1355,216 +1360,288 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
 });
 
 
-L.loadItem = (Item, Opt = {}) => {
+L.loadItem = async (Item, Opt = {}) => {
+    const ProcessID = Item.LoadingProcessID = O.id();
     const IsPlaceholder = (S['allow-placeholders'] && Item.AllowPlaceholder && Opt.AllowPlaceholder) ? true : false;
-    if(IsPlaceholder === Item.IsPlaceholder) return Item.Loading ? Item.Loading : Promise.resolve(Item);
-    Item.IsPlaceholder = IsPlaceholder;
     const ItemBox = Item.Box;
-    ItemBox.classList.remove('loaded');
-    ItemBox.classList.toggle('placeholder', Item.IsPlaceholder);
-    const initHead = ItemSource => E.dispatch('bibi:is-going-to:initialize-item-source', ItemSource);
-    const initFoot = ItemSource => ItemSource.InitializingPromise || undefined;
-    return Item.Loading = ( // Promise
-        Item.IsPlaceholder ? Promise.reject()
-        : Item.ContentURL ? Promise.resolve()
-        : S['allow-external-item-href'] && Item.Source.External ? // Online Resource
-            Promise.resolve(Object.assign(Item, { ContentURL: Item.Source.Path }).ContentURL)
-        : Item.Type == 'MarkupDocument' ?
-            O.file(Item.Source, {
-                Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
-                initialize: () => {
-                    initHead(Item.Source);
-                    Item.Source.Content = Item.Source.Content.replace(/\s*<\!\s*--(.|\s)+?--\s*>\s*/g, '');
-                    Item.Source.Content = (Item.Source.IsXHTML = /\.(xht(ml)?|xml)?$/i.test(Item.Source.Path)) ?
-                        Item.Source.Content.replace(/\s*<[\?\!](.|\s)+?>\s*/g, '') :
-                        Item.Source.Content.replace(/<a(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '<a$1></a>');
-                    if(!S['allow-scripts-in-content']) {
-                        if(!Item.Source.IsXHTML) Item.Source.Content = Item.Source.Content.replace(/<script(\s+[\w\-]+(\s*=\s*('[^'']*'|"[^""]*"))?)*\s*\/>/ig, '');
-                        Item.Source.Content = Item.Source.Content.replace(/\s+viewBox\s*=\s*/ig, ' data-bibi-viewbox=');
-                        O.sanitizeItemSource(Item.Source, { As: Item.Source.IsXHTML ? 'XHTML' : 'HTML' });
-                        Item.Source.Content = Item.Source.Content.replace(/ data-bibi-viewbox=/ig, ' viewBox=');
-                    }
-                    return initFoot(Item.Source);
-                }
-            }).then((/*ItemSource*/) => {
-                return (!Item.PrePaginated || Item.Viewport ? Promise.resolve() : O.getItemViewport(Item).then(Vp => Item.Viewport = Vp)).then(() => {
-                    return Item.Source.Content;
-                });
-            })
-        : Item.Type == 'SVG' ?
-            O.file(Item.Source, {
-                Preprocess: (B.ExtractionPolicy ? true : false),
-                initialize: () => {
-                    initHead(Item.Source);
-                    const StyleSheetRE = /<\?xml-stylesheet\s*(.+?)\s*\?>/g, MatchedStyleSheets = Item.Source.Content.match(StyleSheetRE);
-                    if(!S['allow-scripts-in-content']) O.sanitizeItemSource(Item.Source, { As: 'SVG' });
-                    Item.Source.Content = Item.Source.Content.trim() + '<bibi:boundary/>' + (MatchedStyleSheets ? MatchedStyleSheets.map(SS => SS.replace(StyleSheetRE, `<link rel="stylesheet" $1 />`)).join('\n').trim() : ''); // Join for preprocessing.
-                    return initFoot(Item.Source);
-                }
-            }).then((/*ItemSource*/) => {
-                const [BodyContent, StyleSheetLinks] = Item.Source.Content.split('<bibi:boundary/>'); Item.Source.Content = BodyContent;
-                const Headers = StyleSheetLinks ? [StyleSheetLinks] : [];
-                return (Item.Viewport ? Promise.resolve(Item.Viewport) : O.getItemViewport(Item).then(Vp => Item.Viewport = Vp)).then(() => {
-                    if(Item.Viewport) Headers.unshift(`<meta name="viewport" content="width=${ Item.Viewport.Width }, height=${ Item.Viewport.Height }" />`);
-                    return [
-                        Headers.join('\n'),
-                        BodyContent
-                    ];
-                });
-            })
-        : Item.Type == 'BitmapImage' ?
-            O.file(Item.Source, {
-                URI: true,
-                initialize: () => {
-                    initHead(Item.Source);
-                    return initFoot(Item.Source);
-                }
-            }).then((/*ItemSource*/) => {
-                return (Item.Viewport ? Promise.resolve(Item.Viewport) : O.getItemViewport(Item).then(Vp => Item.Viewport = Vp)).then(() => {
-                    return [
-                        Item.Viewport ? `<meta name="viewport" content="width=${ Item.Viewport.Width }, height=${ Item.Viewport.Height }" />` : '',
-                        `<img class="bibi-spine-item-image" alt="" src="${ Item.Source.URI }" />` // URI is BlobURL or URI
-                    ];
-                });
-            })
-        : Item.Skipped = true && Promise.resolve([])
-    ).then(ItemSourceContent => new Promise(resolve => {
-        const putItemIntoTheBox = () => ItemBox.insertBefore(Item, ItemBox.firstChild);
-        const loadItemContent = () => (Item.onload = resolve, Item.Source.Content = '', Item.src = Item.ContentURL, putItemIntoTheBox());
-        if(Item.ContentURL) return loadItemContent();
-        let HTML = typeof ItemSourceContent == 'string' ? ItemSourceContent : [`<!DOCTYPE html>`,
-            `<html>`,
-                `<head>`,
-                    `<meta charset="utf-8" />`,
-                    `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
-                    (ItemSourceContent[0] ? ItemSourceContent[0] + '\n' : '') +
-                `</head>`,
-                `<body>`,
-                    (ItemSourceContent[1] ? ItemSourceContent[1] + '\n' : '') +
-                `</body>`,
-            `</html>`
-        ].join('\n');
-        HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="bibi-default-style" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ B.Path + '/' + Item.Source.Path }" />` : ''));
-        if(O.Local || sML.UA.LINE) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
-            HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onContentLoaded(); return false; });</script>\n</head>`);
-            Item.onContentLoaded = () => {
+    let ContentURL;
+    await Promise.resolve(Item.Loading);
+    return Item.Loading = O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem' },
+        async () => {
+            ItemBox.classList.remove('loaded');
+            ItemBox.classList.toggle('placeholder', Item.IsPlaceholder = IsPlaceholder);
+            if(IsPlaceholder) return Promise.reject('Placeholder');
+            if(Item.Source.External) {
+                if(!S['allow-external-item-href']) return Promise.reject('External Item Not Allowed');
+                return ContentURL = Item.Source.Path;
+            }
+            await O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem > building Item.SourceText' },
+                () => L.buildItemSourceText(Item),
+                async () => ContentURL = !O.EnabledIFramesWithBlobURL ? undefined : await O.createBlobURL('Text', Item.SourceText, 'application/xhtml+xml')
+            );
+        },
+        () => new Promise(resolve => {
+            Item.onLoaded = () => {
+                clearInterval(Item.ReloadTimer);
+                URL.revokeObjectURL(ContentURL);
+                Item.removeEventListener('load', Item.onLoaded);
+                delete Item.onLoaded;
                 resolve();
-                Item.contentDocument.head.removeChild(Item.contentDocument.getElementById('bibi-onload'));
-                delete Item.onContentLoaded;
             };
-            Item.src = '';
-            putItemIntoTheBox();
-            Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
-            return;
-        }
-        O.createBlobURL('Text', HTML, Item.Source.IsXHTML ? 'application/xhtml+xml' : 'text/html').then(ItemContentURL => (Item.ContentURL = ItemContentURL, loadItemContent()));
-    })).then(() => {
-        return L.postprocessItem(Item);
-    }).then(() => {
+            if(ContentURL) {
+                Item.addEventListener('load', Item.onLoaded);
+                Item.src = ContentURL;
+                ItemBox.insertBefore(Item, ItemBox.firstChild);
+                Item.ReloadTimer = setInterval(() => { if(Item.contentDocument?.readyState == 'interactive') Item.src = Item.src; }, 8888);
+            } else {
+                Item.src = '';
+                ItemBox.insertBefore(Item, ItemBox.firstChild);
+                Item.contentDocument.open();
+                Item.contentDocument.write(
+                    Item.SourceText = Item.SourceText
+                        .replace(/<[\?\!][^>]+?>/g, '').trim()
+                        .replace(/<([a-z][a-z0-9]*)([^>]*?)\s*\/>/g, '<$1$2></$1>')
+                        .replace('</head>', `<script id="bibi-onload">window.addEventListener('load', () => { parent.R.Items[${ Item.Index }].onLoaded(); document.getElementById('bibi-onload').remove(); });</script>\n</head>`)
+                );
+                Item.contentDocument.close();
+            }
+        }),
+        () => L.postprocessItem(Item)
+    ).then(() => {
+        O.log(`Item#${ String(Item.Index).padStart(3, 0) } is turned UP.`);
         ItemBox.classList.add('loaded');
         Item.Loaded = true;
         Item.Turned = 'Up';
         // Item.stamp('Loaded');
         E.dispatch('bibi:loaded-item', Item);
-    }).catch(Msg => { // Placeholder (or Error)
-        // console.log('Caught', Msg);
+    }).catch(Reason => { // Placeholder (or Error)
+        O.log(`Item#${ String(Item.Index).padStart(3, 0) } is turned DOWN:`, Reason);
+        if(Item.contentWindow) Item.contentWindow.stop() || O.log(`Item#${ String(Item.Index).padStart(3, 0) } STOPPED its window.`);
+        if(Item.contentDocument) Item.contentDocument.querySelectorAll('[src], [*|href]').forEach(Ele => ['src','href','xlink:href'].forEach(Att => Ele.removeAttribute(Att)) || Ele.remove()) || O.log(`Item#${ String(Item.Index).padStart(3, 0) } REMOVED its elements.`);
         if(Item.parentElement) Item.parentElement.removeChild(Item);
-        Item.onload = Item.onContentLoaded = undefined;
         Item.src = '';
         Item.HTML = Item.Head = Item.Body = Item.Foot = Item.Pages[0];
+        Item.IsPlaceholder = true;
         Item.Loaded = false;
         Item.Turned = 'Down';
         E.dispatch('bibi:prepared-placeholder', Item);
     }).then(() => {
-        delete Item.Loading;
-        delete Item.Source.InitializingPromise;
-        return Promise.resolve(Item);
-    });
-};
-
-
-L.postprocessItem = (Item) => {
-    // Item.stamp('Postprocess');
-    E.dispatch('bibi:is-going-to:postprocess-item', Item);
-    Item.HTML = Item.contentDocument.documentElement; Item.HTML.classList.add(...sML.Environments);
-    Item.Head = Item.contentDocument.head;
-    Item.Body = Item.contentDocument.body;
-    Item.Foot = Item.HTML.appendChild(Item.contentDocument.createElement('foot'));
-    Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
-    const XMLLang = Item.HTML.getAttribute('xml:lang'), Lang = Item.HTML.getAttribute('lang');
-         if(!XMLLang && !Lang) Item.HTML.setAttribute('xml:lang', B.Language), Item.HTML.setAttribute('lang', B.Language);
-    else if(!XMLLang         ) Item.HTML.setAttribute('xml:lang', Lang);
-    else if(            !Lang)                                                 Item.HTML.setAttribute('lang', XMLLang);
-    sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
-    if(Item.Reflowable && !Item.NoAdjustment) Item.contentDocument.querySelectorAll('html, body, body>*:not(script):not(style)').forEach(Ele => Ele.style.direction = Ele.BibiDefaultDirection = getComputedStyle(Ele).direction);
-    sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
-    L.coordinateLinkages({ RootElement: Item.Body, BasePath: Item.Source.Path });
-    const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
-    if(Lv1Eles && Lv1Eles.length == 1) {
-        const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
-             if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = true;
-        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleImg = true;
-        else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
-        else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
-    }
-    sML.forEach(Item.Body.querySelectorAll('svg'))(SVG => { if(SVG.getAttribute('viewBox')) return;
-        const Images = SVG.getElementsByTagName('image'); if(Images.length != 1) return;
-        const Image = Images[0];
-        const ImageW = Image.getAttribute('width' ); if(!/^\d+$/.test(ImageW)) return;
-        const ImageH = Image.getAttribute('height'); if(!/^\d+$/.test(ImageH)) return;
-        SVG.setAttribute('viewBox', [0, 0, ImageW, ImageH].join(' '));
-    });
-    return (Item.PrePaginated ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
-        E.dispatch('bibi:postprocessed-item', Item);
-        // Item.stamp('Postprocessed');
+        clearInterval(Item.ReloadTimer);
+        URL.revokeObjectURL(ContentURL);
+        Item.removeEventListener('load', Item.onLoaded);
+        delete Item.onLoaded;
+        delete Item.Source.Content;
+        delete Item.Source.Preprocessed;
+        delete Item.Source.Retlieved;
+        delete Item.SourceText;
+        delete Item.LoadingProcessID;
+        window.focus();
         return Item;
     });
 };
 
+L.buildItemSourceText = (Item) => {
+    const ProcessID = Item.LoadingProcessID;
+    const DeclarationsRE = /<[\?\!]\w[^>]+?>/g;
+    let Declarations, AdditionalHeader;
+    return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText' },
+        () => E.dispatch('bibi:is-going-to:build-item-source-text', Item),
+        () => (Opt => !Opt ? Promise.reject('Item.Type Unknown') : O.file(Item.Source, {
+            Preprocess: Opt.Preprocess,
+            URI: Opt.URI,
+            initialize: () => O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText > O.file > initialize' },
+                Opt.initialize_before,
+                () => E.dispatch('bibi:is-going-to:initialize-item-source', Item),
+                Opt.initialize_main,
+                () => E.dispatch('bibi:initialized-item-source', Item),
+                Opt.initialize_after
+            ),
+            finalize: Opt.finalize
+        }))(
+            Item.Type == 'MarkupDocument' ? {
+                Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
+                initialize_before: () => Item.SourceText = Item.Source.Content.trim(),
+                initialize_main: async () => {
+                    Declarations = Item.SourceText.match(DeclarationsRE);
+                    if(Declarations) Item.SourceText = Item.SourceText.replace(DeclarationsRE, '').trim();
+                    if(/<object\s/.test(Item.SourceText) && Item.SourceText.match(/<object\s[^>]+?>/g).filter(Obj => /\stype\s*=\s*["']image\/svg\+xml["']/.test(Obj) && /\sdata\s*=\s*["'](?!([a-zA-Z]+:)?\/+).+?\.svg["']/.test(Obj)).length) {
+                        const ItemDOM = O.parseDOM(Item.SourceText, Item.Source['media-type']);
+                        await Promise.all(Array.prototype.map.call(ItemDOM.querySelectorAll('object[type="image/svg+xml"][data$=".svg"]'), SOE => {
+                            const ItemURL = new URL(Item.Source.Path, 'bibi:/'), SVGURL = new URL(SOE.getAttribute('data'), ItemURL), SVGSource = B.Package.Manifest[SVGURL?.pathname.slice(1)];
+                            if(SVGSource) return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText > O.file > initialize > object svg' },
+                                () => O.file(SVGSource),
+                                () => {
+                                    const SVGDOM = O.parseDOM(SVGSource.Content, SVGSource['media-type']);
+                                    [['src','src'], ['href','href'], ['*|href','xlink:href']].forEach(SA => SVGDOM.querySelectorAll(`[${ SA[0] }]`).forEach(Ele => Ele.setAttribute(SA[1], O.relativePath({ From: ItemURL, To: new URL(Ele.getAttribute(SA[1]), SVGURL) }))));
+                                    SOE.removeAttribute('data'), SOE.removeAttribute('type');
+                                    SOE.innerHTML = SVGDOM.documentElement.outerHTML;
+                                }
+                            );
+                        }));
+                        Item.SourceText = ItemDOM.documentElement.outerHTML;
+                    }
+                    if(!S['allow-scripts-in-content']) {
+                        Item.SourceText = O.sanitizeItemSourceText(Item.SourceText, { As: 'XHTML' });
+                    }
+                    if(Declarations) Item.SourceText = [...Declarations, Item.SourceText].join('\n');
+                },
+                initialize_after: () => Item.Source.Content = Item.SourceText,
+                finalize: () => Item.SourceText = Item.Source.Content
+            } :
+            Item.Type == 'SVG' ? {
+                Preprocess: B.ExtractionPolicy,
+                initialize_before: () => Item.SourceText = Item.Source.Content.trim(),
+                initialize_main: () => {
+                    Declarations = Item.SourceText.match(DeclarationsRE);
+                    if(Declarations) Item.SourceText = Item.SourceText.replace(DeclarationsRE, '').trim();
+                    if(!S['allow-scripts-in-content']) {
+                        Item.SourceText = Item.SourceText.replace(/\s+xlink:href\s*=\s*(["'])blob:/ig, ' data-xlink-href-blob=$1');
+                        Item.SourceText = Item.SourceText.replace(      /\s+href\s*=\s*(["'])blob:/ig,       ' data-href-blob=$1');
+                        Item.SourceText = O.sanitizeItemSourceText(Item.SourceText, { As: 'SVG' });
+                        Item.SourceText = Item.SourceText.replace(         / data-href-blob=(["'])/ig,            ' href=$1blob:');
+                        Item.SourceText = Item.SourceText.replace(   / data-xlink-href-blob=(["'])/ig,      ' xlink:href=$1blob:');
+                    }
+                    if(Declarations) Item.SourceText = [...Declarations, Item.SourceText].join('\n');
+                },
+                initialize_after: () => Item.Source.Content = Item.SourceText,
+                finalize: () => {
+                    Item.SourceText = Item.Source.Content
+                    const CSSLinks = [];
+                    if(Declarations = Item.SourceText.match(DeclarationsRE)) {
+                        Declarations.forEach(Declaration => {
+                            const StyleSheetPath = Declaration.match(/^<\?xml-stylesheet\s(?:[^>]+?\s)?href\s*=\s*["'](?![a-z]+:\/\/)(.+?)['"]/)?.[1];
+                            if(!StyleSheetPath) return;
+                            if(Item.Source.Preprocessed) { if(!/^blob:/.test(StyleSheetPath)) return; }
+                            else                         { if(!B.Package.Manifest[new URL(StyleSheetPath, new URL(Item.Source.Path, 'bibi:/')).pathname.slice(1)]) return; }
+                            CSSLinks.push(Declaration.replace(/^<\?xml-stylesheet\s+/, '<link rel="stylesheet" ').replace(/\s*\?>$/, ' />'));
+                        });
+                        Item.SourceText = Item.SourceText.replace(DeclarationsRE, '').trim();
+                    }
+                    if(CSSLinks.length) AdditionalHeader = CSSLinks.join('\n');
+                }
+            } :
+            Item.Type == 'BitmapImage' ? {
+                URI: true,
+                initialize_before: () => Item.SourceText = `<img class="bibi-spine-item-image" alt="" src="bibi:/${ Item.Source.Path }" />`,
+                finalize: () => {
+                    Item.SourceText = Item.SourceText.replace('bibi:/' + Item.Source.Path, Item.Source.URI); // URI is BlobURL or URI
+                }
+            } :
+            null
+        ),
+        async () => {
+            const Vp = Item.Viewport = !Item.PrePaginated ? null : (Item.Viewport || await O.getItemViewport(Item)) || null;
+            if(Item.Type != 'MarkupDocument') Item.SourceText = [
+                `<?xml version="1.0"?>`,
+                `<!DOCTYPE html>`,
+                `<html xmlns="http://www.w3.org/1999/xhtml">`,
+                    `<head>`,
+                        `<meta charset="utf-8" />`,
+                        `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
+                        (Vp ? `<meta name="viewport" content="width=${ Vp.Width }, height=${ Vp.Height }" />` + '\n' : '') +
+                        (AdditionalHeader ? AdditionalHeader + '\n' : '') +
+                    `</head>`,
+                    `<body>`,
+                        Item.SourceText,
+                    `</body>`,
+                `</html>`
+            ].join('\n');
+            Item.SourceText = Item.SourceText.replace(/(<head(\s[^>]+)?>)/i,
+                `$1\n<link rel="stylesheet" id="bibi-default-style" href="${ Bibi.BookStyleURL }" />` +
+                (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ B.Path + '/' + Item.Source.Path }" />` : '')
+            );
+        },
+        () => E.dispatch('bibi:built-item-source-text', Item)
+    );
+};
 
-L.patchItemStyles = (Item) => new Promise(resolve => { // only for reflowable.
-    Item.StyleSheets = [];
-    sML.forEach(Item.HTML.querySelectorAll('link, style'))(SSEle => {
-        if(/^link$/i.test(SSEle.tagName)) {
-            if(!SSEle.href) return;
-            if(!/^(alternate )?stylesheet$/.test(SSEle.rel)) return;
-            if((sML.UA.Safari || sML.OS.iOS) && SSEle.rel == 'alternate stylesheet') return; //// Safari does not count "alternate stylesheet" in document.styleSheets.
-        }
-        Item.StyleSheets.push(SSEle);
-    });
-    const checkCSSLoadingAndResolve = () => {
-        if(Item.contentDocument.styleSheets.length < Item.StyleSheets.length) return false;
-        clearInterval(Item.CSSLoadingTimerID);
-        delete Item.CSSLoadingTimerID;
-        resolve();
-        return true;
-    };
-    if(!checkCSSLoadingAndResolve()) Item.CSSLoadingTimerID = setInterval(checkCSSLoadingAndResolve, 33);
-}).then(() => {
-    if(!Item.Source.Preprocessed) {
-        if(B.Package.Metadata['ebpaj:guide-version']) {
-            const Vers = B.Package.Metadata['ebpaj:guide-version'].split('.').map(Ver => Ver * 1);
-            if(Vers[0] == 1 && Vers[1] == 1 && Vers[2] <= 3) Item.Body.style.textUnderlinePosition = 'under left';
-        }
-        const isStyled = RE => RE.test(CSSRule.cssText);
-        O.editCSSRules(Item.contentDocument, CSSRule => {
-            if(isStyled(/(-(epub|webkit)-)?column-count: 1; /)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = 'auto';
-        });
-    }
-    const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
-    const ItemBodyComputedStyle = getComputedStyle(Item.Body);
-    if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
-    Item.WritingMode = O.getWritingMode(Item.HTML);
-         if(/^(tb|bt)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
-    else if(/^(lr|rl)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
-    if(S['background-spreading']) [
-        [Item.Box, ItemHTMLComputedStyle, Item.HTML],
-        [Item,     ItemBodyComputedStyle, Item.Body]
-    ].forEach(Par => {
-        ['Color', 'Image', 'Repeat', 'Position', 'Size'].forEach(Pro => Par[0].style[Pro = 'background' + Pro] = Par[1][Pro]);
-        Par[2].style.background = 'transparent';
-    });
-});
+
+L.postprocessItem = (Item) => {
+    const ProcessID = Item.LoadingProcessID;
+    return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.postprocessItem' },
+        () => E.dispatch('bibi:is-going-to:postprocess-item', Item),
+        () => {
+            // Item.stamp('Postprocess');
+            Item.HTML = Item.contentDocument.documentElement; Item.HTML.classList.add(...sML.Environments);
+            Item.Head = Item.contentDocument.head;
+            Item.Body = Item.contentDocument.body;
+            Item.Foot = Item.HTML.appendChild(Item.contentDocument.createElement('foot'));
+            Item.HTML.Item = Item.Head.Item = Item.Body.Item = Item;
+            const XMLLang = Item.HTML.getAttribute('xml:lang'), Lang = Item.HTML.getAttribute('lang');
+                 if(!XMLLang && !Lang) Item.HTML.setAttribute('xml:lang', B.Language), Item.HTML.setAttribute('lang', B.Language);
+            else if(!XMLLang         ) Item.HTML.setAttribute('xml:lang', Lang);
+            else if(            !Lang)                                                 Item.HTML.setAttribute('lang', XMLLang);
+            sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
+            if(Item.Reflowable && !Item.NoAdjustment) Item.contentDocument.querySelectorAll('html, body, body>*:not(script):not(style)').forEach(Ele => Ele.style.direction = Ele.BibiDefaultDirection = getComputedStyle(Ele).direction);
+            sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
+            L.coordinateLinkages({ RootElement: Item.Body, BasePath: Item.Source.Path });
+            const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
+            if(Lv1Eles && Lv1Eles.length == 1) {
+                const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
+                     if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = true;
+                else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleImg = true;
+                else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
+                else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
+            }
+            sML.forEach(Item.Body.querySelectorAll('svg'))(SVG => { if(SVG.getAttribute('viewBox')) return;
+                const Images = SVG.querySelectorAll('image, img, canvas'); if(Images.length != 1) return;
+                const Image = Images[0];
+                const ImageW = Image.getAttribute('width' ); if(!/^\d+$/.test(ImageW)) return;
+                const ImageH = Image.getAttribute('height'); if(!/^\d+$/.test(ImageH)) return;
+                SVG.setAttribute('viewBox', [0, 0, ImageW, ImageH].join(' '));
+            });
+            if(!Item.PrePaginated) return L.patchItemStyles(Item);
+        },
+        // () => Item.stamp('Postprocessed'),
+        () => E.dispatch('bibi:postprocessed-item', Item)
+    );
+};
+
+
+L.patchItemStyles = (Item) => { // only for reflowable.
+    const ProcessID = Item.LoadingProcessID;
+    return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.patchItemStyles' },
+        () => E.dispatch('bibi:is-going-to:patch-item-styles', Item),
+        async () => {
+            const StyleSheetsLength = Array.prototype.filter.call(Item.HTML.querySelectorAll('style, link'), Ele =>
+                Ele.tagName.toLowerCase() == 'style' || (
+                    Ele.href && /^(alternate )?stylesheet$/.test(Ele.rel)
+                    && !((sML.UA.Safari || sML.OS.iOS) && Ele.rel == 'alternate stylesheet')  //// Safari does not count "alternate stylesheet" in document.styleSheets.
+                )
+            ).length;
+            let tried = 0;
+            await new Promise((resolve, reject) => (function check() {
+                if(ProcessID != Item.LoadingProcessID) return reject();
+                if(Item.contentDocument.styleSheets.length >= StyleSheetsLength) return resolve();
+                setTimeout(check, 33);
+            })());
+            if(!Item.Source.Preprocessed) {
+                if(B.Package.Metadata['ebpaj:guide-version']) {
+                    const Vers = B.Package.Metadata['ebpaj:guide-version'].split('.').map(Ver => Ver * 1);
+                    if(Vers[0] == 1 && Vers[1] == 1 && Vers[2] <= 3) Item.Body.style.textUnderlinePosition = 'under left';
+                }
+                const isStyled = RE => RE.test(CSSRule.cssText);
+                O.editCSSRules(Item.contentDocument, CSSRule => {
+                    if(isStyled(/(-(epub|webkit)-)?column-count: 1; /)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = 'auto';
+                });
+            }
+            const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
+            const ItemBodyComputedStyle = getComputedStyle(Item.Body);
+            if(ItemHTMLComputedStyle[O.WritingModeProperty] != ItemBodyComputedStyle[O.WritingModeProperty]) Item.HTML.style.writingMode = ItemBodyComputedStyle[O.WritingModeProperty];
+            Item.WritingMode = O.getWritingMode(Item.HTML);
+                 if(/^(tb|bt)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-vertical-text');
+            else if(/^(lr|rl)-/.test(Item.WritingMode)) Item.HTML.classList.add('bibi-horizontal-text');
+            if(S['background-spreading']) [
+                [Item.Box, ItemHTMLComputedStyle, Item.HTML],
+                [Item,     ItemBodyComputedStyle, Item.Body]
+            ].forEach(Par => {
+                ['Color', 'Image', 'Repeat', 'Position', 'Size'].forEach(Pro => Par[0].style[Pro = 'background' + Pro] = Par[1][Pro]);
+                Par[2].style.background = 'transparent';
+            });
+        },
+        () => E.dispatch('bibi:patched-item-styles', Item)
+    );
+};
 
 
 
@@ -1630,13 +1707,7 @@ R.resetStage = () => {
 };
 
 
-R.layOutSpreadAndItsItems = (Spread, Opt = {}) => {
-    //Spread.style.width = Spread.style.height = '';
-    return (Spread.Items.length == 1 ? R.layOutItem(Spread.Items[0])
-     : !Opt.Reverse                  ? R.layOutItem(Spread.Items[0]).then(() => R.layOutItem(Spread.Items[1]))
-     :                                 R.layOutItem(Spread.Items[1]).then(() => R.layOutItem(Spread.Items[0]))
-    ).then(() => R.layOutSpread(Spread, Opt));
-};
+R.layOutSpreadAndItsItems = (Spread) => R.layOutItem(Spread.Items[0]).then(() => Spread.Items[1] && R.layOutItem(Spread.Items[1])).then(() => R.layOutSpread(Spread));
 
 
 R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
@@ -2430,7 +2501,7 @@ R.getFirstElementOfPage = (Page, Opt) => {
 // };
 
 R.getFirstElementOfAreaInItem = (Item, TargetAreaInItem) => {
-    if(Item.PrePaginated) return Item;
+    if(Item.PrePaginated || Item.Source.External) return Item;
     // console.log('SCANNING...');
     TargetAreaInItem.Left += 2, TargetAreaInItem.Right  -= (1 + 2);
     TargetAreaInItem.Top  += 2, TargetAreaInItem.Bottom -= (1 + 2);
@@ -3187,62 +3258,55 @@ I.PageObserver = { create: () => {
             });
         },
         // ---- Turning Face-up/down
-        MaxTurning: 4,
-        TurningItems_FaceUp: [],
-        TurningItems_FaceDown: [],
         getTurningOriginItem: (Dir = 1) => {
-            const List = PageObserver.Current.List.length ? PageObserver.Current.List : PageObserver.IntersectingPages.length ? PageObserver.IntersectingPages : null;
-            try { return (Dir > 0 ? List[0] : List[List.length - 1]).Page.Item; } catch(Err) {} return null;
+            const List = PageObserver.Current.List?.length ? PageObserver.Current.List : PageObserver.IntersectingPages?.length ? PageObserver.IntersectingPages : null;
+            return List?.[Dir > 0 ? 0 : List.length - 1]?.Page?.Item || null;
         },
-        turnItems: (Opt) => {
+        filterOrders: (Orders) => Orders.filter(Items => Items && (Items = Items.filter(Item => Item?.Turned != 'Up')).length),
+        stringifyOrders: (Orders) => Orders.map(Items => Items ? Items.map(Item => Item ? Item.Index : '').join('+') : '').join('-'),
+        turnItems: (Opt = {}) => {
             if(R.DoNotTurn || !S['allow-placeholders']) return;
-            if(typeof Opt != 'object') Opt = {};
             const Dir = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
-            const Origin = Opt.Origin || PageObserver.getTurningOriginItem(Dir); if(!Origin) return;
-            const MUST = [Origin], NEW_ = [], KEEP = []; // const ___X = [];
-            const Next = R.Items[Origin.Index + Dir]; if(Next) MUST.push(Next);
-            const Prev = R.Items[Origin.Index - Dir]; if(Prev) MUST.push(Prev);
-            MUST.forEach(Item => {
-                if(Item.Turned != 'Up') (PageObserver.TurningItems_FaceUp.includes(Item) ? KEEP : NEW_).push(Item);
-            });
-            let i = 1/*, x = 0*/; while(++i < 9/* && x < 2*/ && KEEP.length + NEW_.length < PageObserver.MaxTurning) {
-                const Item = R.Items[Origin.Index + i * Dir]; if(!Item) break;
-                if(MUST.includes(Item)) continue;
-                if(Item.Turned != 'Up') (PageObserver.TurningItems_FaceUp.includes(Item) ? KEEP : NEW_).push(Item);/* x++;*/
-            }
-            PageObserver.TurningItems_FaceUp.forEach(Item => { // use `forEach`, not `for`.
-                if(KEEP.includes(Item)) return;
-                if(KEEP.length + NEW_.length < PageObserver.MaxTurning) return KEEP.push(Item);
-                clearTimeout(Item.Timer_Turn);
-                PageObserver.turnItem(Item, { Down: true }); // ___X.push(Item);
-            });
-            NEW_.forEach((Item, i) => PageObserver.turnItem(Item, { Up: true, Delay: (MUST.includes(Item) ? 99 : 999) * i }));
-            /*
-            console.log('--------');
-            console.log('Origin', Origin.Index);
-            console.log('MUST', MUST.map(Item => Item.Index));
-            console.log('KEEP', KEEP.map(Item => Item.Index));
-            console.log('NEW_', NEW_.map(Item => Item.Index));
-            // console.log('___X', ___X.map(Item => Item.Index));
-            //*/
-        },
-        turnItem: (Item, Opt) => new Promise(resolve => {
-            if(R.DoNotTurn || !S['allow-placeholders']) return;
-            if(!Item) Item = PageObserver.getTurningOriginItem();
-            if(typeof Opt != 'object') Opt = { Up: true };
-            if(Opt.Up) {
-                if(PageObserver.TurningItems_FaceUp.includes(Item)) return resolve();
-                PageObserver.TurningItems_FaceUp.push(Item), PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
+            const OItem = Opt.Origin || PageObserver.getTurningOriginItem(Dir); if(!OItem) return;
+            let NewOrders = [];
+            if(R.Orientation == 'landscape') {
+                const i = OItem.Spread.Index;
+                // [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) Spread.Items.forEach(Item => NewOrders.push([Item])); }); // one by one
+                [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) NewOrders.push([...Spread.Items]); });
             } else {
-                if(PageObserver.TurningItems_FaceDown.includes(Item)) return resolve();
-                PageObserver.TurningItems_FaceDown.push(Item), PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
-                if(O.RangeLoader) O.cancelExtraction(Item.Source);
+                NewOrders.push([OItem]);
+                const PItem = OItem.SpreadPair; if(PItem) NewOrders.push([PItem]);
+                const i = OItem.Index; 
+                [Dir, Dir * -1].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item && Item != PItem) NewOrders.push([Item]); });
+                [2,          3].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item                 ) NewOrders.push([Item]); });
             }
-            Item.Timer_Turn = setTimeout(() => L.loadItem(Item, { AllowPlaceholder: !(Opt.Up) }).then(() => {
-                if(Opt.Up) PageObserver.TurningItems_FaceUp = PageObserver.TurningItems_FaceUp.filter(_ => _ != Item);
-                else       PageObserver.TurningItems_FaceDown = PageObserver.TurningItems_FaceDown.filter(_ => _ != Item);
-                R.layOutItem(Item).then(() => R.layOutSpread(Item.Spread, { Makeover: true, Reverse: Opt.Reverse })).then(() => resolve(Item));
-            }), Opt.Delay || 0);
+            NewOrders = PageObserver.filterOrders(NewOrders);
+            const NewOrdersString = PageObserver.stringifyOrders(NewOrders);
+            if(!NewOrders.length || NewOrdersString === PageObserver.PastTurningOrdersString) return;
+            const ProcessID = PageObserver.TurningProcessID = O.id(); //// Set after ^
+            /* ==== */ O.log('I.PageObserver > turnItems > NewOrders:', NewOrders.map(Items => Items.map(Item => Item.Index).join(',')));
+            PageObserver.TurningOrders = NewOrders, PageObserver.PastTurningOrdersString = NewOrdersString;
+            if(PageObserver.ItemsNowTurning) PageObserver.ItemsNowTurning.forEach(Item => !PageObserver.TurningOrders[0].includes(Item) && PageObserver.turnItem(Item, false));
+            (function turn() {
+                const Items = PageObserver.ItemsNowTurning = PageObserver.TurningOrders.shift();
+                // if(Items) Promise.all(Items.map((Item, i) => new Promise(resolve => setTimeout(() => PageObserver.turnItem(Item, true).finally(resolve), 69 * i)))).then(() => ProcessID == PageObserver.TurningProcessID && turn()); // delay in spread
+                if(Items) Promise.all(Items.map(Item => PageObserver.turnItem(Item, true))).then(() => ProcessID == PageObserver.TurningProcessID && turn());
+            })();
+        },
+        turnItem: (Item, Up) => Promise.resolve().then(() => {
+            if(R.DoNotTurn || !S['allow-placeholders'] || !Item || Item.TurningUp === (Up = !!Up)) return;
+            const ProcessID = Item.TurningProcessID = O.id();
+            Item.TurningUp = Up;
+            return Promise.resolve().then(() => {
+                if(Up || !O.RangeLoader) return;
+                O.log('I.PageObserver > turnItem > cancel:', Item.Index);
+                return O.cancelExtraction(Item.Source);
+            }).then(() => O.chain({ assure: () => ProcessID == Item.TurningProcessID, Label: 'I.PageObserver.turnItem' },
+                () => L.loadItem(Item, { AllowPlaceholder: !Up }),
+                () => Item.TurningUp = null,
+                () => R.layOutItem(Item),
+                () => R.layOutSpread(Item.Spread, { Makeover: true })
+            )).catch(() => {}).then(() => Item);
         }),
         automark: () => { try {
             I.Oven.Biscuits.memorize('Book', { Automarks: [{ IsAutomark: true, P: R.getP() }] });
@@ -3264,7 +3328,7 @@ I.PageObserver = { create: () => {
     });
     E.bind('bibi:started', () => {
         if(S['allow-placeholders']) {
-            PageObserver.turnItems();
+            // PageObserver.turnItems();
             E.add('bibi:scrolled', () => PageObserver.turnItems());
         }
         if(S['resume-from-last-position']) {
@@ -7300,12 +7364,11 @@ O.src = (Source) => {
 
 O.RangeLoader = null;
 
-O.cancelExtraction = (Source) => {
-    if(Source.Resources) Source.Resources.forEach(Res => Res.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Res.Path));
-    const Result = Source.Retlieved ? Promise.resolve() : O.RangeLoader.abort(Source.Path);
-    E.dispatch('bibi:canceled-extraction', Source);
-    return Result;
-};
+O.cancelExtraction = (Source) => Promise.allSettled(
+    (Source.Resources || []).concat(Source).map(Res => Res.Retlieved || O.RangeLoader?.abort(Res.Path))
+).then(() =>
+    E.dispatch('bibi:canceled-extraction', Source)
+);
 
 O.extract = (Source) => { 
     Source = O.src(Source);
@@ -7378,32 +7441,49 @@ O.tryRangeRequest = (RemotePath, Bytes = '0-0') => new Promise((resolve, reject)
 
 O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
     Source = O.src(Source);
-    if(Opt.URI && Source.URI) return resolve(Source);
-    (() => {
-        if(Source.Content) return Promise.resolve(Source);
+    Promise.resolve().then(() => {
+        if(Opt.URI && Source.URI) return Source;
+        if(Source.Content) return Source;
         if(Source.URI || !B.ExtractionPolicy) return O.download(Source);
         switch(B.ExtractionPolicy) {
             case 'on-the-fly': return O.extract(Source);
             case 'at-once':    return Promise.reject(`File Not Included: "${ Source.Path }"`);
         }
-    })().then(Source => {
-        const InitializingPromise = typeof Opt.initialize == 'function' ? Opt.initialize(Source) : Opt.initialize;
-        return (InitializingPromise instanceof Promise ? InitializingPromise : Promise.resolve()).then(() => (Opt.Preprocess && !Source.Preprocessed) ? O.preprocess(Source) : Source);
-    }).then(Source => {
-        if(Opt.URI && !Source.URI) return (!Opt.DataURI ? O.createBlobURL : O.createDataURL)(Source.DataType, Source.Content, Source['media-type']).then(SourceURI => {
+    }).then(() =>
+        typeof Opt.initialize == 'function' ? Opt.initialize(Source) : Opt.initialize
+    ).then(() =>
+        Opt.Preprocess && !Source.Preprocessed ? O.preprocess(Source) : Source
+    ).then(() =>
+        Opt.URI && !Source.URI && (!Opt.DataURI ? O.createBlobURL : O.createDataURL)(Source.DataType, Source.Content, Source['media-type']).then(SourceURI => {
             Source.URI = SourceURI;
             Source.Content = ''; //////
-            resolve(Source);
-        });
-        resolve(Source);
-     }).catch(reject);
+        })
+    ).then(() =>
+        typeof Opt.finalize == 'function' ? Opt.finalize(Source) : Opt.finalize
+    ).then(() =>
+        resolve(Source)
+    ).catch(
+        reject
+    );
 });
 
 
 O.isBin = (Source) => /\.(aac|gif|jpe?g|m4[av]|mp([34]|e?g)|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Source.Path);
 
-O.createBlobURL = (DT, CB, MT) => Promise.resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB));
 O.createDataURL = (DT, CB, MT) => new Promise((o, x) => DT == 'Text' ? o(`data:` + MT + `;base64,` + btoa(String.fromCharCode.apply(null, new TextEncoder().encode(CB)))) : (_ => { _.onload = () => o(_.result); _.onerror = x; _.readAsDataURL(CB); })(new FileReader()));
+O.createBlobURL = (DT, CB, MT) => Promise.resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB));
+// O.consumeBlobURL = (BURL, fn) => { const ReturnValue = fn(BURL); URL.revokeObjectURL(BURL); return ReturnValue; };
+
+O.relativePath = (Opt) => { // Opt: { From: URLObject, To: URLObject, /* AllowRootRelative: Boolean */ }
+    let [T, F] = [Opt.To, Opt.From].map(TF => typeof TF == 'string' ? new URL(TF, 'bibi:/') : TF);
+    if(T.origin != F.origin) return T.href;
+    if(T.pathname == F.pathname) return T.pathname.split('/').slice(-1)[0];
+    [T, F] = [T, F].map(TF => TF.pathname.slice(1).split('/'));
+    if(Opt.AllowRootRelative) if(T.length == 1 || T[0] != F[0]) return '/' + T.join('/');
+    while(T[0] == F[0] && F[0]) T.shift(), F.shift();
+    while(F.length > 1) T.unshift('..'), F.shift();
+    return T.join('/'); 
+};
 
 
 O.MediaTypes = {
@@ -7453,7 +7533,7 @@ O.preprocess = (Source) => {
     if(Setting.ResolveRules) { // RRR
         const FileDir = Source.Path.replace(/\/?[^\/]+$/, '');
         Setting.ResolveRules.forEach(ResolveRule => ResolveRule.Patterns.forEach(Pattern => {
-            const ResRE = ResolveRule.getRE(Pattern.Attribute);
+            const ResRE = ResolveRule.getRE(Pattern);
             const Reses = Source.Content.match(ResRE);
             if(!Reses) return;
             const ExtRE = new RegExp('\\.(' + Pattern.Extensions + ')$', 'i');
@@ -7526,39 +7606,26 @@ O.preprocess = (Source) => {
                 return this;
             }
         },
-        'svg': {
+        'html?|xht(ml)?|xml|svg': {
             ReplaceRules: [
                 [/<!--\s+[.\s\S]*?\s+-->/gm, '']
             ],
             ResolveRules: [{
-                getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
+                getRE: (Pattern) => new RegExp(`<\\??\\s*${ Pattern.TagName || '[a-zA-Z:\\-]+' }\\s(?:[^>]*?\\s)?(${ Pattern.Attribute })\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]`, 'g'),
                 PathRef: '$2',
                 Patterns: [
-                    { Attribute: 'href',           Extensions: 'css' },
-                    { Attribute: 'src',            Extensions: 'svg' },
-                    { Attribute: 'src|xlink:href', Extensions: 'gif|jpe?g|png|svg|webp' }
-                ]
-            }]
-        },
-        'html?|xht(ml)?|xml': {
-            ReplaceRules: [
-                [/<!--\s+[.\s\S]*?\s+-->/gm, '']
-            ],
-            ResolveRules: [{
-                getRE: (Att) => new RegExp('<\\??[a-zA-Z:\\-]+[^>]*? (' + Att + ')\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]', 'g'),
-                PathRef: '$2',
-                Patterns: [
-                    { Attribute: 'href',           Extensions: 'css' },
-                    { Attribute: 'src',            Extensions: 'aac|js|m4[av]|mp([34]|e?g)|ogg|svg|webm' },
-                    { Attribute: 'src|xlink:href', Extensions: 'gif|jpe?g|png|svg|webp' },
-                    { Attribute: 'poster',         Extensions: 'gif|jpe?g|png|svg|webp' }
+                    { TagName: '(?!a)[a-zA-Z:\\-]+', Attribute: '(?:xlink:)?href', Extensions: 'css|gif|jpe?g|png|svg|webp' },
+                    { TagName: '',                   Attribute: 'src|data',        Extensions: 'aac|gif|jpe?g|js|m4[av]|mp([34]|e?g)|ogg|png|svg|web[mp]' },
+                    { TagName: 'video',              Attribute: 'poster',          Extensions: 'gif|jpe?g|png|svg|webp' }
                 ]
             }]
         }
     };
 
 
-O.openDocument = (Source) => O.file(Source).then(Source => (new DOMParser()).parseFromString(Source.Content, /\.(xml|opf|ncx)$/i.test(Source.Path) ? 'text/xml' : 'text/html'));
+O.parseDOM = (...Args) => new DOMParser().parseFromString(...Args);
+
+O.openDocument = (Source) => O.file(Source).then(Source => O.parseDOM(Source.Content, /\.(xml|opf|ncx)$/i.test(Source.Path) ? 'text/xml' : 'application/xhtml+xml'));
 
 
 O.editCSSRules = function() {
@@ -7672,8 +7739,8 @@ O.getViewportByOriginalResolution = (Str) => {
 };
 
 O.getItemViewport = Object.assign((Item) => Promise.resolve().then(() => O.getItemViewport.as(Item.Type)(Item)), { as: Object.assign(ItemType => O.getItemViewport.as[ItemType] || (() => null), {
-    'MarkupDocument': Item => O.getViewportByMetaContent(new DOMParser().parseFromString(Item.Source.Content.replace(/(<body(\s[^>]*)?>)(.|\s)*?(<\/body>)/, '$1$4'), Item.Source['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content')),
-               'SVG': Item => O.getViewportByViewBox(    new DOMParser().parseFromString(Item.Source.Content.replace( /(<svg(\s[^>]*)?>)(.|\s)*?(<\/svg>)/ , '$1$4'), Item.Source['media-type'])?.documentElement?.getAttribute('viewBox')),
+    'MarkupDocument': Item => O.getViewportByMetaContent(O.parseDOM(Item.Source.Content.replace(/(<body(\s[^>]*)?>)(.|\s)*?(<\/body>)/, '$1$4'), Item.Source['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content')),
+               'SVG': Item => O.getViewportByViewBox(    O.parseDOM(Item.Source.Content.replace( /(<svg(\s[^>]*)?>)(.|\s)*?(<\/svg>)/ , '$1$4'), Item.Source['media-type'])?.documentElement?.getAttribute('viewBox')),
        'BitmapImage': Item => new Promise(resolve => sML.create('img', { onload: function() { resolve(this.naturalWidth && this.naturalHeight ? (Item.Viewport = { Width: this.naturalWidth, Height: this.naturalHeight }) : null); } }).src = Item.Source.URI)
 }) });
 
