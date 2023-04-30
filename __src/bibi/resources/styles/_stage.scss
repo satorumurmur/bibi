@@ -1,3 +1,8 @@
+@use "sass:math";
+
+
+
+
 // ================================================================================
 // + Stage
 // --------------------------------------------------------------------------------
@@ -278,7 +283,7 @@ div#bibi-poweredby {
 				$SCOPED__PoweredBy-Logo-Image_OriginalWidth: 14400px;
 				$SCOPED__PoweredBy-Logo-Image_OriginalHeight: 6504px;
 				$SCOPED__PoweredBy-Logo-Image_Height: 14px;
-				$SCOPED__PoweredBy-Logo-Image_Width: $SCOPED__PoweredBy-Logo-Image_Height * ($SCOPED__PoweredBy-Logo-Image_OriginalWidth / $SCOPED__PoweredBy-Logo-Image_OriginalHeight);
+				$SCOPED__PoweredBy-Logo-Image_Width: $SCOPED__PoweredBy-Logo-Image_Height * math.div($SCOPED__PoweredBy-Logo-Image_OriginalWidth, $SCOPED__PoweredBy-Logo-Image_OriginalHeight);
 				$SCOPED__PoweredBy-Logo-Box_Left: 4px;
 				$SCOPED__PoweredBy-Logo-Box_PaddingVertical: 6px;
 				$SCOPED__PoweredBy-Logo-Box_PaddingHorizontal: 10px;

@@ -1,3 +1,8 @@
+@use "sass:math";
+
+
+
+
 // ================================================================================
 // + Special Icons
 // --------------------------------------------------------------------------------
@@ -11,7 +16,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bar_Height: 2px;
 $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation: 4px;
 $DEFAULT__SPECIALICON__TogglePanel-Bar_BorderRadius: 1px;
 
-$DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height * 3 + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation * 2)) / 2 - 1px;
+$DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECIALICON__TogglePanel-Bar_Height * 3 + $DEFAULT__SPECIALICON__TogglePanel-Bar_Isolation * 2)) * 0.5 - 1px;
 
 @mixin DEFAULT__SPECIALICON__TogglePanel() {
 	>span {
@@ -48,7 +53,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 @mixin DEFAULT__SPECIALICON__View-Common() {
 	$SCOPED__SpreadShape_Width : 13px;
 	$SCOPED__SpreadShape_Height: 11px;
-	$SCOPED__ItemShape_Width : ($SCOPED__SpreadShape_Width + 1px) / 2;
+	$SCOPED__ItemShape_Width : ($SCOPED__SpreadShape_Width + 1px) * 0.5;
 	$SCOPED__ItemShape_Height: $SCOPED__SpreadShape_Height;
 	span.bibi-shape-spreads {
 		@include offset(0);
@@ -151,7 +156,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 // --------------------------------------------------------------------------------
 
 @mixin DEFAULT__SPECIALICON__Book($SCOPED__Size, $SCOPED__OuterColor, $SCOPED__InnerColor, $SCOPED__Position: relative) {
-	$SCOPED__Line_Width: $SCOPED__Size * 8/128;
+	$SCOPED__Line_Width: $SCOPED__Size * math.div(8, 128);
 	$SCOPED__Book_Width: $SCOPED__Size - $SCOPED__Line_Width * 2.5;
 	$SCOPED__Book_Height: $SCOPED__Size;
 	$SCOPED__Cover_Width: $SCOPED__Book_Width - $SCOPED__Line_Width * 2;

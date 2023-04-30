@@ -1,3 +1,8 @@
+@use "sass:math";
+
+
+
+
 // ================================================================================
 // + General Icons
 // --------------------------------------------------------------------------------
@@ -30,7 +35,7 @@
 // [ja] メニューバー内のアイコンすべてに適用される共通スタイル
 @mixin GENERALICON__CommonInMenu() {
 	&:before {
-		font-size: $Menu-Icon_Size * 25/31;
+		font-size: $Menu-Icon_Size * math.div(25, 31);
 	}
 }
 
@@ -81,7 +86,7 @@
 		@include offset(22%, auto, auto, 22%);
 		margin: auto;
 		@include size(1em);
-		font-size: 1em * (13px / 18px);
+		font-size: 1em * math.div(13, 18);
 		line-height: 1;
 		html.macOS.Safari & { top: 16%; }
 		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
@@ -91,7 +96,7 @@
 @mixin GENERALICON__ManageBookmarks() {
 	&:before {
 		content: "bookmarks";
-		font-size: $Menu-Icon_Size * 21/31;
+		font-size: $Menu-Icon_Size * math.div(21, 31);
 	}
 }
 
@@ -123,7 +128,7 @@
 // [ja] Subpanel 内のアイコンすべてに適用される共通スタイル
 @mixin GENERALICON__CommonInSubpanels() {
 	&:before {
-		font-size: $Subpanel-Icon_Size * 3/4;
+		font-size: $Subpanel-Icon_Size * 3 * 0.25;
 	}
 }
 

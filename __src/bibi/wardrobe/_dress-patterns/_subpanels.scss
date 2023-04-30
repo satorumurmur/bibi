@@ -76,11 +76,11 @@ div.bibi-subpanel {
 				@include padding-h($Subpanel-Button_HorizontalPadding);
 				min-height: $Subpanel-Button_Height;
 				.bibi-button-iconbox {
-					margin-top: ($Subpanel-Button_Height - $Subpanel-Icon_Size) / 2;
+					margin-top: ($Subpanel-Button_Height - $Subpanel-Icon_Size) * 0.5;
 					margin-right: $Subpanel-Icon_MarginRight;
 				}
 				.bibi-button-label {
-					margin-top: ($Subpanel-Button_Height - $Subpanel-Button-FontSize) / 2 - 0.5px;
+					margin-top: ($Subpanel-Button_Height - $Subpanel-Button-FontSize) * 0.5 - 0.5px;
 					font-size: $Subpanel-Button-FontSize;
 				}
 				&:after {
@@ -112,9 +112,9 @@ div.bibi-subpanel {
 	.bibi-buttongroup-tiled {
 		.bibi-buttonbox {
 			.bibi-button {
-				padding-right: $Subpanel-Button_HorizontalPadding / 2;
+				padding-right: $Subpanel-Button_HorizontalPadding * 0.5;
 				.bibi-button-label {
-					margin-top: ($Subpanel-Button_Height - 12px) / 2 - 0.5px;
+					margin-top: ($Subpanel-Button_Height - 12px) * 0.5 - 0.5px;
 				}
 			}
 		}

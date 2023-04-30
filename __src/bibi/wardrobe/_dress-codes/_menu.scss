@@ -23,8 +23,8 @@ $Menu_BorderBottomColor__NotBFH__Hover:  $Menu_BorderBottomColor__NotBFH;
 $Menu_BorderBottomColor__NotBFH__Active: $Menu_BorderBottomColor__NotBFH__Hover;
 $Menu_BoxShadow__NotBFH__Active: $Menu_BoxShadow__Active;
 
-$Menu-ButtonGroup_Padding: ($Menu_Height - $Menu-Icon_Size) / 2;
-$Menu-ButtonGroup-Button_Margin: ($Menu_Height - $Menu-Icon_Size) / 4;
+$Menu-ButtonGroup_Padding: ($Menu_Height - $Menu-Icon_Size) * 0.5;
+$Menu-ButtonGroup-Button_Margin: ($Menu_Height - $Menu-Icon_Size) * 0.25;
 $Menu-ButtonGroup-Separator_Width: 1px;
 $Menu-ButtonGroup-Separator_Color: rgb(232,236,240);//rgba(208,216,224, 0.5);//rgba(216,216,216, 0.5);
 
