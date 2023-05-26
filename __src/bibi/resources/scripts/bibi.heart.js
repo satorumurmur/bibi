@@ -1530,22 +1530,28 @@ L.buildItemSourceText = (Item) => {
             null
         ),
         async () => {
-            const Vp = Item.Viewport = !Item.PrePaginated ? null : (Item.Viewport || await O.getItemViewport(Item)) || null;
-            if(Item.Type != 'MarkupDocument') Item.SourceText = [
-                `<?xml version="1.0"?>`,
-                `<!DOCTYPE html>`,
-                `<html xmlns="http://www.w3.org/1999/xhtml">`,
-                    `<head>`,
-                        `<meta charset="utf-8" />`,
-                        `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
-                        (Vp ? `<meta name="viewport" content="width=${ Vp.Width }, height=${ Vp.Height }" />` + '\n' : '') +
-                        (AdditionalHeader ? AdditionalHeader + '\n' : '') +
-                    `</head>`,
-                    `<body>`,
-                        Item.SourceText,
-                    `</body>`,
-                `</html>`
-            ].join('\n');
+            let ViewportMeta = `<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />`;
+            if(Item.Type == 'MarkupDocument') {
+                if(!Item.PrePaginated) Item.SourceText = Item.SourceText.replace(/(<head(\s[^>]+)?>)/i, `$1\n` + ViewportMeta);
+            } else {
+                const Vp = Item.Viewport = !Item.PrePaginated ? null : (Item.Viewport || await O.getItemViewport(Item)) || null;
+                if(Vp) ViewportMeta = `<meta name="viewport" content="width=${ Vp.Width }, height=${ Vp.Height }" />`;
+                Item.SourceText = [
+                    `<?xml version="1.0"?>`,
+                    `<!DOCTYPE html>`,
+                    `<html xmlns="http://www.w3.org/1999/xhtml">`,
+                        `<head>`,
+                            ViewportMeta,
+                            `<meta charset="utf-8" />`,
+                            `<title>${ B.FullTitle } - #${ Item.Index + 1 }/${ R.Items.length }</title>`,
+                            (AdditionalHeader ? AdditionalHeader + '\n' : '') +
+                        `</head>`,
+                        `<body>`,
+                            Item.SourceText,
+                        `</body>`,
+                    `</html>`
+                ].join('\n');
+            }
             Item.SourceText = Item.SourceText.replace(/(<head(\s[^>]+)?>)/i,
                 `$1\n<link rel="stylesheet" id="bibi-default-style" href="${ Bibi.BookStyleURL }" />` +
                 (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ B.Path + '/' + Item.Source.Path }" />` : '')
@@ -1863,7 +1869,7 @@ R.renderReflowableItem = (Item) => new Promise(resolve => {
         [C.L_SIZE_b]: PageCB + 'px',
         [C.L_SIZE_l]: PageCL + 'px'
     });
-    const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, '*', 'word-wrap: break-word;'); ////
+    const WordWrappingStyleSheetIndex = sML.appendCSSRule(Item.contentDocument, '*', 'word-wrap: break-word; overflow-wrap: break-word;'); ////
     { // Fit Image and Embeded Content
         const [ItemBDir, ItemLDir] = Item.WritingMode.split('-'), ItemLineAxis = ItemLDir == 'tb' ? 'horizontal' : 'vertical';
         const TRBL = ['Top', 'Right', 'Bottom', 'Left'];
@@ -1951,15 +1957,27 @@ R.renderReflowableItem = (Item) => new Promise(resolve => {
     if(sML.UA.Gecko) { // Part 2/2: Assist Gecko in the rendering of the orthogonal flow of writing-mode.
         if(Item.OFREs.length) Item.OFREs.forEach(OFRE => sML.style(OFRE, { width: OFRE.offsetWidth + 'px', height: OFRE.offsetHeight + 'px' }));
     }
-    let ItemL = Item.HTML['scroll' + C.L_SIZE_L];
-    let HowManyPages = Math.ceil((ItemL + PageGap) / (PageCL + PageGap));
-    if(ItemL - ((PageCL + PageGap) * (HowManyPages - 1) - PageGap) < 5) HowManyPages--;
-    ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
-    Item.style[C.L_SIZE_l] = Item.HTML.style[C.L_SIZE_l] = ItemL + 'px';
-    let ItemBoxB = PageCB + ItemPaddingSE;
-    let ItemBoxL = ItemL  + ItemPaddingBA;// + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0);
-    Item.Box.style[C.L_SIZE_b] = ItemBoxB + 'px';
-    Item.Box.style[C.L_SIZE_l] = ItemBoxL + 'px';
+    const [ItemL, HowManyPages] = (() => {
+        let ItemL, HowManyPages;
+        const LineSpacing = (() => {
+            const Ps = Item.Body.querySelectorAll('p');
+            const CS = getComputedStyle(Ps.length ? Ps[Ps.length - 1] : Item.Body);
+            const FS = parseFloat(CS.fontSize);
+            const CLH = CS.lineHeight;
+            return Math.floor((/\dpx$/.test(CLH) ? parseFloat(CLH) : FS * (/\d$/.test(CLH) ? parseFloat(CLH) : 1.2)) - FS);
+        })();
+        (function updateL(Again) {
+            const ItemScrollL = Item.HTML['scroll' + C.L_SIZE_L];
+            HowManyPages = Math.ceil((ItemScrollL + PageGap) / (PageCL + PageGap));
+            if(ItemScrollL - ((PageCL + PageGap) * (HowManyPages - 1) - PageGap) < LineSpacing / 2) HowManyPages--; // Avoid white page.
+            ItemL = (PageCL + PageGap) * HowManyPages - PageGap;
+            Item.style[C.L_SIZE_l] = Item.HTML.style[C.L_SIZE_l] = ItemL + 'px';
+            if(!Again) updateL('Again'); // Watch reflowing after setting styles.
+        })();
+        return [ItemL, HowManyPages];
+    })();
+    Item.Box.style[C.L_SIZE_b] = (PageCB + ItemPaddingSE) + 'px';
+    Item.Box.style[C.L_SIZE_l] = (ItemL + ItemPaddingBA /* + ((S.RVM == 'paged' && Item.Spreaded && HowManyPages % 2) ? (PageGap + PageCL) : 0) */ ) + 'px';
     Item.Pages.forEach(Page => {
         delete Page.IsPage;
         I.PageObserver.unobservePageIntersection(Page);
@@ -4864,7 +4882,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 Object.keys(StyleTree).forEach(Pro => {
                     let Val = StyleTree[Pro];
                     if(typeof Val == 'object') return this.setStyles(Ele, Val, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
-                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : /^marginInline$/.test(Pro) && Val >= 0 ? 'auto' : Val / ItemHTMLOriginalFontSize + 'rem';
+                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : /* /^marginInline$/.test(Pro) && Val >= 0 ? 'auto' : */ Val / ItemHTMLOriginalFontSize + 'rem';
                 });
             },
             getLineAxis: (WM) => WM.split('-')[1] == 'tb' ? 'horizontal' : 'vertical',
