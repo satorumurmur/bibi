@@ -3547,145 +3547,178 @@ I.TouchObserver = { create: () => {
 
 I.FlickObserver = { create: () => {
     const FlickObserver = I.FlickObserver = {
-        Moving: 0,
-        getDegree: (_) => (Deg => Deg < 0 ? Deg + 360 : Deg)(Math.atan2(_.Y * -1, _.X) * 180 / Math.PI),
-        onTouchStart: (BibiEvent) => {
-            if(!L.Opened) return;
-            //if(S.RVM != 'paged' && O.TouchOS) return;
-            if(FlickObserver.LastEvent) return FlickObserver.onTouchEnd();
-            if(I.Loupe.Transforming) return;
-            for(let i = 0; i < 4; i++) { const SafeArea = S['touchmove-ignoring-area'][i]; if(!SafeArea) continue; switch(i) {
-                case 0: if(BibiEvent.Coord.Y <                  (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return; break;
-                case 1: if(BibiEvent.Coord.X > R.Stage.Width  - (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return; break;
-                case 2: if(BibiEvent.Coord.Y > R.Stage.Height - (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return; break;
-                case 3: if(BibiEvent.Coord.X <                  (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return; break;
-            }}
-            FlickObserver.LastEvent = BibiEvent;
-            FlickObserver.StartedAt = {
-                X: BibiEvent.Coord.X,
-                Y: BibiEvent.Coord.Y,
-                Item: BibiEvent.target.ownerDocument.body.Item || null,
+        getPassage: (From, To) => ({ X: To.X - From.X, Y: To.Y - From.Y }),
+        getDistance: (From, To) => { const { X, Y } = FlickObserver.getPassage(From, To); return Math.sqrt(X ** 2 + Y ** 2); },
+        getProgress: (From, To) => FlickObserver.getDistance(From, To) / Math.min(128, R.Stage.Width * 0.333, R.Stage.Height * 0.333),
+        getDegree: (From, To) => { const { X, Y } = FlickObserver.getPassage(From, To); return (Math.atan2(X, Y * -1) * 180 / Math.PI + 360) % 360; }, // N:0, E:90, S:180, W:270. Swap X/Y of the arguments for Math.atan2 to match the clock face.
+        getDividedDirectionIndex: (From, To, Div) => Math.floor(FlickObserver.getDegree(From, To) / (360 / Div) + 0.5) % Div,
+        // getClockDirection: (From, To) => FlickObserver.getDividedDirectionIndex(From, To, 12) || 12,
+        // getAzimuthDirection: (From, To, Div = 16) => { switch(FlickObserver.getDividedDirectionIndex(From, To, Div) * (16 / Div)) { // Div: 4 or 8 or 16.
+        //               /* ////////// */ case  0: return 'N';
+        //           case 15: return 'NNW'; case  1: return 'NNE';
+        //        case 14: return 'NW';        case  2: return  'NE';
+        //      case 13: return 'WNW';           case  3: return 'ENE';
+        //     case 12: return 'W';               case  4: return   'E';
+        //      case 11: return 'WSW';           case  5: return 'ESE';
+        //        case 10: return 'SW';        case  6: return  'SE';
+        //           case  9: return 'SSW'; case  7: return 'SSE';
+        //               case  8: return 'S'; /* ////////// */
+        // }},
+        MovementPrototype: ['getPassage', 'getProgress', 'getDistance', 'getDegree'].reduce(
+            (Mv, FN) => (Mv[FN] = function(BibiEvent, ...Args) { return FlickObserver[FN](this.Started.BibiEvent.Coord, BibiEvent.Coord, ...Args); }) && Mv, {
+            getVector: function(BibiEvent) {
+                let DDI = FlickObserver.getDividedDirectionIndex(this.Started.BibiEvent.Coord, BibiEvent.Coord, 8);
+                switch(DDI) {
+                    case 1: case 5: C.A_AXIS_L == 'X' ? DDI++ : DDI--; break;
+                    case 3: case 7: C.A_AXIS_L == 'X' ? DDI-- : DDI++; break;
+                }
+                switch(DDI % 8) {
+                    case 0: return { Axis: 'Y', Direction: { From: 'bottom'/*, To: 'top'*/ } };
+                    case 2: return { Axis: 'X', Direction: { From: 'left'/*, To: 'right'*/ } };
+                    case 4: return { Axis: 'Y', Direction: { From: 'top'/*, To: 'bottom'*/ } };
+                    case 6: return { Axis: 'X', Direction: { From: 'right'/*, To: 'left'*/ } };
+                }
+            }
+        }),
+        getMovement: (BibiEvent) => Object.assign({}, FlickObserver.MovementPrototype, {
+            Started: {
+                BibiEvent: BibiEvent,
                 TimeStamp: BibiEvent.timeStamp,
+                Item: BibiEvent.target.ownerDocument.body.Item || null,
                 ScrollLeft: R.Main.scrollLeft,
                 ScrollTop: R.Main.scrollTop,
                 OriginList: I.PageObserver.updateCurrent().List
-            };
+            },
+            Last: {
+                BibiEvent: null
+            },
+            Moving: 0,
+            AxisSwitcherReadied: I.AxisSwitcher && I.orthogonal('touchmove') == 'switch' && I.Loupe.CurrentTransformation.Scale == 1
+        }),
+        isInSafeAreas: (BibiEvent) => {
+            for(let i = 0; i < 4; i++) { const SafeArea = S['touchmove-ignoring-area'][i]; if(!SafeArea) continue; switch(i) {
+                case 0: if(BibiEvent.Coord.Y <                  (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return true; break;
+                case 1: if(BibiEvent.Coord.X > R.Stage.Width  - (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return true; break;
+                case 2: if(BibiEvent.Coord.Y > R.Stage.Height - (SafeArea < 1 ? R.Stage.Height * SafeArea : SafeArea)) return true; break;
+                case 3: if(BibiEvent.Coord.X <                  (SafeArea < 1 ? R.Stage.Width  * SafeArea : SafeArea)) return true; break;
+            }} return false;
+        },
+        onTouchStart: (BibiEvent) => {
+            if(!L.Opened) return;
+            //if(S.RVM != 'paged' && O.TouchOS) return;
+            if(FlickObserver.Movement?.Last.BibiEvent) return FlickObserver.onTouchEnd();
+            if(I.Loupe.Transforming) return;
+            if(FlickObserver.isInSafeAreas(BibiEvent)) return;
             //BibiEvent.preventDefault();
+            FlickObserver.Movement = FlickObserver.getMovement(BibiEvent);
             E.add('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.add('bibi:upped-pointer', FlickObserver.onTouchEnd);
         },
         cancel: () => {
-            delete FlickObserver.StartedAt;
-            delete FlickObserver.LastEvent;
+            delete FlickObserver.Movement;
             E.remove('bibi:moved-pointer', FlickObserver.onTouchMove);
             E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
-            FlickObserver.Moving = 0;
         },
         onTouchMove: (BibiEvent) => {
             //if(BibiEvent.touches && BibiEvent.touches.length == 1 && O.getViewportZooming() <= 1) BibiEvent.preventDefault();
             I.ScrollObserver.breakCurrentScrolling();
-            if(FlickObserver.StartedAt) {
-                if(!FlickObserver.Moving) {
-                    const TimeFromTouchStarted = BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp;
+            const Mv = FlickObserver.Movement; if(Mv) { const MvS = Mv.Started;
+                if(!Mv.Moving++) {
+                    const TimeFromTouchStarted = BibiEvent.timeStamp - MvS.TimeStamp;
                     if(O.TouchOS || (BibiEvent.type != 'mousemove' && BibiEvent.pointerType != 'mouse') || S['prioritise-viewer-operation-over-text-selection']) { if(TimeFromTouchStarted > 234) return FlickObserver.cancel(); }
                     else                                                                                                                                         { if(TimeFromTouchStarted < 234) return FlickObserver.cancel(); }
-                    FlickObserver.StartedAt.TimeStamp = BibiEvent.timeStamp;
+                    MvS.TimeStamp = BibiEvent.timeStamp;
                 }
-                const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
-                if(++FlickObserver.Moving <= 3) {
-                    const Deg = FlickObserver.getDegree(Passage);
-                    FlickObserver.StartedAt.LaunchingAxis = (315 <= Deg || Deg <=  45) || (135 <= Deg && Deg <= 225) ? 'X' :
-                                                            ( 45 <  Deg && Deg <  135) || (225 <  Deg && Deg <  315) ? 'Y' : '';
-                }
-                if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
+                const Vector = Mv.getVector(BibiEvent);
+                if(!Mv.LaunchingVector && Mv.getDistance(BibiEvent) >= 22) Mv.LaunchingVector = Vector;
+                if(Mv.LaunchingVector?.Axis == C.A_AXIS_B) {
                     // Orthogonal
-                    if(/*S.RVM != 'paged' &&*/ I.orthogonal('touchmove') == 'switch' && I.Loupe.CurrentTransformation.Scale == 1 && I.AxisSwitcher) I.AxisSwitcher.progress(Passage[C.A_AXIS_B] / 100);
+                    if(Mv.AxisSwitcherReadied) I.AxisSwitcher.progress(Vector.Axis != C.A_AXIS_B ? 0 : Mv.getProgress(BibiEvent, C.A_AXIS_B));
                 } else {
                     // Natural
-                    if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return FlickObserver.cancel();
-                    if(I.draggable() && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = FlickObserver.StartedAt['Scroll' + C.L_OOBL_L] + Passage[C.L_AXIS_L] * -1;
+                    if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return Mv.LaunchingVector && FlickObserver.cancel();
+                    if(I.draggable() && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = MvS['Scroll' + C.L_OOBL_L] + Mv.getPassage(BibiEvent)[C.L_AXIS_L] * -1;
                 }
                 BibiEvent.preventDefault();
-                if(FlickObserver.StartedAt.Item) {
-                    FlickObserver.StartedAt.Item.HTML.classList.add('bibi-flick-hot');
-                    FlickObserver.StartedAt.Item.contentWindow.getSelection().empty();
+                if(MvS.Item) {
+                    MvS.Item.HTML.classList.add('bibi-flick-hot');
+                    MvS.Item.contentWindow.getSelection().empty();
                 }
-                FlickObserver.LastEvent = BibiEvent;
+                Mv.Last.BibiEvent = BibiEvent;
                 if(BibiEvent.Coord[C.A_AXIS_L] <= 0 || BibiEvent.Coord[C.A_AXIS_L] >= R.Stage[C.A_SIZE_L] || BibiEvent.Coord[C.A_AXIS_B] <= 0 || BibiEvent.Coord[C.A_AXIS_B] >= R.Stage[C.A_SIZE_B]) return FlickObserver.onTouchEnd(BibiEvent, { Swipe: true });
             }
         },
         onTouchEnd: (BibiEvent, Opt) => {
-            if(!BibiEvent) BibiEvent = FlickObserver.LastEvent;
-            E.remove('bibi:moved-pointer', FlickObserver.onTouchMove);
-            E.remove('bibi:upped-pointer', FlickObserver.onTouchEnd);
-            FlickObserver.Moving = 0;
             let cb = undefined, Par = {};
-            if(FlickObserver.StartedAt) {
-                const Passage = { X: BibiEvent.Coord.X - FlickObserver.StartedAt.X, Y: BibiEvent.Coord.Y - FlickObserver.StartedAt.Y };
-                if(FlickObserver.StartedAt.Item) FlickObserver.StartedAt.Item.HTML.classList.remove('bibi-flick-hot');
+            const Mv = FlickObserver.Movement; if(Mv) { const MvS = Mv.Started;
+                if(!BibiEvent) BibiEvent = Mv.Last.BibiEvent;
+                if(MvS.Item) MvS.Item.HTML.classList.remove('bibi-flick-hot');
                 if(!I.Loupe.Transforming) {
-                    if(FlickObserver.StartedAt.LaunchingAxis == C.A_AXIS_B) {
+                    const Vector = Mv.getVector(BibiEvent);
+                    if(Mv.LaunchingVector?.Axis == C.A_AXIS_B && Vector.Axis == C.A_AXIS_B) {
                         // Orthogonal Pan/Releace
-                        cb = Math.abs(Passage[C.A_AXIS_B] / 100) >= 1 ? FlickObserver.getOrthogonalTouchMoveFunction() : I.AxisSwitcher && I.AxisSwitcher.reset;
+                        cb = Mv.getProgress(BibiEvent) >= 1 ? (Mv.AxisSwitcherReadied ? I.AxisSwitcher.switchAxis : I.orthogonal('touchmove') == 'utilities' ? I.Utilities.toggleGracefuly : undefined) : I.AxisSwitcher?.reset;
                     }
-                    if(!cb && (Math.abs(Passage.X) >= 3 || Math.abs(Passage.Y) >= 3)) {
+                    const Distance = Mv.getDistance(BibiEvent);
+                    if(!cb && Distance >= 5) {
                         // Moved (== not Tap)
                         BibiEvent.preventDefault();
-                        Par.Speed = Math.sqrt(Math.pow(Passage.X, 2) + Math.pow(Passage.Y, 2)) / (BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp);
-                        Par.Deg = FlickObserver.getDegree(Passage);
-                        if(O.getViewportZooming() <= 1 && (BibiEvent.timeStamp - FlickObserver.StartedAt.TimeStamp) <= 300) {
-                            Par.OriginList = FlickObserver.StartedAt.OriginList;
-                            cb = (Opt && Opt.Swipe) ? FlickObserver.onSwipe : FlickObserver.onFlick;
+                        const Duration = BibiEvent.timeStamp - MvS.TimeStamp;
+                        Par.Speed = Distance / Duration;
+                        if(O.getViewportZooming() <= 1 && Duration <= 300) {
+                            if(S.RVM == 'paged' || I.draggable()) {
+                                Par.OriginList = MvS.OriginList;
+                                Par.Vector = Vector;
+                                cb = Opt?.Swipe ? FlickObserver.onSwipe : FlickObserver.onFlick;
+                            }
                         } else if(I.isScrollable()) {
-                            cb = FlickObserver.onPanRelease;
+                            if(S.RVM == 'paged' && I.draggable()) {
+                                Par.Vector = { Direction: { From: Mv.getDegree(BibiEvent) < 180 ? 'left' /* to right */ : 'right' /* to left */ } };
+                                cb = FlickObserver.onPanRelease;
+                            }
                         }
                     } else {
                         // Not Moved (== Tap)
                         // [[[[ Do Nothing ]]]] (to avoid conflicts with other tap events on other UIs like Arrows.)
                     }
                 }
-                delete FlickObserver.StartedAt;
             }
-            delete FlickObserver.LastEvent;
-            return (cb ? cb(BibiEvent, Par) : Promise.resolve());
+            FlickObserver.cancel();
+            return Promise.resolve(cb?.(BibiEvent, Par));
         },
         onFlick: (BibiEvent, Par) => { // Only for Paged View or Draggable Scrolling Views ====
-            if(S.RVM != 'paged' && !I.draggable()) return Promise.resolve();
-            if(typeof Par.Deg != 'number') return Promise.resolve();
-            const Deg = Par.Deg;
-            const Dir = (330 <= Deg || Deg <=  30) ? 'left' /* to right */ :
-                        ( 60 <= Deg && Deg <= 120) ? 'bottom' /* to top */ :
-                        (150 <= Deg && Deg <= 210) ? 'right' /* to left */ :
-                        (240 <= Deg && Deg <= 300) ? 'top' /* to bottom */ : '';
-            const Dist = C.d2d(Dir, I.orthogonal('touchmove') == 'move');
+            if(!I.draggable() && S.RVM != 'paged') return Promise.resolve();
+            if(!BibiEvent || !Par) return Promise.resolve();
+            const Dist = C.d2d(Par.Vector.Direction.From, I.orthogonal('touchmove') == 'move');
             if(!Dist) {
                 // Orthogonal (not for "move")
-                return new Promise(resolve => { FlickObserver.getOrthogonalTouchMoveFunction()(); resolve(); });
-            } else if(S.RVM == 'paged' || S.RVM != (/^[lr]/.test(Dir) ? 'horizontal' : /^[tb]/.test(Dir) ? 'vertical' : '')) {
+                return Promise.resolve().then(() => { switch(I.orthogonal('touchmove')) {
+                    case 'switch': return I.AxisSwitcher?.switchAxis();
+                    case 'utilities': return I.Utilities.toggleGracefuly();
+                }});
+            } else if(S.RVM == 'paged' || S.RVM == 'horizontal' && Par.Vector.Axis == 'Y' || S.RVM == 'vertical' && Par.Vector.Axis == 'X') {
                 // Paged || Scrolling && Orthogonal
                 const PageIndex = (Dist > 0 ? Par.OriginList.slice(-1)[0].Page.Index : Par.OriginList[0].Page.Index);
                 return R.focusOn({ Page: R.Pages[PageIndex + Dist] || R.Pages[PageIndex] }, { Duration: !I.isScrollable() ? 0 : I.draggable() || S.RVM != 'paged' ? 123 : 0 });
             } else {
                 // Scrolling && Natural
-                return R.scrollBy(Dist * (Par.Speed ? sML.limitMinMax(Math.round(Par.Speed * 100) * 0.08, 0.33, 10) * 333 / (S.SLD == 'ttb' ? R.Stage.Height : R.Stage.Width) : 1), { Duration: 1234, Cancelable: true, ease: (_) => (Math.pow(--_, 4) - 1) * -1 });
+                return R.scrollBy(Dist * (Par.Speed ? sML.limitMinMax(Math.round(Par.Speed * 100) * 0.08, 0.33, 10) * 333 / (S.SLD == 'ttb' ? R.Stage.Height : R.Stage.Width) : 1), {
+                    Duration: 1234,
+                    Cancelable: true,
+                    ease: (_) => (Math.pow(--_, 4) - 1) * -1
+                });
             }
         },
-        onSwipe: (BibiEvent, Par) => FlickObserver.onFlick(BibiEvent, Par),
+        onSwipe: (...Args) => FlickObserver.onFlick(...Args),
         onPanRelease: (BibiEvent, Par) => { // Only for Paged View ====
             if(!I.draggable() || S.RVM != 'paged') return Promise.resolve();
-            const Deg = Par.Deg;
-            const Dir = (270 <  Deg || Deg <   90) ? 'left'  /* to right */ :
-                        ( 90 <  Deg && Deg <  270) ? 'right' /* to left  */ : '';
-            const Dist = C.d2d(Dir);
-            const CurrentList = I.PageObserver.updateCurrent().List;
-            return R.focusOn({ Page: (Dist >= 0 ? CurrentList.slice(-1)[0].Page : CurrentList[0].Page) }, {
+            if(!BibiEvent || !Par) return Promise.resolve();
+            const Dist = C.d2d(Par.Vector.Direction.From);
+            const CurrentList = I.PageObserver.updateCurrent().List, CurrentPage = Dist >= 0 ? CurrentList.slice(-1)[0].Page : CurrentList[0].Page;
+            return R.focusOn({ Page: CurrentList.length == 1 && CurrentList[0].SpreadIntersectionStatus.Ratio < 0.5 ? R.Pages[CurrentPage.Index + Dist] || CurrentPage : CurrentPage }, {
                 Duration: !I.isScrollable() ? 0 : I.draggable() ? 123 : 0
             });
         },
-        getOrthogonalTouchMoveFunction: () => { switch(I.orthogonal('touchmove')) {
-            case 'switch': if(I.AxisSwitcher) return I.AxisSwitcher.switchAxis; break;
-            case 'utilities': return I.Utilities.toggleGracefuly; break;
-        } },
         getCNPf: (Ele) => Ele.ownerDocument == document ? '' : 'bibi-',
         activateElement: (Ele) => { if(!Ele) return false;
             if(!Ele.FlickObserver) Ele.FlickObserver = {};
