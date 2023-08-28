@@ -456,15 +456,13 @@ Bibi.loadExtensions = () => X.list().then(() => {
 }).finally(X.clean);
 
 
-Bibi.ready = () => new Promise(resolve => {
+Bibi.ready = async () => {
     if(!Bibi.isCompatible()) throw Bibi.byebye(); // Extensions may update Bibi.isCompatible & Bibi.byebye function.
     O.HTML.classList.add('ready');
     O.ReadiedURL = location.href;
-    E.add('bibi:readied', resolve);
-    setTimeout(() => E.dispatch('bibi:readied', Bibi.Status = Bibi.Readied = 'Readied'), (O.TouchOS && !O.Embedded) ? 1234 : 0);
-}).then(() => {
-    O.HTML.classList.remove('ready');
-});
+    await new Promise(resolve => setTimeout(resolve, (O.TouchOS && !O.Embedded) ? 999 : 0));
+    return E.dispatch('bibi:readied', Bibi.Status = Bibi.Readied = 'Readied').then(() => O.HTML.classList.remove('ready'));
+};
 
 
 Bibi.getBookData = () =>
@@ -521,8 +519,10 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
         E.dispatch('bibi:loaded-navigation', B.Nav.Source);
     });
 }).then(() => {
-    // Announce "Prepared" (and Wait, sometime)
-    E.dispatch('bibi:prepared', Bibi.Status = Bibi.Prepared = 'Prepared');
+    // Announce "Prepared"
+    return E.dispatch('bibi:prepared', Bibi.Status = Bibi.Prepared = 'Prepared');
+}).then(() => {
+    // Wait, sometime
     if(!S['autostart'] && !L.Played) return L.wait();
 }).then(() => {
     // Background Preparing
@@ -530,7 +530,6 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
 }).then(() => {
     // Load & Layout Items in Spreads and Pages
     O.log(`Loading Items in Spreads...`, '<g:>');
-    const Promises = [];
     Bibi.StartOption = {
         TargetItemIndex: 0,
         TargetSpreadIndex: 0,
@@ -588,32 +587,32 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
         Bibi.StartOption.Destination = R.StartOn;
     }
     // Bibi.StartOption.addResetter();
+    O.HTML.classList.add('loading-items');
     let LoadedItems = 0;
-    R.Spreads.forEach(Spread => Promises.push(new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != Bibi.StartOption.TargetSpreadIndex }).then(() => {
-        LoadedItems += Spread.Items.length;
-        I.notify(`Loading... <span style="opacity: .75;">(${ LoadedItems }/${ R.Items.length })</span>`);
-        setTimeout(() => resolve());
+    return Promise.all(R.Spreads.map(Spread => new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != Bibi.StartOption.TargetSpreadIndex }).then(() => {
+        I.notify(`Loading Items... <span style="opacity: .75;">(${ LoadedItems += Spread.Items.length }/${ R.Items.length })</span>`);
+        setTimeout(() => resolve(), 69);
         // !Bibi.StartOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
-    }))));
-    return Promise.all(Promises).then(() => {
+    })))).then(async () => {
         O.log(`Loaded. (${ R.Items.length } in ${ R.Spreads.length })`, '</g>');
-        E.dispatch('bibi:loaded-book', Bibi.Status = Bibi.Loaded = 'Loaded');
+        I.notify(`Processing...`);
+        await new Promise(resolve => setTimeout(resolve, 69));
+        return E.dispatch('bibi:loaded-book', Bibi.Status = Bibi.Loaded = 'Loaded').then(() => O.HTML.classList.remove('loading-items'));
     });
 });
 
 
-Bibi.bindBook = () => {
+Bibi.bindBook = async () => {
     // if(!Bibi.StartOption.Reset) {
     //     R.organizePages();
     //     R.layOutStage();
     // }
     I.notify(`Binding...`);
-    return new Promise(resolve => setTimeout(() => R.layOutBook(Bibi.StartOption).then(() => {
-        // Bibi.StartOption.removeResetter();
-        E.dispatch('bibi:laid-out-for-the-first-time', Bibi.StartOption);
-        E.dispatch('bibi:binded-book', Bibi.Status = Bibi.Binded = 'Binded');
-        resolve();
-    })));
+    await new Promise(resolve => setTimeout(resolve, 69));
+    return R.layOutBook(Bibi.StartOption)
+        // .then(() => Bibi.StartOption.removeResetter())
+        .then(() => E.dispatch('bibi:laid-out-for-the-first-time', Bibi.StartOption))
+        .then(() => E.dispatch('bibi:binded-book', Bibi.Status = Bibi.Binded = 'Binded'));
 };
 
 
@@ -623,24 +622,13 @@ Bibi.openBook = () => {
     I.Veil.close();
     L.Opened = true;
     document.body.click(); // To responce for user scrolling/keypressing immediately
-    I.notify('Enjoy Readings!', { Time: 999 });
+    I.notify('Here!', { Time: 999 });
     O.log(`Enjoy Readings!`, '</b>');
-    E.dispatch('bibi:opened', Bibi.Status = Bibi.Opened = 'Opened');
-    E.dispatch('bibi:scrolled');
+    return E.dispatch('bibi:opened', Bibi.Status = Bibi.Opened = 'Opened').then(() => E.dispatch('bibi:scrolled'));
 };
 
 
 Bibi.start = () => {
-    const LandingPage = R.getPage(Bibi.StartOption.Destination);
-    if(!I.History.List.length) {
-        I.History.List = [{ UI: Bibi, Item: LandingPage.Item, ProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
-        I.History.update();
-    }
-    E.add('bibi:commands:move-by',     R.moveBy);
-    E.add('bibi:commands:scroll-by',   R.scrollBy);
-    E.add('bibi:commands:focus-on',    R.focusOn);
-    E.add('bibi:commands:change-view', R.changeView);
-    E.dispatch('bibi:started');
     /*
     alert((Alert => {
         [
@@ -655,6 +643,16 @@ Bibi.start = () => {
         return Alert.join('\n\n');
     })([]));
     //*/
+    const LandingPage = R.getPage(Bibi.StartOption.Destination);
+    if(!I.History.List.length) {
+        I.History.List = [{ UI: Bibi, Item: LandingPage.Item, ProgressInItem: LandingPage.IndexInItem / LandingPage.Item.Pages.length }];
+        I.History.update();
+    }
+    E.add('bibi:commands:move-by',     R.moveBy);
+    E.add('bibi:commands:scroll-by',   R.scrollBy);
+    E.add('bibi:commands:focus-on',    R.focusOn);
+    E.add('bibi:commands:change-view', R.changeView);
+    return E.dispatch('bibi:started', Bibi.Status = Bibi.Started = 'Started');
 };
 
 
@@ -1335,15 +1333,19 @@ L.loadSpread = (Spread, Opt = {}) => new Promise((resolve, reject) => {
 
 L.loadItem = async (Item, Opt = {}) => {
     const ProcessID = Item.LoadingProcessID = O.id();
+    await Promise.resolve(Item.Loading);
     const IsPlaceholder = (S['allow-placeholders'] && Item.AllowPlaceholder && Opt.AllowPlaceholder) ? true : false;
     const ItemBox = Item.Box;
+    const classify = (ClassName, TF) => [Item, ItemBox].forEach(TF ? Ele => Ele.classList.add(ClassName) : Ele => Ele.classList.remove(ClassName));
     let ContentURL;
-    await Promise.resolve(Item.Loading);
-    return Item.Loading = O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem' },
+    return Item.Loading = new Promise((resolve, reject) => {
+        Item.IsPlaceholder = IsPlaceholder;
+        classify('loading', true);
+        classify('loaded', false);
+        classify('placeholder', IsPlaceholder);
+        !IsPlaceholder ? resolve() : reject('Placeholder');
+    }).then(() => O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem' },
         async () => {
-            ItemBox.classList.remove('loaded');
-            ItemBox.classList.toggle('placeholder', Item.IsPlaceholder = IsPlaceholder);
-            if(IsPlaceholder) return Promise.reject('Placeholder');
             if(Item.Source.External) {
                 if(!S['allow-external-item-href']) return Promise.reject('External Item Not Allowed');
                 return ContentURL = Item.Source.Path;
@@ -1380,15 +1382,17 @@ L.loadItem = async (Item, Opt = {}) => {
             }
         }),
         () => L.postprocessItem(Item)
-    ).then(() => {
+    )).then(() => {
         O.log(`Item#${ String(Item.Index).padStart(3, 0) } is turned UP.`);
-        ItemBox.classList.add('loaded');
+        classify('loaded', true);
         Item.Loaded = true;
         Item.Turned = 'Up';
         // Item.stamp('Loaded');
         E.dispatch('bibi:loaded-item', Item);
     }).catch(Reason => { // Placeholder (or Error)
         O.log(`Item#${ String(Item.Index).padStart(3, 0) } is turned DOWN:`, Reason);
+        classify('loaded', false);
+        classify('placeholder', true);
         if(Item.contentWindow) Item.contentWindow.stop() || O.log(`Item#${ String(Item.Index).padStart(3, 0) } STOPPED its window.`);
         if(Item.contentDocument) Item.contentDocument.querySelectorAll('[src], [*|href]').forEach(Ele => ['src','href','xlink:href'].forEach(Att => Ele.removeAttribute(Att)) || Ele.remove()) || O.log(`Item#${ String(Item.Index).padStart(3, 0) } REMOVED its elements.`);
         if(Item.parentElement) Item.parentElement.removeChild(Item);
@@ -1399,6 +1403,7 @@ L.loadItem = async (Item, Opt = {}) => {
         Item.Turned = 'Down';
         E.dispatch('bibi:prepared-placeholder', Item);
     }).then(() => {
+        classify('loading', false);
         clearInterval(Item.ReloadTimer);
         URL.revokeObjectURL(ContentURL);
         Item.removeEventListener('load', Item.onLoaded);

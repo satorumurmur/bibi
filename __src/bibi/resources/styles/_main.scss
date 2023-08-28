@@ -217,6 +217,8 @@ main#bibi-main {
 					}
 					iframe.item {
 						& {
+							html.loading-items &, &.loading { display: none; }
+							html.loading & { visibility: hidden; }
 							html.searching-page & { pointer-events: none !important; }
 							//overflow: hidden;
 							position: absolute;
