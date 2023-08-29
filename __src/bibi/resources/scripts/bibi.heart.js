@@ -590,7 +590,7 @@ Bibi.loadBook = (BookInfo) => Promise.resolve().then(() => {
     O.HTML.classList.add('loading-items');
     let LoadedItems = 0;
     return Promise.all(R.Spreads.map(Spread => new Promise(resolve => L.loadSpread(Spread, { AllowPlaceholderItems: S['allow-placeholders'] && Spread.Index != Bibi.StartOption.TargetSpreadIndex }).then(() => {
-        I.notify(`Loading Items... <span style="opacity: .75;">(${ LoadedItems += Spread.Items.length }/${ R.Items.length })</span>`);
+        I.notify(`Loading Items... <span class="sotto">${ LoadedItems += Spread.Items.length }/${ R.Items.length }</span>`);
         setTimeout(() => resolve(), 69);
         // !Bibi.StartOption.Reset ? R.layOutSpreadAndItsItems(Spread).then(resolve) : resolve();
     })))).then(async () => {
@@ -4205,15 +4205,18 @@ I.Flipper = { create: () => {
 
 
 I.Notifier = { create: () => {
-    const Notifier = I.Notifier = O.Body.appendChild(sML.create('div', { id: 'bibi-notifier',
+    const  Notifier = I.Notifier = sML.create('div', { id: 'bibi-notifier' });
+    const     Panel = Notifier.appendChild(document.createElement('div'));
+    const Paragraph = Panel.appendChild(document.createElement('p'));
+    Object.assign(Notifier, {
         show: (Msg, Opt = {}) => {
             clearTimeout(Notifier.Timer_hide);
             const ClassNames = [];
             if(Opt.Type == 'Error') ClassNames.push('error');
             if(typeof Opt.className == 'string' && (Opt.className = Opt.className.trim())) ClassNames.push(Opt.className);
-            ClassNames.length ? (Notifier.P.className = ClassNames.join(' ')) : Notifier.P.removeAttribute('class');
-            (typeof Opt.id == 'string' && (Opt.id = Opt.id.trim())) ? (Notifier.P.id = Opt.id) : Notifier.P.removeAttribute('id');
-            Notifier.P.innerHTML = Msg;
+            ClassNames.length ? (Paragraph.className = ClassNames.join(' ')) : Paragraph.removeAttribute('class');
+            (typeof Opt.id == 'string' && (Opt.id = Opt.id.trim())) ? (Paragraph.id = Opt.id) : Paragraph.removeAttribute('id');
+            Paragraph.innerHTML = Msg;
             O.HTML.classList.add('notifier-shown');
             if(L.Opened && Opt.Type != 'Error') Notifier.addEventListener(O.TouchOS || Opt.Hoverable ? E['pointerdown'] : E['pointerover'], Notifier.hide);
         },
@@ -4230,9 +4233,9 @@ I.Notifier = { create: () => {
             if(typeof Opt.Time == 'undefined') Opt.Time = Opt.Type == 'Error' ? undefined : O.Busy && !L.Opened ? 8888 : 2222;
             if(typeof Opt.Time == 'number') Notifier.hide(Opt);
         }
-    }));
-    Notifier.P = Notifier.appendChild(document.createElement('p'));
-    I.notify = Notifier.notify;
+    });
+    I.notify = (...Args) => Notifier.notify(...Args);
+    O.Body.appendChild(Notifier);
     E.dispatch('bibi:created-notifier');
 }};
 

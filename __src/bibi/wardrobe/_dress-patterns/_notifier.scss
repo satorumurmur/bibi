@@ -4,15 +4,22 @@
 
 
 div#bibi-notifier {
-	height: $Notifier_Height;
-	color: $Notifier_Color;
-	background: $Notifier_Background;
-	box-shadow: $Notifier_BoxShadow;
-	p {
-		font-family: $Notifier_FontFamily;
-		&.error {
+	> div {
+		height: $Notifier_Height;
+		color: $Notifier_Color;
+		background: $Notifier_Background;
+		box-shadow: $Notifier_BoxShadow;
+		> p {
+			font-family: $Notifier_FontFamily;
+			font-weight: $Notifier_FontWeight;
+			font-size: $Notifier_FontSize;
+		}
+		> p.error {
 			font-family: $Notifier_FontFamily__Error;
+			font-weight: $Notifier_FontWeight__Error;
+			font-size: $Notifier_FontSize__Error;
 			color: $Notifier_Color__Error;
 		}
 	}
+	@include Notifier_Transition();
 }
