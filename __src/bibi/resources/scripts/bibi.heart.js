@@ -1503,12 +1503,12 @@ L.buildItemSourceText = (Item) => {
             null
         ),
         async () => {
-            let ViewportMeta = `<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />`;
+            const ViewportMeta = Item.PrePaginated && (Item.Viewport = await O.getItemViewport(Item) || Item.Viewport || null)
+                ? `<meta name="viewport" content="width=${ Item.Viewport.Width }, height=${ Item.Viewport.Height }" />`
+                : `<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />`;
             if(Item.Type == 'MarkupDocument') {
-                if(!Item.PrePaginated) Item.SourceText = Item.SourceText.replace(/(<head(\s[^>]+)?>)/i, `$1\n` + ViewportMeta);
+                Item.SourceText = Item.SourceText.replace(/(<head(\s[^>]+)?>)/i, `$1\n` + ViewportMeta);
             } else {
-                const Vp = Item.Viewport = !Item.PrePaginated ? null : (Item.Viewport || await O.getItemViewport(Item)) || null;
-                if(Vp) ViewportMeta = `<meta name="viewport" content="width=${ Vp.Width }, height=${ Vp.Height }" />`;
                 Item.SourceText = [
                     `<?xml version="1.0"?>`,
                     `<!DOCTYPE html>`,
@@ -1550,6 +1550,8 @@ L.postprocessItem = (Item) => {
                  if(!XMLLang && !Lang) Item.HTML.setAttribute('xml:lang', B.Language), Item.HTML.setAttribute('lang', B.Language);
             else if(!XMLLang         ) Item.HTML.setAttribute('xml:lang', Lang);
             else if(            !Lang)                                                 Item.HTML.setAttribute('lang', XMLLang);
+            const ViewportMetaElements = Item.Head.querySelectorAll('meta[name="viewport"]');
+            for(let i = ViewportMetaElements.length - 2; i >= 0; i--) ViewportMetaElements[i].remove();
             sML.forEach(Item.Body.getElementsByTagName('link'))(Link => Item.Head.appendChild(Link));
             if(Item.Reflowable && !Item.NoAdjustment) Item.contentDocument.querySelectorAll('html, body, body>*:not(script):not(style)').forEach(Ele => Ele.style.direction = Ele.BibiDefaultDirection = getComputedStyle(Ele).direction);
             sML.appendCSSRule(Item.contentDocument, 'html', '-webkit-text-size-adjust: 100%;');
@@ -7772,11 +7774,11 @@ O.getViewportByOriginalResolution = (Str) => {
     return null;
 };
 
-O.getItemViewport = Object.assign((Item) => Promise.resolve().then(() => O.getItemViewport.as(Item.Type)(Item)), { as: Object.assign(ItemType => O.getItemViewport.as[ItemType] || (() => null), {
-    'MarkupDocument': Item => O.getViewportByMetaContent(O.parseDOM(Item.Source.Content.replace(/(<body(\s[^>]*)?>)(.|\s)*?(<\/body>)/, '$1$4'), Item.Source['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content')),
-               'SVG': Item => O.getViewportByViewBox(    O.parseDOM(Item.Source.Content.replace( /(<svg(\s[^>]*)?>)(.|\s)*?(<\/svg>)/ , '$1$4'), Item.Source['media-type'])?.documentElement?.getAttribute('viewBox')),
-       'BitmapImage': Item => new Promise(resolve => sML.create('img', { onload: function() { resolve(this.naturalWidth && this.naturalHeight ? (Item.Viewport = { Width: this.naturalWidth, Height: this.naturalHeight }) : null); } }).src = Item.Source.URI)
-}) });
+O.getItemViewport = async (Item) => O.getItemViewport.as[Item.Type]?.(Item) || null; /* + */ O.getItemViewport.as = {
+  'MarkupDocument': async (Item) => O.getViewportByMetaContent(O.parseDOM(Item.Source.Content.replace(/(<body(\s[^>]*)?>)(.|\s)*?(<\/body>)/, '$1$4'), Item.Source['media-type'])?.querySelector('meta[name="viewport"]')?.getAttribute('content')),
+             'SVG': async (Item) => O.getViewportByViewBox(    O.parseDOM(Item.Source.Content.replace( /(<svg(\s[^>]*)?>)(.|\s)*?(<\/svg>)/ , '$1$4'), Item.Source['media-type'])?.documentElement?.getAttribute('viewBox')),
+     'BitmapImage': async (Item) => new Promise((o, x) => sML.create('img', { onload: function() { const W = this.naturalWidth, H = this.naturalHeight; W && H ? o({ Width: W, Height: H }) : x(); }, onerror: x }).src = Item.Source.URI).catch(() => null)
+};
 
 
 O.isPointableContent = (Ele) => {
