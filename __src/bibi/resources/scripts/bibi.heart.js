@@ -2908,6 +2908,7 @@ I.initialize = () => {
         I.ScrollObserver.create();
         I.ResizeObserver.create();
         I.PageObserver.create();
+        I.Turner.create();
         I.Catcher.create();
         I.Menu.create();
         I.Panel.create();
@@ -3257,57 +3258,6 @@ I.PageObserver = { create: () => {
                 Object.assign(PageObserver.Past, PageObserver.Current);
             });
         },
-        // ---- Turning Face-up/down
-        getTurningOriginItem: (Dir = 1) => {
-            const List = PageObserver.Current.List?.length ? PageObserver.Current.List : PageObserver.IntersectingPages?.length ? PageObserver.IntersectingPages : null;
-            return List?.[Dir > 0 ? 0 : List.length - 1]?.Page?.Item || null;
-        },
-        filterOrders: (Orders) => Orders.filter(Items => Items && (Items = Items.filter(Item => Item?.Turned != 'Up')).length),
-        stringifyOrders: (Orders) => Orders.map(Items => Items ? Items.map(Item => Item ? Item.Index : '').join('+') : '').join('-'),
-        turnItems: (Opt = {}) => {
-            if(R.DoNotTurn || !S['allow-placeholders']) return;
-            const Dir = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
-            const OItem = Opt.Origin || PageObserver.getTurningOriginItem(Dir); if(!OItem) return;
-            let NewOrders = [];
-            if(R.Orientation == 'landscape') {
-                const i = OItem.Spread.Index;
-                // [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) Spread.Items.forEach(Item => NewOrders.push([Item])); }); // one by one
-                [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) NewOrders.push([...Spread.Items]); });
-            } else {
-                NewOrders.push([OItem]);
-                const PItem = OItem.SpreadPair; if(PItem) NewOrders.push([PItem]);
-                const i = OItem.Index; 
-                [Dir, Dir * -1].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item && Item != PItem) NewOrders.push([Item]); });
-                [2,          3].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item                 ) NewOrders.push([Item]); });
-            }
-            NewOrders = PageObserver.filterOrders(NewOrders);
-            const NewOrdersString = PageObserver.stringifyOrders(NewOrders);
-            if(!NewOrders.length || NewOrdersString === PageObserver.PastTurningOrdersString) return;
-            const ProcessID = PageObserver.TurningProcessID = O.id(); //// Set after ^
-            /* ==== */ O.log('I.PageObserver > turnItems > NewOrders:', NewOrders.map(Items => Items.map(Item => Item.Index).join(',')));
-            PageObserver.TurningOrders = NewOrders, PageObserver.PastTurningOrdersString = NewOrdersString;
-            if(PageObserver.ItemsNowTurning) PageObserver.ItemsNowTurning.forEach(Item => !PageObserver.TurningOrders[0].includes(Item) && PageObserver.turnItem(Item, false));
-            (function turn() {
-                const Items = PageObserver.ItemsNowTurning = PageObserver.TurningOrders.shift();
-                // if(Items) Promise.all(Items.map((Item, i) => new Promise(resolve => setTimeout(() => PageObserver.turnItem(Item, true).finally(resolve), 69 * i)))).then(() => ProcessID == PageObserver.TurningProcessID && turn()); // delay in spread
-                if(Items) Promise.all(Items.map(Item => PageObserver.turnItem(Item, true))).then(() => ProcessID == PageObserver.TurningProcessID && turn());
-            })();
-        },
-        turnItem: (Item, Up) => Promise.resolve().then(() => {
-            if(R.DoNotTurn || !S['allow-placeholders'] || !Item || Item.TurningUp === (Up = !!Up)) return;
-            const ProcessID = Item.TurningProcessID = O.id();
-            Item.TurningUp = Up;
-            return Promise.resolve().then(() => {
-                if(Up || !O.RangeLoader) return;
-                O.log('I.PageObserver > turnItem > cancel:', Item.Index);
-                return O.cancelExtraction(Item.Source);
-            }).then(() => O.chain({ assure: () => ProcessID == Item.TurningProcessID, Label: 'I.PageObserver.turnItem' },
-                () => L.loadItem(Item, { AllowPlaceholder: !Up }),
-                () => Item.TurningUp = null,
-                () => R.layOutItem(Item),
-                () => R.layOutSpread(Item.Spread, { Makeover: true })
-            )).catch(() => {}).then(() => Item);
-        }),
         automark: () => { try {
             I.Oven.Biscuits.memorize('Book', { Automarks: [{ IsAutomark: true, P: R.getP() }] });
         } catch(Err) {} }
@@ -3326,21 +3276,81 @@ I.PageObserver = { create: () => {
         PageObserver.observeCurrent();
         PageObserver.observePageMove();
     });
-    E.bind('bibi:started', () => {
-        if(S['allow-placeholders']) {
-            // PageObserver.turnItems();
-            E.add('bibi:scrolled', () => PageObserver.turnItems());
-        }
-        if(S['resume-from-last-position']) {
-            E.bind('bibi:realized-oven', () => PageObserver.automark());
-            E.add('bibi:stopped-scrolling', () => {
-                // clearTimeout(PageObserver.Timer_automarkOnScrolled);
-                // PageObserver.Timer_automarkOnScrolled = setTimeout(() => PageObserver.automark(), 99);
-                PageObserver.automark();
-            });
-        }
+    if(S['resume-from-last-position']) E.bind('bibi:started', () => {
+        E.bind('bibi:realized-oven', () => PageObserver.automark());
+        E.add('bibi:stopped-scrolling', () => {
+            // clearTimeout(PageObserver.Timer_automarkOnScrolled);
+            // PageObserver.Timer_automarkOnScrolled = setTimeout(() => PageObserver.automark(), 99);
+            PageObserver.automark();
+        });
     });
     E.dispatch('bibi:created-page-observer');
+}};
+
+
+I.Turner = { create: () => {
+    const Turner = I.Turner = {
+        // TurningOrders: [], PastTurningOrdersString: '', ItemsNowTurning: [], TurningProcessID: '',
+        getTurningOriginItem: (Dir = 1) => {
+            const List = I.PageObserver.Current.List?.length ? I.PageObserver.Current.List : I.PageObserver.IntersectingPages?.length ? I.PageObserver.IntersectingPages : null;
+            return List?.[Dir > 0 ? 0 : List.length - 1]?.Page?.Item || null;
+        },
+        filterOrders: (Orders) => Orders.filter(Items => Items && (Items = Items.filter(Item => Item?.Turned != 'Up')).length),
+        stringifyOrders: (Orders) => Orders.map(Items => Items ? Items.map(Item => Item ? Item.Index : '').join('+') : '').join('-'),
+        turnItems: (Opt = {}) => {
+            if(R.DoNotTurn || !S['allow-placeholders']) return;
+            const Dir = (I.ScrollObserver.History.length > 1) && (I.ScrollObserver.History[1] * C.L_AXIS_D > I.ScrollObserver.History[0] * C.L_AXIS_D) ? -1 : 1;
+            const OItem = Opt.Origin || Turner.getTurningOriginItem(Dir); if(!OItem) return;
+            let NewOrders = [];
+            if(R.Orientation == 'landscape') {
+                const i = OItem.Spread.Index;
+                // [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) Spread.Items.forEach(Item => NewOrders.push([Item])); }); // one by one
+                [0, Dir, Dir * -1, 2].forEach(Distance => { const Spread = R.Spreads[i + Distance]; if(Spread) NewOrders.push([...Spread.Items]); });
+            } else {
+                NewOrders.push([OItem]);
+                const PItem = OItem.SpreadPair; if(PItem) NewOrders.push([PItem]);
+                const i = OItem.Index; 
+                [Dir, Dir * -1].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item && Item != PItem) NewOrders.push([Item]); });
+                [2,          3].forEach(Distance => { const Item = R.Items[i + Distance]; if(Item                 ) NewOrders.push([Item]); });
+            }
+            NewOrders = Turner.filterOrders(NewOrders);
+            const NewOrdersString = Turner.stringifyOrders(NewOrders);
+            if(!NewOrders.length || NewOrdersString === Turner.PastTurningOrdersString) return;
+            const ProcessID = Turner.TurningProcessID = O.id(); //// Set after ^
+            /* ==== */ O.log('I.Turner.turnItems > NewOrders:', NewOrders.map(Items => Items.map(Item => Item.Index).join(',')));
+            Turner.TurningOrders = NewOrders, Turner.PastTurningOrdersString = NewOrdersString;
+            if(Turner.ItemsNowTurning) Turner.ItemsNowTurning.forEach(Item => !Turner.TurningOrders[0].includes(Item) && Turner.turnItem(Item, false));
+            (function turn() {
+                const Items = Turner.ItemsNowTurning = Turner.TurningOrders.shift();
+                // if(Items) Promise.all(Items.map((Item, i) => new Promise(resolve => setTimeout(() => Turner.turnItem(Item, true).finally(resolve), 69 * i)))).then(() => ProcessID == Turner.TurningProcessID && turn()); // delay in spread
+                if(Items) Promise.all(Items.map(Item => Turner.turnItem(Item, true))).then(() => ProcessID == Turner.TurningProcessID && turn());
+            })();
+        },
+        turnItem: async (Item, Up) => {
+            if(R.DoNotTurn || !S['allow-placeholders'] || !Item || Item.TurningUp === (Up = !!Up)) return;
+            Item.TurningUp = Up;
+            const ProcessID = Item.TurningProcessID = O.id();
+            await Promise.resolve(Item.Turning);
+            return Item.Turning = Promise.resolve().then(() => {
+                if(Up || !O.RangeLoader) return;
+                O.log('I.Turner.turnItem > cancel:', Item.Index);
+                return O.cancelExtraction(Item.Source);
+            }).then(() => O.chain({ assure: () => ProcessID == Item.TurningProcessID, Label: 'I.Turner.turnItem' },
+                () => L.loadItem(Item, { AllowPlaceholder: !Up }),
+                () => R.layOutItem(Item),
+                () => R.layOutSpread(Item.Spread, { Makeover: true })
+            )).catch(() => {}).then(() => {
+                delete Item.TurningUp;
+                return Item;
+            });
+        },
+        rerotateItem: (Item) => O.chain(
+            () => Turner.turnItem(Item, false),
+            () => Turner.turnItem(Item, true)
+        )
+    };
+    E.bind('bibi:started', () => E.add('bibi:scrolled', () => Turner.turnItems()));
+    E.dispatch('bibi:created-turner');
 }};
 
 
@@ -5390,7 +5400,7 @@ I.Slider = { create: () => {
                 R.Main['scroll' + C.L_OOBL_L] = Slider.StartedAt.MainScrollBefore + (TouchedCoord - Slider.StartedAt.Coord) * (Slider.MainLength / Slider.Edgebar.Length);
                 return resolve();
         } }).then(() => {
-            if(TurnForce) I.PageObserver.turnItems();
+            if(TurnForce) I.Turner.turnItems();
         }),
         progress: () => {
             if(Slider.Touching) return;
