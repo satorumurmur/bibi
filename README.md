@@ -173,18 +173,17 @@ Files in the `Distribution` column of the table are overwritten with the files u
 If you want to modify them, please edit files in the `Source` column instead of editing these files in `__dist` directly.
 
 
-### How to Build
+### How to Build to publish
 
 * $ `npm run build`
-    - webpack generates production version of Bibi to `__dist` folder.
+    - The production version of Bibi is generated in `__dist` folder.
     - You can upload them to your online webserver.
 
 
-### How to Make a Ditribution Package
+### How to Make a Ditribution Package (Zip Archive)
 
 * $ `npm run make:package`
-    1. webpack generates temporary files of production version of Bibi.
-    2. gulp generates zipped archive to `__archives` folder. After that, the temporary files are removed.
+    1. A zipped archive of the production version of Bibi is generated in `__archives` folder.
 
 
 

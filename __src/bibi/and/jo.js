@@ -13,7 +13,7 @@ if(!World || World['bibi:jo']) return;
 
 
 
-const Jo = World['bibi:jo'] = { 'version': '____Bibi-Version____', Bibis: [] }, BibiEventRE = /^bibi:[a-z][a-z0-9:_\-]*$/;
+const Jo = World['bibi:jo'] = { 'version': ENV_VERSION, Bibis: [] }, BibiEventRE = /^bibi:[a-z][a-z0-9:_\-]*$/;
 
 
 

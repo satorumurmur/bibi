@@ -6,7 +6,7 @@
  *
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const Bibi = { 'version': '____Bibi-Version____', 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() };
+export const Bibi = { 'version': ENV_VERSION, 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() }; /**/ Bibi.Dev = ENV_DEVELOPMENT;
 
 
 Bibi.SettingTypes = {

@@ -1,4 +1,4 @@
-const Bibi = require('./bibi.recipe.js');
+const Bibi = require('bibi.plays');
 
 module.exports = {
     port: 61671,

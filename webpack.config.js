@@ -6,14 +6,13 @@
  *
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Bibi = require('./bibi.recipe.js');
+const Bibi = require('bibi.plays/as.composer.js');
 
 const Webpack = require('webpack');
 const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
 const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
-const StringReplacePlugin = require('string-replace-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const Path = require('path'), resolvePath = (...Ps) => Path.resolve(__dirname, Ps.join('/'));
@@ -45,7 +44,6 @@ const CommonConfig = {
                 'and':
                     'jo.js',
                 'extensions': [
-                    'analytics.js',
                     { 'extractor': [
                         'at-once.js',
                         'on-the-fly.js'
@@ -71,10 +69,6 @@ const CommonConfig = {
                         'bibi.dress.css'
                     }
                 ))
-            },
-            'bibi-demo': {
-                'embedding':
-                    'index.css'
             }
         }
     },
@@ -84,11 +78,7 @@ const CommonConfig = {
                 '*.html',
                 'extensions/extractor/on-the-fly.bibi-zip-loader.worker.*',
                 'presets/**'
-            ],
-            'bibi-bookshelf':
-                '__samples/**/*.epub',
-            'bibi-demo':
-                '**/*.html'
+            ]
         }
     },
     infoTree: {
@@ -110,10 +100,13 @@ const addPlugIn    = (...ToBeAdded) => ({ ________to: (Name) => (Configs[Name] ?
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 addPlugIn(
+    new Webpack.DefinePlugin({
+        ENV_VERSION: JSON.stringify(Bibi.package.version),
+        ENV_DEVELOPMENT: JSON.stringify(/^development/.test(Bibi.Arguments['config-name']))
+    }),
     new BrowserSyncPlugin(require('./bs-config.js'), { reload: true, injectCss: true }),
     new FixStyleOnlyEntriesPlugin({ extensions: ['scss', 'css'] }),
-    new MiniCSSExtractPlugin({ filename: '[name]' }),
-    new StringReplacePlugin(),
+    new MiniCSSExtractPlugin({ filename: '[name]' })
 ).________to('all');
 
 // =============================================================================================================================
@@ -129,33 +122,6 @@ addRule({
         } }
     ]
 }).________to('all');
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-addRule({
-    include: [
-        resolvePath(Bibi.SRC, 'bibi/and/jo.js'),
-        resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.heart.js')
-    ],
-    use: [
-        StringReplacePlugin.replace({ replacements: [
-            { pattern: /____Bibi-Version____/ig, replacement: () => Bibi.package.version }
-        ] })
-    ]
-}).________to('all');
-
-// -----------------------------------------------------------------------------------------------------------------------------
-
-addRule({
-    include: [
-        resolvePath(Bibi.SRC, 'bibi/resources/scripts/bibi.heart.js')
-    ],
-    use: [
-        StringReplacePlugin.replace({ replacements: [
-            { pattern: /$/, replacement: () => '\n' + `Bibi.Dev = true;` }
-        ] })
-    ]
-}).________to('development');
 
 // =============================================================================================================================
 
@@ -238,24 +204,38 @@ addMinimizer(
 
 // -----------------------------------------------------------------------------------------------------------------------------
 
-addPlugIn(...Object.keys(Bibi.Banners).map(Name =>
-    new Webpack.BannerPlugin({ test: Name, banner: Bibi.Banners[Name], raw: true })
+addPlugIn(...Object.keys(Bibi.Composer.Banners).map(Name =>
+    new Webpack.BannerPlugin({ test: Name, banner: Bibi.Composer.Banners[Name], raw: true })
 )).________to('production');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-(Configs['pack'] = Lodash.cloneDeep(Configs['production'])).output.path = resolvePath(Bibi.ARCHIVETMP);
+(Configs['package'] = Lodash.cloneDeep(Configs['production'])).output.path = resolvePath(Bibi.ARCHIVES + '/.bibi-tmp./__dist');
 
 // =============================================================================================================================
 
 Object.keys(Configs).forEach(Name => {
-    const BCConfig = Configs[Name + '@wbck'] = Lodash.cloneDeep(Configs[Name]);
+    if(Name != 'package') {
+        Object.assign(Configs[Name].entryTree[Bibi.SRC], {
+            'bibi-demo': {
+                'embedding':
+                    'index.css'
+            }
+        });
+        Object.assign(Configs[Name].copyTree[Bibi.SRC], {
+            'bibi-bookshelf':
+                '__samples/**/*.epub',
+            'bibi-demo':
+                '**/*.html'
+        });
+    }
+    const BCConfig = Configs[Name + '@wbck'] = Lodash.cloneDeep(Configs[Name]), SRCBC = Bibi.SRC + '__back-compat';
     Object.assign(BCConfig.entryTree, {
-        [Bibi.SRCBC]:
+        [SRCBC]:
             'bib/i.js'
     });
     Object.assign(BCConfig.copyTree, {
-        [Bibi.SRCBC]: [
+        [SRCBC]: [
             'bib/i/*.html',
             'README.BackCompatKit.md'
         ]
