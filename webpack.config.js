@@ -54,7 +54,8 @@ const CommonConfig = {
                 ],
                 'resources': {
                     'scripts': [
-                        'bibi.js'
+                        'bibi.js',
+                        'bibi.x.debv.js'
                     ],
                     'styles':
                         'bibi.css'

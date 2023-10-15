@@ -6,7 +6,7 @@
  *
  */ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const Bibi = { 'version': ENV_VERSION, 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() }; /**/ Bibi.Dev = ENV_DEVELOPMENT;
+export const Bibi = { 'version': ENV_VERSION, 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() }; /**/ Bibi.Dev = Bibi.Development = ENV_DEVELOPMENT;
 
 
 Bibi.SettingTypes = {
@@ -346,8 +346,6 @@ Bibi.initialize = () => {
                 O.Head.appendChild(sML.create('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'white' }));
             }
         }
-        if(Bibi.Dev)   O.HTML.classList.add('dev');
-        if(Bibi.Debug) O.HTML.classList.add('debug');
         O.HTML.classList.add('default-lang-' + (O.Language = (NLs => { // Language
             if(Array.isArray(navigator.languages)) NLs = NLs.concat(navigator.languages);
             if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
@@ -418,6 +416,10 @@ Bibi.initialize = () => {
     { // Inhibition...
         O.inhibit();
     }
+    { // Debugger & DevNote
+        if(Bibi.Deb) O.HTML.classList.add('deb', 'debug'      ) || location.hostname == 'localhost' && Bibi.createDebNote();  delete Bibi.createDebNote;
+        if(Bibi.Dev) O.HTML.classList.add('dev', 'development') || location.hostname != 'localhost' && Bibi.createDevNote();  delete Bibi.createDevNote;
+    }
     O.HTML.classList.toggle('book-full-height', S['use-full-height']);
     O.HTML.classList.remove('welcome');
     E.dispatch('bibi:initialized', Bibi.Status = Bibi.Initialized = 'Initialized');
@@ -455,6 +457,7 @@ Bibi.loadExtensions = () => {
     }).then(() => new Promise((resolve, reject) => {
         if(ReadyForBibiZine) SystemExtensions.push(extension('zine.js'));
         if(!S['allow-scripts-in-content']) SystemExtensions.push(extension('sanitizer.js'));
+        if(Bibi.Deb || Bibi.Dev) SystemExtensions.push(extension('../resources/scripts/bibi.x.debv.js'));
         if(SystemExtensions.length) SystemExtensions.reverse().forEach(SX => S['extensions'].unshift(SX));
         if(S['extensions'].length == 0) return reject();
         O.log(`Loading Extension${ S['extensions'].length > 1 ? 's' : '' }...`, '<g:>');
@@ -660,7 +663,6 @@ Bibi.start = () => {
     E.add('bibi:commands:focus-on',    R.focusOn);
     E.add('bibi:commands:change-view', R.changeView);
     E.dispatch('bibi:started');
-    (Bibi.Dev && location.hostname != 'localhost') ? Bibi.createDevNote() : delete Bibi.createDevNote;
     /*
     alert((Alert => {
         [
@@ -678,26 +680,41 @@ Bibi.start = () => {
 };
 
 
+Bibi.createDebNote = () => {
+    const Deb = Bibi.IsDebMode = O.Body.appendChild(sML.create('div', { id: 'bibi-is-deb-mode', style: { display: 'none' } }));
+    const deb = Bibi.deb = (...Args) => {
+        Deb.style.display = '';
+        const NoLog = Args[0] === 'NoLog'; if(NoLog) Args.shift();
+        const Msg = Args.join(', '); if(!Msg) return;
+        if(!NoLog) O.log(Msg.replace(/<[^<>]*>/g, ''), '<*/>');
+        return Deb.appendChild(sML.create('p', { innerHTML: Msg }));
+    };
+    E.add('bibi:started', () => {
+        sML.style(Deb, { top: '5px', width: R.Stage.Width - 10 + 'px', height: R.Stage.Height - 10 + 'px' });
+        // O.log('========================', '<*/>');
+        // deb(`Window: W:${ window.innerWidth }, H:${ window.innerHeight }`);
+        // deb(`Stage: W:${ R.Stage.Width }, H:${ R.Stage.Height }`);
+    });
+}, Bibi.deb = () => undefined;
+
+
 Bibi.createDevNote = () => {
     const Dev = Bibi.IsDevMode = O.Body.appendChild(sML.create('div', { id: 'bibi-is-dev-mode' }));
-    Bibi.createDevNote.logBorderLine();
-    Bibi.createDevNote.appendParagraph(`<strong>This Bibi seems to be a</strong> <strong>Development Version</strong>`);
-    Bibi.createDevNote.appendParagraph(`<span>Please don't forget</span> <span>to create a production version</span> <span>before publishing on the Internet.</span>`);
-    Bibi.createDevNote.appendParagraph(`<span class="non-visual">(To create a production version, run it on terminal: \`</span><code>npm run build</code><span class="non-visual">\`)</span>`);
-    Bibi.createDevNote.appendParagraph(`<em>Close</em>`, 'NoLog').addEventListener('click', () => Dev.className = 'hide');
-    Bibi.createDevNote.logBorderLine();
+    const dev = (...Args) => {
+        const NoLog = Args[0] === 'NoLog'; if(NoLog) Args.shift();
+        const Msg = Args.join(', '); if(!Msg) return;
+        if(!NoLog) O.log(Msg.replace(/<[^<>]*>/g, ''), '<*/>');
+        return Dev.appendChild(sML.create('p', { innerHTML: Msg }));
+    };
+    O.log('========================', '<*/>');
+    dev(`<strong>This Bibi seems to be a</strong> <strong>Development Version</strong>`);
+    dev(`<span>Please don't forget</span> <span>to create a production version</span> <span>before publishing on the Internet.</span>`);
+    dev(`<span class="non-visual">(To create a production version, run it on terminal: \`</span><code>npm run build</code><span class="non-visual">\`)</span>`);
+    dev('NoLog', `<em>Close</em>`).addEventListener('click', () => Dev.className = 'hide');
+    O.log('========================', '<*/>');
     [E['pointerdown'], E['pointerup'], E['pointermove'], E['pointerover'], E['pointerout'], 'click'].forEach(EN => Dev.addEventListener(EN, Eve => { Eve.preventDefault(); Eve.stopPropagation(); return false; }));
     setTimeout(() => Dev.className = 'show', 0);
-    delete Bibi.createDevNote;
 };
-    Bibi.createDevNote.logBorderLine = (InnerHTML, NoLog) => {
-        O.log('========================', '<*/>');
-    };
-    Bibi.createDevNote.appendParagraph = (InnerHTML, NoLog) => {
-        const P = Bibi.IsDevMode.appendChild(sML.create('p', { innerHTML: InnerHTML }));
-        if(!NoLog) O.log(InnerHTML.replace(/<[^<>]*>/g, ''), '<*/>');
-        return P;
-    };
 
 
 Bibi.createElement = (...Args) => {
@@ -6876,7 +6893,7 @@ U.at1st = () => {
     U.parseQuery();
     U.parseHash();
     if(!U['book']) delete U['zine'];
-    if(U['debug']) Bibi.Debug = true, U['log'] = 9;
+    if(U['debug']) Bibi.Deb = Bibi.Debug = true, U['log'] = 9;
     delete U.translateData;
     delete U.at1st;
 };
