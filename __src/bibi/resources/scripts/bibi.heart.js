@@ -7229,6 +7229,42 @@ O.error = (Err) => {
 };
 
 
+O.id = () => (O.id.Count++).toString(36); O.id.Count = 0; // [Date.now(), performance.now(), Math.random()].map(Num => Math.ceil(Num * 9999).toString(36)).join('');
+
+O.chain = (...Args) => {
+    const Assurance = typeof Args[0]?.assure !== 'function' ? { assure: () => true } : typeof Args[0] !== 'function' ? Args.shift() : Args[0];
+    const { assure } = Assurance;
+    const Tasks = Args;
+    return (async () => {
+        let Value;
+        if(!Tasks.length) {
+            if(!assure()) throw O.chain.error(Assurance);
+        } else {
+            for(let l = Tasks.length, i = 0; i < l; i++) {
+                if(!assure()) throw O.chain.error(Assurance, Tasks, i);
+                Value = await (typeof Tasks[i] != 'function' ? Tasks[i] : Tasks[i](Value));
+            }
+            if(!assure()) throw O.chain.error(Assurance, Tasks);
+        }
+        return Value;
+    })();
+};
+    O.chain.error = (Assurance, Tasks, i) => (Assurance.Label && typeof Assurance.Label == 'string' ? `[${ Assurance.Label }] ` : '') + `Assurance failed` + (
+                 !Tasks ? '' :
+        i !== undefined ? ` before ` + (Tasks.length == 1 ? 'the task' : !i ? `the ${ Tasks.length } tasks`  : `the ${ O.ordinal(i + 1) } of the ${ Tasks.length } tasks (tasks[${ i }])`) :
+                           ` after ` + (Tasks.length == 1 ? 'the task' : `all of the ${ Tasks.length } tasks`)
+    );
+
+
+O.ordinal = i => i + (() => {
+    if((i = i % 100) < 4 || 20 < i) switch(i % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+    }           return 'th';
+})();
+
+
 O.TimeCard = {};
 
 O.getTimeLabel = (TimeFromOrigin = Date.now() - Bibi.TimeOrigin) => [
