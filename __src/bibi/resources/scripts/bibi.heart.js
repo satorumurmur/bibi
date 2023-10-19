@@ -2298,11 +2298,13 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
     // if(Number.isInteger(Dest.TextNodeIndex)) R.selectTextLocation(Dest); // Colorize Destination with Selection
     const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     ScrollTarget[C.L_AXIS_L] = FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
+    O.HTML.classList.add('moving');
     sML.scrollTo(ScrollTarget, {
         ForceScroll: true,
         Duration: typeof Opt.Duration == 'number' ? Opt.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 39 : 0,
         ease: typeof Opt.ease == 'function' ? Opt.ease : (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
+        O.HTML.classList.remove('moving');
         resolve(Dest);
         E.dispatch('bibi:focused-on', Dest);
     }).catch(reject);
@@ -3591,6 +3593,10 @@ I.TouchObserver = { create: () => {
             const TOPENs = TouchObserver.PointerEventNames;
             E.add(HTML, TOPENs[0], Eve => E.dispatch('bibi:downed-pointer', E.aBCD(Eve)), E.CPO_100);
             E.add(HTML, TOPENs[1], Eve => E.dispatch( 'bibi:upped-pointer', E.aBCD(Eve)), E.CPO_100);
+            if(!O.Touch) {
+                E.add(HTML, 'mousedown', Eve => { clearTimeout(TouchObserver.Timer_ReleaseMousePressing);                  O.HTML.classList.add(   'mouse-pressing');     }, E.CPO_100);
+                E.add(HTML, 'mouseup',   Eve => {              TouchObserver.Timer_ReleaseMousePressing = setTimeout(() => O.HTML.classList.remove('mouse-pressing'), 9); }, E.CPO_100);
+            }
             E.add(HTML, TOPENs[2], Eve => {
                 const BibiEvent = E.aBCD(Eve);
                 const CC = BibiEvent.Coord, PC = TouchObserver.PreviousPointerCoord;
