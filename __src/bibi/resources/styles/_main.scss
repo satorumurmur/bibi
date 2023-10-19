@@ -154,7 +154,7 @@ main#bibi-main {
 			div.spread {
 				& {
 					box-sizing: border-box;
-					overflow: hidden;
+					// overflow: hidden;
 					position: absolute;
 					@include offset(0);
 					margin: auto;
@@ -183,9 +183,9 @@ main#bibi-main {
 					}
 					& {
 						box-sizing: border-box;
+						// overflow: hidden;
 						flex-shrink: 0;
 						position: relative;
-						overflow: hidden;
 						background: white;
 					}
 					&.reflowable {
@@ -235,7 +235,7 @@ main#bibi-main {
 						& {
 							html.loading-items &, html.loading &, &.loading { visibility: hidden; }
 							html.searching-page & { pointer-events: none !important; }
-							//overflow: hidden;
+							// overflow: hidden;
 							position: absolute;
 							z-index: 10;
 							@include offset(0);
@@ -273,3 +273,38 @@ main#bibi-main {
 							@include offset(0);
 						}
 					}
+
+
+// ================================================================================
+// + Snap Scroll
+// --------------------------------------------------------------------------------
+
+html:not(.moving):not(.mouse-pressing) {
+	&.view-horizontal main#bibi-main {
+		scroll-snap-type: x mandatory;
+	}
+	&.view-vertical main#bibi-main {
+		scroll-snap-type: y mandatory;
+	}
+	&.book-reflowable.book-lr-tb.view-horizontal,
+	&.book-reflowable.book-rl-tb.view-horizontal,
+	&.book-reflowable.book-tb-rl.view-vertical,
+	&.book-reflowable.book-tb-lr.view-vertical,
+	&.book-pre-paginated.view-horizontal:not(.book-full-breadth),
+	&.book-pre-paginated.view-vertical:not(.book-full-breadth) {
+		&.orientation-landscape div.item-box.reflowable span.page:nth-of-type(odd) {
+			scroll-snap-align: start;
+		}
+		&.orientation-landscape div.item-box.reflowable span.page:nth-of-type(even) {
+			scroll-snap-align: end;
+		}
+		div.spread-box:first-of-type div.item-box.reflowable:first-of-type span.page:first-of-type:last-of-type,
+		div.spread-box:last-of-type div.item-box.reflowable:last-of-type span.page:first-of-type:last-of-type,
+		&.orientation-portrait div.item-box.reflowable span.page,
+		&.orientation-landscape div.spread-box.pre-paginated:not(.reflowable),
+		&.orientation-landscape div.spread-box.pre-paginated.reflowable div.item-box.pre-paginated,
+		&.orientation-portrait div.item-box.pre-paginated {
+			scroll-snap-align: center;
+		}
+	}
+}

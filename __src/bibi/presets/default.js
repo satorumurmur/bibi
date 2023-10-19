@@ -132,7 +132,7 @@ Bibi.preset({
 //                                   - If "available-reader-view-modes" has only one view mode:
 //                                       - It is always treated as "" (ignoring).
 //                               * "across":
-//                                   - Scrolling in the orthogonal direction of wheeling (= natural scrolling direction of the book content).
+//                                   - Same as "move" basically, but if the book is pre-paginated or the "full-breadth-layout-in-scroll" is enabled, orthogonal wheeling is converted to natural scrolling.
 //                                   - Setting "across" for the "paged" view mode (= the 1st value) is treated as "move".
 
 "touchmove-ignoring-area": [0, 0, 0, 0], // Four numbers of ratio to the viewport (less than 1) | pixels (1 or greater) // Less than 0 is treated as 0.
