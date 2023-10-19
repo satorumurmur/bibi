@@ -2218,7 +2218,7 @@ R.changeView = (Par) => { if(!Par) return false;
         case 'string': Par = { Mode: Par };
         case 'object':
            if(S['fix-reader-view-mode'] || typeof Par.Mode != 'string' || !S['available-reader-view-modes'].includes(Par.Mode)) Par.Mode = S.RVM;
-            Par.FullBreadthLayoutInScroll = (Par.FullBreadthLayoutInScroll === undefined || S.AVM == 'paged') ? S['full-breadth-layout-in-scroll'] : !!(Par.FullBreadthLayoutInScroll);
+            Par.FullBreadthLayoutInScroll = B.Reflowable ? false : (Par.FullBreadthLayoutInScroll === undefined || !S['available-reader-view-modes'].includes('vertical')) ? S['full-breadth-layout-in-scroll'] : !!(Par.FullBreadthLayoutInScroll);
             if(S.RVM == Par.Mode && Par.FullBreadthLayoutInScroll == S['full-breadth-layout-in-scroll']) return false;
             break;
         default: return false;
@@ -2229,7 +2229,7 @@ R.changeView = (Par) => { if(!Par) return false;
         S.update({ 'full-breadth-layout-in-scroll': Par.FullBreadthLayoutInScroll });
         if(Par.FullBreadthLayoutInScroll) O.HTML.classList.add(   'book-full-breadth');
         else                              O.HTML.classList.remove('book-full-breadth');
-        if(Par.Mode != 'paged') ToLayOut = true;
+        if(Par.Mode == 'vertical') ToLayOut = true;
     }
     const Setting = {
         'reader-view-mode': Par.Mode,
@@ -4509,19 +4509,20 @@ I.Menu = { create: () => {
                         Name: 'full-breadth-layout-in-scroll',
                         Type: 'toggle',
                         Notification: false,
-                        Labels: { default: { default: `Full Width for Each Page <small>(in Scrolling Mode)</small>`, ja: `スクロール表示で各ページを幅一杯に</small>` } },
+                        Labels: { default: { default: `Use Full Width in Vertical Scroll`, ja: `縦スクロールは幅いっぱいで表示` } },
                         Icon: `<span class="bibi-icon bibi-icon-full-breadth-layout"></span>`,
                         action: function() { R.changeView({ FullBreadthLayoutInScroll: (this.UIState == 'active'), NoNotification: true }); }
                     }]
                 } : [])
             });
-            E.add('bibi:updated-settings', () => {
-                Section.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? 'active' : 'default')));
-                if(Section.ButtonGroups[1]) {
-                    if(B.PrePaginated) I.setUIState(Section.ButtonGroups[1].Buttons[0], S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
-                    else Section.ButtonGroups[1].style.display = 'none';
-                }
-            });
+            E.add('bibi:updated-settings', () => Section.ButtonGroups.forEach((ButtonGroup, i) => { switch(i) {
+                case 0: return ButtonGroup.Buttons.forEach(Button => I.setUIState(Button, (Button.Mode == S.RVM ? 'active' : 'default')));
+                case 1: return ButtonGroup.Buttons.forEach(Button => { switch(Button.Name) {
+                    case 'full-breadth-layout-in-scroll':
+                        if(!B.PrePaginated) return Button.ButtonGroup.style.display = 'none';
+                        return I.setUIState(Button, S['full-breadth-layout-in-scroll'] ? 'active' : 'default');
+                } });
+            } }));
         }};
 
         I.Menu.Config.WindowSection = { create: (Components) => {
