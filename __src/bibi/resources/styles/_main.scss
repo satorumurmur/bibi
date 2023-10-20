@@ -220,7 +220,7 @@ main#bibi-main {
 						&:first-child:not(:last-child) { margin-right: auto; }
 						&:last-child:not(:first-child) { margin-left:  auto; }
 					}
-					html.view-paged.book-reflowable &:not(.current) {
+					html.view-paged.book-reflowable &:not(.current):not(.prev-of-current):not(.next-of-current) {
 						visibility: hidden;
 					}
 				}

@@ -3705,7 +3705,7 @@ I.FlickObserver = { create: () => {
                     if(Mv.AxisSwitcherReadied) I.AxisSwitcher.progress(Vector.Axis != C.A_AXIS_B ? 0 : Mv.getProgress(BibiEvent, C.A_AXIS_B));
                 } else {
                     // Natural
-                    if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return Mv.LaunchingVector && FlickObserver.cancel();
+                    if(S.RVM != 'paged' && BibiEvent.type == 'touchmove') return Mv.LaunchingVector && FlickObserver.cancel(); // Cancel: Touch Devices on Scrolling View
                     if(I.draggable() && I.isScrollable()) R.Main['scroll' + C.L_OOBL_L] = MvS['Scroll' + C.L_OOBL_L] + Mv.getPassage(BibiEvent)[C.L_AXIS_L] * -1;
                 }
                 BibiEvent.preventDefault();
@@ -3741,7 +3741,7 @@ I.FlickObserver = { create: () => {
                                 cb = Opt?.Swipe ? FlickObserver.onSwipe : FlickObserver.onFlick;
                             }
                         } else if(I.isScrollable()) {
-                            if(S.RVM == 'paged' && I.draggable()) {
+                            if(/*S.RVM == 'paged' &&*/ I.draggable()) {
                                 Par.Vector = { Direction: { From: Mv.getDegree(BibiEvent) < 180 ? 'left' /* to right */ : 'right' /* to left */ } };
                                 cb = FlickObserver.onPanRelease;
                             }
@@ -3755,7 +3755,7 @@ I.FlickObserver = { create: () => {
             FlickObserver.cancel();
             return Promise.resolve(cb?.(BibiEvent, Par));
         },
-        onFlick: (BibiEvent, Par) => { // Only for Paged View or Draggable Scrolling Views ====
+        onFlick: (BibiEvent, Par) => {
             if(!I.draggable() && S.RVM != 'paged') return Promise.resolve();
             if(!BibiEvent || !Par) return Promise.resolve();
             const Dist = C.d2d(Par.Vector.Direction.From, I.orthogonal('touchmove') == 'move');
@@ -3765,28 +3765,29 @@ I.FlickObserver = { create: () => {
                     case 'switch': return I.AxisSwitcher?.switchAxis();
                     case 'utilities': return I.Utilities.toggleGracefuly();
                 }});
-            } else if(S.RVM == 'paged' || S.RVM == 'horizontal' && Par.Vector.Axis == 'Y' || S.RVM == 'vertical' && Par.Vector.Axis == 'X') {
+            } else /*if(S.RVM == 'paged' || S.RVM == 'horizontal' && Par.Vector.Axis == 'Y' || S.RVM == 'vertical' && Par.Vector.Axis == 'X')*/ {
                 // Paged || Scrolling && Orthogonal
                 const PageIndex = (Dist > 0 ? Par.OriginList.slice(-1)[0].Page.Index : Par.OriginList[0].Page.Index);
                 return R.focusOn({ Page: R.Pages[PageIndex + Dist] || R.Pages[PageIndex] }, { Duration: !I.isScrollable() ? 0 : I.draggable() || S.RVM != 'paged' ? 123 : 0 });
-            } else {
+            } /*else {
                 // Scrolling && Natural
                 return R.scrollBy(Dist * (Par.Speed ? sML.limitMinMax(Math.round(Par.Speed * 100) * 0.08, 0.33, 10) * 333 / (S.SLD == 'ttb' ? R.Stage.Height : R.Stage.Width) : 1), {
                     Duration: 1234,
                     Cancelable: true,
                     ease: (_) => (Math.pow(--_, 4) - 1) * -1
                 });
-            }
+            }*/
         },
         onSwipe: (...Args) => FlickObserver.onFlick(...Args),
-        onPanRelease: (BibiEvent, Par) => { // Only for Paged View ====
-            if(!I.draggable() || S.RVM != 'paged') return Promise.resolve();
+        onPanRelease: (BibiEvent, Par) => {
+            if(!I.draggable() /*|| S.RVM != 'paged'*/) return Promise.resolve();
             if(!BibiEvent || !Par) return Promise.resolve();
+            O.HTML.classList.add('moving');
             const Dist = C.d2d(Par.Vector.Direction.From);
             const CurrentList = I.PageObserver.updateCurrent().List, CurrentPage = Dist >= 0 ? CurrentList.slice(-1)[0].Page : CurrentList[0].Page;
             return R.focusOn({ Page: CurrentList.length == 1 && CurrentList[0].SpreadIntersectionStatus.Ratio < 0.5 ? R.Pages[CurrentPage.Index + Dist] || CurrentPage : CurrentPage }, {
-                Duration: !I.isScrollable() ? 0 : I.draggable() ? 123 : 0
-            });
+                Duration: !I.isScrollable() ? 0 : I.draggable() ? 333 : 0
+            }).then(() => O.HTML.classList.remove('moving'));
         },
         getCNPf: (Ele) => Ele.ownerDocument == document ? '' : 'bibi-',
         activateElement: (Ele) => { if(!Ele) return false;
@@ -3816,77 +3817,79 @@ I.WheelObserver = { create: () => {
         Turned: false,
         Wheels: [],
         // OverlaidUIs: [],
-        reset: () => {
-            WheelObserver.TotalDelta = 0;
-            WheelObserver.Progress = 0;
-            WheelObserver.Turned = false;
-            WheelObserver.Wheels = [];
+        _reset: () => {
+            WheelObserver.Wheels.length = WheelObserver.Progress = WheelObserver.TotalDelta = 0;
             if(I.AxisSwitcher) I.AxisSwitcher.reset();
         },
-        reserveResetWith: (fn) => {
+        reset: (Delay = 0) => {
             clearTimeout(WheelObserver.Timer_resetWheeling);
-            try { fn(); } catch(Err) {}
-            WheelObserver.Timer_resetWheeling = setTimeout(WheelObserver.reset, 234);
-        },
-        careTurned: () => {
-            WheelObserver.reserveResetWith(() => WheelObserver.Turned = true);
+            !Delay ? WheelObserver._reset() : (WheelObserver.Timer_resetWheeling = setTimeout(WheelObserver._reset, Delay));
         },
         heat: () => {
             clearTimeout(WheelObserver.Timer_coolDown);
             WheelObserver.Hot = true;
-            WheelObserver.Timer_coolDown = setTimeout(() => WheelObserver.Hot = false, 234);
+            WheelObserver.Timer_coolDown = setTimeout(() => WheelObserver.Hot = false, 123);
         },
         onWheel: (Eve) => {
-            //if(WheelObserver.Turned) return WheelObserver.careTurned();
-            const WA /* WheelAxis */ = Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY) ? 'X' : 'Y';
-            const CW /* CurrentWheel */ = {}, Ws = WheelObserver.Wheels, Wl = Ws.length;
-            //if(Wl && Ws[Wl - 1].Axis != WA) WheelObserver.Wheels = [];
-            CW.Axis = WA;
-            CW.Direction = WA == 'X' ? (Eve.deltaX < 0 ? 'left' : 'right') : (Eve.deltaY < 0 ? 'top' : 'bottom');
-            CW.Distance = C.d2d(CW.Direction, 'Allow Orthogonal Direction');
-            CW.Delta = Math.abs(Eve['delta' + WA]);
-                 if(!Ws[Wl - 1])                        CW.Accel =  1, CW.Wheeled = 'start';
-            else if(CW.Axis     != Ws[Wl - 1].Axis    ) return WheelObserver.careTurned(); ////////
-            else if(CW.Distance != Ws[Wl - 1].Distance) CW.Accel =  1, CW.Wheeled = (Wl >= 3 &&                           Ws[Wl - 2].Distance != CW.Distance && Ws[Wl - 3].Distance != CW.Distance) ? 'reverse' : '';
-            else if(CW.Delta     > Ws[Wl - 1].Delta   ) CW.Accel =  1, CW.Wheeled = (Wl >= 3 && Ws[Wl - 1].Accel == -1 && Ws[Wl - 2].Accel == -1             && Ws[Wl - 3].Accel == -1            ) ? 'serial' : '';
-            else if(CW.Delta     < Ws[Wl - 1].Delta   ) CW.Accel = -1, CW.Wheeled = '';
-            else                                        CW.Accel = Ws[Wl - 1].Accel, CW.Wheeled = '';
-            WheelObserver.reserveResetWith(() => {
-                Ws.push(CW); if(Wl > 3) Ws.shift();
-                WheelObserver.Progress = (WheelObserver.TotalDelta += Eve['delta' + WA]) / 3 / 100;
-            });
-            const ToDo = WA != C.A_AXIS_L ? I.orthogonal('wheel') : S.RVM == 'paged' ? 'move' : /*WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length ? 'simulate' :*/ '';
+            WheelObserver.reset(123);
+            const Axis = Eve.Axis = Math.abs(Eve.deltaX) > Math.abs(Eve.deltaY) ? 'X' : 'Y';
+            const ToDo = WheelObserver.ToDo[Axis == C.A_AXIS_L ? 0 : 1];
             if(!ToDo) return;
-            //Eve.preventDefault(); // Must not prevent.
-            //Eve.stopPropagation(); // No need to stop.
-            if(WheelObserver.Hot) return;
+            Eve.preventDefault();
+            Eve.stopPropagation();
             switch(ToDo) {
-                // case 'simulate':  return WheelObserver.scrollNatural(Eve, WA);
-                case 'across'  :  return WheelObserver.scrollAcross(Eve, WA);
-                case 'move':      return WheelObserver.move(CW);
-                case 'utilities': return WheelObserver.toggleUtilities(CW);
-                case 'switch':    return WheelObserver.switchAxis(CW);
-                                  // clearTimeout(WheelObserver.Timer_switchAxis);
-                                  // return WheelObserver.Timer_switchAxis = setTimeout(() => WheelObserver.switchAxis(CW), 99);
+                case 'across': return WheelObserver.scrollAcross(Eve, Axis);
+                // case 'simulate': return WheelObserver.scrollNatural(Eve, Axis);
+            }
+            const Dir   = Eve.Dir = Axis == 'X' ? (Eve.deltaX < 0 ? 'left' : 'right') : (Eve.deltaY < 0 ? 'top' : 'bottom');
+            const Delta = Eve.Delta = Eve['delta' + Axis];
+            const Move  = Eve.Move = Math.abs(Delta);
+            const Ws = WheelObserver.Wheels;
+            const PEve = Ws[0] || null;
+            Ws.unshift(Eve); if(Ws.length > 2) Ws.length = 2;
+            WheelObserver.Progress = (WheelObserver.TotalDelta += Delta) / 3 / 100;
+            if(WheelObserver.Hot) return;
+            // !PEve -> 'start'
+            // Axis == PEve.Axis && Dir == PEve.Dir -> 'accel'   (Move - PEve.Move > 4)
+            // Axis == PEve.Axis && Dir != PEve.Dir -> 'reverse' (Move - PEve.Move > 4)
+            // Axis != PEve.Axis -> '' (turn)
+            // (else) -> '' (keep or slow-down)
+            if(!PEve || (Axis == PEve.Axis && Move - PEve.Move > 4)) switch(ToDo) {
+                case 'move':      return WheelObserver.move(C.d2d(Dir, 'Allow Orthogonal Direction'));
+                case 'utilities': return WheelObserver.toggleUtilities();
+                case 'switch':    return WheelObserver.switchAxis();
             }
         },
+        updateTheToDo: () => WheelObserver.ToDo = [
+            (() => {
+                if(S.RVM == 'paged') return 'move';
+                // if(WheelObserver.OverlaidUIs.filter(OUI => OUI.contains(Eve.target)).length) return 'simulate';
+            })(),
+            (OnOrthogonalWheel => {
+                if(OnOrthogonalWheel == 'across') {
+                    if(B.Reflowable) {
+                        if(B.WritingMode.split('-')[1] == 'tb') { if(S.RVM == 'horizontal') return 'move'; }
+                        else                                    { if(S.RVM ==   'vertical') return 'move'; }
+                    } else {
+                        if(S.RVM == 'horizontal' || !S['full-breadth-layout-in-scroll']) return 'move';
+                    }
+                }
+                return OnOrthogonalWheel;
+            })(I.orthogonal('wheel'))
+        ],
         scrollNatural: (Eve, Axis) => { switch(Axis) {
-            case 'X': R.Main.scrollLeft += Eve.deltaX; break;
-            case 'Y': R.Main.scrollTop  += Eve.deltaY; break;
+            case 'X': return R.Main.scrollLeft += Eve.deltaX;
+            case 'Y': return R.Main.scrollTop  += Eve.deltaY;
         } },
         scrollAcross: (Eve, Axis) => { switch(Axis) {
-            case 'X': R.Main.scrollTop  += Eve.deltaX; break;
-            case 'Y': R.Main.scrollLeft += Eve.deltaY * (S.ARD == 'rtl' ? -1 : 1); break;
+            case 'X': return R.Main.scrollTop  += Eve.deltaX;
+            case 'Y': return R.Main.scrollLeft += Eve.deltaY * (S.ARD == 'rtl' ? -1 : 1);
         } },
-        move: (CW) => { // Only for Paged View ====
-            if(!CW.Wheeled) return;
+        move: (Distance) => {
             WheelObserver.heat();
-            R.moveBy(CW.Distance, {
-                Duration: I.isScrollable() && I.draggable() ? 123 : 0
-            });
+            I.Flipper.flip(Distance, I.isScrollable() && I.draggable() ? { Duration: 333 } : null);
         },
-        toggleUtilities: (CW) => {
-            if(!CW.Wheeled) return;
+        toggleUtilities: () => {
             WheelObserver.heat();
             I.Utilities.toggleGracefuly();
         },
@@ -3900,6 +3903,7 @@ I.WheelObserver = { create: () => {
     };
     document.addEventListener('wheel', Eve => E.dispatch('bibi:is-wheeling', Eve), E.CPO_000);
     E.add('bibi:loaded-item', Item => Item.contentDocument.addEventListener('wheel', Eve => E.dispatch('bibi:is-wheeling', Eve), E.CPO_100));
+    E.add(['bibi:opened', 'bibi:changed-view'], WheelObserver.updateTheToDo);
     E.add('bibi:opened', () => {
         // [I.Menu, I.Slider].forEach(UI => {
         //     if(!UI.ownerDocument) return;
@@ -4065,7 +4069,7 @@ I.KeyObserver = { create: () => { if(!S['use-keys']) return;
             new Promise((resolve, reject) => { switch(typeof KeyParameter) {
                 case 'number': if(I.Flipper.isAbleToFlip(KeyParameter)) {
                     if(I.Arrows) E.dispatch(I.Arrows[KeyParameter], 'bibi:singletapped');
-                    return I.Flipper.flip(KeyParameter, { Duration: Eve.Staccato > 1 ? 0 : null }).then(resolve);
+                    return I.Flipper.flip(KeyParameter, Eve.Staccato > 1 ? { Duration: 0 } : null).then(resolve);
                 } break;
                 case 'string': switch(KeyParameter) {
                     case 'head': case 'foot': return R.focusOn(KeyParameter, { Duration: 0 }).then(resolve);
@@ -4156,7 +4160,7 @@ I.Tracer = { create: () => {
                     const Dir = Tracer.getDirection(BibiEvent), Ortho = I.orthogonal('edgetap'), Dist = C.d2d(Dir, Ortho == 'move');
                     if(Dist) {
                         if(I.Flipper.isAbleToFlip(Dist)) {
-                            I.Flipper.flip(Dist, { Duration: BibiEvent.Staccato > 1 ? 0 : null });
+                            I.Flipper.flip(Dist, BibiEvent.Staccato > 1 ? { Duration: 0 } : null);
                             if(I.Arrows) E.dispatch(I.Arrows[Dist], 'bibi:singletapped');
                         }
                     } else {
@@ -4243,7 +4247,7 @@ I.Flipper = { create: () => {
             }
             return false;
         },
-        flip: (Distance, Opt = {}) => {
+        flip: (Distance, Opt) => {
             if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
             I.ScrollObserver.forceStopScrolling();
             if(B.PrePaginated) { // Preventing flicker.
@@ -4254,7 +4258,7 @@ I.Flipper = { create: () => {
                 CIs.forEach(CI => { try { R.Pages[CI].Spread.Box.classList.remove('current'); } catch(Err) {} });
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
-            return R.moveBy(Distance, { Duration: Opt.Duration }).then(Destination => {
+            return R.moveBy(Distance, { Duration: Opt?.Duration || (S.ARA == S.SLA ? 333 : 0) }).then(Destination => {
                 I.PageObserver.updateCurrent();
                 if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: I.History.List.slice(-1)[0].UI == Flipper && (Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1), Destination: Destination });
                 Flipper.PreviousDistance = Distance;
@@ -4594,6 +4598,9 @@ I.Menu = { create: () => {
 
 I.Panel = { create: () => {
     const Panel = I.Panel = O.Body.appendChild(sML.create('div', { id: 'bibi-panel' }));
+    Panel.addEventListener(E['pointerdown'], Eve => Eve.stopPropagation());
+    Panel.addEventListener(E['pointerup'],   Eve => Eve.stopPropagation());
+    Panel.addEventListener('wheel',          Eve => Eve.stopPropagation());
     I.setToggleAction(Panel, {
         onopened: () => { O.HTML.classList.add(   'panel-opened'); E.dispatch('bibi:opened-panel'); },
         onclosed: () => { O.HTML.classList.remove('panel-opened'); E.dispatch('bibi:closed-panel'); }
