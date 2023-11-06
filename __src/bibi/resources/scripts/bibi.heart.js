@@ -3129,17 +3129,20 @@ I.PageObserver = { create: () => {
         // ---- Current
         Current: { List: [], Pages: [], Frame: {} },
         updateCurrent: () => {
+            const Current = PageObserver.Current;
             const Frame = PageObserver.getFrame();
             if(Frame) {
-                PageObserver.Current.Frame = Frame;
+                Current.Frame = Frame;
                 const List = PageObserver.getList();
                 if(List) {
-                    PageObserver.Current.List = List;
-                    PageObserver.Current.Pages = List.map(CE => CE.Page);
+                    Current.List = List;
+                    const Pages = Current.Pages = List.map(CE => CE.Page);
+                    const Items = Current.Items = [...new Set(Pages.map(Page => Page.Item))];
+                    const Spreads = Current.Spreads = [...new Set(Items.map(Item => Item.Spread))];
                     PageObserver.classify();
                 }
             }
-            return PageObserver.Current;
+            return Current;
         },
         getFrame: () => {
             const Frame = {};
@@ -3196,7 +3199,7 @@ I.PageObserver = { create: () => {
                     else if(PageIntersectionStatus.Ratio)                                List.push(CurrentEntry);
                 }
             } // console.log('b', List.map(Entry => Object.assign({}, Entry))); ////////
-            return List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
+            return B.PrePaginated && List_SpreadContained.length ? List_SpreadContained : List.length ? List : null;
         },
         getIntersectionStatus: (Ele, WithDetail) => {
             const Coord = sML.getCoord(Ele), _D = C.L_AXIS_D;
@@ -3219,15 +3222,15 @@ I.PageObserver = { create: () => {
             return IntersectionStatus;
         },
         classify: () => {
-            const [Curr, Prev, Next] = ['current', 'prev-of-current', 'next-of-current'].map(CN => ({ ClassName: CN, PastElements: R.Main.Book.querySelectorAll('.' + CN), Elements: [] }));
-            PageObserver.Current.List.forEach(CurrentEntry => {
-                const Page = CurrentEntry.Page, ItemBox = Page.Item.Box, SpreadBox = Page.Spread.Box;
-                if(!Curr.Elements.includes(SpreadBox)) Curr.Elements.push(SpreadBox), Prev.Elements.push(R.Spreads[SpreadBox.Inside.Index - 1]?.Box), Next.Elements.push(R.Spreads[SpreadBox.Inside.Index + 1]?.Box);
-                if(!Curr.Elements.includes(  ItemBox)) Curr.Elements.push(  ItemBox), Prev.Elements.push(  R.Items[  ItemBox.Inside.Index - 1]?.Box), Next.Elements.push(  R.Items[  ItemBox.Inside.Index + 1]?.Box);
-                /**/                                   Curr.Elements.push(     Page), Prev.Elements.push(  R.Pages[            Page.Index - 1]     ), Next.Elements.push(  R.Pages[            Page.Index + 1]     );
-                [Curr, Prev, Next].forEach(CPN => CPN.Elements.forEach(Ele => Ele && Ele.classList.add(CPN.ClassName)));
+            const [Curr, Prev, Next] = ['current', 'prev-of-current', 'next-of-current'].map(CN => ({ ClassName: CN, PastElements: new Set(R.Main.Book.querySelectorAll('.' + CN)), NewElements: new Set() }));
+            PageObserver.Current.Pages.forEach(Page => { const Item = Page.Item, Spread = Page.Spread;
+                [                   Page,                     Item.Box,                       Spread.Box].forEach(Ele => Curr.NewElements.add(Ele));
+                [R.Pages[Page.Index - 1], R.Items[Item.Index - 1]?.Box, R.Spreads[Spread.Index - 1]?.Box].forEach(Ele => Prev.NewElements.add(Ele));
+                [R.Pages[Page.Index + 1], R.Items[Item.Index + 1]?.Box, R.Spreads[Spread.Index + 1]?.Box].forEach(Ele => Next.NewElements.add(Ele));
             });
-            [Curr, Prev, Next].forEach(CPN => CPN.PastElements.forEach(Ele => CPN.Elements.includes(Ele) || Ele.classList.remove(CPN.ClassName)));
+            Curr.NewElements.forEach(Ele => Ele.classList.add(Curr.ClassName));
+            [Prev, Next].forEach(PN => PN.NewElements.forEach(Ele => Ele && !Curr.NewElements.has(Ele) ? Ele.classList.add(PN.ClassName) : PN.NewElements.delete(Ele)));
+            [Curr, Prev, Next].forEach(CPN => CPN.PastElements.forEach(Ele => CPN.NewElements.has(Ele) || Ele.classList.remove(CPN.ClassName)));
         },
         observeCurrent: () => {
             E.bind(['bibi:changed-intersection', 'bibi:scrolled'], PageObserver.updateCurrent);
