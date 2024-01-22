@@ -3616,6 +3616,7 @@ I.FlickObserver = { create: () => {
         onTouchStart: (BibiEvent) => {
             if(!L.Opened) return;
             //if(S.RVM != 'paged' && O.TouchOS) return;
+            if(BibiEvent.touches && BibiEvent.touches.length != 1) return;
             if(FlickObserver.Movement?.Last.BibiEvent) return FlickObserver.onTouchEnd();
             if(I.Loupe.Transforming) return;
             if(FlickObserver.isInSafeAreas(BibiEvent)) return;
@@ -3733,13 +3734,13 @@ I.FlickObserver = { create: () => {
         activateElement: (Ele) => { if(!Ele) return false;
             if(!Ele.FlickObserver) Ele.FlickObserver = {};
             if(!Ele.FlickObserver.onPointerDown) Ele.FlickObserver.onPointerDown = Eve => FlickObserver.onTouchStart(E.aBCD(Eve));
-            Ele.addEventListener(E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
+            Ele.addEventListener(O.TouchOS ? 'touchstart' : E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
             const CNPf = FlickObserver.getCNPf(Ele);
             /**/                 Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-active');
             if(I.isScrollable()) Ele.ownerDocument.documentElement.classList.add(CNPf + 'flick-scrollable');
         },
         deactivateElement: (Ele) => { if(!Ele) return false;
-            if(Ele.FlickObserver?.onPointerDown) Ele.removeEventListener(E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
+            if(Ele.FlickObserver?.onPointerDown) Ele.removeEventListener(O.TouchOS ? 'touchstart' : E['pointerdown'], Ele.FlickObserver.onPointerDown, E.CPO_100);
             const CNPf = FlickObserver.getCNPf(Ele);
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-active');
             Ele.ownerDocument.documentElement.classList.remove(CNPf + 'flick-scrollable');
