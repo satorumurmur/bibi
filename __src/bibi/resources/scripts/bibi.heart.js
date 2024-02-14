@@ -1595,7 +1595,6 @@ L.patchItemStyles = (Item) => { // only for reflowable.
                     && !((sML.UA.Safari || sML.OS.iOS) && Ele.rel == 'alternate stylesheet')  //// Safari does not count "alternate stylesheet" in document.styleSheets.
                 )
             ).length;
-            let tried = 0;
             await new Promise((resolve, reject) => (function check() {
                 if(ProcessID != Item.LoadingProcessID) return reject();
                 if(Item.contentDocument.styleSheets.length >= StyleSheetsLength) return resolve();
@@ -1606,10 +1605,7 @@ L.patchItemStyles = (Item) => { // only for reflowable.
                     const Vers = B.Package.Metadata['ebpaj:guide-version'].split('.').map(Ver => Ver * 1);
                     if(Vers[0] == 1 && Vers[1] == 1 && Vers[2] <= 3) Item.Body.style.textUnderlinePosition = 'under left';
                 }
-                const isStyled = RE => RE.test(CSSRule.cssText);
-                O.editCSSRules(Item.contentDocument, CSSRule => {
-                    if(isStyled(/(-(epub|webkit)-)?column-count: 1; /)) CSSRule.style.columnCount = CSSRule.style.webkitColumnCount = 'auto';
-                });
+                O.forEachCSSRuleOf(Item.contentDocument, CSSRule => CSSRule.style.columnCount == 1 && Item.contentDocument.querySelectorAll(CSSRule.selectorText).forEach(Ele => getComputedStyle(Ele).columnCount == 1 && (Ele.style.columnCount = 'auto')));
             }
             const ItemHTMLComputedStyle = getComputedStyle(Item.HTML);
             const ItemBodyComputedStyle = getComputedStyle(Item.Body);
@@ -4618,35 +4614,35 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 DistilledSettings[SetterName] = Setting; return true;
             }).length ? DistilledSettings : null;
         },
+        ElementsToBeIgnored: 'script,style,br,img,iframe,source,audio,video,picture,svg,math,ruby,rb,rp,rt,rtc',
+        getItemElements: (Item) => Item.TextSettings.Elements = Item.TextSettings.Elements || Item.contentDocument.querySelectorAll(`html, body, body *:not(${ TextSetter.ElementsToBeIgnored })`),
         postprocessItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
             Item.TextSettings = { HTMLOriginalFontSize: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1 };
             const SettersToPostprocess = {
-                ItemBeforeElements: TextSetter.X.filter(Setter => !!Setter.postprocessItemBeforeElements),
-                          Element : TextSetter.X.filter(Setter => !!Setter.postprocessElement),
-                 ItemAfterElements: TextSetter.X.filter(Setter => !!Setter.postprocessItemAfterElements)
+                ItemBefore: TextSetter.X.filter(Setter => !!Setter.postprocessItemBefore),
+                CSSRule:    TextSetter.X.filter(Setter => !!Setter.postprocessCSSRule),
+                Element:    TextSetter.X.filter(Setter => !!Setter.postprocessElement),
+                ItemAfter:  TextSetter.X.filter(Setter => !!Setter.postprocessItemAfter)
             };
-            SettersToPostprocess.ItemBeforeElements.forEach(Setter => Setter.postprocessItemBeforeElements(Item));
-            if(SettersToPostprocess.Element.length) sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
-                if(!Ele.style) return;
-                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
-                SettersToPostprocess.Element.forEach(Setter => Setter.postprocessElement(Ele, getComputedStyle(Ele), Item));
-            });
-            SettersToPostprocess.ItemAfterElements.forEach(Setter => Setter.postprocessItemAfterElements(Item));
+            SettersToPostprocess.ItemBefore.forEach(Setter => Setter.postprocessItemBefore(Item));
+            if(SettersToPostprocess.CSSRule.length) O.forEachCSSRuleOf(Item.contentDocument,  CSSRule => CSSRule.style && SettersToPostprocess.CSSRule.forEach(Setter => Setter.postprocessCSSRule(CSSRule, Item)));
+            if(SettersToPostprocess.Element.length) sML.forEach(TextSetter.getItemElements(Item))(Ele =>     Ele.style && SettersToPostprocess.Element.forEach(Setter => Setter.postprocessElement(Ele, getComputedStyle(Ele), Item)));
+            SettersToPostprocess.ItemAfter.forEach(Setter => Setter.postprocessItemAfter(Item));
+            delete Item.TextSettings.Elements; ////
         },
-        readyItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
-            const SettersToReady = {
-                ItemBeforeElements: TextSetter.X.filter(Setter => !!Setter.readyItemBeforeElements),
-                          Element : TextSetter.X.filter(Setter => !!Setter.readyElement),
-                 ItemAfterElements: TextSetter.X.filter(Setter => !!Setter.readyItemAfterElements)
-            };
-            SettersToReady.ItemBeforeElements.forEach(Setter => Setter.readyItemBeforeElements(Item));
-            if(SettersToReady.Element.length) sML.forEach(Item.contentDocument.querySelectorAll(`html, body, body *:not(script):not(style)`))(Ele => {
-                if(!Ele.style) return;
-                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
-                SettersToReady.Element.forEach(Setter => Setter.readyElement(Ele, getComputedStyle(Ele), Item));
-            });
-            SettersToReady.ItemAfterElements.forEach(Setter => Setter.readyItemAfterElements(Item));
-        },
+        // readyItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
+        //     const SettersToReady = {
+        //         ItemBefore: TextSetter.X.filter(Setter => !!Setter.readyItemBefore),
+        //         CSSRule :   TextSetter.X.filter(Setter => !!Setter.readyCSSRule),
+        //         Element :   TextSetter.X.filter(Setter => !!Setter.readyElement),
+        //         ItemAfter:  TextSetter.X.filter(Setter => !!Setter.readyItemAfter)
+        //     };
+        //     SettersToReady.ItemBefore.forEach(Setter => Setter.readyItemBefore(Item));
+        //     if(SettersToReady.CSSRule.length) O.forEachCSSRuleOf(Item.contentDocument,  CSSRule => CSSRule.style && SettersToReady.CSSRule.forEach(Setter => Setter.readyCSSRule(CSSRule, Item)));
+        //     if(SettersToReady.Element.length) sML.forEach(TextSetter.getItemElements(Item))(Ele =>     Ele.style && SettersToReady.Element.forEach(Setter => Setter.readyElement(Ele, getComputedStyle(Ele), Item)));
+        //     SettersToReady.ItemAfter.forEach(Setter => Setter.readyItemAfter(Item));
+        //     delete Item.TextSettings.Elements;
+        // },
         change: (Settings, ActionsBeforeAfter) => new Promise(resolve => { if(B.PrePaginated) return resolve();
             Settings = TextSetter.distillSettings(Settings, { Changeable: true });
             if(!Settings) return resolve();
@@ -4717,7 +4713,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         },
         initialize: () => {
             E.bind('bibi:postprocessed-item', Item => TextSetter.postprocessItem(Item));
-            E.bind('bibi:loaded-book', () => R.Items.forEach(Item => TextSetter.readyItem(Item)));
+            // E.bind('bibi:loaded-book', () => R.Items.forEach(Item => TextSetter.readyItem(Item)));
             if(S['keep-settings']) E.bind('bibi:loaded-book', () => {
                 const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
                 const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
@@ -4732,7 +4728,43 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         },
         PrototypeOfSetter: {
             Setting: {},
-            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null
+            initializeItemSettings: function(Item, ItemSettings) { Item.TextSettings[this.Name] = ItemSettings; },
+            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null,
+            prepareCandidates: function(Item, Property, Default) {
+                // if(typeof Property == 'string') {
+                    const ItemSettings = Item.TextSettings[this.Name];
+                    ((ItemSettings.CandidatesOf || (ItemSettings.CandidatesOf = {}))[Property] = new Set(Default || [])).Selectors = new Set();
+                // } else {
+                //     const Properties = Property;
+                //     Object.keys(Properties).forEach(Property => this.prepareCandidates(Item, Property, Properties[Property]));
+                // }
+            },
+            collectCandidates: function(Item, Property, Selector, AdditionalSelector) {
+                const ItemSettings = Item.TextSettings[this.Name];
+                const Candidates = ItemSettings.CandidatesOf[Property];
+                let Eles = null; try {
+                    const Cands_Sels = Candidates.Selectors, Sel = `*:not(:not(${ Selector }))${ AdditionalSelector || '' }:not(${ TextSetter.ElementsToBeIgnored })`;
+                    if(!Cands_Sels.has(Sel)) {
+                        Cands_Sels.add(Sel);
+                        Eles = Item.contentDocument.querySelectorAll(Sel);
+                    }
+                } catch(Err) {}
+                if(Eles?.length) {
+                    for(let l = Eles.length, i = 0; i < l; i++) Eles[i] && Candidates.add(Eles[i]);
+                }
+            },
+            isCandidateOf: function(Item, Property, Ele) {
+                return Item.TextSettings[this.Name].CandidatesOf[Property].has(Ele);
+            },
+            deleteCandidates: function(Item) {
+                const ItemSettings = Item.TextSettings[this.Name], CandidatesOf = ItemSettings.CandidatesOf;
+                Object.keys(CandidatesOf).forEach(Property => {
+                    const Candidates = CandidatesOf[Property], Cands_Sels = Candidates.Selectors;
+                    Cands_Sels.clear(), delete Candidates.Selectors;
+                    Candidates.clear(), delete CandidatesOf[Property];
+                });
+                delete ItemSettings.CandidatesOf;
+            }
         },
         PrototypeOfResizer: {
             Setting: { Step: 0, Scale: 1, ScalePerStep: 1.25 },
@@ -4789,17 +4821,25 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
     if(S['use-fontsize-setter']) {
         TextSetter.x({
             Name: 'FontSize', IsResizer: true,
-            TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math)$/,
-            postprocessItemBeforeElements: (Item) => {
-                Item.TextSettings.FontSize = { Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : Item.TextSettings.HTMLOriginalFontSize };
+            postprocessItemBefore: function(Item) {
+                this.initializeItemSettings(Item, {
+                    Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : Item.TextSettings.HTMLOriginalFontSize
+                });
+                this.prepareCandidates(Item, 'font-size');
+            },
+            postprocessCSSRule: function(CSSRule, Item) {
+                const StyleValue = CSSRule.style['font-size'];
+                if(StyleValue && !/\d(%|cap|ch|r?em|ex|ic|r?lh)$/.test(StyleValue) && !/^(smaller|larger|inherit)$/.test(StyleValue)) this.collectCandidates(Item, 'font-size', CSSRule.selectorText, ':not(html)');
             },
             postprocessElement: function(Ele, ComStyle, Item) {
-                if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
-                let ComFontSize = ComStyle.fontSize;
+                if(!this.isCandidateOf(Item, 'font-size', Ele)) return;
+                const ComFontSize = ComStyle.fontSize;
                 if(!/\.?\d+px$/.test(ComFontSize)) return;
-                Ele.style.fontSize = (ComFontSize = parseFloat(ComFontSize)) / Item.TextSettings.HTMLOriginalFontSize + 'rem';
+                const PEle = Ele.parentElement;
+                Ele.style.fontSize = (PEle && getComputedStyle(PEle).fontSize == ComFontSize) ? '1em' : parseFloat(ComFontSize) / Item.TextSettings.HTMLOriginalFontSize + 'rem';
             },
-            postprocessItemAfterElements: (Item) => {
+            postprocessItemAfter: function(Item) {
+                this.deleteCandidates(Item);
                 Item.HTML.style.fontSize = Item.TextSettings.FontSize.Base + 'px';
             },
             changeItem: (Item, Setting) => { const Scale = Setting.Scale;
@@ -4823,19 +4863,27 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
     if(S['use-linespacing-setter']) {
         TextSetter.x({
             Name: 'LineSpacing', IsResizer: true,
-            TagNamesToBeIgnored: /^(html|img|iframe|source|audio|video|picture|svg|math|ruby|rb|rp|rt|rtc|table|thead|tbody|th|td)$/,
-            postprocessItemBeforeElements: (Item) => {
-                Item.TextSettings.LineSpacing = { CustomizableElements: [] };
+            postprocessItemBefore: function(Item) {
+                this.initializeItemSettings(Item, {
+                    CustomizableElements: new Set()
+                });
+                this.prepareCandidates(Item, 'line-height');
+            },
+            postprocessCSSRule: function(CSSRule, Item) {
+                const StyleValue = CSSRule.style['line-height'];
+                if(StyleValue && StyleValue != 'inherit') this.collectCandidates(Item, 'line-height', CSSRule.selectorText); // exclude (table|thead|tbody|th|td) ...?
             },
             postprocessElement: function(Ele, ComStyle, Item) {
-                if(this.TagNamesToBeIgnored.test(Ele.tagName.toLowerCase())) return;
-                let ComFontSize = ComStyle.fontSize;
+                if(!this.isCandidateOf(Item, 'line-height', Ele)) return;
+                const ComFontSize = ComStyle.fontSize;
                 if(!/\.?\d+px$/.test(ComFontSize)) return;
                 const ComLineHeight = ComStyle.lineHeight;
+                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
                 Ele.BibiTextSettings.LineHeight = { Base: /\.?\d+px$/.test(ComLineHeight) ? parseFloat(ComLineHeight) / parseFloat(ComFontSize) : 1.2 };
-                Item.TextSettings.LineSpacing.CustomizableElements.push(Ele);
+                Item.TextSettings.LineSpacing.CustomizableElements.add(Ele);
             },
-            postprocessItemAfterElements: (Item) => {
+            postprocessItemAfter: function(Item) {
+                this.deleteCandidates(Item);
                 Item.TextSettings.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base);
             },
             changeItem: (Item, Setting) => { const Scale = Setting.Scale;
@@ -4860,50 +4908,60 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         TextSetter.x({
             Name: 'FlowDirection', IsResizer: false,
             Setting: { Default: true, DefaultWritingMode: B.WritingMode, DefaultPageProgressionDirection: B.PPD },
-            DirectionalStylePropertyTrees: [[['margin@', 'padding@', 'inset@', 'border@Style', 'border@Width', 'border@Color'], ['Block@', 'Inline@'], ['Start', 'End']]/*, [['blockSize', 'inlineSize']]*/].map(TreeSet => JSON.parse(JSON.stringify(TreeSet.reduce((Tree, Branches) => {
-                const appendTo = (Base, AppendingNames, BaseName = '') => {
-                    const ChildNames = Object.keys(Base);
-                    ChildNames.length ? ChildNames.forEach(ChildName => appendTo(Base[ChildName], AppendingNames, ChildName)) : AppendingNames.forEach(AppendingName => Base[BaseName.replace(/(@|$)/, AppendingName)] = {});
-                    return Base;
-                }; return appendTo(Tree, Branches);
-            }, {})).replace(/@/g, ''))),
-            readyItemBeforeElements: function(Item) {
-                Item.TextSettings.FlowDirection = { DefaultWritingMode: Item.WritingMode, FlowRootElements: [], OverlinedElements: [] };
+            DirectionalStylePropertyTrees: JSON.stringify([[['margin@', 'padding@', 'inset@', 'border@Style', 'border@Width', 'border@Color'], ['Block@', 'Inline@'], ['Start', 'End']]/*, [['blockSize', 'inlineSize']]*/].map(TreeSet => TreeSet.reduce((Tree, Branches) => (function appendTo(Base, AppendingNames, BaseName = '') {
+                const ChildNames = Object.keys(Base);
+                ChildNames.length ? ChildNames.forEach(ChildName => appendTo(Base[ChildName], AppendingNames, ChildName)) : AppendingNames.forEach(AppendingName => Base[BaseName.replace(/(@|$)/, AppendingName)] = {});
+                return Base;
+            })(Tree, Branches), {}))).replace(/@/g, ''),
+            postprocessItemBefore: function(Item) {
+                this.initializeItemSettings(Item, {
+                    DefaultWritingMode: Item.WritingMode,
+                    FlowRootElements: new Set(),
+                    OverlinedElements: new Set()
+                });
+                this.prepareCandidates(Item, 'writing-mode', [Item.HTML]);
+                this.prepareCandidates(Item, 'text-decoration-line');
             },
-            readyElement: function(Ele, ComStyle, Item) {
-                const PEle = Ele.parentElement, ParentWritingMode = PEle ? getComputedStyle(PEle).writingMode : undefined, ComWritingMode = ComStyle.writingMode;
-                if(B.WritingMode == 'tb-rl' && ComWritingMode == 'vertical-rl' && ComStyle.textDecorationLine == 'overline') Item.TextSettings.FlowDirection.OverlinedElements.push(Ele);
-                if(PEle && ComWritingMode == ParentWritingMode) Ele.style.writingMode = 'inherit'; else {
-                    Ele.BibiTextSettings.FlowDirection = { DefaultWritingMode: (Ele.style.writingMode = ComWritingMode) };
-                    Item.TextSettings.FlowDirection.FlowRootElements.push(Ele);
+            postprocessCSSRule: function(CSSRule, Item) {
+                const Style = CSSRule.style;
+                if(Style['writing-mode'] || Style['-webkit-writing-mode'] || Style['-epub-writing-mode']) this.collectCandidates(Item, 'writing-mode', CSSRule.selectorText);
+                if(B.WritingMode == 'tb-rl' && (Style['text-decoration-line'] || Style['-epub-text-decoration-line'] || Style['-webkit-text-decoration-line']) == 'overline') this.collectCandidates(Item, 'text-decoration-line', CSSRule.selectorText);
+            },
+            postprocessElement: function(Ele, ComStyle, Item) {
+                if(this.isCandidateOf(Item, 'writing-mode', Ele)) {
+                    const ComWritingMode = ComStyle.writingMode;
+                    const PEle = Ele.parentElement;
+                    if(PEle && getComputedStyle(PEle).writingMode == ComWritingMode) Ele.style.writingMode = 'inherit';
+                    else {
+                        if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
+                        Ele.BibiTextSettings.FlowDirection = { DefaultWritingMode: (Ele.style.writingMode = ComWritingMode) };
+                        Item.TextSettings.FlowDirection.FlowRootElements.add(Ele);
+                    }
                 }
-                this.overrideDirectionalStyles(Ele, ComStyle, Item.TextSettings.HTMLOriginalFontSize);
-            },
-            overrideDirectionalStyles: function(Ele, ComStyle, ItemHTMLOriginalFontSize) {
-                JSON.parse(JSON.stringify(this.DirectionalStylePropertyTrees)).forEach((StyleTree, i) => {
-                    StyleTree = this.buildStyleTree(StyleTree, ComStyle);
-                    const PropertiesToBeIgnored = !i ? Object.keys(StyleTree) : [];
-                    this.setStyles(Ele, StyleTree, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
+                if(B.WritingMode == 'tb-rl' && this.isCandidateOf(Item, 'text-decoration-line', Ele)) {
+                    if(ComStyle.writingMode == 'vertical-rl' && ComStyle.textDecorationLine == 'overline') Item.TextSettings.FlowDirection.OverlinedElements.add(Ele);
+                }
+                JSON.parse(this.DirectionalStylePropertyTrees).forEach((StyleTree, i) => {
+                    Object.keys(StyleTree).forEach(SelfName => StyleTree[SelfName] = (function buildStyleTree(Parent, SelfName) {
+                        const Self = Parent[SelfName], Children = Object.keys(Self);
+                        if(Children.length) {
+                            const Vals = Children.map(Pro => Self[Pro] = (Object.keys(Self[Pro]).length) ? buildStyleTree(Self, Pro) : ComStyle[Pro]);
+                            if(new Set(Vals).size == 1) Parent[SelfName] = Vals[0];
+                        } else Parent[SelfName] = ComStyle[SelfName];
+                        return Parent[SelfName];
+                    })(StyleTree, SelfName));
+                    const PropertiesToBeIgnored = !i ? Object.keys(StyleTree) : []; // Ignore shorthand properties like margin, padding...
+                    (function setStyles(StyleTree) {
+                        Object.keys(StyleTree).forEach(Pro => {
+                            let Val = StyleTree[Pro];
+                            if(typeof Val == 'object') return setStyles(Val);
+                            if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : /* /^marginInline$/.test(Pro) && Val >= 0 ? 'auto' : */ Val / Item.TextSettings.HTMLOriginalFontSize + 'rem';
+                        });
+                    })(StyleTree);
                 });
             },
-            buildStyleTree: function(Parent, ComStyle, SelfName) {
-                if(!SelfName) {
-                    Object.keys(Parent).forEach(SelfName => Parent[SelfName] = this.buildStyleTree(Parent, ComStyle, SelfName));
-                    return Parent;
-                }
-                const Self = Parent[SelfName], Children = Object.keys(Self);
-                if(Children.length) {
-                    const Vals = Children.map(Pro => Self[Pro] = (Object.keys(Self[Pro]).length) ? this.buildStyleTree(Self, ComStyle, Pro) : ComStyle[Pro]);
-                    if(new Set(Vals).size == 1) Parent[SelfName] = Vals[0];
-                } else Parent[SelfName] = ComStyle[SelfName];
-                return Parent[SelfName];
-            },
-            setStyles: function(Ele, StyleTree, ItemHTMLOriginalFontSize, PropertiesToBeIgnored) {
-                Object.keys(StyleTree).forEach(Pro => {
-                    let Val = StyleTree[Pro];
-                    if(typeof Val == 'object') return this.setStyles(Ele, Val, ItemHTMLOriginalFontSize, PropertiesToBeIgnored);
-                    if(!PropertiesToBeIgnored.includes(Pro)) Ele.style[Pro] = !/\.?\d+?px$/.test(Val) ? Val : !(Val = parseFloat(Val)) ? 0 : /* /^marginInline$/.test(Pro) && Val >= 0 ? 'auto' : */ Val / ItemHTMLOriginalFontSize + 'rem';
-                });
+            postprocessItemAfter: function(Item) {
+                this.deleteCandidates(Item);
             },
             getLineAxis: (WM) => WM.split('-')[1] == 'tb' ? 'horizontal' : 'vertical',
             distillSetting: function(Setting, Opt) {
@@ -7676,24 +7734,22 @@ O.parseDOM = (...Args) => new DOMParser().parseFromString(...Args);
 O.openDocument = (Source) => O.file(Source).then(Source => O.parseDOM(Source.Content, /\.(xml|opf|ncx)$/i.test(Source.Path) ? 'text/xml' : 'application/xhtml+xml'));
 
 
-O.editCSSRules = function() {
-    let Doc, fun;
-         if(typeof arguments[0] == 'function') Doc = arguments[1], fun = arguments[0];
-    else if(typeof arguments[1] == 'function') Doc = arguments[0], fun = arguments[1];
-    if(!Doc) Doc = document;
+O.forEachCSSRuleOf = (Doc = document, fun) => {
     if(!Doc.styleSheets || typeof fun != 'function') return;
-    sML.forEach(Doc.styleSheets)(StyleSheet => O.editCSSRulesOfStyleSheet(StyleSheet, fun));
+    Array.prototype.forEach.call(Doc.styleSheets, StyleSheet => {
+        (function forCSSRules(CSSRules) {
+            Array.prototype.forEach.call(CSSRules, CSSRule => {
+                switch(CSSRule.constructor.name) {
+                    case 'CSSStyleRule': fun(CSSRule); break;
+                    case 'CSSImportRule': forCSSRules(CSSRule.styleSheet.cssRules); break;
+                    case 'CSSMediaRule': forCSSRules(CSSRule.cssRules); break;
+                    case 'CSSFontFaceRule': break;
+                    default: break; // console.log(CSSRule.constructor.name, CSSRule);
+                }
+            });
+        })(StyleSheet.cssRules);
+    });
 };
-
-    O.editCSSRulesOfStyleSheet = (StyleSheet, fun) => {
-        try{ if(!StyleSheet.cssRules) return; } catch(_) { return; }
-        for(let l = StyleSheet.cssRules.length, i = 0; i < l; i++) {
-            const CSSRule = StyleSheet.cssRules[i];
-            /**/ if(CSSRule.cssRules)   O.editCSSRulesOfStyleSheet(CSSRule,            fun);
-            else if(CSSRule.styleSheet) O.editCSSRulesOfStyleSheet(CSSRule.styleSheet, fun);
-            else                                               fun(CSSRule                );
-        }
-    };
 
 
 O.getWritingMode = (Ele) => {
