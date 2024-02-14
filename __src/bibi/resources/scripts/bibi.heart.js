@@ -2110,6 +2110,7 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => setTimeout(() => {
     if(!Opt.NoNotification) I.notify(`Laying out...`);
     if(!Opt.Destination) Opt.Destination = { Element: R.getElement() };
     if(Opt.Setting) S.update(Opt.Setting);
+    R.updateOrientation();
     const Layout = {}; ['reader-view-mode', 'spread-layout-direction', 'apparent-reading-direction'].forEach(Pro => Layout[Pro] = S[Pro]);
     O.log(`Layout: %O`, Layout);
     setTimeout(() => Promise.resolve().then(() => typeof Opt.before == 'function' ? Opt.before() : true).then(() => {
@@ -2138,14 +2139,18 @@ R.layOutBook = (Opt) => new Promise((resolve, reject) => setTimeout(() => {
 
 R.updateOrientation = () => {
     const PreviousOrientation = R.Orientation;
-    if(typeof window.orientation != 'undefined') {
-        R.Orientation = (window.orientation == 0 || window.orientation == 180) ? 'portrait' : 'landscape';
-    } else {
+    let Orientation = '';
+    if(O.TouchOS) {
+             if(typeof screen.orientation?.type == 'string') Orientation = screen.orientation.type.split('-')[0];
+        else if(typeof window.orientation       == 'number') Orientation = window.orientation % 180 == 0 ? 'portrait' : 'landscape';
+    }
+    if(!Orientation) {
         const W = window.innerWidth  - (S.ARA == 'vertical'   ? O.Scrollbars.Width  : 0);
         const H = window.innerHeight - (S.ARA == 'horizontal' ? O.Scrollbars.Height : 0);
-        R.Orientation = (W / H) < S['orientation-border-ratio'] ? 'portrait' : 'landscape';
+        Orientation = (W / H) < S['orientation-border-ratio'] ? 'portrait' : 'landscape';
     }
-    if(R.Orientation != PreviousOrientation) {
+    if(Orientation != PreviousOrientation) {
+        R.Orientation = Orientation;
         if(PreviousOrientation) E.dispatch('bibi:changes-orientation', R.Orientation);
         O.HTML.classList.remove('orientation-' + PreviousOrientation);
         O.HTML.classList.add('orientation-' + R.Orientation);
@@ -3361,25 +3366,20 @@ I.ResizeObserver = { create: () => {
         TargetPageAfterResizing: null,
         onResize: (Eve) => { if(R.LayingOut || !L.Opened) return;
             if(!ResizeObserver.Resizing) {
-                // ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List && I.PageObserver.Current.List[0] && I.PageObserver.Current.List[0].Page ? I.PageObserver.Current.List[0].Page : I.PageObserver.IntersectingPages[0];
-                // ResizeObserver.TargetPageAfterResizing = I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null;
                 ResizeObserver.TargetAfterResizing = R.getElement();
                 ResizeObserver.onResizeStart(Eve);
             };
             clearTimeout(ResizeObserver.Timer_onResizeEnd);
             ResizeObserver.Timer_onResizeEnd = setTimeout(() => {
-                R.updateOrientation();
-                // const Page = ResizeObserver.TargetPageAfterResizing || (I.PageObserver.Current.List[0] ? I.PageObserver.Current.List[0].Page : null);
                 R.layOutBook({
                     Reset: true,
-                    // Destination: Page ? { ItemIndex: Page.Item.Index, ProgressInItem: Page.IndexInItem / Page.Item.Pages.length } : null
                     Destination: ResizeObserver.TargetAfterResizing
                 }).then(() => {
                     ResizeObserver.onResizeEnd(Eve);
                     ResizeObserver.Resizing = false;
                     ResizeObserver.TargetAfterResizing = null;
                 });
-            }, O.TouchOS ? 600 : 300);
+            }, O.TouchOS ? 999 : 333);
         },
         onResizeStart: (Eve) => {
             E.dispatch('bibi:is-going-to:resize', Eve);
@@ -3398,7 +3398,7 @@ I.ResizeObserver = { create: () => {
             // I.ScrollObserver.onScroll();
         },
         addEventListener: (fn) => {
-            // if(O.TouchOS) window.addEventListener('orientationchange', fn);
+            screen.orientation?.addEventListener ? screen.orientation.addEventListener('change', fn) : window.addEventListener('orientationchange', fn);
             window.addEventListener('resize', fn);
         }
     };
