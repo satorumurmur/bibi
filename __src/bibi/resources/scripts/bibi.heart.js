@@ -8,6 +8,8 @@
 
 export const Bibi = { 'version': ENV_VERSION, 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() }; /**/ Bibi.Dev = Bibi.Development = ENV_DEVELOPMENT;
 
+import { Wand } from './bibi.instruments/Wand.mjs';
+
 
 Bibi.SettingTypes = {
     'boolean': [
@@ -367,6 +369,7 @@ Bibi.initialize = async () => {
         U.initialize();
         D.initialize();
         S.initialize();
+        W.initialize();
         I.initialize();
         if(!S['book-data'] && S['book'] && !S['trustworthy-origins'].includes(new URL(S['book']).origin)) throw `The Origin of the Path of the Book Is Not Allowed.`;
     }
@@ -711,6 +714,22 @@ Bibi.createElement = (...Args) => {
 };
 
 
+
+
+//==============================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+//-- Wand (Worker)
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+
+export const W = new Wand(new Worker(new URL('./bibi.wand.js', document.currentScript.src).href), {
+    initialize: () => {
+        delete W.initialize;
+        W.Logger = O;
+        W.and('initialize')(['sML', 'Bibi', 'S'].reduce((Settings, OName) => (Settings[OName] = JSON.parse(JSON.stringify(window[OName]))) && Settings, {}));
+    }
+});
 
 
 //==============================================================================================================================================
@@ -2583,7 +2602,7 @@ R.getPageImageURL = (_, Opt) => new Promise((resolve, reject) => {
             const MediaType = !B.ExtractionPolicy ? O.getMediaType(ImagePath) : (() => { const BPM = B.Package.Manifest; for(const _ in BPM) { if(BPM[_].URI == ImagePath) return BPM[_]['media-type']; } return ''; })();
             if(!MediaType) return reject('');
             ImageElement.removeAttribute('data-href');
-            Promises.push(O.request({ URI: ImagePath, ResponseType: 'blob' }).then(XHR => O.createDataURL('Blob', XHR.response, MediaType)).then(DataURL => ImageElement.setAttribute('xlink:href', DataURL)));
+            Promises.push(W.and('retlieve')(ImagePath, 'blob').then(Data => O.createDataURL('Blob', Data, MediaType)).then(DataURL => ImageElement.setAttribute('xlink:href', DataURL)));
         }
         Promise.all(Promises).then(() => O.createBlobURL('Text', `<?xml version="1.0" encoding="utf-8"?>\n` + Ele.outerHTML, 'image/svg+xml')).then(resolve);
     });
@@ -7507,38 +7526,26 @@ O.extract = (Source) => {
     });
 };          O.extract.UseErrorAsIsOnRejection = false;
 
-O.request = (Opt) => {
-    if(!Opt || typeof Opt != 'object' || !Opt.URI) return Promise.reject();
-    const XHR = new XMLHttpRequest(); //if(Opt.MimeType) XHR.overrideMimeType(Opt.MimeType);
-    return new Promise((resolve, reject) => {
-        XHR.open(Opt.RequestMethod || 'GET', Opt.URI, true);
-        if(S['request-with-credentials']) XHR.withCredentials = true;
-        XHR.responseType = Opt.ResponseType || 'text';
-        XHR.onloadend = () => (XHR.status == 200 ? resolve : reject)(XHR);
-        XHR.onerror = () => reject(XHR);
-        XHR.send(null);
-    });
-};
-
 O.download = (Source) => {
     Source = O.src(Source);
     if(Source.Retlieving) return Source.Retlieving;
     if(Source.Content) return Promise.resolve(Source);
     const IsBin = O.isBin(Source);
-    return Source.Retlieving = O.request({
-        URI: Source.URI ? Source.URI : (/^([a-z]+:\/\/|\/)/.test(Source.Path) ? '' : B.Path + '/') + Source.Path,
-        ResponseType: IsBin ? 'blob' : 'text'
-    }).then(XHR => {
-        Source.DataType = IsBin ? 'Blob' : 'Text', Source.Content = XHR.response;
+    return Source.Retlieving = W.and('retlieve')(
+        Source.URI ? Source.URI : (/^([a-z]+:\/\/|\/)/.test(Source.Path) ? '' : B.Path + '/') + Source.Path,
+        IsBin ? 'blob' : 'text'
+    ).then(Data => {
+        Source.DataType = IsBin ? 'Blob' : 'Text';
+        Source.Content = Data;
         Source.Retlieved = true;
         delete Source.Retlieving;
         return Source;
-    }).catch(XHR => {
+    }).catch(Res => {
         delete Source.Retlieving;
         return Promise.reject(
-            XHR.status == 404 ? Bibi.ErrorMessages.NotFound :
-            XHR.status ==   0 ? Bibi.ErrorMessages.CORSBlocked :
-        XHR.status + ' ' + XHR.statusText);
+            Res.status == 404 ? Bibi.ErrorMessages.NotFound :
+            Res.status ==   0 ? Bibi.ErrorMessages.CORSBlocked :
+        Res.status + ' ' + Res.statusText);
     });
 };
 
@@ -7581,7 +7588,7 @@ O.file = (Source, Opt = {}) => new Promise((resolve, reject) => {
 });
 
 
-O.isBin = (Source) => /\.(aac|gif|jpe?g|m4[av]|mp([34]|e?g)|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Source.Path);
+O.isBin = (Source) => /\.(aac|gif|jpe?g|m4[av]|mp([34]|e?g)|ogg|[ot]tf|pdf|png|web[mp]|woff2?)$/i.test(Source.Path.split('?')[0]);
 
 O.createDataURL = (DT, CB, MT) => new Promise((o, x) => DT == 'Text' ? o(`data:` + MT + `;base64,` + btoa(String.fromCharCode.apply(null, new TextEncoder().encode(CB)))) : (_ => { _.onload = () => o(_.result); _.onerror = x; _.readAsDataURL(CB); })(new FileReader()));
 O.createBlobURL = (DT, CB, MT) => Promise.resolve(URL.createObjectURL(DT == 'Text' ? new Blob([CB], { type: MT }) : CB));
