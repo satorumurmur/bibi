@@ -192,6 +192,7 @@ Bibi.preset({
 "allow-placeholders"                 : true, // true | false // true is highly recommended.
 "prioritise-fallbacks"               : false, // true | false // If true, Bibi uses <item> at the end of the fallback-chain.
 
+"allow-sugar-for-biscuits"           : true, // true | false
 "uiless"                             : false, // true | false
 "use-textsetter"                     : true, // true | false
 "use-bookmarks"                      : true, // true | false

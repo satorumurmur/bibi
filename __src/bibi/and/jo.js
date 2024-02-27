@@ -84,19 +84,21 @@ Jo.callBibi = (Love) => {
             'preset',
             'reader-view-mode', 'view-mode', 'view', 'rvm',
             'start-embedded-in-new-window', 'start-in-new-window',
+            'sugar-for-biscuits',
             'uiless'
         ].forEach(K => { let V;
             if(Love.ownerDocument) V = Love.getAttribute('data-bibi-' + K);
             else switch(typeof (V = Love['bibi-' + K])) { case 'number': if(V != V) return; case 'boolean': V = String(V); }
             switch(typeof V) { case 'string': if(V = V.trim()) break; default: return; }
-            /**/     switch(K) { case 'autostart':                                      K = 'autostart-embedded'; break;
-                                 case     'view-mode': case     'view': case     'rvm': K = 'reader-view-mode'; break;
-                                 case 'fix-view-mode': case 'fix-view': case 'fix-rvm': K = 'fix-reader-view-mode'; break;
-                                 case 'start-in-new-window':                            K = 'start-embedded-in-new-window'; break;}
+            /**/     switch(K) { case 'autostart':                                      K = 'autostart-embedded';           break;
+                                 case     'view-mode': case     'view': case     'rvm': K = 'reader-view-mode';             break;
+                                 case 'fix-view-mode': case 'fix-view': case 'fix-rvm': K = 'fix-reader-view-mode';         break;
+                                 case 'start-in-new-window':                            K = 'start-embedded-in-new-window'; break; }
             (() => { switch(K) { case 'preset': case 'dress': return              /^[_\-\w\d]+(\.[_\-\w\d]+)*$/;
                                  case 'iipp': case 'p':       return                            /^(\d*\.)?\d+$/;
                                  case 'nav':                  return                            /^[1-9][0-9]*$/;
                                  case 'reader-view-mode':     return       /^(auto|paged|horizontal|vertical)$/;
+                                 case 'sugar-for-biscuits':   return                                     /^.+$/;
                                  default:                     return /^(true|false|1|0|yes|no|mobile|desktop)$/; } })().test(V) && Fragments.add(K, V);
         });
         return Fragments.make();

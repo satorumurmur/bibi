@@ -88,6 +88,7 @@ Bibi.SettingTypes_PresetOnly = {
         'accept-blob-converted-data',
         'allow-external-item-href',
         'allow-scripts-in-content',
+        'allow-sugar-for-biscuits',
         'manualize-adding-histories',
         'use-bookmarks',
         'use-histories',
@@ -137,7 +138,8 @@ Bibi.SettingTypes_UserOnly = {
         'edge',
         'epubcfi',
         'p',
-        'preset'
+        'preset',
+        'sugar-for-biscuits'
     ],
     'integer': [
         'log',
@@ -2962,12 +2964,12 @@ I.Oven = { create: () => {
         initialize: () => {
             delete Biscuits.initialize;
             // if(S['forget-me']) return;
-            const LabelDelimiter = ' ', BibiAndPresetPaths = [Bibi.Script.src, P.Script.src].map(Src => (Loc => Loc.origin == O.Origin ? Loc.pathname : Loc.href.replace(/^[^:]+:\/\//, ''))(new URL(Src))).join(LabelDelimiter);
+            const LabelDelimiter = ' ', [BibiPath, PresetPath] = [Bibi.Script.src, P.Script.src].map(Src => (Loc => Loc.origin == O.Origin ? Loc.pathname : Loc.href.replace(/^[^:]+:\/\//, ''))(new URL(Src)));
             E.bind('bibi:processed-package-metadata', () => {
                 Biscuits.Tin = Biscuits.Tags.reduce((Tin, Tag) => {
                     const LabelParts = []; switch(Tag) {
-                        case 'Book': LabelParts.unshift(B.ID);
-                        case 'Bibi': LabelParts.unshift(BibiAndPresetPaths);
+                        case 'Book': LabelParts.unshift([B.ID, S['allow-sugar-for-biscuits'] && S['sugar-for-biscuits']].filter(_ => _).join(LabelDelimiter));
+                        case 'Bibi': LabelParts.unshift([BibiPath, PresetPath].join(LabelDelimiter));
                         default    : LabelParts.unshift('Bibi:Biscuit');
                     }
                     const Label = LabelParts.join(LabelDelimiter), Portion = Biscuits.parsePortion(Oven.Spirit?.getItem(Label));
