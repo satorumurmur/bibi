@@ -128,6 +128,7 @@ Bibi.SettingTypes_UserOnly = {
     'boolean': [
         'debug',
         'forget-me',
+        'time',
         'wait',
         'zine'
     ],
@@ -7010,9 +7011,9 @@ U.parseQuery = () => {
         let [_P, _V] = PnV.split('=');
         if(!_V) _V = undefined;
         switch(_P) {
-            case 'log': if(!_V) _V = '1'; break;
             case 'book': if(!_V) return Query; break;
-            case 'zine': case 'wait': case 'debug': if(!_V) _V = 'true'; break;
+            case 'log': if(!_V) _V = '1'; break;
+            case 'debug': case 'time': case 'wait': case 'zine': if(!_V) _V = 'true'; break;
             default: [_P, _V] = U.translateData([_P, _V]);
         }
         Query[_P] = _V;
@@ -7336,8 +7337,8 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
         const Time = (O.log.Depth <= 1) ? O.stamp(Log) : 0;
         let Ls = [], Ss = [];
         if(Log) switch(Tag) {
-            case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                 Ls.push(`%c(v${ Bibi['version'] })` + (Bibi.Dev ? ':%cDEV' : '')), Ss.push(O.log.NStyle); if(Bibi.Dev) Ss.push(O.log.BStyle); break;
-            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Limit) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + String(Time % 1000).padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
+            case '<b:>': Ls.unshift(`📕`); Ls.push('%c' + Log), Ss.push(O.log.BStyle);                Ls.push(`%c(v${ Bibi['version'] })` + (Bibi.Dev ? ':%cDEV' : '')), Ss.push(O.log.NStyle); if(Bibi.Dev) Ss.push(O.log.BStyle); break;
+            case '</b>': Ls.unshift(`📖`); Ls.push('%c' + Log), Ss.push(O.log.BStyle); if(O.log.Time) Ls.push(`%c(${ Math.floor(Time / 1000) + '.' + String(Time % 1000).padStart(3, 0) }sec)`), Ss.push(O.log.NStyle); break;
             case '<g:>': Ls.unshift(`┌`); Ls.push(Log); break;
             case '</g>': Ls.unshift(`└`); Ls.push(Log); break;
           //case '<o/>': Ls.unshift( `>`); Ls.push(Log); break;
@@ -7358,6 +7359,7 @@ O.log = (Log, A2, A3) => { let Obj = '', Tag = '';
     O.log.initialize = () => {
         if(parent && parent != window) return O.log = () => true;
         O.log.Limit = U.hasOwnProperty('log') && typeof (U['log'] *= 1) == 'number' ? U['log'] : 0;
+        O.log.Time = O.log.Limit || U.hasOwnProperty('time');
         O.log.Depth = 1;
         O.log.NStyle = 'font: normal normal 10px/1 Menlo, Consolas, monospace;';
         O.log.BStyle = 'font: normal bold   10px/1 Menlo, Consolas, monospace;';
