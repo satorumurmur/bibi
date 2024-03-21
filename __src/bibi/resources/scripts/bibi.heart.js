@@ -1433,7 +1433,7 @@ L.fetchAndBuildItemSourceText = async (Item) => {
             finalize: Opt.finalize
         }))(
             Item.Type == 'MarkupDocument' ? {
-                Preprocess: (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
+                Preprocess: true, // (B.ExtractionPolicy || sML.UA.Gecko), // Preprocess if archived (or Gecko. For such books as styled only with -webkit/epub- prefixed properties. It's NOT Gecko's fault but requires preprocessing.)
                 initialize_before: () => Item.SourceText = Item.Source.Content.trim(),
                 initialize_main: async () => {
                     Declarations = Item.SourceText.match(DeclarationsRE);
@@ -1463,7 +1463,7 @@ L.fetchAndBuildItemSourceText = async (Item) => {
                 finalize: () => Item.SourceText = Item.Source.Content
             } :
             Item.Type == 'SVG' ? {
-                Preprocess: B.ExtractionPolicy,
+                Preprocess: true, // B.ExtractionPolicy,
                 initialize_before: () => Item.SourceText = Item.Source.Content.trim(),
                 initialize_main: () => {
                     Declarations = Item.SourceText.match(DeclarationsRE);
