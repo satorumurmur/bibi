@@ -9,6 +9,7 @@
 export const Bibi = { 'version': ENV_VERSION, 'href': 'https://bibi.epub.link', Status: '', TimeOrigin: Date.now() }; /**/ Bibi.Dev = Bibi.Development = ENV_DEVELOPMENT;
 
 import { Wand } from './bibi.instruments/Wand.mjs';
+import { Conc } from './bibi.instruments/Conc.mjs';
 
 
 Bibi.SettingTypes = {
@@ -1369,43 +1370,13 @@ L.loadItem = async (Item, Opt = {}) => {
         classify('placeholder', IsPlaceholder);
         !IsPlaceholder ? resolve() : reject('Placeholder');
     }).then(() => O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem' },
-        async () => {
-            if(Item.Source.External) {
-                if(!S['allow-external-item-href']) return Promise.reject('External Item Not Allowed');
-                return ContentURL = Item.Source.Path;
-            }
-            await O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.loadItem > building Item.SourceText' },
-                () => L.buildItemSourceText(Item),
-                async () => ContentURL = !O.EnabledIFramesWithBlobURL ? undefined : await O.createBlobURL('Text', Item.SourceText, 'application/xhtml+xml')
-            );
-        },
-        () => new Promise(resolve => {
-            Item.onLoaded = () => {
-                clearInterval(Item.ReloadTimer);
-                URL.revokeObjectURL(ContentURL);
-                Item.removeEventListener('load', Item.onLoaded);
-                delete Item.onLoaded;
-                resolve();
-            };
-            if(ContentURL) {
-                Item.addEventListener('load', Item.onLoaded);
-                Item.src = ContentURL;
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-                Item.ReloadTimer = setInterval(() => { if(Item.contentDocument?.readyState == 'interactive') Item.src = Item.src; }, 8888);
-            } else {
-                Item.src = '';
-                ItemBox.insertBefore(Item, ItemBox.firstChild);
-                Item.contentDocument.open();
-                Item.contentDocument.write(
-                    Item.SourceText = Item.SourceText
-                        .replace(/<[\?\!][^>]+?>/g, '').trim()
-                        .replace(/<([a-z][a-z0-9]*)([^>]*?)\s*\/>/g, '<$1$2></$1>')
-                        .replace('</head>', `<script id="bibi-onload">window.addEventListener('load', () => { parent.R.Items[${ Item.Index }].onLoaded(); document.getElementById('bibi-onload').remove(); });</script>\n</head>`)
-                );
-                Item.contentDocument.close();
-            }
-        }),
-        () => L.postprocessItem(Item)
+        ...(Item.Source.External ? [
+            S['allow-external-item-href'] ? ContentURL = Item.Source.Path : Promise.reject('External Item Not Allowed')
+        ] : [
+            () => L.fetchAndBuildItemSourceText(Item),
+            O.EnabledIFramesWithBlobURL ? async () => ContentURL = await O.createBlobURL('Text', Item.SourceText, 'application/xhtml+xml') : undefined
+        ]),
+        () => L.loadItemFrame(Item, ContentURL)
     )).then(() => {
         O.log(`Item#${ String(Item.Index).padStart(3, 0) } is turned UP.`);
         classify('loaded', true);
@@ -1429,6 +1400,7 @@ L.loadItem = async (Item, Opt = {}) => {
     }).then(() => {
         classify('loading', false);
         clearInterval(Item.ReloadTimer);
+        delete Item.ReloadTimer;
         URL.revokeObjectURL(ContentURL);
         Item.removeEventListener('load', Item.onLoaded);
         delete Item.onLoaded;
@@ -1442,16 +1414,16 @@ L.loadItem = async (Item, Opt = {}) => {
     });
 };
 
-L.buildItemSourceText = (Item) => {
+L.fetchAndBuildItemSourceText = async (Item) => {
     const ProcessID = Item.LoadingProcessID;
     const DeclarationsRE = /<[\?\!]\w[^>]+?>/g;
     let Declarations, AdditionalHeader;
-    return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText' },
+    return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.fetchAndBuildItemSourceText' },
         () => E.dispatch('bibi:is-going-to:build-item-source-text', Item),
         () => (Opt => !Opt ? Promise.reject('Item.Type Unknown') : O.file(Item.Source, {
             Preprocess: Opt.Preprocess,
             URI: Opt.URI,
-            initialize: () => O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText > O.file > initialize' },
+            initialize: () => O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.fetchAndBuildItemSourceText > O.file > initialize' },
                 Opt.initialize_before,
                 () => E.dispatch('bibi:is-going-to:initialize-item-source', Item),
                 Opt.initialize_main,
@@ -1470,7 +1442,7 @@ L.buildItemSourceText = (Item) => {
                         const ItemDOM = O.parseDOM(Item.SourceText, Item.Source['media-type']);
                         await Promise.all(Array.prototype.map.call(ItemDOM.querySelectorAll('object[type="image/svg+xml"][data$=".svg"]'), SOE => {
                             const ItemURL = new URL(Item.Source.Path, 'bibi:/'), SVGURL = new URL(SOE.getAttribute('data'), ItemURL), SVGSource = B.Package.Manifest[SVGURL?.pathname.slice(1)];
-                            if(SVGSource) return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.buildItemSourceText > O.file > initialize > object svg' },
+                            if(SVGSource) return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.fetchAndBuildItemSourceText > O.file > initialize > object svg' },
                                 () => O.file(SVGSource),
                                 () => {
                                     const SVGDOM = O.parseDOM(SVGSource.Content, SVGSource['media-type']);
@@ -1563,6 +1535,36 @@ L.buildItemSourceText = (Item) => {
     );
 };
 
+L.loadItemFrame = async (Item, ContentURL) => {
+    await new Promise(resolve => {
+        Item.onLoaded = () => {
+            clearInterval(Item.ReloadTimer);
+            delete Item.ReloadTimer;
+            URL.revokeObjectURL(ContentURL);
+            Item.removeEventListener('load', Item.onLoaded);
+            delete Item.onLoaded;
+            resolve();
+        };
+        if(ContentURL) {
+            Item.addEventListener('load', Item.onLoaded);
+            Item.src = ContentURL;
+            Item.Box.prepend(Item);
+            Item.ReloadTimer = setInterval(() => { if(Item.contentDocument?.readyState == 'interactive') Item.src = Item.src; }, 8888);
+        } else {
+            Item.src = '';
+            Item.Box.prepend(Item);
+            Item.contentDocument.open();
+            Item.contentDocument.write(
+                Item.SourceText = Item.SourceText
+                    .replace(/<[\?\!][^>]+?>/g, '').trim()
+                    .replace(/<([a-z][a-z0-9]*)([^>]*?)\s*\/>/g, '<$1$2></$1>')
+                    .replace('</head>', `<script id="bibi-onload">window.addEventListener('load', () => parent.R.Items[${ Item.Index }].onLoaded() || document.getElementById('bibi-onload').remove());</script>\n</head>`)
+            );
+            Item.contentDocument.close();
+        }
+    });
+    return L.postprocessItem(Item);
+};
 
 L.postprocessItem = (Item) => {
     const ProcessID = Item.LoadingProcessID;
@@ -1607,7 +1609,6 @@ L.postprocessItem = (Item) => {
     );
 };
 
-
 L.patchItemStyles = (Item) => { // only for reflowable.
     const ProcessID = Item.LoadingProcessID;
     return O.chain({ assure: () => ProcessID == Item.LoadingProcessID, Label: 'L.patchItemStyles' },
@@ -1648,6 +1649,24 @@ L.patchItemStyles = (Item) => { // only for reflowable.
         () => E.dispatch('bibi:patched-item-styles', Item)
     );
 };
+
+class processItemConc extends Conc {
+    constructor(...Args) {
+        super(...Args);
+        if(this.ConcurrencyLimit) Object.defineProperties(this, { Logger: { get: () => Bibi.Debug && window.O } });
+        return (Item, ...Args) => this.order({ Label: Item?.IsItem ? 'Item#' + String(Item.Index).padStart(3, '0') : undefined }, Item, ...Args);
+    };
+};
+(Ps => Object.keys(Ps).forEach(PN => {
+    const CLim = Ps[PN];
+    if(!CLim) return;
+    L[PN] = new processItemConc({ Name: 'L.' + PN, ConcurrencyLimit: CLim }, L[PN]);
+}))({
+    loadItem: 12,
+    // fetchAndBuildItemSourceText: 8,
+    // loadItemFrame: 8,
+    // postprocessItem: 8
+});
 
 
 
@@ -1714,6 +1733,13 @@ R.resetStage = () => {
 
 
 R.layOutSpreadAndItsItems = (Spread) => R.layOutItem(Spread.Items[0]).then(() => Spread.Items[1] && R.layOutItem(Spread.Items[1])).then(() => R.layOutSpread(Spread));
+// R.layOutSpreadAndItsItems = new (class extends Conc {
+//     constructor() {
+//         super({ Name: 'R.layOutSpreadAndItsItems', ConcurrencyLimit: null }, (Spread) => R.layOutItem(Spread.Items[0]).then(() => Spread.Items[1] && R.layOutItem(Spread.Items[1])).then(() => R.layOutSpread(Spread)));
+//         if(this.ConcurrencyLimit) Object.defineProperties(this, { Logger: { get: () => Bibi.Debug && window.O } });
+//         return (Spread) => this.order({ Label: `Spread#${ String(Spread.Index).padStart(3, '0') }(${ Spread.Items.map(Item => 'Item#' + String(Item.Index).padStart(3, '0')).join('-') })` }, Spread);
+//     };
+// })();
 
 
 R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
