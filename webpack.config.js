@@ -152,10 +152,7 @@ addRule({
     include: [
         resolvePath('node_modules/material-icons')
     ],
-    type: "asset/resource",
-    generator: {
-        filename: 'bibi/resources/styles/fonts/[name][ext]'
-    }
+    type: 'asset/inline'
 }).________to('all');
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
