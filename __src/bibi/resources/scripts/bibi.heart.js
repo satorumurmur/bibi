@@ -7671,9 +7671,8 @@ O.preprocess = (Source) => {
     Source = O.src(Source);
     const Resources = [];
     const Setting = O.preprocess.getSetting(Source.Path);
-    if(!Setting) {
-        return Promise.resolve(Source);
-    }
+    if(!Setting) return Promise.resolve(Source);
+    if(typeof Setting.init == 'function') Setting.init(Source);
     const Promises = [];
     if(Setting.ReplaceRules) Source.Content = Setting.ReplaceRules.reduce((SourceContent, Rule) => SourceContent.replace(Rule[0], Rule[1]), Source.Content);
     if(Setting.ResolveRules) { // RRR
@@ -7691,7 +7690,12 @@ O.preprocess = (Source) => {
                 Resources.push(Resource);
                 Promises.push(O.file(Resource, { Preprocess: true, URI: true }).then(ChildSource => {
                     ResPaths[0] = ChildSource.URI;
-                    Source.Content = Source.Content.replace(Res, Res.replace(ResPathInSource, ResPaths.join('#')));
+                    let NewRes = Res;
+                    if(ResolveRule.KeepOriginal) {
+                        const Original = Res.replace(ResRE, ResolveRule.KeepOriginal[1]);
+                        NewRes = NewRes.replace(Original, Original + ResolveRule.KeepOriginal[0] + Original.replace(/^([a-z_A-Z]+):/, '$1-') + ResolveRule.KeepOriginal[2]);
+                    }
+                    Source.Content = Source.Content.replace(Res, NewRes.replace(ResPathInSource, ResPaths.join('#')));
                 }));
             });
         }));
@@ -7703,70 +7707,59 @@ O.preprocess = (Source) => {
     });
 };
 
-    O.preprocess.getSetting = (FilePath) => { const PpSs = O.preprocess.Settings;
-        for(const Ext in PpSs) if(new RegExp('\\.(' + Ext + ')$', 'i').test(FilePath)) return typeof PpSs[Ext].init == 'function' ? PpSs[Ext].init() : PpSs[Ext];
-        return null;
-    };
+    O.preprocess.getSetting = (FilePath) => O.preprocess.Settings.find(Setting => new RegExp('\\.(' + Setting.Extensions + ')$', 'i').test(FilePath)) || null;
 
-    O.preprocess.Settings = {
-        'css': {
-            ReplaceRules: [
-                [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ''],
-                [/[\r\n]+/g, '\n']
-            ],
-            ResolveRules: [{
-                getRE: () => /@import\s+["'](?!(?:https?|data):)(.+?)['"]/g,
-                PathRef: '$1',
-                Patterns: [
-                    { Extensions: 'css' }
-                ]
-            }, {
-                getRE: () => /@import\s+url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
-                PathRef: '$1',
-                Patterns: [
-                    { Extensions: 'css' }
-                ]
-            }, {
-                getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
-                PathRef: '$1',
-                Patterns: [
-                    { Extensions: 'gif|jpe?g|[ot]tf|png|svg|webp|woff2?' }
-                ]
-            }],
-            init: function() { const RRs = this.ReplaceRules;
-                RRs.push([/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3']);
-                RRs.push([/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']);
-                if(sML.UA.Chromium || sML.UA.WebKit) {
-                    return this;
-                }
-                RRs.push([/-(epub|webkit)-/gm, '']);
-                if(sML.UA.Gecko) {
-                    RRs.push([/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2']);
-                    RRs.push([/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']);
-                    return this;
-                }
-                if(/^(zho?|chi|kor?|ja|jpn)$/.test(B.Language)) {
-                    RRs.push([/text-align\s*:\s*justify\s*([;\}])/gm, 'text-align: justify; text-justify: inter-ideograph$1']);
-                }
-                //delete this.init;
-                return this;
-            }
+    O.preprocess.Settings = [{
+        Extensions: 'css',
+        ReplaceRules: [
+            [/\/\*[.\s\S]*?\*\/|[^\{\}]+\{\s*\}/gm, ''],
+            [/[\r\n]+/g, '\n'],
+            [/(-(epub|webkit)-)?column-count\s*:\s*1\s*([;\}])/gm, 'column-count: auto$3'],
+            [/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']
+        ],
+        init: function() {
+            if(!sML.UA.Chromium && !sML.UA.WebKit) [
+                [/-(epub|webkit)-/gm, ''],
+                [/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2'],
+                [/text-combine\s*:\s*horizontal\s*([;\}])/gm, 'text-combine-upright: all$1']
+            ].forEach(RR => this.ReplaceRules.push(RR));
+            delete this.init;
         },
-        'html?|xht(ml)?|xml|svg': {
-            ReplaceRules: [
-                [/<!--\s+[.\s\S]*?\s+-->/gm, '']
-            ],
-            ResolveRules: [{
-                getRE: (Pattern) => new RegExp(`<\\??\\s*${ Pattern.TagName || '[a-zA-Z:\\-]+' }\\s(?:[^>]*?\\s)?(${ Pattern.Attribute })\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"]`, 'g'),
-                PathRef: '$2',
-                Patterns: [
-                    { TagName: '(?!a)[a-zA-Z:\\-]+', Attribute: '(?:xlink:)?href', Extensions: 'css|gif|jpe?g|png|svg|webp' },
-                    { TagName: '',                   Attribute: 'src|data',        Extensions: 'aac|gif|jpe?g|js|m4[av]|mp([34]|e?g)|ogg|png|svg|web[mp]' },
-                    { TagName: 'video',              Attribute: 'poster',          Extensions: 'gif|jpe?g|png|svg|webp' }
-                ]
-            }]
-        }
-    };
+        ResolveRules: [{
+            getRE: () => /@import\s+["'](?!(?:https?|data):)(.+?)['"]/g,
+            PathRef: '$1',
+            Patterns: [
+                { Extensions: 'css' }
+            ]
+        }, {
+            getRE: () => /@import\s+url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
+            PathRef: '$1',
+            Patterns: [
+                { Extensions: 'css' }
+            ]
+        }, {
+            getRE: () => /url\(["']?(?!(?:https?|data):)(.+?)['"]?\)/g,
+            PathRef: '$1',
+            Patterns: [
+                { Extensions: 'gif|jpe?g|[ot]tf|png|svg|webp|woff2?' }
+            ]
+        }]
+    }, {
+        Extensions: 'html?|xht(ml)?|xml|svg',
+        ReplaceRules: [
+            [/<!--\s+[.\s\S]*?\s+-->/gm, '']
+        ],
+        ResolveRules: [{
+            getRE: (Pattern) => new RegExp(`<\\??\\s*${ Pattern.TagName }\\s(?:[^>]*?\\s)?((?:${ Pattern.AttributeName })\\s*=\\s*["\'](?!(?:https?|data):)(.+?)[\'"])`, 'g'),
+            KeepOriginal: [` data-bibi-original-`, '$1', ''],
+            PathRef: '$2',
+            Patterns: [
+                { TagName: '(?!a)[a-zA-Z:\\-]+', AttributeName: '(?:xlink:)?href', Extensions: 'css|gif|jpe?g|png|svg|webp' },
+                { TagName: '[a-zA-Z:\\-]+',      AttributeName: 'src|data',        Extensions: 'aac|gif|jpe?g|js|m4[av]|mp([34]|e?g)|ogg|png|svg|web[mp]' },
+                { TagName: 'video',              AttributeName: 'poster',          Extensions: 'gif|jpe?g|png|svg|webp' }
+            ]
+        }]
+    }];
 
 
 O.parseDOM = (...Args) => new DOMParser().parseFromString(...Args);
