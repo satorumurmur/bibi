@@ -17,7 +17,10 @@ main#bibi-main {
 	div#bibi-main-book {
 		@include Main-Book(); html.subpanel-opened & { @include Main-Book__SubpanelOpened(); }
 		&:after {
-			background: $Book-Background; html.subpanel-opened & { background: $Book-Background__SubpanelOpened; }
+			                                        & { background: $Book-Background; }
+			html.subpanel-opened                    & { background: $Book-Background__SubpanelOpened; }
+			html.book-pre-paginated                 & { background: $Book-Background__PrePaginated; }
+			html.book-pre-paginated.subpanel-opened & { background: $Book-Background__PrePaginated__SubpanelOpened; }
 		}
 	}
 		div.spread-box {
