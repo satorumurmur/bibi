@@ -1304,9 +1304,9 @@ L.coordinateLinkages = (Opt) => {
                         const Dest = R.dest(A.Destination);
                         if(!Dest) return Promise.reject();
                         E.dispatch('bibi:jumps-a-link', Eve);
-                        if(!S['manualize-adding-histories']) I.History.add();
+                        // if(!S['manualize-adding-histories']) I.History.add();
                         return R.focusOn(A.Destination, { Duration: 0 }).then(Destination => {
-                            if(!S['manualize-adding-histories']) I.History.add({ UI: Opt.UI|| B, SumUp: false, Destination: Destination });
+                            if(!S['manualize-adding-histories']) I.History.add({ UI: Opt.UI || A, SumUp: false, Destination: Destination });
                             E.dispatch('bibi:jumped-a-link', Eve);
                         });
                     }
@@ -2260,17 +2260,17 @@ Object.defineProperties(R, { // To ensure backward compatibility.
 
 R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destination: DESTINATION } || DESTINATION, Par.Side = STRING (optional)
     if(R.Moving) return reject();
-    let _ = Par?.Destination !== undefined ? Par.Destination : Par;
+    let Dest = Par?.Destination !== undefined ? Par.Destination : Par;
     Opt = Object.assign({}, Par, Opt ? Opt : {});
-    if(!Opt.Distilled) _ = R.dest(_);
-    if(!_ || !_.Page) try { _ = { Page: I.PageObserver.Current.Pages[0] }; } catch(Err) { return reject(); }
-    E.dispatch('bibi:is-going-to:focus-on', _);
+    if(!Opt.Distilled) Dest = R.dest(Dest);
+    if(!Dest || !Dest.Page) try { Dest = { Page: I.PageObserver.Current.Pages[0] }; } catch(Err) { return reject(); }
+    E.dispatch('bibi:is-going-to:focus-on', Dest);
     R.Moving = true;
     let FocusPoint;
-    const Page = _.Page, Item = Page.Item, Side = Opt.Side != 'after' ? 'before' : 'after';
+    const Page = Dest.Page, Item = Page.Item, Side = Opt.Side != 'after' ? 'before' : 'after';
     if(Item.Reflowable) {
-        if(!R.Paginated && B.WritingMode.split('-')[1] == Item.WritingMode.split('-')[1] && _.Element && _.Element.ownerDocument != document) {
-            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item.NoPadding ? 0 : Item.Padding[C.L_OOBL_L]) + _.Element.getBoundingClientRect()[C.L_BASE_b];
+        if(!R.Paginated && B.WritingMode.split('-')[1] == Item.WritingMode.split('-')[1] && Dest.Element && Dest.Element.ownerDocument != document) {
+            FocusPoint = O.getElementCoord(Item)[C.L_AXIS_L] + (Item.NoPadding ? 0 : Item.Padding[C.L_OOBL_L]) + Dest.Element.getBoundingClientRect()[C.L_BASE_b];
         } else {
             FocusPoint = O.getElementCoord(Page)[C.L_AXIS_L];
             if(Side == 'after') FocusPoint += (Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
@@ -2287,7 +2287,7 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
             else if(Side == 'after') FocusPoint += (Page['offset' + C.L_SIZE_L] - R.Stage[C.L_SIZE_L]) * C.L_AXIS_D;
         }
     }
-    // if(Number.isInteger(_.TextNodeIndex)) R.selectTextLocation(_); // Colorize Destination with Selection
+    // if(Number.isInteger(Dest.TextNodeIndex)) R.selectTextLocation(Dest); // Colorize Destination with Selection
     const ScrollTarget = { Frame: R.Main, X: 0, Y: 0 };
     ScrollTarget[C.L_AXIS_L] = FocusPoint; if(!S['use-full-height'] && S.RVM == 'vertical') ScrollTarget.Y -= I.Menu.Height;
     sML.scrollTo(ScrollTarget, {
@@ -2295,12 +2295,10 @@ R.focusOn = (Par, Opt) => new Promise((resolve, reject) => { // Par = { Destinat
         Duration: typeof Opt.Duration == 'number' ? Opt.Duration : (S.SLA == S.ARA && S.RVM != 'paged') ? 39 : 0,
         ease: typeof Opt.ease == 'function' ? Opt.ease : (Pos) => (Pos === 1) ? 1 : Math.pow(2, -10 * Pos) * -1 + 1
     }).then(() => {
-        resolve(_);
-        E.dispatch('bibi:focused-on', _);
+        resolve(Dest);
+        E.dispatch('bibi:focused-on', Dest);
     }).catch(reject);
-}).catch(() => {}).then(() => {
-    R.Moving = false;
-});
+}).finally(() => R.Moving = false).catch(() => {}).then(Dest => Dest);
 
 
 R.dest = (_, Opt) => { if(_ === undefined || _ === null) return null;
@@ -2930,7 +2928,7 @@ R.moveBy = (Dist, Par) => new Promise((resolve, reject) => {
         resolve(Dest);
         E.dispatch('bibi:moved-by', Dist);
     }).catch(reject);
-}).catch(() => {}).then(() => {});
+}).catch(() => {}).then(Dest => Dest);
 
 
 
@@ -4234,8 +4232,6 @@ I.Flipper = { create: () => {
         flip: (Distance, Opt = {}) => {
             if(typeof (Distance *= 1) != 'number' || !isFinite(Distance) || Distance === 0) return Promise.resolve();
             I.ScrollObserver.forceStopScrolling();
-            const SumUpHistory = !S['manualize-adding-histories'] ? (I.History.List.slice(-1)[0].UI == Flipper) && ((Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1)) : false;
-            Flipper.PreviousDistance = Distance;
             if(B.PrePaginated) { // Preventing flicker.
                 const CIs = [
                     I.PageObserver.Current.List[          0].Page.Index,
@@ -4245,7 +4241,9 @@ I.Flipper = { create: () => {
                                     try { R.Pages[TI].Spread.Box.classList.add(   'current'); } catch(Err) {}
             }
             return R.moveBy(Distance, { Duration: Opt.Duration }).then(Destination => {
-                if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: SumUpHistory, Destination: Destination });
+                I.PageObserver.updateCurrent();
+                if(!S['manualize-adding-histories']) I.History.add({ UI: Flipper, SumUp: I.History.List.slice(-1)[0].UI == Flipper && (Distance < 0 ? -1 : 1) === (Flipper.PreviousDistance < 0 ? -1 : 1), Destination: Destination });
+                Flipper.PreviousDistance = Distance;
                 return Destination;
             });
         }
@@ -5411,7 +5409,7 @@ I.History = {
         let Added = null;
         if(PageToBeAdded != R.getPage(I.History.List.slice(-1)[0])) {
             if(Opt.SumUp && I.History.List.slice(-1)[0].UI == Opt.UI) I.History.List.pop();
-            Added = { UI: Opt.UI, IIPP: R.getIIPP({ Page: PageToBeAdded }) };
+            Added = { UI: Opt.UI, Page: PageToBeAdded };
             I.History.List.push(Added);
             if(I.History.List.length - 1 > S['max-histories']) { // Not count the first (oldest).
                 const First = I.History.List.shift(); // The first (oldest) is the landing point.
@@ -5424,10 +5422,9 @@ I.History = {
     },
     back: () => {
         if(I.History.List.length <= 1) return Promise.reject();
-        const CurrentPage = R.getPage(I.History.List.pop()),
-                 LastPage = R.getPage(I.History.List.slice(-1)[0]);
+        I.History.List.pop();
         I.History.update();
-        return R.focusOn(LastPage, { Duration: 0 });
+        return R.focusOn(R.getPage(I.History.List.slice(-1)[0]), { Duration: 0 });
     }
 };
 
