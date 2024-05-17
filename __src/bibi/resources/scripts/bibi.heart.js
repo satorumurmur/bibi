@@ -7715,6 +7715,7 @@ O.preprocess = (Source) => {
             [/(-(epub|webkit)-)?text-underline-position\s*:/gm, 'text-underline-position:']
         ],
         init: function() {
+            if(!sML.OS.iOS && !sML.OS.Android) this.ReplaceRules.push([/@media([^\(]*\(\s*orientation\s*:)/gm, '@bibi-disabled--media$1']);
             if(!sML.UA.Chromium && !sML.UA.WebKit) [
                 [/-(epub|webkit)-/gm, ''],
                 [/text-combine-horizontal\s*:\s*([^;\}]+)\s*([;\}])/gm, 'text-combine-upright: $1$2'],
