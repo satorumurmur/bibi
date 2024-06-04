@@ -49,6 +49,7 @@ Bibi.SettingTypes = {
     ],
     'string': [
         'book',
+        'book-background-color',
         'cache',
         'default-page-progression-direction',
         'on-doubletap',
@@ -176,6 +177,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(typeof _V == 'string') {
             switch(_P) {
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
+                case 'book-background-color'              : return /^([a-z]+|([\dA-F]{3}){1,2}|\d{1,3}(,\d{1,3}){2}(,([01]|0?\.\d+))?)$/i.test(_V) ? _V : undefined;
                 case 'cache'                              : return /^(no-store)$/.test(_V)                               ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
                 case 'default-reader-view-mode'           :
@@ -1700,6 +1702,10 @@ R.createSpine = (SpreadsDocumentFragment) => {
     R.Main      = O.Body.insertBefore(sML.create('main', { id: 'bibi-main' }), O.Body.firstElementChild);
     R.Main.Book =  R.Main.appendChild(sML.create('div',  { id: 'bibi-main-book' }));
     R.Main.Book.appendChild(SpreadsDocumentFragment);
+    if(S['book-background-color']) {
+        const BBGC = S['book-background-color'], BBGCPsL = BBGC.split(',').length, Color = BBGCPsL == 4 ? `rgba(${ BBGC })` : BBGCPsL == 3 ? `rgb(${ BBGC })` : /^([\da-fA-F]{3}){1,2}$/.test(BBGC) ? `#${ BBGC }` : BBGC;
+        sML.CSS.appendRule('div#bibi-main-book::after', `background-color: ${ Color };`);
+    }
   //R.Sub       = O.Body.insertBefore(sML.create('div',  { id: 'bibi-sub' }),  R.Main.nextSibling);
 };
 
