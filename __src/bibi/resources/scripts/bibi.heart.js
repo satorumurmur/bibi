@@ -46,6 +46,7 @@ Bibi.SettingTypes = {
     ],
     'string': [
         'book',
+        'cache',
         'default-page-progression-direction',
         'on-doubletap',
         'on-doubletap-with-altkey',
@@ -172,6 +173,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
         if(typeof _V == 'string') {
             switch(_P) {
                 case 'book'                               : return (_V = decodeURIComponent(_V).trim())                  ? _V : undefined;
+                case 'cache'                              : return /^(no-store)$/.test(_V)                               ? _V : undefined;
                 case 'default-page-progression-direction' : return _V == 'rtl'                                           ? _V : 'ltr';
                 case 'default-reader-view-mode'           :
                 case         'reader-view-mode'           : return /^(paged|horizontal|vertical)$/.test(_V)              ? _V : 'auto';
@@ -7157,6 +7159,7 @@ S.initialize = () => {
     if(!S['use-slider'])  S['use-history-ui'] = S['zoom-out-for-utilities'] = false;
     // --------
     if(!S['trustworthy-origins'].includes(O.Origin)) S['trustworthy-origins'].unshift(O.Origin);
+    S['cache'] = (S['cache'] == 'no-store' || Bibi.Debug) ? 'no-store' : '';
     // --------
     S['book'] = (!S['book-data'] && typeof S['book'] == 'string' && S['book']) ? new URL(S['book'], S['bookshelf'] + '/').href : '';
     // --------
