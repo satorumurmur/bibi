@@ -403,3 +403,30 @@
 </span>
 
 */
+
+
+// - "Flow Direction" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+@mixin SPECIALICON__FlowDirection-Common() {
+	@include DEFAULT__SPECIALICON__FlowDirection-Common();
+}
+@mixin SPECIALICON__FlowDirection-Default() {}
+@mixin SPECIALICON__FlowDirection-Uniformize() {}
+@mixin SPECIALICON__FlowDirection-Alt() {}
+@mixin SPECIALICON__FlowDirection-Horizontal() {}
+@mixin SPECIALICON__FlowDirection-Horizontal-Horizontal() {}
+@mixin SPECIALICON__FlowDirection-Horizontal-Vertical() {}
+@mixin SPECIALICON__FlowDirection-Vertical() {}
+@mixin SPECIALICON__FlowDirection-Vertical-Horizontal() {}
+@mixin SPECIALICON__FlowDirection-Vertical-Vertical() {}
+
+/*
+
+// ex.) SPECIALICON__FlowDirection-Vertical-Horizontal
+<span class="bibi-icon bibi-icon-flowdirection bibi-icon-flowdirection-default bibi-icon-flowdirection-vertical-horizontal">
+	<span class="bibi-icon-symbol bibi-icon-symbol-flowdirection bibi-icon-symbol-flowdirection-main bibi-icon-symbol-flowdirection-vertical"></span>
+	<span class="bibi-icon-symbol bibi-icon-symbol-flowdirection bibi-icon-symbol-flowdirection-part bibi-icon-symbol-flowdirection-horizontal"></span>
+</span>
+
+*/

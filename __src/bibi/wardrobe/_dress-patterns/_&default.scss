@@ -152,6 +152,59 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 @mixin DEFAULT__SPECIALICON__LineSpacing-Widest()    { @include DEFAULT__SPECIALICON__LineSpacing_Variation(2, 1px, 7px); }
 
 
+// - "Flow Direction" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+@mixin DEFAULT__SPECIALICON__FlowDirection-Common() {
+	.bibi-icon-symbol {
+		@include GENERALICON__Common();
+		@include GENERALICON__CommonInSubpanels();
+		overflow: hidden;
+		transform: translate(var(--translateX), var(--translateY)) scale(var(--scaleX), var(--scaleY)) !important;
+		&:before {
+			position: absolute;
+			overflow: hidden;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-end;
+			box-sizing: border-box;
+			inset: -100%;
+			margin: auto;
+			border: none 0;
+			padding: 0;
+			content: "subjectsubject";
+			font-size: 18px;
+			@include size(2em, var(--before--height));
+			line-height: 1;
+			transform: rotateZ(var(--before--rotateZ)) translateX(var(--before--translateX)) !important;
+			transform-origin: 50% 50%;
+			transition: transform .1s ease-out !important;
+			will-change: transform !important;
+		}
+		--translateX: 0; --translateY: 0; --scaleX: 1; --scaleY: 1;
+		--before--height: 1em; --before--rotateZ: 0; --before--translateX: 0;
+	}
+	.bibi-icon-symbol {
+		/**/                &:before { --before--translateX: -25%; }
+		.bibi-button.active &:before { --before--translateX:  25%; }
+	}
+	.bibi-icon-symbol-flowdirection-horizontal {
+		&:nth-child(1):not(:last-child) {                --translateX: -17%; --scaleX: .87; }
+		&:nth-child(2) { --before--height: .6em;         --translateY:  16%; --scaleX: .39; }
+		& + .bibi-icon-symbol-flowdirection-horizontal { --translateX:  32%; }
+		& + .bibi-icon-symbol-flowdirection-vertical   { --translateX:  24%; }
+	}
+	.bibi-icon-symbol-flowdirection-vertical {
+		--before--rotateZ: 90deg;
+		&:nth-child(1):not(:last-child) {                --translateX:  18%; }
+		&:nth-child(2) { --before--height: .5em;         --translateY:   7%; --scaleY: .67; }
+		& + .bibi-icon-symbol-flowdirection-horizontal { --translateX: -32%; }
+		& + .bibi-icon-symbol-flowdirection-vertical   { --translateX: -41%; }
+	}
+}
+
+
 // - Book Icon
 // --------------------------------------------------------------------------------
 

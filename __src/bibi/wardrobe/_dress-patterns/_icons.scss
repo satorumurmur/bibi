@@ -343,3 +343,19 @@
 	&-wider     { @include SPECIALICON__LineSpacing-Wider(); }
 	&-widest    { @include SPECIALICON__LineSpacing-Widest(); }
 }
+
+
+// - "Flow Direction" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+.bibi-icon-flowdirection { @include SPECIALICON__FlowDirection-Common();
+	&-default               { @include SPECIALICON__FlowDirection-Default(); }
+	&-uniformize            { @include SPECIALICON__FlowDirection-Uniformize(); }
+	&-alt                   { @include SPECIALICON__FlowDirection-Alt(); }
+	&-horizontal            { @include SPECIALICON__FlowDirection-Horizontal(); }
+	&-horizontal-horizontal { @include SPECIALICON__FlowDirection-Horizontal-Horizontal(); }
+	&-horizontal-vertical   { @include SPECIALICON__FlowDirection-Horizontal-Vertical(); }
+	&-vertical              { @include SPECIALICON__FlowDirection-Vertical(); }
+	&-vertical-horizontal   { @include SPECIALICON__FlowDirection-Vertical-Horizontal(); }
+	&-vertical-vertical     { @include SPECIALICON__FlowDirection-Vertical-Vertical(); }
+}

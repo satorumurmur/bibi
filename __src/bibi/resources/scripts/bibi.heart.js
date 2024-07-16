@@ -5142,6 +5142,236 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         }).setScalePerStep(S['linespacing-scale-per-step']);
     }
     // =========================================================================================================================
+    if(S['use-flowdirection-setter']) {
+        const PhysicalProperties = new Set((Boughs => Boughs.reduce((List, Bough) => List.concat(Bough.reduce((ListBough, Twigs) => ListBough.flatMap(ParentName => Twigs.map(Twig => /^@.+@$/.test(ParentName) ? Twig : ParentName.replace(/(@|$)/, Twig))))), []))([
+            [ ['margin@', 'padding@'], ['-top', '-right', '-bottom', '-left'] ],
+            [ ['border@'], ['@-width', '@-style', '@-color'], ['-top', '-right', '-bottom', '-left'] ],
+            [ ['border@-radius'], ['-top-left', '-top-right', '-bottom-right', '-bottom-left'] ],
+            [ ['@inset@'], ['top', 'right', 'bottom', 'left'] ],
+            [ ['@size@'], ['', 'min-@', 'max-@'], ['width', 'height'] ]
+        ]));
+        const getLogicalSize = (PSize, WM) =>
+            (/^vertical-/.test(WM) ? PSize.replace('height', 'inline').replace('width',  'block') :
+                                     PSize.replace('width',  'inline').replace('height', 'block') ) + '-size';
+        const getLogicalDirection = (PDir, WM, Dir) =>
+            ['inline-start', 'inline-end', 'block-start', 'block-end'][(() => { switch(WM.split('-')[1]) { case 'rl': return Dir == 'ltr' ? 'tbrl' : 'btrl';
+                                                                                                           case 'lr': return Dir == 'ltr' ? 'btlr' : 'tblr';
+                                                                                                           case 'tb': return Dir == 'ltr' ? 'lrtb' : 'rltb';
+                                                                                                           case 'bt': return Dir == 'ltr' ? 'rlbt' : 'lrbt'; }})().indexOf(PDir[0])];
+        const getLogicalCornerDirection = (PCorner, WM, Dir) =>
+            PCorner.split('-').map(PDir => getLogicalDirection(PDir, WM, Dir)).sort(/* block-inline */).map(LDir => LDir.split('-')[1]).join('-');
+        const getLogicalPropertyName = (PPr, WM = 'horizontal-tb', Dir = 'ltr') => {
+            if(/^((max|min)-)?(width|height)/.test(PPr)) return getLogicalSize(PPr, WM);
+            const Corner = PPr.match(/(top|bottom)-(left|right)/)?.[0];
+            if(Corner) return PPr.replace(Corner, getLogicalCornerDirection(Corner, WM, Dir));
+            const TRBL = PPr.match(/top|right|bottom|left/)?.[0];
+            if(TRBL) return PPr.replace(TRBL, getLogicalDirection(TRBL, WM, Dir));
+            return '';
+        };
+        const getLineAxis = (WM) => /-(tb|bt)$/.test(WM) ? 'horizontal' : 'vertical';
+        const getValueWithPrefix = (Sty, Pro) => Sty[Pro] || Sty['-epub-' + Pro] || Sty['-webkit-' + Pro] || Sty['-moz-' + Pro] || '';
+        // -----------------------------------------------------------------------------------------------------------------
+        TextSetter.x({
+            Name: 'FlowDirection', IsResizer: false,
+            Setting: {
+                Mode: 'default',
+                DefaultWritingMode: B.WritingMode,
+                DefaultLineAxis: getLineAxis(B.WritingMode),
+                DefaultPageProgressionDirection: B.PPD,
+                CentralizedFrontispieceItems: new Set(),
+                OrthogonalItems: new Set()
+            },
+            prepare: function() {
+                // Physical
+                this.REAP.prepare(PhysicalProperties);
+                // writing-mode
+                this.REAP.prepare('writing-mode', (Sty, Pro, Val) => getValueWithPrefix(Sty, Pro) || '');
+                // text-decoration-line                                                                                                                         // 'text-decoration' for old Safari
+                if(B.WritingMode == 'tb-rl') this.REAP.prepare('text-decoration-line', (Sty, Pro, Val) => (getValueWithPrefix(Sty, Pro) || getValueWithPrefix(Sty, 'text-decoration')) == 'overline' ? 'overline' : '');
+            },
+            processItemBefore: function(Item) {
+                if(Item.Outsourcing) return;
+                this.memorize(Item, {
+                    DefaultWritingMode: Item.WritingMode,
+                    DefaultLineAxis: getLineAxis(Item.WritingMode),
+                    FlowRootElements: new Set(),
+                    OverlinedElements: new Set()
+                });
+            },
+            processItemCSSRule: function(Item, Rule, CSSStyle) {
+                if(Item.Outsourcing) return;
+                // Physical
+                this.REAP.reap(PhysicalProperties, Rule, Item);
+                // writing-mode
+                this.REAP.reap('writing-mode', Rule, Item);
+                // text-decoration-line
+                if(B.WritingMode == 'tb-rl') this.REAP.reap('text-decoration-line', Rule, Item);
+            },
+            processItemElement: function(Item, Ele, AttStyle, ComStyle) {
+                if(Item.Outsourcing) return;
+                const ItemSetting = this.remember(Item);
+                const ComWritingMode = getValueWithPrefix(ComStyle, 'writing-mode');
+                // Physical -> Logical
+                PhysicalProperties.forEach(PPr => {
+                    if(this.REAP.isAffected(PPr, Ele, Item, 'INLINE')) {
+                        const LPr = getLogicalPropertyName(PPr, ComWritingMode, ComStyle['direction']);
+                        if(LPr) {
+                            AttStyle.setProperty(LPr, AttStyle[PPr], AttStyle.getPropertyPriority(PPr));
+                            AttStyle.removeProperty(PPr);
+                        }
+                    }
+                });
+                // writing-mode
+                if(Ele == Item.HTML || this.REAP.isAffected('writing-mode', Ele, Item)) {
+                    const PEle = Ele.parentElement;
+                    if(PEle) {
+                        const PComStyle = getComputedStyle(PEle);
+                        if(ComWritingMode == PComStyle['writing-mode']) AttStyle.setProperty('writing-mode', 'inherit', 'important');
+                    } else {
+                        const DefaultWritingModeStyleValue = getValueWithPrefix(AttStyle, 'writing-mode');
+                        this.memorize(Ele, {
+                            DefaultWritingModeStyleValue,
+                            DefaultWritingMode: DefaultWritingModeStyleValue || ComWritingMode
+                        });
+                        ItemSetting.FlowRootElements.add(Ele);
+                    }
+                }
+                // text-decoration-line
+                if(B.WritingMode == 'tb-rl' && ComWritingMode == 'vertical-rl' && this.REAP.isAffected('text-decoration-line', Ele, Item)) {
+                    this.memorize(Ele, { DefaultTextDecorationLineStyleValue: getValueWithPrefix(AttStyle, 'text-decoration-line') });
+                    ItemSetting.OverlinedElements.add(Ele);
+                }
+            },
+            processItemAfter: function(Item) {
+                if(Item.Outsourcing) return;
+                const ItemSetting = this.remember(Item);
+                // Physical -> Logical
+                const RnLsOfRules = new Map(); // RnL: Resetter and Logicalizer
+                const { RulesOfItems, ElementsOfRules } = this.REAP.Harvests.get(PhysicalProperties);
+                const Rules = RulesOfItems.get(Item);
+                if(Rules) for(const Rule of Rules.values()) {
+                    const Ele = ElementsOfRules.get(Rule).values().next().value;  if(!Ele) continue;
+                    const ComStyle = getComputedStyle(Ele), ComWritingMode = getValueWithPrefix(ComStyle, 'writing-mode'), ComDirection = ComStyle['direction'];
+                    PhysicalProperties.forEach(PPr => { if(!Rule.style[PPr]) return;
+                        const LPr = getLogicalPropertyName(PPr, ComWritingMode, ComDirection);  if(!LPr) return;
+                        const RnL = RnLsOfRules.get(Rule) || RnLsOfRules.set(Rule, [new Map(), new Map()]).get(Rule);
+                        const Important = (Rule.style.getPropertyPriority('PPr') == 'important' ? ' !important' : '');
+                        RnL[0].set(PPr, `${ PPr }: initial${ Important };`);
+                        RnL[1].set(LPr, `${ LPr }: ${ Rule.style[PPr] + Important };`);
+                    });
+                }
+                if(RnLsOfRules.size) {
+                    const SSs = Item.contentDocument.styleSheets, SS = SSs[SSs.length - 1];
+                    for(const [Rule, RnL] of RnLsOfRules.entries()) RnL.forEach(Styles => SS.insertRule(Rule.selectorText + ` { ${ [...Styles.values()].join(' ') } }`, SS.cssRules.length));
+                }
+                // writing-mode
+                if(ItemSetting.FlowRootElements.size == 2 && Item.WritingMode != B.WritingMode) {
+                    const TextContentSet = new Set([...ItemSetting.FlowRootElements].map(Ele => Ele.innerText.trim()));
+                    if(TextContentSet.size == 1 && TextContentSet.values().next().value) this.Setting.CentralizedFrontispieceItems.add(Item);
+                }
+                if(!this.Setting.CentralizedFrontispieceItems.has(Item) && ItemSetting.DefaultLineAxis != this.Setting.DefaultLineAxis) this.Setting.OrthogonalItems.add(Item);
+            },
+            distillSetting: function(Setting, Opt) {
+                let Mode = (() => { switch(typeof Setting) {
+                    case 'object': return typeof Setting?.Mode == 'string' ? Setting.Mode : '';
+                    case 'string': return Setting;
+                    default: return '';
+                }})();
+                switch(Mode) {
+                    case 'default': case 'uniformize': case 'alt': break;
+                    case     'horizontal': case     'vertical': Mode = this.Setting.DefaultLineAxis == Mode               ? 'default'    : 'alt'; break;
+                    case 'uni-horizontal': case 'uni-vertical': Mode = this.Setting.DefaultLineAxis == Mode.split('-')[1] ? 'uniformize' : 'alt'; break;
+                    default: return null;
+                }
+                return !Opt?.Changeable || Mode != this.Setting.Mode ? { Mode } : null;
+            },
+            changeBeforeItems: function(Setting) {
+                if(Setting.Mode != 'alt') {
+                    B.WritingMode = this.Setting.DefaultWritingMode;
+                    B.PPD         = this.Setting.DefaultPageProgressionDirection;
+                } else switch(this.Setting.DefaultWritingMode) {
+                    case 'lr-tb': B.WritingMode = 'tb-rl', B.PPD = 'rtl'; break; // wm: vertical-rl,   dir: ltr, ppd: rtl
+                    case 'rl-tb': B.WritingMode = 'bt-rl', B.PPD = 'rtl'; break; // wm: vertical-rl,   dir: rtl, ppd: rtl
+                    case 'tb-rl': B.WritingMode = 'lr-tb', B.PPD = 'ltr'; break; // wm: horizontal-tb, dir: ltr, ppd: ltr
+                    case 'tb-lr': B.WritingMode = 'rl-tb', B.PPD = 'rtl'; break; // wm: horizontal-tb, dir: rtl, ppd: rtl
+                }
+            },
+            changeItem: function(Item, Setting) {
+                if(Item.Outsourcing) return;
+                const ItemSetting = this.remember(Item); if(!ItemSetting) return;
+                if((() => { switch(Setting.Mode) {
+                    case 'default':    return true;
+                    case 'uniformize': return !this.Setting.OrthogonalItems.has(Item);
+                    case 'alt':        return  this.Setting.OrthogonalItems.has(Item);
+                }})()) { // Default/Revert
+                    // writing-mode
+                    ItemSetting.FlowRootElements.forEach(Ele => {
+                        const DefaultValue = this.remember(Ele).DefaultWritingModeStyleValue;
+                        DefaultValue ? Ele.style.setProperty('writing-mode', DefaultValue, 'important') : Ele.style.removeProperty('writing-mode');
+                    });
+                    Item.WritingMode = ItemSetting.DefaultWritingMode;
+                    Item.HTML.classList.remove('bibi-textsetter-writingmode-alternated');
+                    // text-decoration-line
+                    ItemSetting.OverlinedElements.forEach(Ele => {
+                        const DefaultValue = this.remember(Ele).DefaultTextDecorationLineStyleValue;
+                        DefaultValue ? Ele.style.setProperty('text-decoration-line', DefaultValue, 'important') : Ele.style.removeProperty('text-decoration-line');
+                    });
+                } else { // Alternate
+                    // writing-mode
+                    const BookDefaultWritingMode = this.Setting.DefaultWritingMode;
+                    const BookDefaultLineAxis    = this.Setting.DefaultLineAxis;
+                    const getAltValue = this.Setting.CentralizedFrontispieceItems.has(Item) ?
+                        (Ele) => Ele == Item.HTML ? /-tb$/.test(BookDefaultWritingMode) ? 'horizontal-tb' : BookDefaultWritingMode.replace(/^tb-(..)$/, 'vertical-$1')
+                                                  : /^tb-/.test(BookDefaultWritingMode) ? 'horizontal-tb' : BookDefaultWritingMode.replace(/^(..)-tb$/, 'vertical-$1') :
+                        (Ele) => {
+                            const EleLineAxis = getLineAxis(this.remember(Ele).DefaultWritingMode);
+                            if(Setting.Mode == 'alt' && EleLineAxis != BookDefaultLineAxis) return '';
+                            return EleLineAxis == 'horizontal' ? 'vertical-rl' : 'horizontal-tb'; // horizontal-tb => vertical-rl, vertical-rl/lr => horizontal-tb
+                        };
+                    ItemSetting.FlowRootElements.forEach(Ele => {
+                        const AltValue = getAltValue(Ele);
+                        if(AltValue) Ele.style.setProperty('writing-mode', AltValue, 'important');
+                    });
+                    Item.WritingMode = O.getWritingMode(Item.HTML);
+                    Item.HTML.classList.add('bibi-textsetter-writingmode-alternated');
+                    // text-decoration-line
+                    ItemSetting.OverlinedElements.forEach(Ele => Ele.style.setProperty('text-decoration-line', 'underline', 'important'));
+                }
+                if(ItemSetting.DefaultLineAxis == 'horizontal') Item.HTML.classList.remove(  'bibi-vertical-text'), Item.HTML.classList.add('bibi-horizontal-text');
+                else                                            Item.HTML.classList.remove('bibi-horizontal-text'), Item.HTML.classList.add(  'bibi-vertical-text');
+            },
+            changeAfterItems: function(Setting) {
+                S.update();
+                E.dispatch('bibi:changed-view', S.RVM);
+            },
+            createUI: function() {
+                const SetterName = this.Name, SetterNameLC = SetterName.toLowerCase();
+                const HVs = [['horizontal', 'vertical'], ['Horizontal', 'Vertical'], ['横書き', '縦書き']];
+                if(this.Setting.DefaultLineAxis == 'vertical') HVs.forEach((HV, i) => HVs[i] = HV.reverse());
+                const _mkUp = (TN, [BCNs, SCNPs], InnerHTML = '') => `<${ TN } class="${ BCNs.reverse().reduce((SCNPs, BCN) => ['', ...SCNPs].map(SCNP => [BCN, SCNP].filter(Boolean).join('-')), SCNPs).join(' ') }">${ InnerHTML }</${ TN }>`;
+                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: `Writing Mode`, ja: HVs[2].join(`／`) } } });
+                this.UI.addButtonGroup({
+                    ButtonType: 'radio',
+                    Buttons: [...new Map(this.Setting.OrthogonalItems.size ? [
+                        [    'default', { IconHVs: [HVs[0][0], HVs[0][1]], Label: { default: HVs[1][0] + `<small>: partially ${ HVs[1][1] } (Default)</small>`, ja: HVs[2][0] + `<small>・部分的に${ HVs[2][1] }（標準）</small>` } } ],
+                        [ 'uniformize', { IconHVs: [HVs[0][0], HVs[0][0]], Label: { default: HVs[1][0] + `<small>: completely</small>`,                         ja: HVs[2][0] + `に統一`                                          } } ],
+                        [        'alt', { IconHVs: [HVs[0][1], HVs[0][1]], Label: { default: HVs[1][1] + `<small>: completely</small>`,                         ja: HVs[2][1] + `に統一`                                          } } ]
+                    ] : [
+                        [    'default', { IconHVs: [HVs[0][0]           ], Label: { default: HVs[1][0] + `<small> (Default)</small>`,                           ja: HVs[2][0] + `<small>（標準）</small>`                         } } ],
+                        [        'alt', { IconHVs: [HVs[0][1]           ], Label: { default: HVs[1][1],                                                         ja: HVs[2][1]                                                     } } ]
+                    ])].map(([Mode, { IconHVs, Label }]) => ({
+                        Setting: { Mode },
+                        Icon: _mkUp('span', [['bibi-icon', SetterNameLC], [Mode, IconHVs.join('-')]], IconHVs.map((HV, i) => _mkUp('span', [['bibi-icon-symbol', SetterNameLC], [!i ? 'main' : 'part', HV]])).join('')),
+                        Labels: { default: Label },
+                        action: function() { TextSetter.change({ [SetterName]: this.Setting }); }
+                    }))
+                });
+                this.UI.care = (Setting) => this.UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Button.Setting.Mode != Setting.Mode ? 'default' : 'active'));
+                this.UI.care(this.Setting);
+            }
+        });
+    }
+    // =========================================================================================================================
     E.dispatch('bibi:prepared-textsetter');
     TextSetter.initialize();
     E.dispatch('bibi:created-textsetter');
