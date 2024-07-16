@@ -197,6 +197,31 @@
 	}
 }
 
+@mixin GENERALICON__FlowDirection() {
+	&:before {
+		content: "subjectsubject";
+		font-size: 20px;
+		line-height: 1;
+		will-change: transform !important;
+		transition: transform .09s ease-out !important;
+		                    & { transform: translateX(-25%) !important; }
+		.bibi-button.active & { transform: translateX( 25%) !important; }
+	}
+}
+
+@mixin GENERALICON__FlowDirection-Vertical() {
+	&:before {
+		transform: rotate(90deg) !important;
+		                    & { transform: rotate(90deg) translateX(-25%) !important; }
+		.bibi-button.active & { transform: rotate(90deg) translateX( 25%) !important; }
+	}
+}
+
+@mixin GENERALICON__FlowDirection-Horizontal() {
+	&:before {
+	}
+}
+
 @mixin GENERALICON__Bookmark-Common() {
 	&:before {
 		font-size: $Subpanel-Icon_Size * .9;

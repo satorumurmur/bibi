@@ -247,6 +247,7 @@
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
 .bibi-icon-fontsize,
+.bibi-icon-flowdirection,
 .bibi-icon-bookmark { @include GENERALICON__Common(); }
 
 
@@ -286,6 +287,7 @@
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
 .bibi-icon-fontsize,
+.bibi-icon-flowdirection,
 .bibi-icon-bookmark { @include GENERALICON__CommonInSubpanels(); }
 
 .bibi-icon-full-breadth-layout { @include GENERALICON__UseFullBreadth(); }
@@ -301,6 +303,10 @@
 	&-larger   { @include GENERALICON__FontSize-Larger(); }
 	&-largest  { @include GENERALICON__FontSize-Largest(); }
 }
+
+.bibi-icon-flowdirection { @include GENERALICON__FlowDirection(); }
+	.bibi-icon-flowdirection-vertical   { @include GENERALICON__FlowDirection-Vertical(); }
+	.bibi-icon-flowdirection-horizontal { @include GENERALICON__FlowDirection-Horizontal(); }
 
 .bibi-icon-bookmark { @include GENERALICON__Bookmark-Common(); }
 	.bibi-icon-add-a-bookmark { @include GENERALICON__AddABookmark(); }
