@@ -145,7 +145,8 @@ Bibi.SettingTypes_UserOnly = {
         'epubcfi',
         'p',
         'preset',
-        'sugar-for-biscuits'
+        'sugar-for-biscuits',
+        'ui-language'
     ],
     'integer': [
         'log',
@@ -192,6 +193,7 @@ Bibi.verifySettingValue = (SettingType, _P, _V, Fill) => Bibi.verifySettingValue
                 case 'p'                                  : return /^([a-z]+|[1-9]\d*((\.[1-9]\d*)*|-[a-z]+))$/.test(_V) ? _V : undefined;
                 case 'preset'                             : return /^[_\-\w\d]+(\.[_\-\w\d]+)*$/.test(_V)                ? _V : undefined;
                 case 'pagination-method'                  : return _V == 'x'                                             ? _V : 'auto';
+                case 'ui-language'                        : return /^(ja|en)$/.test(_V)                                  ? _V : undefined;
             }
             return _V;
         }
@@ -357,6 +359,7 @@ Bibi.initialize = async () => {
             }
         }
         O.HTML.classList.add('default-lang-' + (O.Language = (NLs => { // Language
+            if(U['ui-language']) return U['ui-language'];
             if(Array.isArray(navigator.languages)) NLs = NLs.concat(navigator.languages);
             if(navigator.language && navigator.language != NLs[0]) NLs.unshift(navigator.language);
             for(let l = NLs.length, i = 0; i < l; i++) {
