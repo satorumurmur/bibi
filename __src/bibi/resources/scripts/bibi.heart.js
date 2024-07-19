@@ -5069,11 +5069,18 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 S.update();
                 E.dispatch('bibi:changed-view', S.RVM);
             },
-            createUI: function() { //// TEMPORARY
+            createUI: function() {
                 const Setter = this;
-                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: `Direction of Text/Line`, ja: `縦書き・横書き` } } });
+                const IsHorizontalBook = /-tb$/.test(this.Setting.DefaultWritingMode);
+                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: IsHorizontalBook ? { default: `Writing Mode`, ja: `横書き／縦書き` } : { default: `Writing Mode`, ja: `縦書き／横書き` } } });
                 this.UI.addButtonGroup({
-                    Buttons: [{ Setting: { Toggle: true }, Type: 'toggle', Icon: `<span class="bibi-icon bibi-icon-flowdirection"></span>`, Labels: { default: { default: `Alternate`, ja: `切り替え` } }, action: function() { TextSetter.change({ [Setter.Name]: this.Setting }); } }]
+                    Buttons: [{
+                        Setting: { Toggle: true },
+                        Type: 'toggle',
+                        Icon: `<span class="bibi-icon bibi-icon-flowdirection"></span>`,
+                        Labels: { default: IsHorizontalBook ? { default: `Change to Vertical Writing`, ja: `縦書きにする` } : { default: `Change to Horizontal Writing`, ja: `横書きにする` } },
+                        action: function() { TextSetter.change({ [Setter.Name]: this.Setting }); }
+                    }]
                 });
                 this.UI.care = (Setting) => this.UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Setting.Default ? 'default' : 'active'));
                 this.UI.care(this.Setting);
