@@ -4931,39 +4931,54 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         TextSetter.x({
             Name: 'FontSize', IsResizer: true,
             postprocessItemBefore: function(Item) {
+                const REmPx = parseFloat(getComputedStyle(Item.HTML)['font-size']);
                 this.initializeItemSettings(Item, {
-                    Base: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : Item.TextSettings.HTMLOriginalFontSize
+                    REmPx,
+                    BaseFontSize: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : REmPx
                 });
-                this.prepareCandidates(Item, 'font-size');
+                const SPRC = this.getSPRC(Item);
+                SPRC.prepare('font-size', {
+                    extractValue: (Sty, Pro, Val) => ((!Number.isNaN(parseFloat(Val)) && !/\d(%|cap|ch|r?em|ex|ic|r?lh)$/.test(Val)) || /^((xx?-)?(small|large)|smaller|larger)$/.test(Val)) ? Val : ''
+                });
             },
-            postprocessCSSRule: function(CSSRule, Item) {
-                const StyleValue = CSSRule.style['font-size'];
-                if(StyleValue && !/\d(%|cap|ch|r?em|ex|ic|r?lh)$/.test(StyleValue) && !/^(smaller|larger|inherit)$/.test(StyleValue)) this.collectCandidates(Item, 'font-size', CSSRule.selectorText, ':not(html)');
+            postprocessItemCSSRule: function(Item, CSSRule, CSSStyle) {
+                const SPRC = this.getSPRC(Item);
+                SPRC.collect('font-size', CSSRule);
             },
-            postprocessElement: function(Ele, ComStyle, Item) {
-                if(!this.isCandidateOf(Item, 'font-size', Ele)) return;
-                const ComFontSize = ComStyle.fontSize;
-                if(!/\.?\d+px$/.test(ComFontSize)) return;
-                const PEle = Ele.parentElement;
-                Ele.style.fontSize = (PEle && getComputedStyle(PEle).fontSize == ComFontSize) ? '1em' : parseFloat(ComFontSize) / Item.TextSettings.HTMLOriginalFontSize + 'rem';
+            postprocessItemElement: function(Item, Ele, AttStyle, ComStyle) {
+                if(Ele == Item.HTML) return;
+                const SPRC = this.getSPRC(Item);
+                if(SPRC.isRuled(Ele, 'font-size')) {
+                    const ItemSettings = this.getItemSettings(Item);
+                    const ComFontSize = ComStyle['font-size'];
+                    let Val = parseFloat(ComFontSize) / ItemSettings.REmPx + 'rem';
+                    const PEle = Ele.parentElement;
+                    if(PEle) {
+                        const PComStyle = getComputedStyle(PEle);
+                        if(ComFontSize == PComStyle['font-size']) Val = '1em';
+                    }
+                    AttStyle.setProperty('font-size', Val, 'important');
+                }
             },
             postprocessItemAfter: function(Item) {
-                this.deleteCandidates(Item);
-                Item.HTML.style.fontSize = Item.TextSettings.FontSize.Base + 'px';
+                const SPRC = this.getSPRC(Item);
+                SPRC.flush();
+                const ItemSettings = this.getItemSettings(Item);
+                Item.HTML.style['font-size'] = ItemSettings.BaseFontSize + 'px';
             },
-            changeItem: (Item, Setting) => { const Scale = Setting.Scale;
-                const ItemSettings = Item.TextSettings?.FontSize; if(!ItemSettings) return;
-                if(ItemSettings.StyleRule) sML.deleteCSSRule(Item.contentDocument, ItemSettings.StyleRule);
-                ItemSettings.StyleRule = sML.appendCSSRule(Item.contentDocument, 'html', 'font-size: ' + (ItemSettings.Base * Scale) + 'px !important;');
+            changeItem: function(Item, Setting) {
+                const SPRC = this.getSPRC(Item);
+                const ItemSettings = this.getItemSettings(Item); if(!ItemSettings) return;
+                Item.HTML.style['font-size'] = ItemSettings.BaseFontSize * Setting.Scale + 'px';
             },
             createUI: function() {
                 this.UI = this.createStepsUI([`Font Size`, `文字の大きさ`], [
                     [`Small`, `小`], [`Large`, `大`]
                 ], [
                     [`Smallest`, `最小`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smallest"></span>`],
-                    [`Smaller`,  `小`,   `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`],
+                    [`Smaller`,   `小`,  `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`],
                     [`Default`,  `標準`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`],
-                    [`Larger`,   `大`,   `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`],
+                    [`Larger`,    `大`,  `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`],
                     [`Largest`,  `最大`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-largest"></span>`]
                 ]);
             }
