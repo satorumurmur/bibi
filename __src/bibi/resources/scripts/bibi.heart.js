@@ -1037,7 +1037,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         sML.forEach(getOPFElementsByTagNameIn(_Spine, 'itemref'))(ItemRef => {
             const IDRef = ItemRef.getAttribute('idref'); if(!IDRef) return false;
             const Source = Manifest[SourcePaths[IDRef]]; if(!Source) return false;
-            const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true', /*TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },*/
+            const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true', style: { width: '100vw', height: '100vh' },/*TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },*/
                 IsItem: true,
                 Source: Source,
                 Type: O.getItemType(Source['media-type']),
@@ -1851,13 +1851,12 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
 });
 
 
-R.layOutItem = (Item) => new Promise(resolve => {
-    E.dispatch('bibi:is-going-to:lay-out-item', Item);
-    (Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item)).then(Item => {
-        E.dispatch('bibi:laid-out-item', Item);
-        resolve(Item);
-    });
-});
+R.layOutItem = async (Item) => {
+    await E.dispatch('bibi:is-going-to:lay-out-item', Item);
+    await (Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item));
+    await E.dispatch('bibi:laid-out-item', Item);
+    return Item;
+};
 
 
 R.renderReflowableItem = (Item) => new Promise(resolve => {
@@ -4663,6 +4662,7 @@ I.PoweredBy = { create: () => {
 I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
     // =========================================================================================================================
     const TextSetter = I.TextSetter = {
+        Not: 'script,style,br,img,iframe,source,audio,video,picture,svg,math,ruby,rb,rp,rt,rtc',
         distillSettings: (Settings, Opt) => { if(!Settings || typeof Settings != 'object') return null;
             const DistilledSettings = {};
             return Object.keys(Settings).filter(SetterName => {
@@ -4671,35 +4671,21 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 DistilledSettings[SetterName] = Setting; return true;
             }).length ? DistilledSettings : null;
         },
-        ElementsToBeIgnored: 'script,style,br,img,iframe,source,audio,video,picture,svg,math,ruby,rb,rp,rt,rtc',
-        getItemElements: (Item) => Item.TextSettings.Elements = Item.TextSettings.Elements || Item.contentDocument.querySelectorAll(`html, body, body *:not(${ TextSetter.ElementsToBeIgnored })`),
         postprocessItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
-            Item.TextSettings = { HTMLOriginalFontSize: getComputedStyle(Item.HTML).fontSize.replace(/[^\d]*$/, '') * 1 };
-            const SettersToPostprocess = {
-                ItemBefore: TextSetter.X.filter(Setter => !!Setter.postprocessItemBefore),
-                CSSRule:    TextSetter.X.filter(Setter => !!Setter.postprocessCSSRule),
-                Element:    TextSetter.X.filter(Setter => !!Setter.postprocessElement),
-                ItemAfter:  TextSetter.X.filter(Setter => !!Setter.postprocessItemAfter)
-            };
-            SettersToPostprocess.ItemBefore.forEach(Setter => Setter.postprocessItemBefore(Item));
-            if(SettersToPostprocess.CSSRule.length) O.forEachCSSRuleOf(Item.contentDocument,  CSSRule => CSSRule.style && SettersToPostprocess.CSSRule.forEach(Setter => Setter.postprocessCSSRule(CSSRule, Item)));
-            if(SettersToPostprocess.Element.length) sML.forEach(TextSetter.getItemElements(Item))(Ele =>     Ele.style && SettersToPostprocess.Element.forEach(Setter => Setter.postprocessElement(Ele, getComputedStyle(Ele), Item)));
-            SettersToPostprocess.ItemAfter.forEach(Setter => Setter.postprocessItemAfter(Item));
-            delete Item.TextSettings.Elements; ////
+            Item.TextSettings = {};
+            ['Before', 'CSSRule', 'Middle', 'Element', 'After'].forEach(On => {
+                const PN = 'postprocessItem' + On;
+                const Ss = new Set(TextSetter.X.filter(Setter => Setter[PN]));  if(!Ss.size) return;
+                const pp = (...Args) => Ss.forEach(Setter => Setter[PN](Item, ...Args));
+                switch(On) {
+                    case  'Before': return                                                                                                                pp();
+                    case 'CSSRule': return                                           O.forEachCSSRuleOf(Item.contentDocument, CSSRule => CSSRule.style && pp(CSSRule, CSSRule.style));
+                    case  'Middle': return                                                                                                                pp();
+                    case 'Element': return Item.contentDocument.querySelectorAll(`html,body,body *:not(${ TextSetter.Not })`).forEach(Ele => Ele.style && pp(Ele, Ele.style, getComputedStyle(Ele)));
+                    case   'After': return                                                                                                                pp();
+                }
+            });
         },
-        // readyItem: (Item) => { if(Item.PrePaginated || Item.Source.External) return;
-        //     const SettersToReady = {
-        //         ItemBefore: TextSetter.X.filter(Setter => !!Setter.readyItemBefore),
-        //         CSSRule :   TextSetter.X.filter(Setter => !!Setter.readyCSSRule),
-        //         Element :   TextSetter.X.filter(Setter => !!Setter.readyElement),
-        //         ItemAfter:  TextSetter.X.filter(Setter => !!Setter.readyItemAfter)
-        //     };
-        //     SettersToReady.ItemBefore.forEach(Setter => Setter.readyItemBefore(Item));
-        //     if(SettersToReady.CSSRule.length) O.forEachCSSRuleOf(Item.contentDocument,  CSSRule => CSSRule.style && SettersToReady.CSSRule.forEach(Setter => Setter.readyCSSRule(CSSRule, Item)));
-        //     if(SettersToReady.Element.length) sML.forEach(TextSetter.getItemElements(Item))(Ele =>     Ele.style && SettersToReady.Element.forEach(Setter => Setter.readyElement(Ele, getComputedStyle(Ele), Item)));
-        //     SettersToReady.ItemAfter.forEach(Setter => Setter.readyItemAfter(Item));
-        //     delete Item.TextSettings.Elements;
-        // },
         change: (Settings, ActionsBeforeAfter) => new Promise(resolve => { if(B.PrePaginated) return resolve();
             Settings = TextSetter.distillSettings(Settings, { Changeable: true });
             if(!Settings) return resolve();
@@ -4770,7 +4756,6 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         },
         initialize: () => {
             E.bind('bibi:postprocessed-item', Item => TextSetter.postprocessItem(Item));
-            // E.bind('bibi:loaded-book', () => R.Items.forEach(Item => TextSetter.readyItem(Item)));
             if(S['keep-settings']) E.bind('bibi:loaded-book', () => {
                 const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
                 const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
@@ -4783,55 +4768,34 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 if(!TextSetter.Subpanel.Sections?.length) TextSetter.discardSubpanel();
             });
         },
+        // -----------------------------------------------------------------------------------------------------------------
         PrototypeOfSetter: {
             Setting: {},
-            initializeItemSettings: function(Item, ItemSettings) { Item.TextSettings[this.Name] = ItemSettings; },
-            distillSetting: (Setting, Opt) => typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null,
-            prepareCandidates: function(Item, Property, Default) {
-                // if(typeof Property == 'string') {
-                    const ItemSettings = Item.TextSettings[this.Name];
-                    ((ItemSettings.CandidatesOf || (ItemSettings.CandidatesOf = {}))[Property] = new Set(Default || [])).Selectors = new Set();
-                // } else {
-                //     const Properties = Property;
-                //     Object.keys(Properties).forEach(Property => this.prepareCandidates(Item, Property, Properties[Property]));
-                // }
+            SettingsOfElements: new Map(), // Shared with all Setters
+            initializeItemSettings: function(Item, ItemSettings) { return Item.TextSettings[this.Name] = Object.assign(ItemSettings || {}, { SPRC: new SPRC(this, Item) }); },
+            distillSetting: function(Setting, Opt) { return typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null; },
+            getItemSettings: function(Item) { return Item.TextSettings?.[this.Name]; },
+            getSPRC: function(Item) { return Item.TextSettings?.[this.Name].SPRC; },
+            setElementSetting: function(Ele, Name, Value) {
+                let ElementSettings = this.SettingsOfElements.get(Ele);
+                if(!ElementSettings)  this.SettingsOfElements.set(Ele, ElementSettings = new Map());
+                ElementSettings.set(Name, Value);
+                return ElementSettings;
             },
-            collectCandidates: function(Item, Property, Selector, AdditionalSelector) {
-                const ItemSettings = Item.TextSettings[this.Name];
-                const Candidates = ItemSettings.CandidatesOf[Property];
-                let Eles = null; try {
-                    const Cands_Sels = Candidates.Selectors, Sel = `*:not(:not(${ Selector }))${ AdditionalSelector || '' }:not(${ TextSetter.ElementsToBeIgnored })`;
-                    if(!Cands_Sels.has(Sel)) {
-                        Cands_Sels.add(Sel);
-                        Eles = Item.contentDocument.querySelectorAll(Sel);
-                    }
-                } catch(Err) {}
-                if(Eles?.length) {
-                    for(let l = Eles.length, i = 0; i < l; i++) Eles[i] && Candidates.add(Eles[i]);
-                }
-            },
-            isCandidateOf: function(Item, Property, Ele) {
-                return Item.TextSettings[this.Name].CandidatesOf[Property].has(Ele);
-            },
-            deleteCandidates: function(Item) {
-                const ItemSettings = Item.TextSettings[this.Name], CandidatesOf = ItemSettings.CandidatesOf;
-                Object.keys(CandidatesOf).forEach(Property => {
-                    const Candidates = CandidatesOf[Property], Cands_Sels = Candidates.Selectors;
-                    Cands_Sels.clear(), delete Candidates.Selectors;
-                    Candidates.clear(), delete CandidatesOf[Property];
-                });
-                delete ItemSettings.CandidatesOf;
+            getElementSetting: function(Ele, Name) {
+                return this.SettingsOfElements.get(Ele)?.get(Name);
             }
         },
+        // -----------------------------------------------------------------------------------------------------------------
         PrototypeOfResizer: {
             Setting: { Step: 0, Scale: 1, ScalePerStep: 1.25 },
             setScalePerStep: function(ScalePerStep) { if(Number.isFinite(ScalePerStep) && ScalePerStep > 1) this.Setting.ScalePerStep = ScalePerStep; },
             convertStepToScale: function(Step) { return Math.pow(this.Setting.ScalePerStep, Step); },
             convertScaleToStep: function(Scale) {
                 if(Scale == 1) return 0;
-                let Step = 0; const SPS = this.Setting.ScalePerStep;
-                if(Scale < 1) while(--Step >= -2 && (Scale *= SPS) < 1); // if(Scale < 1) while(Step > -2 && Scale < 1) Step--, Scale *= SPS;
-                else          while(++Step <=  2 && (Scale /= SPS) > 1); // else          while(Step <  2 && Scale > 1) Step++, Scale /= SPS;
+                let Step = 0; const SpS = this.Setting.ScalePerStep;
+                if(Scale < 1) while(Step-- > -2 && (Scale *= SpS) < 1);
+                else          while(Step++ <  2 && (Scale /= SpS) > 1);
                 return Scale == 1 ? Step : undefined;
             },
             distillSetting: function(Setting, Opt) {
@@ -4866,6 +4830,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 return UI;
             }
         },
+        // -----------------------------------------------------------------------------------------------------------------
         X: [], x: (Setter) => {
             if(typeof Setter.Name != 'string' || !Setter.Name || TextSetter.X[Setter.Name]) return null;
             const Prototype = Object.assign({}, TextSetter.PrototypeOfSetter, { Setting: Object.assign({}, TextSetter.PrototypeOfSetter.Setting) });
@@ -4873,6 +4838,93 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             TextSetter.X.push(Setter = TextSetter.X[Setter.Name] = Object.assign(Prototype, Setter));
             return Setter;
         }
+    };
+    // =========================================================================================================================
+    class SPRC { // StylePropertyRuleCollector
+        static ElementsOfSelectors = new Map();
+        constructor(Setter, Item) {
+            this.Setter = Setter;
+            this.Item = Item;
+            this.Collection = new Map();
+            this.ElementsOfSelectors = SPRC.ElementsOfSelectors.get(Item) || SPRC.ElementsOfSelectors.set(Item, new Map()).get(Item);
+        };
+        prepare(Property, Opt) {
+            const RulesOfProperty = Object.assign(new Set(), { extractValue: typeof Opt?.extractValue == 'function' ? Opt.extractValue : (Sty, Pro, Val) => Val || '' });
+            this.Collection.set(Property, RulesOfProperty);
+            return RulesOfProperty;
+        };
+        collect(Pro, CSSRule) {
+            const RulesOfProperty = this.Collection.get(Pro);
+            const Sel = CSSRule.selectorText;
+            let Eles = this.ElementsOfSelectors.get(Sel);
+            if(Eles?.size == 0) return;
+            if(!RulesOfProperty.extractValue(CSSRule.style, Pro, CSSRule.style[Pro])) return;
+            if(!Eles) {
+                try        { Eles = new Set(this.Item.contentDocument.querySelectorAll(`*:is(${ Sel }):not(${ TextSetter.Not })`)); }
+                catch(Err) { Eles = new Set(); }
+                Eles.Setters = new Set();
+                this.ElementsOfSelectors.set(Sel, Eles);
+            }
+            if(Eles?.size) {
+                Eles.Setters.add(this.Setter);
+                RulesOfProperty.add(CSSRule);
+            }
+        };
+        isRuled(Ele, Pro, Sel) {
+            const RulesOfProperty = this.Collection.get(Pro);
+            if(RulesOfProperty) {
+                if(Sel && Sel != 'INLINE') return this.ElementsOfSelectors.get(Sel)?.has(Ele) || false;
+                const IsRuledInline = RulesOfProperty.extractValue(Ele.style, Pro, Ele.style[Pro]);
+                if(Sel == 'INLINE' || IsRuledInline) return IsRuledInline;
+                for(const CSSRule of RulesOfProperty.values()) if(this.ElementsOfSelectors.get(CSSRule.selectorText)?.has(Ele)) return true;
+            }
+            return false;
+        };
+        async flush() {
+            // await this.log();
+            const flushChildren = (Obj) => Object.keys(Obj).forEach(Key => Obj[Key].clear?.() || delete Obj[Key]);
+            for(const Pro of this.Collection.keys()) {
+                const RulesOfProperty = this.Collection.get(Pro);
+                for(const PropertyRuler of RulesOfProperty.values()) flushChildren(PropertyRuler);
+                flushChildren(RulesOfProperty);
+            }
+            this.Collection.clear();
+            for(const [Selector, Eles] of this.ElementsOfSelectors.entries()) {
+                Eles.Setters.delete(this.Setter);
+                if(!Eles.Setters.size) {
+                    flushChildren(Eles);
+                    Eles.clear();
+                    this.ElementsOfSelectors.delete(Selector);
+                }
+            }
+        };
+        async log() {
+            if(!this.Collection.size) return;
+            // const Element_Rule_Styles = new Map();
+            const Rule_Styles = new Map();
+            for(const [Pro, RulesOfProperty] of this.Collection.entries()) {
+                for(const CSSRule of RulesOfProperty.values()) {
+                    // this.ElementsOfSelectors.get(CSSRule.selectorText)?.forEach(Ele => {
+                        // let Rule_Styles = Element_Rule_Styles.get(Ele);
+                        // if(!Rule_Styles)  Element_Rule_Styles.set(Ele, Rule_Styles = new Map());
+                        let Styles = Rule_Styles.get(CSSRule);
+                        if(!Styles)  Rule_Styles.set(CSSRule, Styles = new Set());
+                        Styles.add(`${ Pro }: ${ RulesOfProperty.extractValue(CSSRule.style, Pro, CSSRule.style[Pro]) + (CSSRule.style.getPropertyPriority(Pro) == 'important' ? ' !important' : '') };`);
+                    // });
+                }
+            }
+            // if(Element_Rule_Styles.size) {
+            if(Rule_Styles.size) {
+                console.log(`Item[${ String(this.Item.Index).padStart(3, '0') }] ${ this.Setter.Name }`, '================================================');
+                // for(const [Ele, Rule_Styles] of Element_Rule_Styles) {
+                //     console.log({ Element: Ele });
+                    for(const [CSSRule, Styles] of Rule_Styles) { const Sel = CSSRule.selectorText, Eles = this.ElementsOfSelectors.get(Sel);
+                        console.log(Sel, Eles, [...Eles.Setters].map(Setter => Setter.Name));
+                        console.log(Styles);
+                    }
+                // }
+            }
+        };
     };
     // =========================================================================================================================
     if(S['use-fontsize-setter']) {
@@ -4917,6 +4969,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             }
         }).setScalePerStep(S['fontsize-scale-per-step']);
     }
+    // =========================================================================================================================
     if(S['use-linespacing-setter']) {
         TextSetter.x({
             Name: 'LineSpacing', IsResizer: true,
@@ -4961,6 +5014,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             }
         }).setScalePerStep(S['linespacing-scale-per-step']);
     }
+    // =========================================================================================================================
     if(S['use-flowdirection-setter']) {
         TextSetter.x({
             Name: 'FlowDirection', IsResizer: false,
