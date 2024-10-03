@@ -4971,34 +4971,67 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
     }
     // =========================================================================================================================
     if(S['use-linespacing-setter']) {
+        const getRLh = (LhV, FsV, Item) => {
+            if(/\.?\d+px$/.test(LhV)    ) return                                       parseFloat(LhV)       / Item.TextSettings.LineSpacing.RLhPx;
+            if( /\.?\d+%$/.test(LhV)    ) return parseFloat(FsV) *                     parseFloat(LhV) / 100 / Item.TextSettings.LineSpacing.RLhPx;
+            if(   !Number.isNaN(LhV * 1)) return parseFloat(FsV) *                                LhV        / Item.TextSettings.LineSpacing.RLhPx;
+            /**/                          return parseFloat(FsV) * Item.TextSettings.LineSpacing.NLh         / Item.TextSettings.LineSpacing.RLhPx;
+        };
         TextSetter.x({
             Name: 'LineSpacing', IsResizer: true,
             postprocessItemBefore: function(Item) {
+                const HTMLComStyle = getComputedStyle(Item.HTML);
+                const REmPx = parseFloat(HTMLComStyle['font-size']);
+                const RLhPx = HTMLComStyle['line-height'] == 'normal' ? REmPx : parseFloat(HTMLComStyle['line-height']);
+                const RLh = RLhPx / REmPx;
+                const NLh = (() => {
+                    const HTMLAttStyleText = Item.HTML.getAttribute('style');
+                    Object.assign(Item.HTML.style, { 'font-size': '1rem', 'line-height': '1rlh' });
+                    const                          { 'font-size': UADFsV, 'line-height': UADLhV } = HTMLComStyle;
+                    HTMLAttStyleText ? Item.HTML.setAttribute('style', HTMLAttStyleText) : Item.HTML.removeAttribute('style');
+                    return                             parseFloat(UADLhV)  /  parseFloat(UADFsV);
+                })();
                 this.initializeItemSettings(Item, {
-                    CustomizableElements: new Set()
+                    RLhPx, RLh, NLh,
+                    ToBePrepared: new Map()
                 });
-                this.prepareCandidates(Item, 'line-height');
+                const SPRC = this.getSPRC(Item);
+                SPRC.prepare('line-height', {
+                    extractValue: (Sty, Pro, Val) => !Number.isNaN(parseFloat(Val)) || Val == 'normal' ? Val : ''
+                });
             },
-            postprocessCSSRule: function(CSSRule, Item) {
-                const StyleValue = CSSRule.style['line-height'];
-                if(StyleValue && StyleValue != 'inherit') this.collectCandidates(Item, 'line-height', CSSRule.selectorText); // exclude (table|thead|tbody|th|td) ...?
+            postprocessItemCSSRule: function(Item, CSSRule, CSSStyle) {
+                const SPRC = this.getSPRC(Item);
+                SPRC.collect('line-height', CSSRule); // exclude table elements with { Not: 'html,table,thead,tbody,tfoot,th,td' } ...? 
             },
-            postprocessElement: function(Ele, ComStyle, Item) {
-                if(!this.isCandidateOf(Item, 'line-height', Ele)) return;
-                const ComFontSize = ComStyle.fontSize;
-                if(!/\.?\d+px$/.test(ComFontSize)) return;
-                const ComLineHeight = ComStyle.lineHeight;
-                if(!Ele.BibiTextSettings) Ele.BibiTextSettings = {};
-                Ele.BibiTextSettings.LineHeight = { Base: /\.?\d+px$/.test(ComLineHeight) ? parseFloat(ComLineHeight) / parseFloat(ComFontSize) : 1.2 };
-                Item.TextSettings.LineSpacing.CustomizableElements.add(Ele);
+            postprocessItemElement: function(Item, Ele, AttStyle, ComStyle) {
+                if(Ele == Item.HTML) return;
+                const SPRC = this.getSPRC(Item);
+                if(SPRC.isRuled(Ele, 'line-height')) {
+                    const ItemSettings = this.getItemSettings(Item);
+                    let Val = (AttStyle.getPropertyPriority('line-height') == 'important' ? AttStyle : ComStyle)['line-height'];
+                    const RLh = getRLh(Val, ComStyle['font-size'], Item);
+                    Val = RLh + 'rlh';
+                    const PEle = Ele.parentElement;
+                    if(PEle) {
+                        const PComStyle = getComputedStyle(PEle);
+                        if(RLh == getRLh(PComStyle['line-height'], PComStyle['font-size'], Item)) Val = '1lh';
+                    }
+                    ItemSettings.ToBePrepared.set(Ele, Val);
+                }
             },
             postprocessItemAfter: function(Item) {
-                this.deleteCandidates(Item);
-                Item.TextSettings.LineSpacing.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base);
+                const SPRC = this.getSPRC(Item);
+                SPRC.flush();
+                const ItemSettings = this.getItemSettings(Item);
+                for(const [Ele, Val] of ItemSettings.ToBePrepared.entries()) Ele.style.setProperty('line-height', Val, 'important');
+                ItemSettings.ToBePrepared.clear();
+                delete ItemSettings.ToBePrepared;
+                Item.HTML.style['line-height'] = ItemSettings.RLh;
             },
-            changeItem: (Item, Setting) => { const Scale = Setting.Scale;
-                const ItemSettings = Item.TextSettings?.LineSpacing; if(!ItemSettings) return;
-                ItemSettings.CustomizableElements.forEach(Ele => Ele.style.lineHeight = Ele.BibiTextSettings.LineHeight.Base * Scale);
+            changeItem: function(Item, Setting) {
+                const ItemSettings = this.getItemSettings(Item); if(!ItemSettings) return;
+                Item.HTML.style['line-height'] = ItemSettings.RLh * Setting.Scale;
             },
             createUI: function() {
                 const TextLineShapes = (TLS => `<span class="bibi-shape bibi-shape-textlines">${ TLS + TLS + TLS + TLS + TLS + TLS + TLS + TLS }</span>`)(`<span class="bibi-shape bibi-shape-textline"></span>`);

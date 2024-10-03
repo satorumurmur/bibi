@@ -98,7 +98,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 }
 
 
-// - "Line Height" Icons in Subpanels
+// - "Line Spacing" (Line Height / Leading) Icons in Subpanels
 // --------------------------------------------------------------------------------
 
 @mixin DEFAULT__SPECIALICON__LineSpacing-Common() {
@@ -112,7 +112,7 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 			align-items: flex-start;
 			@include offset(0);
 			margin: auto;
-			@include size(15px);
+			@include size(67%);
 			background: transparent !important;
 			span.bibi-shape-textline {
 				display: block;
@@ -137,8 +137,8 @@ $DEFAULT__SPECIALICON__TogglePanel-Bars_Top: ($Menu-Icon_Size - ($DEFAULT__SPECI
 		html.book-tb-rl &, html.book-tb-lr & {  width: $SCOPED__TextLines_Breadth; }
 		span.bibi-shape-textline {
 			&:nth-child(n + #{ $SCOPED__TextLine_HowMany + 1 }) { display: none; }
-			html.book-lr-tb &, html.book-rl-tb & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) {  width: 75%; } height: $SCOPED__TextLine_Breadth; }
-			html.book-tb-rl &, html.book-tb-lr & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) { height: 75%; }  width: $SCOPED__TextLine_Breadth; }
+			html.book-lr-tb &, html.book-rl-tb & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) {  width: 67%; } height: $SCOPED__TextLine_Breadth; }
+			html.book-tb-rl &, html.book-tb-lr & { &:nth-child(n + #{ $SCOPED__TextLine_HowMany }) { height: 67%; }  width: $SCOPED__TextLine_Breadth; }
 			html.book-lr-tb &, html.book-rl-tb & { &:nth-child(n + 2) { margin-top:   $SCOPED__TextLine_Margin; } }
 			html.book-tb-rl &                    { &:nth-child(n + 2) { margin-right: $SCOPED__TextLine_Margin; } }
 			html.book-tb-lr &                    { &:nth-child(n + 2) { margin-left:  $SCOPED__TextLine_Margin; } }
