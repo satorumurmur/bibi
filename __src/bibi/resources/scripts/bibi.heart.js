@@ -5018,6 +5018,58 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         // };
     };
     // =========================================================================================================================
+    if(S['use-fontsize-setter']) {
+        TextSetter.x({
+            Name: 'FontSize', IsResizer: true,
+            prepare: function() {
+                this.REAP.prepare('font-size', (Sty, Pro, Val) => ((!Number.isNaN(parseFloat(Val)) && !/\d(%|cap|ch|r?em|ex|ic|r?lh)$/.test(Val)) || /^((xx?-)?(small|large)|smaller|larger)$/.test(Val)) ? Val : '');
+            },
+            processItemBefore: function(Item) {
+                const REmPx = parseFloat(getComputedStyle(Item.HTML)['font-size']);
+                this.memorize(Item, {
+                    REmPx,
+                    BaseFontSize: Number.isFinite(S['base-fontsize']) && S['base-fontsize'] > 0 ? sML.limitMinMax(S['base-fontsize'], 10, 30) : REmPx
+                });
+            },
+            processItemCSSRule: function(Item, Rule, CSSStyle) {
+                this.REAP.reap('font-size', Rule, Item);
+            },
+            processItemElement: function(Item, Ele, AttStyle, ComStyle) {
+                if(Ele == Item.HTML) return;
+                if(this.REAP.isAffected('font-size', Ele, Item)) {
+                    const ItemSetting = this.remember(Item);
+                    const ComFontSize = ComStyle['font-size'];
+                    let Val = parseFloat(ComFontSize) / ItemSetting.REmPx + 'rem';
+                    const PEle = Ele.parentElement;
+                    if(PEle) {
+                        const PComStyle = getComputedStyle(PEle);
+                        if(ComFontSize == PComStyle['font-size']) Val = '1em';
+                    }
+                    AttStyle.setProperty('font-size', Val, 'important');
+                }
+            },
+            processItemAfter: function(Item) {
+                const ItemSetting = this.remember(Item);
+                Item.HTML.style['font-size'] = ItemSetting.BaseFontSize + 'px';
+            },
+            changeItem: function(Item, Setting) {
+                const ItemSetting = this.remember(Item); if(!ItemSetting) return;
+                Item.HTML.style['font-size'] = ItemSetting.BaseFontSize * Setting.Scale + 'px';
+            },
+            createUI: function() {
+                this.UI = this.createStepsUI([`Font Size`, `文字の大きさ`], [
+                    [`Small`, `小`], [`Large`, `大`]
+                ], [
+                    [`Smallest`, `最小`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smallest"></span>`],
+                    [`Smaller`,   `小`,  `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-smaller"></span>`],
+                    [`Default`,  `標準`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-medium"></span>`],
+                    [`Larger`,    `大`,  `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-larger"></span>`],
+                    [`Largest`,  `最大`, `<span class="bibi-icon bibi-icon-fontsize bibi-icon-fontsize-largest"></span>`]
+                ]);
+            }
+        }).setScalePerStep(S['fontsize-scale-per-step']);
+    }
+    // =========================================================================================================================
     E.dispatch('bibi:prepared-textsetter');
     TextSetter.initialize();
     E.dispatch('bibi:created-textsetter');

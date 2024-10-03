@@ -156,44 +156,59 @@
 // [ja] ５種のフォントサイズ変更アイコンすべてに適用される共通スタイル
 @mixin GENERALICON__FontSize-Common() {
 	&:before {
-		content: "title";
-		top: 1px;
+		& {
+			font-weight: bold;
+			line-height: 1;
+		}
+		html.default-lang-ja & {
+			content: "あ";
+			font-family: inherit;
+			top: .05em;
+		}
+		html:not(.default-lang-ja) & {
+			content: "A";
+			font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Verdana", "Segoe UI", "SegoeUI", "Noto Sans", 'Roboto', sans-serif;
+		}
 	}
 }
 
 // [ja] ５種のフォントサイズ変更アイコンの font-size 値を同一比率で段階づけするためにここだけで使っている関数。使用しなくても構いません。
-@function LOCAL__GENERALICON__FontSize__pow($SCOPED__Size) {
-	$SCOPED__FontSize: 10px;  @if $SCOPED__Size > 1 { @for $i from 1 through ($SCOPED__Size - 1) { $SCOPED__FontSize: $SCOPED__FontSize * 1.28; } }
-	@return $SCOPED__FontSize;
+@function LOCAL__GENERALICON__FontSize__pow($SCOPED__Pow) {
+	@return 14px * pow(1.25, $SCOPED__Pow);
 }
 
 @mixin GENERALICON__FontSize-Largest() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize__pow(5);
+		// content: "大";
+		font-size: LOCAL__GENERALICON__FontSize__pow( 2);
 	}
 }
 
 @mixin GENERALICON__FontSize-Larger() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize__pow(4);
+		// content: "大";
+		font-size: LOCAL__GENERALICON__FontSize__pow( 1);
 	}
 }
 
 @mixin GENERALICON__FontSize-Medium() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize__pow(3);
+		// content: "中";
+		font-size: LOCAL__GENERALICON__FontSize__pow( 0);
 	}
 }
 
 @mixin GENERALICON__FontSize-Smaller() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize__pow(2);
+		// content: "小";
+		font-size: LOCAL__GENERALICON__FontSize__pow(-1);
 	}
 }
 
 @mixin GENERALICON__FontSize-Smallest() {
 	&:before {
-		font-size: LOCAL__GENERALICON__FontSize__pow(1);
+		// content: "小";
+		font-size: LOCAL__GENERALICON__FontSize__pow(-2);
 	}
 }
 
