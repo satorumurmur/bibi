@@ -5070,6 +5070,78 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
         }).setScalePerStep(S['fontsize-scale-per-step']);
     }
     // =========================================================================================================================
+    if(S['use-linespacing-setter']) {
+        TextSetter.x({
+            Name: 'LineSpacing', IsResizer: true,
+            prepare: function() {
+                this.REAP.prepare('line-height', (Sty, Pro, Val) => !Number.isNaN(parseFloat(Val)) || Val == 'normal' ? Val : '');
+            },
+            processItemBefore: function(Item) {
+                const HTMLComStyle = getComputedStyle(Item.HTML);
+                const REmPx = parseFloat(HTMLComStyle['font-size']);
+                const RLhPx = HTMLComStyle['line-height'] == 'normal' ? REmPx : parseFloat(HTMLComStyle['line-height']);
+                const RLh = RLhPx / REmPx;
+                const NLh = (() => {
+                    const HTMLAttStyleText = Item.HTML.getAttribute('style');
+                    Object.assign(Item.HTML.style, { 'font-size': '1rem', 'line-height': '1rlh' });
+                    const                          { 'font-size': UADFsV, 'line-height': UADLhV } = HTMLComStyle;
+                    HTMLAttStyleText ? Item.HTML.setAttribute('style', HTMLAttStyleText) : Item.HTML.removeAttribute('style');
+                    return                             parseFloat(UADLhV)  /  parseFloat(UADFsV);
+                })();
+                this.memorize(Item, {
+                    RLhPx, RLh, NLh, getRLh: function(LhV, FsV, Item) {
+                        if(/\.?\d+px$/.test(LhV)    ) return                   parseFloat(LhV)       / this.RLhPx;
+                        if( /\.?\d+%$/.test(LhV)    ) return parseFloat(FsV) * parseFloat(LhV) / 100 / this.RLhPx;
+                        if(   !Number.isNaN(LhV * 1)) return parseFloat(FsV) *            LhV        / this.RLhPx;
+                        /**/                          return parseFloat(FsV) *      this.NLh         / this.RLhPx;
+                    },
+                    ToBePrepared: new Map()
+                });
+            },
+            processItemCSSRule: function(Item, Rule, CSSStyle) {
+                this.REAP.reap('line-height', Rule, Item); // exclude table elements with { Not: 'html,table,thead,tbody,tfoot,th,td' } ...? 
+            },
+            processItemElement: function(Item, Ele, AttStyle, ComStyle) {
+                if(Ele == Item.HTML) return;
+                if(this.REAP.isAffected('line-height', Ele, Item)) {
+                    const ItemSetting = this.remember(Item);
+                    let Val = (AttStyle.getPropertyPriority('line-height') == 'important' ? AttStyle : ComStyle)['line-height'];
+                    const RLh = ItemSetting.getRLh(Val, ComStyle['font-size'], Item);
+                    Val = RLh + 'rlh';
+                    const PEle = Ele.parentElement;
+                    if(PEle) {
+                        const PComStyle = getComputedStyle(PEle);
+                        if(RLh == ItemSetting.getRLh(PComStyle['line-height'], PComStyle['font-size'], Item)) Val = '1lh';
+                    }
+                    ItemSetting.ToBePrepared.set(Ele, Val);
+                }
+            },
+            processItemAfter: function(Item) {
+                const ItemSetting = this.remember(Item);
+                for(const [Ele, Val] of ItemSetting.ToBePrepared.entries()) Ele.style.setProperty('line-height', Val, 'important');
+                ItemSetting.ToBePrepared.clear();
+                delete ItemSetting.ToBePrepared;
+                Item.HTML.style['line-height'] = ItemSetting.RLh;
+            },
+            changeItem: function(Item, Setting) {
+                const ItemSetting = this.remember(Item); if(!ItemSetting) return;
+                Item.HTML.style['line-height'] = ItemSetting.RLh * Setting.Scale;
+            },
+            createUI: function() {
+                const TextLineShapes = (TLS => `<span class="bibi-shape bibi-shape-textlines">${ TLS + TLS + TLS + TLS + TLS + TLS + TLS + TLS }</span>`)(`<span class="bibi-shape bibi-shape-textline"></span>`);
+                this.UI = this.createStepsUI([`Line Spacing`, `行間`], [
+                    [`Narrow`, `狭い`], [`Wide`, `広い`]
+                ], [
+                    [`Narrowest`, `最小`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrowest">${ TextLineShapes }</span>`],
+                    [`Narrower`,  `狭い`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-narrower">${ TextLineShapes }</span>`],
+                    [`Default`,   `標準`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-medium">${ TextLineShapes }</span>`],
+                    [`Wider`,     `広い`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-wider">${ TextLineShapes }</span>`],
+                    [`Widest`,    `最大`, `<span class="bibi-icon bibi-icon-linespacing bibi-icon-linespacing-widest">${ TextLineShapes }</span>`]
+                ]);
+            }
+        }).setScalePerStep(S['linespacing-scale-per-step']);
+    }
+    // =========================================================================================================================
     E.dispatch('bibi:prepared-textsetter');
     TextSetter.initialize();
     E.dispatch('bibi:created-textsetter');

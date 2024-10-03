@@ -333,13 +333,13 @@
 }
 
 
-// - "Line Height" Icons in Subpanels
+// - "Line Spacing" (Line Height / Leading) Icons in Subpanels
 // --------------------------------------------------------------------------------
 
 .bibi-icon-linespacing { @include SPECIALICON__LineSpacing-Common();
-	&-narrowest  { @include SPECIALICON__LineSpacing-Narrowest(); }
-	&-narrower   { @include SPECIALICON__LineSpacing-Narrower(); }
-	&-medium  { @include SPECIALICON__LineSpacing-Medium(); }
-	&-wider  { @include SPECIALICON__LineSpacing-Wider(); }
-	&-widest { @include SPECIALICON__LineSpacing-Widest(); }
+	&-narrowest { @include SPECIALICON__LineSpacing-Narrowest(); }
+	&-narrower  { @include SPECIALICON__LineSpacing-Narrower(); }
+	&-medium    { @include SPECIALICON__LineSpacing-Medium(); }
+	&-wider     { @include SPECIALICON__LineSpacing-Wider(); }
+	&-widest    { @include SPECIALICON__LineSpacing-Widest(); }
 }
