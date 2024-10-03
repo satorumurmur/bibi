@@ -1037,7 +1037,7 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         sML.forEach(getOPFElementsByTagNameIn(_Spine, 'itemref'))(ItemRef => {
             const IDRef = ItemRef.getAttribute('idref'); if(!IDRef) return false;
             const Source = Manifest[SourcePaths[IDRef]]; if(!Source) return false;
-            const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true', /*TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },*/
+            const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true', style: { width: '100vw', height: '100vh' },/*TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); },*/
                 IsItem: true,
                 Source: Source,
                 Type: O.getItemType(Source['media-type']),
@@ -1851,13 +1851,12 @@ R.layOutSpread = (Spread, Opt = {}) => new Promise(resolve => {
 });
 
 
-R.layOutItem = (Item) => new Promise(resolve => {
-    E.dispatch('bibi:is-going-to:lay-out-item', Item);
-    (Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item)).then(Item => {
-        E.dispatch('bibi:laid-out-item', Item);
-        resolve(Item);
-    });
-});
+R.layOutItem = async (Item) => {
+    await E.dispatch('bibi:is-going-to:lay-out-item', Item);
+    await (Item.Reflowable ? R.renderReflowableItem(Item) : R.renderPrePaginatedItem(Item));
+    await E.dispatch('bibi:laid-out-item', Item);
+    return Item;
+};
 
 
 R.renderReflowableItem = (Item) => new Promise(resolve => {
@@ -4661,6 +4660,367 @@ I.PoweredBy = { create: () => {
 
 
 I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
+    // =========================================================================================================================
+    const TextSetter = I.TextSetter = {
+        Not: 'script,style,br,img,iframe,source,audio,video,picture,svg,math,ruby,rb,rp,rt,rtc',
+        distillSettings: (Settings, Opt) => { if(!Settings || typeof Settings != 'object') return null;
+            const DistilledSettings = {};
+            return Object.keys(Settings).filter(SetterName => {
+                const Setter = TextSetter.X.get(SetterName); if(!Setter) return false;
+                const Setting = Setter.distillSetting(Settings[SetterName], Opt); if(!Setting) return false;
+                DistilledSettings[SetterName] = Setting; return true;
+            }).length ? DistilledSettings : null;
+        },
+        onPrepared: () => {
+            [SETTER, ...TextSetter.X.values()].forEach(Setter => Setter.prepare?.());
+        },
+        forEachCSSRuleOf: (Item, fn) => O.forEachCSSRuleOf(Item.contentDocument, fn),
+        forEachElementOf: (Item, fn) => Item.contentDocument.querySelectorAll(`html,body,body *:not(${ TextSetter.Not })`).forEach(fn),
+        ItemProcessingParts: {
+            //          On       Setter         Arguments
+            // -------------------------------------------------------------------------------
+            /**/ BeforeAll     : 0, // Class // Item
+            /**/       Before  : 1, // each* // Item
+            /**/       CSSRule : 1, // each* // Item, CSSRule, CSSRule.style
+            /**/ BeforeMiddle  : 0, // Class // Item
+            /**/       Middle  : 1, // each* // Item
+            /**/  AfterMiddle  : 0, // Class // Item
+            /**/       Element : 1, // each* // Item, Ele, Ele.style, getComputedStyle(Ele)
+            /**/       After   : 1, // each* // Item
+            /**/  AfterAll     : 0  // Class // Item
+        },
+        onPostprocessedItem: function(Item) {
+            if(Item.PrePaginated || Item.Source.External) return Promise.resolve(); 
+            return Promise.allSettled(Object.keys(this.ItemProcessingParts).map(Part => {
+                const ProcessName = 'processItem' + Part;
+                if(!this.ItemProcessingParts[Part]) {
+                    if(SETTER[ProcessName]) return SETTER[ProcessName](Item);
+                } else {
+                    const Setters = new Set([...TextSetter.X.values()].filter(Setter => Setter[ProcessName]));
+                    if(Setters.size) {
+                        const process = (...Args) => Setters.forEach(Setter => Setter[ProcessName](Item, ...Args));
+                        switch(Part) {
+                            case 'CSSRule': return TextSetter.forEachCSSRuleOf(Item, Rule => process(Rule, Rule.style                       ));
+                            case 'Element': return TextSetter.forEachElementOf(Item,  Ele => process( Ele,  Ele.style, getComputedStyle(Ele)));
+                                   default: return                                           process(                                       ) ;
+                        }
+                    }
+                }
+                return Promise.resolve();
+            }));
+        },
+        onLoadedBook: () => {
+            [...TextSetter.X.values(), SETTER].forEach(Setter => Setter.tidy?.());
+        },
+        change: (Settings, ActionsBeforeAfter) => new Promise(resolve => { if(B.PrePaginated) return resolve();
+            Settings = TextSetter.distillSettings(Settings, { Changeable: true });
+            if(!Settings) return resolve();
+            if(TextSetter.Changing) return resolve();
+            TextSetter.Changing = 'Changing';
+            const SetterNames = Object.keys(Settings);
+            SetterNames.forEach(SetterName => E.dispatch('bibi:changes-' + SetterName.toLowerCase(), Settings[SetterName]));
+            // ^-- E.dispatch('bibi:changes-fontsize', Settings.FontSize), E.dispatch('bibi:changes-linespacing', Settings.LineSpacing), E.dispatch('bibi:changes-flowdirection', Settings.FlowDirection)
+            if(TextSetter.Subpanel) TextSetter.Subpanel.busy(true);
+            if(typeof ActionsBeforeAfter?.before == 'function') ActionsBeforeAfter.before();
+            setTimeout(() => R.layOutBook({
+                before: () => TextSetter.rebind(Settings, { SettingsAreDistilled: true, Async: true }),
+                Reset: true,
+                ResetOnlyContent: !Settings.FlowDirection,
+                DoNotCloseUtilities: true,
+                NoNotification: true,
+                Delay: 33
+            }).then(() => {
+                SetterNames.forEach(SetterName => E.dispatch('bibi:changed-' + SetterName.toLowerCase(), Settings[SetterName]));
+                // ^-- E.dispatch('bibi:changed-fontsize', Settings.FontSize), E.dispatch('bibi:changed-linespacing', Settings.LineSpacing), E.dispatch('bibi:changed-flowdirection', Settings.FlowDirection)
+                if(typeof ActionsBeforeAfter?.after == 'function') ActionsBeforeAfter.after();
+                if(TextSetter.Subpanel) TextSetter.Subpanel.busy(false);
+                delete TextSetter.Changing;
+                resolve(Settings);
+            }), 88);
+        }),
+        rebind: (Settings, Opt) => {
+            if(B.PrePaginated) return Promise.resolve();
+            if(!Opt?.SettingsAreDistilled) Settings = TextSetter.distillSettings(Settings, { Changeable: true });
+            if(!Settings) return Promise.resolve();
+            const Setters = Object.keys(Settings).map(SetterName => TextSetter.X.get(SetterName));
+            Setters.forEach(Setter => { const Setting = Settings[Setter.Name];
+                if(Setter.changeAtFirst) Setter.changeAtFirst(Setting);
+                if(Setter.UI?.care) Setter.UI.care(Setting);
+                if(S['keep-settings']) I.Oven.Biscuits.memorize('Book', { [Setter.Name]: Setting });
+                Object.assign(Setter.Setting, Setting);
+            });
+            if(Opt?.Async) return Promise.resolve() // ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeBeforeItems ? Setter.changeBeforeItems(Settings[Setter.Name]) : undefined)))  ))
+                .then(() => Promise.all(R.Items.map    (Item => Promise.all(Setters.map    (Setter => new Promise(r => r(Setter.changeItem        ? Setter.changeItem(Item,  Settings[Setter.Name]) : undefined)))))))
+                .then(() => Promise.all(                                    Setters.map    (Setter => new Promise(r => r(Setter.changeAfterItems  ? Setter.changeAfterItems( Settings[Setter.Name]) : undefined)))  ));
+            else { // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                                                                            Setters.forEach(Setter =>                    Setter.changeBeforeItems ? Setter.changeBeforeItems(Settings[Setter.Name]) : undefined  )    ;
+                                        R.Items.forEach(Item =>             Setters.forEach(Setter =>                    Setter.changeItem        ? Setter.changeItem(Item,  Settings[Setter.Name]) : undefined  ) )  ;
+                                                                            Setters.forEach(Setter =>                    Setter.changeAfterItems  ? Setter.changeAfterItems( Settings[Setter.Name]) : undefined  )    ;
+            } // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        },
+        createSubpanel: () => TextSetter.Subpanel = I.createSubpanel({ id: 'bibi-subpanel_textsetter',
+            Opener: I.Menu.R.addButtonGroup({/* Lively: true, */ id: 'bibi-buttongroup_textsetter' }).addButton({
+                Type: 'toggle',
+                Labels: {
+                    default: { default: `Change Text Setting`,     ja: `テキスト表示を調整` },
+                    active:  { default: `Close Text Setting Menu`, ja: `テキスト表示調整メニューを閉じる` }
+                },
+                Icon: `<span class="bibi-icon bibi-icon-textsetter"></span>`,
+                Help: true
+            }),
+            open: () => {},
+            busy: (Busy) => TextSetter.Subpanel.Sections?.forEach(Section => Section.ButtonGroups?.forEach(ButtonGroup => ButtonGroup.Busy = Busy))
+        }),
+        discardSubpanel: () => {
+            const Subpanel = TextSetter.Subpanel;
+            O.Body.removeChild(Subpanel);
+            I.Subpanels = I.Subpanels.filter(Sp => Sp != Subpanel);
+            const OpenerButtonGroup = I.Menu.R.removeChild(Subpanel.Opener.ButtonGroup);
+            I.Menu.R.ButtonGroups = I.Menu.R.ButtonGroups.filter(BG => BG != OpenerButtonGroup);
+            delete TextSetter.Subpanel;
+        },
+        initialize: () => {
+            E.bind('bibi:prepared', () => TextSetter.onPrepared());
+            E.bind('bibi:postprocessed-item', Item => TextSetter.onPostprocessedItem(Item));
+            E.bind('bibi:loaded-book', () => TextSetter.onLoadedBook());
+            if(S['keep-settings']) E.bind('bibi:loaded-book', () => {
+                const BookBiscuits = I.Oven.Biscuits.remember('Book'); if(!BookBiscuits) return;
+                const Settings = TextSetter.distillSettings(BookBiscuits); if(!Settings) return;
+                TextSetter.rebind(Settings, { SettingsAreDistilled: true, Async: false });
+                // Bibi.StartOption.resetter();
+            });
+            if(S['use-textsetter-ui']) E.bind('bibi:loaded-book', () => {
+                TextSetter.createSubpanel();
+                TextSetter.X.forEach(Setter => Setter.createUI?.());
+                if(!TextSetter.Subpanel.Sections?.length) TextSetter.discardSubpanel();
+            });
+        },
+        // -----------------------------------------------------------------------------------------------------------------
+        X: new Map(), x: (Setter) => {
+            if(typeof Setter.Name != 'string' || !Setter.Name || TextSetter.X.has(Setter.Name)) return null;
+            Setter = !Setter.IsResizer ? new SETTER(Setter) : new RESIZER(Setter);
+            TextSetter.X.set(Setter.Name, Setter);
+            return Setter;
+        }
+    };
+    // =========================================================================================================================
+    class SETTER {
+        static Setters = new Map();
+        Settings = new Map();
+        constructor(Setter) {
+            SETTER.Setters.set(Setter.Name, this);
+            this.Setting = this.Settings.set(this, Setter.Setting || {}).get(this);
+            Object.assign(this, Setter);
+            this.initialize?.();
+        };
+        distillSetting(Setting, Opt) {
+            return typeof Setting != 'object' || !Setting ? null : !Opt?.Changeable ? Setting : null;
+        };
+        memorize(Ele, NewSettings) {
+            const TheSettings = this.Settings.get(Ele) || this.Settings.set(Ele, {}).get(Ele);
+            Object.assign(TheSettings, NewSettings);
+            return TheSettings;
+        };
+        remember(Ele, SettingName) {
+            if(SettingName) return this.Settings.get(Ele)?.[SettingName];
+            return this.Settings.get(Ele);
+        };
+        static forEachSetter(fn) {
+            return Promise.allSettled([...SETTER.Setters.values()].map(Setter => fn(Setter)));
+        };
+        static prepare() {
+            SETTER.forEachSetter(Setter => Setter.REAP = new REAP(Setter));
+        };
+        static processItemAfterAll(Item) {
+            SETTER.forEachSetter(Setter => Setter.REAP.clearItemHarvests(Item)); REAP.clearItemCache(Item);
+        };
+        static tidy() {
+            SETTER.forEachSetter(Setter => Setter.REAP.clearHarvests().then(() => delete Setter.REAP)); REAP.clearCache();
+        };
+    };
+    // -----------------------------------------------------------------------------------------------------------------
+    class RESIZER extends SETTER {
+        constructor(Setter) { super(Object.assign(Setter, { Setting: Object.assign({ Step: 0, Scale: 1, ScalePerStep: 1.25 }, Setter.Setting || {}) })); };
+        setScalePerStep(ScalePerStep) { if(Number.isFinite(ScalePerStep) && ScalePerStep > 1) this.Setting.ScalePerStep = ScalePerStep; };
+        getScaleFromStep(Step) {
+            return Math.pow(this.Setting.ScalePerStep, Step);
+        };
+        getStepFromScale(Scale) {
+            if(Scale == 1) return 0;
+            let Step = 0; const SpS = this.Setting.ScalePerStep;
+            if(Scale < 1) while(Step-- > -2 && (Scale *= SpS) < 1);
+            else          while(Step++ <  2 && (Scale /= SpS) > 1);
+            return Scale == 1 ? Step : undefined;
+        };
+        distillSetting(Setting, Opt) {
+            if(typeof Setting == 'string') switch(Setting) {
+                case 'default': Setting = { Step: 0, Scale: 1 }; break;
+                default: return null;
+            }
+            else if(Number.isFinite(Setting)) Setting = { Scale: Setting };
+            else if(typeof Setting != 'object' || !Setting) return null;
+            let Step  = Number.isInteger(Setting.Step *= 1)                      ? sML.limitMinMax(Setting.Step, -2, 2) : undefined;
+            let Scale = Number.isFinite(Setting.Scale *= 1) && Setting.Scale > 0 ?                 Setting.Scale        : undefined;
+            if(Step === undefined) { if(Scale === undefined) return null;
+                Step = this.getStepFromScale(Scale);
+            } else if(Scale === undefined)
+                Scale = this.getScaleFromStep(Step);
+            return !Opt?.Changeable || Scale != this.Setting.Scale ? { Step: Step, Scale: Scale } : null;
+        };
+        createStepsUI(SectionLabels, MinMaxLabels, ButtonLabelsIcons) {
+            const Setter = this;
+            const UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: SectionLabels[0], ja: SectionLabels[1] } } });
+            UI.addButtonGroup({ Type: 'Steps',
+                MinLabels: { default: { default: MinMaxLabels[0][0], ja: MinMaxLabels[0][1] } },
+                MaxLabels: { default: { default: MinMaxLabels[1][0], ja: MinMaxLabels[1][1] } },
+                Buttons: (action => {
+                    const Buttons = [];
+                    for(let i = 0; i < 5; i++) Buttons.push({ Setting: { Step: i - 2 }, Labels: { default: { default: ButtonLabelsIcons[i][0], ja: ButtonLabelsIcons[i][1] } }, Icon: ButtonLabelsIcons[i][2], action: action });
+                    return Buttons;
+                })(function() { TextSetter.change({ [Setter.Name]: this.Setting }) })
+            });
+            UI.care = (Setting) => UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Button.Setting.Step != Setting.Step ? 'default' : 'active'));
+            UI.care(this.Setting);
+            return UI;
+        };
+    };
+    // -----------------------------------------------------------------------------------------------------------------
+    class REAP { // Rules-Elements Association around Properties
+        Harvests = new Map();
+        static Cache = new Map(); // Shared across all Setters. (Items -> Selectors -> Elements)
+        static Setters = new Set();
+        constructor(Setter) {
+            REAP.Setters.add(this.Setter = Setter);
+        };
+        static extractValue(Sty, Pro, Val) { return Val || ''; };
+        prepare(Pro_s, extractValue) {
+            this.Harvests.set(Pro_s, {
+                   RulesOfItems: new Map(),
+                ElementsOfItems: new Map(),
+                ElementsOfRules: new Map(),
+                   extractValue
+            });
+        };
+        static ownerItemOf(Rule) {
+            let Current = Rule, Parent = null;
+            while(!Current.documentElement) {
+                Parent = Current.parentStyleSheet || Current.ownerRule || Current.ownerNode || Current.ownerDocument;
+                if(Parent) Current = Parent; else break;
+            } 
+            return Current.documentElement?.Item;
+        };
+        reap(Pro_s, Rule, Item = REAP.ownerItemOf(Rule)) {
+            const Sel = Rule.selectorText;
+            let Eles = REAP.Cache.get(Item)?.get(Sel);
+            if(Eles?.size == 0) return;
+            if(!this.isAffecting(Pro_s, Rule)) return;
+            if(!Eles) {
+                try        { Eles = new Set(Item.contentDocument.querySelectorAll(/* `*:is(${ */ Sel /* }):not(${ TextSetter.Not })` */)); }
+                catch(Err) { Eles = new Set(); }
+                (REAP.Cache.get(Item) || REAP.Cache.set(Item, new Map()).get(Item)).set(Sel, Eles);
+            }
+            if(Eles?.size) {
+                const { RulesOfItems, ElementsOfItems, ElementsOfRules } = this.Harvests.get(Pro_s);
+                (RulesOfItems.get(Item) || RulesOfItems.set(Item, new Set()).get(Item)).add(Rule);
+                const ElementsOfItem = (ElementsOfItems.get(Item) || ElementsOfItems.set(Item, new Set()).get(Item));
+                const ElementsOfRule = (ElementsOfRules.get(Rule) || ElementsOfRules.set(Rule, new Set()).get(Rule));
+                for(const Ele of Eles) ElementsOfItem.add(Ele), ElementsOfRule.add(Ele);
+            }
+        };
+        isAffecting(Pro_s, RuleOrEle) { const Sty = RuleOrEle.style;
+            const extractValue = this.Harvests.get(Pro_s)?.extractValue || REAP.extractValue;
+            if(typeof Pro_s == 'string') return    !!extractValue(Sty, Pro_s, Sty[Pro_s]);
+            else for(const Pro of Pro_s.values()) if(extractValue(Sty, Pro,   Sty[Pro  ])) return true;
+            return false;
+        };
+        isAffected(Pro_s, Ele, Item = Ele.ownerDocument.documentElement.Item, IsInline) {
+            const isAffectedInline = this.isAffecting(Pro_s, Ele);
+            if(isAffectedInline || IsInline) return isAffectedInline;
+            // return this.Harvests.get(Pro_s)?.Elements.has(Ele);
+            return this.Harvests.get(Pro_s)?.ElementsOfItems.get(Item)?.has(Ele) || false;
+        };
+        clearItemHarvests(Item) {
+            return new Promise(resolve => setTimeout(() => {
+                for(const { RulesOfItems, ElementsOfItems, ElementsOfRules } of this.Harvests.values()) {
+                    const Rules = RulesOfItems.get(Item);
+                    if(Rules) {
+                        for(const Rule of Rules.values()) ElementsOfRules.delete(Rule);
+                        Rules.clear(); RulesOfItems.delete(Item);
+                    }
+                    ElementsOfItems.get(Item)?.clear(); ElementsOfItems.delete(Item);
+                }
+                resolve();
+            }, 0));
+        };
+        clearHarvests() {
+            return new Promise(resolve => setTimeout(() => {
+                for(const HarvestsOfProperty of this.Harvests.values()) {
+                    const { RulesOfItems, ElementsOfItems, ElementsOfRules } = HarvestsOfProperty;
+                    for(const Rules of    RulesOfItems.values()) Rules.clear();    RulesOfItems.clear();
+                    for(const  Eles of ElementsOfItems.values())  Eles.clear(); ElementsOfItems.clear();
+                    for(const  Eles of ElementsOfRules.values())  Eles.clear(); ElementsOfRules.clear();
+                    Object.keys(HarvestsOfProperty).forEach(Key => delete HarvestsOfProperty[Key]);
+                }
+                this.Harvests.clear();
+                resolve();
+            }, 0));
+        };
+        static clearItemCache(Item) {
+            return new Promise(resolve => setTimeout(() => {
+                const ElesOfSels = REAP.Cache.get(Item);
+                if(ElesOfSels) {
+                    for(const Eles of ElesOfSels.values()) Eles.clear();
+                    ElesOfSels.clear();
+                    REAP.Cache.delete(Item);
+                }
+                resolve();
+            }, 0));
+        };
+        static clearCache() {
+            return new Promise(resolve => setTimeout(() => {
+                for(const ElesOfSels of REAP.Cache.values()) {
+                    for(const Eles of ElesOfSels.values()) Eles.clear();
+                    ElesOfSels.clear();
+                }
+                REAP.Cache.clear();
+                resolve();
+            }, 0));
+        };
+        // async log() {
+        //     if(!this.Harvests.size) return;
+        //     const StylesOfRulesOfItem = new Map();
+        //     for(const [Pro_s, { RulesOfItems, ElementsOfItems, ElementsOfRules, extractValue }] of this.Harvests.entries()) {
+        //         for(const [Item, Rules] of RulesOfItems.entries()) {
+        //             const StylesOfRules = StylesOfRulesOfItem.get(Item) || StylesOfRulesOfItem.set(Item, new Map()).get(Item);
+        //             for(const Rule of Rules.values()) {
+        //                 const Styles = StylesOfRules.get(Rule) || StylesOfRules.set(Rule, new Set()).get(Rule);
+        //                 (typeof Pro_s == 'string' ? [Pro_s] : Pro_s).forEach(Pro => {
+        //                     const Val = (extractValue || REAP.extractValue)(Rule.style, Pro, Rule.style[Pro]);
+        //                     if(Val) Styles.add(`${ Pro }: ${ Val + (Rule.style.getPropertyPriority(Pro) == 'important' ? ' !important' : '') };`);
+        //                 });
+        //             }
+        //         }
+        //     }
+        //     if(StylesOfRulesOfItem.size) {
+        //         const Logs = [];
+        //         for(const [Item, StylesOfRules] of StylesOfRulesOfItem.entries()) {
+        //             const ItemLogs = Logs[Item.Index] = [];
+        //             ItemLogs.push([`Item[${ String(Item.Index).padStart(3, '0') }] ${ this.Setter.Name }`, '================================================']);
+        //             for(const [Rule, Styles] of StylesOfRules) {
+        //                 const Sel = Rule.selectorText, Eles = REAP.Cache.get(Item).get(Sel);
+        //                 if(!Eles) console.log(this.Setter.Name, Rule, ElesOfSels)
+        //                 ItemLogs.push([[Sel, '{', ...Styles, '}'].join(' '), [...Eles]]);
+        //             }
+        //         }
+        //         Logs.filter(Boolean).forEach(ItemLogs => ItemLogs.forEach(Log => console.log(...Log)));
+        //     }
+        // };
+    };
+    // =========================================================================================================================
+    E.dispatch('bibi:prepared-textsetter');
+    TextSetter.initialize();
+    E.dispatch('bibi:created-textsetter');
 }};
 
 
