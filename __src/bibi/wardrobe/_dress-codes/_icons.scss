@@ -83,12 +83,11 @@
 		content: "=";
 		display: block;
 		position: absolute;
-		@include offset(22%, auto, auto, 22%);
+		@include offset(12%, auto, auto, 23%);
 		margin: auto;
 		@include size(1em);
 		font-size: 1em * math.div(13, 18);
 		line-height: 1;
-		html.macOS.Safari & { top: 16%; }
 		.bibi-button.active &, .bibi-button.active.hover & { transform: translateX(4px) scale(0) !important; }
 	}
 }
