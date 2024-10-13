@@ -5195,21 +5195,21 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 if(!this.Setting.CentralizedFrontispieceItems.has(Item) && ItemSettings.DefaultLineAxis != this.Setting.DefaultLineAxis) this.Setting.OrthogonalItems.add(Item);
             },
             distillSetting: function(Setting, Opt) {
-                if(typeof Setting == 'string') switch(Setting) {
-                    case 'default':    Setting = { Default: true  }; break;
-                    case 'alt':        Setting = { Default: false }; break;
-                    case 'toggle':     Setting = { Default: !this.Setting.Default }; break;
-                    case 'horizontal':
-                    case 'vertical':   Setting = { Default: getLineAxis(this.Setting.DefaultWritingMode) == Setting }; break;
+                let Mode = (() => { switch(typeof Setting) {
+                    case 'object': return typeof Setting?.Mode == 'string' ? Setting.Mode : '';
+                    case 'string': return Setting;
+                    default: return '';
+                }})();
+                switch(Mode) {
+                    case 'default': case 'uniformize': case 'alt': break;
+                    case     'horizontal': case     'vertical': Mode = this.Setting.DefaultLineAxis == Mode               ? 'default'    : 'alt'; break;
+                    case 'uni-horizontal': case 'uni-vertical': Mode = this.Setting.DefaultLineAxis == Mode.split('-')[1] ? 'uniformize' : 'alt'; break;
                     default: return null;
                 }
-                else if(typeof Setting != 'object' || !Setting) return null;
-                const Default = Setting.Default !== undefined ? !!Setting.Default : Setting.Alt !== undefined ? !Setting.Alt : Setting.Toggle !== undefined ? !this.Setting.Default : undefined;
-                if(Default === undefined) return null;
-                return !Opt?.Changeable || Default != this.Setting.Default ? { Default: Default } : null;
+                return !Opt?.Changeable || Mode != this.Setting.Mode ? { Mode } : null;
             },
             changeBeforeItems: function(Setting) {
-                if(Setting.Default) {
+                if(Setting.Mode != 'alt') {
                     B.WritingMode = this.Setting.DefaultWritingMode;
                     B.PPD         = this.Setting.DefaultPageProgressionDirection;
                 } else switch(this.Setting.DefaultWritingMode) {
@@ -5222,7 +5222,11 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
             changeItem: function(Item, Setting) {
                 if(Item.Outsourcing) return;
                 const ItemSettings = this.getItemSettings(Item); if(!ItemSettings) return;
-                if(Setting.Default || this.Setting.OrthogonalItems.has(Item)) { // Default/Revert
+                if((() => { switch(Setting.Mode) {
+                    case 'default':    return true;
+                    case 'uniformize': return !this.Setting.OrthogonalItems.has(Item);
+                    case 'alt':        return  this.Setting.OrthogonalItems.has(Item);
+                }})()) { // Default/Revert
                     // writing-mode
                     ItemSettings.FlowRootElements.forEach(Ele => {
                         const DefaultValue = this.getElementSetting(Ele, 'DefaultWritingMode');
@@ -5244,7 +5248,7 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                                                   : /^tb-/.test(BookDefaultWritingMode) ? 'horizontal-tb' : BookDefaultWritingMode.replace(/^(..)-tb$/, 'vertical-$1') :
                         (Ele) => {
                             const EleLineAxis = getLineAxis(this.getElementSetting(Ele, 'DefaultWritingMode'));
-                            if(EleLineAxis != BookDefaultLineAxis) return;
+                            if(Setting.Mode == 'alt' && EleLineAxis != BookDefaultLineAxis) return '';
                             return EleLineAxis == 'horizontal' ? 'vertical-rl' : 'horizontal-tb'; // horizontal-tb => vertical-rl, vertical-rl/lr => horizontal-tb
                         };
                     ItemSettings.FlowRootElements.forEach(Ele => {
@@ -5264,24 +5268,28 @@ I.TextSetter = { create: () => { if(!S['use-textsetter']) return;
                 E.dispatch('bibi:changed-view', S.RVM);
             },
             createUI: function() {
-                const Setter = this;
-                const IsH = getLineAxis(this.Setting.DefaultWritingMode) == 'horizontal';
-                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: IsH ? { default: `Writing Mode`, ja: `横書き／縦書き` } : { default: `Writing Mode`, ja: `縦書き／横書き` } } });
+                const SetterName = this.Name, SetterNameLC = SetterName.toLowerCase();
+                const HVs = [['horizontal', 'vertical'], ['Horizontal', 'Vertical'], ['横書き', '縦書き']];
+                if(this.Setting.DefaultLineAxis == 'vertical') HVs.forEach((HV, i) => HVs[i] = HV.reverse());
+                const _mkUp = (TN, [BCNs, SCNPs], InnerHTML = '') => `<${ TN } class="${ BCNs.reverse().reduce((SCNPs, BCN) => ['', ...SCNPs].map(SCNP => [BCN, SCNP].filter(Boolean).join('-')), SCNPs).join(' ') }">${ InnerHTML }</${ TN }>`;
+                this.UI = TextSetter.Subpanel.addSection({ Labels: { default: { default: `Writing Mode`, ja: HVs[2].join(`／`) } } });
                 this.UI.addButtonGroup({
                     ButtonType: 'radio',
-                    Buttons: [
-                        { Setting: { Default: true } },
-                        { Setting: { Default: false } }
-                    ].map((Button, i) => Object.assign(Button, {
-                        Icon: `<span class="bibi-icon bibi-icon-flowdirection ${ !!i == !!IsH ? 'bibi-icon-flowdirection-to-vertical' : 'bibi-icon-flowdirection-to-horizontal' }"></span>`,
-                        Labels: { default: !i ?
-                            (IsH ? { default:         `Horizontal Writing <small>(Default)</small>`, ja: `横書き<small>（標準）</small>` } : { default:             `Vertical Writing <small>(Default)</small>`, ja: `縦書き<small>（標準）</small>` }) :
-                            (IsH ? { default: `Change to Vertical Writing`,                          ja: `縦書きに変更`                  } : { default: `Change to Horizontal Writing`,                          ja: `横書きに変更`                  })
-                        },
-                        action: function() { TextSetter.change({ [Setter.Name]: this.Setting }); }
+                    Buttons: [...new Map(this.Setting.OrthogonalItems.size ? [
+                        [    'default', { IconHVs: [HVs[0][0], HVs[0][1]], Label: { default: HVs[1][0] + `<small>: partially ${ HVs[1][1] } (Default)</small>`, ja: HVs[2][0] + `<small>・部分的に${ HVs[2][1] }（標準）</small>` } } ],
+                        [ 'uniformize', { IconHVs: [HVs[0][0], HVs[0][0]], Label: { default: HVs[1][0] + `<small>: completely</small>`,                         ja: HVs[2][0] + `に統一`                                          } } ],
+                        [        'alt', { IconHVs: [HVs[0][1], HVs[0][1]], Label: { default: HVs[1][1] + `<small>: completely</small>`,                         ja: HVs[2][1] + `に統一`                                          } } ]
+                    ] : [
+                        [    'default', { IconHVs: [HVs[0][0]           ], Label: { default: HVs[1][0] + `<small> (Default)</small>`,                           ja: HVs[2][0] + `<small>（標準）</small>`                         } } ],
+                        [        'alt', { IconHVs: [HVs[0][1]           ], Label: { default: HVs[1][1],                                                         ja: HVs[2][1]                                                     } } ]
+                    ])].map(([Mode, { IconHVs, Label }]) => ({
+                        Setting: { Mode },
+                        Icon: _mkUp('span', [['bibi-icon', SetterNameLC], [Mode, IconHVs.join('-')]], IconHVs.map((HV, i) => _mkUp('span', [['bibi-icon-symbol', SetterNameLC], [!i ? 'main' : 'part', HV]])).join('')),
+                        Labels: { default: Label },
+                        action: function() { TextSetter.change({ [SetterName]: this.Setting }); }
                     }))
                 });
-                this.UI.care = (Setting) => this.UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Button.Setting.Default != Setting.Default ? 'default' : 'active'));
+                this.UI.care = (Setting) => this.UI.ButtonGroups[0].Buttons.forEach(Button => I.setUIState(Button, Button.Setting.Mode != Setting.Mode ? 'default' : 'active'));
                 this.UI.care(this.Setting);
             }
         });

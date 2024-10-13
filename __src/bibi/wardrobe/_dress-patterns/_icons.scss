@@ -247,7 +247,6 @@
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
 .bibi-icon-fontsize,
-.bibi-icon-flowdirection,
 .bibi-icon-bookmark { @include GENERALICON__Common(); }
 
 
@@ -287,7 +286,6 @@
 .bibi-icon-toggle-fullscreen,
 .bibi-icon-open-newwindow,
 .bibi-icon-fontsize,
-.bibi-icon-flowdirection,
 .bibi-icon-bookmark { @include GENERALICON__CommonInSubpanels(); }
 
 .bibi-icon-full-breadth-layout { @include GENERALICON__UseFullBreadth(); }
@@ -303,10 +301,6 @@
 	&-larger   { @include GENERALICON__FontSize-Larger(); }
 	&-largest  { @include GENERALICON__FontSize-Largest(); }
 }
-
-.bibi-icon-flowdirection { @include GENERALICON__FlowDirection(); }
-	.bibi-icon-flowdirection-vertical   { @include GENERALICON__FlowDirection-Vertical(); }
-	.bibi-icon-flowdirection-horizontal { @include GENERALICON__FlowDirection-Horizontal(); }
 
 .bibi-icon-bookmark { @include GENERALICON__Bookmark-Common(); }
 	.bibi-icon-add-a-bookmark { @include GENERALICON__AddABookmark(); }
@@ -348,4 +342,20 @@
 	&-medium    { @include SPECIALICON__LineSpacing-Medium(); }
 	&-wider     { @include SPECIALICON__LineSpacing-Wider(); }
 	&-widest    { @include SPECIALICON__LineSpacing-Widest(); }
+}
+
+
+// - "Flow Direction" Icons in Subpanels
+// --------------------------------------------------------------------------------
+
+.bibi-icon-flowdirection { @include SPECIALICON__FlowDirection-Common();
+	&-default               { @include SPECIALICON__FlowDirection-Default(); }
+	&-uniformize            { @include SPECIALICON__FlowDirection-Uniformize(); }
+	&-alt                   { @include SPECIALICON__FlowDirection-Alt(); }
+	&-horizontal            { @include SPECIALICON__FlowDirection-Horizontal(); }
+	&-horizontal-horizontal { @include SPECIALICON__FlowDirection-Horizontal-Horizontal(); }
+	&-horizontal-vertical   { @include SPECIALICON__FlowDirection-Horizontal-Vertical(); }
+	&-vertical              { @include SPECIALICON__FlowDirection-Vertical(); }
+	&-vertical-horizontal   { @include SPECIALICON__FlowDirection-Vertical-Horizontal(); }
+	&-vertical-vertical     { @include SPECIALICON__FlowDirection-Vertical-Vertical(); }
 }
