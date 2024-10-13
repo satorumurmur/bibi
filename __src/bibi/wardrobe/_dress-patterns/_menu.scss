@@ -65,7 +65,7 @@ div#bibi-menu-l, .bibi-extramenu-l {
 	ul {
 		&:first-child       { padding-left: $Menu-ButtonGroup_Padding; }
 		&:not(:first-child) { padding-left: $Menu-ButtonGroup_Padding$Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }
-		li {
+		&:not(.bibi-buttongroup-tiled) li {
 			&:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
 		}
 	}
@@ -75,7 +75,7 @@ div#bibi-menu-r, .bibi-extramenu-r {
 	ul {
 		&:first-child       { padding-right: $Menu-ButtonGroup_Padding; }
 		&:not(:first-child) { padding-right: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width; }
-		li {
+		&:not(.bibi-buttongroup-tiled) li {
 			&:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
 		}
 	}

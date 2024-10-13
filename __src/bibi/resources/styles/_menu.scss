@@ -209,7 +209,7 @@ div#bibi-menu-l, .bibi-extramenu-l {
 			// @____Bibi:Dress__('-') padding-left: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width;
 			&:before { left: 0; }
 		}
-		li {
+		&:not(.bibi-buttongroup-tiled) li {
 			&:first-child { margin-left: 0; }
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-left: $Menu-ButtonGroup-Button_Margin; }
 		}
@@ -228,7 +228,7 @@ div#bibi-menu-r, .bibi-extramenu-r {
 			// @____Bibi:Dress__('-') padding-right: $Menu-ButtonGroup_Padding + $Menu-ButtonGroup-Separator_Width;
 			&:before { right: 0; }
 		}
-		li {
+		&:not(.bibi-buttongroup-tiled) li {
 			&:first-child { margin-right: 0; }
 			// @____Bibi:Dress__('-') &:not(:first-child) { margin-right: $Menu-ButtonGroup-Button_Margin; }
 		}
