@@ -23,7 +23,7 @@
 	color: $SCOPED__Icon-BorderColor;
 	border-color: $SCOPED__Icon-BorderColor;
 	background-color: $SCOPED__Icon-BackgroundColor;
-	&:before, &:after {
+	.bibi-icon-symbol, &:before, &:after {
 		color: $SCOPED__Icon-Font_PaintColor;
 		@if $SCOPED__Icon-Font_OutlineColor != transparent { @include Icon-OutlineColor("text", $SCOPED__Icon-Font_OutlineColor); }
 	}
@@ -49,7 +49,7 @@
 
 .bibi-icon {
 	.bibi-button.disabled & {
-		&:before, &:after { opacity: 0.33 !important; }
+		.bibi-icon-symbol, &:before, &:after { opacity: 0.33 !important; }
 	}
 	#bibi-menu &,
 	.bibi-extramenu & {
@@ -61,8 +61,8 @@
 			$Menu-Icon_BackgroundColor,
 			$Menu-Icon_BorderColor
 		);
-		&, &:before, &:after, * { transition: $Menu-Icon_Transition; }
-		&:before, &:after { transform: $Menu-Icon_Transform; }
+		&, .bibi-icon-symbol, &:before, &:after, * { transition: $Menu-Icon_Transition; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Menu-Icon_Transform; }
 	}
 	#bibi-slider & {
 		@include Icon-Colouring(
@@ -73,8 +73,8 @@
 			$Slider-Icon_BackgroundColor,
 			$Slider-Icon_BorderColor
 		);
-		&, &:before, &:after, * { transition: $Slider-Icon_Transition; }
-		&:before, &:after { transform: $Slider-Icon_Transform; }
+		&, .bibi-icon-symbol, &:before, &:after, * { transition: $Slider-Icon_Transition; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Slider-Icon_Transform; }
 	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
@@ -85,8 +85,8 @@
 			$Subpanel-Icon_BackgroundColor,
 			$Subpanel-Icon_BorderColor
 		);
-		&, &:before, &:after, * { transition: $Subpanel-Icon_Transition; }
-		&:before, &:after { transform: $Subpanel-Icon_Transform; }
+		&, .bibi-icon-symbol, &:before, &:after, * { transition: $Subpanel-Icon_Transition; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Subpanel-Icon_Transform; }
 	}
 }
 
@@ -105,7 +105,7 @@
 			$Menu-Icon_BackgroundColor__Hover,
 			$Menu-Icon_BorderColor__Hover
 		);
-		&:before, &:after { transform: $Menu-Icon_Transform__Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Menu-Icon_Transform__Hover; }
 	}
 	#bibi-slider & {
 		@include Icon-Colouring(
@@ -116,7 +116,7 @@
 			$Slider-Icon_BackgroundColor__Hover,
 			$Slider-Icon_BorderColor__Hover
 		);
-		&:before, &:after { transform: $Slider-Icon_Transform__Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Slider-Icon_Transform__Hover; }
 	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
@@ -127,7 +127,7 @@
 			$Subpanel-Icon_BackgroundColor__Hover,
 			$Subpanel-Icon_BorderColor__Hover
 		);
-		&:before, &:after { transform: $Subpanel-Icon_Transform__Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Subpanel-Icon_Transform__Hover; }
 	}
 }}}
 
@@ -146,7 +146,7 @@
 			$Menu-Icon_BackgroundColor__Active,
 			$Menu-Icon_BorderColor__Active
 		);
-		&:before, &:after { transform: $Menu-Icon_Transform__Active; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Menu-Icon_Transform__Active; }
 	}
 	#bibi-slider & {
 		@include Icon-Colouring(
@@ -157,7 +157,7 @@
 			$Slider-Icon_BackgroundColor__Active,
 			$Slider-Icon_BorderColor__Active
 		);
-		&:before, &:after { transform: $Slider-Icon_Transform__Active; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Slider-Icon_Transform__Active; }
 	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
@@ -168,7 +168,7 @@
 			$Subpanel-Icon_BackgroundColor__Active,
 			$Subpanel-Icon_BorderColor__Active
 		);
-		&:before, &:after { transform: $Subpanel-Icon_Transform__Active; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Subpanel-Icon_Transform__Active; }
 	}
 }}
 
@@ -187,7 +187,7 @@
 			$Menu-Icon_BackgroundColor__Active-Hover,
 			$Menu-Icon_BorderColor__Active-Hover
 		);
-		&:before, &:after { transform: $Menu-Icon_Transform__Active-Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Menu-Icon_Transform__Active-Hover; }
 	}
 	#bibi-slider & {
 		@include Icon-Colouring(
@@ -198,7 +198,7 @@
 			$Slider-Icon_BackgroundColor__Active-Hover,
 			$Slider-Icon_BorderColor__Active-Hover
 		);
-		&:before, &:after { transform: $Slider-Icon_Transform__Active-Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Slider-Icon_Transform__Active-Hover; }
 	}
 	.bibi-subpanel & {
 		@include Icon-Colouring(
@@ -209,7 +209,7 @@
 			$Subpanel-Icon_BackgroundColor__Active-Hover,
 			$Subpanel-Icon_BorderColor__Active-Hover
 		);
-		&:before, &:after { transform: $Subpanel-Icon_Transform__Active-Hover; }
+		.bibi-icon-symbol, &:before, &:after { transform: $Subpanel-Icon_Transform__Active-Hover; }
 	}
 }}}}
 
@@ -219,9 +219,9 @@
 
 .bibi-button.disabled .bibi-icon {
 	#bibi-menu      &,
-	.bibi-extramenu & { &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
-	#bibi-slider    & { &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
-	.bibi-subpanel  & { &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
+	.bibi-extramenu & { .bibi-icon-symbol, &:before, &:after { opacity: $Menu-Icon_Opacity__Disabled     !important; } }
+	#bibi-slider    & { .bibi-icon-symbol, &:before, &:after { opacity: $Slider-Icon_Opacity__Disabled   !important; } }
+	.bibi-subpanel  & { .bibi-icon-symbol, &:before, &:after { opacity: $Subpanel-Icon_Opacity__Disabled !important; } }
 }
 
 
